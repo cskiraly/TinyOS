@@ -1,4 +1,4 @@
-/// $Id: PlatformM.nc,v 1.1.2.1 2005-03-10 03:37:12 mturon Exp $
+// $Id: PlatformLeds.nc,v 1.1.2.1 2005-03-17 16:52:00 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -26,17 +26,18 @@
 
 includes hardware;
 
-module PlatformM
+configuration PlatformLeds
 {
-  provides interface Init;
-
+    provides interface GeneralIO as Led1;
+    provides interface GeneralIO as Led2;
+    provides interface GeneralIO as Led3;
 }
 implementation
 {
-  command error_t Init.init()
-  {
-    TOSH_SET_PIN_DIRECTIONS();
-    return SUCCESS;
-  }
+    components HPLGeneralIO;
+    
+    Led1 = HPLGeneralIO.PortA0;  // Pin A0 = Yellow LED
+    Led2 = HPLGeneralIO.PortA1;  // Pin A1 = Green LED
+    Led3 = HPLGeneralIO.PortA2;  // Pin A2 = Red LED
 }
 
