@@ -1,4 +1,4 @@
-// $Id: NullM.nc,v 1.1.2.1 2005-01-24 22:14:49 cssharp Exp $
+// $Id: NullM.nc,v 1.1.2.2 2005-02-10 01:23:17 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -34,11 +34,12 @@
 module NullM
 {
   uses interface Boot;
+  uses interface Leds;
 }
 implementation
 {
-  event void Boot.booted()
-  {
+  event void Boot.booted()  {
+    call Leds.redOn();
   }
 }
 

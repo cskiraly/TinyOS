@@ -1,4 +1,4 @@
-// $Id: NullC.nc,v 1.1.2.1 2005-01-24 22:14:49 cssharp Exp $
+// $Id: NullC.nc,v 1.1.2.2 2005-02-10 01:23:17 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -31,12 +31,12 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-configuration NullC
-{
-}
-implementation
-{
-  components Main, NullM;
-  Main.Boot -> NullM;
+configuration NullC{}
+implementation {
+  components Main, NullM, LedsC;
+
+  Main.Boot <- NullM;
+  
+  NullM -> LedsC.Leds;
 }
 
