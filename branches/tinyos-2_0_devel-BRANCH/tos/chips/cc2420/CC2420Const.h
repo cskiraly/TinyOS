@@ -1,4 +1,4 @@
-// $Id: CC2420Const.h,v 1.1.2.1 2005-01-20 22:07:47 jpolastre Exp $
+// $Id: CC2420Const.h,v 1.1.2.2 2005-02-08 23:17:31 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,29 +22,29 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  */
 
 #ifndef _CC2420CONST_H
 #define _CC2420CONST_H
 
-typedef network_struct TOSRadioHeader {
-  network_uint8_t length;
-  network_uint16_t fcf;
-  network_uint8_t dsn;
-  network_uint16_t destpan;
-  network_uint16_t addr;
+typedef nx_struct TOSRadioHeader {
+  nx_uint8_t length;
+  nx_uint16_t fcf;
+  nx_uint8_t dsn;
+  nx_uint16_t destpan;
+  nx_uint16_t addr;
 } TOSRadioHeader;
 
-typedef network_struct TOSRadioFooter {
+typedef nx_struct TOSRadioFooter {
 } TOSRadioFooter;
 
-typedef network_struct TOSRadioMetadata {
-  network_uint8_t strength;
-  network_uint8_t lqi;
-  network_bool crc;
-  network_bool ack;
-  network_uint16_t time;
+typedef nx_struct TOSRadioMetadata {
+  nx_uint8_t strength;
+  nx_uint8_t lqi;
+  nx_bool crc;
+  nx_bool ack;
+  nx_uint16_t time;
 } TOSRadioMetadata;
 
 // times for the CC2420 in microseconds
