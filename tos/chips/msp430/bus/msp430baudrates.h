@@ -1,4 +1,4 @@
-//$Id: msp430baudrates.h,v 1.1.2.1 2005-02-25 19:35:25 jpolastre Exp $
+//$Id: msp430baudrates.h,v 1.1.2.1 2005-03-16 01:23:56 jpolastre Exp $
 //@author Vlado Handziski <handzisk@tkn.tu-berlin.de>
 
 #ifndef _H_msp430baudrates_h
