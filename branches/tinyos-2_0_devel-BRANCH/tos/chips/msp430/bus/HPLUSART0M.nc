@@ -30,8 +30,8 @@
  * Implementation of USART0 lowlevel functionality - stateless.
  * Setting a mode will by default disable USART-Interrupts.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-03-15 23:31:42 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-03-16 07:09:28 $
  * @author: Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author: Joe Polastre
  * ========================================================================
@@ -67,7 +67,7 @@ implementation
   }
   
   TOSH_SIGNAL(UART0TX_VECTOR) {
-    if (call USARTControl.isI2C() == SUCCESS)
+    if (call USARTControl.isI2C() == TRUE)
       signal HPLI2CInterrupt.fired();
     else
       signal USARTData.txDone();
