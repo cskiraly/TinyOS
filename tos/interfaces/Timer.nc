@@ -1,4 +1,4 @@
-//$Id: Timer.nc,v 1.1.2.2 2005-02-10 01:25:20 scipio Exp $
+//$Id: Timer.nc,v 1.1.2.3 2005-03-10 09:57:37 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,14 +26,21 @@
 
 includes Timer;
 
-interface Timer<frequency_tag> {
-  command error_t setPeriodic( uint32_t dt );
-  command error_t setOneShot( uint32_t dt );
-  command error_t stop();
-  command bool isSet();
-  command bool isPeriodic();
+interface Timer<frequency_tag>
+{
+  // basic interface
+  command void startPeriodicNow( uint32_t dt );
+  command void startOneShotNow( uint32_t dt );
+  command void stop();
+  event void fired( uint32_t when, uint32_t numMissed );
+
+  // extended interface
+  command bool isRunning();
   command bool isOneShot();
-  command uint32_t getPeriod();
-  event void fired();
+  command void startPeriodic( uint32_t t0, uint32_t dt );
+  command void startOneShot( uint32_t t0, uint32_t dt );
+  command uint32_t getNow();
+  command uint32_t gett0();
+  command uint32_t getdt();
 }
 
