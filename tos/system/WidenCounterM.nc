@@ -1,4 +1,4 @@
-//$Id: WidenCounterM.nc,v 1.1.2.1 2005-02-08 23:04:34 cssharp Exp $
+//$Id: WidenCounterM.nc,v 1.1.2.2 2005-02-11 02:12:57 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -25,20 +25,24 @@
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
 generic module WidenCounterM(
-  typename from_size_type,
-  typename to_size_type,
-  typename upper_count_type,
-  typename frequency_tag )
+  typedef to_size_type,
+  typedef from_size_type,
+  typedef upper_count_type,
+  typedef frequency_tag )
 {
-  provides interface Counter<to_size_type,frequency_tag> as Counter;
-  uses interface Counter<from_size_type,frequency_tag> as CounterFrom;
+  provides interface CounterBase<to_size_type,frequency_tag> as Counter;
+  uses interface CounterBase<from_size_type,frequency_tag> as CounterFrom;
+  uses interface MathOps<to_size_type> as MathTo;
+  uses interface MathOps<from_size_type> as MathFrom;
+  uses interface MathOps<upper_count_type> as MathUpper;
 }
 implementation
 {
-  upper_count_type m_upper = 0;
+  upper_count_type m_upper;
 
   async command to_size_type Counter.get()
   {
+    to_size_type rv;
     atomic
     {
       upper_count_type high = m_upper;
@@ -51,11 +55,16 @@ implementation
 	// m_upper will be handled normally as soon as the out-most atomic
 	// block is left unless Clear.clearOverflow is called in the interim.
 	// This is all together the expected behavior.
-	high++;
+	high = call MathUpper.inc( high );
 	low = call CounterFrom.get();
       }
-      return (((to_size_type)high) << (sizeof(from_size_type)*8)) | low;
+      {
+	to_size_type high_to = call MathTo.cast_to( call MathUpper.cast_from( high ) );
+	to_size_type low_to = call MathTo.cast_to( call MathFrom.cast_from( low ) );
+	rv = call MathTo.or( call MathTo.sl( high_to, sizeof(from_size_type)*8 ), low_to );
+      }
     }
+    return rv;
   }
 
   // isOverflowPending only makes sense when it's already part of a larger
@@ -64,7 +73,7 @@ implementation
 
   async command bool Counter.isOverflowPending()
   {
-    return (m_upper == (upper_count_type)-1)
+    return call MathUpper.eq( m_upper, call MathUpper.cast_to(-1) )
 	   && call CounterFrom.isOverflowPending();
   }
 
@@ -72,13 +81,13 @@ implementation
   // include the inner atomic block to ensure consistent internal state just in
   // case someone calls it non-atomically.
 
-  async command bool Counter.clearOverflow()
+  async command void Counter.clearOverflow()
   {
     atomic
     {
       if( call Counter.isOverflowPending() )
       {
-	m_upper++;
+	m_upper = call MathUpper.inc(m_upper);
 	call CounterFrom.clearOverflow();
       }
     }
@@ -86,9 +95,12 @@ implementation
 
   async event void CounterFrom.overflow()
   {
-    m_upper++;
-    if( m_upper == 0 )
-      signal Counter.overflow();
+    atomic
+    {
+      m_upper = call MathUpper.inc(m_upper);
+      if( call MathUpper.eq( m_upper, call MathUpper.cast_to(0) ) )
+	signal Counter.overflow();
+    }
   }
 }
 
