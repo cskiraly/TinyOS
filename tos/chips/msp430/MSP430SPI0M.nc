@@ -1,4 +1,4 @@
-// $Id: MSP430SPI0M.nc,v 1.1.2.1 2005-02-25 19:35:26 jpolastre Exp $
+// $Id: MSP430SPI0M.nc,v 1.1.2.2 2005-03-13 23:43:07 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  * 
  * Primitives for accessing the hardware I2C module on MSP430 microcontrollers.
  * This module assumes that the bus is available and reserved prior to the
@@ -67,6 +67,7 @@ implementation
   command error_t Init.init() {
     state = SPI_IDLE;
     busOwner = 0xFF;
+    return SUCCESS;
   }
 
   command error_t SPIPacket.send[uint8_t id](uint8_t* _txbuffer, uint8_t* _rxbuffer, uint8_t _length) {
@@ -121,9 +122,10 @@ implementation
     }
   }
   
-  uint8_t oneByte(uint8_t txbyte, bool rx) {
+  inline uint8_t oneByte(uint8_t txbyte, bool rx) {
     // clear the rx buffer
-    call USARTControl.rx();
+    if (rx)
+      call USARTControl.rx();
     // send the tx data
     call USARTControl.tx(txbyte);
     // check if a byte needs to be received
@@ -192,7 +194,7 @@ implementation
       }
     }
 
-    while(!(call USARTControl.isTxEmpty())) ;
+    while((call USARTControl.isTxEmpty()) != SUCCESS) ;
     post taskSendDone();
 
     return SUCCESS;
