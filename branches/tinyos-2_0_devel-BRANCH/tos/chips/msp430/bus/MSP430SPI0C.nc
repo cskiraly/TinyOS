@@ -1,4 +1,4 @@
-// $Id: MSP430SPI0C.nc,v 1.1.2.1 2005-03-15 23:31:42 jpolastre Exp $
+// $Id: MSP430SPI0C.nc,v 1.1.2.2 2005-03-17 06:16:20 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  *
  * Interfaces for controlling the MSP430 USART0 port in SPI master mode
  */
@@ -47,5 +47,6 @@ implementation
   BusArbitration = SPIM;
 
   SPIM.USARTControl -> HPLUSART0C.HPLUSARTControl;
+  SPIM.USARTFeedback -> HPLUSART0C.HPLUSARTFeedback;
   SPIM.LowerBusArbitration -> HPLUSART0C.BusArbitration;
 }

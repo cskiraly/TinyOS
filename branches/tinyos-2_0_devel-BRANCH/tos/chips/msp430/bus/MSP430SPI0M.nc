@@ -1,4 +1,4 @@
-// $Id: MSP430SPI0M.nc,v 1.1.2.1 2005-03-15 23:31:42 jpolastre Exp $
+// $Id: MSP430SPI0M.nc,v 1.1.2.2 2005-03-17 06:16:20 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  * 
  * Primitives for accessing the hardware SPI module on MSP430 microcontrollers.
  * This module assumes the bus has been reserved and checks that the bus
@@ -45,6 +45,7 @@ module MSP430SPI0M
   }
   uses {
     interface HPLUSARTControl as USARTControl;
+    interface HPLUSARTFeedback as USARTFeedback;
     interface BusArbitration as LowerBusArbitration[uint8_t token];
   }
 }
@@ -57,13 +58,12 @@ implementation
   uint8_t rxstart;
   uint8_t rxend;
   uint8_t length;
-  uint8_t count;
+  norace uint8_t txpos;
+  uint8_t rxpos;
   uint8_t state;
   uint8_t busOwner;
 
   enum { SPI_IDLE, SPI_SIMPLE, SPI_ADVANCED, SPI_ADVANCED_PROXY };
-
-  uint8_t oneByte(uint8_t txbyte, bool rx);
 
   command error_t Init.init() {
     state = SPI_IDLE;
@@ -100,9 +100,12 @@ implementation
     uint8_t _rxstart;
     uint8_t _rxend;
     uint8_t _length;
+    uint8_t _busowner;
+    error_t _result;
 
     atomic {
       _state = state;
+      _result = SUCCESS;
 
       _txbuf = txbuf;
       _rxbuf = rxbuf;
@@ -111,36 +114,25 @@ implementation
       _rxstart = rxstart;
       _rxend = rxend;
       _length = length;
+      _busowner = busOwner;
+
+      // was the transmission interrupted?
+      if ((rxpos < length) || (txpos < length))
+	_result = FAIL;
 
       state = SPI_IDLE;
     }
 
     if (_state == SPI_ADVANCED) {
-      signal SPIPacketAdvanced.sendDone[busOwner](_txbuf, _txstart, _txend, _rxbuf, _rxstart, _rxend, _length, SUCCESS);
+      signal SPIPacketAdvanced.sendDone[_busowner](_txbuf, _txstart, _txend, _rxbuf, _rxstart, _rxend, _length, _result);
     }
     else if (_state == SPI_ADVANCED_PROXY) {
-      signal SPIPacket.sendDone[busOwner](_txbuf, _rxbuf, _length, SUCCESS);
+      signal SPIPacket.sendDone[_busowner](_txbuf, _rxbuf, _length, _result);
     }
   }
   
-  inline uint8_t oneByte(uint8_t txbyte, bool rx) {
-    // clear the rx buffer
-    if (rx)
-      call USARTControl.rx();
-    // send the tx data
-    call USARTControl.tx(txbyte);
-    // check if a byte needs to be received
-    if (!rx)
-      while(!(call USARTControl.isTxIntrPending())) ;
-    else {
-      while(!(call USARTControl.isRxIntrPending())) ;
-      return call USARTControl.rx();
-    }
-    return 0;
-  }
-
   command error_t SPIPacketAdvanced.send[uint8_t id](uint8_t* _txbuffer, uint8_t _txstart, uint8_t _txend, uint8_t* _rxbuffer, uint8_t _rxstart, uint8_t _rxend, uint8_t _length) {
-    uint8_t _state, i;
+    uint8_t _state;
 
     // check if this owner has the bus
     atomic {
@@ -149,7 +141,6 @@ implementation
     }
 
     atomic {
-      count = 0;
       txbuf = _txbuffer;
       rxbuf = _rxbuffer;
       txstart = _txstart;
@@ -157,6 +148,8 @@ implementation
       rxstart = _rxstart;
       rxend = _rxend;
       length = _length;
+      rxpos = 0;
+      txpos = 0;
 
       _state = state;
       if (_state == SPI_IDLE)
@@ -170,35 +163,74 @@ implementation
     if (_state != SPI_IDLE)
       return FAIL;
 
-    // initialization of the bus
-    call USARTControl.isTxIntrPending();
-    call USARTControl.rx();
+    call USARTControl.enableRxTxIntr();
 
-    for (i = 0; i < length; i++) {  
-      if ((i >= txstart) && (i < txend)) {
-	if ((i >= rxstart) && (i < rxend)) {
-	  rxbuf[count] = oneByte(txbuf[i], TRUE);
-	  count++;
-	}
-	else {
-	  oneByte(txbuf[i], FALSE);
-	}
-      }
-      else {
-	if ((i >= rxstart) && (i < rxend)) {
-	  rxbuf[count] = oneByte(0, TRUE);
-	  count++;
-	}
-	else {
-	  oneByte(0, FALSE);
-	}
+    // 'txpos' is protected by the state machine, no need for a
+    // race condition warning here, thus 'norace' before txpos above
+    if ((txpos >= txstart) && (txpos < txend)) {
+      atomic {
+	call USARTControl.tx(txbuf[txpos++ - txstart]);
       }
     }
-
-    while((call USARTControl.isTxEmpty()) != SUCCESS) ;
-    post taskSendDone();
-
+    else {
+      atomic {
+	txpos++;
+	call USARTControl.tx(0);
+      }
+    }
     return SUCCESS;
+  }
+
+  void rxProcess(uint8_t data) {
+    // are we doing something?  
+    if (state != SPI_IDLE) {
+      // check if an overrun occurred
+      // this should be checked in HPLUSART0M
+      if ((rxpos >= rxstart) && (rxpos < rxend))
+	rxbuf[rxpos - rxstart] = data;
+      rxpos++; 
+      // message received, move on to signalling the caller
+      if (rxpos == length) {	
+	call USARTControl.disableRxIntr();
+	post taskSendDone();
+      }
+    }
+  }
+
+  async event void USARTFeedback.txDone() {
+    // are we doing something?
+    if (state != SPI_IDLE) {
+      // check if the current byte is from the buffer
+      if ((txpos >= txstart) && (txpos < txend)) {
+	call USARTControl.tx(txbuf[txpos++ - txstart]);
+      }
+      else {
+	txpos++;
+	call USARTControl.tx(0);
+      }
+      // try to prevent RX overflow
+      if (rxpos + 1 < txpos) {
+	// wait for the RX handler to catch up with the TX code
+	while (!call USARTControl.isRxIntrPending()) ;
+	rxProcess(call USARTControl.rx());
+      }
+      // if we're done here, disable the interrupt
+      if (txpos == length) {
+	call USARTControl.disableTxIntr();
+      }
+    }
+  }
+
+  async event void USARTFeedback.rxOverflow() {
+    if (state != SPI_IDLE) {
+    call USARTControl.disableTxIntr();
+    call USARTControl.disableRxIntr();
+    }
+    post taskSendDone();
+  }
+
+  async event void USARTFeedback.rxDone(uint8_t data) {
+    rxProcess(data);
   }
 
   default event void SPIPacketAdvanced.sendDone[uint8_t id](uint8_t* _txbuffer, uint8_t _txstart, uint8_t _txend, uint8_t* _rxbuffer, uint8_t _rxstart, uint8_t _rxend, uint8_t _length, error_t _success) { }
