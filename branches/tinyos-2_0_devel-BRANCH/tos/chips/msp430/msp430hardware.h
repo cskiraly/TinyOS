@@ -1,4 +1,4 @@
-// $Id: msp430hardware.h,v 1.1.2.1 2005-01-19 21:32:13 jpolastre Exp $
+// $Id: msp430hardware.h,v 1.1.2.2 2005-02-08 23:00:03 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -112,6 +112,7 @@ to_type func_name(from_type x) { union {from_type f; to_type t;} c = {f:x}; retu
 #define LPM4_bits           SR_SCG1+SR_SCG0+SR_OSCOFF+SR_CPUOFF
 #endif//DONT_REDEFINE_SR_FLAGS
 
+
 #ifdef interrupt
 #undef interrupt
 #endif
@@ -217,14 +218,14 @@ inline void TOSH_sleep() {
   // use MCLK or SMCLK and switch to the lowest LPM that keeps 
   // the required clock(s) running. 
   
-  extern uint8_t TOSH_sched_full;
+  //extern uint8_t TOSH_sched_full;
   extern volatile uint8_t TOSH_sched_free;
   __nesc_atomic_t fInterruptFlags;
   uint16_t LPMode_bits = 0;
   
   fInterruptFlags = __nesc_atomic_start(); 
   
-  if ((LPMode_disabled) || (TOSH_sched_full != TOSH_sched_free)) {
+  if (LPMode_disabled) { // || (TOSH_sched_full != TOSH_sched_free)) {
     __nesc_atomic_end(fInterruptFlags);
     return;
   } else {
@@ -246,6 +247,13 @@ inline void TOSH_sleep() {
   }
   
 }
+
+void __nesc_atomic_sleep()
+{
+  TOSH_sleep(); // XXX fixme XXX
+}
+
+
 
 #define SET_FLAG(port, flag) ((port) |= (flag))
 #define CLR_FLAG(port, flag) ((port) &= ~(flag))

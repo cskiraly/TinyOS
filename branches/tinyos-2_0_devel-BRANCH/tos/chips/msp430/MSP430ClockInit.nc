@@ -1,4 +1,4 @@
-//$Id: CounterM.nc,v 1.1.2.1 2005-01-24 10:07:17 cssharp Exp $
+//$Id: MSP430ClockInit.nc,v 1.1.2.1 2005-02-08 22:59:49 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -22,14 +22,14 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-// The TinyOS Timer interfaces are discussed in TEP 102.
+interface MSP430ClockInit
+{
+  event void initClocks();
+  event void initTimerA();
+  event void initTimerB();
 
-module CounterM
-{
-  // TODO
-}
-implementation
-{
-  // TODO
+  command void defaultInitClocks();
+  command void defaultInitTimerA();
+  command void defaultInitTimerB();
 }
 

@@ -1,4 +1,4 @@
-//$Id: AlarmC.nc,v 1.1.2.1 2005-01-24 10:07:16 cssharp Exp $
+//$Id: AlarmC.nc,v 1.1.2.2 2005-02-08 22:59:49 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -41,9 +41,8 @@ configuration AlarmC
 }
 implementation
 {
-  // TODO, I think there may exist a nice Generic Component to build an
-  // alarm given a hardware resource (as for instance exposed in the
-  // tinyos-1.x MSP430Timer abstraction.
+  components CounterC
+           ;
 }
 
 

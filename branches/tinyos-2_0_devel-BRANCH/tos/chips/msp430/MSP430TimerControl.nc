@@ -1,4 +1,4 @@
-//$Id: CounterC.nc,v 1.1.2.2 2005-02-08 22:59:49 cssharp Exp $
+//$Id: MSP430TimerControl.nc,v 1.1.2.1 2005-02-08 23:00:03 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -21,29 +21,23 @@
  */
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
+//@author Joe Polastre
 
-// The TinyOS Timer interfaces are discussed in TEP 102.
+includes MSP430Timer;
 
-configuration CounterC
+interface MSP430TimerControl
 {
-  provides interface Counter32<TMilli> as Counter32Milli;
-  provides interface Counter<uint32_t,TMilli> as CounterMilli;
-  provides interface Counter<uint16_t,TMilli> as MSP430CounterMilli;
-}
-implementation
-{
-  components MSP430TimerC
-           , new MSP430CounterM(TMilli) as MSP430CounterB
-	   , new WidenCounterM(uint32_t,uint16_t,uint16_t,TMilli) as WidenB
-	   , new CastCounter32(TMilli) as CastB
-	   ;
-  
-  Counter32Milli = CastB.Counter;
-  CounterMilli = WidenB.Counter;
-  MSP430CounterMilli = MSP430CounterB.Counter;
+  async command MSP430CompareControl_t getControl();
+  async command bool isInterruptPending();
+  async command void clearPendingInterrupt();
 
-  CastB.CounterFrom -> WidenB.Counter;
-  WidenB.CounterFrom -> MSP430CounterB.Counter;
-  MSP430CounterB.MSP430Timer -> MSP430TimerC.TimerB;
+  async command void setControl( MSP430CompareControl_t control );
+  async command void setControlAsCompare();
+  async command void setControlAsCapture(bool low_to_high);
+
+  async command void enableEvents();
+  async command void disableEvents();
+  async command bool areEventsEnabled();
+
 }
 

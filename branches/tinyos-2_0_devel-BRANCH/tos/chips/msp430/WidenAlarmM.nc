@@ -1,4 +1,4 @@
-//$Id: CounterC.nc,v 1.1.2.2 2005-02-08 22:59:49 cssharp Exp $
+//$Id: WidenAlarmM.nc,v 1.1.2.1 2005-02-08 23:00:03 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,26 +24,45 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-configuration CounterC
+generic module WidenAlarmM( 
+  typename to_size_type,
+  typename from_size_type,
+  typename frequency_tag )
 {
-  provides interface Counter32<TMilli> as Counter32Milli;
-  provides interface Counter<uint32_t,TMilli> as CounterMilli;
-  provides interface Counter<uint16_t,TMilli> as MSP430CounterMilli;
+  provides interface Alarm<to_size_type,frequency_tag> as Alarm;
+  uses interface Counter<to_size_type,frequency_tag> as Counter;
+  uses interface Alarm<from_size_type,frequency_tag> as AlarmFrom;
 }
 implementation
 {
-  components MSP430TimerC
-           , new MSP430CounterM(TMilli) as MSP430CounterB
-	   , new WidenCounterM(uint32_t,uint16_t,uint16_t,TMilli) as WidenB
-	   , new CastCounter32(TMilli) as CastB
-	   ;
-  
-  Counter32Milli = CastB.Counter;
-  CounterMilli = WidenB.Counter;
-  MSP430CounterMilli = MSP430CounterB.Counter;
+  to_size_type m_alarm = 0;
 
-  CastB.CounterFrom -> WidenB.Counter;
-  WidenB.CounterFrom -> MSP430CounterB.Counter;
-  MSP430CounterB.MSP430Timer -> MSP430TimerC.TimerB;
+  async command uint32_t Alarm.get()
+  {
+    return m_alarm;
+  }
+
+  async command bool Alarm.isSet()
+  {
+    return call AlarmFrom.isSet();
+  }
+
+  async command void Alarm.cancel()
+  {
+    call AlarmFrom.cancel();
+  }
+
+  async command void Alarm.set( to_size_type t0, to_size_type dt )
+  {
+    to_size_type now = call Counter.get();
+    to_size_type remaining = now - t0;
+    m_alarm = t0+dt;
+    //...
+  }
+
+  async event void AlarmFrom.fired()
+  {
+    //not quite, must check upper bytes, signal Alarm.fired();
+  }
 }
 
