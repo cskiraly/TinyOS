@@ -1,4 +1,4 @@
-//$Id: MSP430ClockC.nc,v 1.1.2.2 2005-04-01 08:55:00 cssharp Exp $
+//$Id: MSP430DCOCalibC.nc,v 1.1.2.1 2005-04-01 08:55:00 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -22,18 +22,14 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-configuration MSP430ClockC
+configuration MSP430DCOCalibC
 {
-  provides interface Init;
-  provides interface MSP430ClockInit;
 }
 implementation
 {
-  components MSP430ClockM
-           , MSP430DCOCalibC  //perpetual recalibration with each ACLK overflow
-	   ;
+  components MSP430DCOCalibM, MSP430TimerC;
 
-  Init = MSP430ClockM;
-  MSP430ClockInit = MSP430ClockM;
+  MSP430DCOCalibM.TimerMicro -> MSP430TimerC.TimerA;
+  MSP430DCOCalibM.Timer32khz -> MSP430TimerC.TimerB;
 }
 
