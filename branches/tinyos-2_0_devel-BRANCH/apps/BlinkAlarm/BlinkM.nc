@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.3 2005-03-19 20:59:14 scipio Exp $
+// $Id: BlinkM.nc,v 1.1.2.4 2005-03-21 19:34:30 scipio Exp $
 
 includes Timer;
 
@@ -17,7 +17,7 @@ implementation
   {
     atomic
     {
-      call Leds.led2On();
+      call Leds.led1On();
       m_t0 = call Alarm.now();
       call Alarm.set( m_t0, DELAY_MILLI );
     }
@@ -30,7 +30,7 @@ implementation
       // this use of m_t0 produces a periodic alarm with no frequency skew
       m_t0 += DELAY_MILLI;
       call Alarm.set( m_t0, DELAY_MILLI );
-      call Leds.led1Toggle();
+      call Leds.led0Toggle();
     }
   }
 }

@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.4 2005-03-19 20:59:14 scipio Exp $
+// $Id: BlinkM.nc,v 1.1.2.5 2005-03-21 19:34:27 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -55,17 +55,17 @@ implementation
 
   event void Timer0.fired( uint32_t when, uint32_t numMissed )
   {
-    call Leds.led1Toggle();
+    call Leds.led0Toggle();
   }
   
   event void Timer1.fired( uint32_t when, uint32_t numMissed )
   {
-    call Leds.led2Toggle();
+    call Leds.led1Toggle();
   }
   
   event void Timer2.fired( uint32_t when, uint32_t numMissed )
   {
-    call Leds.led3Toggle();
+    call Leds.led2Toggle();
   }
 }
 

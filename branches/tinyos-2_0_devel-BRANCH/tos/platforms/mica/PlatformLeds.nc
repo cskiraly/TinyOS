@@ -1,4 +1,4 @@
-// $Id: PlatformLeds.nc,v 1.1.2.1 2005-03-17 16:52:00 mturon Exp $
+// $Id: PlatformLeds.nc,v 1.1.2.2 2005-03-21 19:34:45 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -28,16 +28,17 @@ includes hardware;
 
 configuration PlatformLeds
 {
+    provides interface GeneralIO as Led0;
     provides interface GeneralIO as Led1;
     provides interface GeneralIO as Led2;
-    provides interface GeneralIO as Led3;
 }
 implementation
 {
     components HPLGeneralIO;
     
-    Led1 = HPLGeneralIO.PortA0;  // Pin A0 = Yellow LED
-    Led2 = HPLGeneralIO.PortA1;  // Pin A1 = Green LED
-    Led3 = HPLGeneralIO.PortA2;  // Pin A2 = Red LED
+    Led0 = HPLGeneralIO.PortA2;  // Pin A2 = Red LED
+    Led1 = HPLGeneralIO.PortA1;  // Pin A1 = Green LED
+    Led2 = HPLGeneralIO.PortA0;  // Pin A0 = Yellow LED
+
 }
 
