@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.1 2005-02-11 02:20:01 cssharp Exp $
+// $Id: BlinkM.nc,v 1.1.2.2 2005-02-26 02:34:35 cssharp Exp $
 
 includes Timer;
 
@@ -6,12 +6,12 @@ module BlinkM
 {
   uses interface Boot;
   uses interface Leds;
-  uses interface Alarm<T32khz> as Alarm;
+  uses interface Alarm<TMilli> as Alarm;
 }
 implementation
 {
   uint32_t m_t0;
-  enum { DELAY_32MICRO = 8192 };
+  enum { DELAY_MILLI = 512 };
 
   event void Boot.booted()
   {
@@ -19,7 +19,7 @@ implementation
     {
       call Leds.greenOn();
       m_t0 = call Alarm.now();
-      call Alarm.set( m_t0, DELAY_32MICRO );
+      call Alarm.set( m_t0, DELAY_MILLI );
     }
   }
 
@@ -28,8 +28,8 @@ implementation
     atomic
     {
       // this use of m_t0 produces a periodic alarm with no frequency skew
-      m_t0 += DELAY_32MICRO;
-      call Alarm.set( m_t0, DELAY_32MICRO );
+      m_t0 += DELAY_MILLI;
+      call Alarm.set( m_t0, DELAY_MILLI );
       call Leds.redToggle();
     }
   }
