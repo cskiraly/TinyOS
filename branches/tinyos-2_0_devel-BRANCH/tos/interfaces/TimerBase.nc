@@ -1,4 +1,4 @@
-//$Id: CounterBase.nc,v 1.1.2.2 2005-03-10 09:57:37 cssharp Exp $
+//$Id: TimerBase.nc,v 1.1.2.1 2005-03-10 09:57:37 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,11 +26,21 @@
 
 includes Timer;
 
-interface CounterBase<frequency_tag,size_type>
+interface TimerBase<frequency_tag,size_type>
 {
-  async command size_type get();
-  async command bool isOverflowPending();
-  async command void clearOverflow();
-  async event void overflow();
+  // basic interface
+  command void startPeriodicNow( size_type dt );
+  command void startOneShotNow( size_type dt );
+  command void stop();
+  event void fired( size_type when, size_type numMissed );
+
+  // extended interface
+  command bool isRunning();
+  command bool isOneShot();
+  command void startPeriodic( size_type t0, size_type dt );
+  command void startOneShot( size_type t0, size_type dt );
+  command size_type getNow();
+  command size_type gett0();
+  command size_type getdt();
 }
 

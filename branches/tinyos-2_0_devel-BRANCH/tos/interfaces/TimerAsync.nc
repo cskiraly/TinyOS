@@ -1,4 +1,4 @@
-//$Id: TimerAsync.nc,v 1.1.2.1 2005-01-24 10:07:18 cssharp Exp $
+//$Id: TimerAsync.nc,v 1.1.2.2 2005-03-10 09:57:37 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,15 +24,23 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
+includes Timer;
+
 interface TimerAsync<frequency_tag>
 {
-  async command result_t setPeriodic( uint32_t dt );
-  async command result_t setOneShot( uint32_t dt );
-  async command result_t stop();
-  async command bool isSet();
-  async command bool isPeriodic();
+  // basic interface
+  async command void startPeriodicNow( uint32_t dt );
+  async command void startOneShotNow( uint32_t dt );
+  async command void stop();
+  async event void fired( uint32_t when, uint32_t numMissed );
+
+  // extended interface
+  async command bool isRunning();
   async command bool isOneShot();
-  async command uint32_t getPeriod();
-  async event void fired();
+  async command void startPeriodic( uint32_t t0, uint32_t dt );
+  async command void startOneShot( uint32_t t0, uint32_t dt );
+  async command uint32_t getNow();
+  async command uint32_t gett0();
+  async command uint32_t getdt();
 }
 
