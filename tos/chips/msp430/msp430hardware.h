@@ -1,4 +1,4 @@
-// $Id: msp430hardware.h,v 1.1.2.5 2005-02-10 01:07:39 cssharp Exp $
+// $Id: msp430hardware.h,v 1.1.2.6 2005-03-14 03:02:13 jpolastre Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -134,11 +134,11 @@ MSP430REG_NORACE2(I2CDCTLnr,I2CDCTL);
 
 // The signal attribute has opposite meaning in msp430-gcc than in avr-gcc
 #define TOSH_SIGNAL(signame) \
-void sig_##signame() __attribute__((interrupt (signame), wakeup, spontaneous, C))
+void sig_##signame() __attribute__((interrupt (signame), wakeup, C))
 
 // TOSH_INTERRUPT allows nested interrupts
 #define TOSH_INTERRUPT(signame) \
-void isr_##signame() __attribute__((interrupt (signame), signal, wakeup, spontaneous, C))
+void isr_##signame() __attribute__((interrupt (signame), signal, wakeup, C))
 
 inline void TOSH_wait(void)
 {
@@ -175,32 +175,32 @@ inline void TOSH_uwait(uint16_t u)
   
 } 
 
-void __nesc_disable_interrupt() __attribute__((spontaneous, C))
+void __nesc_disable_interrupt()
 {
   dint();
   nop();
 }
 
-void __nesc_enable_interrupt() __attribute__((spontaneous, C))
+void __nesc_enable_interrupt()
 {
   eint();
 }
 
-bool are_interrupts_enabled() __attribute__((spontaneous, C))
+bool are_interrupts_enabled()
 {
   return ((READ_SR & SR_GIE) != 0);
 }
 
 typedef bool __nesc_atomic_t;
 
-__nesc_atomic_t __nesc_atomic_start(void) __attribute__((spontaneous, C))
+__nesc_atomic_t __nesc_atomic_start(void)
 {
   __nesc_atomic_t result = are_interrupts_enabled();
   __nesc_disable_interrupt();
   return result;
 }
 
-void __nesc_atomic_end( __nesc_atomic_t reenable_interrupts ) __attribute__((spontaneous, C))
+void __nesc_atomic_end( __nesc_atomic_t reenable_interrupts )
 {
   if( reenable_interrupts )
     __nesc_enable_interrupt();
@@ -263,7 +263,7 @@ inline void TOSH_sleep() {
   }
 }
 
-void __nesc_atomic_sleep() __attribute__((spontaneous, C))
+void __nesc_atomic_sleep()
 {
   TOSH_sleep(); // XXX fixme XXX
 }
