@@ -1,4 +1,4 @@
-// $Id: Boot.nc,v 1.1.2.2 2005-02-08 23:02:12 cssharp Exp $
+// $Id: Boot.nc,v 1.1.2.3 2005-02-10 01:25:20 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -36,8 +36,7 @@
   * @date   January 5 2005
   */ 
 
-interface Boot
-{
+interface Boot {
   event void booted();
 }
 
