@@ -1,4 +1,4 @@
-/// $Id: ATm128Timer16.nc,v 1.1.2.3 2005-01-26 22:31:58 mturon Exp $
+/// $Id: ATm128Timer16Capture.nc,v 1.1.2.1 2005-01-26 22:31:58 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -36,51 +36,20 @@
 
 includes ATm128Timer;
 
-interface ATm128Timer16
+interface ATm128Timer16Capture
 {
-  /// Timer value register: Direct access
+  /// Compare value register: Direct access
   async command uint16_t get();
   async command void     set(uint16_t t);
 
-  /// Capture register: Direct access
-  async command uint16_t getCapture();
-  async command void     setCapture(uint16_t t);
-
-  /// Timer control registers: Direct access
-  async command ATm128TimerCtrlCapture_t getCtrlCompare();
-  async command ATm128TimerCtrlCompare_t getCtrlCapture();
-  async command ATm128TimerCtrlClock_t getCtrlClock();
-
-  async command void setCtrlCompare( ATm128TimerCtrlCapture_t control );
-  async command void setCtrlCapture( ATm128TimerCtrlCompare_t control );
-  async command void setCtrlClock  ( ATm128TimerCtrlClock_t control );
-
-  /// Interrupt mask register: Direct access
-  async command ATm128_ETIMSK_t getInterruptMask();
-  async command void setInterruptMask( ATm128_ETIMSK_t mask);
-
-  /// Interrupt flag register: Direct access
-  async command ATm128_ETIFR_t getInterruptFlags();
-  async command void setInterruptFlags( ATm128_ETIFR_t flags );
-
   /// Interrupt signals
-  async event void overflow();        //<! Signalled on overflow interrupt
-  async event void captured(uint16_t time);
+  async event void captured();           //<! Signalled on compare interrupt
 
   /// Interrupt flag utilites: Bit level set/clr
-  async command void resetCapture();  //<! Clear the capture interrupt flag
-  async command void resetOverflow(); //<! Clear the overflow interrupt flag
-
-  async command void startCapture();  //<! Enable the capture interrupt
-  async command void startOverflow(); //<! Enable the overflow interrupt
-
-  async command void stopCapture();   //<! Turn off capture interrupts
-  async command void stopOverflow();  //<! Turn off overflow interrupts
-
-  async command bool testCapture();   //<! Did capture interrupt occur?
-  async command bool testOverflow();  //<! Did overflow interrupt occur?
-
-  async command bool checkCapture();  //<! Is capture interrupt on?
-  async command bool checkOverflow(); //<! Is overflow interrupt on?
+  async command void reset();         //<! Clear the compare interrupt flag
+  async command void start();         //<! Enable the compare interrupt
+  async command void stop();          //<! Turn off comparee interrupts
+  async command bool test();          //<! Did compare interrupt occur?
+  async command bool check();         //<! Is compareA interrupt on?
 }
 
