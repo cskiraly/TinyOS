@@ -1,4 +1,4 @@
-// $Id: TimerImpl.nc,v 1.1.2.1 2005-01-11 03:33:04 scipio Exp $
+// $Id: TimerImpl.nc,v 1.1.2.2 2005-02-10 01:26:37 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -37,6 +37,8 @@
  * @author Philip Levis
  * @date   January 5 2005
  */ 
+
+includes Timer;
 
 configuration TimerImpl {
   provides {
