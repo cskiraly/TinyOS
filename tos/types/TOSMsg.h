@@ -1,7 +1,7 @@
-typedef nx_struct TOSMsg {
+typedef nx_struct message_t {
   TOSRadioHeader header;
   nx_uint8_t data[TOSH_DATA_LENGTH];
   TOSRadioFooter footer;
   TOSRadioMetadata metadata;
-} TOSMsg;
+} message_t;
 
