@@ -1,4 +1,4 @@
-//$Id: Counter32.nc,v 1.1.2.1 2005-02-08 23:04:29 cssharp Exp $
+//$Id: CounterBase.nc,v 1.1.2.1 2005-02-11 02:00:18 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,11 +24,13 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-interface Counter32<frequency_tag>
+includes Timer;
+
+interface CounterBase<size_type,frequency_tag>
 {
-  async command uint32_t get();
+  async command size_type get();
   async command bool isOverflowPending();
-  async command bool clearOverflow();
+  async command void clearOverflow();
   async event void overflow();
 }
 
