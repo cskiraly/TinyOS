@@ -11,16 +11,18 @@ tools:
 
 packaging:
 - cleanup the tinyos tools story (tinyos-1.x/tools), make into cleanly
-  compilable + installable package (??)
+  compilable + installable package
+    initial setup: Phil B.
 - cleanup our jar story (aka, no more giant CLASSPATH)
   drop useless stuff, merge into single jar?
 - tinyos RPMs should come with compiled .class files (see JRE requirement)
   (alternately, they could all be placed in the single jar file...)
+- source vs binary rpms? (i.e., provide binary-only rpms if possible)
 
 regression testing:
 - from 1.2 (Ion)
 
-TinyOS core:
+TinyOS core (platform-independent):
 - booting (Phil L.)
 - scheduler (Phil L.)
 - routing
@@ -28,6 +30,8 @@ TinyOS core:
 - SNMS (Gil)
 - Deluge (Jonathan)
 - OSKI (Phil L.)
+- protocol stack
+- tinyos 1.x compatibility layer
 
 Apps:
 - tests
@@ -38,52 +42,52 @@ Apps:
 Tutorial:
 - update, write apps, you name it
 
-mica/mica2/mica2dot/micaz:
+mica2/mica2dot/micaz:
 - booting (Martin)
-- adc (Martin)
+- adc (Hu)
 - timer (Martin)
 - storage (David G.)
-- serial id
-- built-in sensors
+- hardware id (Martin)
+- built-in sensors [dropped]
 
 storage:
 - at45db (David G.)
 - stm25p (Jonathan)
+- intel mote (Lama)
 
 csma radio:
-- mica
 - cc1000 (Joe, David G.???)
 - cc2420 (Joe)
+- infineon (TU Berlin)
 
 security:
-- mica, tinysec
 - cc1000, tinysec
 - cc2420
 
 buses:
-- i2c
-- spi
+- i2c (Joe: doc+msp430) (need: other platforms)
+- spi (Joe: doc+msp430) (need: other platforms?)
 - bus sharing/allocation (Joe, Vlado?)
 
 msp430:
-- booting
-- adc
-- timer
+- booting (done)
+- adc (TU Berlin)
+- timer (Cory)
 
 telos a/b:
 - booting
-- serial id (Gil)
+- hardware id (Gil)
 - built-in sensors
 
 eyes:
 - booting
-- serial id
+- hardware id
 
 intel mote 2:
 - booting (Phil B.)
 - timer
 - storage (Lama)
-- serial id
+- hardware id
 
 sensor boards:
 - micasb
