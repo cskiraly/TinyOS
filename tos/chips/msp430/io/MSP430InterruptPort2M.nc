@@ -1,0 +1,145 @@
+//$Id: MSP430InterruptPort2M.nc,v 1.1.2.1 2005-03-15 23:26:49 jpolastre Exp $
+
+/* "Copyright (c) 2000-2005 The Regents of the University of California.  
+ * All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation for any purpose, without fee, and without written agreement
+ * is hereby granted, provided that the above copyright notice, the following
+ * two paragraphs and the author appear in all copies of this software.
+ * 
+ * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
+ * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY
+ * OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
+ */
+
+/**
+ * @author Joe Polastre
+ */
+module MSP430InterruptPort2M
+{
+#ifdef __msp430_have_port2
+  provides interface MSP430Interrupt as Port20;
+  provides interface MSP430Interrupt as Port21;
+  provides interface MSP430Interrupt as Port22;
+  provides interface MSP430Interrupt as Port23;
+  provides interface MSP430Interrupt as Port24;
+  provides interface MSP430Interrupt as Port25;
+  provides interface MSP430Interrupt as Port26;
+  provides interface MSP430Interrupt as Port27;
+#endif
+}
+implementation
+{
+
+#ifdef __msp430_have_port2
+  TOSH_SIGNAL(PORT2_VECTOR)
+  {
+    volatile int n = P2IFG & P2IE;
+
+    if (n & (1 << 0)) { signal Port20.fired(); return; }
+    if (n & (1 << 1)) { signal Port21.fired(); return; }
+    if (n & (1 << 2)) { signal Port22.fired(); return; }
+    if (n & (1 << 3)) { signal Port23.fired(); return; }
+    if (n & (1 << 4)) { signal Port24.fired(); return; }
+    if (n & (1 << 5)) { signal Port25.fired(); return; }
+    if (n & (1 << 6)) { signal Port26.fired(); return; }
+    if (n & (1 << 7)) { signal Port27.fired(); return; }
+  }
+  default async event void Port20.fired() { call Port20.clear(); }
+  default async event void Port21.fired() { call Port21.clear(); }
+  default async event void Port22.fired() { call Port22.clear(); }
+  default async event void Port23.fired() { call Port23.clear(); }
+  default async event void Port24.fired() { call Port24.clear(); }
+  default async event void Port25.fired() { call Port25.clear(); }
+  default async event void Port26.fired() { call Port26.clear(); }
+  default async event void Port27.fired() { call Port27.clear(); }
+  async command void Port20.enable() { atomic P2IE |= (1 << 0); }
+  async command void Port21.enable() { atomic P2IE |= (1 << 1); }
+  async command void Port22.enable() { atomic P2IE |= (1 << 2); }
+  async command void Port23.enable() { atomic P2IE |= (1 << 3); }
+  async command void Port24.enable() { atomic P2IE |= (1 << 4); }
+  async command void Port25.enable() { atomic P2IE |= (1 << 5); }
+  async command void Port26.enable() { atomic P2IE |= (1 << 6); }
+  async command void Port27.enable() { atomic P2IE |= (1 << 7); }
+  async command void Port20.disable() { atomic P2IE &= ~(1 << 0); }
+  async command void Port21.disable() { atomic P2IE &= ~(1 << 1); }
+  async command void Port22.disable() { atomic P2IE &= ~(1 << 2); }
+  async command void Port23.disable() { atomic P2IE &= ~(1 << 3); }
+  async command void Port24.disable() { atomic P2IE &= ~(1 << 4); }
+  async command void Port25.disable() { atomic P2IE &= ~(1 << 5); }
+  async command void Port26.disable() { atomic P2IE &= ~(1 << 6); }
+  async command void Port27.disable() { atomic P2IE &= ~(1 << 7); }
+  async command void Port20.clear() { atomic P2IFG &= ~(1 << 0); }
+  async command void Port21.clear() { atomic P2IFG &= ~(1 << 1); }
+  async command void Port22.clear() { atomic P2IFG &= ~(1 << 2); }
+  async command void Port23.clear() { atomic P2IFG &= ~(1 << 3); }
+  async command void Port24.clear() { atomic P2IFG &= ~(1 << 4); }
+  async command void Port25.clear() { atomic P2IFG &= ~(1 << 5); }
+  async command void Port26.clear() { atomic P2IFG &= ~(1 << 6); }
+  async command void Port27.clear() { atomic P2IFG &= ~(1 << 7); }
+  async command bool Port20.getValue() { bool b; atomic b=(P2IN >> 0) & 1; return b; }
+  async command bool Port21.getValue() { bool b; atomic b=(P2IN >> 1) & 1; return b; }
+  async command bool Port22.getValue() { bool b; atomic b=(P2IN >> 2) & 1; return b; }
+  async command bool Port23.getValue() { bool b; atomic b=(P2IN >> 3) & 1; return b; }
+  async command bool Port24.getValue() { bool b; atomic b=(P2IN >> 4) & 1; return b; }
+  async command bool Port25.getValue() { bool b; atomic b=(P2IN >> 5) & 1; return b; }
+  async command bool Port26.getValue() { bool b; atomic b=(P2IN >> 6) & 1; return b; }
+  async command bool Port27.getValue() { bool b; atomic b=(P2IN >> 7) & 1; return b; }
+  async command void Port20.edge(bool l2h) { 
+    atomic {
+      if (l2h)  P2IES &= ~(1 << 0); 
+      else      P2IES |=  (1 << 0);
+    }
+  }
+  async command void Port21.edge(bool l2h) { 
+    atomic {
+      if (l2h)  P2IES &= ~(1 << 1); 
+      else      P2IES |=  (1 << 1);
+    }
+  }
+  async command void Port22.edge(bool l2h) { 
+    atomic {
+      if (l2h)  P2IES &= ~(1 << 2); 
+      else      P2IES |=  (1 << 2);
+    }
+  }
+  async command void Port23.edge(bool l2h) { 
+    atomic {
+      if (l2h)  P2IES &= ~(1 << 3); 
+      else      P2IES |=  (1 << 3);
+    }
+  }
+  async command void Port24.edge(bool l2h) { 
+    atomic {
+      if (l2h)  P2IES &= ~(1 << 4); 
+      else      P2IES |=  (1 << 4);
+    }
+  }
+  async command void Port25.edge(bool l2h) { 
+    atomic {
+      if (l2h)  P2IES &= ~(1 << 5); 
+      else      P2IES |=  (1 << 5);
+    }
+  }
+  async command void Port26.edge(bool l2h) { 
+    atomic {
+      if (l2h)  P2IES &= ~(1 << 6); 
+      else      P2IES |=  (1 << 6);
+    }
+  }
+  async command void Port27.edge(bool l2h) { 
+    atomic {
+      if (l2h)  P2IES &= ~(1 << 7); 
+      else      P2IES |=  (1 << 7);
+    }
+  }
+#endif
+}
