@@ -1,5 +1,4 @@
-#if 0
-// $Id: RealMain.nc,v 1.1.2.6 2005-02-08 23:02:18 cssharp Exp $
+// $Id: RealMain.nc,v 1.1.2.7 2005-02-10 01:10:12 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -32,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: RealMain.nc,v 1.1.2.6 2005-02-08 23:02:18 cssharp Exp $
+ * Date last modified:  $Id: RealMain.nc,v 1.1.2.7 2005-02-10 01:10:12 cssharp Exp $
  *
  */
 
@@ -42,7 +41,6 @@
  * @author Philip Levis
  * @date   January 17 2005
  */
-#endif
 
 module RealMain
 {
