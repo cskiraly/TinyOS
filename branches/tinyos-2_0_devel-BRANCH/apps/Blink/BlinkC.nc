@@ -1,4 +1,4 @@
-// $Id: BlinkC.nc,v 1.1.2.1 2005-01-24 21:33:23 scipio Exp $
+// $Id: BlinkC.nc,v 1.1.2.2 2005-02-10 01:20:54 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -28,6 +28,7 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+
 /**
  * Blink is a basic application that toggles the a mote LED periodically.
  * It does so by starting a Timer that fires every second. It uses the
@@ -35,8 +36,8 @@
  *
  * @author tinyos-help@millennium.berkeley.edu
  **/
-configuration BlinkC {
-}
+
+configuration BlinkC {}
 implementation {
   components Main, BlinkM, new TimerMilli(), LedsC;
 
