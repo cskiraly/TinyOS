@@ -1,4 +1,4 @@
-// $Id: msp430hardware.h,v 1.1.2.2 2005-02-08 23:00:03 cssharp Exp $
+// $Id: msp430hardware.h,v 1.1.2.3 2005-02-08 23:30:59 jpolastre Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -112,7 +112,6 @@ to_type func_name(from_type x) { union {from_type f; to_type t;} c = {f:x}; retu
 #define LPM4_bits           SR_SCG1+SR_SCG0+SR_OSCOFF+SR_CPUOFF
 #endif//DONT_REDEFINE_SR_FLAGS
 
-
 #ifdef interrupt
 #undef interrupt
 #endif
@@ -123,6 +122,14 @@ to_type func_name(from_type x) { union {from_type f; to_type t;} c = {f:x}; retu
 
 #ifdef signal
 #undef signal
+#endif
+
+// I2CBusy flag is not defined by current MSP430-GCC
+#ifdef __msp430_have_usart0_with_i2c
+#define I2CBUSY   (0x01 << 5)
+MSP430REG_NORACE2(U0CTLnr,U0CTL);
+MSP430REG_NORACE2(I2CTCTLnr,I2CTCTL);
+MSP430REG_NORACE2(I2CDCTLnr,I2CDCTL);
 #endif
 
 // The signal attribute has opposite meaning in msp430-gcc than in avr-gcc
@@ -200,7 +207,7 @@ void __nesc_atomic_end( __nesc_atomic_t reenable_interrupts )
 }
 
 //Variable to keep track if Low Power Modes shoud not be used
-bool LPMode_disabled = FALSE;
+norace bool LPMode_disabled = FALSE;
 
 void LPMode_enable() {
   LPMode_disabled = FALSE;
@@ -217,15 +224,14 @@ inline void TOSH_sleep() {
   // We check MSP430's TimerA, USART0/1, ADC12 peripheral modules if they
   // use MCLK or SMCLK and switch to the lowest LPM that keeps 
   // the required clock(s) running. 
-  
-  //extern uint8_t TOSH_sched_full;
+  extern uint8_t TOSH_sched_full;
   extern volatile uint8_t TOSH_sched_free;
   __nesc_atomic_t fInterruptFlags;
   uint16_t LPMode_bits = 0;
   
   fInterruptFlags = __nesc_atomic_start(); 
   
-  if (LPMode_disabled) { // || (TOSH_sched_full != TOSH_sched_free)) {
+  if ((LPMode_disabled) || (TOSH_sched_full != TOSH_sched_free)) {
     __nesc_atomic_end(fInterruptFlags);
     return;
   } else {
@@ -234,26 +240,33 @@ inline void TOSH_sleep() {
     if ( (((TACCTL0 & CCIE) || (TACCTL1 & CCIE) || (TACCTL2 & CCIE))
          && ((TACTL & TASSEL_3) == TASSEL_2))
       || ((ME1 & (UTXE0 | URXE0)) && (U0TCTL & SSEL1))
-      || ((ME2 & (UTXE1 | URXE1)) && (U1TCTL & SSEL1)) )
+      || ((ME2 & (UTXE1 | URXE1)) && (U1TCTL & SSEL1)) 
+#ifdef __msp430_have_usart0_with_i2c
+      // registers end in "nr" to prevent nesC race condition detection
+      || ((U0CTLnr & I2CEN) && (I2CTCTLnr & SSEL1) &&
+	  (I2CDCTLnr & I2CBUSY) && (U0CTLnr & SYNC) && (U0CTLnr & I2C))
+#endif	
+      )
       LPMode_bits = LPM1_bits;
     // ADC12 check  
-    if (ADC12CTL1 & ADC12BUSY)
-      switch (ADC12CTL1 & ADC12SSEL_3){
-        case ADC12SSEL_2: LPMode_bits = 0; break;
-        case ADC12SSEL_3: LPMode_bits = LPM1_bits; break;
-      }
+    if (ADC12CTL1 & ADC12BUSY){
+      if (!(ADC12CTL0 & MSC) && ((TACTL & TASSEL_3) == TASSEL_2))
+         LPMode_bits = LPM1_bits; // TimerA for ADC12 
+      else
+        switch (ADC12CTL1 & ADC12SSEL_3){
+          case ADC12SSEL_2: LPMode_bits = 0; break;
+          case ADC12SSEL_3: LPMode_bits = LPM1_bits; break;
+        }
+    }
     LPMode_bits |= SR_GIE;
     __asm__ __volatile__( "bis  %0, r2" : : "m" ((uint16_t)LPMode_bits) );
   }
-  
 }
 
 void __nesc_atomic_sleep()
 {
   TOSH_sleep(); // XXX fixme XXX
 }
-
-
 
 #define SET_FLAG(port, flag) ((port) |= (flag))
 #define CLR_FLAG(port, flag) ((port) &= ~(flag))
