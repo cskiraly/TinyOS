@@ -1,4 +1,4 @@
-// $Id: atmega128hardware.h,v 1.1.2.2 2005-03-17 10:31:13 mturon Exp $
+// $Id: atmega128hardware.h,v 1.1.2.3 2005-03-17 14:42:29 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -27,11 +27,16 @@
 #ifndef _H_atmega128hardware_H
 #define _H_atmega128hardware_H
 
+#define _SFR_ASM_COMPAT 1
+
 #include <avr/io.h>
 #include <avr/signal.h>
-#include <avr/interrupt.h>
+//#include <avr/interrupt.h>
 #include <avr/wdt.h>
 #include <avr/pgmspace.h>
+
+#define sei()  __asm__ __volatile__ ("sei" ::)
+#define cli()  __asm__ __volatile__ ("cli" ::)
 
 #ifndef __outw
 #define __outw(val, port) outw(port, val);
@@ -96,8 +101,8 @@
 /// Bit operators using bit number
 #define SET_BIT(port, bit)    (sbi(port, bit))
 #define CLR_BIT(port, bit)    (cbi(port, bit))
-#define READ_BIT(port, bit)   (port & (0x01 << bit))
-#define FLIP_BIT(port, bit)   (port ^= (0x01 << bit))
+#define READ_BIT(port, bit)   ((inp(port) & (1 << bit)) != 0)
+#define FLIP_BIT(port, bit)   _MMIO_BYTE(port) ^= (1 << bit)
 
 /// Bit operators using bit flag mask
 #define SET_FLAG(port, flag)  ((port) |= (flag))
