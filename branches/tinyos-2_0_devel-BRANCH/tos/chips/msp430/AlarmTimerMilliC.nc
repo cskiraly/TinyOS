@@ -1,4 +1,4 @@
-//$Id: MSP430CounterM.nc,v 1.1.2.3 2005-03-10 09:20:21 cssharp Exp $
+//$Id: AlarmTimerMilliC.nc,v 1.1.2.1 2005-03-10 09:20:21 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,33 +24,38 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-// MSP430Counter is a generic component that wraps the MSP430 HPL timers into a
-// TinyOS CounterBase.
-generic module MSP430CounterM( typedef frequency_tag )
+// AlarmTimerMilliC is the alarm to be used to multiplex into TimerMilliC.
+configuration AlarmTimerMilliC
 {
-  provides interface CounterBase<frequency_tag,uint16_t> as Counter;
-  uses interface MSP430Timer;
+  provides interface Init;
+  provides interface Alarm<TMilli> as AlarmTimerMilli;
+  provides interface AlarmBase<TMilli,uint32_t> as AlarmBaseTimerMilli;
 }
 implementation
 {
-  async command uint16_t Counter.get()
-  {
-    return call MSP430Timer.get();
-  }
+  components MSP430TimerC
+           , new MSP430AlarmM(T32khz) as MSP430Alarm
+	   , new TransformAlarmM(TMilli,uint32_t,T32khz,uint16_t,5) as Transform
+	   , new CastAlarmM(TMilli) as Cast
+	   , CounterMilliC as Counter
+	   , MathOpsM
+	   , CastOpsM
+           ;
 
-  async command bool Counter.isOverflowPending()
-  {
-    return call MSP430Timer.isOverflowPending();
-  }
+  Init = MSP430Alarm;
 
-  async command void Counter.clearOverflow()
-  {
-    call MSP430Timer.clearOverflow();
-  }
+  AlarmTimerMilli = Cast;
+  AlarmBaseTimerMilli = Transform;
 
-  async event void MSP430Timer.overflow()
-  {
-    signal Counter.overflow();
-  }
+  Cast.AlarmFrom -> Transform;
+  Transform.AlarmFrom -> MSP430Alarm;
+  Transform.Counter -> Counter;
+  Transform.MathFrom -> MathOpsM;
+  Transform.MathTo -> MathOpsM;
+  Transform.CastFromTo -> CastOpsM;
+
+  MSP430Alarm.MSP430Timer -> MSP430TimerC.TimerB;
+  MSP430Alarm.MSP430TimerControl -> MSP430TimerC.ControlB4;
+  MSP430Alarm.MSP430Compare -> MSP430TimerC.CompareB4;
 }
 

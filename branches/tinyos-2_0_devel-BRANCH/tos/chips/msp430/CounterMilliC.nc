@@ -1,4 +1,4 @@
-//$Id: MSP430CounterM.nc,v 1.1.2.3 2005-03-10 09:20:21 cssharp Exp $
+//$Id: CounterMilliC.nc,v 1.1.2.1 2005-03-10 09:20:21 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,33 +24,31 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-// MSP430Counter is a generic component that wraps the MSP430 HPL timers into a
-// TinyOS CounterBase.
-generic module MSP430CounterM( typedef frequency_tag )
+// CounterMilliC is the counter to be used for all Millis.
+configuration CounterMilliC
 {
-  provides interface CounterBase<frequency_tag,uint16_t> as Counter;
-  uses interface MSP430Timer;
+  provides interface Counter<TMilli> as CounterMilli;
+  provides interface CounterBase<TMilli,uint32_t> as CounterBaseMilli;
 }
 implementation
 {
-  async command uint16_t Counter.get()
-  {
-    return call MSP430Timer.get();
-  }
+  components MSP430TimerC
+	   , MSP430Counter32khzC
+	   , new TransformCounterM(TMilli,uint32_t,T32khz,uint16_t,5,uint32_t) as Transform
+	   , new CastCounterM(TMilli) as Cast
+	   , MathOpsM
+	   , CastOpsM
+	   ;
+  
+  CounterMilli = Cast.Counter;
+  CounterBaseMilli = Transform.Counter;
 
-  async command bool Counter.isOverflowPending()
-  {
-    return call MSP430Timer.isOverflowPending();
-  }
-
-  async command void Counter.clearOverflow()
-  {
-    call MSP430Timer.clearOverflow();
-  }
-
-  async event void MSP430Timer.overflow()
-  {
-    signal Counter.overflow();
-  }
+  Cast.CounterFrom -> Transform.Counter;
+  Transform.CounterFrom -> MSP430Counter32khzC;
+  Transform.MathTo -> MathOpsM;
+  Transform.MathFrom -> MathOpsM;
+  Transform.MathUpper -> MathOpsM;
+  Transform.CastFromTo -> CastOpsM;
+  Transform.CastUpperTo -> CastOpsM;
 }
 
