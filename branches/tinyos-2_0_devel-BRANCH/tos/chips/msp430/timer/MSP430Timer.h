@@ -1,4 +1,4 @@
-//$Id: MSP430Timer.h,v 1.1.2.1 2005-02-08 23:00:02 cssharp Exp $
+//$Id: MSP430Timer.h,v 1.1.2.1 2005-03-30 17:58:26 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.

@@ -1,4 +1,4 @@
-//$Id: MSP430Timer.nc,v 1.1.2.2 2005-02-10 01:07:38 cssharp Exp $
+//$Id: MSP430TimerControl.nc,v 1.1.2.1 2005-03-30 17:58:27 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -21,24 +21,23 @@
  */
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
-//@author Jan Hauer <hauer@tkn.tu-berlin.de>
+//@author Joe Polastre
 
 includes MSP430Timer;
 
-interface MSP430Timer
+interface MSP430TimerControl
 {
-  async command uint16_t get();
-  async command bool isOverflowPending();
-  async command void clearOverflow();
-  async event void overflow();
+  async command MSP430CompareControl_t getControl();
+  async command bool isInterruptPending();
+  async command void clearPendingInterrupt();
 
-  async command void setMode( int mode );
-  async command int getMode();
-  async command void clear();
+  async command void setControl( MSP430CompareControl_t control );
+  async command void setControlAsCompare();
+  async command void setControlAsCapture(bool low_to_high);
+
   async command void enableEvents();
   async command void disableEvents();
-  async command void setClockSource( uint16_t clockSource );
-  async command void setInputDivider( uint16_t inputDivider );
-  // partial timer management, add more commands here as appropriate
+  async command bool areEventsEnabled();
+
 }
 

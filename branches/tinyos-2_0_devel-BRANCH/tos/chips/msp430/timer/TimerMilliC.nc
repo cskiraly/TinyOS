@@ -1,4 +1,4 @@
-//$Id: TimerMilliC.nc,v 1.1.2.1 2005-03-10 09:20:21 cssharp Exp $
+//$Id: TimerMilliC.nc,v 1.1.2.1 2005-03-30 17:58:27 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
