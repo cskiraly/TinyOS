@@ -11,6 +11,12 @@
 #include <sys/types.h>
 #endif
 
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <stddef.h>
+#include <ctype.h>
+
 typedef uint8_t bool;
 enum { FALSE = 0, TRUE = 1 };
 

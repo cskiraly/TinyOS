@@ -1,4 +1,4 @@
-//$Id: TransformAlarmC.nc,v 1.1.2.1 2005-02-26 03:23:57 cssharp Exp $
+//$Id: TransformAlarmC.nc,v 1.1.2.2 2005-03-10 09:50:39 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,6 +24,11 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
+// TransformAlarmC increases the size and/or decreases the frequency of an
+// existing Alarm.  It knows how to change the size just given the From and To
+// size types, and will apply bit_shift_right to decrease the frequency by a
+// power of two.
+
 generic configuration TransformAlarmC( 
   typedef to_frequency_tag,
   typedef to_size_type,
@@ -31,24 +36,24 @@ generic configuration TransformAlarmC(
   typedef from_size_type,
   uint8_t bit_shift_right )
 {
-  provides interface AlarmBase<to_size_type,to_frequency_tag> as Alarm;
-  uses interface CounterBase<to_size_type,to_frequency_tag> as Counter;
-  uses interface AlarmBase<from_size_type,from_frequency_tag> as AlarmFrom;
+  provides interface AlarmBase<to_frequency_tag,to_size_type> as Alarm;
+  uses interface CounterBase<to_frequency_tag,to_size_type> as Counter;
+  uses interface AlarmBase<from_frequency_tag,from_size_type> as AlarmFrom;
 }
 implementation
 {
   components new TransformAlarmM( to_frequency_tag, to_size_type,
-    from_frequency_tag, from_size_type, bit_shift_right) as XformAlarmM
+    from_frequency_tag, from_size_type, bit_shift_right ) as Transform
            , MathOpsM
            , CastOpsM
            ;
 
-  Alarm = XformAlarmM;
-  Counter = XformAlarmM;
-  AlarmFrom = XformAlarmM;
+  Alarm = Transform;
+  Counter = Transform;
+  AlarmFrom = Transform;
 
-  XformAlarmM.MathTo -> MathOpsM;
-  XformAlarmM.MathFrom -> MathOpsM;
-  XformAlarmM.CastFromTo -> CastOpsM;
+  Transform.MathTo -> MathOpsM;
+  Transform.MathFrom -> MathOpsM;
+  Transform.CastFromTo -> CastOpsM;
 }
 

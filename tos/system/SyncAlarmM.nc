@@ -1,4 +1,4 @@
-//$Id: CastCounterM.nc,v 1.1.2.2 2005-03-10 09:50:39 cssharp Exp $
+//$Id: SyncAlarmM.nc,v 1.1.2.1 2005-03-10 09:50:39 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -22,36 +22,52 @@
 
 // @author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-// Cast a 32-bit CounterBase into a standard 32-bit Counter.
-generic module CastCounterM( typedef frequency_tag )
+// Translate an interrupt context alarm event to task context.
+// Note that the interface is still marked async.
+
+includes Timer;
+
+generic module SyncAlarmM( typedef frequency_tag, typedef size_type )
 {
-  provides interface Counter<frequency_tag> as Counter;
-  uses interface CounterBase<frequency_tag,uint32_t> as CounterFrom;
+  provides interface AlarmBase<frequency_tag,size_type> as AlarmBase;
+  uses interface AlarmBase<frequency_tag,size_type> as AlarmBaseFrom;
+  uses interface TaskBasic;
 }
 implementation
 {
-  async command uint32_t Counter.get()
+  async command size_type AlarmBase.now()
   {
-    return call CounterFrom.get();
+    return call AlarmBaseFrom.now();
   }
 
-  async command bool Counter.isOverflowPending()
+  async command size_type AlarmBase.get()
   {
-    return call CounterFrom.isOverflowPending();
+    return call AlarmBaseFrom.get();
   }
 
-  async command void Counter.clearOverflow()
+  async command bool AlarmBase.isSet()
   {
-    call CounterFrom.clearOverflow();
+    return call AlarmBaseFrom.isSet();
   }
 
-  async event void CounterFrom.overflow()
+  async command void AlarmBase.cancel()
   {
-    signal Counter.overflow();
+    call AlarmBaseFrom.cancel();
   }
 
-  default async event void Counter.overflow()
+  async command void AlarmBase.set( size_type t0, size_type dt )
   {
+    call AlarmBaseFrom.set( t0, dt );
+  }
+
+  event void TaskBasic.run()
+  {
+    signal AlarmBase.fired();
+  }
+
+  async event void AlarmBaseFrom.fired()
+  {
+    call TaskBasic.post_();
   }
 }
 
