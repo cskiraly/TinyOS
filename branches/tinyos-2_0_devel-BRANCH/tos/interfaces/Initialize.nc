@@ -1,4 +1,4 @@
-// $Id: Initialize.nc,v 1.1.2.1 2005-01-17 19:36:40 scipio Exp $
+// $Id: Initialize.nc,v 1.1.2.2 2005-01-20 00:09:41 jpolastre Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -36,7 +36,7 @@
 
 
 includes TinyError;
-includes TinyMsg;
+includes TOSMsg;
 
 interface Initialize {
 

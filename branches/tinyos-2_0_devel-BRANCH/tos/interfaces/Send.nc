@@ -1,4 +1,4 @@
-// $Id: Send.nc,v 1.1.2.4 2005-01-17 19:18:54 scipio Exp $
+// $Id: Send.nc,v 1.1.2.5 2005-01-20 00:09:41 jpolastre Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -36,7 +36,7 @@
 
 
 includes TinyError;
-includes TinyMsg;
+includes TOSMsg;
 
 interface Send {
 

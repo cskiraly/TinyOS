@@ -1,4 +1,4 @@
-// $Id: AMPacket.nc,v 1.1.2.1 2005-01-17 19:18:44 scipio Exp $
+// $Id: AMPacket.nc,v 1.1.2.2 2005-01-20 00:09:40 jpolastre Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -37,7 +37,7 @@
   */ 
 
 
-includes TinyMsg;
+includes TOSMsg;
 includes AM;
 
 interface AMPacket {

@@ -24,7 +24,7 @@
 /*
  *
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.1 $
+ * Date last modified:  $Revision: 1.1.2.2 $
  *
  * MacControl interface for tuning the parameters of the MAC protocol
  */
@@ -45,12 +45,12 @@ interface CSMAControl
   async command result_t disableCCA(); 
 
   /**
-   * Enable automatic link layer acknowledgements
+   * Enable automatic link layer acknowledgments
    */
   async command result_t enableAck();
 
   /**
-   * Disable automatic link layer acknowledgements
+   * Disable automatic link layer acknowledgments
    */
   async command result_t disableAck();
 
