@@ -1,5 +1,18 @@
-# Includes that should take precedence come first.  Platforms come before chips
-# because they may override files.
+# Includes that should take precedence come first.  Platforms come before
+# chips because they may override files.  These must be specified as
+# @includes instead of -I's to @opts, otherwise the %T won't be processed
+# by ncc.  And because of that, the current platform's include directory
+# must be specified, otherwise its search order is last instead of first.
+
+push( @includes, qw(
+
+  %T/platforms/telosa
+  %T/platforms/telosa/chips/cc2420
+  %T/chips/msp430
+  %T/chips/msp430/io
+  %T/chips/msp430/bus
+
+) );
 
 @opts = qw(
 
@@ -8,12 +21,6 @@
   -fnesc-target=msp430
   -fnesc-no-debug
 
-  -I%T/platforms/telosa/chips/cc2420
-  -I%T/chips/msp430
-  -I%T/chips/msp430/io
-  -I%T/chips/msp430/bus
-
 );
 
 push @opts, "-mingw-gcc" if $cygwin;
-
