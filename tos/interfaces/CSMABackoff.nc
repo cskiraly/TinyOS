@@ -24,7 +24,7 @@
 /*
  *
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.1 $
+ * Date last modified:  $Revision: 1.1.2.2 $
  *
  * Interface for Mac Backoff values from the radio stack.
  * Allows application to change the backoff on a per packet basis.
@@ -36,6 +36,6 @@
  */
 interface CSMABackoff
 {
-  async event uint16_t initialBackoff(TOSMsg* m);
-  async event uint16_t congestionBackoff(TOSMsg* m);
+  async event uint16_t initial(TOSMsg* m);
+  async event uint16_t congestion(TOSMsg* m);
 }
