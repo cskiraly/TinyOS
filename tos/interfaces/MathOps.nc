@@ -1,8 +1,14 @@
 
 interface MathOps<type>
 {
-  async command type cast_to( uint32_t a );
-  async command uint32_t cast_from( type a );
+  async command uint8_t castToU8( type a );
+  async command int8_t castToI8( type a );
+  async command uint32_t castToU32( type a );
+  async command int32_t castToI32( type a );
+  async command type castFromU8( uint8_t a );
+  async command type castFromI8( int8_t a );
+  async command type castFromU32( uint32_t a );
+  async command type castFromI32( int32_t a );
   async command type inc( type a );
   async command type dec( type a );
   async command type add( type a, type b );
