@@ -1,4 +1,4 @@
-//$Id: WidenAlarmM.nc,v 1.1.2.1 2005-02-11 02:12:57 cssharp Exp $
+//$Id: WidenAlarmM.nc,v 1.1.2.2 2005-02-25 20:14:59 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -122,7 +122,7 @@ implementation
     {
       to_size_type remaining = call MathTo.sub( m_dt, elapsed );
       from_size_type remaining_from = call MathFrom.cast_to( call MathTo.cast_from( remaining ) );
-      to_size_type delay = call MathTo.cast_to( ((uint64_t)1) << (sizeof(from_size_type)-1) );
+      to_size_type delay = call MathTo.cast_to( ((uint64_t)1) << (8*sizeof(from_size_type)-1) );
       if( call MathTo.gt( remaining, delay ) )
       {
 	from_size_type delay_from = call MathFrom.cast_to( call MathTo.cast_from( delay ) );
