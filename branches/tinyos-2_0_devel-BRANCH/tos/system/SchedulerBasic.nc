@@ -1,4 +1,4 @@
-// $Id: SchedulerBasic.nc,v 1.1.2.2 2005-01-20 20:06:19 scipio Exp $
+// $Id: SchedulerBasic.nc,v 1.1.2.3 2005-01-24 21:46:17 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: SchedulerBasic.nc,v 1.1.2.2 2005-01-20 20:06:19 scipio Exp $
+ * Date last modified:  $Id: SchedulerBasic.nc,v 1.1.2.3 2005-01-24 21:46:17 cssharp Exp $
  *
  */
 
@@ -40,6 +40,7 @@
  * documented in TEP 106.
  *
  * @author Philip Levis
+ * @author Cory Sharp
  * @date   January 19 2005
  */
 
