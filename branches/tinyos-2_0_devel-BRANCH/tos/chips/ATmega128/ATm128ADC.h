@@ -1,4 +1,4 @@
-/// $Id: ATm128ADC.h,v 1.1.2.1 2005-02-01 22:43:28 mturon Exp $
+/// $Id: ATm128ADC.h,v 1.1.2.2 2005-02-03 01:16:07 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -37,9 +37,9 @@
 #ifndef _H_ATm128ADC_h
 #define _H_ATm128ADC_h
 
-//====================== 7 channel 10-bit ADC ==============================
+//================== 8 channel 10-bit ADC ==============================
 
-/** Voltage Reference Selection */
+/** Voltage Reference Settings */
 enum {
     ATM128_ADC_VREF_OFF = 0,
     ATM128_ADC_VREF_AVCC = 1,
@@ -47,7 +47,7 @@ enum {
     ATM128_ADC_VREF_2_56 = 3,
 };
 
-/** ADC Multiplexer Selection */
+/** ADC Multiplexer Settings */
 enum {
     ATM128_ADC_SNGL_ADC0 = 0,
     ATM128_ADC_SNGL_ADC1,
@@ -83,15 +83,15 @@ enum {
     ATM128_ADC_SNGL_GND,
 };
 
-/** ADC Multiplexer Selection Register */
+/** ADC Multiplexer Settings Register */
 typedef struct
 {
     uint8_t refs  : 2;  //!< Reference Selection Bits
     uint8_t adlar : 1;  //!< ADC Left Adjust Result
     uint8_t mux   : 5;  //!< Analog Channel and Gain Selection Bits
-} ATm128ADCSelect_t;
+} ATm128ADCSettings_t;
 
-typedef ATm128ADCSelect_t ATm128_ADMUX_t;  //!< ADC Multiplexer Selection
+typedef ATm128ADCSettings_t ATm128_ADMUX_t;  //!< ADC Multiplexer Selection
 
 
 /** ADC Prescaler Settings */
