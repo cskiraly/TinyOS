@@ -1,4 +1,5 @@
-// $Id: RealMain.nc,v 1.1.2.5 2005-01-24 21:48:28 cssharp Exp $
+#if 0
+// $Id: RealMain.nc,v 1.1.2.6 2005-02-08 23:02:18 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +32,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: RealMain.nc,v 1.1.2.5 2005-01-24 21:48:28 cssharp Exp $
+ * Date last modified:  $Id: RealMain.nc,v 1.1.2.6 2005-02-08 23:02:18 cssharp Exp $
  *
  */
 
@@ -41,21 +42,18 @@
  * @author Philip Levis
  * @date   January 17 2005
  */
+#endif
 
-
-module RealMain {
+module RealMain
+{
   provides interface Boot;
-  uses {
-    interface Scheduler;
-    interface Init as PlatformInit;
-    interface Init as SoftwareInit;
-  }
+  uses interface Scheduler;
+  uses interface Init as PlatformInit;
+  uses interface Init as SoftwareInit;
 }
 implementation
 {
-
   int main() __attribute__ ((C, spontaneous)) {
-
     /* First, initialize the Scheduler so components can post
        tasks. Initialize all of the very hardware specific stuff, such
        as CPU settings, counters, etc. After the hardware is ready,
@@ -92,4 +90,8 @@ implementation
     } 
   }
 
+  default command error_t PlatformInit.init() { return SUCCESS; }
+  default command error_t SoftwareInit.init() { return SUCCESS; }
+  default event void Boot.booted() { }
 }
+

@@ -1,4 +1,4 @@
-// $Id: TinyError.h,v 1.1.2.5 2005-01-24 21:01:08 scipio Exp $
+// $Id: TinyError.h,v 1.1.2.6 2005-02-08 23:02:19 cssharp Exp $
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Phil Levis
- * Revision:  $Revision: 1.1.2.5 $
+ * Revision:  $Revision: 1.1.2.6 $
  *
  * Defines global error codes for error_t in TinyOS.
  */
@@ -33,4 +33,6 @@ typedef enum {
   ESIZE          = 2,           // Parameter passed in was too big.
   ECANCEL        = 3,           // Operation cancelled by a call.
   EOFF           = 4,           // Subsystem is not active
+  EBUSY          = 5,           // The posted task has already been posted
 } error_t;
+
