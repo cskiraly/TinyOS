@@ -1,4 +1,4 @@
-// $Id: CC2420RadioM.nc,v 1.1.2.2 2005-03-14 03:40:52 jpolastre Exp $
+// $Id: CC2420RadioM.nc,v 1.1.2.3 2005-03-14 03:48:01 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  */
 
 includes byteorder;
@@ -85,9 +85,9 @@ implementation {
   norace bool bAckEnable;
   bool bPacketReceiving;
   uint8_t txlength;
-  norace TOSMsg* txbufptr;  // pointer to transmit buffer
-  norace TOSMsg* rxbufptr;  // pointer to receive buffer
-  TOSMsg RxBuf;	// save received messages
+  norace message_t* txbufptr;  // pointer to transmit buffer
+  norace message_t* rxbufptr;  // pointer to receive buffer
+  message_t RxBuf;	       // save received messages
 
   volatile uint16_t LocalAddr;
 
@@ -130,12 +130,12 @@ implementation {
    * - Radio packet rcvd, signal 
    ***************************************************************************/
    task void PacketRcvd() {
-     TOSMsg* pBuf;
+     message_t* pBuf;
 
      atomic {
        pBuf = rxbufptr;
      }
-     pBuf = signal Receive.receive((TOSMsg*)pBuf, pBuf->data, pBuf->header.length);
+     pBuf = signal Receive.receive((message_t*)pBuf, pBuf->data, pBuf->header.length);
      atomic {
        if (pBuf) rxbufptr = pBuf;
        rxbufptr->header.length = 0;
@@ -145,7 +145,7 @@ implementation {
 
   
   task void PacketSent() {
-    TOSMsg* pBuf; //store buf on stack 
+    message_t* pBuf; //store buf on stack 
 
     atomic {
       stateRadio = IDLE_STATE;
@@ -400,7 +400,7 @@ implementation {
    * Send
    * - Xmit a packet
    **********************************************************/
-  command error_t Send.send(TOSMsg* pMsg, uint8_t len) {
+  command error_t Send.send(message_t* pMsg, uint8_t len) {
     uint8_t currentstate;
     atomic currentstate = stateRadio;
 
@@ -438,7 +438,7 @@ implementation {
   /**
    * XXX: TODO: Add cancel functionality
    */
-  command error_t Send.cancel(TOSMsg* msg) {
+  command error_t Send.cancel(message_t* msg) {
     return FAIL;
   }
   
@@ -564,7 +564,7 @@ implementation {
       return SUCCESS;
     }
 
-    rxbufptr = (TOSMsg*)data;
+    rxbufptr = (message_t*)data;
 
     // check for an acknowledgement that passes the CRC check
     if (bAckEnable && (currentstate == POST_TX_STATE) &&
@@ -664,7 +664,7 @@ implementation {
   async command result_t CSMAControl.disableAck() {
     return FAIL;
   }
-  async command TOSMsg* CSMAControl.HaltTx() {
+  async command message_t* CSMAControl.HaltTx() {
     return NULL;
   }
 
@@ -672,14 +672,14 @@ implementation {
    * How many basic time periods to back off.
    * Each basic time period consists of 20 symbols (16uS per symbol)
    */
-  default async event uint16_t CSMABackoff.initial(TOSMsg* m) {
+  default async event uint16_t CSMABackoff.initial(message_t* m) {
     return (call Random.rand() & 0xF) + 1;
   }
   /**
    * How many symbols to back off when there is congestion 
    * (16uS per symbol * 20 symbols/block)
    */
-  default async event uint16_t CSMABackoff.congestion(TOSMsg* m) {
+  default async event uint16_t CSMABackoff.congestion(message_t* m) {
     return (call Random.rand() & 0x3F) + 1;
   }
 
