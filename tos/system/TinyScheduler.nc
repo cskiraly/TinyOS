@@ -6,8 +6,8 @@ configuration TinyScheduler
 }
 implementation
 {
-  components SchedulerBasic;
-  Scheduler = SchedulerBasic;
-  TaskBasic = SchedulerBasic;
+  components SchedulerTemp as Sched;
+  Scheduler = Sched;
+  TaskBasic = Sched;
 }
 
