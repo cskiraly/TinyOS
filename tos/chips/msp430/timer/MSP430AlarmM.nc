@@ -1,4 +1,4 @@
-//$Id: MSP430AlarmM.nc,v 1.1.2.2 2005-03-10 09:20:21 cssharp Exp $
+//$Id: MSP430AlarmM.nc,v 1.1.2.1 2005-03-30 17:58:26 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -65,6 +65,17 @@ implementation
 
   async command void Alarm.set( uint16_t t0, uint16_t dt )
   {
+#ifdef CORY_TIMER_SIGNED
+    uint16_t t1 = t0 + dt; //t1 can be the argument to this function
+    uint16_t now = call MSP430Timer.get();
+    uint16_t remaining = t1 - now;
+    if( ((int16_t)remaining) <= 2 )
+      call MSP430Compare.setEventFromNow(2);
+    else
+      call MSP430Compare.setEvent( t1 );
+    call MSP430TimerControl.enableEvents();
+
+#else
     uint16_t now = call MSP430Timer.get();
     uint16_t elapsed = now - t0;
     if( elapsed >= dt )
@@ -80,6 +91,7 @@ implementation
 	call MSP430Compare.setEvent( now+remaining );
     }
     call MSP430TimerControl.enableEvents();
+#endif
   }
 
   async event void MSP430Compare.fired()

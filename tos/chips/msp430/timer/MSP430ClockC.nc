@@ -1,4 +1,4 @@
-//$Id: AlarmTimerMilliC.nc,v 1.1.2.1 2005-03-10 09:20:21 cssharp Exp $
+//$Id: MSP430ClockC.nc,v 1.1.2.1 2005-03-30 17:58:26 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -22,40 +22,22 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-// The TinyOS Timer interfaces are discussed in TEP 102.
-
-// AlarmTimerMilliC is the alarm to be used to multiplex into TimerMilliC.
-configuration AlarmTimerMilliC
+configuration MSP430ClockC
 {
   provides interface Init;
-  provides interface Alarm<TMilli> as AlarmTimerMilli;
-  provides interface AlarmBase<TMilli,uint32_t> as AlarmBaseTimerMilli;
+  provides interface MSP430ClockInit;
 }
 implementation
 {
-  components MSP430TimerC
-           , new MSP430AlarmM(T32khz) as MSP430Alarm
-	   , new TransformAlarmM(TMilli,uint32_t,T32khz,uint16_t,5) as Transform
-	   , new CastAlarmM(TMilli) as Cast
-	   , CounterMilliC as Counter
-	   , MathOpsM
-	   , CastOpsM
-           ;
+  components MSP430ClockM
+           , MSP430TimerC
+	   ;
 
-  Init = MSP430Alarm;
-
-  AlarmTimerMilli = Cast;
-  AlarmBaseTimerMilli = Transform;
-
-  Cast.AlarmFrom -> Transform;
-  Transform.AlarmFrom -> MSP430Alarm;
-  Transform.Counter -> Counter;
-  Transform.MathFrom -> MathOpsM;
-  Transform.MathTo -> MathOpsM;
-  Transform.CastFromTo -> CastOpsM;
-
-  MSP430Alarm.MSP430Timer -> MSP430TimerC.TimerB;
-  MSP430Alarm.MSP430TimerControl -> MSP430TimerC.ControlB4;
-  MSP430Alarm.MSP430Compare -> MSP430TimerC.CompareB4;
+  Init = MSP430ClockM;
+  MSP430ClockInit = MSP430ClockM;
+  
+  // CompareB1 is used by RADIO_SFD
+  MSP430ClockM.ACLKControl -> MSP430TimerC.ControlB2;
+  MSP430ClockM.ACLKCompare -> MSP430TimerC.CompareB2;
 }
 

@@ -1,4 +1,4 @@
-//$Id: MSP430TimerControl.nc,v 1.1.2.1 2005-02-08 23:00:03 cssharp Exp $
+//$Id: MSP430ClockInit.nc,v 1.1.2.1 2005-03-30 17:58:26 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -21,23 +21,15 @@
  */
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
-//@author Joe Polastre
 
-includes MSP430Timer;
-
-interface MSP430TimerControl
+interface MSP430ClockInit
 {
-  async command MSP430CompareControl_t getControl();
-  async command bool isInterruptPending();
-  async command void clearPendingInterrupt();
+  event void initClocks();
+  event void initTimerA();
+  event void initTimerB();
 
-  async command void setControl( MSP430CompareControl_t control );
-  async command void setControlAsCompare();
-  async command void setControlAsCapture(bool low_to_high);
-
-  async command void enableEvents();
-  async command void disableEvents();
-  async command bool areEventsEnabled();
-
+  command void defaultInitClocks();
+  command void defaultInitTimerA();
+  command void defaultInitTimerB();
 }
 

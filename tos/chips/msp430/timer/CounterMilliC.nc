@@ -1,4 +1,4 @@
-//$Id: MSP430ClockInit.nc,v 1.1.2.1 2005-02-08 22:59:49 cssharp Exp $
+//$Id: CounterMilliC.nc,v 1.1.2.1 2005-03-30 17:58:26 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -22,14 +22,33 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-interface MSP430ClockInit
-{
-  event void initClocks();
-  event void initTimerA();
-  event void initTimerB();
+// The TinyOS Timer interfaces are discussed in TEP 102.
 
-  command void defaultInitClocks();
-  command void defaultInitTimerA();
-  command void defaultInitTimerB();
+// CounterMilliC is the counter to be used for all Millis.
+configuration CounterMilliC
+{
+  provides interface Counter<TMilli> as CounterMilli;
+  provides interface CounterBase<TMilli,uint32_t> as CounterBaseMilli;
+}
+implementation
+{
+  components MSP430TimerC
+	   , MSP430Counter32khzC
+	   , new TransformCounterM(TMilli,uint32_t,T32khz,uint16_t,5,uint32_t) as Transform
+	   , new CastCounterM(TMilli) as Cast
+	   , MathOpsM
+	   , CastOpsM
+	   ;
+  
+  CounterMilli = Cast.Counter;
+  CounterBaseMilli = Transform.Counter;
+
+  Cast.CounterFrom -> Transform.Counter;
+  Transform.CounterFrom -> MSP430Counter32khzC;
+  Transform.MathTo -> MathOpsM;
+  Transform.MathFrom -> MathOpsM;
+  Transform.MathUpper -> MathOpsM;
+  Transform.CastFromTo -> CastOpsM;
+  Transform.CastUpperTo -> CastOpsM;
 }
 

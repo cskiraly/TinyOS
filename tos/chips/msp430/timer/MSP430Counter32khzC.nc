@@ -1,4 +1,4 @@
-//$Id: CounterMilliC.nc,v 1.1.2.1 2005-03-10 09:20:21 cssharp Exp $
+//$Id: MSP430Counter32khzC.nc,v 1.1.2.1 2005-03-30 17:58:26 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,31 +24,18 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-// CounterMilliC is the counter to be used for all Millis.
-configuration CounterMilliC
+// MSP430Counter32khC provides the standard 32khz counter for the MSP430.
+configuration MSP430Counter32khzC
 {
-  provides interface Counter<TMilli> as CounterMilli;
-  provides interface CounterBase<TMilli,uint32_t> as CounterBaseMilli;
+  provides interface CounterBase<T32khz,uint16_t> as MSP430Counter32khz;
 }
 implementation
 {
   components MSP430TimerC
-	   , MSP430Counter32khzC
-	   , new TransformCounterM(TMilli,uint32_t,T32khz,uint16_t,5,uint32_t) as Transform
-	   , new CastCounterM(TMilli) as Cast
-	   , MathOpsM
-	   , CastOpsM
+           , new MSP430CounterM(T32khz) as Counter
 	   ;
   
-  CounterMilli = Cast.Counter;
-  CounterBaseMilli = Transform.Counter;
-
-  Cast.CounterFrom -> Transform.Counter;
-  Transform.CounterFrom -> MSP430Counter32khzC;
-  Transform.MathTo -> MathOpsM;
-  Transform.MathFrom -> MathOpsM;
-  Transform.MathUpper -> MathOpsM;
-  Transform.CastFromTo -> CastOpsM;
-  Transform.CastUpperTo -> CastOpsM;
+  MSP430Counter32khz = Counter;
+  Counter.MSP430Timer -> MSP430TimerC.TimerB;
 }
 
