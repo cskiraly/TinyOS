@@ -1,4 +1,4 @@
-// $Id: CC2420RadioM.nc,v 1.1.2.1 2005-01-20 22:07:47 jpolastre Exp $
+// $Id: CC2420RadioM.nc,v 1.1.2.2 2005-03-14 03:40:52 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  */
 
 includes byteorder;
@@ -43,10 +43,16 @@ module CC2420RadioM {
     interface CC2420Control;
     interface HPLCC2420 as HPLChipcon;
     interface HPLCC2420FIFO as HPLChipconFIFO; 
-    interface HPLCC2420Interrupt as FIFOP;
-    interface HPLCC2420Capture as SFD;
     interface StdControl as TimerControl;
+
     interface TimerJiffyAsync as BackoffTimerJiffy;
+
+    interface GeneralIO as RadioCCA;
+    interface GeneralIO as RadioFIFO;
+    interface GeneralIO as RadioFIFOP;
+    interface Interrupt as FIFOP;
+    interface Capture as SFD;
+
     interface Random;
     interface Leds;
   }
@@ -268,7 +274,7 @@ implementation {
       call SFD.enableCapture(FALSE);
       // if the pin already fell, disable the capture and let the next
       // state enable the cpature (bug fix from Phil Buonadonna)
-      if (!TOSH_READ_CC_SFD_PIN()) {
+      if (!call RadioSFD.get()) {
 	call SFD.disable();
       }
       else {
@@ -336,11 +342,11 @@ implementation {
 
        // if a FIFO overflow occurs or if the data length is invalid, flush
        // the RXFIFO to get back to a normal state.
-       if ((!TOSH_READ_CC_FIFO_PIN() && !TOSH_READ_CC_FIFOP_PIN())) {
+       if ((!call RadioFIFO.get()) && (!call RadioFIFOP.get())) {
          flushRXFIFO();
        }
 
-       if (TOSH_READ_RADIO_CCA_PIN()) {
+       if (call RadioCCA.get()) {
          atomic stateRadio = TX_STATE;
          sendPacket();
        }
@@ -454,7 +460,7 @@ implementation {
     uint8_t len = MSG_DATA_SIZE;  
     uint8_t _bPacketReceiving;
 
-    if ((!TOSH_READ_CC_FIFO_PIN()) && (!TOSH_READ_CC_FIFOP_PIN())) {
+    if ((!call RadioFIFO.get()) && (!call RadioFIFOP.get())) {
         flushRXFIFO();
 	return;
     }
@@ -516,7 +522,7 @@ implementation {
      }
 
      /** Check for RXFIFO overflow **/     
-     if (!TOSH_READ_CC_FIFO_PIN()){
+     if (!call RadioFIFO.get()) {
        flushRXFIFO();
        return SUCCESS;
      }
@@ -551,7 +557,7 @@ implementation {
 
     // if a FIFO overflow occurs or if the data length is invalid, flush
     // the RXFIFO to get back to a normal state.
-    if ((!TOSH_READ_CC_FIFO_PIN() && !TOSH_READ_CC_FIFOP_PIN()) 
+    if (((!call RadioFIFO.get()) && (!call RadioFIFOP.get()))
         || (length == 0) || (length > MSG_DATA_SIZE)) {
       flushRXFIFO();
       atomic bPacketReceiving = FALSE;
@@ -611,12 +617,12 @@ implementation {
       }
     }
 
-    if ((!TOSH_READ_CC_FIFO_PIN()) && (!TOSH_READ_CC_FIFOP_PIN())) {
+    if ((!call RadioFIFO.get()) && (!call RadioFIFOP.get())) {
         flushRXFIFO();
 	return SUCCESS;
     }
 
-    if (!(TOSH_READ_CC_FIFOP_PIN())) {
+    if (!call RadioFIFOP.get()) {
       if (post delayedRXFIFOtask())
 	return SUCCESS;
     }

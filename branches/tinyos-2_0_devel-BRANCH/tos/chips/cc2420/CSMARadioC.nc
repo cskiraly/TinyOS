@@ -1,4 +1,4 @@
-// $Id: CSMARadioC.nc,v 1.1.2.1 2005-01-20 22:07:47 jpolastre Exp $
+// $Id: CSMARadioC.nc,v 1.1.2.2 2005-03-14 03:40:52 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  */
 
 configuration CSMARadioC
@@ -48,6 +48,7 @@ implementation
     CC2420RadioControlM,
     RandomLFSR, 
     TimerJiffyAsyncC,
+    Platform,
     LedsC;
 
   Init = CC2420RadioM;
@@ -72,13 +73,20 @@ implementation
 
   CC2420RadioM.HPLChipcon -> HPLCC2420C.HPLCC2420;
   CC2420RadioM.HPLChipconFIFO -> HPLCC2420C.HPLCC2420FIFO;
-  CC2420RadioM.FIFOP -> HPLCC2420C.InterruptFIFOP;
-  CC2420RadioM.SFD -> HPLCC2420C.CaptureSFD;
+
+  CC2420RadioM.RadioCCA -> Platform.CC2420RadioCCA;
+  CC2420RadioM.RadioFIFO -> Platform.CC2420RadioFIFO;
+  CC2420RadioM.RadioFIFOP -> Platform.CC2420RadioFIFOP;
+  CC2420RadioM.FIFOP -> Platform.CC2420RadioFIFOPInterrupt;
+  CC2420RadioM.SFD -> Platform.CC2420RadioSFDCapture;
 
   CC2420ControlM.HPLChipconInit -> HPLCC2420C.Init;
   CC2420ControlM.HPLChipconControl -> HPLCC2420C.StdControl;
   CC2420ControlM.HPLChipcon -> HPLCC2420C.HPLCC2420;
   CC2420ControlM.HPLChipconRAM -> HPLCC2420C.HPLCC2420RAM;
-  CC2420ControlM.CCA -> HPLCC2420C.InterruptCCA;
+
+  CC2420ControlM.RadioReset -> Platform.CC2420RadioReset;
+  CC2420ControlM.RadioVREF -> Platform.CC2420RadioVREF;
+  CC2420ControlM.CCA -> Platform.CC2420RadioCCAInterrupt;
 
 }
