@@ -1,4 +1,4 @@
-// $Id: TinyError.h,v 1.1.2.4 2005-01-20 22:03:26 jpolastre Exp $
+// $Id: TinyError.h,v 1.1.2.5 2005-01-24 21:01:08 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -22,14 +22,15 @@
 
 /**
  * @author Phil Levis
- * Revision:  $Revision: 1.1.2.4 $
+ * Revision:  $Revision: 1.1.2.5 $
  *
  * Defines global error codes for error_t in TinyOS.
  */
 
 typedef enum {
-  SUCCESS        = 0,
-  FAIL           = 1,        // An unknown error caused the operation to fail
-  ESIZE          = 2,        // Parameter passed in was too big.
-  ECANCEL        = 3,        // Operation cancelled by a call.
+  SUCCESS        = 0,          
+  FAIL           = 1,           // Generic condition: backwards compatible
+  ESIZE          = 2,           // Parameter passed in was too big.
+  ECANCEL        = 3,           // Operation cancelled by a call.
+  EOFF           = 4,           // Subsystem is not active
 } error_t;
