@@ -1,4 +1,4 @@
-// $Id: msp430hardware.h,v 1.1.2.6 2005-03-14 03:02:13 jpolastre Exp $
+// $Id: msp430hardware.h,v 1.1.2.7 2005-04-01 07:23:50 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -126,7 +126,9 @@ to_type func_name(from_type x) { union {from_type f; to_type t;} c = {f:x}; retu
 
 // I2CBusy flag is not defined by current MSP430-GCC
 #ifdef __msp430_have_usart0_with_i2c
+#ifndef I2CBUSY
 #define I2CBUSY   (0x01 << 5)
+#endif
 MSP430REG_NORACE2(U0CTLnr,U0CTL);
 MSP430REG_NORACE2(I2CTCTLnr,I2CTCTL);
 MSP430REG_NORACE2(I2CDCTLnr,I2CDCTL);
