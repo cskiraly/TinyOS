@@ -1,4 +1,4 @@
-//$Id: Timer.h,v 1.1.2.1 2005-01-24 10:07:18 cssharp Exp $
+//$Id: Timer.h,v 1.1.2.1 2005-01-24 21:01:08 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-// The TinyOS Timer interfaces are discussed in TEP 102.
+// The TinyOS Timer structures are discussed in TEP 102.
 
 typedef struct { } TMilli;
 typedef struct { } T32Micro;
