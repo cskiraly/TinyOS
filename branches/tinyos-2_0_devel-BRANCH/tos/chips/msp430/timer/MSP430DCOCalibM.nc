@@ -1,4 +1,4 @@
-//$Id: MSP430ClockC.nc,v 1.1.2.2 2005-04-01 08:55:00 cssharp Exp $
+//$Id: MSP430DCOCalibM.nc,v 1.1.2.1 2005-04-01 08:55:00 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -22,18 +22,58 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-configuration MSP430ClockC
+module MSP430DCOCalibM
 {
-  provides interface Init;
-  provides interface MSP430ClockInit;
+  uses interface MSP430Timer as TimerMicro;
+  uses interface MSP430Timer as Timer32khz;
 }
 implementation
 {
-  components MSP430ClockM
-           , MSP430DCOCalibC  //perpetual recalibration with each ACLK overflow
-	   ;
+  uint16_t m_prev;
 
-  Init = MSP430ClockM;
-  MSP430ClockInit = MSP430ClockM;
+  enum
+  {
+    TARGET_DELTA = 2048, // number of 32khz ticks during 65536 ticks at 1mhz
+    MAX_DEVIATION = 7, // about 0.35% error
+  };
+
+  // this gets executed 32 times a second
+  async event void TimerMicro.overflow()
+  {
+    uint16_t now = call Timer32khz.get();
+    uint16_t delta = now - m_prev;
+    m_prev = now;
+
+    if( delta > (TARGET_DELTA+MAX_DEVIATION) )
+    {
+      // too many 32khz ticks means the DCO is running too slow, speed it up
+      if( DCOCTL < 0xe0 )
+      {
+	DCOCTL++;
+      }
+      else if( (BCSCTL1 & 7) < 7 )
+      {
+	BCSCTL1++;
+	DCOCTL = 96;
+      }
+    }
+    else if( delta < (TARGET_DELTA-MAX_DEVIATION) )
+    {
+      // too few 32khz ticks means the DCO is running too fast, slow it down
+      if( DCOCTL > 0 )
+      {
+	DCOCTL--;
+      }
+      else if( (BCSCTL1 & 7) > 0 )
+      {
+	BCSCTL1--;
+	DCOCTL = 128;
+      }
+    }
+  }
+
+  async event void Timer32khz.overflow()
+  {
+  }
 }
 

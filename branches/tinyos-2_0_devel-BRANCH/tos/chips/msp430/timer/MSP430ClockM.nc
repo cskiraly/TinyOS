@@ -1,4 +1,4 @@
-//$Id: MSP430ClockM.nc,v 1.1.2.1 2005-03-30 17:58:26 cssharp Exp $
+//$Id: MSP430ClockM.nc,v 1.1.2.2 2005-04-01 08:55:00 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -28,8 +28,6 @@ module MSP430ClockM
 {
   provides interface Init;
   provides interface MSP430ClockInit;
-  uses interface MSP430Compare as ACLKCompare;
-  uses interface MSP430TimerControl as ACLKControl;
 }
 implementation
 {
@@ -39,13 +37,9 @@ implementation
   MSP430REG_NORACE(TBCTL);
   MSP430REG_NORACE(TBIV);
 
-  volatile norace uint16_t m_dco_curr;
-  volatile norace uint16_t m_dco_prev;
-  volatile norace uint8_t m_aclk_count;
-
   enum
   {
-    ACLK_CALIB_PERIOD = 128,
+    ACLK_CALIB_PERIOD = 8,
     ACLK_KHZ = 32,
     TARGET_DCO_KHZ = 4096, // prescribe the cpu clock rate in kHz
     TARGET_DCO_DELTA = (TARGET_DCO_KHZ / ACLK_KHZ) * ACLK_CALIB_PERIOD,
@@ -142,45 +136,35 @@ implementation
     TBCTL = TBCTL & ~(MC1|MC0);
   }
 
-
-  async event void ACLKCompare.fired()
-  {
-    if( m_aclk_count > 0 )
-    {
-      m_dco_prev = m_dco_curr;
-      m_dco_curr = TAR;
-      if( m_aclk_count > 1 )
-	call ACLKCompare.setEventFromPrev( ACLK_CALIB_PERIOD );
-      m_aclk_count--;
-    }
-  }
-
-  void set_calib( int calib )
+  void set_dco_calib( int calib )
   {
     BCSCTL1 = (BCSCTL1 & ~0x07) | ((calib >> 8) & 0x07);
     DCOCTL = calib & 0xff;
   }
 
-  void test_calib( int calib )
-  {
-    set_calib( calib );
-    m_aclk_count = 2;
-    call ACLKCompare.setEventFromNow( ACLK_CALIB_PERIOD );
-  }
-
-  uint16_t busywait_delta()
-  {
-    while( m_aclk_count != 0 ) { }
-    return m_dco_curr - m_dco_prev;
-  }
-
   uint16_t test_calib_busywait_delta( int calib )
   {
-    test_calib( calib );
-    return busywait_delta();
+    int8_t aclk_count = 2;
+    uint16_t dco_prev = 0;
+    uint16_t dco_curr = 0;
+
+    set_dco_calib( calib );
+    
+    while( aclk_count-- > 0 )
+    {
+      TBCCR0 = TBR + ACLK_CALIB_PERIOD; // set next interrupt
+      TBCCTL0 &= ~CCIFG; // clear pending interrupt
+      while( (TBCCTL0 & CCIFG) == 0 ); // busy wait
+      dco_prev = dco_curr;
+      dco_curr = TAR;
+    }
+
+    return dco_curr - dco_prev;
   }
 
-  // busyCalibrateDCO: DESTRUCTIVE TO ALL TIMERS
+  // busyCalibrateDCO
+  // Should take about 9ms if ACLK_CALIB_PERIOD=8.
+  // DCOCTL and BCSCTL1 are calibrated when done.
   void busyCalibrateDCO()
   {
     // --- variables ---
@@ -189,27 +173,11 @@ implementation
 
     // --- setup ---
 
-    // destructive: force all clocks and timers into a default state
-    // (using TimerA2 with ACLK as its source this didn't work, wth)
-    m_aclk_count = 0;
     TACTL = TASSEL1 | MC1; // source SMCLK, continuous mode, everything else 0
     TBCTL = TBSSEL0 | MC1;
-    CLR_FLAG( IE1, OFIE );
     BCSCTL1 = XT2OFF | RSEL2;
     BCSCTL2 = 0;
-    TACCTL0 = 0;
-    TACCTL1 = 0;
-    TACCTL2 = 0;
-    TBCCTL0 = 0;
-    TBCCTL1 = 0;
-    TBCCTL2 = 0;
-    TBCCTL3 = 0;
-    TBCCTL4 = 0;
-    TBCCTL5 = 0;
-    TBCCTL6 = 0;
-    SET_FLAG( TBCTL, TBIE ); // enable timer b interrupts
-    call ACLKControl.setControlAsCompare();
-    call ACLKControl.enableEvents();
+    TBCCTL0 = CM0;
 
     // --- calibrate ---
 
@@ -223,35 +191,24 @@ implementation
 	calib |= step;
     }
 
-    // --- restore ---
+    // if DCOx is 7 (0x0e0 in calib), then the 5-bit MODx is not useable, set it to 0
+    if( (calib & 0x0e0) == 0x0e0 )
+      calib &= ~0x01f;
 
-    // disable Timer A and A2
-    TACTL = 0;
-    TBCTL = 0;
-    TBCCTL2 = 0;
+    set_dco_calib( calib );
   }
 
-  void garnishedBusyCalibrateDCO()
-  {
-    bool do_disable_interrupts = !are_interrupts_enabled();
-    __nesc_enable_interrupt();
-    busyCalibrateDCO();
-    if(do_disable_interrupts)
-      __nesc_disable_interrupt();
-  }
-    
   command error_t Init.init()
   {
     // Reset timers and clear interrupt vectors
     TACTL = TACLR;
-    TBCTL = TBCLR;
     TAIV = 0;
+    TBCTL = TBCLR;
     TBIV = 0;
-
-    garnishedBusyCalibrateDCO();
 
     atomic
     {
+      busyCalibrateDCO();
       signal MSP430ClockInit.initClocks();
       signal MSP430ClockInit.initTimerA();
       signal MSP430ClockInit.initTimerB();
