@@ -1,7 +1,7 @@
-// $Id: Main.nc,v 1.1.2.2 2005-01-20 04:58:54 scipio Exp $
+// $Id: TinyScheduler.nc,v 1.1.2.1 2005-01-20 04:58:55 scipio Exp $
 
 /*									tab:4
- * "Copyright (c) 2004-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -20,7 +20,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2004-2005 Intel Corporation
+ * Copyright (c) 2002-2003 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -31,26 +31,28 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: Main.nc,v 1.1.2.2 2005-01-20 04:58:54 scipio Exp $
+ * Date last modified:  $Id: TinyScheduler.nc,v 1.1.2.1 2005-01-20 04:58:55 scipio Exp $
  *
  */
 
 /**
+ * TinyScheduler is the placeholder configuration for scheduler
+ * implementation that an application uses, as disucced in TEP 106.
+ *
  * @author Philip Levis
- * @date January 17 2005
+ * @date   January 19 2005
  */
 
-configuration Main {
-  provides interface Boot;
-  uses interface Initialize as SoftwareInit;
+
+module TinyScheduler {
+  provides {
+    interface Scheduler;
+    interface TaskBasic[uint8_t id];
+  }
 }
 implementation {
-  components RealMain, Platform, TinyScheduler;
+  components SchedulerBasic;
 
-  RealMain.Scheduler -> TinyScheduler;
-  RealMain.HardwareInit -> Platform;
-
-  // Export the SoftwareInit and Booted for applications
-  SoftwareInit = RealMain.SoftwareInit;
-  Boot = RealMain.Boot;
+  Scheduler = SchedulerBasic;
+  TaskBasic = SchedulerBasic;
 }
