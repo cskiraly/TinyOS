@@ -1,4 +1,4 @@
-// $Id: GeneralIOM.nc,v 1.1.2.1 2005-03-14 02:20:35 jpolastre Exp $
+// $Id: InterruptM.nc,v 1.1.2.1 2005-03-16 01:23:56 jpolastre Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -24,18 +24,38 @@
  * @author Joe Polastre
  */
 
-generic module GeneralIOM()
+generic module InterruptM()
 {
-  provides interface GeneralIO as IO;
-  uses interface MSP430GeneralIO as MSPIO;
+  provides interface Interrupt;
+  uses interface MSP430Interrupt;
 }
 implementation
 {
-  async command void IO.set() { call MSPIO.set(); }
-  async command void IO.clr() { call MSPIO.clr(); }
-  async command void IO.toggle() { call MSPIO.toggle(); }
-  async command bool IO.get() { return call MSPIO.get(); }
-  async command void IO.makeInput() { call MSPIO.makeInput(); }
-  async command void IO.makeOutput() { call MSPIO.makeOutput(); }
+  async command error_t Interrupt.startWait(bool low_to_high) {
+    atomic {
+      call MSP430Interrupt.disable();
+      call MSP430Interrupt.clear();
+      call MSP430Interrupt.edge(low_to_high);
+      call MSP430Interrupt.enable();
+    }
+    return SUCCESS;
+  }
+
+  async command error_t Interrupt.disable() {
+    atomic {
+      call MSP430Interrupt.disable();
+      call MSP430Interrupt.clear();
+    }
+    return SUCCESS;
+  }
+
+  async event void MSP430Interrupt.fired() {
+    signal Interrupt.fired();
+  }
+
+  default async event void Interrupt.fired() { }
+
 }
+
+
 
