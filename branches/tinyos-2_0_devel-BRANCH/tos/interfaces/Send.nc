@@ -1,4 +1,4 @@
-// $Id: Send.nc,v 1.1.2.2 2004-11-17 01:12:01 scipio Exp $
+// $Id: Send.nc,v 1.1.2.3 2004-11-20 00:59:05 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004 The Regents of the University  of California.  
  * All rights reserved.
@@ -65,14 +65,8 @@ interface Send {
   command error_t cancel(TOSMsg* msg);
 
   /** 
-    * Signaled in response to an accepted send request if the 
-    * send was successful. 
+    * Signaled in response to an accepted send request. 
     */ 
-  event void sendSucceeded(TOSMsg* msg);
+  event void sendDone(TOSMsg* msg, error_t error);
 
-  /** 
-    * Signaled in response to an accepted send request if the 
-    * send failed. 
-    */ 
-  event void sendFailed(TOSMsg* msg, error_t error);
 }
