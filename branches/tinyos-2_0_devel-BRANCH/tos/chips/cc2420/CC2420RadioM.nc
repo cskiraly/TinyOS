@@ -1,4 +1,4 @@
-// $Id: CC2420RadioM.nc,v 1.1.2.3 2005-03-14 03:48:01 jpolastre Exp $
+// $Id: CC2420RadioM.nc,v 1.1.2.4 2005-03-19 20:59:15 scipio Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.3 $
+ * Revision:  $Revision: 1.1.2.4 $
  */
 
 includes byteorder;
@@ -508,8 +508,6 @@ implementation {
    *  rxbufptr->strength is RSSI
    **********************************************************/
    async event result_t FIFOP.fired() {
-
-     //     call Leds.yellowToggle();
 
      // if we're trying to send a message and a FIFOP interrupt occurs
      // and acks are enabled, we need to backoff longer so that we don't
