@@ -1,4 +1,4 @@
-// $Id: PowerupM.nc,v 1.1.2.2 2005-03-19 20:59:14 scipio Exp $
+// $Id: PowerupM.nc,v 1.1.2.3 2005-03-21 19:34:32 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -39,7 +39,7 @@ module PowerupM
 implementation
 {
   event void Boot.booted()  {
-    call Leds.led1On();
+    call Leds.led0On();
   }
 }
 

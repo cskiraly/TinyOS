@@ -1,6 +1,6 @@
-// $Id: PlatformLeds.nc,v 1.1.2.2 2005-03-21 19:34:46 scipio Exp $
+//$Id: Leds.h,v 1.1.2.1 2005-03-21 19:34:49 scipio Exp $
 
-/* "Copyright (c) 2000-2005 The Regents of the University of California.  
+/* "Copyright (c) 2005 The Regents of the University of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -21,33 +21,20 @@
  */
 
 /**
- * @author Joe Polastre
+ * Constants for manipulating LEDs.
+ *
+ * @author Philip Levis
+ * @date   March 21, 2005
  */
-includes hardware;
 
-configuration PlatformLeds
-{
-  provides interface GeneralIO as Led0;
-  provides interface GeneralIO as Led1;
-  provides interface GeneralIO as Led2;
-}
-implementation
-{
-  components 
-    MSP430GeneralIOC
-    , new GeneralIOM() as Led0Impl
-    , new GeneralIOM() as Led1Impl
-    , new GeneralIOM() as Led2Impl
-    ;
-
-  Led0 = Led0Impl.IO;
-  Led0Impl.MSPIO -> MSP430GeneralIOC.Port54;
-
-  Led1 = Led1Impl.IO;
-  Led1Impl.MSPIO -> MSP430GeneralIOC.Port55;
-
-  Led2 = Led2Impl.IO;
-  Led2Impl.MSPIO -> MSP430GeneralIOC.Port56;
-
-}
+enum {
+  LEDS_LED0 = 1 << 0,
+  LEDS_LED1 = 1 << 1,
+  LEDS_LED2 = 1 << 2,
+  LEDS_LED3 = 1 << 3,
+  LEDS_LED4 = 1 << 4,
+  LEDS_LED5 = 1 << 5,
+  LEDS_LED6 = 1 << 6,
+  LEDS_LED7 = 1 << 7
+};
 

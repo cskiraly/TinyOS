@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.3 2005-03-19 20:59:14 scipio Exp $
+// $Id: BlinkM.nc,v 1.1.2.4 2005-03-21 19:34:31 scipio Exp $
 
 module BlinkM
 {
@@ -11,7 +11,7 @@ implementation
 {
   event void Boot.booted()
   {
-    call Leds.led2On();
+    call Leds.led1On();
     call TimerControl.setControlAsCompare();
     call TimerCompare.setEventFromNow( 8192 );
     call TimerControl.enableEvents();
@@ -19,7 +19,7 @@ implementation
 
   async event void TimerCompare.fired()
   {
-    call Leds.led1Toggle();
+    call Leds.led0Toggle();
     call TimerCompare.setEventFromPrev( 8192 );
   }
 }

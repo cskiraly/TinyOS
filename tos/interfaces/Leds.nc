@@ -1,4 +1,4 @@
-// $Id: Leds.nc,v 1.1.2.3 2005-03-19 20:59:16 scipio Exp $
+// $Id: Leds.nc,v 1.1.2.4 2005-03-21 19:34:44 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2005-2005 The Regents of the University  of California.  
@@ -35,7 +35,25 @@
  * @author Philip Levis
  */
 
+includes Leds;
+
 interface Leds {
+
+  /**
+   * Turn on LED 0. The color of this LED depends on the platform.
+   */
+  async command void led0On();
+
+  /**
+   * Turn off LED 0. The color of this LED depends on the platform.
+   */
+  async command void led0Off();
+
+  /**
+   * Toggle LED 0; if it was off, turn it on, if was on, turn it off.
+   * The color of this LED depends on the platform.
+   */
+  async command void led0Toggle();
 
   /**
    * Turn on LED 1. The color of this LED depends on the platform.
@@ -47,12 +65,13 @@ interface Leds {
    */
   async command void led1Off();
 
-  /**
+   /**
    * Toggle LED 1; if it was off, turn it on, if was on, turn it off.
    * The color of this LED depends on the platform.
    */
   async command void led1Toggle();
 
+ 
   /**
    * Turn on LED 2. The color of this LED depends on the platform.
    */
@@ -69,21 +88,34 @@ interface Leds {
    */
   async command void led2Toggle();
 
- 
-  /**
-   * Turn on LED 3. The color of this LED depends on the platform.
-   */
-  async command void led3On();
 
   /**
-   * Turn off LED 3. The color of this LED depends on the platform.
-   */
-  async command void led3Off();
+   * Get the current LED settings as a bitmask. Each bit corresponds to
+   * whether an LED is on; bit 0 is LED 0, bit 1 is LED 1, etc. You can
+   * also use the enums LED_LED0, LED_LED1. For example, this expression
+   * will determine whether LED 2 is on:
+   *
+   * <pre> (call Leds.get() & LEDS_LED2) </pre>
+   *
+   * This command supports up to 8 LEDs; if a platform has fewer, then
+   * those LEDs should always be off (their bit is zero). Also see
+   * <tt>set()</tt>.
+   */ 
+  async command uint8_t get();
 
-   /**
-   * Toggle LED 3; if it was off, turn it on, if was on, turn it off.
-   * The color of this LED depends on the platform.
+  
+  /**
+   * Set the current LED configuration using a bitmask.  Each bit
+   * corresponds to whether an LED is on; bit 0 is LED 0, bit 1 is LED
+   * 1, etc. You can also use the enums LEDS_LED0, LEDS_LED1. For example,
+   * this statement will configure the LEDs so LED 0 and LED 2 are on:
+   *
+   * <pre> call Leds.set(LEDS_LED0 | LEDS_LED2); </pre>
+   *
+   * This statement will turn LED 1 on if it was not already:
+   *
+   * <pre>call Leds.set(call Leds.get() | LEDS_LED1);</pre>
    */
-  async command void led3Toggle();
-
+   async command void set(uint8_t val);
+  
 }
