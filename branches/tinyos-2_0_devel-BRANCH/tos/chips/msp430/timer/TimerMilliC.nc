@@ -1,4 +1,4 @@
-//$Id: TimerMilliC.nc,v 1.1.2.1 2005-03-30 17:58:27 cssharp Exp $
+//$Id: TimerMilliC.nc,v 1.1.2.2 2005-04-01 08:32:00 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -42,7 +42,6 @@ implementation
 	   , new MultiplexTimerM(TMilli,uint32_t,uniqueCount("TimerMilli")) as MultiTimerMilli
 	   , new SyncAlarmC(TMilli,uint32_t) as SyncAlarm
 	   , new CastTimerM(TMilli) as CastTimer
-	   , MathOpsM
 	   ;
 
   /* From the bottom:
@@ -65,14 +64,10 @@ implementation
 
   Init = AlarmTimerMilliC;
   Init = MultiTimerMilli;
-
   TimerMilli = CastTimer;
-  
-  CastTimer.TimerFrom -> MultiTimerMilli;
 
+  CastTimer.TimerFrom -> MultiTimerMilli;
   MultiTimerMilli.AlarmFrom -> SyncAlarm;
-  MultiTimerMilli.Math -> MathOpsM;
-  
   SyncAlarm.AlarmBaseFrom -> AlarmTimerMilliC;
 }
 
