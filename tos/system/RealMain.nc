@@ -1,4 +1,4 @@
-// $Id: RealMain.nc,v 1.1.2.1 2005-01-17 19:57:22 scipio Exp $
+// $Id: RealMain.nc,v 1.1.2.2 2005-01-20 04:34:19 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,61 +31,66 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: RealMain.nc,v 1.1.2.1 2005-01-17 19:57:22 scipio Exp $
+ * Date last modified:  $Id: RealMain.nc,v 1.1.2.2 2005-01-20 04:34:19 scipio Exp $
  *
  */
 
 /**
- * 
+ * RealMain implements the TinyOS boot sequence, as documented in TEP 107.
+ *
  * @author Philip Levis
  * @date   January 17 2005
  */
 
 
 module RealMain {
-  provides interface Booted;
+  provides interface Boot;
   uses {
     interface Scheduler;
     interface Initialize as PlatformInit;
     interface Initialize as SoftwareInit;
-    interface HWSleep;
   }
 }
 implementation
 {
 
-  task void bootedTask() {
-    signal Booted.booted();
-  }
-
   int main() __attribute__ ((C, spontaneous)) {
 
-    /* Initialize all of the very hardware specific stuff, such as CPU
-    settings, counters, etc. Once the CPU and basic peripherals are in
-    the right states -- these calls cannot post any tasks --
-    initialize the Scheduler. After the Scheduler is ready, initialize
-    the requisite software components and start execution.*/
+    /* First, initialize the Scheduler so components can post
+       tasks. Initialize all of the very hardware specific stuff, such
+       as CPU settings, counters, etc. After the hardware is ready,
+       initialize the requisite software components and start
+       execution.*/
 
+
+    call Scheduler.init(); 
+    
     /* Enable interrupts, in case initialization calls, such as for
        oscillator calibration, require them. */
     __nesc_enable_interrupt();    
 
-    call PlatformInit.init();  // Replaces TOSH_hardware_init in tos-1.x
-    call Scheduler.init(); 
+    /* Initialize the platform. Then spin on the Scheduler, passing
+     * FALSE so it will not put the system to sleep if there are no
+     * more tasks; if no tasks remain, continue on to software
+     * initialization */
+    call PlatformInit.init();    
+    while (call Scheduler.runNextTask(FALSE));
+
+    /* Initialize software components.Then spin on the Scheduler,
+     * passing FALSE so it will not put the system to sleep if there
+     * are no more tasks; if no tasks remain, the system has booted
+     * successfully.*/
     call SoftwareInit.init(); 
-    
+    while (call Scheduler.runNextTask(FALSE));
 
-
-    /* One question here is whether main should signal this event directly,
-       or post a task. Currently, Main posts a task in case SoftwareInit
-       causes tasks to be posted; this way, the system isn't booted until
-       those tasks clear.*/
     post bootedTask();
 
+    /* Spin on the Scheduler, passing TRUE so the Scheduler will, when
+       there are no more tasks to run, put the CPU to sleep until the
+       next interrupt arrives. */       
     while (1) {
-      while (call Scheduler.runTask()) {}
-      call HWSleep.sleepUntilInterrupt();
-    }
+      call Scheduler.runNextTask(TRUE);
+    } 
   }
 
 }
