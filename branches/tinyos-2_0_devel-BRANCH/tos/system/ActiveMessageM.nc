@@ -1,4 +1,4 @@
-// $Id: ActiveMessageM.nc,v 1.1.2.1 2005-01-18 18:46:34 scipio Exp $
+// $Id: ActiveMessageM.nc,v 1.1.2.2 2005-01-18 22:25:06 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: ActiveMessageM.nc,v 1.1.2.1 2005-01-18 18:46:34 scipio Exp $
+ * Date last modified:  $Id: ActiveMessageM.nc,v 1.1.2.2 2005-01-18 22:25:06 scipio Exp $
  *
  */
 
@@ -60,6 +60,10 @@ configuration ActiveMessageM {
 }
 implementation {
 
+  enum {
+    AM_HEADER_SIZE = sizeof(AMHeader);
+  };
+  
   bool active = FALSE;
 
   /* Starting and stopping ActiveMessages. */
@@ -85,32 +89,95 @@ implementation {
   /* Sending a packet */
   
   command error_t AMSend.send[am_id_t id](am_addr_t addr, TOSMsg* msg, uint8_t len) {
-
+    if (!active) {
+      return EOFF;
+    }
+    else {
+      void* payload = call SubPacket.getPayload(msg, NULL);
+      AMHeader* header = (AMHeader*)payload;
+      
+      header->type = id;
+      header->addr = addr;
+      len += AM_HEADER_SIZE;
+      
+      return call SubSend.send(msg, len);
+    }
   }
 
   command error_t AMSend.cancel[am_id_t id](TOSMsg* msg) {
-
+    if (!active) {
+      return EOFF;
+    }
+    else {
+      return call SubSend.cancel(msg);
+    }
   }
 
   event void SubSend.sendDone(TOSMsg* msg, error_t result) {
-
+    void* payload = call SubPacket.getPayload(msg, NULL);
+    AMHeader* header = (AMHeader*)payload;
+    signal Send.sendDone[header->type](msg, result);
   }
 
 
   /* Receiving a packet */
 
   event TOSMsg* SubReceive.receive(TOSMsg* msg, void* payload, uint8_t len) {
-    AMHeader* header = (AMHeader*)payload;
-    if (call AMPacket.isForMe(msg)) {
-      return signal Receive.receive[header->type](msg, payload + sizeof(AMHeader), len - sizeof(AMHeader));
+    if (!active) {
+      return msg;
     }
     else {
-      return signal Snoop.receive[header->type](msg, payload + sizeof(AMHeader), len - sizeof(AMHeader));
+      AMHeader* header = (AMHeader*)payload;
+      uint8_t* payloadPtr = (uint8_t*)payload;
+      
+      /* Move payload pointer forward and adjust length. */
+      payloadPtr += AM_HEADER_SIZE;
+      len -= AM_HEADER_SIZE;
+      
+      if (call AMPacket.isForMe(msg)) {
+	return signal Receive.receive[header->type](msg, payloadPtr, len);
+      }
+      else {
+	return signal Snoop.receive[header->type](msg, payloadPtr, len);
+      }
     }
   }
+  
+  
+  default event TOSMsg* Receive.receive[am_id_t id](TOSMsg* msg, void* payload, uint8_t len) {
+    return msg;
+  }
+  
+  default event TOSMsg* Snoop.receive[am_id_t id](TOSMsg* msg, void* payload, uint8_t len) {
+    return msg;
+  }
 
-  /* Packet information */
+  
+ /* Packet interface */
+  
+  command void Packet.clear(TOSMsg* msg) {
+    call SubPacket.clear(msg);
+  }
 
+  command uint8_t Packet.payloadLength(TOSMsg* msg) {
+    uint8_t len = call SubPacket.payloadLength(msg);
+    len -= AM_HEADER_SIZE;
+    return len;
+  }
 
+  command uint8_t Packet.maxPayloadLength() {
+    return call SubPacket.maxPayloadLength() - AM_HEADER_SIZE;
+  }
+
+  command void* Packet.getPayload(TOSMsg* msg, uint8_t* len) {
+    uint8_t* payloadPtr = call SubPacket.getPayload(msg, len);
+
+    payloadPtr += AM_HEADER_SIZE;
+    if (len != NULL) {
+      *len -= AM_HEADER_SIZE;
+    }
+
+    return (void*)payloadPtr;
+  }
   
 }
