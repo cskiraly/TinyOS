@@ -30,8 +30,8 @@
  * Implementation of USART0 lowlevel functionality - stateless.
  * Setting a mode will by default disable USART-Interrupts.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-03-16 07:09:28 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-03-17 06:13:52 $
  * @author: Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author: Joe Polastre
  * ========================================================================
@@ -54,6 +54,7 @@ module HPLUSART0M {
 implementation
 {
   MSP430REG_NORACE(ME1);
+  MSP430REG_NORACE(IE1);
   MSP430REG_NORACE(IFG1);
   MSP430REG_NORACE(U0TCTL);
 
@@ -62,7 +63,10 @@ implementation
   uint8_t l_ssel;
 
   TOSH_SIGNAL(UART0RX_VECTOR) {
-    uint8_t temp = U0RXBUF;
+    uint8_t temp;
+    if (U0RCTL & OE)
+      signal USARTData.rxOverflow();
+    temp = U0RXBUF;
     signal USARTData.rxDone(temp);
   }
   
@@ -123,15 +127,15 @@ implementation
   }
 
   async command msp430_usartmode_t USARTControl.getMode() {
-    if (call USARTControl.isUART() == SUCCESS)
+    if (call USARTControl.isUART() == TRUE)
       return USART_UART;
-    else if (call USARTControl.isUARTrx() == SUCCESS)
+    else if (call USARTControl.isUARTrx() == TRUE)
       return USART_UART_RX;
-    else if (call USARTControl.isUARTtx() == SUCCESS)
+    else if (call USARTControl.isUARTtx() == TRUE)
       return USART_UART_TX;
-    else if (call USARTControl.isSPI() == SUCCESS)
+    else if (call USARTControl.isSPI() == TRUE)
       return USART_SPI;
-    else if (call USARTControl.isI2C() == SUCCESS)
+    else if (call USARTControl.isI2C() == TRUE)
       return USART_I2C;
     else
       return USART_NONE;
@@ -207,7 +211,7 @@ implementation
   }
 
   async command void USARTControl.disableI2C() {
-    if (call USARTControl.isI2C() == SUCCESS)
+    if (call USARTControl.isI2C() == TRUE)
       U0CTL &= ~(I2C | I2CEN | SYNC);
   }
 
@@ -226,12 +230,12 @@ implementation
 
       IE1 &= ~(UTXIE0 | URXIE0);  // interrupt disable    
 
+      // 8-bit char, SPI-mode, USART as master
       U0CTL = SWRST;
-      U0CTL |= CHAR | SYNC | MM;  // 8-bit char, SPI-mode, USART as master
-      U0CTL &= ~(0x20); 
+      U0CTL |=  CHAR | SYNC | MM;  
+      U0CTL &= ~(0x20);
 
-      U0TCTL = STC ;     // 3-pin
-      U0TCTL |= CKPH;    // half-cycle delayed UCLK
+      U0TCTL = STC | CKPH;     // 3-pin half-cycle delayed UCLK
 
       if (l_ssel & 0x80) {
         U0TCTL &= ~(SSEL_0 | SSEL_1 | SSEL_2 | SSEL_3);
@@ -410,27 +414,40 @@ implementation
     }
   }
 
-  async command error_t USARTControl.isTxIntrPending(){
+  async command bool USARTControl.isTxIntrPending(){
     if (IFG1 & UTXIFG0){
-      IFG1 &= ~UTXIFG0;
-      return SUCCESS;
+      return TRUE;
     }
-    return FAIL;
+    return FALSE;
   }
 
-  async command error_t USARTControl.isTxEmpty(){
+  async command error_t USARTControl.clrTxIntr(){
+    IFG1 &= ~UTXIFG0;
+    return SUCCESS;
+  }
+
+  async command bool USARTControl.isTxEmpty(){
     if (U0TCTL & TXEPT) {
-      return SUCCESS;
+      return TRUE;
     }
-    return FAIL;
+    return FALSE;
   }
 
-  async command error_t USARTControl.isRxIntrPending(){
-    if (IFG1 & URXIFG0){
-      IFG1 &= ~URXIFG0;
-      return SUCCESS;
-    }
-    return FAIL;
+  async command bool USARTControl.isRxIntrPending(){
+    if (IFG1 & URXIFG0)
+      return TRUE;
+    return FALSE;
+  }
+
+  async command error_t USARTControl.clrRxIntr() {
+    IFG1 &= ~URXIFG0;
+    return SUCCESS;
+  }
+
+  async command error_t USARTControl.enableRxTxIntr() {
+    IFG1 &= ~(URXIFG0 | UTXIFG0);
+    IE1 = URXIE0 | UTXIE0;
+    return SUCCESS;
   }
 
   async command error_t USARTControl.disableRxIntr(){
@@ -444,18 +461,14 @@ implementation
   }
 
   async command error_t USARTControl.enableRxIntr(){
-    atomic {
-      IFG1 &= ~URXIFG0;
-      IE1 |= URXIE0;  
-    }
+    IFG1 &= ~URXIFG0;
+    IE1 |= URXIE0;  
     return SUCCESS;
   }
 
   async command error_t USARTControl.enableTxIntr(){
-    atomic {
-      IFG1 &= ~UTXIFG0;
-      IE1 |= UTXIE0;
-    }
+    IFG1 &= ~UTXIFG0;
+    IE1 |= UTXIE0;
     return SUCCESS;
   }
   
@@ -470,7 +483,9 @@ implementation
     return value;
   }
 
-  default async event error_t USARTData.txDone() { return SUCCESS; }
+  default async event void USARTData.txDone() { }
 
-  default async event error_t USARTData.rxDone(uint8_t data) { return SUCCESS; }
+  default async event void USARTData.rxDone(uint8_t data) { }
+
+  default async event void USARTData.rxOverflow() { }
 }
