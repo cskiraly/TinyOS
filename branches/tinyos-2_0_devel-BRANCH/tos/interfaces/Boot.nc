@@ -1,4 +1,4 @@
-// $Id: BasicTask.nc,v 1.1.2.1 2005-01-17 19:18:53 scipio Exp $
+// $Id: Boot.nc,v 1.1.2.1 2005-01-20 04:44:49 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -29,32 +29,13 @@
  */
 
 /**
-  * The basic TinyOS task interface. 
+  * Interface that notifies components when TinyOS has booted
+  * (initialized all of its components), as discussed in TEP 107.
   *
   * @author Philip Levis
-  * @date   January 12, 2005
+  * @date   January 5 2005
   */ 
 
-
-includes TinyError;
-
-interface BasicTask {
-
-  /**
-   * Post this task to the TinyOS scheduler. At some later time,
-   * depending on the scheduling policy, the scheduler will signal the
-   * <tt>run()</tt> event. The semantics of the return value of this
-   * call depend on the implementation of this interface (the class
-   * of task).
-   */
-  
-  async command error_t post();
-
-  /**
-   * Event from the scheduler to run this task. Following the TinyOS
-   * concurrency model, the codes invoked from <tt>run()</tt> signals
-   * execute atomically with respect to one another, but can be
-   * preempted by async commands/events.
-   */
-  event void run();
+interface Boot {
+  event void booted();
 }

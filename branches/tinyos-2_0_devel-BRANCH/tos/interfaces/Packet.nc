@@ -1,4 +1,4 @@
-// $Id: Packet.nc,v 1.1.2.2 2005-01-20 00:09:41 jpolastre Exp $
+// $Id: Packet.nc,v 1.1.2.3 2005-01-20 04:44:49 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -43,15 +43,9 @@ interface Packet {
 
 
   /**
-    * Clear out this communication layer's payload region in the packet.
-    * Note that this is a deep operation: as higher level protocols may
-    * store their fields in the payload, this operation will clear out
-    * their state. For example, consider a packet containing application
-    * data being sent over a collection routing protocol built on top of
-    * active messages. Calling clear() on the routing protocol layer 
-    * will clear out the application-level data, but leave the routing
-    * and AM headers untouched, while calling clear on the active message 
-    * layer will clear out the routing headers and application data.
+    * Clear out this packet.  Note that this is a deep operation and
+    * total operation: calling clear() on any layer will completely
+    * clear the packet for reuse.
     */
 
   command void clear(TOSMsg* msg);
