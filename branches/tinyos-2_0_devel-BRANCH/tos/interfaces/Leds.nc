@@ -1,7 +1,7 @@
-// $Id: Leds.nc,v 1.1.2.1 2005-02-08 23:04:30 cssharp Exp $
+// $Id: Leds.nc,v 1.1.2.2 2005-03-16 08:14:05 jpolastre Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2003 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,104 +19,108 @@
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
- *
- * Copyright (c) 2002-2003 Intel Corporation
- * All rights reserved.
- *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
- * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
- * 94704.  Attention:  Intel License Inquiry.
- */
-/*
- * Authors:		Jason Hill, David Gay, Philip Levis
- * Date last modified:  6/1/03
- *
- *
  */
 
 /**
- * Abstraction of the LEDs.
+ * Interface for controlling the LEDs.
  *
- * @author Jason Hill
- * @author David Gay
- * @author Philip Levis
+ * @author Joe Polastre
  */
 
 interface Leds {
 
   /**
-   * Turn the red LED on.
-   *
-   * @return SUCCESS always.
-   *
+   * Turn the first LED on
+   */
+  async command void led1On();
+
+  /**
+   * Turn the first LED off
+   */
+  async command void led1Off();
+
+  /**
+   * Toggle the first LED off
+   */
+  async command void led1Toggle();
+
+  /**
+   * Turn the second LED on
+   */
+  async command void led2On();
+
+  /**
+   * Turn the second LED off
+   */
+  async command void led2Off();
+
+  /**
+   * Toggle the second LED
+   */
+  async command void led2Toggle();
+
+  /**
+   * Turn the third LED on
+   */
+  async command void led3On();
+
+  /**
+   * Turn the third LED off
+   */
+  async command void led3Off();
+
+  /**
+   * Toggle the third LED
+   */
+  async command void led3Toggle();
+
+  /**
+   * Deprecated: Turn red on
    */
   async command error_t redOn();
 
   /**
-   * Turn the red LED off.
-   *
-   * @return SUCCESS always.
-   *
+   * Deprecated: Turn the red LED off.
    */
   async command error_t redOff();
 
   /**
-   * Toggle the red LED. If it was on, turn it off. If it was off,
+   * Deprecated: Toggle the red LED. If it was on, turn it off. If it was off,
    * turn it on.
-   *
-   * @return SUCCESS always.
-   *
    */
   async command error_t redToggle();
 
   /**
-   * Turn the green LED on.
-   *
-   * @return SUCCESS always.
-   *
+   * Deprecated: Turn the green LED on.
    */
   async command error_t greenOn();
 
   /**
-   * Turn the green LED off.
-   *
-   * @return SUCCESS always.
-   *
+   * Deprecated: Turn the green LED off.
    */
   async command error_t greenOff();
 
   /**
+   * Deprecated: 
    * Toggle the green LED. If it was on, turn it off. If it was off,
    * turn it on.
-   *
-   * @return SUCCESS always.
-   *
    */
   async command error_t greenToggle();
 
   /**
-   * Turn the yellow LED on.
-   *
-   * @return SUCCESS always.
-   *
+   * Deprecated: Turn the yellow LED on.
    */
   async command error_t yellowOn();
 
   /**
-   * Turn the yellow LED off.
-   *
-   * @return SUCCESS always.
-   *
+   * Deprecated: Turn the yellow LED off.
    */
   async command error_t yellowOff();
 
   /**
+   * Deprecated: 
    * Toggle the yellow LED. If it was on, turn it off. If it was off,
    * turn it on.
-   *
-   * @return SUCCESS always.
-   *
    */
   async command error_t yellowToggle();
   
