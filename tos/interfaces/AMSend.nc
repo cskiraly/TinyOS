@@ -1,4 +1,4 @@
-// $Id: AMSend.nc,v 1.1.2.1 2005-01-17 19:18:53 scipio Exp $
+// $Id: AMSend.nc,v 1.1.2.2 2005-01-20 00:09:40 jpolastre Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -37,7 +37,7 @@
 
 
 includes TinyError;
-includes TinyMsg;
+includes TOSMsg;
 includes AM;
 
 interface AMSend {
@@ -56,9 +56,9 @@ interface AMSend {
 
   /**
     * Cancel a requested transmission. Returns SUCCESS if the 
-    * transmission was cancelled properly (not sent in its
+    * transmission was canceled properly (not sent in its
     * entirety). Note that the component may not know
-    * if the send was successfully cancelled, if the radio is
+    * if the send was successfully canceled, if the radio is
     * handling much of the logic; in this case, a component
     * should be conservative and return an appropriate error code.
     * A successful call to cancel must always result in a 

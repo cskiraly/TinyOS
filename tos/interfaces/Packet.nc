@@ -1,4 +1,4 @@
-// $Id: Packet.nc,v 1.1.2.1 2005-01-17 19:18:54 scipio Exp $
+// $Id: Packet.nc,v 1.1.2.2 2005-01-20 00:09:41 jpolastre Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -37,7 +37,7 @@
   */ 
 
 
-includes TinyMsg;
+includes TOSMsg;
 
 interface Packet {
 
@@ -54,7 +54,7 @@ interface Packet {
     * layer will clear out the routing headers and application data.
     */
 
-  command void clear(TOS_Msg* msg);
+  command void clear(TOSMsg* msg);
 
   /**
     * Return the length of the payload of msg. This value may be less
