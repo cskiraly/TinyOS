@@ -1,0 +1,10 @@
+OBJS = MathOpsM.nc
+
+all: $(OBJS)
+
+clean:
+	rm -f $(OBJS)
+
+%.nc: %.perl.nc
+	perlncpp -filter=1 $< > $@
+
