@@ -1,4 +1,4 @@
-// $Id: Init.nc,v 1.1.2.1 2005-01-20 20:50:47 jpolastre Exp $
+// $Id: Init.nc,v 1.1.2.2 2005-02-08 23:01:38 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -36,7 +36,6 @@
 
 
 includes TinyError;
-includes TOSMsg;
 
 interface Init {
 
