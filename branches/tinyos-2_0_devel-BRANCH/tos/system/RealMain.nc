@@ -1,4 +1,4 @@
-// $Id: RealMain.nc,v 1.1.2.4 2005-01-24 21:46:17 cssharp Exp $
+// $Id: RealMain.nc,v 1.1.2.5 2005-01-24 21:48:28 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: RealMain.nc,v 1.1.2.4 2005-01-24 21:46:17 cssharp Exp $
+ * Date last modified:  $Id: RealMain.nc,v 1.1.2.5 2005-01-24 21:48:28 cssharp Exp $
  *
  */
 
@@ -66,7 +66,7 @@ implementation
     
     /* Enable interrupts, in case initialization calls, such as for
        oscillator calibration, require them. */
-    __nesc_enable_interrupts();
+    __nesc_enable_interrupt();
 
     /* Initialize the platform. Then spin on the Scheduler, passing
      * FALSE so it will not put the system to sleep if there are no
