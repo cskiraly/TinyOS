@@ -1,4 +1,4 @@
-//$Id: WidenCounterM.nc,v 1.1.2.2 2005-02-11 02:12:57 cssharp Exp $
+//$Id: TransformCounterM.nc,v 1.1.2.1 2005-02-26 02:27:15 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,21 +24,32 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-generic module WidenCounterM(
+generic module TransformCounterM(
+  typedef to_frequency_tag,
   typedef to_size_type,
+  typedef from_frequency_tag,
   typedef from_size_type,
-  typedef upper_count_type,
-  typedef frequency_tag )
+  uint8_t bit_shift_right,
+  typedef upper_count_type )
 {
-  provides interface CounterBase<to_size_type,frequency_tag> as Counter;
-  uses interface CounterBase<from_size_type,frequency_tag> as CounterFrom;
+  provides interface CounterBase<to_size_type,to_frequency_tag> as Counter;
+  uses interface CounterBase<from_size_type,from_frequency_tag> as CounterFrom;
   uses interface MathOps<to_size_type> as MathTo;
   uses interface MathOps<from_size_type> as MathFrom;
   uses interface MathOps<upper_count_type> as MathUpper;
+  uses interface CastOps<from_size_type,to_size_type> as CastFromTo;
+  uses interface CastOps<upper_count_type,to_size_type> as CastUpperTo;
 }
 implementation
 {
   upper_count_type m_upper;
+
+  enum
+  {
+    LOW_SHIFT_RIGHT = bit_shift_right,
+    HIGH_SHIFT_LEFT = 8*sizeof(from_size_type) - LOW_SHIFT_RIGHT,
+    NUM_UPPER_BITS = 8*sizeof(to_size_type) - 8*sizeof(from_size_type) + bit_shift_right,
+  };
 
   async command to_size_type Counter.get()
   {
@@ -59,9 +70,9 @@ implementation
 	low = call CounterFrom.get();
       }
       {
-	to_size_type high_to = call MathTo.cast_to( call MathUpper.cast_from( high ) );
-	to_size_type low_to = call MathTo.cast_to( call MathFrom.cast_from( low ) );
-	rv = call MathTo.or( call MathTo.sl( high_to, sizeof(from_size_type)*8 ), low_to );
+	to_size_type high_to = call CastUpperTo.right( high );
+	to_size_type low_to = call CastFromTo.right( call MathFrom.sr( low, LOW_SHIFT_RIGHT ) );
+	rv = call MathTo.or( call MathTo.sl( high_to, HIGH_SHIFT_LEFT ), low_to );
       }
     }
     return rv;
@@ -73,7 +84,9 @@ implementation
 
   async command bool Counter.isOverflowPending()
   {
-    return call MathUpper.eq( m_upper, call MathUpper.cast_to(-1) )
+    const upper_count_type overflow_mask = call MathUpper.dec( call MathUpper.sl(
+      call MathUpper.castFromU8(1), NUM_UPPER_BITS ) );
+    return call MathUpper.eq( call MathUpper.and( m_upper, overflow_mask ), overflow_mask )
 	   && call CounterFrom.isOverflowPending();
   }
 
@@ -98,7 +111,7 @@ implementation
     atomic
     {
       m_upper = call MathUpper.inc(m_upper);
-      if( call MathUpper.eq( m_upper, call MathUpper.cast_to(0) ) )
+      if( call MathUpper.eq( m_upper, call MathUpper.castFromU8(0) ) )
 	signal Counter.overflow();
     }
   }

@@ -35,5 +35,9 @@ implementation
   {
     signal Alarm.fired();
   }
+
+  default async event void Alarm.fired()
+  {
+  }
 }
 
