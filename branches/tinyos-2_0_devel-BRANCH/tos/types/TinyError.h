@@ -1,4 +1,4 @@
-// $Id: TinyError.h,v 1.1.2.6 2005-02-08 23:02:19 cssharp Exp $
+// $Id: TinyError.h,v 1.1.2.7 2005-02-10 01:29:50 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Phil Levis
- * Revision:  $Revision: 1.1.2.6 $
+ * Revision:  $Revision: 1.1.2.7 $
  *
  * Defines global error codes for error_t in TinyOS.
  */
@@ -36,3 +36,21 @@ typedef enum {
   EBUSY          = 5,           // The posted task has already been posted
 } error_t;
 
+error_t rcombine(error_t r1, error_t r2)
+/* Returns: FAIL if r1 or r2 == FAIL , r2 otherwise. This is the standard
+     combining rule for results
+*/
+{
+  return (r1 || r2)? SUCCESS:FAIL;
+}
+
+error_t rcombine3(error_t r1, error_t r2, error_t r3)
+{
+  return rcombine(r1, rcombine(r2, r3));
+}
+
+error_t rcombine4(error_t r1, error_t r2, error_t r3,
+				 error_t r4)
+{
+  return rcombine(r1, rcombine(r2, rcombine(r3, r4)));
+}
