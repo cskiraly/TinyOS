@@ -1,4 +1,4 @@
-//$Id: Counter.nc,v 1.1.2.3 2005-02-11 02:00:18 cssharp Exp $
+//$Id: AlarmBase.nc,v 1.1.2.1 2005-02-11 02:00:18 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,11 +26,13 @@
 
 includes Timer;
 
-interface Counter<frequency_tag>
+interface AlarmBase<size_type,frequency_tag>
 {
-  async command uint32_t get();
-  async command bool isOverflowPending();
-  async command void clearOverflow();
-  async event void overflow();
+  async command size_type now();
+  async command size_type get();
+  async command bool isSet();
+  async command void cancel();
+  async command void set( size_type t0, size_type dt );
+  async event void fired();
 }
 
