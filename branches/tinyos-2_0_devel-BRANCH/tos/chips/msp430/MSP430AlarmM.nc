@@ -1,4 +1,4 @@
-//$Id: WidenAlarmM.nc,v 1.1.2.1 2005-02-08 23:00:03 cssharp Exp $
+//$Id: MSP430AlarmM.nc,v 1.1.2.1 2005-02-11 01:56:11 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,45 +24,70 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-generic module WidenAlarmM( 
-  typename to_size_type,
-  typename from_size_type,
-  typename frequency_tag )
+generic module MSP430AlarmM(typedef frequency_tag)
 {
-  provides interface Alarm<to_size_type,frequency_tag> as Alarm;
-  uses interface Counter<to_size_type,frequency_tag> as Counter;
-  uses interface Alarm<from_size_type,frequency_tag> as AlarmFrom;
+  provides interface Init;
+  provides interface AlarmBase<uint16_t,frequency_tag> as Alarm;
+  uses interface MSP430Timer;
+  uses interface MSP430TimerControl;
+  uses interface MSP430Compare;
 }
 implementation
 {
-  to_size_type m_alarm = 0;
-
-  async command uint32_t Alarm.get()
+  command error_t Init.init()
   {
-    return m_alarm;
+    call MSP430TimerControl.disableEvents();
+    call MSP430TimerControl.setControlAsCompare();
+    return SUCCESS;
+  }
+  
+  async command uint16_t Alarm.now()
+  {
+    return call MSP430Timer.get();
+  }
+
+  async command uint16_t Alarm.get()
+  {
+    return call MSP430Compare.getEvent();
   }
 
   async command bool Alarm.isSet()
   {
-    return call AlarmFrom.isSet();
+    return call MSP430TimerControl.areEventsEnabled();
   }
 
   async command void Alarm.cancel()
   {
-    call AlarmFrom.cancel();
+    call MSP430TimerControl.disableEvents();
   }
 
-  async command void Alarm.set( to_size_type t0, to_size_type dt )
+  async command void Alarm.set( uint16_t t0, uint16_t dt )
   {
-    to_size_type now = call Counter.get();
-    to_size_type remaining = now - t0;
-    m_alarm = t0+dt;
-    //...
+    uint16_t now = call MSP430Timer.get();
+    uint16_t elapsed = now - t0;
+    if( elapsed >= dt )
+    {
+      call MSP430Compare.setEventFromNow(2);
+    }
+    else
+    {
+      uint16_t remaining = dt - elapsed;
+      if( remaining <= 2 )
+	call MSP430Compare.setEventFromNow(2);
+      else
+	call MSP430Compare.setEvent( now+remaining );
+    }
+    call MSP430TimerControl.enableEvents();
   }
 
-  async event void AlarmFrom.fired()
+  async event void MSP430Compare.fired()
   {
-    //not quite, must check upper bytes, signal Alarm.fired();
+    call MSP430TimerControl.disableEvents();
+    signal Alarm.fired();
+  }
+
+  async event void MSP430Timer.overflow()
+  {
   }
 }
 

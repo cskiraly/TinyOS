@@ -1,4 +1,4 @@
-//$Id: CounterC.nc,v 1.1.2.2 2005-02-08 22:59:49 cssharp Exp $
+//$Id: CounterC.nc,v 1.1.2.3 2005-02-11 01:56:10 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,24 +26,29 @@
 
 configuration CounterC
 {
-  provides interface Counter32<TMilli> as Counter32Milli;
-  provides interface Counter<uint32_t,TMilli> as CounterMilli;
-  provides interface Counter<uint16_t,TMilli> as MSP430CounterMilli;
+  provides interface Counter<T32khz> as Counter32khz;
+  provides interface CounterBase<uint32_t,T32khz> as CounterBase32khz;
+  provides interface CounterBase<uint16_t,T32khz> as MSP430Counter32khz;
 }
 implementation
 {
   components MSP430TimerC
-           , new MSP430CounterM(TMilli) as MSP430CounterB
-	   , new WidenCounterM(uint32_t,uint16_t,uint16_t,TMilli) as WidenB
-	   , new CastCounter32(TMilli) as CastB
+           , new MSP430CounterM(T32khz) as MSP430CounterB
+	   //, new WidenCounterC(uint32_t,uint16_t,uint16_t,T32khz) as WidenCounterB
+	   , new WidenCounterM(uint32_t,uint16_t,uint16_t,T32khz) as WidenCounterB
+	   , new CastCounterM(T32khz) as CastCounterB
+	   , MathOpsM
 	   ;
   
-  Counter32Milli = CastB.Counter;
-  CounterMilli = WidenB.Counter;
-  MSP430CounterMilli = MSP430CounterB.Counter;
+  Counter32khz = CastCounterB.Counter;
+  CounterBase32khz = WidenCounterB.Counter;
+  MSP430Counter32khz = MSP430CounterB.Counter;
 
-  CastB.CounterFrom -> WidenB.Counter;
-  WidenB.CounterFrom -> MSP430CounterB.Counter;
+  CastCounterB.CounterFrom -> WidenCounterB.Counter;
+  WidenCounterB.CounterFrom -> MSP430CounterB.Counter;
+  WidenCounterB.MathTo -> MathOpsM;
+  WidenCounterB.MathFrom -> MathOpsM;
+  WidenCounterB.MathUpper -> MathOpsM;
   MSP430CounterB.MSP430Timer -> MSP430TimerC.TimerB;
 }
 

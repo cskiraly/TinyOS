@@ -1,4 +1,4 @@
-//$Id: MSP430TimerM.nc,v 1.1.2.2 2005-02-10 01:07:39 cssharp Exp $
+//$Id: MSP430TimerM.nc,v 1.1.2.3 2005-02-11 01:56:11 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -104,7 +104,7 @@ implementation
   async event void VectorTimerX1.fired()
   {
     uint8_t n = TxIV;
-    signal Event.fired[n]();
+    signal Event.fired[ n >> 1 ]();
   }
 
   async event void Overflow.fired()

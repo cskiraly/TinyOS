@@ -1,4 +1,4 @@
-//$Id: MSP430TimerCCM.nc,v 1.1.2.1 2005-02-08 23:00:03 cssharp Exp $
+//$Id: MSP430TimerCapComM.nc,v 1.1.2.1 2005-02-11 01:56:11 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,7 +24,7 @@
 
 includes MSP430Timer;
 
-generic module MSP430TimerCCM(
+generic module MSP430TimerCapComM(
     uint16_t TxCCTLx_addr,
     uint16_t TxCCRx_addr
   )

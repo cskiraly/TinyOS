@@ -1,4 +1,4 @@
-//$Id: MSP430CounterM.nc,v 1.1.2.1 2005-02-08 23:00:02 cssharp Exp $
+//$Id: MSP430CounterM.nc,v 1.1.2.2 2005-02-11 01:56:11 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,9 +24,9 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-generic module MSP430CounterM( typename frequency_tag )
+generic module MSP430CounterM( typedef frequency_tag )
 {
-  provides interface Counter<uint16_t,frequency_tag> as Counter;
+  provides interface CounterBase<uint16_t,frequency_tag> as Counter;
   uses interface MSP430Timer;
 }
 implementation
@@ -51,5 +51,4 @@ implementation
     signal Counter.overflow();
   }
 }
-
 
