@@ -1,4 +1,4 @@
-// $Id: TaskBasic.nc,v 1.1.2.1 2005-01-20 04:44:50 scipio Exp $
+// $Id: TaskBasic.nc,v 1.1.2.2 2005-01-20 20:06:18 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -43,9 +43,9 @@ interface TaskBasic {
   /**
    * Post this task to the TinyOS scheduler. At some later time,
    * depending on the scheduling policy, the scheduler will signal the
-   * <tt>run()</tt> event. The semantics of the return value of this
-   * call depend on the implementation of this interface (the class
-   * of task).
+   * <tt>run()</tt> event. SUCCESS means the task was successfuly
+   * posted; the semantics of a non-SUCCESS return value depend on the
+   * implementation of this interface (the class of task).
    */
   
   async command error_t post();
