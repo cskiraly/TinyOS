@@ -1,4 +1,4 @@
-//$Id: MSP430TimerM.nc,v 1.1.2.1 2005-02-08 23:00:03 cssharp Exp $
+//$Id: MSP430TimerM.nc,v 1.1.2.2 2005-02-10 01:07:39 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -76,6 +76,11 @@ implementation
     TxCTL |= TxCLR;
   }
 
+  async command void Timer.enableEvents()
+  {
+    TxCTL |= TxIE;
+  }
+
   async command void Timer.disableEvents()
   {
     TxCTL &= ~TxIE;
@@ -105,6 +110,10 @@ implementation
   async event void Overflow.fired()
   {
     signal Timer.overflow();
+  }
+
+  default async event void Timer.overflow()
+  {
   }
 
   default async event void Event.fired[uint8_t n]()
