@@ -1,4 +1,4 @@
-//$Id: TransformAlarmM.nc,v 1.1.2.1 2005-03-30 17:54:53 cssharp Exp $
+//$Id: TransformAlarmM.nc,v 1.1.2.2 2005-04-01 08:30:56 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,17 +26,14 @@
 
 generic module TransformAlarmM( 
   typedef to_frequency_tag,
-  typedef to_size_type,
+  typedef to_size_type @integer(),
   typedef from_frequency_tag,
-  typedef from_size_type,
+  typedef from_size_type @integer(),
   uint8_t bit_shift_right )
 {
   provides interface AlarmBase<to_frequency_tag,to_size_type> as Alarm;
   uses interface CounterBase<to_frequency_tag,to_size_type> as Counter;
   uses interface AlarmBase<from_frequency_tag,from_size_type> as AlarmFrom;
-  uses interface MathOps<to_size_type> as MathTo;
-  uses interface MathOps<from_size_type> as MathFrom;
-  uses interface CastOps<from_size_type,to_size_type> as CastFromTo;
 }
 implementation
 {
@@ -50,7 +47,7 @@ implementation
 
   async command to_size_type Alarm.get()
   {
-    return call MathTo.add( m_t0, m_dt );
+    return m_t0 + m_dt;
   }
 
   async command bool Alarm.isSet()
@@ -113,31 +110,33 @@ implementation
   void set_alarm()
   {
     to_size_type now = call Counter.get();
-    from_size_type now_from = call CastFromTo.left( call MathTo.sl( now, bit_shift_right ) );
-    to_size_type elapsed = call MathTo.sub(now,m_t0);
-    if( call MathTo.ge(elapsed,m_dt) )
+    from_size_type now_from = now << bit_shift_right;
+    to_size_type elapsed = now - m_t0;
+    if( elapsed >= m_dt )
     {
-      m_t0 = call MathTo.add(m_t0,m_dt);
-      m_dt = call MathTo.castFromU8(0);
-      call AlarmFrom.set( now_from, call MathFrom.castFromU8(0) );
+      m_t0 += m_dt;
+      m_dt = 0;
+      call AlarmFrom.set( now_from, 0 );
     }
     else
     {
-      to_size_type remaining = call MathTo.sub( m_dt, elapsed );
-      from_size_type remaining_from = call CastFromTo.left( remaining );
-      to_size_type delay = call MathTo.castFromU32( ((uint32_t)1) << (8*sizeof(from_size_type)-1-bit_shift_right) );
-      if( call MathTo.gt( remaining, delay ) )
+      to_size_type remaining = m_dt - elapsed;
+      from_size_type remaining_from = remaining;
+      //to_size_type delay = ((to_size_type)1) << (8*sizeof(from_size_type)-1-bit_shift_right);
+      to_size_type delay = 1;
+      delay <<= 8 * sizeof(from_size_type) - 1 - bit_shift_right;
+      if( remaining > delay )
       {
-	from_size_type delay_from = call CastFromTo.left( delay );
-	m_t0 = call MathTo.add( m_t0, delay );
-	m_dt = call MathTo.sub( m_dt, delay );
-	call AlarmFrom.set( now_from, call MathFrom.sl( delay_from, bit_shift_right ) );
+	from_size_type delay_from = delay;
+	m_t0 += delay;
+	m_dt -= delay;
+	call AlarmFrom.set( now_from, delay_from << bit_shift_right );
       }
       else
       {
-	m_t0 = call MathTo.add( m_t0, m_dt );
-	m_dt = call MathTo.castFromU8(0);
-	call AlarmFrom.set( now_from, call MathFrom.sl( remaining_from, bit_shift_right ) );
+	m_t0 += m_dt;
+	m_dt = 0;
+	call AlarmFrom.set( now_from, remaining_from << bit_shift_right );
       }
     }
   }
@@ -156,7 +155,7 @@ implementation
   {
     atomic
     {
-      if( call MathTo.eq( m_dt, call MathTo.castFromU8(0) ) )
+      if( m_dt == 0 )
       {
 	signal Alarm.fired();
       }
