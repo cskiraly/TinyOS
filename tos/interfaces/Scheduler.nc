@@ -1,4 +1,4 @@
-// $Id: Scheduler.nc,v 1.1.2.1 2005-01-20 04:41:10 scipio Exp $
+// $Id: Scheduler.nc,v 1.1.2.2 2005-02-08 23:02:17 cssharp Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -49,3 +49,4 @@ interface Scheduler {
     * set to FALSE. If sleep is TRUE, it always returns TRUE. */
   command bool runNextTask(bool sleep);
 }
+

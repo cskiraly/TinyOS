@@ -1,4 +1,4 @@
-//$Id: Timer.h,v 1.1.2.1 2005-01-24 21:01:08 scipio Exp $
+//$Id: Timer.h,v 1.1.2.2 2005-02-08 23:02:19 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,7 +26,7 @@
 
 typedef struct { } TMilli;
 typedef struct { } T32Micro;
-typedef struct { } TMicro
+typedef struct { } TMicro;
 typedef struct { } TNano;
 
 typedef struct
