@@ -30,17 +30,26 @@
  * Implementation of USART0 lowlevel functionality - stateless.
  * Setting a mode will by default disable USART-Interrupts.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-02-25 19:35:26 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-03-14 01:19:48 $
  * @author: Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author: Joe Polastre
  * ========================================================================
  */
 
 module HPLUSART0M {
-  provides interface HPLUSARTControl as USARTControl;
-  provides interface HPLUSARTFeedback as USARTData;
-  provides interface HPLI2CInterrupt;
+  provides {
+    interface HPLUSARTControl as USARTControl;
+    interface HPLUSARTFeedback as USARTData;
+    interface HPLI2CInterrupt;
+  }
+  uses {
+    interface MSP430GeneralIO as PinUTXD0;
+    interface MSP430GeneralIO as PinURXD0;
+    interface MSP430GeneralIO as PinSIMO0;
+    interface MSP430GeneralIO as PinSOMI0;
+    interface MSP430GeneralIO as PinUCLK0;
+  }
 }
 implementation
 {
@@ -160,8 +169,8 @@ implementation
   
   async command void USARTControl.disableUART() {
       ME1 &= ~(UTXE0 | URXE0);   // USART0 UART module enable
-      TOSH_SEL_UTXD0_IOFUNC();
-      TOSH_SEL_URXD0_IOFUNC();
+      call PinUTXD0.selectIOFunc();
+      call PinURXD0.selectIOFunc();
   }
 
   async command void USARTControl.enableUARTTx() {
@@ -170,7 +179,7 @@ implementation
 
   async command void USARTControl.disableUARTTx() {
       ME1 &= ~UTXE0;   // USART0 UART Tx module enable
-      TOSH_SEL_UTXD0_IOFUNC();
+      call PinUTXD0.selectIOFunc();
   }
 
   async command void USARTControl.enableUARTRx() {
@@ -179,7 +188,7 @@ implementation
 
   async command void USARTControl.disableUARTRx() {
       ME1 &= ~URXE0;  // USART0 UART Rx module disable
-      TOSH_SEL_URXD0_IOFUNC();
+      call PinURXD0.selectIOFunc();
   }
 
   async command void USARTControl.enableSPI() {
@@ -188,9 +197,9 @@ implementation
   
   async command void USARTControl.disableSPI() {
       ME1 &= ~USPIE0;   // USART0 SPI module disable
-      TOSH_SEL_SIMO0_IOFUNC();
-      TOSH_SEL_SOMI0_IOFUNC();
-      TOSH_SEL_UCLK0_IOFUNC();
+      call PinSIMO0.selectIOFunc();
+      call PinSOMI0.selectIOFunc();
+      call PinUCLK0.selectIOFunc();
   }
   
   async command void USARTControl.enableI2C() {
@@ -211,9 +220,9 @@ implementation
     call USARTControl.disableI2C();
 
     atomic {
-      TOSH_SEL_SIMO0_MODFUNC();
-      TOSH_SEL_SOMI0_MODFUNC();
-      TOSH_SEL_UCLK0_MODFUNC();
+      call PinSIMO0.selectModuleFunc();
+      call PinSOMI0.selectModuleFunc();
+      call PinUCLK0.selectModuleFunc();
 
       IE1 &= ~(UTXIE0 | URXIE0);  // interrupt disable    
 
@@ -305,8 +314,8 @@ implementation
     call USARTControl.disableUART();
 
     atomic {
-      TOSH_SEL_UTXD0_MODFUNC();
-      TOSH_SEL_URXD0_IOFUNC();
+      call PinUTXD0.selectModuleFunc();
+      call PinURXD0.selectIOFunc();
     }
     setUARTModeCommon();
     return;
@@ -322,8 +331,8 @@ implementation
     call USARTControl.disableUART();
 
     atomic {
-      TOSH_SEL_UTXD0_IOFUNC();
-      TOSH_SEL_URXD0_MODFUNC();
+      call PinUTXD0.selectIOFunc();
+      call PinURXD0.selectModuleFunc();
     }
     setUARTModeCommon();
     return;
@@ -339,8 +348,8 @@ implementation
     call USARTControl.disableUART();
 
     atomic {
-      TOSH_SEL_UTXD0_MODFUNC();
-      TOSH_SEL_URXD0_MODFUNC();
+      call PinUTXD0.selectModuleFunc();
+      call PinURXD0.selectModuleFunc();
       setUARTModeCommon();
     }
     return;
@@ -357,10 +366,10 @@ implementation
     call USARTControl.disableSPI();
 
     atomic {
-      TOSH_MAKE_SIMO0_INPUT();
-      TOSH_MAKE_UCLK0_INPUT();
-      TOSH_SEL_SIMO0_MODFUNC();
-      TOSH_SEL_UCLK0_MODFUNC();
+      call PinSIMO0.makeInput();
+      call PinUCLK0.makeInput();
+      call PinSIMO0.selectModuleFunc();
+      call PinUCLK0.selectModuleFunc();
 
       IE1 &= ~(UTXIE0 | URXIE0);  // interrupt disable    
 

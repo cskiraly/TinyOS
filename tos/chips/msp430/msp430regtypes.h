@@ -1,4 +1,4 @@
-//$Id: msp430regtypes.h,v 1.1.2.1 2005-02-08 23:00:03 cssharp Exp $
+//$Id: msp430regtypes.h,v 1.1.2.2 2005-03-14 01:19:48 jpolastre Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -173,6 +173,10 @@
 #define TYPE_MPY uint16_t
 #define TYPE_MPYS uint16_t
 #define TYPE_OP2 uint16_t
+#define TYPE_PORT_OUT uint8_t
+#define TYPE_PORT_IN uint8_t
+#define TYPE_PORT_DIR uint8_t
+#define TYPE_PORT_SEL uint8_t
 #define TYPE_P0DIR uint8_t
 #define TYPE_P0IE uint8_t
 #define TYPE_P0IES uint8_t
