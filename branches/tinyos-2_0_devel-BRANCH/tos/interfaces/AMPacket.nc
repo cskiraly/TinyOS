@@ -1,4 +1,4 @@
-// $Id: Send.nc,v 1.1.2.4 2005-01-17 19:18:54 scipio Exp $
+// $Id: AMPacket.nc,v 1.1.2.1 2005-01-17 19:18:44 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -28,47 +28,50 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-/** The basic message sending interface. Also see Packet and Receive.
+/**
+  * The Active Message accessors, which provide the AM local address and
+  * functionality for querying packlets. Also see the Packet interface.
   *
   * @author Philip Levis
   * @date   January 5 2005
   */ 
 
 
-includes TinyError;
 includes TinyMsg;
+includes AM;
 
-interface Send {
-
-  /** 
-    * Send a packet with a data payload of <tt>len</tt>. To determine
-    * the maximum available size, use the Packet interface of the
-    * component providing Send. If send returns SUCCESS, then the
-    * component will signal the sendDone event in the future; if send
-    * returns an error, it will not signal sendDone.  Note that a
-    * component may accept a send request which it later finds it
-    * cannot satisfy; in this case, it will signal sendDone with an
-    * appropriate error code.
-    */ 
-  command error_t send(TOSMsg* msg, uint8_t len);
+interface AMPacket {
 
   /**
-    * Cancel a requested transmission. Returns SUCCESS if the 
-    * transmission was cancelled properly (not sent in its
-    * entirety). Note that the component may not know
-    * if the send was successfully cancelled, if the radio is
-    * handling much of the logic; in this case, a component
-    * should be conservative and return an appropriate error code.
-    * A successful call to cancel must always result in a 
-    * sendFailed event, and never a sendSucceeded event.
-    */
-  command error_t cancel(TOSMsg* msg);
+   * Return the AM address of this mote.
+   *
+   */
 
-  /** 
-    * Signaled in response to an accepted send request. <tt>msg</tt>
-    * is the sent buffer, and <tt>error</tt> indicates whether the
-    * send was succesful, and if not, the cause of the failure.
-    */ 
-  event void sendDone(TOSMsg* msg, error_t error);
+  command am_addr_t localAddress();
 
+  /**
+   * Return the AM address of the destination field of the AM packet.
+   * If <tt>amsg</tt> is not an AM packet, the results of this command
+   * are undefined.
+   */
+  
+  command am_addr_t destination(TOSMsg* amsg);
+
+  /**
+   * Return whether <tt>amsg</tt> is destined for this mote. This is
+   * partially a shortcut for testing whether the return value of
+   * <tt>destination</tt> and <tt>localAddress</tt> are the same. It
+   * may, however, include additional logic. For example, there
+   * may be an AM broadcast address: <tt>destination</tt> will return
+   * the broadcast address, but <tt>localAddress</tt> will still be
+   * the mote's local address. If <tt>amsg</tt> is not an AM packet,
+   * the results of this command are undefined.
+   */
+  command bool isForMe(TOSMsg* amsg);
+
+  /**
+   * Return whether <tt>amsg</tt> is an AM packet.
+   */
+  command bool isAMPacket(TOSMsg* amsg);
+  
 }

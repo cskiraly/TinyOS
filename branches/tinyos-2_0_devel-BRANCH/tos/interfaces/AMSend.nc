@@ -1,6 +1,6 @@
-// $Id: Send.nc,v 1.1.2.4 2005-01-17 19:18:54 scipio Exp $
+// $Id: AMSend.nc,v 1.1.2.1 2005-01-17 19:18:53 scipio Exp $
 /*									tab:4
- * "Copyright (c) 2004-5 The Regents of the University  of California.  
+ * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,7 +19,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2004-5 Intel Corporation
+ * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -28,7 +28,8 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-/** The basic message sending interface. Also see Packet and Receive.
+/** The basic active message message sending interface. Also see
+  * Packet, Receive, and Send.
   *
   * @author Philip Levis
   * @date   January 5 2005
@@ -37,20 +38,21 @@
 
 includes TinyError;
 includes TinyMsg;
+includes AM;
 
-interface Send {
+interface AMSend {
 
   /** 
-    * Send a packet with a data payload of <tt>len</tt>. To determine
-    * the maximum available size, use the Packet interface of the
-    * component providing Send. If send returns SUCCESS, then the
-    * component will signal the sendDone event in the future; if send
-    * returns an error, it will not signal sendDone.  Note that a
-    * component may accept a send request which it later finds it
-    * cannot satisfy; in this case, it will signal sendDone with an
-    * appropriate error code.
+    * Send a packet with a data payload of <tt>len</tt> to address
+    * <tt>addr</tt>. To determine the maximum available size, use the
+    * Packet interface of the component providing AMSend. If send
+    * returns SUCCESS, then the component will signal the sendDone
+    * event in the future; if send returns an error, it will not
+    * signal the event.  Note that a component may accept a send
+    * request which it later finds it cannot satisfy; in this case, it
+    * will signal sendDone with error code.
     */ 
-  command error_t send(TOSMsg* msg, uint8_t len);
+  command error_t send(am_addr_t addr, TOSMsg* msg, uint8_t len);
 
   /**
     * Cancel a requested transmission. Returns SUCCESS if the 
@@ -65,10 +67,12 @@ interface Send {
   command error_t cancel(TOSMsg* msg);
 
   /** 
-    * Signaled in response to an accepted send request. <tt>msg</tt>
-    * is the sent buffer, and <tt>error</tt> indicates whether the
-    * send was succesful, and if not, the cause of the failure.
+    * Signaled in response to an accepted send request. <tt>msg</tt> is
+    * the message buffer sent, and <tt>error</tt> indicates whether
+    * the send was successful.
+    *
     */ 
+
   event void sendDone(TOSMsg* msg, error_t error);
 
 }
