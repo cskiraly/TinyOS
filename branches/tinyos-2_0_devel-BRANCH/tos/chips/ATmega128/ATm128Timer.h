@@ -1,4 +1,4 @@
-/// $Id: ATm128Timer.h,v 1.1.2.2 2005-01-20 04:17:32 mturon Exp $
+/// $Id: ATm128Timer.h,v 1.1.2.3 2005-01-21 09:27:32 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -43,8 +43,8 @@
 
 /** 8-bit Timer Clock Source Select Options */
 enum {
-    ATM128_CLK8_NONE = 0,
-    ATM128_CLK8_STANDARD = 1,
+    ATM128_CLK8_OFF = 0,
+    ATM128_CLK8_NORMAL = 1,
     ATM128_CLK8_DIVIDE_8,
     ATM128_CLK8_DIVIDE_32,
     ATM128_CLK8_DIVIDE_64,
@@ -84,7 +84,7 @@ typedef uint8_t ATm128_OCR2_t;         //!< Timer2 Output Compare Register
 typedef struct
 {
     uint8_t rsvd   : 4;  //!< Reserved
-    uint8_t as0    : 1;  //!< Asynchronous Timer/Counter
+    uint8_t as0    : 1;  //!< Asynchronous Timer/Counter (off=CPU,on=32KHz osc)
     uint8_t tcn0ub : 1;  //!< Timer0 Update Busy
     uint8_t ocr0ub : 1;  //!< Timer0 Output Compare Register Update Busy
     uint8_t tcr0ub : 1;  //!< Timer0 Control Resgister Update Busy
@@ -150,15 +150,15 @@ typedef struct
     uint8_t wgm10 : 2;   //!< Waveform generation mode
 } ATm128TimerCtrlCompare_t;
 
-/** Timer1 Control Register A */
+/** Timer1 Compare Control Register A */
 typedef ATm128TimerCtrlCompare_t ATm128_TCCR1A_t;
 
-/** Timer3 Control Register A */
+/** Timer3 Compare Control Register A */
 typedef ATm128TimerCtrlCompare_t ATm128_TCCR3A_t;
 
 enum {
-    ATM128_CLK16_NONE = 0,
-    ATM128_CLK16_STANDARD = 1,
+    ATM128_CLK16_OFF = 0,
+    ATM128_CLK16_NORMAL = 1,
     ATM128_CLK16_DIVIDE_8,
     ATM128_CLK16_DIVIDE_64,
     ATM128_CLK16_DIVIDE_256,
