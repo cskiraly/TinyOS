@@ -1,7 +1,7 @@
-// $Id: LedsC.nc,v 1.1.2.2 2005-02-10 01:28:25 scipio Exp $
+// $Id: LedsC.nc,v 1.1.2.3 2005-03-16 08:13:33 jpolastre Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2003 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,18 +19,9 @@
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
- *
- * Copyright (c) 2002-2003 Intel Corporation
- * All rights reserved.
- *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
- * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
- * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * @author Cory Sharp
- * @date   Feb 9 2005
+ * @author Joe Polastre
  */
 
 
@@ -41,8 +32,12 @@ configuration LedsC
 }
 implementation
 {
-  components LedsM;
+  components LedsM, PlatformLeds;
   Init = LedsM;
   Leds = LedsM;
+
+  LedsM.Led1 -> PlatformLeds.Led1;
+  LedsM.Led2 -> PlatformLeds.Led2;
+  LedsM.Led3 -> PlatformLeds.Led3;
 }
 

@@ -1,7 +1,7 @@
-// $Id: LedsM.nc,v 1.1.2.1 2005-02-08 23:04:33 cssharp Exp $
+// $Id: LedsM.nc,v 1.1.2.2 2005-03-16 08:13:33 jpolastre Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2003 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,169 +19,176 @@
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
- *
- * Copyright (c) 2002-2003 Intel Corporation
- * All rights reserved.
- *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
- * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
- * 94704.  Attention:  Intel License Inquiry.
- */
-/*
- *
- * Authors:		Jason Hill, David Gay, Philip Levis
- * Date last modified:  6/2/03
- *
  */
 
 /**
- * @author Jason Hill
- * @author David Gay
- * @author Philip Levis
+ * @author Joe Polastre
  */
 
-
 module LedsM {
-  provides interface Init;
-  provides interface Leds;
+  provides {
+    interface Init;
+    interface Leds;
+  }
+  uses {
+    interface GeneralIO as Led1;
+    interface GeneralIO as Led2;
+    interface GeneralIO as Led3;
+  }
 }
 implementation
 {
   #define dbg(n,msg)
 
-  uint8_t ledsOn;
-
-  enum {
-    RED_BIT = 1,
-    GREEN_BIT = 2,
-    YELLOW_BIT = 4
-  };
-
   command error_t Init.init() {
     atomic {
-      ledsOn = 0;
       dbg(DBG_BOOT, "LEDS: initialized.\n");
-      TOSH_MAKE_RED_LED_OUTPUT();
-      TOSH_MAKE_YELLOW_LED_OUTPUT();
-      TOSH_MAKE_GREEN_LED_OUTPUT();
-      TOSH_SET_RED_LED_PIN();
-      TOSH_SET_YELLOW_LED_PIN();
-      TOSH_SET_GREEN_LED_PIN();
+      call Led1.makeOutput();
+      call Led2.makeOutput();
+      call Led3.makeOutput();
+      call Led1.set();
+      call Led2.set();
+      call Led3.set();
     }
     return SUCCESS;
   }
 
+  async command void Leds.led1On() {
+    dbg(DBG_LED, "LEDS: Led1 on.\n");
+    call Led1.clr();
+  }
+
+  async command void Leds.led1Off() {
+    dbg(DBG_LED, "LEDS: Led1 off.\n");
+    call Led1.set();
+  }
+
+  async command void Leds.led1Toggle() {
+    call Led1.toggle();
+    // this should be removed by dead code elimination when compiled for
+    // the physical motes
+    if (call Led1.get())
+      dbg(DBG_LED, "LEDS: Led1 off.\n");
+    else
+      dbg(DBG_LED, "LEDS: Led1 on.\n");
+  }
+
+  async command void Leds.led2On() {
+    dbg(DBG_LED, "LEDS: Led2 on.\n");
+    call Led2.clr();
+  }
+
+  async command void Leds.led2Off() {
+    dbg(DBG_LED, "LEDS: Led2 off.\n");
+    call Led2.set();
+  }
+
+  async command void Leds.led2Toggle() {
+    call Led2.toggle();
+    if (call Led2.get())
+      dbg(DBG_LED, "LEDS: Led2 off.\n");
+    else
+      dbg(DBG_LED, "LEDS: Led2 on.\n");
+  }
+
+  async command void Leds.led3On() {
+    dbg(DBG_LED, "LEDS: Led3 on.\n");
+    call Led3.clr();
+  }
+
+  async command void Leds.led3Off() {
+    dbg(DBG_LED, "LEDS: Led3 off.\n");
+    call Led3.set();
+  }
+
+  async command void Leds.led3Toggle() {
+    call Led3.toggle();
+    if (call Led3.get())
+      dbg(DBG_LED, "LEDS: Led3 off.\n");
+    else
+      dbg(DBG_LED, "LEDS: Led3 on.\n");
+  }
+
   async command error_t Leds.redOn() {
-    dbg(DBG_LED, "LEDS: Red on.\n");
-    atomic {
-      TOSH_CLR_RED_LED_PIN();
-      ledsOn |= RED_BIT;
-    }
+    call Leds.led1On();
     return SUCCESS;
   }
 
   async command error_t Leds.redOff() {
     dbg(DBG_LED, "LEDS: Red off.\n");
-     atomic {
-       TOSH_SET_RED_LED_PIN();
-       ledsOn &= ~RED_BIT;
-     }
-     return SUCCESS;
+    call Leds.led1Off();
+    return SUCCESS;
   }
 
   async command error_t Leds.redToggle() {
-    error_t rval;
-    atomic {
-      if (ledsOn & RED_BIT)
-	rval = call Leds.redOff();
-      else
-	rval = call Leds.redOn();
-    }
-    return rval;
+    call Leds.led1Toggle();
+    return SUCCESS;
   }
 
   async command error_t Leds.greenOn() {
     dbg(DBG_LED, "LEDS: Green on.\n");
-    atomic {
-      TOSH_CLR_GREEN_LED_PIN();
-      ledsOn |= GREEN_BIT;
-    }
+    call Leds.led2On();
     return SUCCESS;
   }
 
   async command error_t Leds.greenOff() {
     dbg(DBG_LED, "LEDS: Green off.\n");
-    atomic {
-      TOSH_SET_GREEN_LED_PIN();
-      ledsOn &= ~GREEN_BIT;
-    }
+    call Leds.led2Off();
     return SUCCESS;
   }
 
   async command error_t Leds.greenToggle() {
-    error_t rval;
-    atomic {
-      if (ledsOn & GREEN_BIT)
-	rval = call Leds.greenOff();
-      else
-	rval = call Leds.greenOn();
-    }
-    return rval;
+    call Leds.led2Toggle();
+    return SUCCESS;
   }
 
   async command error_t Leds.yellowOn() {
     dbg(DBG_LED, "LEDS: Yellow on.\n");
-    atomic {
-      TOSH_CLR_YELLOW_LED_PIN();
-      ledsOn |= YELLOW_BIT;
-    }
+    call Leds.led3On();
     return SUCCESS;
   }
 
   async command error_t Leds.yellowOff() {
     dbg(DBG_LED, "LEDS: Yellow off.\n");
-    atomic {
-      TOSH_SET_YELLOW_LED_PIN();
-      ledsOn &= ~YELLOW_BIT;
-    }
+    call Leds.led3Off();
     return SUCCESS;
   }
 
   async command error_t Leds.yellowToggle() {
-    error_t rval;
-    atomic {
-      if (ledsOn & YELLOW_BIT)
-	rval = call Leds.yellowOff();
-      else
-	rval = call Leds.yellowOn();
-    }
-    return rval;
+    call Leds.led3Toggle();
+    return SUCCESS;
   }
   
   async command uint8_t Leds.get() {
     uint8_t rval;
     atomic {
-      rval = ledsOn;
+      rval = 0;
+      if (call Led1.get())
+	rval |= 0x01 << 0;
+      if (call Led2.get())
+	rval |= 0x01 << 1;
+      if (call Led3.get())
+	rval |= 0x01 << 2;
     }
     return rval;
   }
   
   async command error_t Leds.set(uint8_t ledsNum) {
+    uint8_t ledsOn;
     atomic {
       ledsOn = (ledsNum & 0x7);
-      if (ledsOn & GREEN_BIT) 
-	TOSH_CLR_GREEN_LED_PIN();
+      if (ledsOn >> 0 & 0x01)
+	call Leds.led1On();
       else
-	TOSH_SET_GREEN_LED_PIN();
-      if (ledsOn & YELLOW_BIT ) 
-	TOSH_CLR_YELLOW_LED_PIN();
+	call Leds.led1Off();
+      if (ledsOn >> 1 & 0x01) 
+	call Leds.led2On();
       else 
-	TOSH_SET_YELLOW_LED_PIN();
-      if (ledsOn & RED_BIT) 
-	TOSH_CLR_RED_LED_PIN();
+	call Leds.led2Off();
+      if (ledsOn >> 2 & 0x01) 
+	call Leds.led3On();
       else 
-	TOSH_SET_RED_LED_PIN();
+	call Leds.led3Off();
     }
     return SUCCESS;
   }
