@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.1 2005-02-09 00:33:12 cssharp Exp $
+// $Id: BlinkM.nc,v 1.1.2.2 2005-02-10 00:59:56 cssharp Exp $
 
 module BlinkM
 {
@@ -14,13 +14,13 @@ implementation
     call Leds.greenOn();
     call TimerControl.setControlAsCompare();
     call TimerCompare.setEventFromNow( 8192 );
+    call TimerControl.enableEvents();
   }
 
   async event void TimerCompare.fired()
   {
-    call TimerCompare.setEventFromPrev( 8192 );
     call Leds.redToggle();
+    call TimerCompare.setEventFromPrev( 8192 );
   }
 }
-
 
