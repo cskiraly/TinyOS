@@ -1,4 +1,4 @@
-// $Id: TestSPIM.nc,v 1.1.2.2 2005-03-13 23:45:59 jpolastre Exp $
+// $Id: TestSPIM.nc,v 1.1.2.3 2005-03-17 06:21:27 jpolastre Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -41,22 +41,25 @@ implementation {
 
   event void Boot.booted() {
     cnt = 0;
-    if (call BusArbitration.getBus() == SUCCESS)
-      call Leds.yellowToggle();
-    if (call SPIPacket.send(txdata, rxdata, 10) == SUCCESS)
-      call Leds.redToggle();
+    if (call BusArbitration.getBus() == SUCCESS);
+    if (call SPIPacket.send(txdata, rxdata, 10) == SUCCESS) ;
   }
 
   event void SPIPacket.sendDone(uint8_t* txbuffer, uint8_t* rxbuffer, uint8_t length, error_t success) {
-    call Leds.greenToggle();
-    if (call SPIPacketAdvanced.send(txdata, 0, 10, rxdata, 3, 6, 12) == SUCCESS)
-      call Leds.redToggle();
+    if (success != SUCCESS)
+      call Leds.led3Toggle();
+    else
+      call Leds.led1Toggle();
+    if (call SPIPacketAdvanced.send(txdata, 0, 10, rxdata, 3, 6, 12) == SUCCESS) ;
   }
 
   event void SPIPacketAdvanced.sendDone(uint8_t* _txbuffer, uint8_t _txstart, uint8_t _txend, uint8_t* _rxbuffer, uint8_t _rxstart, uint8_t _rxend, uint8_t _length, error_t _success) { 
-    call Leds.greenToggle();
-    if (call SPIPacket.send(txdata, rxdata, 10) == SUCCESS)
-      call Leds.redToggle();
+    if (_success != SUCCESS)
+      call Leds.led3Toggle();
+    else 
+      call Leds.led2Toggle();
+    TOSH_uwait(10240); // delay to see the LEDs
+    if (call SPIPacket.send(txdata, rxdata, 10) == SUCCESS) ;
   }
 
   event error_t BusArbitration.busFree() { return SUCCESS; }
