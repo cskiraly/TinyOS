@@ -1,4 +1,4 @@
-// $Id: CC2420ControlM.nc,v 1.1.2.1 2005-01-20 22:07:47 jpolastre Exp $
+// $Id: CC2420ControlM.nc,v 1.1.2.2 2005-03-14 03:40:52 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  *
  * This module provides the CONTROL functionality for the 
  * Chipcon2420 series radio. It exports both a standard control 
@@ -42,7 +42,10 @@ module CC2420ControlM {
     interface StdControl as HPLChipconControl;
     interface HPLCC2420 as HPLChipcon;
     interface HPLCC2420RAM as HPLChipconRAM;
-    interface HPLCC2420Interrupt as CCA;
+
+    interface Interrupt as CCA;
+    interface GeneralIO as RadioReset;
+    interface GeneralIO as RadioVREF;
   }
 }
 implementation
@@ -188,9 +191,9 @@ implementation
     ok = call CCA.disable();
     ok &= call HPLChipconControl.stop();
 
-    TOSH_CLR_CC_RSTN_PIN();
+    call RadioReset.clr();
     ok &= call CC2420Control.VREFOff();
-    TOSH_SET_CC_RSTN_PIN();
+    call RadioReset.set();
 
     if (ok)
       post taskStopDone();
@@ -224,9 +227,9 @@ implementation
     //turn on power
     call CC2420Control.VREFOn();
     // toggle reset
-    TOSH_CLR_CC_RSTN_PIN();
+    call RadioReset.clr();
     TOSH_wait();
-    TOSH_SET_CC_RSTN_PIN();
+    call RadioReset.set();
     TOSH_wait();
     // turn on crystal, takes about 860 usec, 
     // chk CC2420 status reg for stablize
@@ -381,14 +384,14 @@ implementation
   }
 
   async command result_t CC2420Control.VREFOn(){
-    TOSH_SET_CC_VREN_PIN();                    //turn-on  
+    call RadioVREF.set(); // turn-on
     // TODO: JP: measure the actual time for VREF to stabilize
     TOSH_uwait(600);  // CC2420 spec: 600us max turn on time
     return SUCCESS;
   }
 
   async command result_t CC2420Control.VREFOff(){
-    TOSH_CLR_CC_VREN_PIN();                    //turn-off  
+    call RadioVREF.clr();
     return SUCCESS;
   }
 
