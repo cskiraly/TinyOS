@@ -1,4 +1,4 @@
-// $Id: LedsC.nc,v 1.1.2.2 2005-02-10 01:28:25 scipio Exp $
+// $Id: dbg.h,v 1.1.2.1 2005-02-10 01:28:25 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -28,21 +28,15 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+
 /**
- * @author Cory Sharp
- * @date   Feb 9 2005
+ * This file is part of the TOSSIM DBG (debug) system.
+ *
+ * @author Philip Levis
+ * @date   2/08/05
  */
 
+#ifndef DBG_H
+#define DBG_H
 
-configuration LedsC
-{
-  provides interface Init;
-  provides interface Leds;
-}
-implementation
-{
-  components LedsM;
-  Init = LedsM;
-  Leds = LedsM;
-}
-
+#endif /* DBG_H */
