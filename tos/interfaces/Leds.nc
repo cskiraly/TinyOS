@@ -1,7 +1,7 @@
-// $Id: Leds.nc,v 1.1.2.2 2005-03-16 08:14:05 jpolastre Exp $
+// $Id: Leds.nc,v 1.1.2.3 2005-03-19 20:59:16 scipio Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2005-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,123 +22,68 @@
  */
 
 /**
- * Interface for controlling the LEDs.
+ * Commands for controlling three LEDs. A platform can provide this
+ * interface if it has more than or fewer than three LEDs. In the
+ * former case, these commands refer to the first three LEDs. In the
+ * latter case, some of the commands are null operations, and the set
+ * of non-null operations must be contiguous and start at Led1. That
+ * is, on platforms with 2 LEDs, LED 3's commands are null operations,
+ * while on platforms with 1 LED, LED 2 and LED 3's commands are null
+ * opertations.
  *
  * @author Joe Polastre
+ * @author Philip Levis
  */
 
 interface Leds {
 
   /**
-   * Turn the first LED on
+   * Turn on LED 1. The color of this LED depends on the platform.
    */
   async command void led1On();
 
   /**
-   * Turn the first LED off
+   * Turn off LED 1. The color of this LED depends on the platform.
    */
   async command void led1Off();
 
   /**
-   * Toggle the first LED off
+   * Toggle LED 1; if it was off, turn it on, if was on, turn it off.
+   * The color of this LED depends on the platform.
    */
   async command void led1Toggle();
 
   /**
-   * Turn the second LED on
+   * Turn on LED 2. The color of this LED depends on the platform.
    */
   async command void led2On();
 
   /**
-   * Turn the second LED off
+   * Turn off LED 2. The color of this LED depends on the platform.
    */
   async command void led2Off();
 
-  /**
-   * Toggle the second LED
+   /**
+   * Toggle LED 2; if it was off, turn it on, if was on, turn it off.
+   * The color of this LED depends on the platform.
    */
   async command void led2Toggle();
 
+ 
   /**
-   * Turn the third LED on
+   * Turn on LED 3. The color of this LED depends on the platform.
    */
   async command void led3On();
 
   /**
-   * Turn the third LED off
+   * Turn off LED 3. The color of this LED depends on the platform.
    */
   async command void led3Off();
 
-  /**
-   * Toggle the third LED
+   /**
+   * Toggle LED 3; if it was off, turn it on, if was on, turn it off.
+   * The color of this LED depends on the platform.
    */
   async command void led3Toggle();
 
-  /**
-   * Deprecated: Turn red on
-   */
-  async command error_t redOn();
-
-  /**
-   * Deprecated: Turn the red LED off.
-   */
-  async command error_t redOff();
-
-  /**
-   * Deprecated: Toggle the red LED. If it was on, turn it off. If it was off,
-   * turn it on.
-   */
-  async command error_t redToggle();
-
-  /**
-   * Deprecated: Turn the green LED on.
-   */
-  async command error_t greenOn();
-
-  /**
-   * Deprecated: Turn the green LED off.
-   */
-  async command error_t greenOff();
-
-  /**
-   * Deprecated: 
-   * Toggle the green LED. If it was on, turn it off. If it was off,
-   * turn it on.
-   */
-  async command error_t greenToggle();
-
-  /**
-   * Deprecated: Turn the yellow LED on.
-   */
-  async command error_t yellowOn();
-
-  /**
-   * Deprecated: Turn the yellow LED off.
-   */
-  async command error_t yellowOff();
-
-  /**
-   * Deprecated: 
-   * Toggle the yellow LED. If it was on, turn it off. If it was off,
-   * turn it on.
-   */
-  async command error_t yellowToggle();
-  
-  /**
-   * Get current Leds information
-   *
-   * @return A uint8_t typed value representing Leds status
-   *
-   */
-   async command uint8_t get();
-
-  /**
-   * Set Leds to a specified value
-   *
-   * @param value ranging from 0 to 7 inclusive
-   *
-   * @return SUCCESS Always
-   *
-   */
-   async command error_t set(uint8_t value);
 }

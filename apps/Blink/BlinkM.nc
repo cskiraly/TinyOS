@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.3 2005-03-10 09:52:30 cssharp Exp $
+// $Id: BlinkM.nc,v 1.1.2.4 2005-03-19 20:59:14 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -55,17 +55,17 @@ implementation
 
   event void Timer0.fired( uint32_t when, uint32_t numMissed )
   {
-    call Leds.redToggle();
+    call Leds.led1Toggle();
   }
   
   event void Timer1.fired( uint32_t when, uint32_t numMissed )
   {
-    call Leds.greenToggle();
+    call Leds.led2Toggle();
   }
   
   event void Timer2.fired( uint32_t when, uint32_t numMissed )
   {
-    call Leds.yellowToggle();
+    call Leds.led3Toggle();
   }
 }
 

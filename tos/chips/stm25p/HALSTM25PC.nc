@@ -1,4 +1,4 @@
-// $Id: HALSTM25PC.nc,v 1.1.2.1 2005-02-09 01:45:52 jwhui Exp $
+// $Id: HALSTM25PC.nc,v 1.1.2.2 2005-03-19 20:59:15 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -39,7 +39,7 @@ configuration HALSTM25PC {
 }
 
 implementation {
-  components HALSTM25PM, HPLSTM25PC, NoLeds as Leds;
+  components HALSTM25PM, HPLSTM25PC, NoLedsC as Leds;
 
   StdControl = HALSTM25PM;
   StdControl = HPLSTM25PC;

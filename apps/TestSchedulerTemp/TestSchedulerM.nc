@@ -1,4 +1,4 @@
-// $Id: TestSchedulerM.nc,v 1.1.2.1 2005-03-09 23:05:19 scipio Exp $
+// $Id: TestSchedulerM.nc,v 1.1.2.2 2005-03-19 20:59:15 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -48,13 +48,13 @@ implementation {
   
   task void TaskRed() {
     uint16_t i, j;
-    call Leds.redOn();
+    call Leds.led1On();
     for (i= 0; i < 250; i++) {
       for (j = 0; j < 30000; j++) {}
     }
 
     if (post TaskRed() != 0) {
-      call Leds.redOff();
+      call Leds.led1Off();
       post TaskGreen();
       post TaskBlue();
     }
@@ -62,25 +62,25 @@ implementation {
 
   task void TaskGreen() {
     uint16_t i, j;
-    call Leds.greenOn();
+    call Leds.led2On();
     for (i= 0; i < 125; i++) {
       for (j = 0; j < 30000; j++) {}
     }
 
     if (post TaskGreen() != 0) {
-      call Leds.greenOff();
+      call Leds.led2Off();
     }
   }
 
   task void TaskBlue() {
     uint16_t i, j;
-    call Leds.yellowOn();
+    call Leds.led3On();
     for (i= 0; i < 25; i++) {
       for (j = 0; j < 30000; j++) {}
     }
 
     if (post TaskBlue() != 0) {
-      call Leds.yellowOff();
+      call Leds.led3Off();
     }
   }
 
@@ -90,7 +90,7 @@ implementation {
    * Event from Main that TinyOS has booted: start the timer at 1Hz.
    */
   event void Boot.booted() {
-    call Leds.yellowToggle();
+    call Leds.led3Toggle();
     post TaskRed();
     post TaskGreen();
     post TaskBlue();
@@ -102,7 +102,7 @@ implementation {
    */
   
   //  event void Timer.fired() {
-  //  call Leds.redToggle();
+  //  call Leds.led1Toggle();
   // }
 
   
