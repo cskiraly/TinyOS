@@ -1,4 +1,4 @@
-// $Id: BlinkC.nc,v 1.1.2.2 2005-02-10 01:20:54 scipio Exp $
+// $Id: BlinkC.nc,v 1.1.2.3 2005-03-10 09:52:30 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -37,14 +37,31 @@
  * @author tinyos-help@millennium.berkeley.edu
  **/
 
-configuration BlinkC {}
-implementation {
-  components Main, BlinkM, new TimerMilli(), LedsC;
+configuration BlinkC
+{
+}
+implementation
+{
+  components Main
+	   , BlinkM
+	   //, new TimerMilli() as Timer0
+	   //, new TimerMilli() as Timer1
+	   //, new TimerMilli() as Timer2
+	   , TimerMilliC // XXX until nesc gets fixed
+	   , LedsC
+	   ;
+
+  BlinkM -> Main.Boot;
 
   Main.SoftwareInit -> LedsC;
-  Main.Boot -> BlinkM;
+  Main.SoftwareInit -> TimerMilliC; // XXX until nesc gets fixed
 
-  BlinkM.Timer -> TimerMilli;
+  //BlinkM.Timer0 -> Timer0;
+  //BlinkM.Timer1 -> Timer1;
+  //BlinkM.Timer2 -> Timer2;
+  BlinkM.Timer0 -> TimerMilliC.TimerMilli[unique("TimerMilli")]; // XXX until nesc gets fixed
+  BlinkM.Timer1 -> TimerMilliC.TimerMilli[unique("TimerMilli")]; // XXX until nesc gets fixed
+  BlinkM.Timer2 -> TimerMilliC.TimerMilli[unique("TimerMilli")]; // XXX until nesc gets fixed
   BlinkM.Leds -> LedsC;
 }
 
