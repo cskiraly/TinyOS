@@ -1,4 +1,4 @@
-/// $Id: HPLTimerM.nc,v 1.1.2.3 2005-01-26 22:31:58 mturon Exp $
+/// $Id: HPLTimerM.nc,v 1.1.2.4 2005-01-27 09:28:09 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -203,11 +203,11 @@ implementation
   }
 
   async command void Timer2.resetCompare()  { sbi(TIFR,OCF2); }
-  async command void Timer2.startCompare()  { sbi(TIMSK,OCIE0); }
-  async command void Timer2.stopCompare()   { cbi(TIMSK,OCIE0); }
+  async command void Timer2.startCompare()  { sbi(TIMSK,OCIE2); }
+  async command void Timer2.stopCompare()   { cbi(TIMSK,OCIE2); }
   async command void Timer2.resetOverflow() { sbi(TIFR,TOV2); }
-  async command void Timer2.startOverflow() { sbi(TIMSK,TOIE0); }
-  async command void Timer2.stopOverflow()  { cbi(TIMSK,TOIE0); }
+  async command void Timer2.startOverflow() { sbi(TIMSK,TOIE2); }
+  async command void Timer2.stopOverflow()  { cbi(TIMSK,TOIE2); }
   async command bool Timer2.testOverflow() { 
       return Timer2.getInterruptFlag().tov2; 
   }
@@ -318,8 +318,8 @@ implementation
   }
 
   //=== Read the compare registers. =====================================
-  async command uint8_t Timer0.getCompare() { return __inb_atomic(OCR0); }
-  async command uint8_t Timer2.getCompare() { return __inb_atomic(OCR2); }
+  async command uint8_t Timer0.getCompare() { return inp(OCR0); }
+  async command uint8_t Timer2.getCompare() { return inp(OCR2); }
   async command uint16_t Compare1A.get() { return __inw_atomic(OCR1A); }
   async command uint16_t Compare1B.get() { return __inw_atomic(OCR1B); }
   async command uint16_t Compare1C.get() { return __inw_atomic(OCR1C); }

@@ -1,4 +1,4 @@
-/// $Id: ATm128Timer.h,v 1.1.2.3 2005-01-21 09:27:32 mturon Exp $
+/// $Id: ATm128Timer.h,v 1.1.2.4 2005-01-27 09:28:09 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -71,16 +71,16 @@ typedef struct
     uint8_t cs    : 3;  //!< Clock Source Select
 } ATm128TimerControl_t;
 
-typedef ATm128TimerControl_t ATm128_TCNT0_t;  //!< Timer0 Control Register
+typedef ATm128TimerControl_t ATm128_TCCR0_t;  //!< Timer0 Control Register
 typedef uint8_t ATm128_TCNT0_t;               //!< Timer0 Control Register
 typedef uint8_t ATm128_OCR0_t;         //!< Timer0 Output Compare Register
 
-typedef ATm128TimerControl_t ATm128_TCNT2_t;  //!< Timer2 Control Register
+typedef ATm128TimerControl_t ATm128_TCCR2_t;  //!< Timer2 Control Register
 typedef uint8_t ATm128_TCNT2_t;               //!< Timer2 Control Register
 typedef uint8_t ATm128_OCR2_t;         //!< Timer2 Output Compare Register
 // Timer2 shares compare lines with Timer1C
 
-/** Asynchronous Status Register */
+/** Asynchronous Status Register -- Timer0 */
 typedef struct
 {
     uint8_t rsvd   : 4;  //!< Reserved
