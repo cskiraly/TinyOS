@@ -1,6 +1,6 @@
-// $Id: Send.nc,v 1.1.2.1 2004-11-17 00:41:54 scipio Exp $
+// $Id: Send.nc,v 1.1.2.2 2004-11-17 01:12:01 scipio Exp $
 /*									tab:4
- * "Copyright (c) 2000-2003 The Regents of the University  of California.  
+ * "Copyright (c) 2004 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,7 +19,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2004 Intel Corporation
+ * Copyright (c) 2004 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -36,6 +36,7 @@
 
 
 includes TinyError;
+includes TinyMsg;
 
 interface Send {
 
@@ -49,7 +50,7 @@ interface Send {
     * later finds it cannot satisfy; in this case, it will signal
     * sendFailed with an appropriate error.
     */ 
-  command error_t send(TOS_MsgPtr msg, uint8_t len);
+  command error_t send(TOSMsg* msg, uint8_t len);
 
   /**
     * Cancel a requested transmission. Returns SUCCESS if the 
@@ -61,17 +62,17 @@ interface Send {
     * A successful call to cancel must always result in a 
     * sendFailed event, and never a sendSucceeded event.
     */
-  command error_t cancel(TOS_MsgPtr);
+  command error_t cancel(TOSMsg* msg);
 
   /** 
     * Signaled in response to an accepted send request if the 
     * send was successful. 
     */ 
-  event void sendSucceeded(TOS_MsgPtr msg);
+  event void sendSucceeded(TOSMsg* msg);
 
   /** 
     * Signaled in response to an accepted send request if the 
     * send failed. 
     */ 
-  event void sendFailed(TOS_MsgPtr msg, error_t error);
+  event void sendFailed(TOSMsg* msg, error_t error);
 }
