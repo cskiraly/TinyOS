@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.2 2005-02-10 01:20:54 scipio Exp $
+// $Id: BlinkM.nc,v 1.1.2.3 2005-03-10 09:52:30 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -36,27 +36,36 @@
 
 includes Timer;
 
-module BlinkM {
-  uses interface Timer<TMilli>;
+module BlinkM
+{
+  uses interface Timer<TMilli> as Timer0;
+  uses interface Timer<TMilli> as Timer1;
+  uses interface Timer<TMilli> as Timer2;
   uses interface Leds;
   uses interface Boot;
 }
-implementation {
-
-  /**
-   * Event from Main that TinyOS has booted: start the timer at 1Hz.
-   */
-  event void Boot.booted() {
-    call Timer.setPeriodic(1000);
+implementation
+{
+  event void Boot.booted()
+  {
+    call Timer0.startPeriodicNow( 250 );
+    call Timer1.startPeriodicNow( 500 );
+    call Timer2.startPeriodicNow( 1000 );
   }
 
-  /** 
-   * Event that Timer has fired: toggle the red LED.
-   */
-  
-  event void Timer.fired() {
+  event void Timer0.fired( uint32_t when, uint32_t numMissed )
+  {
     call Leds.redToggle();
   }
+  
+  event void Timer1.fired( uint32_t when, uint32_t numMissed )
+  {
+    call Leds.greenToggle();
+  }
+  
+  event void Timer2.fired( uint32_t when, uint32_t numMissed )
+  {
+    call Leds.yellowToggle();
+  }
 }
-
 
