@@ -1,0 +1,9 @@
+@opts = ("-gcc=msp430-gcc",
+         "-mmcu=msp430x1611",
+         "-fnesc-target=msp430",
+         "-fnesc-no-debug");
+
+push @opts, "-mingw-gcc" if $cygwin;
+
+@commonplatforms = ("telosa","msp430");
+
