@@ -1,4 +1,4 @@
-// $Id: atmega128hardware.h,v 1.1.2.3 2005-03-17 14:42:29 mturon Exp $
+// $Id: atmega128hardware.h,v 1.1.2.4 2005-03-17 16:26:08 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -102,7 +102,7 @@
 #define SET_BIT(port, bit)    (sbi(port, bit))
 #define CLR_BIT(port, bit)    (cbi(port, bit))
 #define READ_BIT(port, bit)   ((inp(port) & (1 << bit)) != 0)
-#define FLIP_BIT(port, bit)   _MMIO_BYTE(port) ^= (1 << bit)
+#define FLIP_BIT(port, bit)   (_MMIO_BYTE(port) ^= (1 << bit))
 
 /// Bit operators using bit flag mask
 #define SET_FLAG(port, flag)  ((port) |= (flag))
