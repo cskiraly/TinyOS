@@ -1,4 +1,4 @@
-// $Id: Receive.nc,v 1.1.2.3 2005-01-03 23:35:16 scipio Exp $
+// $Id: Receive.nc,v 1.1.2.4 2005-03-14 03:54:19 jpolastre Exp $
 /*									tab:4
  * "Copyright (c) 2004 The Regents of the University  of California.  
  * All rights reserved.
@@ -55,5 +55,5 @@ interface Receive {
    * instead send a packet it most recently received.
    */
   
-  event TOSMsg* receive(TOSMsg* msg, void* payload, uint8_t len);
+  event message_t* receive(message_t* msg, void* payload, uint8_t len);
 }

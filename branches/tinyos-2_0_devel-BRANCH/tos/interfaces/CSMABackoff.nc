@@ -1,7 +1,5 @@
 /*									tab:4
- *
- *
- * "Copyright (c) 2000-2002 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -24,7 +22,7 @@
 /*
  *
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.2 $
+ * Date last modified:  $Revision: 1.1.2.3 $
  *
  * Interface for Mac Backoff values from the radio stack.
  * Allows application to change the backoff on a per packet basis.
@@ -36,6 +34,6 @@
  */
 interface CSMABackoff
 {
-  async event uint16_t initial(TOSMsg* m);
-  async event uint16_t congestion(TOSMsg* m);
+  async event uint16_t initial(message_t* m);
+  async event uint16_t congestion(message_t* m);
 }

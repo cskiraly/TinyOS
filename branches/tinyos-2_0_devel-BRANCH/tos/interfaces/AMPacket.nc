@@ -1,4 +1,4 @@
-// $Id: AMPacket.nc,v 1.1.2.2 2005-01-20 00:09:40 jpolastre Exp $
+// $Id: AMPacket.nc,v 1.1.2.3 2005-03-14 03:54:19 jpolastre Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -55,7 +55,7 @@ interface AMPacket {
    * are undefined.
    */
   
-  command am_addr_t destination(TOSMsg* amsg);
+  command am_addr_t destination(message_t* amsg);
 
   /**
    * Return whether <tt>amsg</tt> is destined for this mote. This is
@@ -67,11 +67,11 @@ interface AMPacket {
    * the mote's local address. If <tt>amsg</tt> is not an AM packet,
    * the results of this command are undefined.
    */
-  command bool isForMe(TOSMsg* amsg);
+  command bool isForMe(message_t* amsg);
 
   /**
    * Return whether <tt>amsg</tt> is an AM packet.
    */
-  command bool isAMPacket(TOSMsg* amsg);
+  command bool isAMPacket(message_t* amsg);
   
 }

@@ -1,7 +1,5 @@
 /*									tab:4
- *
- *
- * "Copyright (c) 2000-2002 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -24,7 +22,7 @@
 /*
  *
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.2 $
+ * Date last modified:  $Revision: 1.1.2.3 $
  *
  * MacControl interface for tuning the parameters of the MAC protocol
  */
@@ -61,7 +59,7 @@ interface CSMAControl
    * from the Send interface.
    *
    * @return NULL if nothing was being sent or the command failed,
-   *         otherwise a TOSMsg* pointer to the message being sent
+   *         otherwise a message_t* pointer to the message being sent
    */
-  async command TOSMsg* HaltTx();
+  async command message_t* HaltTx();
 }
