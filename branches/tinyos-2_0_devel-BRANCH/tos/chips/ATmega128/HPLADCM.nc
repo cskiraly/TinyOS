@@ -1,4 +1,4 @@
-/// $Id: HPLADCM.nc,v 1.1.2.2 2005-02-09 02:11:06 mturon Exp $
+/// $Id: HPLADCM.nc,v 1.1.2.3 2005-03-24 08:47:40 husq Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,30 +23,19 @@
  */
 
 /// @author Martin Turon <mturon@xbow.com>
+/// @author Hu Siquan <husq@xbow.com>
 
 module HPLADCM {
   provides {
-    interface StdControl;
-    interface ATm128ADC as ADC;
+    interface HPLADC as ADC;
   }
 }
 implementation
 {
-  command result_t StdControl.init() {
-      //call ADC.init();
-  }
-
-  command result_t StdControl.start() {
-  }
-
-  command result_t StdControl.stop() {
-      ADC.disable();
-  }
-
 
   //=== Direct read of HW registers. =================================
-  async command ATm128ADCSettings_t ADC.getSettings() { 
-      return *(ATm128ADCSettings_t*)&__inb_atomic(ADMUX); 
+  async command ATm128ADCSelection_t ADC.getSelection() { 
+      return *(ATm128ADCSelection_t*)&__inb_atomic(ADMUX); 
   }
   async command ATm128ADCControl_t ADC.getControl() { 
       return *(ATm128ADCControl_t*)&__inb_atomic(ADCSR); 
@@ -55,28 +44,40 @@ implementation
       return inw(ADCL); 
   }
 
-  DEFINE_UNION_CAST(ADCSettings2int, ATm128ADCSettings_t, uint8_t);
+  DEFINE_UNION_CAST(ADCSelection2int, ATm128ADCSelection_t, uint8_t);
   DEFINE_UNION_CAST(ADCControl2int, ATm128ADCControl_t, uint8_t);
 
   //=== Direct write of HW registers. ================================
-  async command void ADC.setSettings( ATm128ADCControl_t x ) { 
-      ADMUX = ADCSettings2int(x); 
+  async command void ADC.setSelection( ATm128ADCSelection_t x ) { 
+      //ADMUX = ADCSelection2int(x); 
+      outp(ADCSelection2int(x),ADMUX);
   }
   async command void ADC.setControl( ATm128ADCControl_t x ) { 
-      ADCSR = ADCControl2int(x); 
+      //ADCSR = ADCControl2int(x); 
+      outp(ADCControl2int(x),ADCSR);
   }
 
-  async command void enable()        { sbi(ADCSR, ADEN); }
-  async command void disable()       { cbi(ADCSR, ADEN); }
+  async command void setPrescaler(uint8_t scale){
+    ATm128ADCControl_t  current_val = call HPLADC.getControl(); 
+    current_val.adps = scale;
+    call ADC.setControl(current_val);
+  }
+
+  // power management routine should call following commands 
+  async command void enableADC()        { sbi(ADCSR, ADEN); }
+  async command void disableADC()       { cbi(ADCSR, ADEN); }
   async command bool isEnabled()     {       
       return ADC.getControl().aden; 
   }
 
-  async command void start()         { sbi(ADCSR, ADSC); }
-  async command void stop()          { cbi(ADCSR, ADSC); }
+  async command void startConversion()         { sbi(ADCSR, ADSC); }
+  async command void stopConversion()          { cbi(ADCSR, ADSC); }
   async command bool isStarted()     {
       return ADC.getControl().adsc; 
   }
+  
+  async command void enableInterruption()        { sbi(ADCSR, ADIE); }
+  async command void disableInterruption()       { cbi(ADCSR, ADIE); }
 
   async command void setContinuous() { sbi(ADCSR, ADFR); }
   async command void setSingle()     { cbi(ADCSR, ADFR); }
@@ -86,14 +87,11 @@ implementation
       return ADC.getControl().adif; 
   }
 
-
   default async event result_t ADC.dataReady(uint16_t done) { return SUCCESS; }
 
   TOSH_SIGNAL(SIG_ADC) {
       uint16_t data = ADC.getValue();
-      data &= 0x3ff;
-      ADC.reset();
-      ADC.disable();
+      data &= ATMEGA128_10BIT_ADC_MASK;
       __nesc_enable_interrupt();
       signal ADC.dataReady(data);
   }

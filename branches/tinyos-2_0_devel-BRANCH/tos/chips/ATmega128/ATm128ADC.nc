@@ -1,4 +1,4 @@
-/// $Id: ATm128ADC.nc,v 1.1.2.2 2005-02-09 02:11:06 mturon Exp $
+/// $Id: ATm128ADC.nc,v 1.1.2.3 2005-03-24 08:47:40 husq Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,45 +22,59 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
-
-includes ATm128ADC;
-
+/// @author Hu Siquan <husq@xbow.com>
+/**
+ * Hardware Abstraction Layer interface of Atmega128.
+ * Any time only one channel can access ADC, other requests will be blocked.
+ */        
 interface ATm128ADC
 {
-  /// ADC selection register: Direct access
-  async command ATm128ADCSelect_t getSelect();
-  async command void setSelect( ATm128ADCControl_t select );
+	
+  /**
+   * Initiates an ADC conversion on a given channel.
+   *
+   * @return SUCCESS if the ADC is free and available to accept the request
+   */
+  async command result_t getData();
+  
+  /**
+   * Initiates a series of ADC conversions in free running mode. If return SUCCESS from 
+   * <code>dataReady()</code> initiates the next conversion, or stop future conversions.
+   *
+   * @return SUCCESS if the ADC is free and available to accept the request
+   */	
+  async command result_t getContinuousData();
 
-  /// ADC control register: Direct access
-  async command ATm128ADCControl_t getControl();
-  async command void setControl( ATm128ADCControl_t control );
+  /**
+    * Reserves the ADC for one single conversion or free running conversions.  
+    * If this call succeeds the next call to <code>getData</code> or 
+    * <code>getContinuousData/code> will also succeed and the corresponding 
+    * conversion will then be started with a minimum latency. Until then all 
+    * other commands will fail.
+    *
+    * @return SUCCESS reservation successful
+    * FAIL otherwise 
+    */
+  async command result_t reserveADC();
 
-  /// ADC data register: Direct access
-  async command uint16_t getValue();
-
-  /// Timer value register: Direct access
-  command result_t bind(MSP430ADC12Settings_t settings);
-
-  async command result_t reserve();
-  async command result_t reserveRepeat(uint16_t jiffies);
+  /**
+    * Cancels the reservation made by <code>reserve</code> or
+    * <code>reserveContinuous</code>.
+    *
+    * @return SUCCESS un-reservation successful
+    * FAIL no reservation active 
+    */
   async command result_t unreserve();
-
-  /// Interrupt flag utilites: Bit level set/clr
-  async command void enable();         //<! Enable ADC sampling
-  async command void disable();        //<! Disable ADC sampling
-  async command void start();          //<! Start ADC conversion
-  async command void stop();           //<! Stop ADC conversion
-  async command void setContinuous();  //<! Enable continuous sampling
-  async command void setSingle();      //<! Disable continuous sampling
-  async command void reset();          //<! Clear the ADC interrupt flag
-  async command bool isComplete();     //<! Did ADC interrupt occur?
-  async command bool isStarted();      //<! Is ADC started on?
-  async command bool isEnabled();      //<! Is ADC started on?
-
-  /// Split-phase interface to ADC data
-  async command uint8_t getData();
-  async command uint8_t getDataRepeat(uint16_t jiffies);   
-
-  async event result_t dataReady(uint16_t data);     
+  
+  /**
+   * Indicates a sample has been recorded by the ADC as the result
+   * of a <code>getData()</code> command.
+   *
+   * @param data a 2 byte unsigned data value sampled by the ADC.
+   *
+   * @return SUCCESS if ready for the next conversion in continuous mode.
+   * @return FAIL will stop future continuous sampling.
+   * if not in continuous mode, the return code is ignored.
+   */	
+  async event result_t dataReady(uint16_t data);
 }
