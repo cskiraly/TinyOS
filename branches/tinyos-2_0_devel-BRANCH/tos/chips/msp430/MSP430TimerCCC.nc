@@ -1,4 +1,4 @@
-//$Id: MSP430TimerCCC.nc,v 1.1.2.1 2005-02-08 23:00:03 cssharp Exp $
+//$Id: MSP430TimerCCC.nc,v 1.1.2.2 2005-02-10 01:07:39 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -30,6 +30,7 @@ generic configuration MSP430TimerCCC(uint16_t TxCCTLx_addr, uint16_t TxCCRx_addr
   provides interface MSP430Compare as Compare;
   provides interface MSP430Capture as Capture;
   uses interface MSP430Timer as Timer;
+  uses interface MSP430TimerEvent as Event;
 }
 implementation
 {
@@ -39,6 +40,7 @@ implementation
   Control = TimerCC.Control;
   Compare = TimerCC.Compare;
   Capture = TimerCC.Capture;
-  TimerCC.Timer = Timer;
+  Timer = TimerCC.Timer;
+  Event = TimerCC.Event;
 }
 

@@ -1,4 +1,4 @@
-//$Id: MSP430ClockM.nc,v 1.1.2.1 2005-02-08 22:59:49 cssharp Exp $
+//$Id: MSP430ClockM.nc,v 1.1.2.2 2005-02-10 01:07:37 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -233,21 +233,19 @@ implementation
 
   void garnishedBusyCalibrateDCO()
   {
-    bool do_dint;
-    do_dint = !are_interrupts_enabled();
-    eint();
+    bool do_disable_interrupts = !are_interrupts_enabled();
+    __nesc_enable_interrupt();
     busyCalibrateDCO();
-    if(do_dint)
-      dint();
+    if(do_disable_interrupts)
+      __nesc_disable_interrupt();
   }
     
   command error_t Init.init()
   {
-
     // Reset timers and clear interrupt vectors
     TACTL = TACLR;
-    TAIV = 0;
     TBCTL = TBCLR;
+    TAIV = 0;
     TBIV = 0;
 
     garnishedBusyCalibrateDCO();

@@ -1,4 +1,4 @@
-//$Id: MSP430TimerC.nc,v 1.1.2.1 2005-02-08 23:00:03 cssharp Exp $
+//$Id: MSP430TimerC.nc,v 1.1.2.2 2005-02-10 01:07:38 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -88,65 +88,75 @@ implementation
   CompareA0 = MSP430TimerA0.Compare;
   CaptureA0 = MSP430TimerA0.Capture;
   MSP430TimerA0.Timer -> MSP430TimerA.Timer;
+  MSP430TimerA0.Event -> MSP430TimerA.Event[0];
 
   // Timer A1
   ControlA1 = MSP430TimerA1.Control;
   CompareA1 = MSP430TimerA1.Compare;
   CaptureA1 = MSP430TimerA1.Capture;
   MSP430TimerA1.Timer -> MSP430TimerA.Timer;
+  MSP430TimerA1.Event -> MSP430TimerA.Event[2];
 
   // Timer A2
   ControlA2 = MSP430TimerA2.Control;
   CompareA2 = MSP430TimerA2.Compare;
   CaptureA2 = MSP430TimerA2.Capture;
   MSP430TimerA2.Timer -> MSP430TimerA.Timer;
+  MSP430TimerA2.Event -> MSP430TimerA.Event[4];
 
   // Timer B
   TimerB = MSP430TimerB.Timer;
   MSP430TimerB.Overflow -> MSP430TimerB.Event[14];
-  MSP430TimerA.VectorTimerX0 -> Common.VectorTimerB0;
-  MSP430TimerA.VectorTimerX1 -> Common.VectorTimerB1;
+  MSP430TimerB.VectorTimerX0 -> Common.VectorTimerB0;
+  MSP430TimerB.VectorTimerX1 -> Common.VectorTimerB1;
 
   // Timer B0
   ControlB0 = MSP430TimerB0.Control;
   CompareB0 = MSP430TimerB0.Compare;
   CaptureB0 = MSP430TimerB0.Capture;
   MSP430TimerB0.Timer -> MSP430TimerB.Timer;
+  MSP430TimerB0.Event -> MSP430TimerB.Event[0];
 
   // Timer B1
   ControlB1 = MSP430TimerB1.Control;
   CompareB1 = MSP430TimerB1.Compare;
   CaptureB1 = MSP430TimerB1.Capture;
   MSP430TimerB1.Timer -> MSP430TimerB.Timer;
+  MSP430TimerB1.Event -> MSP430TimerB.Event[2];
 
   // Timer B2
   ControlB2 = MSP430TimerB2.Control;
   CompareB2 = MSP430TimerB2.Compare;
   CaptureB2 = MSP430TimerB2.Capture;
   MSP430TimerB2.Timer -> MSP430TimerB.Timer;
+  MSP430TimerB2.Event -> MSP430TimerB.Event[4];
 
   // Timer B3
   ControlB3 = MSP430TimerB3.Control;
   CompareB3 = MSP430TimerB3.Compare;
   CaptureB3 = MSP430TimerB3.Capture;
   MSP430TimerB3.Timer -> MSP430TimerB.Timer;
+  MSP430TimerB3.Event -> MSP430TimerB.Event[6];
 
   // Timer B4
   ControlB4 = MSP430TimerB4.Control;
   CompareB4 = MSP430TimerB4.Compare;
   CaptureB4 = MSP430TimerB4.Capture;
   MSP430TimerB4.Timer -> MSP430TimerB.Timer;
+  MSP430TimerB4.Event -> MSP430TimerB.Event[8];
 
   // Timer B5
   ControlB5 = MSP430TimerB5.Control;
   CompareB5 = MSP430TimerB5.Compare;
   CaptureB5 = MSP430TimerB5.Capture;
   MSP430TimerB5.Timer -> MSP430TimerB.Timer;
+  MSP430TimerB5.Event -> MSP430TimerB.Event[10];
 
   // Timer B6
   ControlB6 = MSP430TimerB6.Control;
   CompareB6 = MSP430TimerB6.Compare;
   CaptureB6 = MSP430TimerB6.Capture;
   MSP430TimerB6.Timer -> MSP430TimerB.Timer;
+  MSP430TimerB6.Event -> MSP430TimerB.Event[12];
 }
 
