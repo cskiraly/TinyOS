@@ -1,4 +1,4 @@
-//$Id: MultiplexTimerM.nc,v 1.1.2.1 2005-03-30 17:54:53 cssharp Exp $
+//$Id: MultiplexTimerM.nc,v 1.1.2.2 2005-04-01 08:30:56 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -27,13 +27,12 @@
 
 generic module MultiplexTimerM(
   typedef frequency_tag,
-  typedef size_type,
+  typedef size_type @integer(),
   int max_timers )
 {
   provides interface Init;
   provides interface TimerAsyncBase<frequency_tag,size_type> as TimerAsyncBase[ uint8_t num ];
   uses interface AlarmBase<frequency_tag,size_type> as AlarmFrom;
-  uses interface MathOps<size_type> as Math;
 }
 implementation
 {
@@ -132,7 +131,7 @@ implementation
     {
       uint8_t num = m_head;
 
-      min_remaining = call Math.castFromI8(-1);
+      min_remaining = -1;
       m_reprocess_timers = FALSE;
 
       while( num != END_OF_LIST )
@@ -141,39 +140,39 @@ implementation
 	if( flags->isrunning )
 	{
 	  Timer_t* timer = &m_timers[num];
-	  size_type elapsed_timer = call Math.sub( then, timer->t0 );
+	  size_type elapsed_timer = then - timer->t0;
 
-	  if( call Math.le( timer->dt, elapsed_timer ) )
+	  if( timer->dt <= elapsed_timer )
 	  {
 	    if( flags->isperiodic )
 	    {
-	      size_type numMissed = call Math.castFromI8(-1);
-	      while( call Math.le( timer->dt, elapsed_timer ) )
+	      size_type numMissed = -1;
+	      while( timer->dt <= elapsed_timer )
 	      {
-		timer->t0 = call Math.add( timer->t0, timer->dt );
-		elapsed_timer = call Math.sub( elapsed_timer, timer->dt );
-		numMissed = call Math.inc( numMissed );
+		timer->t0 += timer->dt;
+		elapsed_timer -= timer->dt;
+		numMissed++;
 		// XXX FIXME XXX do a real divide for large numMissed
 	      }
 
 	      signal TimerAsyncBase.fired[num]( timer->t0, numMissed );
 
 	      {
-		size_type remaining = call Math.sub( timer->dt, elapsed_timer );
-		if( call Math.lt( remaining, min_remaining ) )
+		size_type remaining = timer->dt - elapsed_timer;
+		if( remaining < min_remaining )
 		  min_remaining = remaining;
 	      }
 	    }
 	    else
 	    {
 	      flags->isrunning = FALSE;
-	      signal TimerAsyncBase.fired[num]( timer->t0, call Math.castFromU8(0) );
+	      signal TimerAsyncBase.fired[num]( timer->t0, 0 );
 	    }
 	  }
 	  else
 	  {
-	    size_type remaining = call Math.sub( timer->dt, elapsed_timer );
-	    if( call Math.lt( remaining, min_remaining ) )
+	    size_type remaining = timer->dt - elapsed_timer;
+	    if( remaining < min_remaining )
 	      min_remaining = remaining;
 	  }
 	}
@@ -184,13 +183,13 @@ implementation
       {
 	size_type prev_then = then;
 	then = call AlarmFrom.now();
-	elapsed_last_exec = call Math.sub( then, prev_then );
-	m_reprocess_timers |= call Math.le( min_remaining, elapsed_last_exec );
+	elapsed_last_exec = then - prev_then;
+	m_reprocess_timers |= (min_remaining <= elapsed_last_exec);
       }
     }
 
     if( m_head != END_OF_LIST )
-      call AlarmFrom.set( then, call Math.sub( min_remaining, elapsed_last_exec ) );
+      call AlarmFrom.set( then, min_remaining - elapsed_last_exec );
 
     expungeStoppedTimers();
     m_processing_timers = FALSE;

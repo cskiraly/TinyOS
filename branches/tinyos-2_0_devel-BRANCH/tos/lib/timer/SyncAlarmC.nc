@@ -1,4 +1,4 @@
-//$Id: SyncAlarmC.nc,v 1.1.2.1 2005-03-30 17:54:53 cssharp Exp $
+//$Id: SyncAlarmC.nc,v 1.1.2.2 2005-04-01 08:30:56 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -29,7 +29,7 @@
 
 includes Timer;
 
-generic configuration SyncAlarmC( typedef frequency_tag, typedef size_type )
+generic configuration SyncAlarmC( typedef frequency_tag, typedef size_type @integer() )
 {
   provides interface AlarmBase<frequency_tag,size_type> as AlarmBase;
   uses interface AlarmBase<frequency_tag,size_type> as AlarmBaseFrom;
