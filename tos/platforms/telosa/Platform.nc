@@ -1,4 +1,4 @@
-// $Id: Platform.nc,v 1.1.2.1 2005-03-14 02:23:59 jpolastre Exp $
+// $Id: Platform.nc,v 1.1.2.2 2005-03-14 03:05:38 jpolastre Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -40,16 +40,23 @@ configuration Platform
   provides interface GeneralIO as CC2420RadioGIO0;
   provides interface GeneralIO as CC2420RadioGIO1;
 
+  provides interface Interrupt as CC2420RadioCCAInterrupt;
+  provides interface Interrupt as CC2420RadioFIFOInterrupt;
+  provides interface Interrupt as CC2420RadioFIFOPInterrupt;
+
   // Sensirion pins
   provides interface GeneralIO as SensironPwr;
   provides interface GeneralIO as SensirionSCL;
   provides interface GeneralIO as SensirionSDA;
+
+  provides interface Interrupt as SensirionSDAInterrupt;
 }
 implementation
 {
   components PlatformM
     , MSP430ClockC
     , MSP430GeneralIOC as MSPGeneralIO
+    , MSP430InterruptC
 
     , new GeneralIOM() as rCS
     , new GeneralIOM() as rFIFO
@@ -59,9 +66,15 @@ implementation
     , new GeneralIOM() as rVREF
     , new GeneralIOM() as rReset
 
+    , new InterruptM() as riCCA
+    , new InterruptM() as riFIFO
+    , new InterruptM() as riFIFOP
+
     , new GeneralIOM() as sPwr
     , new GeneralIOM() as sSCL
     , new GeneralIOM() as sSDA
+
+    , new InterruptM() as siSDA
     ;
 
   Init = PlatformM;
@@ -84,11 +97,21 @@ implementation
   rVREF.MSPIO -> MSPGeneralIO.Port45;
   rReset.MSPIO -> MSPGeneralIO.Port46;
 
+  CC2420RadioCCAInterrupt = riCCA.Interrupt;
+  CC2420RadioFIFOInterrupt = riFIFO.Interrupt;
+  CC2420RadioFIFOPInterrupt = riFIFOP.Interrupt;
+  riCCA.MSP430Interrupt -> MSP430InterruptC.Port14;
+  riFIFO.MSP430Interrupt -> MSP430InterruptC.Port13;
+  riFIFOP.MSP430Interrupt -> MSP430InterruptC.Port10;
+
   SensironPwr = sPwr.IO;
   SensirionSCL = sSCL.IO;
   SensirionSDA = sSDA.IO;
   sPwr.MSPIO -> MSPGeneralIO.Port17;
   sSCL.MSPIO -> MSPGeneralIO.Port16;
   sSDA.MSPIO -> MSPGeneralIO.Port15;
+
+  SensirionSDAInterrupt = siSDA.Interrupt;
+  siSDA.MSP430Interrupt -> MSP430InterruptC.Port15;
 }
 
