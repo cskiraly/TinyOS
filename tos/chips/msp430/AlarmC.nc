@@ -1,4 +1,4 @@
-//$Id: AlarmC.nc,v 1.1.2.3 2005-02-11 01:56:10 cssharp Exp $
+//$Id: AlarmC.nc,v 1.1.2.4 2005-02-26 02:32:12 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -30,6 +30,7 @@ configuration AlarmC
 
   // alarms required by standard tinyos components
   provides interface Alarm<T32khz> as AlarmTimer32khz;
+  provides interface Alarm<TMilli> as AlarmTimerMilli;
   //provides interface Alarm<T32khz> as AlarmTimerAsync32khz;
 
   // extra alarms to be used by applications
@@ -45,22 +46,34 @@ implementation
 {
   components MSP430TimerC
            , new MSP430AlarmM(T32khz) as MSP430Alarm32khz
-	   //, new WidenAlarmC(uint32_t,uint16_t,T32khz) as Widen32khz
-	   , new WidenAlarmM(uint32_t,uint16_t,T32khz) as WidenAlarm32khz
+	   , new TransformAlarmM(T32khz,uint32_t,T32khz,uint16_t,0) as XformAlarm32khz
+	   , new TransformAlarmM(TMilli,uint32_t,T32khz,uint16_t,5) as XformAlarmMilli
 	   , new CastAlarmM(T32khz) as CastAlarm32khz
+	   , new CastAlarmM(TMilli) as CastAlarmMilli
 	   , CounterC
 	   , MathOpsM
+	   , CastOpsM
            ;
 
   Init = MSP430Alarm32khz;
 
+  AlarmTimerMilli = CastAlarmMilli;
   AlarmTimer32khz = CastAlarm32khz;
 
-  CastAlarm32khz.AlarmFrom -> WidenAlarm32khz.Alarm;
-  WidenAlarm32khz.AlarmFrom -> MSP430Alarm32khz.Alarm;
-  WidenAlarm32khz.Counter -> CounterC.CounterBase32khz;
-  WidenAlarm32khz.MathFrom -> MathOpsM;
-  WidenAlarm32khz.MathTo -> MathOpsM;
+  CastAlarm32khz.AlarmFrom -> XformAlarm32khz.Alarm;
+  XformAlarm32khz.AlarmFrom -> MSP430Alarm32khz.Alarm;
+  XformAlarm32khz.Counter -> CounterC.CounterBase32khz;
+  XformAlarm32khz.MathFrom -> MathOpsM;
+  XformAlarm32khz.MathTo -> MathOpsM;
+  XformAlarm32khz.CastFromTo -> CastOpsM;
+
+  CastAlarmMilli.AlarmFrom -> XformAlarmMilli.Alarm;
+  XformAlarmMilli.AlarmFrom -> MSP430Alarm32khz.Alarm;
+  XformAlarmMilli.Counter -> CounterC.CounterBaseMilli;
+  XformAlarmMilli.MathFrom -> MathOpsM;
+  XformAlarmMilli.MathTo -> MathOpsM;
+  XformAlarmMilli.CastFromTo -> CastOpsM;
+
   MSP430Alarm32khz.MSP430Timer -> MSP430TimerC.TimerB;
   MSP430Alarm32khz.MSP430TimerControl -> MSP430TimerC.ControlB3;
   MSP430Alarm32khz.MSP430Compare -> MSP430TimerC.CompareB3;
