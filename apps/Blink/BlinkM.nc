@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.1 2005-01-24 21:33:23 scipio Exp $
+// $Id: BlinkM.nc,v 1.1.2.2 2005-02-10 01:20:54 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,6 +33,9 @@
  * Implementation for Blink application.  Toggle the red LED when a
  * Timer fires.
  **/
+
+includes Timer;
+
 module BlinkM {
   uses interface Timer<TMilli>;
   uses interface Leds;
