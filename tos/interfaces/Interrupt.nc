@@ -1,4 +1,4 @@
-// $Id: Interrupt.nc,v 1.1.2.1 2005-03-14 01:58:54 jpolastre Exp $
+// $Id: Interrupt.nc,v 1.1.2.2 2005-03-14 03:51:48 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  *
  * Provides a microcontroller-independent presentation of interrupts
  */
@@ -38,7 +38,14 @@ interface Interrupt {
    *
    * @return SUCCESS if the interrupt has been enabled
    */
-  async command result_t startWait(bool low_to_high);
+  async command error_t startWait(bool low_to_high);
+
+  /**  
+   * Diables an edge interrupt or capture interrupt
+   * 
+   * @return SUCCESS if the interrupt has been disabled
+   */ 
+  async command error_t disable();
 
   /**
    * Fired when an edge interrupt occurs.
@@ -46,13 +53,6 @@ interface Interrupt {
    * @return SUCCESS to keep the interrupt enabled (equivalent to
    *         calling startWait again), FAIL to disable the interrupt
    */
-  async event result_t fired();
+  async event void fired();
 
-
-  /**
-   * Diables an edge interrupt or capture interrupt
-   * 
-   * @return SUCCESS if the interrupt has been disabled
-   */ 
-  async command result_t disable();
 }

@@ -1,7 +1,5 @@
 /*									tab:4
- *
- *
- * "Copyright (c) 2000-2002 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -24,14 +22,14 @@
 /*
  *
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.1 $
+ * Date last modified:  $Revision: 1.1.2.2 $
  *
  * The RadioPacket interface allows link-layer dependent packet layout
- * but hardware independent access to the fields of a TOSMsg.
- * By passing a TOSMsg to the RadioPacket interface, you can extract 
- * (and reuse) common TOSMsg fields.  For applications that are built
- * for only a single platform, they may use the TOSMsg.header,
- * TOSMsg.footer, and TOSMsg.metadata definitions instead with the specific
+ * but hardware independent access to the fields of a message_t.
+ * By passing a message_t to the RadioPacket interface, you can extract 
+ * (and reuse) common message_t fields.  For applications that are built
+ * for only a single platform, they may use the message_t.header,
+ * message_t.footer, and message_t.metadata definitions instead with the specific
  * header, footer, and metadata definitions for that radio chip.
  */
 
@@ -42,50 +40,50 @@
 interface RadioPacket
 {
   /**
-   * Gets the length of the current TOSMsg data payload
+   * Gets the length of the current message_t data payload
    */
-  command uint8_t getLength(TOSMsg* msg);
+  command uint8_t getLength(message_t* msg);
   /**
-   * Sets the length of the current TOSMsg data payload
+   * Sets the length of the current message_t data payload
    */
-  command result_t setLength(TOSMsg* msg, uint8_t length);
+  command result_t setLength(message_t* msg, uint8_t length);
 
   /**
    * Gets a pointer to the data payload of the message
    */
-  command uint8_t* getData(TOSMsg* msg);
+  command uint8_t* getData(message_t* msg);
 
   /**
-   * Gets the destination address of the specified TOSMsg
+   * Gets the destination address of the specified message_t
    */
-  command uint16_t getAddress(TOSMsg* msg);
+  command uint16_t getAddress(message_t* msg);
   /**
-   * Sets the destination address of the specified TOSMsg
+   * Sets the destination address of the specified message_t
    */
-  command result_t setAddress(TOSMsg* msg, uint16_t addr);
+  command result_t setAddress(message_t* msg, uint16_t addr);
 
   /**
-   * Gets the destination logical group of the specified TOSMsg
+   * Gets the destination logical group of the specified message_t
    */
-  command uint16_t getGroup(TOSMsg* msg);
+  command uint16_t getGroup(message_t* msg);
   /**
-   * Sets the destination logical group of the specified TOSMsg
+   * Sets the destination logical group of the specified message_t
    */
-  command result_t setGroup(TOSMsg* msg, uint16_t group);
+  command result_t setGroup(message_t* msg, uint16_t group);
 
   /**
    * Gets a 16-bit 32768Hz time value corresponding to the transmitted
    * SFD on a transmitted packet, or when the SFD was received for a 
    * incoming packet.
    */
-  command uint16_t getTime(TOSMsg* msg);
+  command uint16_t getTime(message_t* msg);
 
   /**
    * Indicates whether an acknowledgment has been received.
    * If acknowledgments are enabled in the CSMAControl interface,
    * isAck returns TRUE for a transmitted message where a corresponding
    * acknowledgment has been received, otherwise it returns FALSE if no
-   * ack for this TOSMsg has been received.
+   * ack for this message_t has been received.
    */
-  command bool isAck(TOSMsg* msg);
+  command bool isAck(message_t* msg);
 }
