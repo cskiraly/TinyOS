@@ -1,4 +1,4 @@
-// $Id: RealMain.nc,v 1.1.2.2 2005-01-20 04:34:19 scipio Exp $
+// $Id: RealMain.nc,v 1.1.2.3 2005-01-20 04:58:55 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: RealMain.nc,v 1.1.2.2 2005-01-20 04:34:19 scipio Exp $
+ * Date last modified:  $Id: RealMain.nc,v 1.1.2.3 2005-01-20 04:58:55 scipio Exp $
  *
  */
 
@@ -61,8 +61,7 @@ implementation
        as CPU settings, counters, etc. After the hardware is ready,
        initialize the requisite software components and start
        execution.*/
-
-
+    
     call Scheduler.init(); 
     
     /* Enable interrupts, in case initialization calls, such as for
@@ -83,7 +82,7 @@ implementation
     call SoftwareInit.init(); 
     while (call Scheduler.runNextTask(FALSE));
 
-    post bootedTask();
+    signal Boot.booted();
 
     /* Spin on the Scheduler, passing TRUE so the Scheduler will, when
        there are no more tasks to run, put the CPU to sleep until the
