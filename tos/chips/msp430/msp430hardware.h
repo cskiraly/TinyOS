@@ -1,4 +1,4 @@
-// $Id: msp430hardware.h,v 1.1.2.3 2005-02-08 23:30:59 jpolastre Exp $
+// $Id: msp430hardware.h,v 1.1.2.4 2005-02-08 23:35:39 jpolastre Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -224,14 +224,14 @@ inline void TOSH_sleep() {
   // We check MSP430's TimerA, USART0/1, ADC12 peripheral modules if they
   // use MCLK or SMCLK and switch to the lowest LPM that keeps 
   // the required clock(s) running. 
-  extern uint8_t TOSH_sched_full;
-  extern volatile uint8_t TOSH_sched_free;
+  //  extern uint8_t TOSH_sched_full;
+  //  extern volatile uint8_t TOSH_sched_free;
   __nesc_atomic_t fInterruptFlags;
   uint16_t LPMode_bits = 0;
   
   fInterruptFlags = __nesc_atomic_start(); 
   
-  if ((LPMode_disabled) || (TOSH_sched_full != TOSH_sched_free)) {
+  if (LPMode_disabled) { // || (TOSH_sched_full != TOSH_sched_free)) {
     __nesc_atomic_end(fInterruptFlags);
     return;
   } else {
