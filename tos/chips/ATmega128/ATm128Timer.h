@@ -1,23 +1,35 @@
-// $Id: ATm128Timer.h,v 1.1.2.1 2005-01-10 22:38:01 mturon Exp $
+/// $Id: ATm128Timer.h,v 1.1.2.2 2005-01-20 04:17:32 mturon Exp $
 
-/* "Copyright (c) 2004 Crossbow Technology, Inc.
- * All rights reserved.
+/**
+ * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
- * Permission to use, copy, modify, and distribute this software and its
- * documentation for any purpose, without fee, and without written agreement
- * is hereby granted, provided that the above copyright notice, the following
- * two paragraphs and the author appear in all copies of this software.
+ * Permission to use, copy, modify and distribute, this software and 
+ * documentation is granted, provided the following conditions are met:
+ *   1. The above copyright notice and these conditions, along with the 
+ *      following disclaimers, appear in all copies of the software.
+ *   2. When the use, copying, modification or distribution is for COMMERCIAL 
+ *      purposes (i.e., any use other than academic research), then the 
+ *      software (including all modifications of the software) may be used 
+ *      ONLY with hardware manufactured by and purchased from Crossbow 
+ *      Technology, unless you obtain separate written permission from, 
+ *      and pay appropriate fees to, Crossbow. For example, no right to copy 
+ *      and use the software on non-Crossbow hardware, if the use is 
+ *      commercial in nature, is permitted under this license. 
+ *   3. When the use, copying, modification or distribution is for 
+ *      NON-COMMERCIAL PURPOSES (i.e., academic research use only), the 
+ *      software may be used, whether or not with Crossbow hardware, without 
+ *      any fee to Crossbow. 
  * 
- * IN NO EVENT SHALL CROSSBOW TECHNOLOGY, INC. BE LIABLE TO ANY PARTY FOR
- * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
- * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF CROSSBOW
- * TECHNOLOGY, INC. HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * CROSSBOW TECHNOLOGY, INC. SPECIFICALLY DISCLAIMS ANY WARRANTIES,
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
- * ON AN "AS IS" BASIS, AND CROSSBOW TECHNOLOGY, INC. HAS NO OBLIGATION TO
- * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
+ * IN NO EVENT SHALL CROSSBOW TECHNOLOGY OR ANY OF ITS LICENSORS BE LIABLE TO 
+ * ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL 
+ * DAMAGES ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF CROSSBOW OR ITS LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
+ * DAMAGE. CROSSBOW TECHNOLOGY AND ITS LICENSORS SPECIFICALLY DISCLAIM ALL 
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED
+ * HEREUNDER IS ON AN "AS IS" BASIS, AND NEITHER CROSSBOW NOR ANY LICENSOR HAS
+ * ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR 
+ * MODIFICATIONS.
  */
 
 /// @author Martin Turon <mturon@xbow.com>
@@ -136,13 +148,13 @@ typedef struct
     uint8_t comB  : 2;   //!< Compare Match Output B
     uint8_t comC  : 2;   //!< Compare Match Output C
     uint8_t wgm10 : 2;   //!< Waveform generation mode
-} ATm128TimerControlA_t;
+} ATm128TimerCtrlCompare_t;
 
 /** Timer1 Control Register A */
-typedef ATm128TimerControlA_t ATm128_TCCR1A_t;
+typedef ATm128TimerCtrlCompare_t ATm128_TCCR1A_t;
 
 /** Timer3 Control Register A */
-typedef ATm128TimerControlA_t ATm128_TCCR3A_t;
+typedef ATm128TimerCtrlCompare_t ATm128_TCCR3A_t;
 
 enum {
     ATM128_CLK16_NONE = 0,
@@ -182,13 +194,13 @@ typedef struct
     uint8_t rsvd  : 1;   //!< Reserved
     uint8_t wgm32 : 2;   //!< Waveform generation mode
     uint8_t cs    : 3;   //!< Clock Source Select
-} ATm128TimerControlB_t;
+} ATm128TimerCtrlCapture_t;
 
 /** Timer1 Control Register B */
-typedef ATm128TimerControlB_t ATm128_TCCR1B_t;
+typedef ATm128TimerCtrlCapture_t ATm128_TCCR1B_t;
 
 /** Timer3 Control Register B */
-typedef ATm128TimerControlB_t ATm128_TCCR3B_t;
+typedef ATm128TimerCtrlCapture_t ATm128_TCCR3B_t;
 
 /** Timer/Counter Control Register C Type */
 typedef struct
@@ -197,13 +209,13 @@ typedef struct
     uint8_t focB  : 1;   //!< Force Output Compare Channel B
     uint8_t focC  : 1;   //!< Force Output Compare Channel C
     uint8_t rsvd  : 5;   //!< Reserved
-} ATm128TimerControlC_t;
+} ATm128TimerCtrlClock_t;
 
 /** Timer1 Control Register B */
-typedef ATm128TimerControlC_t ATm128_TCCR1C_t;
+typedef ATm128TimerCtrlClock_t ATm128_TCCR1C_t;
 
 /** Timer3 Control Register B */
-typedef ATm128TimerControlC_t ATm128_TCCR3C_t;
+typedef ATm128TimerCtrlClock_t ATm128_TCCR3C_t;
 
 // Read/Write these 16-bit Timer registers according to p.112:
 // Access as bytes.  Read low before high.  Write high before low. 
@@ -229,10 +241,22 @@ typedef uint8_t ATm128_OCR3CH_t;  //!< Output Compare Register 3C
 typedef uint8_t ATm128_OCR3CL_t;  //!< Output Compare Register 3C
 
 /** Contains counter value when event occurs on ICPn pin. */
-typedef uint8_t ATm128_ICR1AH_t;  //!< Input Capture Register 1
-typedef uint8_t ATm128_ICR1AL_t;  //!< Input Capture Register 1
-typedef uint8_t ATm128_ICR3BH_t;  //!< Input Capture Register 3
-typedef uint8_t ATm128_ICR3BL_t;  //!< Input Capture Register 3
+typedef uint8_t ATm128_ICR1H_t;  //!< Input Capture Register 1
+typedef uint8_t ATm128_ICR1L_t;  //!< Input Capture Register 1
+typedef uint8_t ATm128_ICR3H_t;  //!< Input Capture Register 3
+typedef uint8_t ATm128_ICR3L_t;  //!< Input Capture Register 3
+
+/** Extended Timer/Counter Interrupt Mask Register */
+typedef struct
+{
+    uint8_t rsvd  : 2; //!< Timer2 Output Compare Interrupt Enable
+    uint8_t ticie3: 1; //!< Timer3 Input Capture Interrupt Enable
+    uint8_t ocie3A: 1; //!< Timer3 Output Compare A Interrupt Enable
+    uint8_t ocie3B: 1; //!< Timer3 Output Compare B Interrupt Enable
+    uint8_t toie3 : 1; //!< Timer3 Overflow Interrupt Enable
+    uint8_t ocie3C: 1; //!< Timer3 Output Compare C Interrupt Enable
+    uint8_t ocie1C: 1; //!< Timer1 Output Compare C Interrupt Enable
+} ATm128_ETIMSK_t;
 
 /** Extended Timer/Counter Interrupt Flag Register */
 typedef struct
