@@ -1,4 +1,4 @@
-// $Id: HPLGeneralIOM.nc,v 1.1.2.1 2005-03-17 14:42:29 mturon Exp $
+// $Id: HPLGeneralIOPinM.nc,v 1.1.2.1 2005-03-17 16:26:08 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,7 +24,9 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-generic module HPLGeneralIOM (uint8_t port_data, uint8_t port_sel, uint8_t pin)
+generic module HPLGeneralIOPinM (uint8_t port_data, 
+				 uint8_t port_sel, 
+				 uint8_t pin)
 {
     provides interface GeneralIO as IO;
 }

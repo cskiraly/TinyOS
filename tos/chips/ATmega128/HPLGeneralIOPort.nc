@@ -1,4 +1,4 @@
-// $Id: PlatformLeds.nc,v 1.1.2.2 2005-03-17 16:27:39 mturon Exp $
+// $Id: HPLGeneralIOPort.nc,v 1.1.2.1 2005-03-17 16:26:08 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,20 +24,41 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-includes hardware;
-
-configuration PlatformLeds
+generic configuration HPLGeneralIOPort (uint8_t port_data, uint8_t port_sel)
 {
-    provides interface GeneralIO as Led1;
-    provides interface GeneralIO as Led2;
-    provides interface GeneralIO as Led3;
+  // provides all the ports as raw ports
+  provides {
+    interface GeneralIO as Pin0;
+    interface GeneralIO as Pin1;
+    interface GeneralIO as Pin2;
+    interface GeneralIO as Pin3;
+    interface GeneralIO as Pin4;
+    interface GeneralIO as Pin5;
+    interface GeneralIO as Pin6;
+    interface GeneralIO as Pin7;
+  }
 }
 implementation
 {
-    components HPLGeneralIO;
-    
-    Led1 = HPLGeneralIO.PortA0;  // Pin A0 = Yellow LED
-    Led2 = HPLGeneralIO.PortA1;  // Pin A1 = Green LED
-    Led3 = HPLGeneralIO.PortA2;  // Pin A2 = Red LED
+  components 
+    new HPLGeneralIOPinM (port_data, port_sel, 0) as Bit0,
+    new HPLGeneralIOPinM (port_data, port_sel, 1) as Bit1,
+    new HPLGeneralIOPinM (port_data, port_sel, 2) as Bit2,
+    new HPLGeneralIOPinM (port_data, port_sel, 3) as Bit3,
+    new HPLGeneralIOPinM (port_data, port_sel, 4) as Bit4,
+    new HPLGeneralIOPinM (port_data, port_sel, 5) as Bit5,
+    new HPLGeneralIOPinM (port_data, port_sel, 6) as Bit6,
+    new HPLGeneralIOPinM (port_data, port_sel, 7) as Bit7
+    ;
+
+  Pin0 = Bit0;
+  Pin1 = Bit1;
+  Pin2 = Bit2;
+  Pin3 = Bit3;
+  Pin4 = Bit4;
+  Pin5 = Bit5;
+  Pin6 = Bit6;
+  Pin7 = Bit7;
+
 }
 
