@@ -7,8 +7,14 @@ module PlatformM
 }
 implementation
 {
+  void disable_watchdog_timer()
+  {
+    WDTCTL = WDTPW | WDTHOLD;
+  }
+
   command error_t Init.init()
   {
+    disable_watchdog_timer();
     TOSH_SET_PIN_DIRECTIONS();
     call MSP430ClockInit.init();
     return SUCCESS;
