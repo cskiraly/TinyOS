@@ -1,4 +1,4 @@
-OBJS = MathOpsM.nc
+OBJS = MathOpsM.nc CastOpsM.nc
 
 all: $(OBJS)
 

@@ -12,10 +12,16 @@ implementation
 {
 <perl>
   my $text =<<'EOF';
-  async command type MathX.cast_to( uint32_t a ) { return a; }
-  async command uint32_t MathX.cast_from( type a ) { return a; }
-  async command type MathX.inc( type a ) { return ++a; }
-  async command type MathX.dec( type a ) { return --a; }
+  async command uint8_t MathX.castToU8( type a ) { return a; }
+  async command int8_t MathX.castToI8( type a ) { return a; }
+  async command uint32_t MathX.castToU32( type a ) { return a; }
+  async command int32_t MathX.castToI32( type a ) { return a; }
+  async command type MathX.castFromU8( uint8_t a ) { return a; }
+  async command type MathX.castFromI8( int8_t a ) { return a; }
+  async command type MathX.castFromU32( uint32_t a ) { return a; }
+  async command type MathX.castFromI32( int32_t a ) { return a; }
+  async command type MathX.inc( type a ) { return a+1; }
+  async command type MathX.dec( type a ) { return a-1; }
   async command type MathX.add( type a, type b ) { return a+b; }
   async command type MathX.sub( type a, type b ) { return a-b; }
   async command type MathX.not( type a ) { return ~a; }

@@ -1,4 +1,4 @@
-//$Id: WidenAlarmM.nc,v 1.1.2.2 2005-02-25 20:14:59 cssharp Exp $
+//$Id: TransformAlarmM.nc,v 1.1.2.1 2005-02-26 02:27:15 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,16 +24,19 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-generic module WidenAlarmM( 
+generic module TransformAlarmM( 
+  typedef to_frequency_tag,
   typedef to_size_type,
+  typedef from_frequency_tag,
   typedef from_size_type,
-  typedef frequency_tag )
+  uint8_t bit_shift_right )
 {
-  provides interface AlarmBase<to_size_type,frequency_tag> as Alarm;
-  uses interface CounterBase<to_size_type,frequency_tag> as Counter;
-  uses interface AlarmBase<from_size_type,frequency_tag> as AlarmFrom;
+  provides interface AlarmBase<to_size_type,to_frequency_tag> as Alarm;
+  uses interface CounterBase<to_size_type,to_frequency_tag> as Counter;
+  uses interface AlarmBase<from_size_type,from_frequency_tag> as AlarmFrom;
   uses interface MathOps<to_size_type> as MathTo;
   uses interface MathOps<from_size_type> as MathFrom;
+  uses interface CastOps<from_size_type,to_size_type> as CastFromTo;
 }
 implementation
 {
@@ -110,31 +113,31 @@ implementation
   void set_alarm()
   {
     to_size_type now = call Counter.get();
-    from_size_type now_from = call MathFrom.cast_to( call MathTo.cast_from( now ) );
+    from_size_type now_from = call MathFrom.sl( call CastFromTo.left( now ), bit_shift_right );
     to_size_type elapsed = call MathTo.sub(now,m_t0);
     if( call MathTo.ge(elapsed,m_dt) )
     {
       m_t0 = call MathTo.add(m_t0,m_dt);
-      m_dt = call MathTo.cast_to(0);
-      call AlarmFrom.set( now_from, call MathFrom.cast_to(0) );
+      m_dt = call MathTo.castFromU8(0);
+      call AlarmFrom.set( now_from, call MathFrom.castFromU8(0) );
     }
     else
     {
       to_size_type remaining = call MathTo.sub( m_dt, elapsed );
-      from_size_type remaining_from = call MathFrom.cast_to( call MathTo.cast_from( remaining ) );
-      to_size_type delay = call MathTo.cast_to( ((uint64_t)1) << (8*sizeof(from_size_type)-1) );
+      from_size_type remaining_from = call CastFromTo.left( remaining );
+      to_size_type delay = call MathTo.castFromU32( ((uint32_t)1) << (8*sizeof(from_size_type)-1-bit_shift_right) );
       if( call MathTo.gt( remaining, delay ) )
       {
-	from_size_type delay_from = call MathFrom.cast_to( call MathTo.cast_from( delay ) );
+	from_size_type delay_from = call CastFromTo.left( delay );
 	m_t0 = call MathTo.add( m_t0, delay );
 	m_dt = call MathTo.sub( m_dt, delay );
-	call AlarmFrom.set( now_from, delay_from );
+	call AlarmFrom.set( now_from, call MathFrom.sl( delay_from, bit_shift_right ) );
       }
       else
       {
-	m_t0 = call MathTo.add(m_t0,m_dt);
-	m_dt = call MathTo.cast_to(0);
-	call AlarmFrom.set( now_from, remaining_from );
+	m_t0 = call MathTo.add( m_t0, m_dt );
+	m_dt = call MathTo.castFromU8(0);
+	call AlarmFrom.set( now_from, call MathFrom.sl( remaining_from, bit_shift_right ) );
       }
     }
   }
@@ -153,7 +156,7 @@ implementation
   {
     atomic
     {
-      if( call MathTo.eq( m_dt, call MathTo.cast_to(0) ) )
+      if( call MathTo.eq( m_dt, call MathTo.castFromU8(0) ) )
       {
 	signal Alarm.fired();
       }
@@ -165,6 +168,10 @@ implementation
   }
 
   async event void Counter.overflow()
+  {
+  }
+
+  default async event void Alarm.fired()
   {
   }
 }
