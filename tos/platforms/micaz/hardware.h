@@ -1,4 +1,4 @@
-/// $Id: hardware.h,v 1.1.2.1 2005-02-09 08:04:20 mturon Exp $
+/// $Id: hardware.h,v 1.1.2.2 2005-03-17 10:29:05 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -35,7 +35,6 @@
 
 #define TOSH_NEW_AVRLIBC // mica128 requires avrlibc v. 20021209 or greater
 #include <atmega128hardware.h>
-#include <CC2420Const.h>
 
 // avrlibc may define ADC as a 16-bit register read.  
 // This collides with the nesc ADC interface name
@@ -43,29 +42,6 @@ uint16_t inline getADC() {
   return inw(ADC);
 }
 #undef ADC
-
-#define TOSH_CYCLE_TIME_NS 136
-
-// each nop is 1 clock cycle
-// 1 clock cycle on mica2 == 136ns
-void inline TOSH_wait_250ns() {
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-}
-
-void inline TOSH_uwait(int u_sec) {
-    while (u_sec > 0) {
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      u_sec--;
-    }
-}
 
 // LED assignments
 TOSH_ASSIGN_PIN(RED_LED, A, 2);
@@ -151,66 +127,59 @@ TOSH_ASSIGN_PIN(UART_XCK1, D, 5);
 void TOSH_SET_PIN_DIRECTIONS(void)
 {
 // LED pins
-  TOSH_MAKE_RED_LED_OUTPUT();
-  TOSH_MAKE_YELLOW_LED_OUTPUT();
-  TOSH_MAKE_GREEN_LED_OUTPUT();
-      
-  TOSH_MAKE_PW7_OUTPUT();
-  TOSH_MAKE_PW6_OUTPUT();
-  TOSH_MAKE_PW5_OUTPUT();
-  TOSH_MAKE_PW4_OUTPUT();
-  TOSH_MAKE_PW3_OUTPUT(); 
-  TOSH_MAKE_PW2_OUTPUT();
-  TOSH_MAKE_PW1_OUTPUT();
-  TOSH_MAKE_PW0_OUTPUT();
+    TOSH_MAKE_RED_LED_OUTPUT();
+    TOSH_MAKE_YELLOW_LED_OUTPUT();
+    TOSH_MAKE_GREEN_LED_OUTPUT();
+    
+    TOSH_MAKE_PW7_OUTPUT();
+    TOSH_MAKE_PW6_OUTPUT();
+    TOSH_MAKE_PW5_OUTPUT();
+    TOSH_MAKE_PW4_OUTPUT();
+    TOSH_MAKE_PW3_OUTPUT(); 
+    TOSH_MAKE_PW2_OUTPUT();
+    TOSH_MAKE_PW1_OUTPUT();
+    TOSH_MAKE_PW0_OUTPUT();
 
 // CC2420 pins  
-  TOSH_MAKE_MISO_INPUT();
-  TOSH_MAKE_MOSI_OUTPUT();
-  TOSH_MAKE_SPI_SCK_OUTPUT();
-  TOSH_MAKE_CC_RSTN_OUTPUT();    
-  TOSH_MAKE_CC_VREN_OUTPUT();
-  TOSH_MAKE_CC_CS_INPUT(); 
-  TOSH_MAKE_CC_FIFOP1_INPUT();    
-  TOSH_MAKE_CC_CCA_INPUT();
-  TOSH_MAKE_CC_SFD_INPUT();
-  TOSH_MAKE_CC_FIFO_INPUT(); 
+    TOSH_MAKE_MISO_INPUT();
+    TOSH_MAKE_MOSI_OUTPUT();
+    TOSH_MAKE_SPI_SCK_OUTPUT();
+    TOSH_MAKE_CC_RSTN_OUTPUT();    
+    TOSH_MAKE_CC_VREN_OUTPUT();
+    TOSH_MAKE_CC_CS_INPUT(); 
+    TOSH_MAKE_CC_FIFOP1_INPUT();    
+    TOSH_MAKE_CC_CCA_INPUT();
+    TOSH_MAKE_CC_SFD_INPUT();
+    TOSH_MAKE_CC_FIFO_INPUT(); 
 
-  TOSH_MAKE_RADIO_CCA_INPUT();
-
-
-  TOSH_MAKE_SERIAL_ID_INPUT();
-  TOSH_CLR_SERIAL_ID_PIN();         // Prevent sourcing current
-
-  TOSH_MAKE_FLASH_SELECT_OUTPUT();
-  TOSH_MAKE_FLASH_OUT_OUTPUT();
-  TOSH_MAKE_FLASH_CLK_OUTPUT();
-  TOSH_SET_FLASH_SELECT_PIN();
+    TOSH_MAKE_RADIO_CCA_INPUT();
     
-  TOSH_SET_RED_LED_PIN();
-  TOSH_SET_YELLOW_LED_PIN();
-  TOSH_SET_GREEN_LED_PIN();
 
+    TOSH_MAKE_SERIAL_ID_INPUT();
+    TOSH_CLR_SERIAL_ID_PIN();         // Prevent sourcing current
+    
+    TOSH_MAKE_FLASH_SELECT_OUTPUT();
+    TOSH_MAKE_FLASH_OUT_OUTPUT();
+    TOSH_MAKE_FLASH_CLK_OUTPUT();
+    TOSH_SET_FLASH_SELECT_PIN();
+    
+    TOSH_SET_RED_LED_PIN();
+    TOSH_SET_YELLOW_LED_PIN();
+    TOSH_SET_GREEN_LED_PIN();
 }
 
-enum {
-  TOSH_ADC_PORTMAPSIZE = 12
+enum 
+{
+    TOSH_ACTUAL_VOLTAGE_PORT = 30,    // map to internal BG ref
+    TOSH_ACTUAL_BANDGAP_PORT = 30,    // 1.23 Fixed bandgap reference
+    TOSH_ACTUAL_GND_PORT     = 31     // GND 
 };
 
 enum 
 {
-//  TOSH_ACTUAL_CC_RSSI_PORT = 0,
-  TOSH_ACTUAL_VOLTAGE_PORT = 30,    // map to internal BG ref
-  TOSH_ACTUAL_BANDGAP_PORT = 30,    // 1.23 Fixed bandgap reference
-  TOSH_ACTUAL_GND_PORT     = 31     // GND 
-};
-
-enum 
-{
- // TOS_ADC_CC_RSSI_PORT = 0,
-  TOS_ADC_VOLTAGE_PORT = 7,
-  TOS_ADC_BANDGAP_PORT = 10,
-  TOS_ADC_GND_PORT     = 11
+    TOS_ADC_VOLTAGE_PORT = 7,
+    TOS_ADC_BANDGAP_PORT = 10,
+    TOS_ADC_GND_PORT     = 11
 };
 
 

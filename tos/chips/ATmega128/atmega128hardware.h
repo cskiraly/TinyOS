@@ -1,4 +1,4 @@
-// $Id: atmega128hardware.h,v 1.1.2.1 2005-02-09 08:03:19 mturon Exp $
+// $Id: atmega128hardware.h,v 1.1.2.2 2005-03-17 10:31:13 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -93,8 +93,13 @@
   to_type func_name(from_type x) { \
   union {from_type f; to_type t;} c = {f:x}; return c.t; }
 
-#define SET_BIT(port, bit)    (sbi(bit))
-#define CLR_BIT(port, bit)    (cbi(bit))
+/// Bit operators using bit number
+#define SET_BIT(port, bit)    (sbi(port, bit))
+#define CLR_BIT(port, bit)    (cbi(port, bit))
+#define READ_BIT(port, bit)   (port & (0x01 << bit))
+#define FLIP_BIT(port, bit)   (port ^= (0x01 << bit))
+
+/// Bit operators using bit flag mask
 #define SET_FLAG(port, flag)  ((port) |= (flag))
 #define CLR_FLAG(port, flag)  ((port) &= ~(flag))
 #define READ_FLAG(port, flag) ((port) & (flag))
@@ -109,13 +114,6 @@ void TOSH_sleep()
 {
     sbi(MCUCR, SE);
     asm volatile ("sleep");
-}
-
-
-/** Determines whether interrupts are enabled. */
-inline bool are_interrupts_enabled()
-{
-    return ((SREG & SR_GIE) != 0);
 }
 
 /** Enables interrupts. */
@@ -144,6 +142,13 @@ inline void
 __nesc_atomic_end(__nesc_atomic_t original_SREG) __attribute__((spontaneous))
 {
     outp(original_SREG, SREG);
+}
+
+inline void
+__nesc_atomic_sleep()
+{
+    sbi(MCUCR, SE);
+    asm volatile ("sleep");
 }
 
 #endif //_H_atmega128hardware_H
