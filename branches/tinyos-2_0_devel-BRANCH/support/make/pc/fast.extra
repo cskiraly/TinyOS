@@ -1,0 +1,5 @@
+#-*-Makefile-*- vim:syntax=make
+#$Id: fast.extra,v 1.1.2.1 2005-03-23 19:35:00 cssharp Exp $
+
+OPTFLAGS = -O3 -fnesc-no-debug
+
