@@ -1,0 +1,61 @@
+#-*-Makefile-*- vim:syntax=make
+#$Id: pxa27x.rules,v 1.1.2.1 2005-03-23 19:35:18 cssharp Exp $
+
+define MSP_HELP
+
+ PXA27x extras:
+
+   debug    : compile with minimal optimization and debug symbols
+   debugopt : compile with debug symbols
+  endef
+HELP += $(MSP_HELP)
+
+OBJCOPY = xscale-elf-objcopy
+OBJDUMP = xscale-elf-objdump
+XDB_SYMBOL_EXTRACT = dwarf2bd
+NCC = ncc
+LIBS = -lm
+
+BUILDDIR = build/$(PLATFORM)
+MAIN_EXE = $(BUILDDIR)/main.exe
+MAIN_BIN = $(BUILDDIR)/main.bin
+
+PFLAGS += -Wall -Wshadow -DDEF_TOS_AM_GROUP=$(DEFAULT_LOCAL_GROUP) $(NESC_FLAGS)
+PFLAGS += -target=$(PLATFORM) -fnesc-cfile=$(BUILDDIR)/app.c -board=$(SENSORBOARD)
+ifdef MSG_SIZE
+PFLAGS += -DTOSH_DATA_LENGTH=$(MSG_SIZE)
+endif
+
+INSTALL_PROGRAM ?= jtag
+
+BUILDLESS_DEPS += bytes
+
+# Use the 'if' function instead of the 'ifdef' construct because ifdef freaks
+# out with call in there.  I don't know why.
+$(if $(PROGRAM),,$(call TOSMake_include,pxa27x/$(INSTALL_PROGRAM).extra))
+
+
+ifndef BUILD_DEPS
+  ifeq ($(filter $(BUILDLESS_DEPS),$(GOALS)),)
+    BUILD_DEPS = ihex bytes
+  endif
+endif
+
+ihex: exe FORCE
+	$(OBJCOPY) --output-target=binary $(MAIN_EXE) $(MAIN_BIN)
+	$(XDB_SYMBOL_EXTRACT) $(MAIN_EXE)
+
+exe: exe0 bytes FORCE
+	@:
+
+exe0: builddir $(BUILD_EXTRA_DEPS) FORCE
+	@echo "    compiling $(COMPONENT) to a $(PLATFORM) binary"
+	$(NCC) -o $(MAIN_EXE) $(OPTFLAGS) $(PFLAGS) $(CFLAGS) $(COMPONENT).nc $(LIBS) $(LDFLAGS)
+	@echo "    compiled $(COMPONENT) to $(MAIN_EXE)"
+
+builddir: FORCE
+	mkdir -p $(BUILDDIR)
+
+bytes: FORCE
+	@objdump -h $(MAIN_EXE) | perl -ne '$$b{$$1}=hex $$2 if /^\s*\d+\s*\.(text|data|bss)\s+(\S+)/; END { printf("%16d bytes in ROM\n%16d bytes in RAM\n",$$b{text}+$$b{data},$$b{data}+$$b{bss}); }'
+
