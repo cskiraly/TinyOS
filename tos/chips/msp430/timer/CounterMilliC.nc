@@ -1,4 +1,4 @@
-//$Id: CounterMilliC.nc,v 1.1.2.1 2005-03-30 17:58:26 cssharp Exp $
+//$Id: CounterMilliC.nc,v 1.1.2.2 2005-04-01 08:32:00 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -36,8 +36,6 @@ implementation
 	   , MSP430Counter32khzC
 	   , new TransformCounterM(TMilli,uint32_t,T32khz,uint16_t,5,uint32_t) as Transform
 	   , new CastCounterM(TMilli) as Cast
-	   , MathOpsM
-	   , CastOpsM
 	   ;
   
   CounterMilli = Cast.Counter;
@@ -45,10 +43,5 @@ implementation
 
   Cast.CounterFrom -> Transform.Counter;
   Transform.CounterFrom -> MSP430Counter32khzC;
-  Transform.MathTo -> MathOpsM;
-  Transform.MathFrom -> MathOpsM;
-  Transform.MathUpper -> MathOpsM;
-  Transform.CastFromTo -> CastOpsM;
-  Transform.CastUpperTo -> CastOpsM;
 }
 

@@ -1,4 +1,4 @@
-//$Id: AlarmTimerMilliC.nc,v 1.1.2.1 2005-03-30 17:58:26 cssharp Exp $
+//$Id: AlarmTimerMilliC.nc,v 1.1.2.2 2005-04-01 08:32:00 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -38,8 +38,6 @@ implementation
 	   , new TransformAlarmM(TMilli,uint32_t,T32khz,uint16_t,5) as Transform
 	   , new CastAlarmM(TMilli) as Cast
 	   , CounterMilliC as Counter
-	   , MathOpsM
-	   , CastOpsM
            ;
 
   Init = MSP430Alarm;
@@ -50,9 +48,6 @@ implementation
   Cast.AlarmFrom -> Transform;
   Transform.AlarmFrom -> MSP430Alarm;
   Transform.Counter -> Counter;
-  Transform.MathFrom -> MathOpsM;
-  Transform.MathTo -> MathOpsM;
-  Transform.CastFromTo -> CastOpsM;
 
   MSP430Alarm.MSP430Timer -> MSP430TimerC.TimerB;
   MSP430Alarm.MSP430TimerControl -> MSP430TimerC.ControlB4;
