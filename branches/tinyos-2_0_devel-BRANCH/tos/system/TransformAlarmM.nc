@@ -1,4 +1,4 @@
-//$Id: TransformAlarmM.nc,v 1.1.2.1 2005-02-26 02:27:15 cssharp Exp $
+//$Id: TransformAlarmM.nc,v 1.1.2.2 2005-03-10 09:50:39 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -31,9 +31,9 @@ generic module TransformAlarmM(
   typedef from_size_type,
   uint8_t bit_shift_right )
 {
-  provides interface AlarmBase<to_size_type,to_frequency_tag> as Alarm;
-  uses interface CounterBase<to_size_type,to_frequency_tag> as Counter;
-  uses interface AlarmBase<from_size_type,from_frequency_tag> as AlarmFrom;
+  provides interface AlarmBase<to_frequency_tag,to_size_type> as Alarm;
+  uses interface CounterBase<to_frequency_tag,to_size_type> as Counter;
+  uses interface AlarmBase<from_frequency_tag,from_size_type> as AlarmFrom;
   uses interface MathOps<to_size_type> as MathTo;
   uses interface MathOps<from_size_type> as MathFrom;
   uses interface CastOps<from_size_type,to_size_type> as CastFromTo;

@@ -1,4 +1,4 @@
-//$Id: CastCounterM.nc,v 1.1.2.2 2005-03-10 09:50:39 cssharp Exp $
+//$Id: SyncAlarmC.nc,v 1.1.2.1 2005-03-10 09:50:39 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -22,36 +22,26 @@
 
 // @author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-// Cast a 32-bit CounterBase into a standard 32-bit Counter.
-generic module CastCounterM( typedef frequency_tag )
+// SyncAlarmC takes an alarm and filters its fired event through a task, thus
+// transforming it from interrupt context to task context.  It's used to
+// sychronize an alarm feeding into MultiplexTimerM to get sync timers out
+// instead of async timers.
+
+includes Timer;
+
+generic configuration SyncAlarmC( typedef frequency_tag, typedef size_type )
 {
-  provides interface Counter<frequency_tag> as Counter;
-  uses interface CounterBase<frequency_tag,uint32_t> as CounterFrom;
+  provides interface AlarmBase<frequency_tag,size_type> as AlarmBase;
+  uses interface AlarmBase<frequency_tag,size_type> as AlarmBaseFrom;
 }
 implementation
 {
-  async command uint32_t Counter.get()
-  {
-    return call CounterFrom.get();
-  }
+  components new SyncAlarmM(frequency_tag,size_type) as SyncAlarm
+           , new TaskBasicC() as Task;
+	   ;
 
-  async command bool Counter.isOverflowPending()
-  {
-    return call CounterFrom.isOverflowPending();
-  }
-
-  async command void Counter.clearOverflow()
-  {
-    call CounterFrom.clearOverflow();
-  }
-
-  async event void CounterFrom.overflow()
-  {
-    signal Counter.overflow();
-  }
-
-  default async event void Counter.overflow()
-  {
-  }
+  AlarmBase = SyncAlarm;
+  AlarmBaseFrom = SyncAlarm;
+  SyncAlarm.TaskBasic -> Task;
 }
 

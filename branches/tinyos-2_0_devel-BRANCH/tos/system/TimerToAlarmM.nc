@@ -1,4 +1,4 @@
-//$Id: CastCounterM.nc,v 1.1.2.2 2005-03-10 09:50:39 cssharp Exp $
+//$Id: TimerToAlarmM.nc,v 1.1.2.1 2005-03-10 09:50:39 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -22,36 +22,44 @@
 
 // @author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-// Cast a 32-bit CounterBase into a standard 32-bit Counter.
-generic module CastCounterM( typedef frequency_tag )
+// Convert a Timer into an Alarm, can be used to re-Multiplex a Timer, etc.
+
+generic module TimerToAlarmM( typedef frequency_tag, typedef size_type )
 {
-  provides interface Counter<frequency_tag> as Counter;
-  uses interface CounterBase<frequency_tag,uint32_t> as CounterFrom;
+  provides interface AlarmBase<frequency_tag,size_type> as AlarmBase;
+  uses interface TimerBase<frequency_tag,size_type> as TimerBase;
+  uses interface MathOps<size_type> as Math;
 }
 implementation
 {
-  async command uint32_t Counter.get()
+  async command size_type AlarmBase.now()
   {
-    return call CounterFrom.get();
+    return call TimerBase.getNow();
   }
 
-  async command bool Counter.isOverflowPending()
+  async command size_type AlarmBase.get()
   {
-    return call CounterFrom.isOverflowPending();
+    return call Math.add( call TimerBase.gett0(), call TimerBase.getdt() );
   }
 
-  async command void Counter.clearOverflow()
+  async command bool AlarmBase.isSet()
   {
-    call CounterFrom.clearOverflow();
+    return call TimerBase.isRunning();
   }
 
-  async event void CounterFrom.overflow()
+  async command void AlarmBase.cancel()
   {
-    signal Counter.overflow();
+    call TimerBase.stop();
   }
 
-  default async event void Counter.overflow()
+  async command void AlarmBase.set( size_type t0, size_type dt )
   {
+    call TimerBase.startOneShot( t0, dt );
+  }
+
+  async event void TimerBase.fired( size_type when, size_type numMissed )
+  {
+    signal AlarmBase.fired();
   }
 }
 
