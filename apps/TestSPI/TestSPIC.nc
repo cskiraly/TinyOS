@@ -1,4 +1,4 @@
-// $Id: TestSPIC.nc,v 1.1.2.1 2005-02-25 19:36:44 jpolastre Exp $
+// $Id: TestSPIC.nc,v 1.1.2.2 2005-03-13 23:45:59 jpolastre Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -37,6 +37,7 @@ implementation {
   TestSPIM.Leds -> LedsC;
   TestSPIM.BusArbitration -> SPI;
   TestSPIM.SPIPacket -> SPI;
+  TestSPIM.SPIPacketAdvanced -> SPI;
 
 }
 
