@@ -1,4 +1,4 @@
-/// $Id: ATm128ADC.h,v 1.1.2.3 2005-02-09 02:11:06 mturon Exp $
+/// $Id: ATm128ADC.h,v 1.1.2.4 2005-03-24 08:47:40 husq Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,6 +23,7 @@
  */
 
 /// @author Martin Turon <mturon@xbow.com>
+/// @author Hu Siquan <husq@xbow.com>
 
 #ifndef _H_ATm128ADC_h
 #define _H_ATm128ADC_h
@@ -31,11 +32,18 @@
 
 /** Voltage Reference Settings */
 enum {
-    ATM128_ADC_VREF_OFF = 0,
-    ATM128_ADC_VREF_AVCC = 1,
+    ATM128_ADC_VREF_OFF = 0, //!< VR+ = AREF   and VR- = GND
+    ATM128_ADC_VREF_AVCC = 1,//!< VR+ = AVcc   and VR- = GND
     ATM128_ADC_VREF_RSVD,
-    ATM128_ADC_VREF_2_56 = 3,
+    ATM128_ADC_VREF_2_56 = 3,//!< VR+ = 2.56V  and VR- = GND
 };
+
+/** Voltage Reference Settings */
+enum {
+    ATM128_ADC_RIGHT_ADJUST = 0, 
+    ATM128_ADC_LEFT_ADJUST = 1,
+};
+
 
 /** ADC Multiplexer Settings */
 enum {
@@ -73,16 +81,17 @@ enum {
     ATM128_ADC_SNGL_GND,
 };
 
-/** ADC Multiplexer Settings Register */
+/** ADC Multiplexer Selection Register */
 typedef struct
 {
     uint8_t refs  : 2;  //!< Reference Selection Bits
     uint8_t adlar : 1;  //!< ADC Left Adjust Result
     uint8_t mux   : 5;  //!< Analog Channel and Gain Selection Bits
-} ATm128ADCSettings_t;
+} ATm128ADCSelection_t;
 
-typedef ATm128ADCSettings_t ATm128_ADMUX_t;  //!< ADC Multiplexer Selection
+typedef ATm128ADCSelection_t ATm128_ADMUX_t;  //!< ADC Multiplexer Selection
 
+#define ATMEGA128_10BIT_ADC_MASK 0x3ff 
 
 /** ADC Prescaler Settings */
 enum {
@@ -96,6 +105,36 @@ enum {
     ATM128_ADC_PRESCALE_128,
 };
 
+/** ADC Enable Settings */
+enum {
+    ATM128_ADC_ENABLE_OFF = 0,
+    ATM128_ADC_ENABLE_ON,
+};
+
+/** ADC Start Conversion Settings */
+enum {
+    ATM128_ADC_START_CONVERSION_OFF = 0,
+    ATM128_ADC_START_CONVERSION_ON,
+};
+
+/** ADC Free Running Select Settings */
+enum {
+    ATM128_ADC_FREE_RUNNING_OFF = 0,
+    ATM128_ADC_FREE_RUNNING_ON,
+};
+
+/** ADC Interrupt Flag Settings */
+enum {
+    ATM128_ADC_INT_FLAG_OFF = 0,
+    ATM128_ADC_INT_FLAG_ON,
+};
+
+/** ADC Interrupt Enable Settings */
+enum {
+    ATM128_ADC_INT_ENABLE_OFF = 0,
+    ATM128_ADC_INT_ENABLE_ON,
+};
+
 /** ADC Multiplexer Selection Register */
 typedef struct
 {
@@ -106,6 +145,8 @@ typedef struct
     uint8_t adie  : 1;  //!< ADC Interrupt Enable
     uint8_t adps  : 3;  //!< ADC Prescaler Select Bits
 } ATm128ADCControl_t;
+
+
 
 typedef ATm128ADCControl_t ATm128_ADCSRA_t;  //!< ADC Multiplexer Selection
 
