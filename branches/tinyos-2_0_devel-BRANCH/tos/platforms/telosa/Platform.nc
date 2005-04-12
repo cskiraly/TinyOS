@@ -1,4 +1,4 @@
-// $Id: Platform.nc,v 1.1.2.3 2005-03-16 00:21:45 jpolastre Exp $
+// $Id: Platform.nc,v 1.1.2.4 2005-04-12 04:14:13 gtolle Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -33,9 +33,11 @@ implementation
 {
   components PlatformM
     , MSP430ClockC
+    , HPLUSART1C
     ;
 
   Init = PlatformM;
   PlatformM.MSP430ClockInit -> MSP430ClockC.Init;
+  PlatformM.HPLUSART1Init -> HPLUSART1C.Init;
 }
 
