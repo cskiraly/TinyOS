@@ -1,4 +1,4 @@
-/// $Id: PlatformM.nc,v 1.1.2.2 2005-04-14 08:20:45 mturon Exp $
+/// $Id: HPLCapture.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,22 +24,20 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-includes hardware;
-
-module PlatformM
+interface HPLCapture<size_type>
 {
-  provides interface Init;
+  /// Capture value register: Direct access
+  async command size_type get();
+  async command void      set(size_type t);
 
-//  uses interface Init as HPLTimer;
-}
-implementation
-{
+  /// Interrupt signals
+  async event void captured(size_type t);  //<! Signalled on capture interrupt
 
-  command error_t Init.init()
-  {
-    TOSH_SET_PIN_DIRECTIONS();
-    //timer_init();
-    return SUCCESS;
-  }
+  /// Interrupt flag utilites: Bit level set/clr
+  async command void reset();         //<! Clear the capture interrupt flag
+  async command void start();         //<! Enable the capture interrupt
+  async command void stop();          //<! Turn off capture interrupts
+  async command bool test();          //<! Did capture interrupt occur?
+  async command bool isOn();          //<! Is capture interrupt on?
 }
 

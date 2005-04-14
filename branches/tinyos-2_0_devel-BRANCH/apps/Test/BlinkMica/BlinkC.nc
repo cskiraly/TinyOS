@@ -1,4 +1,4 @@
-/// $Id: PlatformM.nc,v 1.1.2.2 2005-04-14 08:20:45 mturon Exp $
+// $Id: BlinkC.nc,v 1.1.2.1 2005-04-14 08:20:44 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,22 +24,20 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-includes hardware;
-
-module PlatformM
+/** This version of Blink is designed to test ATmega128 AVR timers. */
+configuration BlinkC
 {
-  provides interface Init;
-
-//  uses interface Init as HPLTimer;
 }
 implementation
 {
+    components Main, new BlinkM(uint8_t), LedsC, HPLTimerM;
 
-  command error_t Init.init()
-  {
-    TOSH_SET_PIN_DIRECTIONS();
-    //timer_init();
-    return SUCCESS;
-  }
+    BlinkM.Boot -> Main;
+    Main.SoftwareInit -> LedsC;
+    BlinkM.Leds -> LedsC;
+    
+    BlinkM.TimerControl -> HPLTimerM.Timer0Ctrl;
+    BlinkM.Compare -> HPLTimerM.Compare0;
+    BlinkM.Timer -> HPLTimerM.Timer0;
 }
 

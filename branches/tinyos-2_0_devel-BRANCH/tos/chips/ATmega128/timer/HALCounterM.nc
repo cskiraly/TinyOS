@@ -1,4 +1,4 @@
-/// $Id: PlatformM.nc,v 1.1.2.2 2005-04-14 08:20:45 mturon Exp $
+//$Id: HALCounterM.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,22 +24,32 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-includes hardware;
-
-module PlatformM
+// Convert ATmega128 hardware timer to TinyOS CounterBase.
+generic module HALCounterM( typedef frequency_tag, typedef timer_size )
 {
-  provides interface Init;
-
-//  uses interface Init as HPLTimer;
+  provides interface CounterBase<frequency_tag,timer_size> as Counter;
+  uses interface HPLTimer<timer_size> as Timer;
 }
 implementation
 {
-
-  command error_t Init.init()
+  async command timer_size Counter.get()
   {
-    TOSH_SET_PIN_DIRECTIONS();
-    //timer_init();
-    return SUCCESS;
+    return call Timer.get();
+  }
+
+  async command bool Counter.isOverflowPending()
+  {
+    return call Timer.test();
+  }
+
+  async command void Counter.clearOverflow()
+  {
+    call Timer.reset();
+  }
+
+  async event void Timer.overflow()
+  {
+    signal Counter.overflow();
   }
 }
 

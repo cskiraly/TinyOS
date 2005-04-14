@@ -1,4 +1,4 @@
-/// $Id: PlatformM.nc,v 1.1.2.2 2005-04-14 08:20:45 mturon Exp $
+/// $Id: HPLTimerCtrl16.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,22 +24,25 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-includes hardware;
+#include <ATm128Timer.h>
 
-module PlatformM
+interface HPLTimerCtrl16
 {
-  provides interface Init;
+  /// Timer control registers: Direct access
+  async command ATm128TimerCtrlCompare_t getCtrlCompare();
+  async command ATm128TimerCtrlCapture_t getCtrlCapture();
+  async command ATm128TimerCtrlClock_t   getCtrlClock();
 
-//  uses interface Init as HPLTimer;
-}
-implementation
-{
+  async command void setCtrlCompare( ATm128TimerCtrlCompare_t control );
+  async command void setCtrlCapture( ATm128TimerCtrlCapture_t control );
+  async command void setCtrlClock  ( ATm128TimerCtrlClock_t   control );
 
-  command error_t Init.init()
-  {
-    TOSH_SET_PIN_DIRECTIONS();
-    //timer_init();
-    return SUCCESS;
-  }
+  /// Interrupt mask register: Direct access
+  async command ATm128_ETIMSK_t getInterruptMask();
+  async command void setInterruptMask( ATm128_ETIMSK_t mask);
+
+  /// Interrupt flag register: Direct access
+  async command ATm128_ETIFR_t getInterruptFlag();
+  async command void setInterruptFlag( ATm128_ETIFR_t flags );
 }
 

@@ -1,4 +1,4 @@
-/// $Id: ATm128Timer.h,v 1.1.2.7 2005-03-15 01:32:20 mturon Exp $
+/// $Id: ATm128Timer.h,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -52,13 +52,16 @@ enum {
 };
 
 /** 8-bit Timer Control Register */
-typedef struct
+typedef union
 {
-    uint8_t foc   : 1;  //!< Force Output Compare
-    uint8_t wgm0  : 1;  //!< Waveform generation mode (low bit)
-    uint8_t com   : 2;  //!< Compare Match Output
-    uint8_t wgm1  : 1;  //!< Waveform generation mode (high bit)
+  uint8_t flat;
+  struct {
     uint8_t cs    : 3;  //!< Clock Source Select
+    uint8_t wgm1  : 1;  //!< Waveform generation mode (high bit)
+    uint8_t com   : 2;  //!< Compare Match Output
+    uint8_t wgm0  : 1;  //!< Waveform generation mode (low bit)
+    uint8_t foc   : 1;  //!< Force Output Compare
+  } bits;
 } ATm128TimerControl_t;
 
 typedef ATm128TimerControl_t ATm128_TCCR0_t;  //!< Timer0 Control Register
@@ -71,52 +74,64 @@ typedef uint8_t ATm128_OCR2_t;         //!< Timer2 Output Compare Register
 // Timer2 shares compare lines with Timer1C
 
 /** Asynchronous Status Register -- Timer0 */
-typedef struct
+typedef union
 {
-    uint8_t rsvd   : 4;  //!< Reserved
-    uint8_t as0    : 1;  //!< Asynchronous Timer/Counter (off=CPU,on=32KHz osc)
-    uint8_t tcn0ub : 1;  //!< Timer0 Update Busy
-    uint8_t ocr0ub : 1;  //!< Timer0 Output Compare Register Update Busy
+  uint8_t flat;
+  struct {
     uint8_t tcr0ub : 1;  //!< Timer0 Control Resgister Update Busy
+    uint8_t ocr0ub : 1;  //!< Timer0 Output Compare Register Update Busy
+    uint8_t tcn0ub : 1;  //!< Timer0 Update Busy
+    uint8_t as0    : 1;  //!< Asynchronous Timer/Counter (off=CPU,on=32KHz osc)
+    uint8_t rsvd   : 4;  //!< Reserved
+  } bits;
 } ATm128_ASSR_t;
 
 /** Timer/Counter Interrupt Mask Register */
-typedef struct
+typedef union
 {
-    uint8_t ocie2 : 1; //!< Timer2 Output Compare Interrupt Enable
-    uint8_t toie2 : 1; //!< Timer2 Overflow Interrupt Enable
-    uint8_t ticie1: 1; //!< Timer1 Input Capture Enable
-    uint8_t ocie1A: 1; //!< Timer1 Output Compare A Interrupt Enable
-    uint8_t ocie1B: 1; //!< Timer1 Output Compare B Interrupt Enable
-    uint8_t toie1 : 1; //!< Timer1 Overflow Interrupt Enable
-    uint8_t ocie0 : 1; //!< Timer0 Output Compare Interrupt Enable
+  uint8_t flat;
+  struct {
     uint8_t toie0 : 1; //!< Timer0 Overflow Interrupt Enable
+    uint8_t ocie0 : 1; //!< Timer0 Output Compare Interrupt Enable
+    uint8_t toie1 : 1; //!< Timer1 Overflow Interrupt Enable
+    uint8_t ocie1b: 1; //!< Timer1 Output Compare B Interrupt Enable
+    uint8_t ocie1a: 1; //!< Timer1 Output Compare A Interrupt Enable
+    uint8_t ticie1: 1; //!< Timer1 Input Capture Enable
+    uint8_t toie2 : 1; //!< Timer2 Overflow Interrupt Enable
+    uint8_t ocie2 : 1; //!< Timer2 Output Compare Interrupt Enable
+  } bits;
 } ATm128_TIMSK_t;
 // + Note: Contains some 16-bit Timer flags
 
 /** Timer/Counter Interrupt Flag Register */
-typedef struct
+typedef union
 {
-    uint8_t ocf2  : 1; //!< Timer2 Output Compare Flag
-    uint8_t tov2  : 1; //!< Timer2 Overflow Flag
-    uint8_t icf1  : 1; //!< Timer1 Input Capture Flag 
-    uint8_t ocf1A : 1; //!< Timer1 Output Compare A Flag
-    uint8_t ocf1B : 1; //!< Timer1 Output Compare B Flag
-    uint8_t tov1  : 1; //!< Timer1 Overflow Flag
-    uint8_t ocf0  : 1; //!< Timer0 Output Compare Flag
+  uint8_t flat;
+  struct {
     uint8_t tov0  : 1; //!< Timer0 Overflow Flag
+    uint8_t ocf0  : 1; //!< Timer0 Output Compare Flag
+    uint8_t tov1  : 1; //!< Timer1 Overflow Flag
+    uint8_t ocf1b : 1; //!< Timer1 Output Compare B Flag
+    uint8_t ocf1a : 1; //!< Timer1 Output Compare A Flag
+    uint8_t icf1  : 1; //!< Timer1 Input Capture Flag 
+    uint8_t tov2  : 1; //!< Timer2 Overflow Flag
+    uint8_t ocf2  : 1; //!< Timer2 Output Compare Flag
+  } bits;
 } ATm128_TIFR_t;
 // + Note: Contains some 16-bit Timer flags
 
 /** Timer/Counter Interrupt Flag Register */
-typedef struct
+typedef union
 {
-    uint8_t tsm    : 1; //!< Timer/Counter Synchronization Mode
-    uint8_t rsvd   : 3; //!< Reserved
-    uint8_t acme   : 1; //!< 
-    uint8_t pud    : 1; //!< 
-    uint8_t psr0   : 1; //!< Prescaler Reset Timer0
+  uint8_t flat;
+  struct {
     uint8_t psr321 : 1; //!< Prescaler Reset Timer1,2,3
+    uint8_t psr0   : 1; //!< Prescaler Reset Timer0
+    uint8_t pud    : 1; //!< 
+    uint8_t acme   : 1; //!< 
+    uint8_t rsvd   : 3; //!< Reserved
+    uint8_t tsm    : 1; //!< Timer/Counter Synchronization Mode
+  } bits;
 } ATm128_SFIOR_t;
 
 
@@ -132,12 +147,15 @@ enum {
 };
 
 /** Timer/Counter Control Register A Type */
-typedef struct
+typedef union
 {
-    uint8_t comA  : 2;   //!< Compare Match Output A
-    uint8_t comB  : 2;   //!< Compare Match Output B
-    uint8_t comC  : 2;   //!< Compare Match Output C
+  uint8_t flat;
+  struct {
     uint8_t wgm10 : 2;   //!< Waveform generation mode
+    uint8_t comC  : 2;   //!< Compare Match Output C
+    uint8_t comB  : 2;   //!< Compare Match Output B
+    uint8_t comA  : 2;   //!< Compare Match Output A
+  } bits;
 } ATm128TimerCtrlCompare_t;
 
 /** Timer1 Compare Control Register A */
@@ -177,13 +195,16 @@ enum {
 };
 
 /** Timer/Counter Control Register B Type */
-typedef struct
+typedef union
 {
-    uint8_t icnc1 : 1;   //!< Input Capture Noise Canceler
-    uint8_t ices1 : 1;   //!< Input Capture Edge Select (1=rising, 0=falling)
-    uint8_t rsvd  : 1;   //!< Reserved
-    uint8_t wgm32 : 2;   //!< Waveform generation mode
+  uint8_t flat;
+  struct {
     uint8_t cs    : 3;   //!< Clock Source Select
+    uint8_t wgm32 : 2;   //!< Waveform generation mode
+    uint8_t rsvd  : 1;   //!< Reserved
+    uint8_t ices1 : 1;   //!< Input Capture Edge Select (1=rising, 0=falling)
+    uint8_t icnc1 : 1;   //!< Input Capture Noise Canceler
+  } bits;
 } ATm128TimerCtrlCapture_t;
 
 /** Timer1 Control Register B */
@@ -193,12 +214,15 @@ typedef ATm128TimerCtrlCapture_t ATm128_TCCR1B_t;
 typedef ATm128TimerCtrlCapture_t ATm128_TCCR3B_t;
 
 /** Timer/Counter Control Register C Type */
-typedef struct
+typedef union
 {
-    uint8_t focA  : 1;   //!< Force Output Compare Channel A
-    uint8_t focB  : 1;   //!< Force Output Compare Channel B
-    uint8_t focC  : 1;   //!< Force Output Compare Channel C
+  uint8_t flat;
+  struct {
     uint8_t rsvd  : 5;   //!< Reserved
+    uint8_t focC  : 1;   //!< Force Output Compare Channel C
+    uint8_t focB  : 1;   //!< Force Output Compare Channel B
+    uint8_t focA  : 1;   //!< Force Output Compare Channel A
+  } bits;
 } ATm128TimerCtrlClock_t;
 
 /** Timer1 Control Register B */
@@ -237,27 +261,33 @@ typedef uint8_t ATm128_ICR3H_t;  //!< Input Capture Register 3
 typedef uint8_t ATm128_ICR3L_t;  //!< Input Capture Register 3
 
 /** Extended Timer/Counter Interrupt Mask Register */
-typedef struct
+typedef union
 {
-    uint8_t rsvd  : 2; //!< Timer2 Output Compare Interrupt Enable
-    uint8_t ticie3: 1; //!< Timer3 Input Capture Interrupt Enable
-    uint8_t ocie3A: 1; //!< Timer3 Output Compare A Interrupt Enable
-    uint8_t ocie3B: 1; //!< Timer3 Output Compare B Interrupt Enable
+  uint8_t flat;
+  struct {
+    uint8_t ocie1c: 1; //!< Timer1 Output Compare C Interrupt Enable
+    uint8_t ocie3c: 1; //!< Timer3 Output Compare C Interrupt Enable
     uint8_t toie3 : 1; //!< Timer3 Overflow Interrupt Enable
-    uint8_t ocie3C: 1; //!< Timer3 Output Compare C Interrupt Enable
-    uint8_t ocie1C: 1; //!< Timer1 Output Compare C Interrupt Enable
+    uint8_t ocie3b: 1; //!< Timer3 Output Compare B Interrupt Enable
+    uint8_t ocie3a: 1; //!< Timer3 Output Compare A Interrupt Enable
+    uint8_t ticie3: 1; //!< Timer3 Input Capture Interrupt Enable
+    uint8_t rsvd  : 2; //!< Timer2 Output Compare Interrupt Enable
+  } bits;
 } ATm128_ETIMSK_t;
 
 /** Extended Timer/Counter Interrupt Flag Register */
-typedef struct
+typedef union
 {
-    uint8_t rsvd  : 2; //!< Reserved
-    uint8_t icf3  : 1; //!< Timer3 Input Capture Flag 
-    uint8_t ocf3A : 1; //!< Timer3 Output Compare A Flag
-    uint8_t ocf3B : 1; //!< Timer3 Output Compare B Flag
+  uint8_t flat;
+  struct {
+    uint8_t ocf1c : 1; //!< Timer1 Output Compare C Flag
+    uint8_t ocf3c : 1; //!< Timer3 Output Compare C Flag
     uint8_t tov3  : 1; //!< Timer/Counter Overflow Flag
-    uint8_t ocf3C : 1; //!< Timer3 Output Compare C Flag
-    uint8_t ocf1C : 1; //!< Timer1 Output Compare C Flag
+    uint8_t ocf3b : 1; //!< Timer3 Output Compare B Flag
+    uint8_t ocf3a : 1; //!< Timer3 Output Compare A Flag
+    uint8_t icf3  : 1; //!< Timer3 Input Capture Flag 
+    uint8_t rsvd  : 2; //!< Reserved
+  } bits;
 } ATm128_ETIFR_t;
 
 #endif //_H_ATm128Timer_h
