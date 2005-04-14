@@ -1,4 +1,4 @@
-/// $Id: PlatformM.nc,v 1.1.2.2 2005-04-14 08:20:45 mturon Exp $
+/// $Id: TimerMilliAlarmC.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,22 +24,33 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-includes hardware;
-
-module PlatformM
+// Glue hardware timers into TimerMilliC.
+configuration TimerMilliAlarmC
 {
   provides interface Init;
-
-//  uses interface Init as HPLTimer;
+  provides interface Alarm<TMilli> as TimerMilliAlarm;
+  provides interface AlarmBase<TMilli,uint32_t> as TimerMilliBase;
 }
 implementation
 {
+  components HPLTimerM,
+      new HALAlarmM(T32khz,uint8_t) as HALAlarm,
+      new TransformAlarmM(TMilli,uint32_t,T32khz,uint8_t,5) as Transform,
+      new CastAlarmM(TMilli) as Cast,
+      TimerMilliCounterC as Counter
+      ;
 
-  command error_t Init.init()
-  {
-    TOSH_SET_PIN_DIRECTIONS();
-    //timer_init();
-    return SUCCESS;
-  }
+  TimerMilliAlarm = Cast;
+  TimerMilliBase = Transform;
+
+  // Alarm Transform Wiring
+  Cast.AlarmFrom -> Transform;
+  Transform.AlarmFrom -> HALAlarm;
+  Transform.Counter -> Counter;
+
+  // Strap in low-level hardware timer (Timer0)
+  Init = HALAlarm;
+  HALAlarm.HPLTimer -> HPLTimerM.Timer0;
+  HALAlarm.HPLCompare -> HPLTimerM.Compare0;
 }
 

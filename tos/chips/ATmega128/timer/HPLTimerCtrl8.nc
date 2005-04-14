@@ -1,4 +1,4 @@
-/// $Id: HALCounter.nc,v 1.1.2.2 2005-03-15 01:32:20 mturon Exp $
+/// $Id: HPLTimerCtrl8.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,10 +24,19 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-interface HALCounter
+#include <ATm128Timer.h>
+
+interface HPLTimerCtrl8
 {
-    async command uint32_t get();
-    async command bool isOverflowPending();
-    async command bool clearOverflow();
-    async event void overflow();
+  /// Timer control register: Direct access
+  async command ATm128TimerControl_t getControl();
+  async command void setControl( ATm128TimerControl_t control );
+
+  /// Interrupt mask register: Direct access
+  async command ATm128_TIMSK_t getInterruptMask();
+  async command void setInterruptMask( ATm128_TIMSK_t mask);
+
+  /// Interrupt flag register: Direct access
+  async command ATm128_TIFR_t getInterruptFlag();
+  async command void setInterruptFlag( ATm128_TIFR_t flags );
 }

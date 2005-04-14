@@ -1,4 +1,4 @@
-/// $Id: ATm128ADC.h,v 1.1.2.4 2005-03-24 08:47:40 husq Exp $
+/// $Id: ATm128ADC.h,v 1.1.2.5 2005-04-14 08:20:44 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -84,9 +84,9 @@ enum {
 /** ADC Multiplexer Selection Register */
 typedef struct
 {
-    uint8_t refs  : 2;  //!< Reference Selection Bits
-    uint8_t adlar : 1;  //!< ADC Left Adjust Result
     uint8_t mux   : 5;  //!< Analog Channel and Gain Selection Bits
+    uint8_t adlar : 1;  //!< ADC Left Adjust Result
+    uint8_t refs  : 2;  //!< Reference Selection Bits
 } ATm128ADCSelection_t;
 
 typedef ATm128ADCSelection_t ATm128_ADMUX_t;  //!< ADC Multiplexer Selection

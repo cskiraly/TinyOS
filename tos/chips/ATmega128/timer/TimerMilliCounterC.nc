@@ -1,4 +1,4 @@
-/// $Id: HALTimer.nc,v 1.1.2.3 2005-03-15 01:32:20 mturon Exp $
+//$Id: TimerMilliCounterC.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,21 +24,27 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-includes HPLTimer;
-
-interface HPLTimer<size_type>
+// TimerMilliCounterC is the counter to be used for all TimerMilli[].
+configuration TimerMilliCounterC
 {
-  /// Timer value register: Direct access
-  async command size_type get();
-  async command void      set(size_type t);
-
-  /// Interrupt signals
-  async event void overflow();        //<! Signalled on overflow interrupt
-
-  /// Interrupt flag utilites: Bit level set/clr
-  async command void resetOverflow(); //<! Clear the overflow interrupt flag
-  async command void startOverflow(); //<! Enable the overflow interrupt
-  async command void stopOverflow();  //<! Turn off overflow interrupts
-  async command bool testOverflow();  //<! Did overflow interrupt occur?
-  async command bool checkOverflow(); //<! Is overflow interrupt on?
+  provides interface Counter<TMilli> as CounterMilli;
+  provides interface CounterBase<TMilli,uint32_t> as CounterBaseMilli;
 }
+implementation
+{
+    components HPLTimerM,
+	new HALCounterM(T32khz, uint8_t) as HALCounter32khz, 
+	new TransformCounterM(TMilli, uint32_t, T32khz, uint8_t,
+			      5, uint32_t) as Transform,
+	new CastCounterM(TMilli) as Cast
+	;
+  
+  CounterMilli = Cast.Counter;
+  CounterBaseMilli = Transform.Counter;
+
+  Cast.CounterFrom -> Transform.Counter;
+  Transform.CounterFrom -> HALCounter32khz;
+
+  HALCounter32khz.Timer -> HPLTimerM.Timer0;   // wire async timer to Timer 0
+}
+

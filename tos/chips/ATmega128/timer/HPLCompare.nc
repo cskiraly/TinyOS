@@ -1,4 +1,4 @@
-/// $Id: ATm128Timer16Capture.nc,v 1.1.2.2 2005-02-09 02:11:06 mturon Exp $
+/// $Id: HPLCompare.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,22 +24,20 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-includes ATm128Timer;
-
-interface ATm128Timer16Capture
+interface HPLCompare<size_type>
 {
   /// Compare value register: Direct access
-  async command uint16_t get();
-  async command void     set(uint16_t t);
+  async command size_type get();
+  async command void      set(size_type t);
 
   /// Interrupt signals
-  async event void captured();           //<! Signalled on compare interrupt
+  async event void fired();           //<! Signalled on compare interrupt
 
   /// Interrupt flag utilites: Bit level set/clr
   async command void reset();         //<! Clear the compare interrupt flag
   async command void start();         //<! Enable the compare interrupt
   async command void stop();          //<! Turn off comparee interrupts
   async command bool test();          //<! Did compare interrupt occur?
-  async command bool check();         //<! Is compareA interrupt on?
+  async command bool isOn();          //<! Is compare interrupt on?
 }
 

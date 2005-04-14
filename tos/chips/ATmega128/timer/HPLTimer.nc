@@ -1,4 +1,4 @@
-/// $Id: PlatformM.nc,v 1.1.2.2 2005-04-14 08:20:45 mturon Exp $
+/// $Id: HPLTimer.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,22 +24,19 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-includes hardware;
-
-module PlatformM
+interface HPLTimer<size_type>
 {
-  provides interface Init;
+  /// Timer value register: Direct access
+  async command size_type get();
+  async command void      set( size_type t );
 
-//  uses interface Init as HPLTimer;
+  /// Interrupt signals
+  async event void overflow();        //<! Signalled on overflow interrupt
+
+  /// Interrupt flag utilites: Bit level set/clr
+  async command void reset(); //<! Clear the overflow interrupt flag
+  async command void start(); //<! Enable the overflow interrupt
+  async command void stop();  //<! Turn off overflow interrupts
+  async command bool test();  //<! Did overflow interrupt occur?
+  async command bool isOn();  //<! Is overflow interrupt on?
 }
-implementation
-{
-
-  command error_t Init.init()
-  {
-    TOSH_SET_PIN_DIRECTIONS();
-    //timer_init();
-    return SUCCESS;
-  }
-}
-
