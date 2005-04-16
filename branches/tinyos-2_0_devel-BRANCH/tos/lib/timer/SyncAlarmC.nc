@@ -1,4 +1,4 @@
-//$Id: SyncAlarmC.nc,v 1.1.2.2 2005-04-01 08:30:56 cssharp Exp $
+//$Id: SyncAlarmC.nc,v 1.1.2.3 2005-04-16 06:19:13 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -37,11 +37,9 @@ generic configuration SyncAlarmC( typedef frequency_tag, typedef size_type @inte
 implementation
 {
   components new SyncAlarmM(frequency_tag,size_type) as SyncAlarm
-           , new TaskBasicC() as Task;
 	   ;
 
   AlarmBase = SyncAlarm;
   AlarmBaseFrom = SyncAlarm;
-  SyncAlarm.TaskBasic -> Task;
 }
 
