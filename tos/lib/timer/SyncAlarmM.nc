@@ -1,4 +1,4 @@
-//$Id: SyncAlarmM.nc,v 1.1.2.2 2005-04-01 08:30:56 cssharp Exp $
+//$Id: SyncAlarmM.nc,v 1.1.2.3 2005-04-16 06:19:13 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -31,7 +31,6 @@ generic module SyncAlarmM( typedef frequency_tag, typedef size_type @integer() )
 {
   provides interface AlarmBase<frequency_tag,size_type> as AlarmBase;
   uses interface AlarmBase<frequency_tag,size_type> as AlarmBaseFrom;
-  uses interface TaskBasic;
 }
 implementation
 {
@@ -60,14 +59,14 @@ implementation
     call AlarmBaseFrom.set( t0, dt );
   }
 
-  event void TaskBasic.run()
+  task void fireAlarm()
   {
     signal AlarmBase.fired();
   }
 
   async event void AlarmBaseFrom.fired()
   {
-    call TaskBasic.post_();
+    post fireAlarm();
   }
 }
 

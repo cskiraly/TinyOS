@@ -1,4 +1,4 @@
-// $Id: SchedulerBasic.nc,v 1.1.2.5 2005-02-10 01:28:25 scipio Exp $
+// $Id: SchedulerBasic.nc,v 1.1.2.6 2005-04-16 06:19:13 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: SchedulerBasic.nc,v 1.1.2.5 2005-02-10 01:28:25 scipio Exp $
+ * Date last modified:  $Id: SchedulerBasic.nc,v 1.1.2.6 2005-04-16 06:19:13 cssharp Exp $
  *
  */
 
@@ -44,6 +44,7 @@
  * @date   January 19 2005
  */
 
+includes hardware;
 
 module SchedulerBasic
 {
@@ -54,7 +55,7 @@ implementation
 {
   enum
   {
-    NUM_TASKS = uniqueCount("TinyScheduler$TaskBasic"),
+    NUM_TASKS = uniqueCount("TinyScheduler_TaskBasic"),
     END_TASK = 255,
   };
 

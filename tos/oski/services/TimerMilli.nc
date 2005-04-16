@@ -1,4 +1,4 @@
-// $Id: TimerMilli.nc,v 1.1.2.2 2005-02-10 01:26:37 scipio Exp $
+// $Id: TimerMilli.nc,v 1.1.2.3 2005-04-16 06:19:13 cssharp Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -38,15 +38,13 @@
 
 includes Timer;
 
-generic configuration TimerMilli() {
-  
+generic configuration TimerMilli()
+{
   provides interface Timer<TMilli>;
-
+}
+implementation
+{
+  components TimerMilliImpl;
+  Timer = TimerMilliImpl.TimerMilli[unique("TimerMilli")];
 }
 
-implementation {
-  components TimerImpl;
-
-  Timer = TimerImpl.TimerMilli[unique("OSKI.TimerImpl.TimerMilli")];
-  
-}
