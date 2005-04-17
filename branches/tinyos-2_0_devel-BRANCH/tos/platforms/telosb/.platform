@@ -23,7 +23,7 @@ push( @includes, qw(
   -mmcu=msp430x1611
   -fnesc-target=msp430
   -fnesc-no-debug
-  -fnesc-scheduler=TinyScheduler,TinyScheduler_TaskBasic,TaskBasic,TaskBasic,run,post_
+  -fnesc-scheduler=TinyScheduler,TinyScheduler.TaskBasic,TaskBasic,TaskBasic,runTask,postTask
 
 );
 

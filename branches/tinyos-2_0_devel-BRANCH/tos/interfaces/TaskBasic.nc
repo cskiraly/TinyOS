@@ -1,4 +1,4 @@
-// $Id: TaskBasic.nc,v 1.1.2.4 2005-02-10 01:25:20 scipio Exp $
+// $Id: TaskBasic.nc,v 1.1.2.5 2005-04-17 08:35:43 cssharp Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -48,7 +48,7 @@ interface TaskBasic {
    * implementation of this interface (the class of task).
    */
   
-  async command error_t post_();
+  async command error_t postTask();
 
   /**
    * Event from the scheduler to run this task. Following the TinyOS
@@ -56,6 +56,6 @@ interface TaskBasic {
    * execute atomically with respect to one another, but can be
    * preempted by async commands/events.
    */
-  event void run();
+  event void runTask();
 }
 
