@@ -1,4 +1,4 @@
-// $Id: Scheduler.nc,v 1.1.2.3 2005-04-17 08:35:43 cssharp Exp $
+// $Id: Scheduler.nc,v 1.1.2.4 2005-04-17 08:58:38 cssharp Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -40,16 +40,13 @@ interface Scheduler {
   /** Initialize the scheduler.*/
   command void init();
 
-  /** Run the next task or sleep if there are no tasks to run.  Sleep
-    * possibly puts the MCU into a low power state.  The return value
-    * indicates whether a task was run -- TRUE indicates a task ran, FALSE
-    * indicates there was no task to run and sleep was called instead.
+  /** Run the next task if one is waiting.  If sleep is TRUE, sleep if there
+    * are no tasks to run, which possibly puts the MCU into a low power state.
+    * If sleep is FALSE, return immediately if there are no tasks to run.  The
+    * return value indicates whether a task was run -- TRUE indicates a task
+    * ran, FALSE indicates there was no task to run and that sleep was called if
+    * requested.
     */
-  command bool runNextTaskOrSleep();
-
-  /** Run the next task or return immediately if there are no tasks to
-    * run.  The return value indicates whether a task was run.
-    */
-  command bool runNextTask();
+  command bool runNextTask( bool sleep );
 }
 
