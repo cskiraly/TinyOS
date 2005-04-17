@@ -1,4 +1,4 @@
-// $Id: SchedulerBasic.nc,v 1.1.2.8 2005-04-17 08:58:38 cssharp Exp $
+// $Id: SchedulerBasic.nc,v 1.1.2.9 2005-04-17 10:00:14 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: SchedulerBasic.nc,v 1.1.2.8 2005-04-17 08:58:38 cssharp Exp $
+ * Date last modified:  $Id: SchedulerBasic.nc,v 1.1.2.9 2005-04-17 10:00:14 cssharp Exp $
  *
  */
 
@@ -56,7 +56,7 @@ implementation
   enum
   {
     NUM_TASKS = uniqueCount("TinyScheduler.TaskBasic"),
-    END_TASK = 255,
+    NO_TASK = 255,
   };
 
   uint8_t m_head;
@@ -72,33 +72,33 @@ implementation
   // mark the task as not in the queue
   uint8_t popTask()
   {
-    if( m_head != END_TASK )
+    if( m_head != NO_TASK )
     {
       uint8_t id = m_head;
       m_head = m_next[m_head];
-      if( m_head == END_TASK )
+      if( m_head == NO_TASK )
       {
-	m_tail = END_TASK;
+	m_tail = NO_TASK;
       }
-      m_next[id] = END_TASK;
+      m_next[id] = NO_TASK;
       return id;
     }
     else
     {
-      return END_TASK;
+      return NO_TASK;
     }
   }
   
   bool isWaiting( uint8_t id )
   {
-    return (m_next[id] != END_TASK) || (m_tail == id);
+    return (m_next[id] != NO_TASK) || (m_tail == id);
   }
 
   bool pushTask( uint8_t id )
   {
     if( !isWaiting(id) )
     {
-      if( m_head == END_TASK )
+      if( m_head == NO_TASK )
       {
 	m_head = id;
 	m_tail = id;
@@ -120,9 +120,9 @@ implementation
   {
     atomic
     {
-      memset( m_next, END_TASK, sizeof(m_next) );
-      m_head = END_TASK;
-      m_tail = END_TASK;
+      memset( m_next, NO_TASK, sizeof(m_next) );
+      m_head = NO_TASK;
+      m_tail = NO_TASK;
     }
   }
   
@@ -132,7 +132,7 @@ implementation
     atomic
     {
       nextTask = popTask();
-      if( nextTask == END_TASK )
+      if( nextTask == NO_TASK )
       {
 	if( sleep )
 	  __nesc_atomic_sleep();
