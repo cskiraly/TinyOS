@@ -1,4 +1,4 @@
-// $Id: RealMain.nc,v 1.1.2.8 2005-04-17 08:35:43 cssharp Exp $
+// $Id: RealMain.nc,v 1.1.2.9 2005-04-17 08:58:38 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: RealMain.nc,v 1.1.2.8 2005-04-17 08:35:43 cssharp Exp $
+ * Date last modified:  $Id: RealMain.nc,v 1.1.2.9 2005-04-17 08:58:38 cssharp Exp $
  *
  */
 
@@ -69,14 +69,14 @@ implementation
      * more tasks; if no tasks remain, continue on to software
      * initialization */
     call PlatformInit.init();    
-    while (call Scheduler.runNextTask());
+    while (call Scheduler.runNextTask(FALSE));
 
     /* Initialize software components.Then spin on the Scheduler,
      * passing FALSE so it will not put the system to sleep if there
      * are no more tasks; if no tasks remain, the system has booted
      * successfully.*/
     call SoftwareInit.init(); 
-    while (call Scheduler.runNextTask());
+    while (call Scheduler.runNextTask(FALSE));
 
     signal Boot.booted();
 
@@ -84,7 +84,7 @@ implementation
        there are no more tasks to run, put the CPU to sleep until the
        next interrupt arrives. */       
     while (1) {
-      call Scheduler.runNextTaskOrSleep();
+      call Scheduler.runNextTask(TRUE);
     } 
   }
 
