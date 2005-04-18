@@ -1,4 +1,4 @@
-// $Id: SerialM.nc,v 1.1.2.1 2005-04-18 17:56:32 gtolle Exp $
+// $Id: SerialM.nc,v 1.1.2.2 2005-04-18 20:43:12 gtolle Exp $
 
 /* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */ 
 /*									
@@ -37,7 +37,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.1 $
+ * Revision: $Revision: 1.1.2.2 $
  * 
  */
 
@@ -332,27 +332,41 @@ implementation {
   event void PacketRcvd.runTask() {
     MsgRcvEntry_t *pRcv = &gMsgRcvTbl[gRxTailIndex];
     message_t* pBuf = pRcv->pMsg;
-    error_t Result = SUCCESS;
+    bool sendResponse = FALSE;
 
     call Leds.led1Toggle();
 
-    if (pRcv->Proto == PROTO_PACKET_ACK) {
+    if (pRcv->Length >= offsetof(message_t,data)) {
+      
+      switch(pRcv->Proto) {
+      case PROTO_ACK:
+	break;
 
-      atomic {
-	if (!(gFlags & FLAGS_TOKENPEND)) {
-	  gFlags |= FLAGS_TOKENPEND;
-	  gTxTokenBuf = pRcv->Token;
+      case PROTO_PACKET_ACK:
+	atomic {
+	  if (!(gFlags & FLAGS_TOKENPEND)) {
+	    gFlags |= FLAGS_TOKENPEND;
+	    gTxTokenBuf = pRcv->Token;
+	    sendResponse = TRUE;
+	  }
 	}
-	else {
-	  Result = FAIL;
+	pBuf = signal Receive.receive(pBuf, pBuf, pRcv->Length);
+	break;
+
+      case PROTO_PACKET_NOACK:
+	pBuf = signal Receive.receive(pBuf, pBuf, pRcv->Length);	
+	break;
+
+      default:
+	atomic {
+	  gFlags |= FLAGS_UNKNOWN;
+	  gTxUnknownBuf = pRcv->Proto;
+	  sendResponse = TRUE;
 	}
+	break;
       }
     }
 
-    if (pRcv->Length >= offsetof(message_t,data)) {
-      pBuf = signal Receive.receive(pBuf, pBuf, pRcv->Length);
-    }
-    
     atomic {
       if (pBuf) {
 	pRcv->pMsg = pBuf;
@@ -361,9 +375,9 @@ implementation {
       pRcv->Token = 0; 
     }
     if (++gRxTailIndex >= HDLC_QUEUESIZE) gRxTailIndex = 0;
-
-    if (Result == SUCCESS) {
-      Result = StartTx();
+    
+    if (sendResponse) {
+      StartTx();
     }
   }
 
