@@ -1,4 +1,4 @@
-/// $Id: HPLTimerM.nc,v 1.1.2.2 2005-04-18 01:35:59 mturon Exp $
+/// $Id: HPLTimerM.nc,v 1.1.2.3 2005-04-18 08:18:31 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -59,14 +59,14 @@ implementation
   //=== Read the current timer value. ===================================
   async command uint8_t  Timer0.get() { return inb(TCNT0); }
   async command uint8_t  Timer2.get() { return inb(TCNT2); }
-  async command uint16_t Timer1.get() { return __inw_atomic(TCNT1); }
-  async command uint16_t Timer3.get() { return __inw_atomic(TCNT3); }
+  async command uint16_t Timer1.get() { return inw(TCNT1); }
+  async command uint16_t Timer3.get() { return inw(TCNT3); }
 
   //=== Set/clear the current timer value. ==============================
-  async command void Timer0.set(uint8_t t)  { atomic outb(TCNT0,t); }
-  async command void Timer2.set(uint8_t t)  { atomic outb(TCNT2,t); }
-  async command void Timer1.set(uint16_t t) { atomic outw(TCNT1,t); }
-  async command void Timer3.set(uint16_t t) { atomic outw(TCNT3,t); }
+  async command void Timer0.set(uint8_t t)  { outb(TCNT0,t); }
+  async command void Timer2.set(uint8_t t)  { outb(TCNT2,t); }
+  async command void Timer1.set(uint16_t t) { outw(TCNT1,t); }
+  async command void Timer3.set(uint16_t t) { outw(TCNT3,t); }
 
   //=== Read the current timer scale. ===================================
   async command uint8_t Timer0.getScale() { return inb(TCCR0) | 0x7; }
@@ -75,10 +75,10 @@ implementation
   async command uint8_t Timer3.getScale() { return inw(TCCR3B) | 0x7; }
 
   //=== Turn off the timers. ============================================
-  async command void Timer0.off()  { call Timer2.setScale(AVR_CLOCK_OFF); }
-  async command void Timer2.off()  { call Timer2.setScale(AVR_CLOCK_OFF); }
-  async command void Timer1.off()  { call Timer2.setScale(AVR_CLOCK_OFF); }
-  async command void Timer3.off()  { call Timer2.setScale(AVR_CLOCK_OFF); }
+  async command void Timer0.off() { call Timer2.setScale(AVR_CLOCK_OFF); }
+  async command void Timer2.off() { call Timer2.setScale(AVR_CLOCK_OFF); }
+  async command void Timer1.off() { call Timer2.setScale(AVR_CLOCK_OFF); }
+  async command void Timer3.off() { call Timer2.setScale(AVR_CLOCK_OFF); }
 
   //=== Write a new timer scale. ========================================
   async command void Timer0.setScale(uint8_t s)  { 
@@ -368,30 +368,30 @@ implementation
   //=== Read the compare registers. =====================================
   async command uint8_t Compare0.get()   { return inb(OCR0); }
   async command uint8_t Compare2.get()   { return inb(OCR2); }
-  async command uint16_t Compare1A.get() { return __inw_atomic(OCR1A); }
-  async command uint16_t Compare1B.get() { return __inw_atomic(OCR1B); }
-  async command uint16_t Compare1C.get() { return __inw_atomic(OCR1C); }
-  async command uint16_t Compare3A.get() { return __inw_atomic(OCR3A); }
-  async command uint16_t Compare3B.get() { return __inw_atomic(OCR3B); }
-  async command uint16_t Compare3C.get() { return __inw_atomic(OCR3C); }
+  async command uint16_t Compare1A.get() { return inw(OCR1A); }
+  async command uint16_t Compare1B.get() { return inw(OCR1B); }
+  async command uint16_t Compare1C.get() { return inw(OCR1C); }
+  async command uint16_t Compare3A.get() { return inw(OCR3A); }
+  async command uint16_t Compare3B.get() { return inw(OCR3B); }
+  async command uint16_t Compare3C.get() { return inw(OCR3C); }
 
   //=== Write the compare registers. ====================================
-  async command void Compare0.set(uint8_t t)   { atomic outb(OCR0,t); }
-  async command void Compare2.set(uint8_t t)   { atomic outb(OCR2,t); }
-  async command void Compare1A.set(uint16_t t) { atomic outw(OCR1A,t); }
-  async command void Compare1B.set(uint16_t t) { atomic outw(OCR1B,t); }
-  async command void Compare1C.set(uint16_t t) { atomic outw(OCR1C,t); }
-  async command void Compare3A.set(uint16_t t) { atomic outw(OCR3A,t); }
-  async command void Compare3B.set(uint16_t t) { atomic outw(OCR3B,t); }
-  async command void Compare3C.set(uint16_t t) { atomic outw(OCR3C,t); }
+  async command void Compare0.set(uint8_t t)   { outb(OCR0,t); }
+  async command void Compare2.set(uint8_t t)   { outb(OCR2,t); }
+  async command void Compare1A.set(uint16_t t) { outw(OCR1A,t); }
+  async command void Compare1B.set(uint16_t t) { outw(OCR1B,t); }
+  async command void Compare1C.set(uint16_t t) { outw(OCR1C,t); }
+  async command void Compare3A.set(uint16_t t) { outw(OCR3A,t); }
+  async command void Compare3B.set(uint16_t t) { outw(OCR3B,t); }
+  async command void Compare3C.set(uint16_t t) { outw(OCR3C,t); }
 
   //=== Read the capture registers. =====================================
-  async command uint16_t Capture1.get() { return __inw_atomic(ICR1); }
-  async command uint16_t Capture3.get() { return __inw_atomic(ICR3); }
+  async command uint16_t Capture1.get() { return inw(ICR1); }
+  async command uint16_t Capture3.get() { return inw(ICR3); }
 
   //=== Write the capture registers. ====================================
-  async command void Capture1.set(uint16_t t)  { atomic outw(ICR1,t); }
-  async command void Capture3.set(uint16_t t)  { atomic outw(ICR3,t); }
+  async command void Capture1.set(uint16_t t)  { outw(ICR1,t); }
+  async command void Capture3.set(uint16_t t)  { outw(ICR3,t); }
 
   //=== Timer interrupts signals ========================================
   default async event void Compare0.fired() { }

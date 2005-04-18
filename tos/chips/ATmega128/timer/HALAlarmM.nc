@@ -1,4 +1,4 @@
-/// $Id: HALAlarmM.nc,v 1.1.2.2 2005-04-18 01:35:59 mturon Exp $
+/// $Id: HALAlarmM.nc,v 1.1.2.3 2005-04-18 08:18:31 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -43,9 +43,7 @@ implementation
 	  call HPLTimer.setScale(AVR_CLOCK_OFF);
 	  call HPLTimer.set(0);
 	  call HPLTimer.start();
-	  call HPLTimer.setScale(AVR_CLOCK_ON);
-
-	  cbi(MCUCR, SE);    // disable sleep instruction -- temp workaround!
+	  call HPLTimer.setScale(ATM128_CLK8_DIVIDE_32);
       }
       return SUCCESS;
   }
