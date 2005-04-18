@@ -1,4 +1,4 @@
-/// $Id: ATm128Timer.h,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
+/// $Id: ATm128Timer.h,v 1.1.2.2 2005-04-18 01:35:59 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -43,12 +43,27 @@ enum {
     ATM128_CLK8_DIVIDE_1024,
 };
 
+/** Common scales across both 8-bit and 16-bit clocks. */
+enum {
+    AVR_CLOCK_OFF = 0,
+    AVR_CLOCK_ON  = 1,
+    AVR_CLOCK_DIVIDE_8 = 2,
+};
+
 /** 8-bit Waveform Generation Modes */
 enum {
     ATM128_WAVE8_NORMAL = 0,
     ATM128_WAVE8_PWM,
     ATM128_WAVE8_CTC,
     ATM128_WAVE8_PWM_FAST,
+};
+
+/** 8-bit Timer compare settings */
+enum {
+    ATM128_COMPARE_OFF = 0,  //!< compare disconnected
+    ATM128_COMPARE_TOGGLE,   //!< toggle on match (PWM reserved
+    ATM128_COMPARE_CLEAR,    //!< clear on match  (PWM downcount)
+    ATM128_COMPARE_SET,      //!< set on match    (PWN upcount)
 };
 
 /** 8-bit Timer Control Register */

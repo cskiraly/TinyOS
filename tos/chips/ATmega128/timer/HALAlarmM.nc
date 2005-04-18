@@ -1,4 +1,4 @@
-/// $Id: HALAlarmM.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
+/// $Id: HALAlarmM.nc,v 1.1.2.2 2005-04-18 01:35:59 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -29,80 +29,68 @@ generic module HALAlarmM(typedef frequency_tag,
 {
     provides interface Init;
     provides interface AlarmBase<frequency_tag,timer_size> as Alarm;
+
     uses interface HPLTimer<timer_size>;
     uses interface HPLCompare<timer_size>;
 }
 implementation
 {
-  command error_t Init.init()
-  {
-      // Initialize timer based on frequency tag:
-      //    async vs. CPU clock source
-      //    set to compare mode
-/*      uint8_t scale = 3;
-      uint8_t interval = 230;
-
-      scale|=0x8;
+  command error_t Init.init() {
       atomic {
-	  cbi(TIMSK, OCIE0);
-	  outp(scale, TCCR0);
-	  outp(0,TCNT0);
-	  outp(interval, OCR0);
-	  sbi(TIMSK, OCIE0);
+	  call HPLCompare.stop();
+
+	  sbi (ASSR,  AS0);  // set Timer/Counter0 to use 32,768khz crystal
+	  call HPLTimer.setScale(AVR_CLOCK_OFF);
+	  call HPLTimer.set(0);
+	  call HPLTimer.start();
+	  call HPLTimer.setScale(AVR_CLOCK_ON);
+
+	  cbi(MCUCR, SE);    // disable sleep instruction -- temp workaround!
       }
-      
-      call HPLTimer.stop();
-*/
       return SUCCESS;
   }
   
-  async command timer_size Alarm.now()
-  {
+  async command timer_size Alarm.now() {
       return call HPLTimer.get();
   }
 
-  async command timer_size Alarm.get()
-  {
+  async command timer_size Alarm.get() {
       return call HPLCompare.get();
   }
 
-  async command bool Alarm.isSet()
-  {
-      return call HPLTimer.isOn();
+  async command bool Alarm.isSet() {
+      return call HPLCompare.isOn();
   }
 
-  async command void Alarm.cancel()
-  {
-      call HPLTimer.stop();
+  async command void Alarm.cancel() {
+      call HPLCompare.stop();
   }
 
-  async command void Alarm.set( timer_size t0, timer_size dt )
+  async command void Alarm.set( timer_size t0, timer_size dt ) 
   {
-    timer_size now = call HPLTimer.get();
-    timer_size elapsed = now - t0;
-    if( elapsed >= dt )
-    {
-      call HPLCompare.set( call HPLTimer.get() + 2 );
-    }
-    else
-    {
-      timer_size remaining = dt - elapsed;
-      if( remaining <= 2 )
-	  call HPLCompare.set( call HPLTimer.get() + 2 );
+      timer_size now = call HPLTimer.get();
+      timer_size elapsed = now - t0;
+      if( elapsed >= dt )
+      {
+	  atomic { call HPLCompare.set( call HPLTimer.get() + 2 ); }
+      }
       else
-	  call HPLCompare.set( now + remaining );
-    }
-    call HPLTimer.start();
+      {
+	  timer_size remaining = dt - elapsed;
+	  if( remaining <= 2 )
+	      atomic { call HPLCompare.set( call HPLTimer.get() + 2 ); }
+	  else
+	      call HPLCompare.set( now + remaining );
+      }
+      call HPLCompare.start();
   }
-
-  async event void HPLCompare.fired()
-  {
-//      call HPLTimer.stop();
+  
+  async event void HPLCompare.fired() {
+      call HPLCompare.stop();
       signal Alarm.fired();
   }
 
-  async event void HPLTimer.overflow()
-  {
+  async event void HPLTimer.overflow() {
   }
 }
 

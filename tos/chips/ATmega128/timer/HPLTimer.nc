@@ -1,4 +1,4 @@
-/// $Id: HPLTimer.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
+/// $Id: HPLTimer.nc,v 1.1.2.2 2005-04-18 01:35:59 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,11 +24,28 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-interface HPLTimer<size_type>
+/**
+ * Basic interface to the hardware timers on an ATmega128.  
+ * 
+ * This interface is designed to be independent of whether the underlying 
+ * hardware is an 8-bit or 16-bit wide counter.  As such, timer_size is 
+ * specified via a generics parameter.  Because this is exposing a common 
+ * subset of functionality that all ATmega128 hardware timers share, all 
+ * that is exposed is access to the overflow capability.  Compare and capture
+ * functionality are exposed on separate interfaces to allow easy 
+ * configurability via wiring.
+ *  
+ * This interface provides four major groups of functionality:
+ *      1) Timer Value: get/set current time
+ *      2) Overflow Interrupt event
+ *      3) Control of Overflow Interrupt: start/stop/clear...
+ *      4) Timer Initialization: turn on/off clock source
+ */
+interface HPLTimer<timer_size>
 {
   /// Timer value register: Direct access
-  async command size_type get();
-  async command void      set( size_type t );
+  async command timer_size get();
+  async command void       set( timer_size t );
 
   /// Interrupt signals
   async event void overflow();        //<! Signalled on overflow interrupt
@@ -39,4 +56,9 @@ interface HPLTimer<size_type>
   async command void stop();  //<! Turn off overflow interrupts
   async command bool test();  //<! Did overflow interrupt occur?
   async command bool isOn();  //<! Is overflow interrupt on?
+
+  /// Clock initialization interface
+  async command void    off();                     //<! Turn off the clock 
+  async command void    setScale( uint8_t scale);  //<! Turn on the clock
+  async command uint8_t getScale();                //<! Get prescaler setting
 }
