@@ -1,4 +1,4 @@
-/// $Id: HPLTimerM.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
+/// $Id: HPLTimerM.nc,v 1.1.2.2 2005-04-18 01:35:59 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -67,6 +67,40 @@ implementation
   async command void Timer2.set(uint8_t t)  { atomic outb(TCNT2,t); }
   async command void Timer1.set(uint16_t t) { atomic outw(TCNT1,t); }
   async command void Timer3.set(uint16_t t) { atomic outw(TCNT3,t); }
+
+  //=== Read the current timer scale. ===================================
+  async command uint8_t Timer0.getScale() { return inb(TCCR0) | 0x7; }
+  async command uint8_t Timer2.getScale() { return inb(TCCR2) | 0x7; }
+  async command uint8_t Timer1.getScale() { return inw(TCCR1B) | 0x7; }
+  async command uint8_t Timer3.getScale() { return inw(TCCR3B) | 0x7; }
+
+  //=== Turn off the timers. ============================================
+  async command void Timer0.off()  { call Timer2.setScale(AVR_CLOCK_OFF); }
+  async command void Timer2.off()  { call Timer2.setScale(AVR_CLOCK_OFF); }
+  async command void Timer1.off()  { call Timer2.setScale(AVR_CLOCK_OFF); }
+  async command void Timer3.off()  { call Timer2.setScale(AVR_CLOCK_OFF); }
+
+  //=== Write a new timer scale. ========================================
+  async command void Timer0.setScale(uint8_t s)  { 
+      ATm128TimerControl_t x = call Timer0Ctrl.getControl();
+      x.bits.cs = s;
+      call Timer0Ctrl.setControl(x);  
+  }
+  async command void Timer2.setScale(uint8_t s)  { 
+      ATm128TimerControl_t x = call Timer2Ctrl.getControl();
+      x.bits.cs = s;
+      call Timer2Ctrl.setControl(x);  
+  }
+  async command void Timer1.setScale(uint8_t s)  { 
+      ATm128TimerCtrlCapture_t x = call Timer1Ctrl.getCtrlCapture();
+      x.bits.cs = s;
+      call Timer1Ctrl.setCtrlCapture(x);  
+  }
+  async command void Timer3.setScale(uint8_t s)  { 
+      ATm128TimerCtrlCapture_t x = call Timer3Ctrl.getCtrlCapture();
+      x.bits.cs = s;
+      call Timer3Ctrl.setCtrlCapture(x);  
+  }
 
   //=== Read the control registers. =====================================
   async command ATm128TimerControl_t Timer0Ctrl.getControl() { 

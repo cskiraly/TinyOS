@@ -33,7 +33,7 @@
  *  @author Jason Hill, Philip Levis, Nelson Lee
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: atmega128hardware.h,v 1.1.2.5 2005-04-14 08:20:45 mturon Exp $
+ *  $Id: atmega128hardware.h,v 1.1.2.6 2005-04-18 01:35:58 mturon Exp $
  */
 
 #ifndef _H_atmega128hardware_H
@@ -50,6 +50,7 @@
 #define sei()  __asm__ __volatile__ ("sei" ::)
 #define cli()  __asm__ __volatile__ ("cli" ::)
 
+#define bzero(x,y)   memset((x), 0, (y))
 
 #ifndef __outw
 #define __outw(val, port) outw(port, val);
@@ -165,7 +166,7 @@ __nesc_atomic_end(__nesc_atomic_t original_SREG) __attribute__((spontaneous))
 inline void
 __nesc_atomic_sleep()
 {
-    sbi(MCUCR, SE);
+    //sbi(MCUCR, SE);  power manager will enable/disable sleep
     asm volatile ("sleep");
 }
 
