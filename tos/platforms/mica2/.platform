@@ -1,0 +1,33 @@
+#
+# FILE: micaz/.platform
+# 
+# Includes that should take precedence come first.  Platforms come before
+# chips because they may override files.  These must be specified as
+# @includes instead of -I's to @opts, otherwise the %T won't be processed
+# by ncc.  And because of that, the current platform's include directory
+# must be specified, otherwise its search order is last instead of first.
+#
+# $Id: .platform,v 1.1.2.1 2005-04-18 01:49:10 mturon Exp $
+#
+push( @includes, qw(
+
+  %T/platforms/mica2
+  %T/platforms/mica
+  %T/chips/ATmega128
+  %T/chips/ATmega128/timer
+  %T/lib/timer
+
+) );
+
+@opts = qw(
+
+  -gcc=avr-gcc
+  -mmcu=atmega128
+  -fnesc-target=avr
+  -fnesc-no-debug
+  -fnesc-scheduler=TinyScheduler,TinyScheduler.TaskBasic,TaskBasic,TaskBasic,runTask,postTask
+
+);
+
+push @opts, "-mingw-gcc" if $cygwin;
+
