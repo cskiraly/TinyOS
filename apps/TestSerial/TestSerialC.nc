@@ -1,4 +1,4 @@
-// $Id: TestSerialC.nc,v 1.1.2.1 2005-04-12 04:14:13 gtolle Exp $
+// $Id: TestSerialC.nc,v 1.1.2.2 2005-04-18 17:56:32 gtolle Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -31,16 +31,17 @@
 
 configuration TestSerialC {}
 implementation {
-  components Main, TestSerialM, LedsC, HPLUARTM, HPLUSART1C;
-  
-  Main.SoftwareInit -> LedsC;
+  components Main, TestSerialM, SerialC, LedsC;
 
-  TestSerialM -> Main.Boot;
+  Main.SoftwareInit -> LedsC;
+  Main.SoftwareInit -> SerialC;
+
+  TestSerialM.Boot -> Main.Boot;
+
+  TestSerialM.Receive -> SerialC.Receive;
+  TestSerialM.Send -> SerialC.Send;
 
   TestSerialM.Leds -> LedsC;
-
-  TestSerialM.UART -> HPLUARTM;
-  HPLUARTM.USARTControl -> HPLUSART1C;
-  HPLUARTM.USARTData -> HPLUSART1C;
 }
+
 

@@ -1,4 +1,4 @@
-// $Id: Receive.nc,v 1.1.2.4 2005-03-14 03:54:19 jpolastre Exp $
+// $Id: Receive.nc,v 1.1.2.5 2005-04-18 17:56:32 gtolle Exp $
 /*									tab:4
  * "Copyright (c) 2004 The Regents of the University  of California.  
  * All rights reserved.
@@ -37,7 +37,7 @@
 
 
 includes TinyError;
-includes TinyMsg;
+includes TOSMsg;
 
 interface Receive {
 

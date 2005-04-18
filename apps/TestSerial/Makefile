@@ -1,5 +1,5 @@
 COMPONENT=TestSerialC
-PFLAGS += -I$(TOSDIR)/chips/cc2420
+PFLAGS += -I$(TOSDIR)/lib/serial
 
 include $(MAKERULES)
 
