@@ -1,4 +1,4 @@
-//$Id: TimerMilliCounterC.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
+//$Id: TimerMilliCounterC.nc,v 1.1.2.2 2005-04-18 08:18:31 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -35,7 +35,7 @@ implementation
     components HPLTimerM,
 	new HALCounterM(T32khz, uint8_t) as HALCounter32khz, 
 	new TransformCounterM(TMilli, uint32_t, T32khz, uint8_t,
-			      5, uint32_t) as Transform,
+			      0, uint32_t) as Transform,
 	new CastCounterM(TMilli) as Cast
 	;
   

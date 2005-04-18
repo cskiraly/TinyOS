@@ -1,4 +1,4 @@
-/// $Id: PlatformM.nc,v 1.1.2.2 2005-04-14 08:20:45 mturon Exp $
+/// $Id: PlatformM.nc,v 1.1.2.3 2005-04-18 08:18:30 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -29,16 +29,21 @@ includes hardware;
 module PlatformM
 {
   provides interface Init;
-
-//  uses interface Init as HPLTimer;
 }
 implementation
 {
+  void power_init() {
+      atomic {
+	  outw(MCUCR, 0);    // Internal RAM, IDLE, rupt vector at 0x0002
+	  sbi(MCUCR, SE);    // enable sleep instruction!
+      }
+  }
 
   command error_t Init.init()
   {
     TOSH_SET_PIN_DIRECTIONS();
     //timer_init();
+    power_init();
     return SUCCESS;
   }
 }

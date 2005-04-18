@@ -33,7 +33,7 @@
  *  @author Jason Hill, Philip Levis, Nelson Lee
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: atmega128hardware.h,v 1.1.2.6 2005-04-18 01:35:58 mturon Exp $
+ *  $Id: atmega128hardware.h,v 1.1.2.7 2005-04-18 08:18:31 mturon Exp $
  */
 
 #ifndef _H_atmega128hardware_H
@@ -52,25 +52,6 @@
 
 #define bzero(x,y)   memset((x), 0, (y))
 
-#ifndef __outw
-#define __outw(val, port) outw(port, val);
-#endif // __outw
-
-#ifndef __inw
-#define __inw(_port) inw(_port)
-#endif // __inw
-
-#ifndef __inw_atomic
-#define __inw_atomic(__sfrport) ({	\
-	uint16_t __t;			\
-	bool bStatus;			\
-	bStatus = bit_is_set(SREG,7);	\
-	cli();				\
-	__t = inw(__sfrport);		\
-	if (bStatus) sei();		\
-	__t;				\
- })
-#endif // __inw_atomic
 
 #define TOSH_ASSIGN_PIN(name, port, bit) \
   static inline void TOSH_SET_##name##_PIN() {sbi(PORT##port , bit);} \
@@ -129,12 +110,6 @@ void TOSH_wait()
     asm volatile("nop");
 }
 
-void TOSH_sleep()
-{
-    sbi(MCUCR, SE);
-    asm volatile ("sleep");
-}
-
 /** Enables interrupts. */
 inline void __nesc_enable_interrupt() {
     sei();
@@ -151,7 +126,7 @@ typedef uint8_t __nesc_atomic_t;
 inline __nesc_atomic_t 
 __nesc_atomic_start(void) __attribute__((spontaneous))
 {
-    __nesc_atomic_t result = inp(SREG);
+    __nesc_atomic_t result = inb(SREG);
     __nesc_disable_interrupt();
     return result;
 }
@@ -167,6 +142,7 @@ inline void
 __nesc_atomic_sleep()
 {
     //sbi(MCUCR, SE);  power manager will enable/disable sleep
+    sei();  // Make sure interrupts are on, so we can wake up!
     asm volatile ("sleep");
 }
 
