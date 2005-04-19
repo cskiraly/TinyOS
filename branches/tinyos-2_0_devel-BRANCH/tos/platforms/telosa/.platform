@@ -9,6 +9,7 @@ push( @includes, qw(
   %T/platforms/telosa
   %T/platforms/telosa/chips/cc2420
   %T/chips/msp430
+  %T/chips/msp430/adc12
   %T/chips/msp430/io
   %T/chips/msp430/bus
 
