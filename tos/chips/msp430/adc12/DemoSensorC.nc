@@ -1,4 +1,4 @@
-// $Id: DemoSensorC.nc,v 1.1.2.1 2005-04-19 20:59:37 jpolastre Exp $
+// $Id: DemoSensorC.nc,v 1.1.2.2 2005-04-20 20:38:44 jpolastre Exp $
 
 /*                  tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
