@@ -1,4 +1,4 @@
-/// $Id: ATm128UART.h,v 1.1.2.1 2005-04-20 05:41:17 mturon Exp $
+/// $Id: ATm128UART.h,v 1.1.2.2 2005-04-20 18:39:10 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -78,15 +78,18 @@ typedef struct
 typedef ATm128UARTMode_t ATm128_UCSR0C_t;  //!< UART 0 Mode Register
 typedef ATm128UARTMode_t ATm128_UCSR1C_t;  //!< UART 1 Mode Register
 
-
+/**
+ * ATmega1128 UART baud register settings:
+ *      ATM128_<baudRate>_BAUD_<cpuSpeed>
+ */
 enum {
-    ATM128_19200_BAUD_8MHZ  = 12,
-    ATM128_38400_BAUD_8MHZ  = 6,
-    ATM128_57600_BAUD_8MHZ  = 3,
+    ATM128_19200_BAUD_4MHZ  = 12,
+    ATM128_38400_BAUD_4MHZ  = 6,
+    ATM128_57600_BAUD_4MHZ  = 3,
 
-    ATM128_19200_BAUD_8MHZ_2X  = 25,
-    ATM128_38400_BAUD_8MHZ_2X  = 12,
-    ATM128_57600_BAUD_8MHZ_2X  = 8,
+    ATM128_19200_BAUD_4MHZ_2X  = 25,
+    ATM128_38400_BAUD_4MHZ_2X  = 12,
+    ATM128_57600_BAUD_4MHZ_2X  = 8,
 
     ATM128_19200_BAUD_7MHZ  = 23,
     ATM128_38400_BAUD_7MHZ  = 11,
