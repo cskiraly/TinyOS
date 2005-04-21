@@ -22,7 +22,7 @@
 /*
  *
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.3 $
+ * Date last modified:  $Revision: 1.1.2.4 $
  *
  * Interface for receiving time stamp information from the radio.
  */
@@ -35,7 +35,7 @@ interface RadioTimeStamping
   /** 
    * Receive an event that the SFD has been transmitted
    */
-  async event void txSFD(uint16_t time, message_t* msgBuff);
+  async event void txSFD(uint32_t time, message_t* msgBuff);
 
   /** 
    * Receive an event that the SFD has been received.
@@ -45,5 +45,5 @@ interface RadioTimeStamping
    * The number of rxSFD events will always be great than or equal
    * to the number of Receive message events.
    */
-  async event void rxSFD(uint16_t time, message_t* msgBuff);
+  async event void rxSFD(uint32_t time, message_t* msgBuff);
 }
