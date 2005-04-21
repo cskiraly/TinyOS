@@ -1,4 +1,4 @@
-//$Id: InterruptM.nc,v 1.1.2.1 2005-04-21 22:09:00 jpolastre Exp $
+//$Id: InterruptM.nc,v 1.1.2.2 2005-04-21 23:10:00 jpolastre Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -57,13 +57,8 @@ implementation {
    * Event fired by lower level interrupt dispatch for Interrupt
    */
   async event void MSP430Interrupt.fired() {
-    error_t val = SUCCESS;
     call MSP430Interrupt.clear();
-    val = signal Interrupt.fired();
-    if (val == FAIL) {
-      call MSP430Interrupt.disable();
-      call MSP430Interrupt.clear();
-    }
+    signal Interrupt.fired();
   }
 
   default async event error_t Interrupt.fired() { return FAIL; }
