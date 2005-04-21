@@ -1,4 +1,4 @@
-//$Id: MSP430Interrupt.nc,v 1.1.2.2 2005-04-21 22:09:00 jpolastre Exp $
+//$Id: GeneralIOM.nc,v 1.1.2.1 2005-04-21 22:09:00 jpolastre Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,40 +24,17 @@
  * @author Joe Polastre
  */
 
-interface MSP430Interrupt
-{
-  /** 
-   * Enables MSP430 hardware interrupt on a particular port
-   */
-  async command void enable();
-
-  /** 
-   * Disables MSP430 hardware interrupt on a particular port
-   */
-  async command void disable();
-
-  /** 
-   * Clears the MSP430 Interrupt Pending Flag for a particular port
-   */
-  async command void clear();
-
-  /** 
-   * Gets the current value of the input voltage of a port
-   *
-   * @return TRUE if the pin is set high, FALSE if it is set low
-   */
-  async command bool getValue();
-
-  /** 
-   * Sets whether the edge should be high to low or low to high.
-   * @param TRUE if the interrupt should be triggered on a low to high
-   *        edge transition, false for interrupts on a high to low transition
-   */
-  async command void edge(bool low_to_high);
-
-  /**
-   * Signalled when an interrupt occurs on a port
-   */
-  async event void fired();
+generic module GeneralIOM() {
+  provides interface GeneralIO;
+  uses interface MSP430GeneralIO;
 }
+implementation {
 
+  async command void GeneralIO.set() { call MSP430GeneralIO.set(); }
+  async command void GeneralIO.clr() { call MSP430GeneralIO.clr(); }
+  async command void GeneralIO.toggle() { call MSP430GeneralIO.toggle(); }
+  async command bool GeneralIO.get() { return call MSP430GeneralIO.get(); }
+  async command void GeneralIO.makeInput() { call MSP430GeneralIO.makeInput(); }
+  async command void GeneralIO.makeOutput() { call MSP430GeneralIO.makeOutput(); }
+
+}

@@ -1,4 +1,4 @@
-//$Id: MSP430Interrupt.nc,v 1.1.2.2 2005-04-21 22:09:00 jpolastre Exp $
+//$Id: InterruptM.nc,v 1.1.2.1 2005-04-21 22:09:00 jpolastre Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,40 +24,47 @@
  * @author Joe Polastre
  */
 
-interface MSP430Interrupt
-{
-  /** 
-   * Enables MSP430 hardware interrupt on a particular port
+generic module InterruptM() {
+  provides interface Interrupt;
+  uses interface MSP430Interrupt;
+}
+implementation {
+  /**
+   * enable an edge interrupt on the Interrupt pin
    */
-  async command void enable();
-
-  /** 
-   * Disables MSP430 hardware interrupt on a particular port
-   */
-  async command void disable();
-
-  /** 
-   * Clears the MSP430 Interrupt Pending Flag for a particular port
-   */
-  async command void clear();
-
-  /** 
-   * Gets the current value of the input voltage of a port
-   *
-   * @return TRUE if the pin is set high, FALSE if it is set low
-   */
-  async command bool getValue();
-
-  /** 
-   * Sets whether the edge should be high to low or low to high.
-   * @param TRUE if the interrupt should be triggered on a low to high
-   *        edge transition, false for interrupts on a high to low transition
-   */
-  async command void edge(bool low_to_high);
+  async command error_t Interrupt.startWait(bool low_to_high) {
+    atomic {
+      call MSP430Interrupt.disable();
+      call MSP430Interrupt.clear();
+      call MSP430Interrupt.edge(low_to_high);
+      call MSP430Interrupt.enable();
+    }
+    return SUCCESS;
+  }
 
   /**
-   * Signalled when an interrupt occurs on a port
+   * disables Interrupt interrupts
    */
-  async event void fired();
-}
+  async command error_t Interrupt.disable() {
+    atomic {
+      call MSP430Interrupt.disable();
+      call MSP430Interrupt.clear();
+    }
+    return SUCCESS;
+  }
 
+  /**
+   * Event fired by lower level interrupt dispatch for Interrupt
+   */
+  async event void MSP430Interrupt.fired() {
+    error_t val = SUCCESS;
+    call MSP430Interrupt.clear();
+    val = signal Interrupt.fired();
+    if (val == FAIL) {
+      call MSP430Interrupt.disable();
+      call MSP430Interrupt.clear();
+    }
+  }
+
+  default async event error_t Interrupt.fired() { return FAIL; }
+}
