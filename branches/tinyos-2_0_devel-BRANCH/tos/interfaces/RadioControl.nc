@@ -1,6 +1,4 @@
 /*									tab:4
- *
- *
  * "Copyright (c) 2000-2002 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -19,12 +17,10 @@
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
- *
  */
 /*
- *
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.1 $
+ * Date last modified:  $Revision: 1.1.2.2 $
  *
  * Interface for controlling the radio in a hardware independent manner
  */
@@ -42,7 +38,7 @@ interface RadioControl
    *
    * @return SUCCESS if the RF channel was successfully changed
    */
-  command result_t SetRFChannel(uint8_t channel);
+  command error_t SetRFChannel(uint8_t channel);
 
   /**
    * Get the TinyOS RF channel for this device.
@@ -68,7 +64,7 @@ interface RadioControl
    * @result SUCCESS if the radio power was adequately set.
    *
    */
-  command result_t SetRFPower(uint8_t power);	
+  command error_t SetRFPower(uint8_t power);	
 
   /**
    * Get the present RF power index.

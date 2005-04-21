@@ -22,7 +22,7 @@
 /*
  *
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.2 $
+ * Date last modified:  $Revision: 1.1.2.3 $
  *
  * The RadioPacket interface allows link-layer dependent packet layout
  * but hardware independent access to the fields of a message_t.
@@ -32,6 +32,9 @@
  * message_t.footer, and message_t.metadata definitions instead with the specific
  * header, footer, and metadata definitions for that radio chip.
  */
+
+includes TOSMsg;
+includes TinyError;
 
 /**
  * Radio packet interface for reading packet data in a platform
@@ -46,7 +49,7 @@ interface RadioPacket
   /**
    * Sets the length of the current message_t data payload
    */
-  command result_t setLength(message_t* msg, uint8_t length);
+  command error_t setLength(message_t* msg, uint8_t length);
 
   /**
    * Gets a pointer to the data payload of the message
@@ -60,7 +63,7 @@ interface RadioPacket
   /**
    * Sets the destination address of the specified message_t
    */
-  command result_t setAddress(message_t* msg, uint16_t addr);
+  command error_t setAddress(message_t* msg, uint16_t addr);
 
   /**
    * Gets the destination logical group of the specified message_t
@@ -69,7 +72,7 @@ interface RadioPacket
   /**
    * Sets the destination logical group of the specified message_t
    */
-  command result_t setGroup(message_t* msg, uint16_t group);
+  command error_t setGroup(message_t* msg, uint16_t group);
 
   /**
    * Gets a 16-bit 32768Hz time value corresponding to the transmitted
