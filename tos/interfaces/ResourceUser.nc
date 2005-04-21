@@ -29,40 +29,22 @@
  * - Description ----------------------------------------------------------
  * ResourceUser interface
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2005-04-21 19:48:30 $
  * @author Kevin Klues
  * ========================================================================
  */
 
-interface Resource {
+interface ResourceUser {
   /**
-   * Request access to a shared resource. You must call release()
-   * when you are done with it.
-   * @return SUCCESS You have the resource.
-   *         EBUSY The resource is busy. The granted() event will
-   *               be signaled when you have the resource.
+   * Check whether resource is allocated.
+   * @returns TRUE if the resource is currently allocated, FALSE otherwise.
    */
-  async command error_t request();
-  
-  /**
-   * Some other component has requested this resource. You might
-   * want to consider releasing it.
-   */
-  event void requested();  
+  command bool inUse();
 
   /**
-   * You have received access to this resource.
+   * Return id of client currently using the resource. Meaningless if
+   * inUse() returns FALSE.
    */
-  event void granted();
-
-  /**
-   * Release a shared resource you previously acquired.
-   */
-  async command void release();
-  
-  /**
-   * Notification of a shared resource being released
-   */
-  event void released();  
+  command uint8_t user();
 }
