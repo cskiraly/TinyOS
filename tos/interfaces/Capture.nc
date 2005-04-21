@@ -1,4 +1,4 @@
-// $Id: Capture.nc,v 1.1.2.1 2005-03-14 01:58:53 jpolastre Exp $
+// $Id: Capture.nc,v 1.1.2.2 2005-04-21 22:10:13 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,11 +22,13 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  *
  * Interface for providing Timing and Capture events in a microcontroller
  * independent manner.
  */
+
+includes TinyError;
 
 interface Capture {
 
@@ -38,7 +40,7 @@ interface Capture {
    *
    * @return SUCCESS if the timer capture has been enabled
    */
-  async command result_t enableCapture(bool low_to_high);
+  async command error_t enableCapture(bool low_to_high);
 
   /**
    * Fired when an edge interrupt occurs.
@@ -48,12 +50,12 @@ interface Capture {
    * @return SUCCESS to keep the interrupt enabled, FAIL to disable
    *         the interrupt
    */
-  async event result_t captured(uint32_t time);
+  async event error_t captured(uint32_t time);
 
   /**
    * Diables a capture interrupt
    * 
    * @return SUCCESS if the interrupt has been disabled
    */ 
-  async command result_t disable();
+  async command error_t disable();
 }

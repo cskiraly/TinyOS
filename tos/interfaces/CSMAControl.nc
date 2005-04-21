@@ -22,7 +22,7 @@
 /*
  *
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.3 $
+ * Date last modified:  $Revision: 1.1.2.4 $
  *
  * MacControl interface for tuning the parameters of the MAC protocol
  */
@@ -35,22 +35,22 @@ interface CSMAControl
   /**
    * Enable clear channel assessment
    */
-  async command result_t enableCCA(); 
+  async command error_t enableCCA(); 
 
   /**
    * Disable clear channel assessment
    */
-  async command result_t disableCCA(); 
+  async command error_t disableCCA(); 
 
   /**
    * Enable automatic link layer acknowledgments
    */
-  async command result_t enableAck();
+  async command error_t enableAck();
 
   /**
    * Disable automatic link layer acknowledgments
    */
-  async command result_t disableAck();
+  async command error_t disableAck();
 
   /**
    * HaltTx() is used to halt whatever message is being sent on the
