@@ -1,4 +1,4 @@
-// $Id: CC2420ControlM.nc,v 1.1.2.2 2005-03-14 03:40:52 jpolastre Exp $
+// $Id: CC2420ControlM.nc,v 1.1.2.3 2005-04-21 23:05:21 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  *
  * This module provides the CONTROL functionality for the 
  * Chipcon2420 series radio. It exports both a standard control 
@@ -113,7 +113,7 @@ implementation
    * Init CC2420 radio:
    *
    *************************************************************************/
-  command result_t Init.init() {
+  command error_t Init.init() {
 
     uint8_t _state = FALSE;
 
@@ -175,7 +175,7 @@ implementation
 
 
   command error_t SplitControl.stop() {
-    result_t ok;
+    error_t ok;
     uint8_t _state = FALSE;
 
     atomic {
@@ -211,7 +211,7 @@ implementation
  ******************************************************************************/
 
   command error_t SplitControl.start() {
-    result_t status;
+    error_t status;
     uint8_t _state = FALSE;
 
     atomic {
@@ -247,7 +247,7 @@ implementation
    * chnl requested 802.15.4 channel 
    * return Status of the tune operation
    *************************************************************************/
-  command result_t CC2420Control.TunePreset(uint8_t chnl) {
+  command error_t CC2420Control.TunePreset(uint8_t chnl) {
     int fsctrl;
     uint8_t status;
     
@@ -269,7 +269,7 @@ implementation
    * Desiredfreq The desired frequency, in MHz.
    * Return Status of the tune operation
    *************************************************************************/
-  command result_t CC2420Control.TuneManual(uint16_t DesiredFreq) {
+  command error_t CC2420Control.TuneManual(uint16_t DesiredFreq) {
     int fsctrl;
     uint8_t status;
    
@@ -305,7 +305,7 @@ implementation
    * Shift the CC2420 Radio into transmit mode.
    * return SUCCESS if the radio was successfully switched to TX mode.
    *************************************************************************/
-  async command result_t CC2420Control.TxMode() {
+  async command error_t CC2420Control.TxMode() {
     call HPLChipcon.cmd(CC2420_STXON);
     return SUCCESS;
   }
@@ -317,7 +317,7 @@ implementation
    *
    * return SUCCESS if the transmit request has been accepted
    *************************************************************************/
-  async command result_t CC2420Control.TxModeOnCCA() {
+  async command error_t CC2420Control.TxModeOnCCA() {
    call HPLChipcon.cmd(CC2420_STXONCCA);
    return SUCCESS;
   }
@@ -326,7 +326,7 @@ implementation
    * RxMode
    * Shift the CC2420 Radio into receive mode 
    *************************************************************************/
-  async command result_t CC2420Control.RxMode() {
+  async command error_t CC2420Control.RxMode() {
     call HPLChipcon.cmd(CC2420_SRXON);
     return SUCCESS;
   }
@@ -337,7 +337,7 @@ implementation
    *          3 => lowest power  (-25dbm)
    * return SUCCESS if the radio power was successfully set
    *************************************************************************/
-  command result_t CC2420Control.SetRFPower(uint8_t power) {
+  command error_t CC2420Control.SetRFPower(uint8_t power) {
     gCurrentParameters[CP_TXCTRL] = (gCurrentParameters[CP_TXCTRL] & (~CC2420_TXCTRL_PAPWR_MASK)) | (power << CC2420_TXCTRL_PAPWR);
     call HPLChipcon.write(CC2420_TXCTRL,gCurrentParameters[CP_TXCTRL]);
     return SUCCESS;
@@ -351,7 +351,7 @@ implementation
     return (gCurrentParameters[CP_TXCTRL] & CC2420_TXCTRL_PAPWR_MASK); //rfpower;
   }
 
-  async command result_t CC2420Control.OscillatorOn() {
+  async command error_t CC2420Control.OscillatorOn() {
     uint16_t i;
     uint8_t status;
 
@@ -378,57 +378,57 @@ implementation
     return SUCCESS;
   }
 
-  async command result_t CC2420Control.OscillatorOff() {
+  async command error_t CC2420Control.OscillatorOff() {
     call HPLChipcon.cmd(CC2420_SXOSCOFF);   //turn-off crystal
     return SUCCESS;
   }
 
-  async command result_t CC2420Control.VREFOn(){
+  async command error_t CC2420Control.VREFOn(){
     call RadioVREF.set(); // turn-on
     // TODO: JP: measure the actual time for VREF to stabilize
     TOSH_uwait(600);  // CC2420 spec: 600us max turn on time
     return SUCCESS;
   }
 
-  async command result_t CC2420Control.VREFOff(){
+  async command error_t CC2420Control.VREFOff(){
     call RadioVREF.clr();
     return SUCCESS;
   }
 
-  async command result_t CC2420Control.enableAutoAck() {
+  async command error_t CC2420Control.enableAutoAck() {
     gCurrentParameters[CP_MDMCTRL0] |= (1 << CC2420_MDMCTRL0_AUTOACK);
     return call HPLChipcon.write(CC2420_MDMCTRL0,gCurrentParameters[CP_MDMCTRL0]);
   }
 
-  async command result_t CC2420Control.disableAutoAck() {
+  async command error_t CC2420Control.disableAutoAck() {
     gCurrentParameters[CP_MDMCTRL0] &= ~(1 << CC2420_MDMCTRL0_AUTOACK);
     return call HPLChipcon.write(CC2420_MDMCTRL0,gCurrentParameters[CP_MDMCTRL0]);
   }
 
-  async command result_t CC2420Control.enableAddrDecode() {
+  async command error_t CC2420Control.enableAddrDecode() {
     gCurrentParameters[CP_MDMCTRL0] |= (1 << CC2420_MDMCTRL0_ADRDECODE);
     return call HPLChipcon.write(CC2420_MDMCTRL0,gCurrentParameters[CP_MDMCTRL0]);
   }
 
-  async command result_t CC2420Control.disableAddrDecode() {
+  async command error_t CC2420Control.disableAddrDecode() {
     gCurrentParameters[CP_MDMCTRL0] &= ~(1 << CC2420_MDMCTRL0_ADRDECODE);
     return call HPLChipcon.write(CC2420_MDMCTRL0,gCurrentParameters[CP_MDMCTRL0]);
   }
 
-  command result_t CC2420Control.setShortAddress(uint16_t addr) {
+  command error_t CC2420Control.setShortAddress(uint16_t addr) {
     addr = toLSB16(addr);
     return call HPLChipconRAM.write(CC2420_RAM_SHORTADR, 2, (uint8_t*)&addr);
   }
 
-  async event result_t HPLChipconRAM.readDone(uint16_t addr, uint8_t length, uint8_t* buffer) {
+  async event error_t HPLChipconRAM.readDone(uint16_t addr, uint8_t length, uint8_t* buffer) {
      return SUCCESS;
   }
 
-  async event result_t HPLChipconRAM.writeDone(uint16_t addr, uint8_t length, uint8_t* buffer) {
+  async event error_t HPLChipconRAM.writeDone(uint16_t addr, uint8_t length, uint8_t* buffer) {
      return SUCCESS;
   }
 
-   async event result_t CCA.fired() {
+   async event error_t CCA.fired() {
      // reset the CCA pin back to the CCA function
      call HPLChipcon.write(CC2420_IOCFG1, 0);
      post PostOscillatorOn();

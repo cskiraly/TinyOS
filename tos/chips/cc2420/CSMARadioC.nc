@@ -1,4 +1,4 @@
-// $Id: CSMARadioC.nc,v 1.1.2.2 2005-03-14 03:40:52 jpolastre Exp $
+// $Id: CSMARadioC.nc,v 1.1.2.3 2005-04-21 23:05:21 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,8 +22,11 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  */
+
+includes CC2420Const;
+includes TOSMsg;
 
 configuration CSMARadioC
 {
@@ -44,12 +47,20 @@ configuration CSMARadioC
 }
 implementation
 {
-  components CC2420RadioM, CC2420ControlM, HPLCC2420C, 
-    CC2420RadioControlM,
-    RandomLFSR, 
-    TimerJiffyAsyncC,
-    Platform,
-    LedsC;
+  components 
+    // components required for the radio
+      CC2420RadioM
+    , CC2420ControlM
+    , HPLCC2420C, 
+    , CC2420RadioControlM
+    , RandomLFSR
+    , new Alarm32khzC() as AlarmC
+    , LedsC
+    // defined by each platform
+    , CC2420RadioIO
+    , CC2420RadioInterruptFIFOP
+    , CC2420RadioCaptureSFD
+    ;
 
   Init = CC2420RadioM;
   SplitControl = CC2420RadioM;
@@ -68,25 +79,25 @@ implementation
   CC2420RadioM.CC2420SplitControl -> CC2420ControlM;
   CC2420RadioM.CC2420Control -> CC2420ControlM;
   CC2420RadioM.Random -> RandomLFSR;
-  CC2420RadioM.TimerControl -> TimerJiffyAsyncC.StdControl;
-  CC2420RadioM.BackoffTimerJiffy -> TimerJiffyAsyncC.TimerJiffyAsync;
+  CC2420RadioM.TimerControl -> AlarmC;
+  CC2420RadioM.BackoffTimerJiffy -> AlarmC;
 
   CC2420RadioM.HPLChipcon -> HPLCC2420C.HPLCC2420;
   CC2420RadioM.HPLChipconFIFO -> HPLCC2420C.HPLCC2420FIFO;
 
-  CC2420RadioM.RadioCCA -> Platform.CC2420RadioCCA;
-  CC2420RadioM.RadioFIFO -> Platform.CC2420RadioFIFO;
-  CC2420RadioM.RadioFIFOP -> Platform.CC2420RadioFIFOP;
-  CC2420RadioM.FIFOP -> Platform.CC2420RadioFIFOPInterrupt;
-  CC2420RadioM.SFD -> Platform.CC2420RadioSFDCapture;
+  CC2420RadioM.RadioCCA -> CC2420RadioIO.CC2420RadioCCA;
+  CC2420RadioM.RadioFIFO -> CC2420RadioIO.CC2420RadioFIFO;
+  CC2420RadioM.RadioFIFOP -> CC2420RadioIO.CC2420RadioFIFOP;
+  CC2420RadioM.FIFOP -> CC2420RadioInterruptFIFOP;
+  CC2420RadioM.SFD -> CC2420RadioCaptureSFD;
 
   CC2420ControlM.HPLChipconInit -> HPLCC2420C.Init;
   CC2420ControlM.HPLChipconControl -> HPLCC2420C.StdControl;
   CC2420ControlM.HPLChipcon -> HPLCC2420C.HPLCC2420;
   CC2420ControlM.HPLChipconRAM -> HPLCC2420C.HPLCC2420RAM;
 
-  CC2420ControlM.RadioReset -> Platform.CC2420RadioReset;
-  CC2420ControlM.RadioVREF -> Platform.CC2420RadioVREF;
-  CC2420ControlM.CCA -> Platform.CC2420RadioCCAInterrupt;
+  CC2420ControlM.RadioReset -> CC2420RadioIO.CC2420RadioReset;
+  CC2420ControlM.RadioVREF -> CC2420RadioIO.CC2420RadioVREF;
+  CC2420ControlM.CCA -> CC2420RadioIO.CC2420RadioCCAInterrupt;
 
 }

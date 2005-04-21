@@ -1,4 +1,4 @@
-// $Id: CC2420Const.h,v 1.1.2.2 2005-02-08 23:17:31 jpolastre Exp $
+// $Id: CC2420Const.h,v 1.1.2.3 2005-04-21 23:05:21 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  */
 
 #ifndef _CC2420CONST_H
@@ -53,6 +53,10 @@ enum {
   CC2420_TIME_BYTE = CC2420_TIME_BIT << 3,
   CC2420_TIME_SYMBOL = 16
 };
+
+#ifndef TOSH_DATA_LENGTH
+#define TOSH_DATA_LENGTH 28
+#endif
 
 // TinyOS default RF channel
 #ifdef TOS_DEF_CHANNEL
