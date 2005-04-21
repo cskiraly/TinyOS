@@ -1,4 +1,4 @@
-//$Id: TransformAlarmM.nc,v 1.1.2.2 2005-04-01 08:30:56 cssharp Exp $
+//$Id: TransformAlarmM.nc,v 1.1.2.3 2005-04-21 08:29:40 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -60,53 +60,6 @@ implementation
     call AlarmFrom.cancel();
   }
 
-  /*
-    Why anchored relative alarms (t0,dt) instead of assuming absolute alarms
-    (0,t) or unanchored relative alarms (dt)?
-
-    Absolute alarms (0,t) assume the boundedness of an alarm/counter is
-    insignificant.  If the counter range is [0,T], then there is a race
-    condition with the free running counter as the alarm time t approaches the
-    maximum value T.  The specified alarm time t may have to wait until the
-    counter rolls around to the next t, causing the alarm to fire T too late.
-
-    Even though this problem is more significant for fast-overflow alarms at
-    the hardware level, it exists for slow-overflow alarms at higher
-    abstraction levels.  A wider absolute timer derived from a thinner absolute
-    timer suffers from all race occurences on the thinner timer.  This means
-    absolute time is not suitable for anything other than the highest level
-    abstraction.  The highest abstraction of course still suffers from the race
-    condition, and the absolute delay before a race occurs makes it that much
-    more difficult to identify and debug odd behaviors.
-    
-    Unanchored relative alarms (dt) have race conditions only for small dt,
-    which can be accounted for.  But, they make it difficult account for
-    computational slop from when the relative delay is calculated to when the
-    alarm is set.  This affects alarms based on high frequency counters more
-    than low frequency counters.  Periodic alarms can externally track their
-    firing times relative to the free running counter, meaning this slop only
-    induces alarm jitter and not frequency skew.
-
-    Anchored relatve alarms (t0,dt) have no computational slop and have less
-    significant race conditions.  t0 is assumed to be in the past, and dt is
-    delay from it.  A race occurs if the now-t0 approaches T, so alarms should
-    be set with t0 in the recent past with any far past calculations done
-    external to the alarm.
-
-    An alarm may enforce a minimum delay to ensure atomicity in the calling
-    functions, even for alarm times t0+dt in the past.
-
-    Well, shit, there's going to be unspecified slop anyway from when the alarm
-    event is fired to when the handler is invoked.  Is additional slop in the
-    setting of the alarm significant?  If precise timing is required, it seems
-    like the total slop must be calibrated in any case.  Does (t0,dt) buy
-    anything?  I think so, because otherwise that slop is additive as alarms
-    are derived from other alarms.  Basically, I tried writing set_alarm
-    without t0 and dt, and it seemed hard/impossible to do right.  Show me if
-    I'm wrong?  Thanks.
-
-  */
-
   void set_alarm()
   {
     to_size_type now = call Counter.get();
@@ -122,14 +75,13 @@ implementation
     {
       to_size_type remaining = m_dt - elapsed;
       from_size_type remaining_from = remaining;
-      //to_size_type delay = ((to_size_type)1) << (8*sizeof(from_size_type)-1-bit_shift_right);
       to_size_type delay = 1;
       delay <<= 8 * sizeof(from_size_type) - 1 - bit_shift_right;
       if( remaining > delay )
       {
 	from_size_type delay_from = delay;
-	m_t0 += delay;
-	m_dt -= delay;
+	m_t0 = now + delay;
+	m_dt = remaining - delay;
 	call AlarmFrom.set( now_from, delay_from << bit_shift_right );
       }
       else

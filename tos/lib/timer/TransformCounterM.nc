@@ -1,4 +1,4 @@
-//$Id: TransformCounterM.nc,v 1.1.2.2 2005-04-01 08:30:56 cssharp Exp $
+//$Id: TransformCounterM.nc,v 1.1.2.3 2005-04-21 08:29:40 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -55,7 +55,7 @@ implementation
 
   async command to_size_type Counter.get()
   {
-    to_size_type rv;
+    to_size_type rv = 0;
     atomic
     {
       upper_count_type high = m_upper;
