@@ -1,4 +1,4 @@
-// $Id: CC2420RadioM.nc,v 1.1.2.5 2005-04-21 23:05:21 jpolastre Exp $
+// $Id: CC2420RadioM.nc,v 1.1.2.6 2005-04-21 23:14:10 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.5 $
+ * Revision:  $Revision: 1.1.2.6 $
  */
 
 includes byteorder;
@@ -262,7 +262,7 @@ implementation {
    * Useful for time synchronization as well as determining
    * when a packet has finished transmission
    */
-  async event error_t SFD.captured(uint16_t time) {
+  async event error_t SFD.captured(uint32_t time) {
     switch (stateRadio) {
     case TX_STATE:
       // wait for SFD to fall--indicates end of packet
@@ -276,7 +276,8 @@ implementation {
 	stateRadio = TX_WAIT;
       }
       // fire TX SFD event
-      txbufptr->metadata.time = time;
+      // time is a 32-bit value, but the message struct only holds 16 bits
+      txbufptr->metadata.time = time & 0xFFFF;
       signal RadioTimeStamping.txSFD(time, txbufptr);
       // if the pin hasn't fallen, break out and wait for the interrupt
       // if it fell, continue on the to the TX_WAIT state
@@ -301,7 +302,8 @@ implementation {
       break;
     default:
       // fire RX SFD handler
-      rxbufptr->metadata.time = time;
+      // time is a 32-bit value, but the message struct only holds 16 bits
+      rxbufptr->metadata.time = time & 0xFFFF;
       signal RadioTimeStamping.rxSFD(time, rxbufptr);
     }
     return SUCCESS;
@@ -494,7 +496,7 @@ implementation {
    *  rxbufptr->rssi is CRC + Correlation value
    *  rxbufptr->strength is RSSI
    **********************************************************/
-   async event error_t FIFOP.fired() {
+   async event void FIFOP.fired() {
 
      // if we're trying to send a message and a FIFOP interrupt occurs
      // and acks are enabled, we need to backoff longer so that we don't
