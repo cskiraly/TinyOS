@@ -1,4 +1,4 @@
-/// $Id: HPLUARTM.nc,v 1.1.2.1 2005-04-21 07:37:47 mturon Exp $
+/// $Id: HPLUARTM.nc,v 1.1.2.2 2005-04-21 07:41:22 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -49,6 +49,8 @@ implementation
       outb(UCSR0A, stts.flat);
       outb(UCSR0C, mode.flat);
       outb(UCSR0B, ctrl.flat);
+
+      return SUCCESS;
   }
   async command error_t UART1.init() {
       ATm128UARTMode_t    mode;
@@ -63,6 +65,8 @@ implementation
       outb(UCSR1A, stts.flat);
       outb(UCSR1C, mode.flat);
       outb(UCSR1B, ctrl.flat);
+
+      return SUCCESS;
   }
 
   //=== UART Stop Commands. ====================================
