@@ -1,4 +1,4 @@
-// $Id: RadioC.nc,v 1.1.2.1 2005-01-20 22:07:47 jpolastre Exp $
+// $Id: RadioC.nc,v 1.1.2.2 2005-04-21 23:05:21 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,10 +22,10 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  */
 
-configuration CC2420RadioC
+configuration RadioC
 {
   provides {
     interface SplitControl;
@@ -39,10 +39,10 @@ implementation
 {
   components CSMARadioC;
 
-  SplitControl = CC2420RadioC;
-  Send = CC2420RadioC;
-  Receive = CC2420RadioC;
+  SplitControl = CSMARadioC;
+  Send = CSMARadioC;
+  Receive = CSMARadioC;
 
-  RadioControl = CC2420RadioControlC;
-  RadioPacket = CC2420RadioControlC;
+  RadioControl = CSMARadioC;
+  RadioPacket = CSMARadioC;
 }

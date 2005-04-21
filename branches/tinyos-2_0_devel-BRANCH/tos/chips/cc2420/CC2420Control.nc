@@ -1,4 +1,4 @@
-// $Id: CC2420Control.nc,v 1.1.2.1 2005-01-20 22:07:47 jpolastre Exp $
+// $Id: CC2420Control.nc,v 1.1.2.2 2005-04-21 23:05:21 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,10 +22,12 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  *
  * Interface for CC2420 specific controls and signals
  */
+
+includes TinyError;
 
 interface CC2420Control
 {
@@ -39,7 +41,7 @@ interface CC2420Control
    * 
    * @return Status of the tune operation
    */
-  command result_t TunePreset(uint8_t channel); 
+  command error_t TunePreset(uint8_t channel); 
 
   /**
    * Tune the radio to a given frequency. Frequencies may be set in
@@ -49,7 +51,7 @@ interface CC2420Control
    * 
    * @return Status of the tune operation
    */
-  command result_t TuneManual(uint16_t freq);
+  command error_t TuneManual(uint16_t freq);
 
   /**
    * Get the current channel of the radio
@@ -75,35 +77,35 @@ interface CC2420Control
    *
    * @return SUCCESS if the VREF has been turned on
    */
-  async command result_t VREFOn();
+  async command error_t VREFOn();
 
   /**
    * Turns off the 1.8V references on the CC2420.
    *
    * @return SUCCESS if the VREF has been turned on
    */
-  async command result_t VREFOff();
+  async command error_t VREFOff();
 
   /**
    * Turn on the crystal oscillator.
    *
    * @return SUCCESS if the request for the crystal to start has been accepted
    */
-  async command result_t OscillatorOn();
+  async command error_t OscillatorOn();
 
   /**
    * Turn off the crystal oscillator.
    *
    * @return SUCCESS when the oscillator has started up
    */
-  async command result_t OscillatorOff();
+  async command error_t OscillatorOff();
 
   /**
    * Shift the CC2420 Radio into transmit mode.
    *
    * @return SUCCESS if the radio was successfully switched to TX mode.
    */
-  async command result_t TxMode();
+  async command error_t TxMode();
 
   /**
    * Shift the CC2420 Radio into transmit mode when the next clear channel
@@ -111,14 +113,14 @@ interface CC2420Control
    *
    * @return SUCCESS if the transmit request has been accepted
    */
-  async command result_t TxModeOnCCA();
+  async command error_t TxModeOnCCA();
 
   /**
    * Shift the CC2420 Radio in receive mode.
    *
    * @return SUCCESS if the radio was successfully switched to RX mode.
    */
-  async command result_t RxMode();
+  async command error_t RxMode();
 
   /**
    * Set the transmit RF power value.  
@@ -133,7 +135,7 @@ interface CC2420Control
    * @result SUCCESS if the radio power was adequately set.
    *
    */
-  command result_t SetRFPower(uint8_t power);	
+  command error_t SetRFPower(uint8_t power);	
 
   /**
    * Get the present RF power index.
@@ -147,34 +149,34 @@ interface CC2420Control
    * 
    * @return SUCCESS if the mode of the CC2420 was successfully changed
    */
-  async command result_t enableAutoAck();
+  async command error_t enableAutoAck();
 
   /**
    * Disables auto ack on the CC2420
    * 
    * @return SUCCESS if the mode of the CC2420 was successfully changed
    */
-  async command result_t disableAutoAck();
+  async command error_t disableAutoAck();
 
   /**
    * Enables address decoding on the CC2420
    *
    * @return SUCCESS if the mode of the CC2420 was successfully changed
    */
-  async command result_t enableAddrDecode();
+  async command error_t enableAddrDecode();
 
   /**
    * Disables address decoding on the CC2420
    *
    * @return SUCCESS if the mode of the CC2420 was successfully changed
    */
-  async command result_t disableAddrDecode();
+  async command error_t disableAddrDecode();
 
   /**
    * Set the 16-bit short address of the mote
    *
    * @result SUCCESS if the request to set the address is being processed
    */
-  command result_t setShortAddress(uint16_t addr);
+  command error_t setShortAddress(uint16_t addr);
 
 }

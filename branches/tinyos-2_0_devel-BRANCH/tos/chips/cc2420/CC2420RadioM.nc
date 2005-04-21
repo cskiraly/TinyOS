@@ -1,4 +1,4 @@
-// $Id: CC2420RadioM.nc,v 1.1.2.4 2005-03-19 20:59:15 scipio Exp $
+// $Id: CC2420RadioM.nc,v 1.1.2.5 2005-04-21 23:05:21 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.4 $
+ * Revision:  $Revision: 1.1.2.5 $
  */
 
 includes byteorder;
@@ -33,19 +33,19 @@ module CC2420RadioM {
     interface SplitControl;
     interface Send;
     interface Receive;
-    interface RadioTimeStamping
+    interface RadioTimeStamping;
     interface CSMAControl;
     interface CSMABackoff;
   }
   uses {
     interface Init as CC2420Init;
+    interface Init as TimerControl;
     interface SplitControl as CC2420SplitControl;
     interface CC2420Control;
     interface HPLCC2420 as HPLChipcon;
     interface HPLCC2420FIFO as HPLChipconFIFO; 
-    interface StdControl as TimerControl;
 
-    interface TimerJiffyAsync as BackoffTimerJiffy;
+    interface Alarm<T32khz> as BackoffTimerJiffy;
 
     interface GeneralIO as RadioCCA;
     interface GeneralIO as RadioFIFO;
@@ -110,19 +110,19 @@ implementation {
      call FIFOP.startWait(FALSE);
    }
 
-   inline result_t setInitialTimer( uint16_t jiffy ) {
+   inline error_t setInitialTimer( uint16_t jiffy ) {
      stateTimer = TIMER_INITIAL;
-     return call BackoffTimerJiffy.setOneShot(jiffy);
+     return call BackoffTimerJiffy.startNow(jiffy);
    }
 
-   inline result_t setBackoffTimer( uint16_t jiffy ) {
+   inline error_t setBackoffTimer( uint16_t jiffy ) {
      stateTimer = TIMER_BACKOFF;
-     return call BackoffTimerJiffy.setOneShot(jiffy);
+     return call BackoffTimerJiffy.startNow(jiffy);
    }
 
-   inline result_t setAckTimer( uint16_t jiffy ) {
+   inline error_t setAckTimer( uint16_t jiffy ) {
      stateTimer = TIMER_ACK;
-     return call BackoffTimerJiffy.setOneShot(jiffy);
+     return call BackoffTimerJiffy.startNow(jiffy);
    }
 
   /***************************************************************************
@@ -161,7 +161,7 @@ implementation {
   //**********************************************************/
   
   // Split-phase initialization of the radio
-  command result_t Init.init() {
+  command error_t Init.init() {
 
     atomic {
       stateRadio = DISABLED_STATE;
@@ -184,7 +184,6 @@ implementation {
 
     call SFD.disable();
     call FIFOP.disable();
-    call TimerControl.stop();
     return call CC2420SplitControl.stop();
   }
 
@@ -206,7 +205,6 @@ implementation {
         countRetry = 0;
         rxbufptr->header.length = 0;
       }
-      call TimerControl.start();
       return call CC2420SplitControl.start();
     }
     return FAIL;
@@ -216,9 +214,6 @@ implementation {
     uint8_t chkstateRadio;
 
     atomic chkstateRadio = stateRadio;
-
-      if (chkstateRadio == WARMUP_STATE) {
-      }
 
     if (chkstateRadio == WARMUP_STATE) {
       if (_error != SUCCESS) {
@@ -256,7 +251,7 @@ implementation {
     else {
       // try again to send the packet
       atomic stateRadio = PRE_TX_STATE;
-      if (!(setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT))) {
+      if (setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) != SUCCESS) {
         sendFailed();
       }
     }
@@ -267,7 +262,7 @@ implementation {
    * Useful for time synchronization as well as determining
    * when a packet has finished transmission
    */
-  async event result_t SFD.captured(uint16_t time) {
+  async event error_t SFD.captured(uint16_t time) {
     switch (stateRadio) {
     case TX_STATE:
       // wait for SFD to fall--indicates end of packet
@@ -296,13 +291,12 @@ implementation {
       call SFD.enableCapture(TRUE);
       // if acks are enabled and it is a unicast packet, wait for the ack
       if ((bAckEnable) && (txbufptr->header.addr != TOS_BCAST_ADDR)) {
-        if (!(setAckTimer(CC2420_ACK_DELAY)))
+        if (setAckTimer(CC2420_ACK_DELAY) != SUCCESS)
           sendFailed();
       }
       // if no acks or broadcast, post packet send done event
       else {
-        if (!post PacketSent())
-          sendFailed();
+        post PacketSent();
       }
       break;
     default:
@@ -357,11 +351,10 @@ implementation {
          if (countRetry-- <= 0) {
 	   flushRXFIFO();
 	   countRetry = MAX_SEND_TRIES;
-	   if (!post startSend())
-	     sendFailed();
+	   post startSend();
            return;
          }
-         if (!(setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT))) {
+         if (setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) != SUCCESS) {
            sendFailed();
          }
        }
@@ -372,15 +365,13 @@ implementation {
    * Multiplexed timer to control initial backoff, 
    * congestion backoff, and delay while waiting for an ACK
    */
-  async event result_t BackoffTimerJiffy.fired() {
+  async event error_t BackoffTimerJiffy.fired( uint32_t when, uint32_t numMissed ) {
     uint8_t currentstate;
     atomic currentstate = stateRadio;
 
     switch (stateTimer) {
     case TIMER_INITIAL:
-      if (!(post startSend())) {
-        sendFailed();
-      }
+      post startSend();
       break;
     case TIMER_BACKOFF:
       tryToSend();
@@ -388,8 +379,7 @@ implementation {
     case TIMER_ACK:
       if (currentstate == POST_TX_STATE) {
         txbufptr->metadata.ack = 0;
-        if (!post PacketSent())
-	  sendFailed();
+	post PacketSend();
       }
       break;
     }
@@ -426,7 +416,7 @@ implementation {
       txbufptr = pMsg;
       countRetry = MAX_SEND_TRIES;
 
-      if (setInitialTimer(signal CSMABackoff.initial(txbufptr) * CC2420_SYMBOL_UNIT)) {
+      if (setInitialTimer(signal CSMABackoff.initial(txbufptr) * CC2420_SYMBOL_UNIT) != SUCCESS) {
         atomic stateRadio = PRE_TX_STATE;
         return SUCCESS;
       }
@@ -469,8 +459,7 @@ implementation {
       _bPacketReceiving = bPacketReceiving;
       
       if (_bPacketReceiving) {
-	if (!post delayedRXFIFOtask())
-	  flushRXFIFO();
+	post delayedRXFIFOtask();
       } else {
 	bPacketReceiving = TRUE;
       }
@@ -483,9 +472,7 @@ implementation {
     if (!_bPacketReceiving) {
       if (!call HPLChipconFIFO.readRXFIFO(len,(uint8_t*)rxbufptr)) {
 	atomic bPacketReceiving = FALSE;
-	if (!post delayedRXFIFOtask()) {
-	  flushRXFIFO();
-	}
+	post delayedRXFIFOtask();
 	return;
       }      
     }
@@ -507,15 +494,15 @@ implementation {
    *  rxbufptr->rssi is CRC + Correlation value
    *  rxbufptr->strength is RSSI
    **********************************************************/
-   async event result_t FIFOP.fired() {
+   async event error_t FIFOP.fired() {
 
      // if we're trying to send a message and a FIFOP interrupt occurs
      // and acks are enabled, we need to backoff longer so that we don't
      // interfere with the ACK
      if (bAckEnable && (stateRadio == PRE_TX_STATE)) {
-       if (call BackoffTimerJiffy.isSet()) {
+       if (call BackoffTimerJiffy.isRunning() == TRUE) {
          call BackoffTimerJiffy.stop();
-         call BackoffTimerJiffy.setOneShot((signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) + CC2420_ACK_DELAY);
+         call BackoffTimerJiffy.startNow((signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) + CC2420_ACK_DELAY);
        }
      }
 
@@ -526,12 +513,8 @@ implementation {
      }
 
      atomic {
-	 if (post delayedRXFIFOtask()) {
-	   call FIFOP.disable();
-	 }
-	 else {
-	   flushRXFIFO();
-	 }
+       post delayedRXFIFOtask();
+       call FIFOP.disable();
      }
 
      // return SUCCESS to keep FIFOP events occurring
@@ -542,7 +525,7 @@ implementation {
    * After the buffer is received from the RXFIFO,
    * process it, then post a task to signal it to the higher layers
    */
-  async event result_t HPLChipconFIFO.RXFIFODone(uint8_t length, uint8_t *data) {
+  async event error_t HPLChipconFIFO.RXFIFODone(uint8_t length, uint8_t *data) {
     // JP NOTE: rare known bug in high contention:
     // radio stack will receive a valid packet, but for some reason the
     // length field will be longer than normal.  The packet data will
@@ -576,8 +559,7 @@ implementation {
         currentstate = POST_TX_ACK_STATE;
         bPacketReceiving = FALSE;
       }
-      if (!post PacketSent())
-	sendFailed();
+      post PacketSent();
       return SUCCESS;
     }
 
@@ -610,9 +592,8 @@ implementation {
     rxbufptr->metadata.lqi = data[length-1] & 0x7F;
 
     atomic {
-      if (!post PacketRcvd()) {
-	bPacketReceiving = FALSE;
-      }
+      post PacketRcvd();
+      bPacketReceiving = FALSE;
     }
 
     if ((!call RadioFIFO.get()) && (!call RadioFIFOP.get())) {
@@ -621,8 +602,8 @@ implementation {
     }
 
     if (!call RadioFIFOP.get()) {
-      if (post delayedRXFIFOtask())
-	return SUCCESS;
+      post delayedRXFIFOtask();
+      return SUCCESS;
     }
     flushRXFIFO();
     //    call FIFOP.startWait(FALSE);
@@ -634,7 +615,7 @@ implementation {
    * Notification that the TXFIFO has been filled with the data from the packet
    * Next step is to try to send the packet
    */
-  async event result_t HPLChipconFIFO.TXFIFODone(uint8_t length, uint8_t *data) { 
+  async event error_t HPLChipconFIFO.TXFIFODone(uint8_t length, uint8_t *data) { 
      tryToSend();
      return SUCCESS;
   }
@@ -656,10 +637,10 @@ implementation {
   /**
    * XXX: TODO: not yet implemented
    */
-  async command result_t CSMAControl.enableAck() {
+  async command error_t CSMAControl.enableAck() {
     return FAIL;
   }
-  async command result_t CSMAControl.disableAck() {
+  async command error_t CSMAControl.disableAck() {
     return FAIL;
   }
   async command message_t* CSMAControl.HaltTx() {
