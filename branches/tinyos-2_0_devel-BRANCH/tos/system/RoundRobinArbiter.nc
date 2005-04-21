@@ -29,8 +29,8 @@
  * - Description ----------------------------------------------------------
  * Round Robin resource Arbiter
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-04-21 19:51:06 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-04-21 20:05:17 $
  * @author Kevin Klues
  * ========================================================================
  */
@@ -73,7 +73,7 @@ implementation {
       return SUCCESS;
     }
     post RequestedTask();
-    return SUCCESS;
+    return EBUSY;
   }  
   
   //Release the shared resource
