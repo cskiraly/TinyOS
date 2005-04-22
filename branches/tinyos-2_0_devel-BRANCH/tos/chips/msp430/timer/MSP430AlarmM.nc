@@ -1,4 +1,4 @@
-//$Id: MSP430AlarmM.nc,v 1.1.2.2 2005-03-30 18:09:54 cssharp Exp $
+//$Id: MSP430AlarmM.nc,v 1.1.2.3 2005-04-22 06:08:41 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -43,27 +43,28 @@ implementation
     return SUCCESS;
   }
   
-  async command uint16_t Alarm.now()
+  async command void Alarm.startNow( uint16_t dt )
   {
-    return call MSP430Timer.get();
+    call Alarm.start( call Alarm.getNow(), dt );
   }
 
-  async command uint16_t Alarm.get()
-  {
-    return call MSP430Compare.getEvent();
-  }
-
-  async command bool Alarm.isSet()
-  {
-    return call MSP430TimerControl.areEventsEnabled();
-  }
-
-  async command void Alarm.cancel()
+  async command void Alarm.stop()
   {
     call MSP430TimerControl.disableEvents();
   }
 
-  async command void Alarm.set( uint16_t t0, uint16_t dt )
+  async event void MSP430Compare.fired()
+  {
+    call MSP430TimerControl.disableEvents();
+    signal Alarm.fired();
+  }
+
+  async command bool Alarm.isRunning()
+  {
+    return call MSP430TimerControl.areEventsEnabled();
+  }
+
+  async command void Alarm.start( uint16_t t0, uint16_t dt )
   {
     uint16_t now = call MSP430Timer.get();
     uint16_t elapsed = now - t0;
@@ -82,10 +83,14 @@ implementation
     call MSP430TimerControl.enableEvents();
   }
 
-  async event void MSP430Compare.fired()
+  async command uint16_t Alarm.getNow()
   {
-    call MSP430TimerControl.disableEvents();
-    signal Alarm.fired();
+    return call MSP430Timer.get();
+  }
+
+  async command uint16_t Alarm.getAlarm()
+  {
+    return call MSP430Compare.getEvent();
   }
 
   async event void MSP430Timer.overflow()
