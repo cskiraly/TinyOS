@@ -1,4 +1,4 @@
-//$Id: MSP430InterruptPort1M.nc,v 1.1.2.1 2005-03-15 23:26:48 jpolastre Exp $
+//$Id: MSP430InterruptPort1M.nc,v 1.1.2.2 2005-04-22 19:19:06 jpolastre Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -63,30 +63,30 @@ implementation
   default async event void Port15.fired() { call Port15.clear(); }
   default async event void Port16.fired() { call Port16.clear(); }
   default async event void Port17.fired() { call Port17.clear(); }
-  async command void Port10.enable() { atomic P1IE |= (1 << 0); }
-  async command void Port11.enable() { atomic P1IE |= (1 << 1); }
-  async command void Port12.enable() { atomic P1IE |= (1 << 2); }
-  async command void Port13.enable() { atomic P1IE |= (1 << 3); }
-  async command void Port14.enable() { atomic P1IE |= (1 << 4); }
-  async command void Port15.enable() { atomic P1IE |= (1 << 5); }
-  async command void Port16.enable() { atomic P1IE |= (1 << 6); }
-  async command void Port17.enable() { atomic P1IE |= (1 << 7); }
-  async command void Port10.disable() { atomic P1IE &= ~(1 << 0); }
-  async command void Port11.disable() { atomic P1IE &= ~(1 << 1); }
-  async command void Port12.disable() { atomic P1IE &= ~(1 << 2); }
-  async command void Port13.disable() { atomic P1IE &= ~(1 << 3); }
-  async command void Port14.disable() { atomic P1IE &= ~(1 << 4); }
-  async command void Port15.disable() { atomic P1IE &= ~(1 << 5); }
-  async command void Port16.disable() { atomic P1IE &= ~(1 << 6); }
-  async command void Port17.disable() { atomic P1IE &= ~(1 << 7); }
-  async command void Port10.clear() { atomic P1IFG &= ~(1 << 0); }
-  async command void Port11.clear() { atomic P1IFG &= ~(1 << 1); }
-  async command void Port12.clear() { atomic P1IFG &= ~(1 << 2); }
-  async command void Port13.clear() { atomic P1IFG &= ~(1 << 3); }
-  async command void Port14.clear() { atomic P1IFG &= ~(1 << 4); }
-  async command void Port15.clear() { atomic P1IFG &= ~(1 << 5); }
-  async command void Port16.clear() { atomic P1IFG &= ~(1 << 6); }
-  async command void Port17.clear() { atomic P1IFG &= ~(1 << 7); }
+  async command void Port10.enable() { P1IE |= (1 << 0); }
+  async command void Port11.enable() { P1IE |= (1 << 1); }
+  async command void Port12.enable() { P1IE |= (1 << 2); }
+  async command void Port13.enable() { P1IE |= (1 << 3); }
+  async command void Port14.enable() { P1IE |= (1 << 4); }
+  async command void Port15.enable() { P1IE |= (1 << 5); }
+  async command void Port16.enable() { P1IE |= (1 << 6); }
+  async command void Port17.enable() { P1IE |= (1 << 7); }
+  async command void Port10.disable() { P1IE &= ~(1 << 0); }
+  async command void Port11.disable() { P1IE &= ~(1 << 1); }
+  async command void Port12.disable() { P1IE &= ~(1 << 2); }
+  async command void Port13.disable() { P1IE &= ~(1 << 3); }
+  async command void Port14.disable() { P1IE &= ~(1 << 4); }
+  async command void Port15.disable() { P1IE &= ~(1 << 5); }
+  async command void Port16.disable() { P1IE &= ~(1 << 6); }
+  async command void Port17.disable() { P1IE &= ~(1 << 7); }
+  async command void Port10.clear() { P1IFG &= ~(1 << 0); }
+  async command void Port11.clear() { P1IFG &= ~(1 << 1); }
+  async command void Port12.clear() { P1IFG &= ~(1 << 2); }
+  async command void Port13.clear() { P1IFG &= ~(1 << 3); }
+  async command void Port14.clear() { P1IFG &= ~(1 << 4); }
+  async command void Port15.clear() { P1IFG &= ~(1 << 5); }
+  async command void Port16.clear() { P1IFG &= ~(1 << 6); }
+  async command void Port17.clear() { P1IFG &= ~(1 << 7); }
   async command bool Port10.getValue() { bool b; atomic b=(P1IN >> 0) & 1; return b; }
   async command bool Port11.getValue() { bool b; atomic b=(P1IN >> 1) & 1; return b; }
   async command bool Port12.getValue() { bool b; atomic b=(P1IN >> 2) & 1; return b; }
