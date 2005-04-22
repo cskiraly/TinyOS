@@ -1,4 +1,4 @@
-//$Id: AlarmTimerMilliC.nc,v 1.1.2.3 2005-04-22 06:08:40 cssharp Exp $
+//$Id: AlarmMilliC.nc,v 1.1.2.1 2005-04-22 06:08:40 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,19 +24,35 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-// AlarmTimerMilliC is the alarm to be used to multiplex into TimerMilliC.
-configuration AlarmTimerMilliC
+// Alarm32khzC is the alarm for async 32khz alarms
+generic configuration AlarmMilliC()
 {
   provides interface Init;
-  provides interface Alarm<TMilli> as AlarmTimerMilli;
-  provides interface AlarmBase<TMilli,uint32_t> as AlarmBaseTimerMilli;
+  provides interface Alarm<TMilli> as AlarmMilli;
+  provides interface AlarmBase<TMilli,uint32_t> as AlarmBaseMilli;
 }
 implementation
 {
-  components new AlarmMilliC();
+  components MSP430Timer32khzMapC as Map
+           , new MSP430AlarmM(T32khz) as MSP430Alarm
+           , new TransformAlarmM(TMilli,uint32_t,T32khz,uint16_t,5) as Transform
+           , new CastAlarmM(TMilli) as Cast
+	   , CounterMilliC as Counter
+           ;
 
-  Init = AlarmMilliC;
-  AlarmTimerMilli = AlarmMilliC;
-  AlarmBaseTimerMilli = AlarmMilliC;
+  enum { ALARM_ID = unique("MSP430Timer32khzMapC") };
+
+  Init = MSP430Alarm;
+
+  AlarmMilli = Cast;
+  AlarmBaseMilli = Transform;
+
+  Cast.AlarmFrom -> Transform;
+  Transform.AlarmFrom -> MSP430Alarm;
+  Transform.Counter -> Counter;
+
+  MSP430Alarm.MSP430Timer -> Map.MSP430Timer[ ALARM_ID ];
+  MSP430Alarm.MSP430TimerControl -> Map.MSP430TimerControl[ ALARM_ID ];
+  MSP430Alarm.MSP430Compare -> Map.MSP430Compare[ ALARM_ID ];
 }
 
