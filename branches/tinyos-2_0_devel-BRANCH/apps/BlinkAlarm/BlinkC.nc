@@ -1,15 +1,15 @@
-// $Id: BlinkC.nc,v 1.1.2.2 2005-02-26 02:34:35 cssharp Exp $
+// $Id: BlinkC.nc,v 1.1.2.3 2005-04-22 06:15:38 cssharp Exp $
 
 configuration BlinkC
 {
 }
 implementation
 {
-  components Main, BlinkM, LedsC, AlarmC;
+  components Main, BlinkM, LedsC, new AlarmMilliC() as AlarmC;
   BlinkM.Boot -> Main;
   Main.SoftwareInit -> LedsC;
   Main.SoftwareInit -> AlarmC;
   BlinkM.Leds -> LedsC;
-  BlinkM.Alarm -> AlarmC.AlarmTimerMilli;
+  BlinkM.Alarm -> AlarmC;
 }
 
