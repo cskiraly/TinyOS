@@ -1,4 +1,4 @@
-//$Id: MSP430InterruptPort2M.nc,v 1.1.2.1 2005-03-15 23:26:49 jpolastre Exp $
+//$Id: MSP430InterruptPort2M.nc,v 1.1.2.2 2005-04-22 19:19:06 jpolastre Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -61,30 +61,30 @@ implementation
   default async event void Port25.fired() { call Port25.clear(); }
   default async event void Port26.fired() { call Port26.clear(); }
   default async event void Port27.fired() { call Port27.clear(); }
-  async command void Port20.enable() { atomic P2IE |= (1 << 0); }
-  async command void Port21.enable() { atomic P2IE |= (1 << 1); }
-  async command void Port22.enable() { atomic P2IE |= (1 << 2); }
-  async command void Port23.enable() { atomic P2IE |= (1 << 3); }
-  async command void Port24.enable() { atomic P2IE |= (1 << 4); }
-  async command void Port25.enable() { atomic P2IE |= (1 << 5); }
-  async command void Port26.enable() { atomic P2IE |= (1 << 6); }
-  async command void Port27.enable() { atomic P2IE |= (1 << 7); }
-  async command void Port20.disable() { atomic P2IE &= ~(1 << 0); }
-  async command void Port21.disable() { atomic P2IE &= ~(1 << 1); }
-  async command void Port22.disable() { atomic P2IE &= ~(1 << 2); }
-  async command void Port23.disable() { atomic P2IE &= ~(1 << 3); }
-  async command void Port24.disable() { atomic P2IE &= ~(1 << 4); }
-  async command void Port25.disable() { atomic P2IE &= ~(1 << 5); }
-  async command void Port26.disable() { atomic P2IE &= ~(1 << 6); }
-  async command void Port27.disable() { atomic P2IE &= ~(1 << 7); }
-  async command void Port20.clear() { atomic P2IFG &= ~(1 << 0); }
-  async command void Port21.clear() { atomic P2IFG &= ~(1 << 1); }
-  async command void Port22.clear() { atomic P2IFG &= ~(1 << 2); }
-  async command void Port23.clear() { atomic P2IFG &= ~(1 << 3); }
-  async command void Port24.clear() { atomic P2IFG &= ~(1 << 4); }
-  async command void Port25.clear() { atomic P2IFG &= ~(1 << 5); }
-  async command void Port26.clear() { atomic P2IFG &= ~(1 << 6); }
-  async command void Port27.clear() { atomic P2IFG &= ~(1 << 7); }
+  async command void Port20.enable() { P2IE |= (1 << 0); }
+  async command void Port21.enable() { P2IE |= (1 << 1); }
+  async command void Port22.enable() { P2IE |= (1 << 2); }
+  async command void Port23.enable() { P2IE |= (1 << 3); }
+  async command void Port24.enable() { P2IE |= (1 << 4); }
+  async command void Port25.enable() { P2IE |= (1 << 5); }
+  async command void Port26.enable() { P2IE |= (1 << 6); }
+  async command void Port27.enable() { P2IE |= (1 << 7); }
+  async command void Port20.disable() { P2IE &= ~(1 << 0); }
+  async command void Port21.disable() { P2IE &= ~(1 << 1); }
+  async command void Port22.disable() { P2IE &= ~(1 << 2); }
+  async command void Port23.disable() { P2IE &= ~(1 << 3); }
+  async command void Port24.disable() { P2IE &= ~(1 << 4); }
+  async command void Port25.disable() { P2IE &= ~(1 << 5); }
+  async command void Port26.disable() { P2IE &= ~(1 << 6); }
+  async command void Port27.disable() { P2IE &= ~(1 << 7); }
+  async command void Port20.clear() { P2IFG &= ~(1 << 0); }
+  async command void Port21.clear() { P2IFG &= ~(1 << 1); }
+  async command void Port22.clear() { P2IFG &= ~(1 << 2); }
+  async command void Port23.clear() { P2IFG &= ~(1 << 3); }
+  async command void Port24.clear() { P2IFG &= ~(1 << 4); }
+  async command void Port25.clear() { P2IFG &= ~(1 << 5); }
+  async command void Port26.clear() { P2IFG &= ~(1 << 6); }
+  async command void Port27.clear() { P2IFG &= ~(1 << 7); }
   async command bool Port20.getValue() { bool b; atomic b=(P2IN >> 0) & 1; return b; }
   async command bool Port21.getValue() { bool b; atomic b=(P2IN >> 1) & 1; return b; }
   async command bool Port22.getValue() { bool b; atomic b=(P2IN >> 2) & 1; return b; }
