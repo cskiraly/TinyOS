@@ -1,4 +1,4 @@
-//$Id: TransformAlarmM.nc,v 1.1.2.3 2005-04-21 08:29:40 cssharp Exp $
+//$Id: TransformAlarmM.nc,v 1.1.2.4 2005-04-22 06:11:12 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -40,24 +40,24 @@ implementation
   to_size_type m_t0;
   to_size_type m_dt;
 
-  async command to_size_type Alarm.now()
+  async command to_size_type Alarm.getNow()
   {
     return call Counter.get();
   }
 
-  async command to_size_type Alarm.get()
+  async command to_size_type Alarm.getAlarm()
   {
     return m_t0 + m_dt;
   }
 
-  async command bool Alarm.isSet()
+  async command bool Alarm.isRunning()
   {
-    return call AlarmFrom.isSet();
+    return call AlarmFrom.isRunning();
   }
 
-  async command void Alarm.cancel()
+  async command void Alarm.stop()
   {
-    call AlarmFrom.cancel();
+    call AlarmFrom.stop();
   }
 
   void set_alarm()
@@ -69,7 +69,7 @@ implementation
     {
       m_t0 += m_dt;
       m_dt = 0;
-      call AlarmFrom.set( now_from, 0 );
+      call AlarmFrom.start( now_from, 0 );
     }
     else
     {
@@ -82,18 +82,18 @@ implementation
 	from_size_type delay_from = delay;
 	m_t0 = now + delay;
 	m_dt = remaining - delay;
-	call AlarmFrom.set( now_from, delay_from << bit_shift_right );
+	call AlarmFrom.start( now_from, delay_from << bit_shift_right );
       }
       else
       {
 	m_t0 += m_dt;
 	m_dt = 0;
-	call AlarmFrom.set( now_from, remaining_from << bit_shift_right );
+	call AlarmFrom.start( now_from, remaining_from << bit_shift_right );
       }
     }
   }
 
-  async command void Alarm.set( to_size_type t0, to_size_type dt )
+  async command void Alarm.start( to_size_type t0, to_size_type dt )
   {
     atomic
     {
@@ -101,6 +101,11 @@ implementation
       m_dt = dt;
       set_alarm();
     }
+  }
+
+  async command void Alarm.startNow( to_size_type dt )
+  {
+    call Alarm.start( call Alarm.getNow(), dt );
   }
 
   async event void AlarmFrom.fired()
