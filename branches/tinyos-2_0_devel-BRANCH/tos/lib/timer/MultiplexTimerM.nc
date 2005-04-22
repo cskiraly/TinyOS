@@ -1,4 +1,4 @@
-//$Id: MultiplexTimerM.nc,v 1.1.2.3 2005-04-21 07:44:32 cssharp Exp $
+//$Id: MultiplexTimerM.nc,v 1.1.2.4 2005-04-22 06:11:11 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -182,7 +182,7 @@ implementation
       {
 	size_type prev_then = then;
 	size_type elapsed_last_exec;
-	then = call AlarmFrom.now();
+	then = call AlarmFrom.getNow();
 	elapsed_last_exec = then - prev_then;
 	if( m_reprocess_timers )
 	{
@@ -198,7 +198,7 @@ implementation
 	  m_processing_timers = FALSE;
 	  reprocess_timers = FALSE;
 	  if( min_remaining_isset )
-	    call AlarmFrom.set( then, min_remaining - elapsed_last_exec );
+	    call AlarmFrom.start( then, min_remaining - elapsed_last_exec );
 	}
       }
     }
@@ -207,7 +207,7 @@ implementation
 
   async event void AlarmFrom.fired()
   {
-    executeTimers( call AlarmFrom.get() );
+    executeTimers( call AlarmFrom.getAlarm() );
   }
 
   void startTimer( uint8_t num, size_type t0, size_type dt, bool isperiodic )
@@ -221,17 +221,17 @@ implementation
       flags->isperiodic = isperiodic;
       insertTimer( num );
     }
-    executeTimers( call AlarmFrom.now() );
+    executeTimers( call AlarmFrom.getNow() );
   }
 
   async command void TimerAsyncBase.startPeriodicNow[ uint8_t num ]( size_type dt )
   {
-    return startTimer( num, call AlarmFrom.now(), dt, TRUE );
+    return startTimer( num, call AlarmFrom.getNow(), dt, TRUE );
   }
 
   async command void TimerAsyncBase.startOneShotNow[ uint8_t num ]( size_type dt )
   {
-    return startTimer( num, call AlarmFrom.now(), dt, FALSE );
+    return startTimer( num, call AlarmFrom.getNow(), dt, FALSE );
   }
 
   async command void TimerAsyncBase.stop[ uint8_t num ]()
@@ -262,7 +262,7 @@ implementation
 
   async command size_type TimerAsyncBase.getNow[ uint8_t num ]()
   {
-    return call AlarmFrom.now();
+    return call AlarmFrom.getNow();
   }
 
   async command size_type TimerAsyncBase.gett0[ uint8_t num ]()

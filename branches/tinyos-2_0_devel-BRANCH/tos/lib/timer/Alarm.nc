@@ -1,4 +1,4 @@
-//$Id: Alarm.nc,v 1.1.2.1 2005-03-30 17:54:52 cssharp Exp $
+//$Id: Alarm.nc,v 1.1.2.2 2005-04-22 06:11:07 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -28,11 +28,15 @@ includes Timer;
 
 interface Alarm<frequency_tag>
 {
-  async command uint32_t now();
-  async command uint32_t get();
-  async command bool isSet();
-  async command void cancel();
-  async command void set( uint32_t t0, uint32_t dt );
+  // basic interface
+  async command void startNow( uint32_t dt );
+  async command void stop();
   async event void fired();
+
+  // extended interface
+  async command bool isRunning();
+  async command void start( uint32_t t0, uint32_t dt );
+  async command uint32_t getNow();
+  async command uint32_t getAlarm();
 }
 

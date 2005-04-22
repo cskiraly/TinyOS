@@ -1,4 +1,4 @@
-//$Id: SyncAlarmM.nc,v 1.1.2.3 2005-04-16 06:19:13 cssharp Exp $
+//$Id: SyncAlarmM.nc,v 1.1.2.4 2005-04-22 06:11:11 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -34,39 +34,48 @@ generic module SyncAlarmM( typedef frequency_tag, typedef size_type @integer() )
 }
 implementation
 {
-  async command size_type AlarmBase.now()
+  async command void AlarmBase.startNow( size_type dt )
   {
-    return call AlarmBaseFrom.now();
+    return call AlarmBaseFrom.startNow(dt);
   }
 
-  async command size_type AlarmBase.get()
+  async command void AlarmBase.stop()
   {
-    return call AlarmBaseFrom.get();
+    return call AlarmBaseFrom.stop();
   }
 
-  async command bool AlarmBase.isSet()
-  {
-    return call AlarmBaseFrom.isSet();
-  }
-
-  async command void AlarmBase.cancel()
-  {
-    call AlarmBaseFrom.cancel();
-  }
-
-  async command void AlarmBase.set( size_type t0, size_type dt )
-  {
-    call AlarmBaseFrom.set( t0, dt );
-  }
-
-  task void fireAlarm()
+  task void fireAlarmBase()
   {
     signal AlarmBase.fired();
   }
 
   async event void AlarmBaseFrom.fired()
   {
-    post fireAlarm();
+    post fireAlarmBase();
+  }
+
+  default async event void AlarmBase.fired()
+  {
+  }
+
+  async command bool AlarmBase.isRunning()
+  {
+    return call AlarmBaseFrom.isRunning();
+  }
+
+  async command void AlarmBase.start( size_type t0, size_type dt )
+  {
+    return call AlarmBaseFrom.start(t0,dt);
+  }
+
+  async command size_type AlarmBase.getNow()
+  {
+    return call AlarmBaseFrom.getNow();
+  }
+
+  async command size_type AlarmBase.getAlarm()
+  {
+    return call AlarmBaseFrom.getAlarm();
   }
 }
 
