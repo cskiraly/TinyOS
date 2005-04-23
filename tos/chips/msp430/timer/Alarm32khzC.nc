@@ -1,4 +1,4 @@
-//$Id: Alarm32khzC.nc,v 1.1.2.1 2005-04-22 06:08:40 cssharp Exp $
+//$Id: Alarm32khzC.nc,v 1.1.2.2 2005-04-23 20:04:01 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -33,14 +33,12 @@ generic configuration Alarm32khzC()
 }
 implementation
 {
-  components MSP430Timer32khzMapC as Map
+  components new MSP430Timer32khzC() as MSP430Timer
            , new MSP430AlarmM(T32khz) as MSP430Alarm
            , new TransformAlarmM(T32khz,uint32_t,T32khz,uint16_t,0) as Transform
            , new CastAlarmM(T32khz) as Cast
 	   , Counter32khzC as Counter
            ;
-
-  enum { ALARM_ID = unique("MSP430Timer32khzMapC") };
 
   Init = MSP430Alarm;
 
@@ -51,8 +49,8 @@ implementation
   Transform.AlarmFrom -> MSP430Alarm;
   Transform.Counter -> Counter;
 
-  MSP430Alarm.MSP430Timer -> Map.MSP430Timer[ ALARM_ID ];
-  MSP430Alarm.MSP430TimerControl -> Map.MSP430TimerControl[ ALARM_ID ];
-  MSP430Alarm.MSP430Compare -> Map.MSP430Compare[ ALARM_ID ];
+  MSP430Alarm.MSP430Timer -> MSP430Timer;
+  MSP430Alarm.MSP430TimerControl -> MSP430Timer;
+  MSP430Alarm.MSP430Compare -> MSP430Timer;
 }
 
