@@ -1,4 +1,4 @@
-/// $Id: HALAlarmM.nc,v 1.1.2.3 2005-04-18 08:18:31 mturon Exp $
+/// $Id: HALAlarmM.nc,v 1.1.2.4 2005-04-23 19:35:34 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -48,23 +48,28 @@ implementation
       return SUCCESS;
   }
   
-  async command timer_size Alarm.now() {
+  async command timer_size Alarm.getNow() {
       return call HPLTimer.get();
   }
 
-  async command timer_size Alarm.get() {
+  async command timer_size Alarm.getAlarm() {
       return call HPLCompare.get();
   }
 
-  async command bool Alarm.isSet() {
+  async command bool Alarm.isRunning() {
       return call HPLCompare.isOn();
   }
 
-  async command void Alarm.cancel() {
+  async command void Alarm.stop() {
       call HPLCompare.stop();
   }
 
-  async command void Alarm.set( timer_size t0, timer_size dt ) 
+  async command void Alarm.startNow( timer_size dt ) 
+  {
+      call Alarm.start( call HPLTimer.get(), dt);
+  }
+
+  async command void Alarm.start( timer_size t0, timer_size dt ) 
   {
       timer_size now = call HPLTimer.get();
       timer_size elapsed = now - t0;
