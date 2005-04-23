@@ -1,4 +1,4 @@
-// $Id: PlatformLeds.nc,v 1.1.2.2 2005-03-21 19:34:46 scipio Exp $
+// $Id: PlatformLeds.nc,v 1.1.2.3 2005-04-23 20:26:04 cssharp Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -40,14 +40,14 @@ implementation
     , new GeneralIOM() as Led2Impl
     ;
 
-  Led0 = Led0Impl.IO;
-  Led0Impl.MSPIO -> MSP430GeneralIOC.Port54;
+  Led0 = Led0Impl;
+  Led0Impl -> MSP430GeneralIOC.Port54;
 
-  Led1 = Led1Impl.IO;
-  Led1Impl.MSPIO -> MSP430GeneralIOC.Port55;
+  Led1 = Led1Impl;
+  Led1Impl -> MSP430GeneralIOC.Port55;
 
-  Led2 = Led2Impl.IO;
-  Led2Impl.MSPIO -> MSP430GeneralIOC.Port56;
+  Led2 = Led2Impl;
+  Led2Impl -> MSP430GeneralIOC.Port56;
 
 }
 
