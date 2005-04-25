@@ -25,17 +25,20 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * - Description ----------------------------------------------------------
- * Resource Arbiter Test Application
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-04-21 19:55:30 $
- * @author Kevin Klues
- * ========================================================================
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-04-25 18:46:34 $ 
+ * ======================================================================== 
  */
  
-includes Timer; 
+ /**
+ * TestArbiter Application  
+ * This application is used to test the functionality of the arbiter 
+ * components developed using the Resource and ResourceUser uinterfaces
+ *
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
+ */
+ 
 #define TEST_ARBITER_RESOURCE   "Test.Arbiter.Resource"
 configuration TestArbiterC{
 }
@@ -43,6 +46,7 @@ implementation {
   components Main
      , TestArbiterM
      , new RoundRobinArbiter( uniqueCount(TEST_ARBITER_RESOURCE) ) as Arbiter   
+     //, new StandardArbiter( uniqueCount(TEST_ARBITER_RESOURCE) ) as Arbiter   
      , LedsC
      ;
 
