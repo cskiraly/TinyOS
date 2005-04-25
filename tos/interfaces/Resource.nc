@@ -25,23 +25,32 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * - Description ----------------------------------------------------------
- * ResourceUser interface
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-04-21 19:48:30 $
- * @author Kevin Klues
- * ========================================================================
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-04-25 18:40:49 $ 
+ * ======================================================================== 
+ */
+ 
+ /**
+ * Resource interface.  
+ * This interface is to be used by components for providing access to 
+ * shared resources.  A component wishing to arbitrate the use of a shared 
+ * resource should implement this interface in conjunction with the 
+ * ResourceUser interface.
+ *
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
 interface Resource {
   /**
    * Request access to a shared resource. You must call release()
    * when you are done with it.
-   * @return SUCCESS You have the resource.
-   *         EBUSY The resource is busy. The granted() event will
-   *               be signaled when you have the resource.
+   * @return SUCCESS You have gained access to the resource.
+   *         EBUSY   The resource is busy. The current owner of 
+   *                 the bus will receive the requested() event
+   *         FAIL    The resource could not be allocated.  There
+   *                 is no current owner, but for some reason
+   *                 the resource could not be given to you.
    */
   async command error_t request();
   

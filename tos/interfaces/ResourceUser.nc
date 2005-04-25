@@ -26,25 +26,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Description ----------------------------------------------------------
- * ResourceUser interface
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-04-21 19:48:30 $
- * @author Kevin Klues
- * ========================================================================
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-04-25 18:40:49 $ 
+ * ======================================================================== 
+ */
+ 
+ /**
+ * ResourceUser interface.  
+ * This interface is to be used for seeing if a resource protected by the
+ * Resource interface is currently allocated to anyone. This interface
+ * should only be implemented in conjunction with a paramaterized 
+ * implementation of the Resource interface.
+ *
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
 interface ResourceUser {
   /**
-   * Check whether resource is allocated.
-   * @returns TRUE if the resource is currently allocated, FALSE otherwise.
+   * Check whether the resource is currently allocated.
+   *
+   * @returns TRUE  If the resource is currently allocated
+   *          FALSE Otherwise.
    */
   command bool inUse();
 
   /**
-   * Return id of client currently using the resource. Meaningless if
-   * inUse() returns FALSE.
+   * Get the id of the client currently using the resource.
+   * 
+   * @return id of the current owner of the resource
+   *         0xFF if no one currently owns the resource
    */
   command uint8_t user();
 }
