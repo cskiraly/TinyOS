@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-04-25 18:46:34 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-04-27 17:07:21 $ 
  * ======================================================================== 
  */
  
@@ -46,7 +46,7 @@ implementation {
   components Main
      , TestArbiterM
      , new RoundRobinArbiter( uniqueCount(TEST_ARBITER_RESOURCE) ) as Arbiter   
-     //, new StandardArbiter( uniqueCount(TEST_ARBITER_RESOURCE) ) as Arbiter   
+     //, new FCFSArbiter( uniqueCount(TEST_ARBITER_RESOURCE) ) as Arbiter   
      , LedsC
      ;
 

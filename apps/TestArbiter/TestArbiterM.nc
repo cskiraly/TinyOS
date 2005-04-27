@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-04-27 14:34:54 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-04-27 17:07:21 $ 
  * ======================================================================== 
  */
  
@@ -63,16 +63,16 @@ implementation {
   //All resources try to gain access
   event void Boot.booted() {
     call Resource0.request();
-    call Resource1.request();
     call Resource2.request();
+    call Resource1.request();
   }
   
   //If granted the resource, turn on an LED  
   event void Resource0.granted() {
-    call Leds.led0Toggle();  
+    call Leds.led0Toggle();      
   }  
   event void Resource1.granted() {
-    call Leds.led1Toggle();  
+    call Leds.led1Toggle();     
   }  
   event void Resource2.granted() {
     call Leds.led2Toggle();  
@@ -84,22 +84,16 @@ implementation {
     call Resource0.release();
     delay();
     call Resource0.request();
-    call Resource1.request();
-    call Resource2.request();
   }
   event void Resource1.requested() {
-    call Resource1.release();
+    call Resource1.release();  
     delay();
-    call Resource0.request();
-    call Resource1.request();
-    call Resource2.request();    
+    call Resource1.request();     
   }  
   event void Resource2.requested() {
-    call Resource2.release();
+    call Resource2.release();  
     delay();
-    call Resource0.request();
-    call Resource1.request();
-    call Resource2.request();    
+    call Resource2.request();      
   }
 }
 
