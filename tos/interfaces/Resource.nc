@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-04-25 18:40:49 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-04-27 14:27:41 $ 
  * ======================================================================== 
  */
  
@@ -48,9 +48,6 @@ interface Resource {
    * @return SUCCESS You have gained access to the resource.
    *         EBUSY   The resource is busy. The current owner of 
    *                 the bus will receive the requested() event
-   *         FAIL    The resource could not be allocated.  There
-   *                 is no current owner, but for some reason
-   *                 the resource could not be given to you.
    */
   async command error_t request();
   
@@ -69,9 +66,4 @@ interface Resource {
    * Release a shared resource you previously acquired.
    */
   async command void release();
-  
-  /**
-   * Notification of a shared resource being released
-   */
-  event void released();  
 }
