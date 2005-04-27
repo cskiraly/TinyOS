@@ -26,26 +26,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2005-04-27 17:06:11 $ 
  * ======================================================================== 
  */
  
  /**
- * RoundRobinArbiter generic module
- * The RoundRobinArbiter component provides the Resource and ResourceUser 
- * interfaces.  It provides arbitration to a shared resource in a round 
- * robin fashion.  An array keeps track of which users have put in 
+ * FCFSArbiter generic module
+ * The FCFSArbiter component provides the Resource and ResourceUser 
+ * interfaces.  It provides arbitration to a shared resource on a first 
+ * first served basis.  An array keeps track of which users have put in 
  * requests for the resource.  Upon the release of the resource, this
- * array is checked and the next user (in round robin order) that has 
+ * array is checked and the next user (in FCFS order) that has 
  * a pending request will ge granted the resource.  If there are no 
  * pending reequests, then the resource is released and any user can 
  * put in a request and immediately receive access to the bus.
+ *
+ * The code for implementing the FCFS scheme has been borrowed from the 
+ * SchedulerBasic component written by Philip Levis and Cory Sharp
  * 
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  */
  
-generic module RoundRobinArbiter(uint8_t numUsers) {
+generic module FCFSArbiter(uint8_t numUsers) {
   provides {
     interface Init;
     interface Resource[uint8_t id];
@@ -56,13 +59,15 @@ implementation {
 
   uint8_t state;
   uint8_t resId;
-  uint8_t request[(numUsers-1)/8 + 1];
+  uint8_t resQ[numUsers];
+  uint8_t qHead;
+  uint8_t qTail;
   enum {RES_IDLE, RES_BUSY};
   enum {NO_RES = 0xFF};
   
   task void GrantedTask();
   task void RequestedTask();
-  bool QueueRequest(uint8_t id);  
+  bool QueueRequest(uint8_t id);
   bool GrantNextRequest();
   
   /**  
@@ -70,7 +75,11 @@ implementation {
   */
   command error_t Init.init() {
     state = RES_IDLE;
-    resId = 0xFF;
+    resId = NO_RES;
+    
+    memset(resQ, NO_RES, sizeof(resQ));
+    qHead = NO_RES;
+    qTail = NO_RES;
     return SUCCESS;
   }  
   
@@ -82,10 +91,10 @@ implementation {
     will receive the granted() event in a synchronous context.
     
     If the resource is busy, the request will be queued and 
-    then served in a round robin fashion based on requests from
-    other users.  The current owner of the bus will receive a 
-    requested() event, notifying him that another user would 
-    like to have access to the resource.
+    then served in a first come first serve fashion, based on 
+    requests from other users.  The current owner of the 
+    resource will receive a requested() event, notifying him 
+    that another user would like to have access to the resource.
     An EBUSY event will be returned to the caller.
   */
   async command error_t Resource.request[uint8_t id]() {
@@ -112,10 +121,11 @@ implementation {
     The resource will only actually be released if
     there are no pending requests for the resource.
     If requests are pending, then the next pending request
-    will be serviced, according to a round robin arbitration
-    scheme.  If no requests are currently pending, then the
-    resource is released, and any users can put in a request
-    for immediate access to the resource.
+    will be serviced, according to a Fist come first serve
+    arbitration scheme.  If no requests are currently 
+    pending, then the resource is released, and any 
+    users can put in a request for immediate access to 
+    the resource.
   */
   async command void Resource.release[uint8_t id]() {
     if ((state != RES_BUSY) || (resId != id))
@@ -146,35 +156,38 @@ implementation {
   }
   
   //Grant a request to the next Pending user
-    //in Round-Robin order
+    //in FCFS order
   bool GrantNextRequest() {
-    int i;
-    for(i=resId+1; i<numUsers; i++) {
-      if((request[i/8] & (1 << (i % 8))) > 0) {
-        request[resId/8] = request[resId/8] & ~(1 << (resId % 8));
-        resId = i;
-        post GrantedTask();
-        return SUCCESS;
-      }  
+    if(qHead != NO_RES) {
+      uint8_t id = qHead;
+      qHead = resQ[qHead];
+      if(qHead == NO_RES)
+        qTail = NO_RES;
+      resQ[id] = NO_RES;
+      resId = id;
+      post GrantedTask();
+      return SUCCESS;
     }
-    for(i=0; i<=resId; i++) {
-      if((request[i/8] & (1 << (i % 8))) > 0) {
-        request[resId/8] = request[resId/8] & ~(1 << (resId % 8));
-        resId = i;
-        post GrantedTask();
-        return SUCCESS;
-      }
+    else {
+      return FAIL;
     }
-    return FAIL;
   }
   
   //Queue the requests so that they can be granted
-    //in Round-Robin order after release of the resource  
-  bool QueueRequest(uint8_t id) {
-    if((request[id/8] & (1 << (id % 8))) > 0)
-      return FAIL;
-    request[id/8] = request[id/8] | (1 << (id % 8));
-    return SUCCESS;
+    //in FCFS order after release of the resource
+    bool QueueRequest(uint8_t id) {
+    if((resQ[id] == NO_RES) || (qTail != id)) {
+      if(qHead == NO_RES ) {
+        qHead = id;
+        qTail = id;
+      }
+      else {
+        resQ[qTail] = id;
+        qTail = id;
+      }
+      return SUCCESS;
+    }
+    return FAIL;
   }
   
   //Task for pulling the Resource.granted() signal
