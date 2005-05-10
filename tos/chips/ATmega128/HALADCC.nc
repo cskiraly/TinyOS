@@ -1,4 +1,4 @@
-/// $Id: HALADCC.nc,v 1.1.2.1 2005-03-24 08:47:40 husq Exp $
+/// $Id: HALADCC.nc,v 1.1.2.2 2005-05-10 18:28:24 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -20,26 +20,42 @@
  * ON AN "AS IS" BASIS, AND NEITHER CROSSBOW NOR ANY LICENSOR HAS ANY 
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR 
  * MODIFICATIONS.
+ *
+ * Copyright (c) 2005 Intel Corporation
+ * All rights reserved.
+ *
+ * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * file. If you do not find these files, copies can be found by writing to
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * 94704.  Attention:  Intel License Inquiry.
+ */
+/**
+ * @author Hu Siquan <husq@xbow.com>
+ * @author David Gay
  */
 
-/// @author Hu Siquan <husq@xbow.com>
+#include "ADC.h"
 
 configuration HALADCC
 {
   provides {
-    interface ATm128ADC[uint8_t port];
+    interface Init;
     interface StdControl;
+    interface Resource[uint8_t client];
+    interface ATm128ADC[uint8_t port];
   }
 }
 implementation
 {
-  components Main, HALADCM, HPLADCM;
+  components Main, HALADCM, HPLADCM,
+    new RoundRobinArbiter(uniqueCount(ADC_RESOURCE)) as ADCArbiter;
 
-  ATm128ADC = HALADCM.ATm128ADC;
+  Init = HALADCM;
+  Init = ADCArbiter;
   StdControl = HALADCM;
 
+  Resource = ADCArbiter;
+  ATm128ADC = HALADCM.ATm128ADC;
+
   HALADCM.HPLADC -> HPLADCM;
-
 }
-
-
