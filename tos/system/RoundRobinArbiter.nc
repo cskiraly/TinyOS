@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2005-04-27 17:06:11 $ 
+ * $Revision: 1.1.2.6 $
+ * $Date: 2005-05-10 21:03:56 $ 
  * ======================================================================== 
  */
  
@@ -118,13 +118,16 @@ implementation {
     for immediate access to the resource.
   */
   async command void Resource.release[uint8_t id]() {
-    if ((state != RES_BUSY) || (resId != id))
-      return;
+    atomic
+      {
+	if ((state != RES_BUSY) || (resId != id))
+	  return;
       
-    if(GrantNextRequest() == FAIL) {
-      state = RES_IDLE;
-      resId = NO_RES;
-    }
+	if(GrantNextRequest() == FAIL) {
+	  state = RES_IDLE;
+	  resId = NO_RES;
+	}
+      }
   }
     
   /**
@@ -171,9 +174,12 @@ implementation {
   //Queue the requests so that they can be granted
     //in Round-Robin order after release of the resource  
   bool QueueRequest(uint8_t id) {
-    if((request[id/8] & (1 << (id % 8))) > 0)
-      return FAIL;
-    request[id/8] = request[id/8] | (1 << (id % 8));
+    atomic
+      {
+	if((request[id/8] & (1 << (id % 8))) > 0)
+	  return FAIL;
+	request[id/8] = request[id/8] | (1 << (id % 8));
+      }
     return SUCCESS;
   }
   
