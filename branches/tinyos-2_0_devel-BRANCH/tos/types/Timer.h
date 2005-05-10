@@ -1,4 +1,4 @@
-//$Id: Timer.h,v 1.1.2.3 2005-02-10 01:29:50 scipio Exp $
+//$Id: Timer.h,v 1.1.2.4 2005-05-10 18:05:32 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -23,6 +23,8 @@
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
 // The TinyOS Timer structures are discussed in TEP 102.
+#ifndef TIMER_H
+#define TIMER_H
 
 typedef struct { } TMilli;
 typedef struct { } T32khz;
@@ -35,3 +37,4 @@ typedef struct
   bool overflow;
 } stopwatch_t;
 
+#endif
