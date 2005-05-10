@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.1 2005-04-18 01:49:10 mturon Exp $
+ *  $Id: hardware.h,v 1.1.2.2 2005-05-10 18:13:46 idgay Exp $
  */
 
 #ifndef TOSH_HARDWARE_H
@@ -47,13 +47,6 @@
 
 #define TOSH_NEW_AVRLIBC // mica128 requires avrlibc v. 20021209 or greater
 #include <atmega128hardware.h>
-
-// avrlibc may define ADC as a 16-bit register read.  
-// This collides with the nesc ADC interface name
-uint16_t inline getADC() {
-  return inw(ADC);
-}
-#undef ADC
 
 // LED assignments
 TOSH_ASSIGN_PIN(RED_LED, A, 2);
@@ -111,6 +104,15 @@ TOSH_ASSIGN_PIN(UART_RXD1, D, 2);
 TOSH_ASSIGN_PIN(UART_TXD1, D, 3);
 TOSH_ASSIGN_PIN(UART_XCK1, D, 5);
 
+// A/D channels
+enum {
+  CHANNEL_RSSI       = 0,
+  CHANNEL_THERMISTOR = 1,    // normally unpopulated
+  CHANNEL_BATTERY    = 7,
+  CHANNEL_BANDGAP    = 30,   // 1.23V Fixed bandgap reference
+  CHANNEL_GND        = 31
+};
+
 void TOSH_SET_PIN_DIRECTIONS(void)
 {
     TOSH_MAKE_CC_CHP_OUT_INPUT();	// modified for mica2 series
@@ -150,8 +152,18 @@ enum
     TOS_ADC_GND_PORT     = 11
 };
 
+void inline uwait(int u_sec) {
+    while (u_sec > 0) {
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      u_sec--;
+    }
+}
+
 #endif //TOSH_HARDWARE_H
-
-
-
-

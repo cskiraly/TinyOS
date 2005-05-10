@@ -1,4 +1,4 @@
-// $Id: HPLGeneralIO.nc,v 1.1.2.1 2005-03-17 16:26:08 mturon Exp $
+// $Id: HPLGeneralIO.nc,v 1.1.2.2 2005-05-10 18:13:40 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -92,19 +92,19 @@ configuration HPLGeneralIO
 implementation
 {
   components 
-    new HPLGeneralIOPort(PORTA, DDRA) as PortA,
-    new HPLGeneralIOPort(PORTB, DDRB) as PortB,
-    new HPLGeneralIOPort(PORTC, DDRC) as PortC,
-    new HPLGeneralIOPort(PORTD, DDRD) as PortD,
-    new HPLGeneralIOPort(PORTE, DDRE) as PortE,
-    new HPLGeneralIOPort(PORTF, DDRF) as PortF,
+    new HPLGeneralIOPort((uint8_t)&PORTA, (uint8_t)&DDRA) as PortA,
+    new HPLGeneralIOPort((uint8_t)&PORTB, (uint8_t)&DDRB) as PortB,
+    new HPLGeneralIOPort((uint8_t)&PORTC, (uint8_t)&DDRC) as PortC,
+    new HPLGeneralIOPort((uint8_t)&PORTD, (uint8_t)&DDRD) as PortD,
+    new HPLGeneralIOPort((uint8_t)&PORTE, (uint8_t)&DDRE) as PortE,
+    new HPLGeneralIOPort((uint8_t)&PORTF, (uint8_t)&DDRF) as PortF,
 
     // PortG only exposes 5 bits...
-    new HPLGeneralIOPinM(PORTG, DDRG, 0) as G0,
-    new HPLGeneralIOPinM(PORTG, DDRG, 1) as G1,
-    new HPLGeneralIOPinM(PORTG, DDRG, 2) as G2,
-    new HPLGeneralIOPinM(PORTG, DDRG, 3) as G3,
-    new HPLGeneralIOPinM(PORTG, DDRG, 4) as G4
+    new HPLGeneralIOPinM((uint8_t)&PORTG, (uint8_t)&DDRG, 0) as G0,
+    new HPLGeneralIOPinM((uint8_t)&PORTG, (uint8_t)&DDRG, 1) as G1,
+    new HPLGeneralIOPinM((uint8_t)&PORTG, (uint8_t)&DDRG, 2) as G2,
+    new HPLGeneralIOPinM((uint8_t)&PORTG, (uint8_t)&DDRG, 3) as G3,
+    new HPLGeneralIOPinM((uint8_t)&PORTG, (uint8_t)&DDRG, 4) as G4
     ;
 
   PortA0 = PortA.Pin0;

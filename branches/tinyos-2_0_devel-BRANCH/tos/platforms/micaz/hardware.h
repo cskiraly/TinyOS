@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.3 2005-04-14 08:20:46 mturon Exp $
+ *  $Id: hardware.h,v 1.1.2.4 2005-05-10 18:13:46 idgay Exp $
  */
 
 #ifndef TOSH_HARDWARE_H
@@ -47,13 +47,6 @@
 
 #define TOSH_NEW_AVRLIBC // mica128 requires avrlibc v. 20021209 or greater
 #include <atmega128hardware.h>
-
-// avrlibc may define ADC as a 16-bit register read.  
-// This collides with the nesc ADC interface name
-uint16_t inline getADC() {
-  return inw(ADC);
-}
-#undef ADC
 
 // LED assignments
 TOSH_ASSIGN_PIN(RED_LED, A, 2);
@@ -72,11 +65,11 @@ TOSH_ASSIGN_PIN(THERM_PWR, A, 7);
 #define CC2420_FIFOP_INT_DISABLE() cbi(EIMSK , INT6)
 #define CC2420_FIFOP_INT_CLEAR()   sbi(EIFR, INTF6)
 void inline CC2420_FIFOP_INT_MODE(bool LowToHigh) {
-    sbi(EICRB,ISC61);		// edge mode
+    SET_FLAG(EICRB,ISC61);		// edge mode
     if( LowToHigh)
-	sbi(EICRB,ISC60);       // trigger on rising level
+	SET_FLAG(EICRB,ISC60);       // trigger on rising level
     else
-	cbi(EICRB,ISC60);       // trigger on falling level
+	CLR_FLAG(EICRB,ISC60);       // trigger on falling level
 }
 
 
