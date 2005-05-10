@@ -1,3 +1,21 @@
+/* $Id: atmega128const.h,v 1.1.2.2 2005-05-10 18:17:40 idgay Exp $
+ * Copyright (c) 2005 Intel Corporation
+ * All rights reserved.
+ *
+ * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * file. If you do not find these files, copies can be found by writing to
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * 94704.  Attention:  Intel License Inquiry.
+ */
+/**
+ * const_[u]int[8/16/32]_t types are used to declare single and array
+ * constants that should live in ROM/FLASH. These constants must be read
+ * via the corresponding read_[u]int[8/16/32]_t functions.
+ * 
+ * This file defines the ATmega128 version of these types and functions.
+ * @author David Gay
+ */
+
 #ifndef ATMEGA128CONST_H
 #define ATMEGA128CONST_H
 
