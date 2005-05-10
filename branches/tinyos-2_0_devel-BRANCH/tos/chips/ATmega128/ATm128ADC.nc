@@ -1,4 +1,4 @@
-/// $Id: ATm128ADC.nc,v 1.1.2.3 2005-03-24 08:47:40 husq Exp $
+/// $Id: ATm128ADC.nc,v 1.1.2.4 2005-05-10 18:28:23 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -35,7 +35,7 @@ interface ATm128ADC
    *
    * @return SUCCESS if the ADC is free and available to accept the request
    */
-  async command result_t getData();
+  async command error_t getData();
   
   /**
    * Initiates a series of ADC conversions in free running mode. If return SUCCESS from 
@@ -43,29 +43,8 @@ interface ATm128ADC
    *
    * @return SUCCESS if the ADC is free and available to accept the request
    */	
-  async command result_t getContinuousData();
+  async command error_t getContinuousData();
 
-  /**
-    * Reserves the ADC for one single conversion or free running conversions.  
-    * If this call succeeds the next call to <code>getData</code> or 
-    * <code>getContinuousData/code> will also succeed and the corresponding 
-    * conversion will then be started with a minimum latency. Until then all 
-    * other commands will fail.
-    *
-    * @return SUCCESS reservation successful
-    * FAIL otherwise 
-    */
-  async command result_t reserveADC();
-
-  /**
-    * Cancels the reservation made by <code>reserve</code> or
-    * <code>reserveContinuous</code>.
-    *
-    * @return SUCCESS un-reservation successful
-    * FAIL no reservation active 
-    */
-  async command result_t unreserve();
-  
   /**
    * Indicates a sample has been recorded by the ADC as the result
    * of a <code>getData()</code> command.
@@ -76,5 +55,5 @@ interface ATm128ADC
    * @return FAIL will stop future continuous sampling.
    * if not in continuous mode, the return code is ignored.
    */	
-  async event result_t dataReady(uint16_t data);
+  async event error_t dataReady(uint16_t data);
 }
