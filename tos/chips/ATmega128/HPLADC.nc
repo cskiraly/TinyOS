@@ -1,4 +1,4 @@
-/// $Id: HPLADC.nc,v 1.1.2.1 2005-03-24 08:47:40 husq Exp $
+/// $Id: HPLADC.nc,v 1.1.2.2 2005-05-10 18:21:07 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -45,8 +45,8 @@ interface HPLADC
   async command void disableADC();        //<! Disable ADC sampling
   async command void startConversion();          //<! Start ADC conversion
   async command void stopConversion();           //<! Stop ADC conversion
-  async command void enableInterruption()        //<! Enable ADC Interruption
-  async command void disableInterruption()       //<! Disable ADC Interruption
+  async command void enableInterruption();        //<! Enable ADC Interruption
+  async command void disableInterruption();       //<! Disable ADC Interruption
   async command void setContinuous();  //<! Enable continuous sampling
   async command void setSingle();      //<! Disable continuous sampling
   async command void reset();          //<! Clear the ADC interrupt flag
@@ -57,8 +57,6 @@ interface HPLADC
 
   /**
    * Signaled when a data ready is ready.
-   *
-   * @return SUCCESS always.
    */
-  async event result_t dataReady(uint16_t data);     
+  async event void dataReady(uint16_t data);     
 }

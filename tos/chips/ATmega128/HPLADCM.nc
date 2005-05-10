@@ -1,4 +1,4 @@
-/// $Id: HPLADCM.nc,v 1.1.2.3 2005-03-24 08:47:40 husq Exp $
+/// $Id: HPLADCM.nc,v 1.1.2.4 2005-05-10 18:21:07 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -25,74 +25,72 @@
 /// @author Martin Turon <mturon@xbow.com>
 /// @author Hu Siquan <husq@xbow.com>
 
+#include "ATm128ADC.h"
+
 module HPLADCM {
-  provides {
-    interface HPLADC as ADC;
-  }
+  provides interface HPLADC;
 }
 implementation
 {
 
   //=== Direct read of HW registers. =================================
-  async command ATm128ADCSelection_t ADC.getSelection() { 
-      return *(ATm128ADCSelection_t*)&__inb_atomic(ADMUX); 
+  async command ATm128ADCSelection_t HPLADC.getSelection() { 
+      return *(ATm128ADCSelection_t*)&ADMUX; 
   }
-  async command ATm128ADCControl_t ADC.getControl() { 
-      return *(ATm128ADCControl_t*)&__inb_atomic(ADCSR); 
+  async command ATm128ADCControl_t HPLADC.getControl() { 
+      return *(ATm128ADCControl_t*)&ADCSR; 
   }
-  async command uint16_t ADC.getValue() { 
-      return inw(ADCL); 
+  async command uint16_t HPLADC.getValue() { 
+      return ADC; 
   }
 
   DEFINE_UNION_CAST(ADCSelection2int, ATm128ADCSelection_t, uint8_t);
   DEFINE_UNION_CAST(ADCControl2int, ATm128ADCControl_t, uint8_t);
 
   //=== Direct write of HW registers. ================================
-  async command void ADC.setSelection( ATm128ADCSelection_t x ) { 
-      //ADMUX = ADCSelection2int(x); 
-      outp(ADCSelection2int(x),ADMUX);
+  async command void HPLADC.setSelection( ATm128ADCSelection_t x ) { 
+      ADMUX = ADCSelection2int(x); 
   }
-  async command void ADC.setControl( ATm128ADCControl_t x ) { 
-      //ADCSR = ADCControl2int(x); 
-      outp(ADCControl2int(x),ADCSR);
+  async command void HPLADC.setControl( ATm128ADCControl_t x ) { 
+      ADCSR = ADCControl2int(x); 
   }
 
-  async command void setPrescaler(uint8_t scale){
+  async command void HPLADC.setPrescaler(uint8_t scale){
     ATm128ADCControl_t  current_val = call HPLADC.getControl(); 
     current_val.adps = scale;
-    call ADC.setControl(current_val);
+    call HPLADC.setControl(current_val);
   }
 
   // power management routine should call following commands 
-  async command void enableADC()        { sbi(ADCSR, ADEN); }
-  async command void disableADC()       { cbi(ADCSR, ADEN); }
-  async command bool isEnabled()     {       
-      return ADC.getControl().aden; 
+  async command void HPLADC.enableADC()        { SET_BIT(ADCSR, ADEN); }
+  async command void HPLADC.disableADC()       { CLR_BIT(ADCSR, ADEN); }
+  async command bool HPLADC.isEnabled()     {       
+    return (call HPLADC.getControl()).aden; 
   }
 
-  async command void startConversion()         { sbi(ADCSR, ADSC); }
-  async command void stopConversion()          { cbi(ADCSR, ADSC); }
-  async command bool isStarted()     {
-      return ADC.getControl().adsc; 
+  async command void HPLADC.startConversion()         { SET_BIT(ADCSR, ADSC); }
+  async command void HPLADC.stopConversion()          { CLR_BIT(ADCSR, ADSC); }
+  async command bool HPLADC.isStarted()     {
+    return (call HPLADC.getControl()).adsc; 
   }
   
-  async command void enableInterruption()        { sbi(ADCSR, ADIE); }
-  async command void disableInterruption()       { cbi(ADCSR, ADIE); }
+  async command void HPLADC.enableInterruption()        { SET_BIT(ADCSR, ADIE); }
+  async command void HPLADC.disableInterruption()       { CLR_BIT(ADCSR, ADIE); }
 
-  async command void setContinuous() { sbi(ADCSR, ADFR); }
-  async command void setSingle()     { cbi(ADCSR, ADFR); }
+  async command void HPLADC.setContinuous() { SET_BIT(ADCSR, ADFR); }
+  async command void HPLADC.setSingle()     { CLR_BIT(ADCSR, ADFR); }
 
-  async command void reset()         { sbi(ADCSR, ADIF); }
-  async command bool isComplete()    {
-      return ADC.getControl().adif; 
+  async command void HPLADC.reset()         { SET_BIT(ADCSR, ADIF); }
+  async command bool HPLADC.isComplete()    {
+    return (call HPLADC.getControl()).adif; 
   }
 
-  default async event result_t ADC.dataReady(uint16_t done) { return SUCCESS; }
+  default async event void HPLADC.dataReady(uint16_t done) { }
 
   TOSH_SIGNAL(SIG_ADC) {
-      uint16_t data = ADC.getValue();
+      uint16_t data = call HPLADC.getValue();
       data &= ATMEGA128_10BIT_ADC_MASK;
       __nesc_enable_interrupt();
-      signal ADC.dataReady(data);
+      signal HPLADC.dataReady(data);
   }
 }
