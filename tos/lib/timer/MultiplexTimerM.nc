@@ -1,4 +1,4 @@
-//$Id: MultiplexTimerM.nc,v 1.1.2.4 2005-04-22 06:11:11 cssharp Exp $
+//$Id: MultiplexTimerM.nc,v 1.1.2.5 2005-05-10 18:07:39 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -64,8 +64,8 @@ implementation
   {
     atomic
     {
-      bzero( m_timers, sizeof(m_timers) );
-      bzero( m_flags, sizeof(m_flags) );
+      memset(m_timers, 0, sizeof(m_timers));
+      memset(m_flags, 0, sizeof(m_flags));
       m_processing_timers = FALSE;
       m_reprocess_timers = FALSE;
     }
