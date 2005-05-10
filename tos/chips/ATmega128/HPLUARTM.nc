@@ -1,4 +1,4 @@
-/// $Id: HPLUARTM.nc,v 1.1.2.2 2005-04-21 07:41:22 mturon Exp $
+/// $Id: HPLUARTM.nc,v 1.1.2.3 2005-05-10 18:13:42 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -45,10 +45,11 @@ implementation
       stts.bits = (struct ATm128_UCSRA_t) {u2x:1};
       mode.bits = (struct ATm128_UCSRC_t) {ucsz:ATM128_UART_DATA_SIZE_8_BITS};
 
-      outw(UBRR0L, ATM128_57600_BAUD_7MHZ_2X);
-      outb(UCSR0A, stts.flat);
-      outb(UCSR0C, mode.flat);
-      outb(UCSR0B, ctrl.flat);
+      UBRR0L = ATM128_57600_BAUD_7MHZ_2X;
+      UBRR0H = ATM128_57600_BAUD_7MHZ_2X >> 8;
+      UCSR0A = stts.flat;
+      UCSR0C = mode.flat;
+      UCSR0B = ctrl.flat;
 
       return SUCCESS;
   }
@@ -61,40 +62,41 @@ implementation
       stts.bits = (struct ATm128_UCSRA_t) {u2x:1};
       mode.bits = (struct ATm128_UCSRC_t) {ucsz:ATM128_UART_DATA_SIZE_8_BITS};
 
-      outw(UBRR1L, ATM128_57600_BAUD_7MHZ_2X);
-      outb(UCSR1A, stts.flat);
-      outb(UCSR1C, mode.flat);
-      outb(UCSR1B, ctrl.flat);
+      UBRR1L = ATM128_57600_BAUD_7MHZ_2X;
+      UBRR1H = ATM128_57600_BAUD_7MHZ_2X >> 8;
+      UCSR1A = stts.flat;
+      UCSR1C = mode.flat;
+      UCSR1B = ctrl.flat;
 
       return SUCCESS;
   }
 
   //=== UART Stop Commands. ====================================
   async command error_t UART0.stop() {
-      outb(UCSR0A, 0);
-      outb(UCSR0B, 0);
-      outb(UCSR0C, 0);
+      UCSR0A = 0;
+      UCSR0B = 0;
+      UCSR0C = 0;
       return SUCCESS;
   }
   async command error_t UART1.stop() {
-      outb(UCSR0A, 0);
-      outb(UCSR0B, 0);
-      outb(UCSR0C, 0);
+      UCSR0A = 0;
+      UCSR0B = 0;
+      UCSR0C = 0;
       return SUCCESS;
   }
 
   //=== UART Put Commands. ====================================
   async command error_t UART0.put(uint8_t data) {
       atomic{
-	  outb(UDR0, data); 
-	  sbi(UCSR0A, TXC);
+	  UDR0 = data; 
+	  SET_BIT(UCSR0A, TXC);
       }
       return SUCCESS;
   }
   async command error_t UART1.put(uint8_t data) {
       atomic{
-	  outb(UDR1, data); 
-	  sbi(UCSR1A, TXC);
+	  UDR1 = data; 
+	  SET_BIT(UCSR1A, TXC);
       }
       return SUCCESS;
   }
@@ -103,12 +105,12 @@ implementation
   default async event error_t UART0.get(uint8_t data) { return SUCCESS; }
   TOSH_SIGNAL(SIG_UART0_RECV) {
       if (READ_BIT(UCSR0A, RXC))
-	  signal UART0.get(inb(UDR0));
+	  signal UART0.get(UDR0);
   }
   default async event error_t UART1.get(uint8_t data) { return SUCCESS; }
   TOSH_SIGNAL(SIG_UART1_RECV) {
       if (READ_BIT(UCSR1A, RXC))
-	  signal UART1.get(inb(UDR1));
+	  signal UART1.get(UDR1);
   }
 
   //=== UART Put Done Events. =================================

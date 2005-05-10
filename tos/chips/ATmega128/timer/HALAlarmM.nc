@@ -1,4 +1,4 @@
-/// $Id: HALAlarmM.nc,v 1.1.2.4 2005-04-23 19:35:34 mturon Exp $
+/// $Id: HALAlarmM.nc,v 1.1.2.5 2005-05-10 18:13:43 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -39,7 +39,7 @@ implementation
       atomic {
 	  call HPLCompare.stop();
 
-	  sbi (ASSR,  AS0);  // set Timer/Counter0 to use 32,768khz crystal
+	  SET_BIT(ASSR, AS0);  // set Timer/Counter0 to use 32,768khz crystal
 	  call HPLTimer.setScale(AVR_CLOCK_OFF);
 	  call HPLTimer.set(0);
 	  call HPLTimer.start();

@@ -1,4 +1,4 @@
-// $Id: HPLGeneralIOPinM.nc,v 1.1.2.1 2005-03-17 16:26:08 mturon Exp $
+// $Id: HPLGeneralIOPinM.nc,v 1.1.2.2 2005-05-10 18:13:41 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,20 +24,23 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-generic module HPLGeneralIOPinM (uint8_t port_data, 
-				 uint8_t port_sel, 
+generic module HPLGeneralIOPinM (uint8_t port_addr, 
+				 uint8_t ddr_addr, 
 				 uint8_t pin)
 {
     provides interface GeneralIO as IO;
 }
 implementation
 {
-    async command bool IO.get()        { return READ_BIT (port_data, pin); }
-    async command void IO.set()        { atomic SET_BIT  (port_data, pin); }
-    async command void IO.clr()        { atomic CLR_BIT  (port_data, pin); }
-    async command void IO.toggle()     { atomic FLIP_BIT (port_data, pin); }
+#define port (*(volatile uint8_t *)port_addr)
+#define ddr (*(volatile uint8_t *)ddr_addr)
+
+    async command bool IO.get()        { return READ_BIT (port, pin); }
+    async command void IO.set()        { atomic SET_BIT  (port, pin); }
+    async command void IO.clr()        { atomic CLR_BIT  (port, pin); }
+    async command void IO.toggle()     { atomic FLIP_BIT (port, pin); }
     
-    async command void IO.makeInput()  { atomic CLR_BIT  (port_sel, pin);  }
-    async command void IO.makeOutput() { atomic SET_BIT  (port_sel, pin);  }
+    async command void IO.makeInput()  { atomic CLR_BIT  (ddr, pin);  }
+    async command void IO.makeOutput() { atomic SET_BIT  (ddr, pin);  }
 }
 

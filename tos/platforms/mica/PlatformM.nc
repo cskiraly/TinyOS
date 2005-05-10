@@ -1,4 +1,4 @@
-/// $Id: PlatformM.nc,v 1.1.2.4 2005-04-21 07:37:47 mturon Exp $
+/// $Id: PlatformM.nc,v 1.1.2.5 2005-05-10 18:13:38 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -35,8 +35,8 @@ implementation
 {
   void power_init() {
       atomic {
-	  outw(MCUCR, 0);    // Internal RAM, IDLE, rupt vector at 0x0002
-	  sbi(MCUCR, SE);    // enable sleep instruction!
+	MCUCR = _BV(SE);      // Internal RAM, IDLE, rupt vector at 0x0002,
+			      // enable sleep instruction!
       }
   }
 

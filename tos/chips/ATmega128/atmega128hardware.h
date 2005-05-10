@@ -30,46 +30,39 @@
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *  @author Jason Hill, Philip Levis, Nelson Lee
+ *  @author Jason Hill, Philip Levis, Nelson Lee, David Gay
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: atmega128hardware.h,v 1.1.2.7 2005-04-18 08:18:31 mturon Exp $
+ *  $Id: atmega128hardware.h,v 1.1.2.8 2005-05-10 18:13:41 idgay Exp $
  */
 
 #ifndef _H_atmega128hardware_H
 #define _H_atmega128hardware_H
 
-#define _SFR_ASM_COMPAT 1
-
 #include <avr/io.h>
 #include <avr/signal.h>
-//#include <avr/interrupt.h>
+#include <avr/interrupt.h>
 #include <avr/wdt.h>
 #include <avr/pgmspace.h>
-
-#define sei()  __asm__ __volatile__ ("sei" ::)
-#define cli()  __asm__ __volatile__ ("cli" ::)
-
-#define bzero(x,y)   memset((x), 0, (y))
-
+#include "atmega128const.h"
 
 #define TOSH_ASSIGN_PIN(name, port, bit) \
-  static inline void TOSH_SET_##name##_PIN() {sbi(PORT##port , bit);} \
-  static inline void TOSH_CLR_##name##_PIN() {cbi(PORT##port , bit);} \
+  static inline void TOSH_SET_##name##_PIN() { PORT##port |= _BV(bit); } \
+  static inline void TOSH_CLR_##name##_PIN() { PORT##port &= ~_BV(bit); } \
   static inline int TOSH_READ_##name##_PIN() \
-    { return (inp(PIN##port) & (1 << bit)) != 0; } \
-  static inline void TOSH_MAKE_##name##_OUTPUT() {sbi(DDR##port , bit);} \
-  static inline void TOSH_MAKE_##name##_INPUT() {cbi(DDR##port , bit);} 
+    { return (PIN##port & _BV(bit)) != 0; } \
+  static inline void TOSH_MAKE_##name##_OUTPUT() { DDR##port |= _BV(bit); } \
+  static inline void TOSH_MAKE_##name##_INPUT() { DDR##port &= ~_BV(bit); } 
 
 #define TOSH_ASSIGN_OUTPUT_ONLY_PIN(name, port, bit) \
-  static inline void TOSH_SET_##name##_PIN() {sbi(PORT##port , bit);} \
-  static inline void TOSH_CLR_##name##_PIN() {cbi(PORT##port , bit);} \
-  static inline void TOSH_MAKE_##name##_OUTPUT() {;} 
+  static inline void TOSH_SET_##name##_PIN() { PORT##port |= 1 << (bit));} \
+  static inline void TOSH_CLR_##name##_PIN() { PORT##port &= ~(1 << (bit);} \
+  static inline void TOSH_MAKE_##name##_OUTPUT() { } 
 
 #define TOSH_ALIAS_OUTPUT_ONLY_PIN(alias, connector) \
   static inline void TOSH_SET_##alias##_PIN() {TOSH_SET_##connector##_PIN();} \
   static inline void TOSH_CLR_##alias##_PIN() {TOSH_CLR_##connector##_PIN();} \
-  static inline void TOSH_MAKE_##alias##_OUTPUT() {} \
+  static inline void TOSH_MAKE_##alias##_OUTPUT() { } \
 
 #define TOSH_ALIAS_PIN(alias, connector) \
   static inline void TOSH_SET_##alias##_PIN() {TOSH_SET_##connector##_PIN();} \
@@ -94,10 +87,10 @@
   union {from_type f; to_type t;} c = {f:x}; return c.t; }
 
 /// Bit operators using bit number
-#define SET_BIT(port, bit)    (sbi(port, bit))
-#define CLR_BIT(port, bit)    (cbi(port, bit))
-#define READ_BIT(port, bit)   ((inp(port) & (1 << bit)) != 0)
-#define FLIP_BIT(port, bit)   (_MMIO_BYTE(port) ^= (1 << bit))
+#define SET_BIT(port, bit)    ((port) |= _BV(bit))
+#define CLR_BIT(port, bit)    ((port) &= ~_BV(bit))
+#define READ_BIT(port, bit)   (((port) & _BV(bit)) != 0)
+#define FLIP_BIT(port, bit)   ((port) ^= _BV(bit))
 
 /// Bit operators using bit flag mask
 #define SET_FLAG(port, flag)  ((port) |= (flag))
@@ -126,7 +119,7 @@ typedef uint8_t __nesc_atomic_t;
 inline __nesc_atomic_t 
 __nesc_atomic_start(void) __attribute__((spontaneous))
 {
-    __nesc_atomic_t result = inb(SREG);
+    __nesc_atomic_t result = SREG;
     __nesc_disable_interrupt();
     return result;
 }
@@ -135,7 +128,7 @@ __nesc_atomic_start(void) __attribute__((spontaneous))
 inline void 
 __nesc_atomic_end(__nesc_atomic_t original_SREG) __attribute__((spontaneous))
 {
-    outp(original_SREG, SREG);
+  SREG = original_SREG;
 }
 
 inline void
