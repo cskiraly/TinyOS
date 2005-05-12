@@ -1,4 +1,4 @@
-//$Id: TransformCounterM.nc,v 1.1.2.3 2005-04-21 08:29:40 cssharp Exp $
+//$Id: TransformCounterM.nc,v 1.1.2.4 2005-05-12 22:46:41 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -50,7 +50,7 @@ implementation
     LOW_SHIFT_RIGHT = bit_shift_right,
     HIGH_SHIFT_LEFT = 8*sizeof(from_size_type) - LOW_SHIFT_RIGHT,
     NUM_UPPER_BITS = 8*sizeof(to_size_type) - 8*sizeof(from_size_type) + bit_shift_right,
-    //OVERFLOW_MASK = (((upper_count_type)1) << NUM_UPPER_BITS) - 1,
+    OVERFLOW_MASK = (((upper_count_type)1) << NUM_UPPER_BITS) - 1,
   };
 
   async command to_size_type Counter.get()
@@ -86,9 +86,6 @@ implementation
 
   async command bool Counter.isOverflowPending()
   {
-    upper_count_type one = 1;
-    upper_count_type OVERFLOW_MASK = (one << NUM_UPPER_BITS) - 1;
-
     return ((m_upper & OVERFLOW_MASK) == OVERFLOW_MASK)
 	   && call CounterFrom.isOverflowPending();
   }
@@ -111,8 +108,6 @@ implementation
 
   async event void CounterFrom.overflow()
   {
-    upper_count_type one = 1;
-    upper_count_type OVERFLOW_MASK = (one << NUM_UPPER_BITS) - 1;
     atomic
     {
       m_upper++;

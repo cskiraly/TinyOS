@@ -1,4 +1,4 @@
-//$Id: MultiplexTimerM.nc,v 1.1.2.5 2005-05-10 18:07:39 idgay Exp $
+//$Id: MultiplexTimerM.nc,v 1.1.2.6 2005-05-12 22:46:41 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -40,6 +40,7 @@ implementation
   {
     NUM_TIMERS = max_timers,
     END_OF_LIST = 255,
+    SIGN_BIT = ((size_type)1) << (8 * sizeof(size_type) - 1),
   };
 
   typedef struct
@@ -119,13 +120,10 @@ implementation
 
 	  if( flags->isrunning )
 	  {
-	    size_type signbit = 1;
-	    signbit <<= 8*sizeof(size_type) - 1;
-
 	    elapsed = then - timer->t0;
 	    numMissed = 0;
 
-	    if( (elapsed & signbit) != 0 )
+	    if( (elapsed & SIGN_BIT) != 0 )
 	    {
 	      // if t0 is "in the future" then don't process it
 	      // this means that
