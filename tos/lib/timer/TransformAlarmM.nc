@@ -1,4 +1,4 @@
-//$Id: TransformAlarmM.nc,v 1.1.2.4 2005-04-22 06:11:12 cssharp Exp $
+//$Id: TransformAlarmM.nc,v 1.1.2.5 2005-05-12 22:46:41 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -40,6 +40,12 @@ implementation
   to_size_type m_t0;
   to_size_type m_dt;
 
+  enum
+  {
+    MAX_DELAY_LOG2 = 8 * sizeof(from_size_type) - 1 - bit_shift_right,
+    MAX_DELAY = ((to_size_type)1) << MAX_DELAY_LOG2,
+  };
+
   async command to_size_type Alarm.getNow()
   {
     return call Counter.get();
@@ -75,14 +81,11 @@ implementation
     {
       to_size_type remaining = m_dt - elapsed;
       from_size_type remaining_from = remaining;
-      to_size_type delay = 1;
-      delay <<= 8 * sizeof(from_size_type) - 1 - bit_shift_right;
-      if( remaining > delay )
+      if( remaining > MAX_DELAY )
       {
-	from_size_type delay_from = delay;
-	m_t0 = now + delay;
-	m_dt = remaining - delay;
-	call AlarmFrom.start( now_from, delay_from << bit_shift_right );
+	m_t0 = now + MAX_DELAY;
+	m_dt = remaining - MAX_DELAY;
+	call AlarmFrom.start( now_from, ((from_size_type)MAX_DELAY) << bit_shift_right );
       }
       else
       {
