@@ -1,4 +1,4 @@
-// $Id: ActiveMessageImpl.nc,v 1.1.2.1 2005-01-11 03:33:04 scipio Exp $
+// $Id: AMServiceNotifierC.nc,v 1.1.2.1 2005-05-17 21:25:19 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,35 +30,19 @@
 
 
 /**
- * The underlying configuration of OSKI Active Messages. Wires the AM
- * implementation (ActiveMessageC) to the boot sequence, and exports
- * the AM interfaces.
+ * The OSKI presentation of notification that the status of the Active
+ * Message service has changed. Also see see AMService.
  *
  * @author Philip Levis
- * @date   January 5 2005
+ * @date   May 16 2005
  */ 
 
-includes AM;
-
-configuration ActiveMessageImpl {
-  provides {
-    interface SplitControl;      
-    interface AMSend[am_id_t id];
-    interface Receive[am_id_t id];
-    interface Receive as Snoop[am_id_t id];
-    interface Packet;
-    interface AMPacket;
-  }
+generic configuration AMServiceNotifierC {
+  provides interface ServiceNotify as Notify;
 }
 
 implementation {
-  components ActiveMessageC, Main;
+  components AMServiceImpl;
 
-  Main.SplitControl -> ActiveMessageC;
-  
-  AMSend = ActiveMessageC;
-  Receive = ActiveMessageC.Receive;
-  Snoop = ActiveMessageC.Snoop;
-  Packet = ActiveMessageC;
-  AMPacket = ActiveMessageC;
+  Notify = AMServiceImpl;
 }

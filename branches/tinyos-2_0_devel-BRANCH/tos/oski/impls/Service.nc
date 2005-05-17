@@ -1,6 +1,6 @@
-// $Id: BroadcastC.nc,v 1.1.2.2 2005-05-17 21:25:19 scipio Exp $
+// $Id: Service.nc,v 1.1.2.1 2005-05-17 21:25:23 scipio Exp $
 /*									tab:4
- * "Copyright (c) 2005 The Regents of the University  of California.  
+ * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,7 +19,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2004 Intel Corporation
+ * Copyright (c) 2004-5 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -28,37 +28,40 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-
 /**
- * Components should never wire directly to this component: use
- * BroadcastSenderC and BroadcastReceiverC instead. This is the
- * configuration for OSKI broadcasts, which wires the broadcast module
- * to its underlying components.
- *
- * @author Philip Levis
- * @date   May 16 2005
- */ 
+  * Control and query whether an instance of a given service is active
+  * or not. The semantics of the <tt>start</tt> and <tt>stop</tt>
+  * commands are implementation dependent, but the common semantics
+  * (and the case unless a component says otherwise) are a binary-OR
+  * model. That is, a service is running if any of its instances is
+  * active (started), and only not running if all of its instances are
+  * stopped.
+  *
+  * <p>This means that a component can call <tt>stop()</tt>, yet have
+  * <tt>isRunning()</tt> return true, because someone else has kept
+  * the service active. Note, however, that if this component tries
+  * using the service without calling <tt>start()</tt>, it might
+  * suddenly fail if the other instance calls <tt>stop()</tt>: the
+  * service may think no one is using it so it can safely stop. The
+  * <tt>started()</tt> command returns whether the particular instance
+  * is active, while <tt>isRunning</tt> returns whether the service as
+  * a whole is active.
+  *
+  * @author Philip Levis
+  * @date   January 5 2005
+  */ 
 
-includes Broadcast;
 
-configuration BroadcastC {
-  provides {
-    interface Send[uint8_t id];
-    interface Receive[uint8_t id];
-    interface Packet;
-  }
-}
+interface Service {
 
-implementation {
-  components BroadcastM, ActiveMessageImplC as AM;
+  /**
+   *
+   */
+  command void start();
 
-  BroadcastM.AMSend -> AM.AMSend[TOS_BCAST_AM_ID];
-  BroadcastM.SubReceive -> AM.Receive[TOS_BCAST_AM_ID];
-  BroadcastM.SubPacket -> AM;
-  BroadcastM.AMPacket -> AM;
+  command void stop();
 
-  Send = BroadcastM;
-  Receive = BroadcastM;
-  Packet = BroadcastM;
+  command bool isRunning();
+
   
 }

@@ -1,4 +1,4 @@
-// $Id: BroadcastServiceImpl.nc,v 1.1.2.1 2005-01-11 03:33:04 scipio Exp $
+// $Id: BroadcastReceiverC.nc,v 1.1.2.1 2005-05-17 21:25:19 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,20 +30,24 @@
 
 
 /**
- * The OSKI implementation of the operating status of the Broadcast
- * subsystem.
+ * The OSKI presentation of a single hop broadcast reception.
  *
  * @author Philip Levis
- * @date   January 5 2005
+ * @date   May 16 2005
  */ 
 
-configuration BroadcastServiceImpl {
-  provides interface Service[uint8_t id];
+includes Broadcast;
+
+generic configuration BroadcastReceiverC(bcast_id_t id) {
+  provides {
+    interface Receive;
+    interface Packet;
+  }
 }
+
 implementation {
-  components BroadcastImpl;
-  components new ServiceOrControllerP("OSKI.BroadcastServiceImpl.Service");
-  
-  Service = ServiceOrControllerP;
-  ServiceOrControllerP.SplitControl -> BroadcastImpl;  
+  components BroadcastImplC;
+
+  Receive = BroadcastImplC.Receive[id];
+  Packet = BroadcastImplC;
 }

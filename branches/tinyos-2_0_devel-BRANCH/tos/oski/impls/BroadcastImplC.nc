@@ -1,4 +1,4 @@
-// $Id: BroadcastC.nc,v 1.1.2.2 2005-05-17 21:25:19 scipio Exp $
+// $Id: BroadcastImplC.nc,v 1.1.2.1 2005-05-17 21:25:19 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,10 +30,11 @@
 
 
 /**
- * Components should never wire directly to this component: use
- * BroadcastSenderC and BroadcastReceiverC instead. This is the
- * configuration for OSKI broadcasts, which wires the broadcast module
- * to its underlying components.
+ * Components should never wire directly to this component. This is
+ * the underlying configuration of OSKI broadcasts. Wires the
+ * broadcast implementation (BroadcastC) to the boot sequence and
+ * underlying Active Messages, and exports the broadcasting
+ * interfaces.
  *
  * @author Philip Levis
  * @date   May 16 2005
@@ -41,7 +42,7 @@
 
 includes Broadcast;
 
-configuration BroadcastC {
+configuration BroadcastImplC {
   provides {
     interface Send[uint8_t id];
     interface Receive[uint8_t id];
@@ -50,15 +51,9 @@ configuration BroadcastC {
 }
 
 implementation {
-  components BroadcastM, ActiveMessageImplC as AM;
+  components BroadcastC;
 
-  BroadcastM.AMSend -> AM.AMSend[TOS_BCAST_AM_ID];
-  BroadcastM.SubReceive -> AM.Receive[TOS_BCAST_AM_ID];
-  BroadcastM.SubPacket -> AM;
-  BroadcastM.AMPacket -> AM;
-
-  Send = BroadcastM;
-  Receive = BroadcastM;
-  Packet = BroadcastM;
-  
+  Send = BroadcastC;
+  Receive = BroadcastC;
+  Packet = BroadcastC;
 }

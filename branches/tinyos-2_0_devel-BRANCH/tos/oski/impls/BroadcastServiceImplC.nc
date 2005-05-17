@@ -1,4 +1,4 @@
-// $Id: BroadcastImpl.nc,v 1.1.2.1 2005-01-11 03:33:04 scipio Exp $
+// $Id: BroadcastServiceImplC.nc,v 1.1.2.1 2005-05-17 21:25:23 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,28 +30,20 @@
 
 
 /**
- * The underlying configuration of OSKI broadcasts. Wires the
- * broadcast implementation (BroadcastC) to the boot sequence and
- * underlying Active Messages, and exports the broadcasting interfaces.
+ * The OSKI implementation of the operating status of the Broadcast
+ * subsystem.
  *
  * @author Philip Levis
  * @date   January 5 2005
  */ 
 
-includes Broadcast;
-
-configuration BroadcastImpl {
-  provides {
-    interface Send[bcast_id id];
-    interface Receive[bcast_id id];
-    interface Packet;
-  }
+configuration BroadcastServiceImplC {
+  provides interface Service[uint8_t id];
 }
-
 implementation {
-  components BroadcastC;
-
-  Send = BroadcastC;
-  Receive = BroadcastC;
-  Packet = BroadcastC;
+  components BroadcastImplC;
+  components new ServiceOrControllerM("OSKI.BroadcastServiceImpl.Service");
+  
+  Service = ServiceOrControllerM;
+  ServiceOrControllerM.SplitControl -> BroadcastImplC;  
 }

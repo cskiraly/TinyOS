@@ -1,4 +1,4 @@
-// $Id: TimerMilliImpl.nc,v 1.1.2.1 2005-04-17 18:35:02 cssharp Exp $
+// $Id: BroadcastServiceNotifierC.nc,v 1.1.2.1 2005-05-17 21:25:23 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,24 +30,19 @@
 
 
 /**
- * The underlying configuration of the OSKI timers. Wires the timer
- * implementation (TimerC) to the boot sequence and exports the
- * various Timer interfaces.
+ * The OSKI presentation of notifications that the status of the
+ * Broadcast service has changed. Also see BroadcastService.
  *
  * @author Philip Levis
- * @date   January 5 2005
+ * @date   May 16 2005
  */ 
 
-includes Timer;
-
-configuration TimerMilliImpl
-{
-  provides interface Timer<TMilli> as TimerMilli[uint8_t id];
-}
-implementation
-{
-  components TimerMilliC, Main;
-  Main.SoftwareInit -> TimerMilliC;
-  TimerMilli = TimerMilliC;
+generic configuration BroadcastServiceNotifierC {
+  provides interface ServiceNotify as Notify;
 }
 
+implementation {
+  components BroadcastServiceImpl;
+
+  Notify = BroadcastServiceImpl;
+}
