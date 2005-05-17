@@ -1,0 +1,22 @@
+#-*-Makefile-*- vim:syntax=make
+#$Id: eyesIFXv1.target,v 1.1.2.3 2005-05-17 20:13:11 klueska Exp $
+
+PLATFORM = eyesIFXv1
+
+MSP_MCU = msp430x149
+
+# Disable MSP430 hardware multiply because it makes MSPGCC die
+PFLAGS += -mdisable-hwmul
+OPTFLAGS += -O
+
+ifndef DEFAULT_PROGRAM
+DEFAULT_PROGRAM = jtag
+endif
+
+NESC_FLAGS:=-Wnesc-all
+PFLAGS += -I$(TOSDIR)/platforms/eyes/eyesIFXv1
+
+$(call TOSMake_include_platform,msp)
+
+eyesIFXv1: $(BUILD_DEPS)
+    @:
