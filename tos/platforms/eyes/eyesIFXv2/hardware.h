@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Technische Universitaet Berlin
+ * Copyright (c) 2004, Technische Universität Berlin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  * - Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * - Neither the name of the Technische Universitaet Berlin nor the names
+ * - Neither the name of the Technische Universität Berlin nor the names
  *   of its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -26,24 +26,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: hardware.h,v 1.1.2.1 2005-03-16 19:01:06 vlahan Exp $
+ * $Id: hardware.h,v 1.1.2.1 2005-05-17 20:13:10 klueska Exp $
  *
  */
 
-#ifndef TOSH_HARDWARE_EYESIFX
-#define TOSH_HARDWARE_EYESIFX
+#ifndef TOSH_HARDWARE_EYESIFXV2
+#define TOSH_HARDWARE_EYESIFXV2
 
 #include "msp430hardware.h"
-//#include "MSP430ADC12.h" 
+//#include "MSP430ADC12.h"
 
 // LED assignments
 TOSH_ASSIGN_PIN(RED_LED, 5, 0); // Compatibility with the mica2
 TOSH_ASSIGN_PIN(GREEN_LED, 5, 1);
 TOSH_ASSIGN_PIN(YELLOW_LED, 5, 2);
-
-// Debug Pin assignments
-TOSH_ASSIGN_PIN(DEBUG_PIN1, 1, 2);
-TOSH_ASSIGN_PIN(DEBUG_PIN2, 1, 3);
 
 TOSH_ASSIGN_PIN(LED0, 5, 0);
 TOSH_ASSIGN_PIN(LED1, 5, 1);
@@ -65,17 +61,27 @@ TOSH_ASSIGN_PIN(UTXD0, 3, 4);   // USART0 -> data1 (TDA5250)
 TOSH_ASSIGN_PIN(URXD0, 3, 5);   // USART0 -> data1 (TDA5250)
 
 // USART1 assignments
-TOSH_ASSIGN_PIN(UTXD1, 3, 6);   // USART1 -> ST3232
-TOSH_ASSIGN_PIN(URXD1, 3, 7);   // USART1 -> ST3232
-TOSH_ASSIGN_PIN(UCLK1, 5, 3);
-TOSH_ASSIGN_PIN(SOMI1, 5, 2);
-TOSH_ASSIGN_PIN(SIMO1, 5, 1);
+
+TOSH_ASSIGN_PIN(UTXD1, 3, 6);   // USART1 -> USB
+TOSH_ASSIGN_PIN(URXD1, 3, 7);   // USART1 -> USB
+void TOSH_SEL_SIMO1_IOFUNC() { }
+void TOSH_SEL_SOMI1_IOFUNC() { }
+void TOSH_SEL_UCLK1_IOFUNC() { }
+void TOSH_SEL_SIMO1_MODFUNC() { }
+void TOSH_SEL_SOMI1_MODFUNC() { }
+void TOSH_SEL_UCLK1_MODFUNC() { }
 
 // Sensor assignments
 TOSH_ASSIGN_PIN(RSSI, 6, 3);
-TOSH_ASSIGN_PIN(TEMPERATURE, 6, 0);
+TOSH_ASSIGN_PIN(TEMP, 6, 0);
 TOSH_ASSIGN_PIN(LIGHT, 6, 2);
-TOSH_ASSIGN_PIN(ADC_A1, 6, 1);
+TOSH_ASSIGN_PIN(VREF, 6, 7);
+TOSH_ASSIGN_PIN(B0, 6, 4);
+TOSH_ASSIGN_PIN(B1, 6, 5);
+TOSH_ASSIGN_PIN(B2, 6, 7);
+TOSH_ASSIGN_PIN(B3, 6, 6);
+TOSH_ASSIGN_PIN(B4, 6, 1);
+
 
 // Potentiometer
 TOSH_ASSIGN_PIN(POT_EN, 2, 4);
@@ -95,73 +101,49 @@ TOSH_ASSIGN_PIN(TIMERB2, 4, 2);
 TOSH_ASSIGN_PIN(SMCLK, 5, 5); //2,7
 
 // ACLK output
-TOSH_ASSIGN_PIN(ACLK, 2, 0); 
+TOSH_ASSIGN_PIN(ACLK, 2, 0);
 
-// Flash 
+// Flash
 TOSH_ASSIGN_PIN(FLASH_CS, 1, 7);
+
 
 void TOSH_SET_PIN_DIRECTIONS(void)
 {
-  TOSH_CLR_RED_LED_PIN();
-  TOSH_MAKE_RED_LED_OUTPUT();
-  TOSH_CLR_GREEN_LED_PIN();
-  TOSH_MAKE_GREEN_LED_OUTPUT();
-  TOSH_CLR_YELLOW_LED_PIN();
-  TOSH_MAKE_YELLOW_LED_OUTPUT();
+
+  // reset all of the ports to be input and using i/o functionality
+  P1SEL = 0;
+  P2SEL = 0;
+  P3SEL = 0;
+  P4SEL = 0;
+  P5SEL = 0;
+  P6SEL = 0;
+  P1DIR = 0;
+  P2DIR = 0;
+  P3DIR = 0;
+  P4DIR = 0;
+  P5DIR = 0;
+  P6DIR = 0;
+
+
+  TOSH_CLR_LED0_PIN();
+  TOSH_MAKE_LED0_OUTPUT();
+
+  TOSH_CLR_LED1_PIN();
+  TOSH_MAKE_LED1_OUTPUT();
+
+  TOSH_CLR_LED2_PIN();
+  TOSH_MAKE_LED2_OUTPUT();
+
   TOSH_CLR_LED3_PIN();
   TOSH_MAKE_LED3_OUTPUT();
 
-  TOSH_SEL_RSSI_MODFUNC();
-  TOSH_MAKE_RSSI_INPUT();
-
-  TOSH_SEL_TEMPERATURE_MODFUNC();
-  TOSH_MAKE_TEMPERATURE_INPUT();
-
-  TOSH_SEL_LIGHT_MODFUNC();
-  TOSH_MAKE_LIGHT_INPUT();
-  
-  TOSH_SEL_DEBUG_PIN1_IOFUNC();
-  TOSH_SEL_DEBUG_PIN2_IOFUNC();
-  TOSH_CLR_DEBUG_PIN1_PIN();
-  TOSH_CLR_DEBUG_PIN2_PIN();
-  TOSH_MAKE_DEBUG_PIN1_OUTPUT();
-  TOSH_MAKE_DEBUG_PIN2_OUTPUT();
-
-  TOSH_SEL_FLASH_CS_IOFUNC();
   TOSH_SET_FLASH_CS_PIN();
-  TOSH_MAKE_FLASH_CS_OUTPUT();  
-  
+  TOSH_MAKE_FLASH_CS_OUTPUT();
+
   // start radio HW now
-  TOSH_CLR_TDA_PWDDD_PIN();
-  TOSH_SEL_TDA_PWDDD_IOFUNC();
-  TOSH_MAKE_TDA_PWDDD_OUTPUT();  
-
-/*
-  TOSH_SEL_ADC_A1_MODFUNC();
-  TOSH_MAKE_ADC_A1_INPUT();
-  
-  TOSH_SEL_SMCLK_MODFUNC();
-  TOSH_MAKE_SMCLK_OUTPUT();   
-
-  TOSH_SEL_ACLK_MODFUNC();
-  TOSH_MAKE_ACLK_OUTPUT();   
-  
-  TOSH_SEL_TIMERA0_MODFUNC();
-  TOSH_MAKE_TIMERA0_OUTPUT();   
-  TOSH_SEL_TIMERA1_MODFUNC();
-  TOSH_MAKE_TIMERA1_OUTPUT();   
-  TOSH_SEL_TIMERA2_MODFUNC();
-  TOSH_MAKE_TIMERA2_OUTPUT();
-  
-  TOSH_SEL_TIMERB0_MODFUNC();
-  TOSH_MAKE_TIMERB0_OUTPUT();   
-  TOSH_SEL_TIMERB1_MODFUNC();
-  TOSH_MAKE_TIMERB1_OUTPUT();   
-  TOSH_SEL_TIMERB2_MODFUNC();
-  TOSH_MAKE_TIMERB2_OUTPUT();   
-  */
+  TOSH_SET_TDA_PWDDD_PIN();
+  TOSH_MAKE_TDA_PWDDD_OUTPUT();
 }
-
 
 #define RSSI_ADC12_STANDARD_SETTINGS   SET_ADC12_STANDARD_SETTINGS(INPUT_CHANNEL_A3, \
                                                                    REFERENCE_VREFplus_AVss, \
@@ -175,7 +157,7 @@ void TOSH_SET_PIN_DIRECTIONS(void)
                                                                    REFERENCE_AVcc_AVss, \
                                                                    SAMPLE_HOLD_4_CYCLES, \
                                                                    REFVOLT_LEVEL_1_5)
-                                                                   
+
 #define RSSI_ADC12_ADVANCED_SETTINGS   SET_ADC12_ADVANCED_SETTINGS(INPUT_CHANNEL_A3, \
                                                                    REFERENCE_VREFplus_AVss, \
                                                                    SAMPLE_HOLD_4_CYCLES, \
@@ -197,4 +179,4 @@ void TOSH_SET_PIN_DIRECTIONS(void)
                                                                    CLOCK_DIV_1, \
                                                                    HOLDSOURCE_TIMERB_OUT0, \
                                                                    REFVOLT_LEVEL_1_5)
-#endif //TOSH_HARDWARE_H
+#endif //TOSH_HARDWARE_EYESIFXV2

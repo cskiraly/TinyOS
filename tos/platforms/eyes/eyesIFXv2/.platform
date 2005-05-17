@@ -4,23 +4,30 @@
 # by ncc.  And because of that, the current platform's include directory
 # must be specified, otherwise its search order is last instead of first.
 
-push( @includes, qw(
+push( @includes, qw(  
 
-  %T/platforms/eyesIFXv1
-  %T/platforms/eyesIFXv1/chips/tda5250
-  %T/chips/at45db
+  %T/platforms/eyes/eyesIFXv2
+  %T/platforms/eyes
+  %T/chips/radios/tda5250 
+  %T/chips/flash/at45db
+  %T/chips/radios/tda5250 
+  %T/chips/pots/ad6200 
   %T/chips/msp430
+  %T/chips/msp430/adc12  
   %T/chips/msp430/io
   %T/chips/msp430/bus
+  %T/chips/msp430/timer
+  %T/lib/timer  
 
 ) );
 
 @opts = qw(
 
   -gcc=msp430-gcc
-  -mmcu=msp430x149
+  -mmcu=msp430x1611
   -fnesc-target=msp430
   -fnesc-no-debug
+  -fnesc-scheduler=TinyScheduler,TinyScheduler.TaskBasic,TaskBasic,TaskBasic,runTask,postTask  
 
 );
 

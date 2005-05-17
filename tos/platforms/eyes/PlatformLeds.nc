@@ -1,4 +1,4 @@
-// $Id: Platform.nc,v 1.1.2.1 2005-03-16 19:01:05 vlahan Exp $
+// $Id: PlatformLeds.nc,v 1.1.2.1 2005-05-17 20:13:09 klueska Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -21,21 +21,44 @@
  */
 
 /**
- * @author Joe Polastre and Cory Sharp
+ * @author Joe Polastre
+ * @author Vlado Handziski (modifications for eyesIFX)
  */
 includes hardware;
 
-configuration Platform
+configuration PlatformLeds
 {
-  provides interface Init;
+  provides interface GeneralIO as Led0;
+  provides interface GeneralIO as Led1;
+  provides interface GeneralIO as Led2;
+  provides interface GeneralIO as Led3;
 }
 implementation
 {
-  components PlatformM
-    , MSP430ClockC
+  components 
+    MSP430GeneralIOC
+    , new GeneralIOM() as Led0Impl
+    , new GeneralIOM() as Led1Impl
+    , new GeneralIOM() as Led2Impl
+    , new GeneralIOM() as Led3Impl
+    , PlatformLedsM
     ;
 
-  Init = PlatformM;
-  PlatformM.MSP430ClockInit -> MSP430ClockC.Init;
+  
+  Led0 = PlatformLedsM.Led0;
+  PlatformLedsM.Led0Impl -> Led0Impl.GeneralIO;
+  Led0Impl.MSP430GeneralIO -> MSP430GeneralIOC.Port50;
+
+  Led1 = PlatformLedsM.Led1;
+  PlatformLedsM.Led1Impl -> Led1Impl.GeneralIO;
+  Led1Impl.MSP430GeneralIO -> MSP430GeneralIOC.Port51;
+
+  Led2 = PlatformLedsM.Led2;
+  PlatformLedsM.Led2Impl -> Led2Impl.GeneralIO;
+  Led2Impl.MSP430GeneralIO -> MSP430GeneralIOC.Port52;
+  
+  Led3 = PlatformLedsM.Led3;
+  PlatformLedsM.Led3Impl -> Led3Impl.GeneralIO;
+  Led3Impl.MSP430GeneralIO -> MSP430GeneralIOC.Port53;
 }
 
