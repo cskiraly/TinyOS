@@ -1,4 +1,4 @@
-// $Id: AMServiceImpl.nc,v 1.1.2.1 2005-01-11 03:33:03 scipio Exp $
+// $Id: AMServiceImpl.nc,v 1.1.2.2 2005-05-17 21:25:19 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -37,13 +37,13 @@
  * @date   January 5 2005
  */ 
 
-configuration AMServiceImpl {
+configuration AMServiceImplC {
   provides interface Service[uint8_t id];
 }
 implementation {
-  components ActiveMessageImpl;
-  components new ServiceOrControllerP("OSKI.AMServiceImpl.Service");
+  components ActiveMessageImplC;
+  components new ServiceOrControllerM("OSKI.AMServiceImpl.Service");
   
-  Service = ServiceOrControllerP;
-  ServiceOrControllerP.SplitControl -> ActiveMessageImpl;  
+  Service = ServiceOrControllerM;
+  ServiceOrControllerM.SplitControl -> ActiveMessageImplC;  
 }

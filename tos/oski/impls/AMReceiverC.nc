@@ -1,4 +1,4 @@
-// $Id: BroadcastC.nc,v 1.1.2.2 2005-05-17 21:25:19 scipio Exp $
+// $Id: AMReceiverC.nc,v 1.1.2.1 2005-05-17 21:25:19 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,35 +30,26 @@
 
 
 /**
- * Components should never wire directly to this component: use
- * BroadcastSenderC and BroadcastReceiverC instead. This is the
- * configuration for OSKI broadcasts, which wires the broadcast module
- * to its underlying components.
+ * The OSKI presentation of snooping on Active Messages.
  *
  * @author Philip Levis
  * @date   May 16 2005
  */ 
 
-includes Broadcast;
+includes AM;
 
-configuration BroadcastC {
+generic configuration AMSnooperC(am_id_t AMId) {
   provides {
-    interface Send[uint8_t id];
-    interface Receive[uint8_t id];
+    interface Receive;
     interface Packet;
+    interface AMPacket;
   }
 }
 
 implementation {
-  components BroadcastM, ActiveMessageImplC as AM;
+  components ActiveMessageImpl;
 
-  BroadcastM.AMSend -> AM.AMSend[TOS_BCAST_AM_ID];
-  BroadcastM.SubReceive -> AM.Receive[TOS_BCAST_AM_ID];
-  BroadcastM.SubPacket -> AM;
-  BroadcastM.AMPacket -> AM;
-
-  Send = BroadcastM;
-  Receive = BroadcastM;
-  Packet = BroadcastM;
-  
+  Receive = ActiveMessageImpl.Snoop[AMId];
+  Packet = ActiveMessageImpl;
+  AMPacket = ActiveMessageImpl;
 }

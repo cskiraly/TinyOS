@@ -1,6 +1,6 @@
-// $Id: BroadcastC.nc,v 1.1.2.2 2005-05-17 21:25:19 scipio Exp $
+// $Id: ServiceNotify.nc,v 1.1.2.1 2005-05-17 21:25:23 scipio Exp $
 /*									tab:4
- * "Copyright (c) 2005 The Regents of the University  of California.  
+ * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,7 +19,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2004 Intel Corporation
+ * Copyright (c) 2004-5 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -28,37 +28,18 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-
 /**
- * Components should never wire directly to this component: use
- * BroadcastSenderC and BroadcastReceiverC instead. This is the
- * configuration for OSKI broadcasts, which wires the broadcast module
- * to its underlying components.
- *
- * @author Philip Levis
- * @date   May 16 2005
- */ 
+  * Obtain updates on the running status of a service; this operates
+  * on the whole service, and not its instances.
+  *
+  * @author Philip Levis
+  * @date   January 5 2005
+  */ 
 
-includes Broadcast;
 
-configuration BroadcastC {
-  provides {
-    interface Send[uint8_t id];
-    interface Receive[uint8_t id];
-    interface Packet;
-  }
-}
+interface ServiceNotify {
 
-implementation {
-  components BroadcastM, ActiveMessageImplC as AM;
-
-  BroadcastM.AMSend -> AM.AMSend[TOS_BCAST_AM_ID];
-  BroadcastM.SubReceive -> AM.Receive[TOS_BCAST_AM_ID];
-  BroadcastM.SubPacket -> AM;
-  BroadcastM.AMPacket -> AM;
-
-  Send = BroadcastM;
-  Receive = BroadcastM;
-  Packet = BroadcastM;
+  event void started();
+  event void stopped();
   
 }

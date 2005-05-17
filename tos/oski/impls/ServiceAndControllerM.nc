@@ -1,4 +1,4 @@
-// $Id: ServiceOrControllerP.nc,v 1.1.2.1 2005-01-11 03:33:04 scipio Exp $
+// $Id: ServiceAndControllerM.nc,v 1.1.2.1 2005-05-17 21:25:23 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,13 +30,13 @@
 
 
 /**
- * A generic status controller that follows an OR rule. The controller
+ * A generic status controller that follows an AND rule. The controller
  * provides access to the power/activity state of an underlying shared
  * service and coordinates the requirements of all of the services's
- * clients. It follows the rule that if any client needs the service
+ * clients. It follows the rule that if all clients need the service
  * to be active (through the Service.start() command), then it turns on
- * the service, or keeps it on. However, if no clients need the service
- * to be active (have all called stop() or not called start()), then
+ * the service, or keeps it on. However, if any client needs the service
+ * to be off (called stop() or not called start()), then
  * it turns it off. start() and stop() are both idempotent operations:
  * a client calling Service.start() twice has the same effect as
  * calling it once.
@@ -65,10 +65,10 @@
  * the next time it is called or signalled.
  *
  * @author Philip Levis
- * @date   January 5 2005
+ * @date   May 16 2005
  */ 
 
-generic module ServiceOrControllerP(char* strID) {
+generic module ServiceAndControllerM(char* strID) {
   provides {
     interface Service[uint8_t id];
     interface ServiceNotify;
@@ -83,7 +83,7 @@ implementation {
   typedef struct {
     uint8_t busy:1;
     uint8_t active:1;
-  } OrControllerService;
+  } AndControllerService;
   
   // Bits are stored big-endian. Bit 0 is the 0th bit of the last
   // element, while bit 18 is the 2nd bit of the third to last
@@ -93,7 +93,7 @@ implementation {
   // Assume that we are initially busy (the rest of TinyOS is
   // initializing the underlying service, but that it isn't started
   // (that's under our control).
-  OrControllerService status = {
+  AndControllerService status = {
     TRUE,
     FALSE
   };
@@ -103,14 +103,14 @@ implementation {
     STATUS_BYTES = (STATUS_BITS + 7) / 8,
   };
   
-  bool isClear() {
+  bool isNotFull() {
     int i;
     for (i = 0; i < STATUS_BYTES; i++) {
-      if (bitmask[i] != 0) {
-	return FALSE;
+      if (bitmask[i] == 0) {
+	return TRUE;
       }
     }
-    return TRUE;
+    return FALSE;
   }
 
   uint8_t bitToByte(uint8_t bit) {
@@ -127,12 +127,12 @@ implementation {
 
   void enactStateChange() {
     if (status.busy) {return;}
-    if (isClear() && status.active) {
+    if (isNotFull() && status.active) {
       if (call SplitControl.stop() == SUCCESS) {
 	status.busy = TRUE;
       }
     }
-    if (!isClear() && !status.active) {
+    if (!isNotFull() && !status.active) {
       if (call SplitControl.start() == SUCCESS) {
 	status.busy = TRUE;
       }

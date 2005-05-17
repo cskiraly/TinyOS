@@ -1,4 +1,4 @@
-// $Id: BroadcastC.nc,v 1.1.2.2 2005-05-17 21:25:19 scipio Exp $
+// $Id: ActiveMessageImplC.nc,v 1.1.2.1 2005-05-17 21:25:19 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,35 +30,36 @@
 
 
 /**
- * Components should never wire directly to this component: use
- * BroadcastSenderC and BroadcastReceiverC instead. This is the
- * configuration for OSKI broadcasts, which wires the broadcast module
- * to its underlying components.
+ * The underlying configuration of OSKI Active Messages. Wires the AM
+ * implementation (ActiveMessageC) to the boot sequence, and exports
+ * the AM interfaces.
  *
  * @author Philip Levis
- * @date   May 16 2005
+ * @date   January 5 2005
  */ 
 
-includes Broadcast;
+includes AM;
 
-configuration BroadcastC {
+configuration ActiveMessageImplC {
   provides {
-    interface Send[uint8_t id];
-    interface Receive[uint8_t id];
+    interface SplitControl;      
+    interface AMSend[am_id_t id];
+    interface Receive[am_id_t id];
+    interface Receive as Snoop[am_id_t id];
     interface Packet;
+    interface AMPacket;
   }
 }
 
 implementation {
-  components BroadcastM, ActiveMessageImplC as AM;
+  components ActiveMessageC, Main;
 
-  BroadcastM.AMSend -> AM.AMSend[TOS_BCAST_AM_ID];
-  BroadcastM.SubReceive -> AM.Receive[TOS_BCAST_AM_ID];
-  BroadcastM.SubPacket -> AM;
-  BroadcastM.AMPacket -> AM;
+  Main.SoftwareInit -> ActiveMessageC;
 
-  Send = BroadcastM;
-  Receive = BroadcastM;
-  Packet = BroadcastM;
-  
+  SplitControl = ActiveMessageC;
+  AMSend = ActiveMessageC;
+  Receive = ActiveMessageC.Receive;
+  Snoop = ActiveMessageC.Snoop;
+  Packet = ActiveMessageC;
+  AMPacket = ActiveMessageC;
 }

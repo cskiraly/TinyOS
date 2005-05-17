@@ -1,4 +1,4 @@
-// $Id: BroadcastP.nc,v 1.1.2.1 2005-01-11 03:33:04 scipio Exp $
+// $Id: BroadcastM.nc,v 1.1.2.1 2005-05-17 21:25:19 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -40,15 +40,15 @@
  * address filtering).
  *
  * @author Philip Levis
- * @date   January 5 2005
+ * @date   May 16 2005
  */ 
 
 includes Broadcast;
 
-module BroadcastP {
+module BroadcastM {
   provides {
-    interface Send[bcast_id id];
-    interface Receive[bcast_id id];
+    interface Send[uint8_t id];
+    interface Receive[uint8_t id];
     interface Packet;
   }
   uses {
@@ -66,43 +66,43 @@ implementation {
     BROADCASTP_OFFSET = offsetof(BroadcastMsg, data),
   };
 
-  command error_t Send.send[bcast_id_t id](TOSMsg* msg, uint8_t len) {
+  command error_t Send.send[uint8_t id](message_t* msg, uint8_t len) {
     if (len > call Packet.maxPayloadLength()) {
       return ESIZE;
     }
     else {
-      BroadcastMsg* bmsg = (BroadcastMsg*)getPayload(msg, NULL);
+      BroadcastMsg* bmsg = (BroadcastMsg*)call Packet.getPayload(msg, NULL);
       bmsg->id = id;
       len += BROADCASTP_OFFSET;
-      return call AMSend.send(msg, len, AM_BROADCAST_ADDR);
+      return call AMSend.send(AM_BROADCAST_ADDR, msg, len);
     }
   }
 
-  command error_t Send.cancel[bcast_id_t id](TOSMsg* msg) {
+  command error_t Send.cancel[uint8_t id](message_t* msg) {
     return call AMSend.cancel(msg);
   }
 
-  event void AMSend.sendDone(TOSMsg* msg, error_t error) {
-    BroadcastMsg* bmsg = (BroadcastMsg*)getPayload(msg, NULL);
+  event void AMSend.sendDone(message_t* msg, error_t error) {
+    BroadcastMsg* bmsg = (BroadcastMsg*)call Packet.getPayload(msg, NULL);
     signal Send.sendDone[bmsg->id](msg, error);
   }
 
-  event TOSMsg* SubReceive.receive(TOSMsg* msg,
+  event message_t* SubReceive.receive(message_t* msg,
 				   void* payload,
 				   uint8_t len) {
-    BroadcastMsg* bmsg = (BroadcastMsg*)getPayload(msg, NULL);
+    BroadcastMsg* bmsg = (BroadcastMsg*)call Packet.getPayload(msg, NULL);
     signal Receive.receive[bmsg->id](msg,
 				     payload + BROADCASTP_OFFSET,
 				     len - BROADCASTP_OFFSET); 
   }
   
-  command void Packet.clear(TOS_Msg* msg) {
+  command void Packet.clear(message_t* msg) {
     uint8_t len;
     void* payload = call SubPacket.getPayload(msg, &len);
     memset(msg, len, 0);
   }
 
-  command uint8_t Packet.payloadLength(TOSMsg* msg) {
+  command uint8_t Packet.payloadLength(message_t* msg) {
     uint8_t len;
     void* payload = call SubPacket.getPayload(msg, &len);
     return len - BROADCASTP_OFFSET;
@@ -112,7 +112,7 @@ implementation {
     return call SubPacket.maxPayloadLength() - BROADCASTP_OFFSET;
   }
 
-  command void* Packet.getPayload(TOSMsg* msg, uint8_t* len) {
+  command void* Packet.getPayload(message_t* msg, uint8_t* len) {
     void* payload = call SubPacket.getPayload(msg, len);
     *len -= BROADCASTP_OFFSET;
     return payload + BROADCASTP_OFFSET;
