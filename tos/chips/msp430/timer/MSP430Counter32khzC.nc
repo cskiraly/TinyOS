@@ -1,4 +1,4 @@
-//$Id: MSP430Counter32khzC.nc,v 1.1.2.1 2005-03-30 17:58:26 cssharp Exp $
+//$Id: MSP430Counter32khzC.nc,v 1.1.2.2 2005-05-18 07:20:22 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -27,12 +27,12 @@
 // MSP430Counter32khC provides the standard 32khz counter for the MSP430.
 configuration MSP430Counter32khzC
 {
-  provides interface CounterBase<T32khz,uint16_t> as MSP430Counter32khz;
+  provides interface Counter<T32khz,uint16_t> as MSP430Counter32khz;
 }
 implementation
 {
   components MSP430TimerC
-           , new MSP430CounterM(T32khz) as Counter
+           , new MSP430CounterC(T32khz) as Counter
 	   ;
   
   MSP430Counter32khz = Counter;

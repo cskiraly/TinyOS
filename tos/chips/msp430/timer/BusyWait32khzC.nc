@@ -1,4 +1,4 @@
-//$Id: MSP430CounterM.nc,v 1.1.2.1 2005-03-30 17:58:26 cssharp Exp $
+//$Id: BusyWait32khzC.nc,v 1.1.2.1 2005-05-18 07:20:22 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,33 +24,17 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-// MSP430Counter is a generic component that wraps the MSP430 HPL timers into a
-// TinyOS CounterBase.
-generic module MSP430CounterM( typedef frequency_tag )
+configuration BusyWait32khzC
 {
-  provides interface CounterBase<frequency_tag,uint16_t> as Counter;
-  uses interface MSP430Timer;
+  provides interface BusyWait<T32khz,uint16_t>;
 }
 implementation
 {
-  async command uint16_t Counter.get()
-  {
-    return call MSP430Timer.get();
-  }
-
-  async command bool Counter.isOverflowPending()
-  {
-    return call MSP430Timer.isOverflowPending();
-  }
-
-  async command void Counter.clearOverflow()
-  {
-    call MSP430Timer.clearOverflow();
-  }
-
-  async event void MSP430Timer.overflow()
-  {
-    signal Counter.overflow();
-  }
+  components new BusyWaitCounterC(T32khz,uint16_t)
+	   , MSP430Counter32khzC
+	   ;
+  
+  BusyWait = BusyWaitCounterC;
+  BusyWaitCounter.Counter -> MSP430Counter32khzC;
 }
 

@@ -1,4 +1,4 @@
-//$Id: AlarmTimerMilliC.nc,v 1.1.2.3 2005-04-22 06:08:40 cssharp Exp $
+//$Id: AlarmTimerMilliC.nc,v 1.1.2.4 2005-05-18 07:20:21 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -28,8 +28,7 @@
 configuration AlarmTimerMilliC
 {
   provides interface Init;
-  provides interface Alarm<TMilli> as AlarmTimerMilli;
-  provides interface AlarmBase<TMilli,uint32_t> as AlarmBaseTimerMilli;
+  provides interface Alarm<TMilli,uint32_t> as AlarmTimerMilli;
 }
 implementation
 {
@@ -37,6 +36,5 @@ implementation
 
   Init = AlarmMilliC;
   AlarmTimerMilli = AlarmMilliC;
-  AlarmBaseTimerMilli = AlarmMilliC;
 }
 

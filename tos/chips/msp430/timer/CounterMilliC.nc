@@ -1,4 +1,4 @@
-//$Id: CounterMilliC.nc,v 1.1.2.2 2005-04-01 08:32:00 cssharp Exp $
+//$Id: CounterMilliC.nc,v 1.1.2.3 2005-05-18 07:20:22 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -27,21 +27,16 @@
 // CounterMilliC is the counter to be used for all Millis.
 configuration CounterMilliC
 {
-  provides interface Counter<TMilli> as CounterMilli;
-  provides interface CounterBase<TMilli,uint32_t> as CounterBaseMilli;
+  provides interface Counter<TMilli,uint32_t> as CounterMilli32;
 }
 implementation
 {
   components MSP430TimerC
 	   , MSP430Counter32khzC
-	   , new TransformCounterM(TMilli,uint32_t,T32khz,uint16_t,5,uint32_t) as Transform
-	   , new CastCounterM(TMilli) as Cast
+	   , new TransformCounterC(TMilli,uint32_t,T32khz,uint16_t,5,uint32_t) as Transform
 	   ;
   
-  CounterMilli = Cast.Counter;
-  CounterBaseMilli = Transform.Counter;
-
-  Cast.CounterFrom -> Transform.Counter;
+  CounterMilli32 = Transform.Counter;
   Transform.CounterFrom -> MSP430Counter32khzC;
 }
 
