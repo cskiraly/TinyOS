@@ -1,4 +1,4 @@
-//$Id: AlarmMilliC.nc,v 1.1.2.3 2005-05-18 07:20:21 cssharp Exp $
+//$Id: MSP430CounterMicroC.nc,v 1.1.2.1 2005-05-18 07:20:22 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,29 +24,18 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-// Alarm32khzC is the alarm for async 32khz alarms
-generic configuration AlarmMilliC()
+// MSP430Counter32khC provides the standard 32khz counter for the MSP430.
+configuration MSP430CounterMicroC
 {
-  provides interface Init;
-  provides interface Alarm<TMilli,uint32_t> as AlarmMilli32;
+  provides interface Counter<TMicro,uint16_t> as MSP430CounterMicro;
 }
 implementation
 {
-  components new MSP430Timer32khzC() as MSP430Timer
-           , new MSP430AlarmC(T32khz) as MSP430Alarm
-           , new TransformAlarmC(TMilli,uint32_t,T32khz,uint16_t,5) as Transform
-	   , CounterMilliC as Counter
-           ;
-
-  Init = MSP430Alarm;
-
-  AlarmMilli32 = Transform;
-
-  Transform.AlarmFrom -> MSP430Alarm;
-  Transform.Counter -> Counter;
-
-  MSP430Alarm.MSP430Timer -> MSP430Timer;
-  MSP430Alarm.MSP430TimerControl -> MSP430Timer;
-  MSP430Alarm.MSP430Compare -> MSP430Timer;
+  components MSP430TimerC
+           , new MSP430CounterC(TMicro) as Counter
+	   ;
+  
+  MSP430CounterMicro = Counter;
+  Counter.MSP430Timer -> MSP430TimerC.TimerA;
 }
 

@@ -1,4 +1,4 @@
-//$Id: Counter32khzC.nc,v 1.1.2.1 2005-04-22 06:08:41 cssharp Exp $
+//$Id: Counter32khzC.nc,v 1.1.2.2 2005-05-18 07:20:22 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -27,21 +27,19 @@
 // Counter32khzC is the counter to be used for all 32khzs.
 configuration Counter32khzC
 {
-  provides interface Counter<T32khz> as Counter32khz;
-  provides interface CounterBase<T32khz,uint32_t> as CounterBase32khz;
+  provides interface Counter<T32khz,uint16_t> as Counter32khz16;
+  provides interface Counter<T32khz,uint32_t> as Counter32khz32;
 }
 implementation
 {
   components MSP430TimerC
 	   , MSP430Counter32khzC
-	   , new TransformCounterM(T32khz,uint32_t,T32khz,uint16_t,0,uint16_t) as Transform
-	   , new CastCounterM(T32khz) as Cast
+	   , new TransformCounterC(T32khz,uint32_t,T32khz,uint16_t,0,uint16_t) as Transform
 	   ;
   
-  Counter32khz = Cast.Counter;
-  CounterBase32khz = Transform.Counter;
+  Counter32khz16 = MSP430Counter32khzC;
+  Counter32khz32 = Transform.Counter;
 
-  Cast.CounterFrom -> Transform.Counter;
   Transform.CounterFrom -> MSP430Counter32khzC;
 }
 

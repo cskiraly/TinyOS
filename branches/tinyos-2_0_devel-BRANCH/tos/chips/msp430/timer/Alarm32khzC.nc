@@ -1,4 +1,4 @@
-//$Id: Alarm32khzC.nc,v 1.1.2.2 2005-04-23 20:04:01 cssharp Exp $
+//$Id: Alarm32khzC.nc,v 1.1.2.3 2005-05-18 07:20:00 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -28,24 +28,22 @@
 generic configuration Alarm32khzC()
 {
   provides interface Init;
-  provides interface Alarm<T32khz> as Alarm32khz;
-  provides interface AlarmBase<T32khz,uint32_t> as AlarmBase32khz;
+  provides interface Alarm<T32khz,uint16_t> as Alarm32khz16;
+  provides interface Alarm<T32khz,uint32_t> as Alarm32khz32;
 }
 implementation
 {
   components new MSP430Timer32khzC() as MSP430Timer
-           , new MSP430AlarmM(T32khz) as MSP430Alarm
-           , new TransformAlarmM(T32khz,uint32_t,T32khz,uint16_t,0) as Transform
-           , new CastAlarmM(T32khz) as Cast
+           , new MSP430AlarmC(T32khz) as MSP430Alarm
+           , new TransformAlarmC(T32khz,uint32_t,T32khz,uint16_t,0) as Transform
 	   , Counter32khzC as Counter
            ;
 
   Init = MSP430Alarm;
 
-  Alarm32khz = Cast;
-  AlarmBase32khz = Transform;
+  Alarm32khz16 = MSP430Alarm;
+  Alarm32khz32 = Transform;
 
-  Cast.AlarmFrom -> Transform;
   Transform.AlarmFrom -> MSP430Alarm;
   Transform.Counter -> Counter;
 
