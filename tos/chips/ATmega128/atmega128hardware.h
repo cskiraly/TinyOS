@@ -33,7 +33,7 @@
  *  @author Jason Hill, Philip Levis, Nelson Lee, David Gay
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: atmega128hardware.h,v 1.1.2.8 2005-05-10 18:13:41 idgay Exp $
+ *  $Id: atmega128hardware.h,v 1.1.2.9 2005-05-18 23:28:13 idgay Exp $
  */
 
 #ifndef _H_atmega128hardware_H
@@ -46,39 +46,11 @@
 #include <avr/pgmspace.h>
 #include "atmega128const.h"
 
-#define TOSH_ASSIGN_PIN(name, port, bit) \
-  static inline void TOSH_SET_##name##_PIN() { PORT##port |= _BV(bit); } \
-  static inline void TOSH_CLR_##name##_PIN() { PORT##port &= ~_BV(bit); } \
-  static inline int TOSH_READ_##name##_PIN() \
-    { return (PIN##port & _BV(bit)) != 0; } \
-  static inline void TOSH_MAKE_##name##_OUTPUT() { DDR##port |= _BV(bit); } \
-  static inline void TOSH_MAKE_##name##_INPUT() { DDR##port &= ~_BV(bit); } 
-
-#define TOSH_ASSIGN_OUTPUT_ONLY_PIN(name, port, bit) \
-  static inline void TOSH_SET_##name##_PIN() { PORT##port |= 1 << (bit));} \
-  static inline void TOSH_CLR_##name##_PIN() { PORT##port &= ~(1 << (bit);} \
-  static inline void TOSH_MAKE_##name##_OUTPUT() { } 
-
-#define TOSH_ALIAS_OUTPUT_ONLY_PIN(alias, connector) \
-  static inline void TOSH_SET_##alias##_PIN() {TOSH_SET_##connector##_PIN();} \
-  static inline void TOSH_CLR_##alias##_PIN() {TOSH_CLR_##connector##_PIN();} \
-  static inline void TOSH_MAKE_##alias##_OUTPUT() { } \
-
-#define TOSH_ALIAS_PIN(alias, connector) \
-  static inline void TOSH_SET_##alias##_PIN() {TOSH_SET_##connector##_PIN();} \
-  static inline void TOSH_CLR_##alias##_PIN() {TOSH_CLR_##connector##_PIN();} \
-  static inline char TOSH_READ_##alias##_PIN() \
-    { return TOSH_READ_##connector##_PIN(); } \
-  static inline void TOSH_MAKE_##alias##_OUTPUT() \
-    { TOSH_MAKE_##connector##_OUTPUT(); } \
-  static inline void TOSH_MAKE_##alias##_INPUT() \
-    { TOSH_MAKE_##connector##_INPUT(); } 
-
 /** We need slightly different defs than SIGNAL, INTERRUPT */
-#define TOSH_SIGNAL(signame) \
+#define AVR_ATOMIC_HANDLER(signame) \
   void signame() __attribute__ ((signal, spontaneous, C))
 
-#define TOSH_INTERRUPT(signame) \
+#define AVR_NONATOMIC_HANDLER(signame) \
   void signame() __attribute__ ((interrupt, spontaneous, C))
 
 /** Macro to create union casting functions. */
@@ -96,12 +68,6 @@
 #define SET_FLAG(port, flag)  ((port) |= (flag))
 #define CLR_FLAG(port, flag)  ((port) &= ~(flag))
 #define READ_FLAG(port, flag) ((port) & (flag))
-
-void TOSH_wait()
-{
-    asm volatile("nop");
-    asm volatile("nop");
-}
 
 /** Enables interrupts. */
 inline void __nesc_enable_interrupt() {

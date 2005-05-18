@@ -1,4 +1,4 @@
-/// $Id: HPLTimerM.nc,v 1.1.2.4 2005-05-10 18:13:44 idgay Exp $
+/// $Id: HPLTimerM.nc,v 1.1.2.5 2005-05-18 23:28:13 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -395,65 +395,65 @@ implementation
 
   //=== Timer interrupts signals ========================================
   default async event void Compare0.fired() { }
-  TOSH_INTERRUPT(SIG_OUTPUT_COMPARE0) {
+  AVR_NONATOMIC_HANDLER(SIG_OUTPUT_COMPARE0) {
     signal Compare0.fired();
   }
   default async event void Timer0.overflow() { }
-  TOSH_INTERRUPT(SIG_OVERFLOW0) {
+  AVR_NONATOMIC_HANDLER(SIG_OVERFLOW0) {
     signal Timer0.overflow();
   }
 
 
   default async event void Compare2.fired() { }
-  TOSH_INTERRUPT(SIG_OUTPUT_COMPARE2) {
+  AVR_NONATOMIC_HANDLER(SIG_OUTPUT_COMPARE2) {
     signal Compare2.fired();
   }
   default async event void Timer2.overflow() { }
-  TOSH_INTERRUPT(SIG_OVERFLOW2) {
+  AVR_NONATOMIC_HANDLER(SIG_OVERFLOW2) {
     signal Timer2.overflow();
   }
 
 
   default async event void Compare1A.fired() { }
-  TOSH_INTERRUPT(SIG_OUTPUT_COMPARE1A) {
+  AVR_NONATOMIC_HANDLER(SIG_OUTPUT_COMPARE1A) {
     signal Compare1A.fired();
   }
   default async event void Compare1B.fired() { }
-  TOSH_INTERRUPT(SIG_OUTPUT_COMPARE1B) {
+  AVR_NONATOMIC_HANDLER(SIG_OUTPUT_COMPARE1B) {
     signal Compare1B.fired();
   }
   default async event void Compare1C.fired() { }
-  TOSH_INTERRUPT(SIG_OUTPUT_COMPARE1C) {
+  AVR_NONATOMIC_HANDLER(SIG_OUTPUT_COMPARE1C) {
     signal Compare1C.fired();
   }
   default async event void Capture1.captured(uint16_t time) { }
-  TOSH_INTERRUPT(SIG_INPUT_CAPTURE1) {
+  AVR_NONATOMIC_HANDLER(SIG_INPUT_CAPTURE1) {
     signal Capture1.captured(call Timer1.get());
   }
   default async event void Timer1.overflow() { }
-  TOSH_INTERRUPT(SIG_OVERFLOW1) {
+  AVR_NONATOMIC_HANDLER(SIG_OVERFLOW1) {
     signal Timer1.overflow();
   }
 
 
   default async event void Compare3A.fired() { }
-  TOSH_INTERRUPT(SIG_OUTPUT_COMPARE3A) {
+  AVR_NONATOMIC_HANDLER(SIG_OUTPUT_COMPARE3A) {
     signal Compare3A.fired();
   }
   default async event void Compare3B.fired() { }
-  TOSH_INTERRUPT(SIG_OUTPUT_COMPARE3B) {
+  AVR_NONATOMIC_HANDLER(SIG_OUTPUT_COMPARE3B) {
     signal Compare3B.fired();
   }
   default async event void Compare3C.fired() { }
-  TOSH_INTERRUPT(SIG_OUTPUT_COMPARE3C) {
+  AVR_NONATOMIC_HANDLER(SIG_OUTPUT_COMPARE3C) {
     signal Compare3C.fired();
   }
   default async event void Capture3.captured(uint16_t time) { }
-  TOSH_INTERRUPT(SIG_INPUT_CAPTURE3) {
+  AVR_NONATOMIC_HANDLER(SIG_INPUT_CAPTURE3) {
     signal Capture3.captured(call Timer3.get());
   }
   default async event void Timer3.overflow() { }
-  TOSH_INTERRUPT(SIG_OVERFLOW3) {
+  AVR_NONATOMIC_HANDLER(SIG_OVERFLOW3) {
     signal Timer3.overflow();
   }
 }

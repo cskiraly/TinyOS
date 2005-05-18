@@ -1,4 +1,4 @@
-// $Id: HPLCC1000SpiM.nc,v 1.1.2.1 2005-05-10 20:53:51 idgay Exp $
+// $Id: HPLCC1000SpiM.nc,v 1.1.2.2 2005-05-18 23:28:14 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 
 /* 
  * Authors: Jaein Jeong, Philip buonadonna
- * Date last modified: $Revision: 1.1.2.1 $
+ * Date last modified: $Revision: 1.1.2.2 $
  *
  */
 
@@ -43,52 +43,61 @@
 
 module HPLCC1000SpiM
 {
-  provides interface CC1000Spi;
+  provides interface Init as PlatformInit;
+  provides interface HPLCC1000Spi;
   //uses interface PowerManagement;
+  uses {
+    interface GeneralIO as SpiSck;
+    interface GeneralIO as SpiMiso;
+    interface GeneralIO as SpiMosi;
+    interface GeneralIO as OC1C;
+  }
 }
 implementation
 {
-  norace uint8_t OutgoingByte; // Define norace to prevent nesC 1.1 warnings
+  uint8_t outgoingByte;
 
-  TOSH_SIGNAL(SIG_SPI) {
+  command error_t PlatformInit.init() {
+    call SpiSck.makeInput();
+    call OC1C.makeInput();
+    call HPLCC1000Spi.rxMode();
+    return SUCCESS;
+  }
+
+  AVR_ATOMIC_HANDLER(SIG_SPI) {
     register uint8_t temp = SPDR;
-    SPDR = OutgoingByte;
-    signal CC1000Spi.dataReady(temp);
+    SPDR = outgoingByte;
+    signal HPLCC1000Spi.dataReady(temp);
   }
 
-  async command void CC1000Spi.writeByte(uint8_t data) {
-    //while(bit_is_clear(SPSR,SPIF));
-    //outp(data, SPDR);
-    atomic OutgoingByte = data;
+  async command void HPLCC1000Spi.writeByte(uint8_t data) {
+    atomic outgoingByte = data;
   }
 
-  async command bool CC1000Spi.isBufBusy() {
+  async command bool HPLCC1000Spi.isBufBusy() {
     return bit_is_clear(SPSR,SPIF);
   }
 
-  async command uint8_t CC1000Spi.readByte() {
+  async command uint8_t HPLCC1000Spi.readByte() {
     return SPDR;
   }
 
-  async command void CC1000Spi.enableIntr() {
+  async command void HPLCC1000Spi.enableIntr() {
     //sbi(SPCR,SPIE);
     SPCR = 0xc0;
     CLR_BIT(DDRB, 0);
     //call PowerManagement.adjustPower();
   }
 
-  async command void CC1000Spi.disableIntr() {
+  async command void HPLCC1000Spi.disableIntr() {
     CLR_BIT(SPCR, SPIE);
     SET_BIT(DDRB, 0);
     CLR_BIT(PORTB, 0);
     //call PowerManagement.adjustPower();
   }
 
-  async command void CC1000Spi.initSlave() {
+  async command void HPLCC1000Spi.initSlave() {
     atomic {
-      TOSH_MAKE_SPI_SCK_INPUT();
-      TOSH_MAKE_MISO_INPUT();	// miso
-      TOSH_MAKE_MOSI_INPUT();	// mosi
       CLR_BIT(SPCR, CPOL);		// Set proper polarity...
       CLR_BIT(SPCR, CPHA);		// ...and phase
       SET_BIT(SPCR, SPIE);	// enable spi port
@@ -96,13 +105,13 @@ implementation
     } 
   }
 	
-  async command void CC1000Spi.txMode() {
-    TOSH_MAKE_MISO_OUTPUT();
-    TOSH_MAKE_MOSI_OUTPUT();
+  async command void HPLCC1000Spi.txMode() {
+    call SpiMiso.makeOutput();
+    call SpiMosi.makeOutput();
   }
 
-  async command void CC1000Spi.rxMode() {
-    TOSH_MAKE_MISO_INPUT();
-    TOSH_MAKE_MOSI_INPUT();
+  async command void HPLCC1000Spi.rxMode() {
+    call SpiMiso.makeInput();
+    call SpiMosi.makeInput();
   }
 }

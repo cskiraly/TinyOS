@@ -1,4 +1,4 @@
-// $Id: CC1000RadioM.nc,v 1.1.2.1 2005-05-10 20:53:05 idgay Exp $
+// $Id: CC1000RadioM.nc,v 1.1.2.2 2005-05-18 23:28:13 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -62,7 +62,7 @@ module CC1000RadioM {
     interface CC1000Control;
     interface Random;
     interface AcquireDataNow as RSSIADC;
-    interface CC1000Spi;
+    interface HPLCC1000Spi;
     interface Timer<TMilli> as WakeupTimer;
     interface Timer<TMilli> as SquelchTimer;
   }
@@ -361,9 +361,9 @@ implementation
     call CC1000Control.biasOn();
     uwait(200);
     call CC1000Control.rxMode();
-    call CC1000Spi.rxMode();
+    call HPLCC1000Spi.rxMode();
     startSquelchTimer();
-    call CC1000Spi.enableIntr();
+    call HPLCC1000Spi.enableIntr();
   }
 
   /* Prepare to send when currently in low-power listen mode (i.e., 
@@ -438,7 +438,7 @@ implementation
 		 radioState == PULSECHECK_STATE)
 	  {
 	    enterPowerDownState();
-	    call CC1000Spi.disableIntr();
+	    call HPLCC1000Spi.disableIntr();
 	    call CC1000Control.off();
 	    call WakeupTimer.startOneShotNow(sleepTime);
 	  }
@@ -458,7 +458,7 @@ implementation
 		 radioState == PULSECHECK_STATE)
 	  {
 	    enterPowerDownState();
-	    call CC1000Spi.disableIntr();
+	    call HPLCC1000Spi.disableIntr();
 	    call CC1000Control.off();
 	    call WakeupTimer.startOneShotNow(sleepTime);
 	  }
@@ -486,8 +486,8 @@ implementation
 	//go to the idle state since no outliers were found
 	enterIdleState();
 	call CC1000Control.rxMode();
-	call CC1000Spi.rxMode();     // SPI to miso
-	call CC1000Spi.enableIntr(); // enable spi interrupt
+	call HPLCC1000Spi.rxMode();     // SPI to miso
+	call HPLCC1000Spi.enableIntr(); // enable spi interrupt
 	post idleTimerTask();
       }
     else
@@ -512,7 +512,7 @@ implementation
   command error_t Init.init() {
     uint8_t i;
 
-    call CC1000Spi.initSlave(); // set spi bus to slave mode
+    call HPLCC1000Spi.initSlave(); // set spi bus to slave mode
     call CC1000Control.init();
     call CC1000Control.selectLock(0x9);		// Select MANCHESTER VIOLATION
     if (call CC1000Control.getLOStatus())
@@ -547,10 +547,10 @@ implementation
     //uwait(2000);
     call CC1000Control.biasOn();
     uwait(200);
-    call CC1000Spi.rxMode();
+    call HPLCC1000Spi.rxMode();
     call CC1000Control.rxMode();
     startSquelchTimer();
-    call CC1000Spi.enableIntr();
+    call HPLCC1000Spi.enableIntr();
 
     if (post startDone() != SUCCESS)
       ; // XXX.
@@ -567,7 +567,7 @@ implementation
       {
 	enterDisabledState();
 	call CC1000Control.off();
-	call CC1000Spi.disableIntr();
+	call HPLCC1000Spi.disableIntr();
       }
     call SquelchTimer.stop();
     call WakeupTimer.stop();
@@ -669,8 +669,8 @@ implementation
       {
 	enterAckState();
 	call CC1000Control.txMode();
-	call CC1000Spi.txMode();
-	call CC1000Spi.writeByte(0xaa);
+	call HPLCC1000Spi.txMode();
+	call HPLCC1000Spi.writeByte(0xaa);
       }
     else
       packetReceiveDone();
@@ -786,15 +786,15 @@ implementation
     if (++count >= ACK_LENGTH)
       { 
 	call CC1000Control.rxMode();
-	call CC1000Spi.rxMode();
+	call HPLCC1000Spi.rxMode();
 	packetReceiveDone();
       }
     else if (count >= ACK_LENGTH - sizeof ackCode)
-      call CC1000Spi.writeByte(read_uint8_t(&ackCode[count + sizeof ackCode - ACK_LENGTH]));
+      call HPLCC1000Spi.writeByte(read_uint8_t(&ackCode[count + sizeof ackCode - ACK_LENGTH]));
   }
 
   void sendNextByte() {
-    call CC1000Spi.writeByte(nextTxByte);
+    call HPLCC1000Spi.writeByte(nextTxByte);
     count++;
   }
 
@@ -841,7 +841,7 @@ implementation
 	enterTxWaitForAckState();
       else
 	{
-	  call CC1000Spi.rxMode();
+	  call HPLCC1000Spi.rxMode();
 	  call CC1000Control.rxMode();
 	  enterTxDoneState();
 	}
@@ -851,7 +851,7 @@ implementation
     sendNextByte();
     if (count == 1)
       {
-	call CC1000Spi.rxMode();
+	call HPLCC1000Spi.rxMode();
 	call CC1000Control.rxMode();
       }
     else if (count > 3)
@@ -895,7 +895,7 @@ implementation
       }
   }
 
-  async event void CC1000Spi.dataReady(uint8_t data) {
+  async event void HPLCC1000Spi.dataReady(uint8_t data) {
     //waited++;
 
     if (f.invert)
@@ -1013,9 +1013,9 @@ implementation
 	//fun[pos].rssi = clearThreshold;
 #endif
 	enterTxPreambleState();
-	call CC1000Spi.writeByte(0xaa);
+	call HPLCC1000Spi.writeByte(0xaa);
 	call CC1000Control.txMode();
-	call CC1000Spi.txMode();
+	call HPLCC1000Spi.txMode();
       }
     else if (count == CC1K_MaxRSSISamples)
       {

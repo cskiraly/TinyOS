@@ -1,4 +1,4 @@
-// $Id: HPLCC1000M.nc,v 1.1.2.1 2005-05-10 20:53:51 idgay Exp $
+// $Id: HPLCC1000M.nc,v 1.1.2.2 2005-05-18 23:28:14 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Jaein Jeong, Philip Buonadonna
- * Date last modified:  $Revision: 1.1.2.1 $
+ * Date last modified:  $Revision: 1.1.2.2 $
  *
  */
 
@@ -43,19 +43,31 @@
 
 module HPLCC1000M {
   provides {
+    interface Init as PlatformInit;
     interface HPLCC1000;
+  }
+  uses {
+    /* These are the CC1000 pin names */
+    interface GeneralIO as CHP_OUT;
+    interface GeneralIO as PALE;
+    interface GeneralIO as PCLK;
+    interface GeneralIO as PDATA;
   }
 }
 implementation
 {
+  command error_t PlatformInit.init() {
+    call CHP_OUT.makeInput();
+    call PALE.makeOutput();
+    call PCLK.makeOutput();
+    call PDATA.makeOutput();
+    call PALE.set();
+    call PDATA.set();
+    call PCLK.set();
+    return SUCCESS;
+  }
+  
   command void HPLCC1000.init() {
-    TOSH_MAKE_CC_CHP_OUT_INPUT();
-    TOSH_MAKE_CC_PALE_OUTPUT();  // PALE
-    TOSH_MAKE_CC_PCLK_OUTPUT();    // PCLK
-    TOSH_MAKE_CC_PDATA_OUTPUT();    // PDATA
-    TOSH_SET_CC_PALE_PIN();      // set PALE high
-    TOSH_SET_CC_PDATA_PIN();        // set PCLK high
-    TOSH_SET_CC_PCLK_PIN();        // set PDATA high
   }
 
   //********************************************************/
@@ -76,37 +88,37 @@ implementation
 
     // address cycle starts here
     addr <<= 1;
-    TOSH_CLR_CC_PALE_PIN();  // enable PALE
+    call PALE.clr();  // enable PALE
     for (cnt=0;cnt<7;cnt++)  // send addr PDATA msb first
     {
       if (addr&0x80)
-        TOSH_SET_CC_PDATA_PIN();
+        call PDATA.set();
       else
-        TOSH_CLR_CC_PDATA_PIN();
-      TOSH_CLR_CC_PCLK_PIN();   // toggle the PCLK
-      TOSH_SET_CC_PCLK_PIN();
+        call PDATA.clr();
+      call PCLK.clr();   // toggle the PCLK
+      call PCLK.set();
       addr <<= 1;
     }
-    TOSH_SET_CC_PDATA_PIN();
-    TOSH_CLR_CC_PCLK_PIN();   // toggle the PCLK
-    TOSH_SET_CC_PCLK_PIN();
+    call PDATA.set();
+    call PCLK.clr();   // toggle the PCLK
+    call PCLK.set();
 
-    TOSH_SET_CC_PALE_PIN();  // disable PALE
+    call PALE.set();  // disable PALE
 
     // data cycle starts here
     for (cnt=0;cnt<8;cnt++)  // send data PDATA msb first
     {
       if (data&0x80)
-        TOSH_SET_CC_PDATA_PIN();
+        call PDATA.set();
       else
-        TOSH_CLR_CC_PDATA_PIN();
-      TOSH_CLR_CC_PCLK_PIN();   // toggle the PCLK
-      TOSH_SET_CC_PCLK_PIN();
+        call PDATA.clr();
+      call PCLK.clr();   // toggle the PCLK
+      call PCLK.set();
       data <<= 1;
     }
-    TOSH_SET_CC_PALE_PIN();
-    TOSH_SET_CC_PDATA_PIN();
-    TOSH_SET_CC_PCLK_PIN();
+    call PALE.set();
+    call PDATA.set();
+    call PCLK.set();
   }
 
   //********************************************************/
@@ -130,39 +142,39 @@ implementation
 
     // address cycle starts here
     addr <<= 1;
-    TOSH_CLR_CC_PALE_PIN();  // enable PALE
+    call PALE.clr();  // enable PALE
     for (cnt=0;cnt<7;cnt++)  // send addr PDATA msb first
     {
       if (addr&0x80)
-        TOSH_SET_CC_PDATA_PIN();
+        call PDATA.set();
       else
-        TOSH_CLR_CC_PDATA_PIN();
-      TOSH_CLR_CC_PCLK_PIN();   // toggle the PCLK
-      TOSH_SET_CC_PCLK_PIN();
+        call PDATA.clr();
+      call PCLK.clr();   // toggle the PCLK
+      call PCLK.set();
       addr <<= 1;
     }
-    TOSH_CLR_CC_PDATA_PIN();
-    TOSH_CLR_CC_PCLK_PIN();   // toggle the PCLK
-    TOSH_SET_CC_PCLK_PIN();
+    call PDATA.clr();
+    call PCLK.clr();   // toggle the PCLK
+    call PCLK.set();
 
-    TOSH_MAKE_CC_PDATA_INPUT();  // read data from chipcon
-    TOSH_SET_CC_PALE_PIN();  // disable PALE
+    call PDATA.makeInput();  // read data from chipcon
+    call PALE.set();  // disable PALE
 
     // data cycle starts here
     for (cnt=7;cnt>=0;cnt--)  // send data PDATA msb first
     {
-      TOSH_CLR_CC_PCLK_PIN();  // toggle the PCLK
-      din = TOSH_READ_CC_PDATA_PIN();
+      call PCLK.clr();  // toggle the PCLK
+      din = call PDATA.get();
       if(din)
         data = (data<<1)|0x01;
       else
         data = (data<<1)&0xfe;
-      TOSH_SET_CC_PCLK_PIN();
+      call PCLK.set();
     }
 
-    TOSH_SET_CC_PALE_PIN();
-    TOSH_MAKE_CC_PDATA_OUTPUT();
-    TOSH_SET_CC_PDATA_PIN();
+    call PALE.set();
+    call PDATA.makeOutput();
+    call PDATA.set();
 
     return data;
   }
@@ -171,7 +183,7 @@ implementation
   async command bool HPLCC1000.getLOCK() {
     char cVal;
 
-    cVal = TOSH_READ_CC_CHP_OUT_PIN();
+    cVal = call CHP_OUT.get();
 
     return cVal;
   }

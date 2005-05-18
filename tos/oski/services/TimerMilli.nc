@@ -1,4 +1,4 @@
-// $Id: TimerMilli.nc,v 1.1.2.3 2005-04-16 06:19:13 cssharp Exp $
+// $Id: TimerMilli.nc,v 1.1.2.4 2005-05-18 23:28:14 idgay Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -44,7 +44,7 @@ generic configuration TimerMilli()
 }
 implementation
 {
-  components TimerMilliImpl;
-  Timer = TimerMilliImpl.TimerMilli[unique("TimerMilli")];
+  components TimerMilliImplC;
+  Timer = TimerMilliImplC.TimerMilli[unique("TimerMilli")];
 }
 
