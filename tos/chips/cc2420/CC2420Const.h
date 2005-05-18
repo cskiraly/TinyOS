@@ -1,4 +1,4 @@
-// $Id: CC2420Const.h,v 1.1.2.3 2005-04-21 23:05:21 jpolastre Exp $
+// $Id: CC2420Const.h,v 1.1.2.4 2005-05-18 05:17:55 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.3 $
+ * Revision:  $Revision: 1.1.2.4 $
  */
 
 #ifndef _CC2420CONST_H
@@ -57,6 +57,19 @@ enum {
 #ifndef TOSH_DATA_LENGTH
 #define TOSH_DATA_LENGTH 28
 #endif
+
+enum {
+  // size of the header not including the length byte
+  MSG_HEADER_SIZE = sizeof(TOSRadioHeader),
+  // size of the footer
+  MSG_FOOTER_SIZE = sizeof(TOSRadioFooter),
+  // size of the data length
+  DATA_LENGTH = TOSH_DATA_LENGTH,
+  // size of the full packet
+  MSG_DATA_SIZE = DATA_LENGTH + MSG_HEADER_SIZE + MSG_FOOTER_SIZE,
+  // position of the length byte
+  LENGTH_BYTE_NUMBER = 1,
+};
 
 // TinyOS default RF channel
 #ifdef TOS_DEF_CHANNEL
