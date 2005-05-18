@@ -1,4 +1,4 @@
-// $Id: CC2420RadioCaptureSFD.nc,v 1.1.2.2 2005-05-18 05:19:19 jpolastre Exp $
+// $Id: CC2420RadioCaptureSFD.nc,v 1.1.2.3 2005-05-18 18:54:47 jpolastre Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -39,7 +39,7 @@ implementation
   Capture = SFDM;
   
   SFDM.LocalTime -> Counter32khzC;
-  SFDM.MSP430Control -> MSP430TimerC.ControlB1;
+  SFDM.MSP430TimerControl -> MSP430TimerC.ControlB1;
   SFDM.MSP430Capture -> MSP430TimerC.CaptureB1;
   SFDM.MSP430GeneralIO -> MSP430GeneralIOC.Port41;
 
