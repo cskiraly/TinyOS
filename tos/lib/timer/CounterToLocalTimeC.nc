@@ -1,4 +1,4 @@
-//$Id: CounterToLocalTimeC.nc,v 1.1.2.1 2005-05-18 07:14:14 cssharp Exp $
+//$Id: CounterToLocalTimeC.nc,v 1.1.2.2 2005-05-18 11:19:17 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,10 +26,10 @@
 
 includes Timer;
 
-generic module CounterToLocalTimeC(frequency_tag)
+generic module CounterToLocalTimeC( typedef precision_tag )
 {
-  provides interface LocalTime<frequency_tag>;
-  uses interface Counter<frequency_tag,uint32_t>;
+  provides interface LocalTime<precision_tag>;
+  uses interface Counter<precision_tag,uint32_t>;
 }
 implementation
 {

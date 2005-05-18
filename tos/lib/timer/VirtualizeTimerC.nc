@@ -1,4 +1,4 @@
-//$Id: VirtualizeTimerC.nc,v 1.1.2.1 2005-05-18 07:14:14 cssharp Exp $
+//$Id: VirtualizeTimerC.nc,v 1.1.2.2 2005-05-18 11:19:17 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -25,11 +25,11 @@
 // This is a generic multiplexer component that takes an alarm and makes a
 // timer.
 
-generic module VirtualizeTimerC( typedef frequency_tag, int max_timers )
+generic module VirtualizeTimerC( typedef precision_tag, int max_timers )
 {
   provides interface Init;
-  provides interface Timer<frequency_tag> as Timer[ uint8_t num ];
-  uses interface Timer<frequency_tag> as TimerFrom;
+  provides interface Timer<precision_tag> as Timer[ uint8_t num ];
+  uses interface Timer<precision_tag> as TimerFrom;
 }
 implementation
 {
@@ -62,13 +62,10 @@ implementation
 
   command error_t Init.init()
   {
-    atomic
-    {
-      memset(m_timers, 0, sizeof(m_timers));
-      memset(m_flags, 0, sizeof(m_flags));
-      m_processing_timers = FALSE;
-      m_reprocess_timers = FALSE;
-    }
+    memset(m_timers, 0, sizeof(m_timers));
+    memset(m_flags, 0, sizeof(m_flags));
+    m_processing_timers = FALSE;
+    m_reprocess_timers = FALSE;
     return SUCCESS;
   }
 
@@ -83,16 +80,14 @@ implementation
     bool min_remaining_isset = FALSE;
     bool reprocess_timers = TRUE;
 
-    atomic
+    if( m_processing_timers )
     {
-      if( m_processing_timers )
-      {
-	m_reprocess_timers = TRUE;
-	return;
-      }
-      m_processing_timers = TRUE;
-      m_reprocess_timers = FALSE;
+      m_reprocess_timers = TRUE;
+      return;
     }
+
+    m_processing_timers = TRUE;
+    m_reprocess_timers = FALSE;
 
     while( reprocess_timers )
     {
@@ -112,70 +107,66 @@ implementation
 	size_type elapsed = 0;
 	size_type t0;
 
-	atomic
+	flags = &m_flags[num];
+	timer = &m_timers[num];
+
+	if( flags->isrunning )
 	{
-	  flags = &m_flags[num];
-	  timer = &m_timers[num];
+	  elapsed = then - timer->t0;
+	  numMissed = 0;
 
-	  if( flags->isrunning )
+	  if( (elapsed & SIGN_BIT) != 0 )
 	  {
-	    elapsed = then - timer->t0;
-	    numMissed = 0;
-
-	    if( (elapsed & SIGN_BIT) != 0 )
+	    // if t0 is "in the future" then don't process it
+	    // this means that
+	    //   1) t0 in the future are okay
+	    //   2) dt can be at most maxval(size_type)/2
+	    calculate_remaining = TRUE;
+	  }
+	  else if( timer->dt <= elapsed )
+	  {
+	    if( flags->isperiodic )
 	    {
-	      // if t0 is "in the future" then don't process it
-	      // this means that
-	      //   1) t0 in the future are okay
-	      //   2) dt can be at most maxval(size_type)/2
+	      timer->t0 += timer->dt;
+	      elapsed -= timer->dt;
+
+	      if( timer->dt <= elapsed )
+	      {
+		size_type elapsed_rem = elapsed % timer->dt;
+		numMissed = elapsed / timer->dt;
+		timer->t0 += elapsed - elapsed_rem;
+		elapsed = elapsed_rem;
+	      }
+
+	      fire_timer = TRUE;
 	      calculate_remaining = TRUE;
-	    }
-	    else if( timer->dt <= elapsed )
-	    {
-	      if( flags->isperiodic )
-	      {
-		timer->t0 += timer->dt;
-		elapsed -= timer->dt;
-
-		if( timer->dt <= elapsed )
-		{
-		  size_type elapsed_rem = elapsed % timer->dt;
-		  numMissed = elapsed / timer->dt;
-		  timer->t0 += elapsed - elapsed_rem;
-		  elapsed = elapsed_rem;
-		}
-
-		fire_timer = TRUE;
-		calculate_remaining = TRUE;
-	      }
-	      else
-	      {
-		flags->isrunning = FALSE;
-		fire_timer = TRUE;
-	      }
 	    }
 	    else
 	    {
-	      calculate_remaining = TRUE;
+	      flags->isrunning = FALSE;
+	      fire_timer = TRUE;
 	    }
 	  }
-
-	  if( calculate_remaining )
+	  else
 	  {
-	    size_type remaining = timer->dt - elapsed;
-	    if( remaining < min_remaining )
-	      min_remaining = remaining;
-	    min_remaining_isset = TRUE;
+	    calculate_remaining = TRUE;
 	  }
-
-	  t0 = timer->t0;
 	}
+
+	if( calculate_remaining )
+	{
+	  size_type remaining = timer->dt - elapsed;
+	  if( remaining < min_remaining )
+	    min_remaining = remaining;
+	  min_remaining_isset = TRUE;
+	}
+
+	t0 = timer->t0;
 
 	if( fire_timer )
 	  signal Timer.fired[num]( t0, numMissed );
       }
 
-      atomic
       {
 	size_type prev_then = then;
 	size_type elapsed_last_exec;
@@ -209,15 +200,12 @@ implementation
 
   void startTimer( uint8_t num, size_type t0, size_type dt, bool isperiodic )
   {
-    atomic
-    {
-      Timer_t* timer = &m_timers[num];
-      Flags_t* flags = &m_flags[num];
-      timer->t0 = t0;
-      timer->dt = dt;
-      flags->isperiodic = isperiodic;
-      insertTimer( num );
-    }
+    Timer_t* timer = &m_timers[num];
+    Flags_t* flags = &m_flags[num];
+    timer->t0 = t0;
+    timer->dt = dt;
+    flags->isperiodic = isperiodic;
+    insertTimer( num );
     executeTimers( call TimerFrom.getNow() );
   }
 
@@ -233,18 +221,18 @@ implementation
 
   command void Timer.stop[ uint8_t num ]()
   {
-    atomic { m_flags[num].isrunning = FALSE; }
+    m_flags[num].isrunning = FALSE;
   }
 
 
   command bool Timer.isRunning[ uint8_t num ]()
   {
-    atomic { return m_flags[num].isrunning; }
+    return m_flags[num].isrunning;
   }
 
   command bool Timer.isOneShot[ uint8_t num ]()
   {
-    atomic { return !m_flags[num].isperiodic; }
+    return !m_flags[num].isperiodic;
   }
 
   command void Timer.startPeriodic[ uint8_t num ]( size_type t0, size_type dt )
@@ -264,12 +252,12 @@ implementation
 
   command size_type Timer.gett0[ uint8_t num ]()
   {
-    atomic { return m_timers[num].t0; }
+    return m_timers[num].t0;
   }
 
   command size_type Timer.getdt[ uint8_t num ]()
   {
-    atomic { return m_timers[num].dt; }
+    return m_timers[num].dt;
   }
 
   default event void Timer.fired[ uint8_t num ]( size_type when, size_type numMissed )

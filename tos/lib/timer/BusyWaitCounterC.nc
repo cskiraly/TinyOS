@@ -1,4 +1,4 @@
-//$Id: BusyWaitCounterC.nc,v 1.1.2.1 2005-05-18 07:14:14 cssharp Exp $
+//$Id: BusyWaitCounterC.nc,v 1.1.2.2 2005-05-18 11:19:17 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,10 +26,10 @@
 
 includes Timer;
 
-generic module BusyWaitC( typedef frequency_tag, typedef size_type @integer() )
+generic module BusyWaitC( typedef precision_tag, typedef size_type @integer() )
 {
-  provides interface BusyWait<frequency_tag,size_type>;
-  uses interface Counter<frequency_tag,size_type>;
+  provides interface BusyWait<precision_tag,size_type>;
+  uses interface Counter<precision_tag,size_type>;
 }
 implementation
 {

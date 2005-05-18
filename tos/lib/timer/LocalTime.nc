@@ -1,4 +1,4 @@
-//$Id: LocalTime.nc,v 1.1.2.1 2005-05-18 07:14:14 cssharp Exp $
+//$Id: LocalTime.nc,v 1.1.2.2 2005-05-18 11:19:17 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,7 +26,7 @@
 
 includes Timer;
 
-interface LocalTime<frequency_tag>
+interface LocalTime<precision_tag>
 {
   async command uint32_t get();
 }

@@ -1,4 +1,4 @@
-//$Id: TransformCounterC.nc,v 1.1.2.1 2005-05-18 07:14:14 cssharp Exp $
+//$Id: TransformCounterC.nc,v 1.1.2.2 2005-05-18 11:19:17 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,22 +24,22 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-// TransformCounterC increases the size and/or decreases the frequency of an
+// TransformCounterC increases the size and/or decreases the precision of an
 // existing Counter.  bit_shift_right specifies the power of two to decrease
-// the frequency.  upper_count_type specifies the type to internally store the
+// the precision.  upper_count_type specifies the type to internally store the
 // upper bits -- those needed above from_size_type after its shifter right to
 // fill to_size_type.
 
 generic module TransformCounterC(
-  typedef to_frequency_tag,
+  typedef to_precision_tag,
   typedef to_size_type @integer(),
-  typedef from_frequency_tag,
+  typedef from_precision_tag,
   typedef from_size_type @integer(),
   uint8_t bit_shift_right,
   typedef upper_count_type @integer() )
 {
-  provides interface Counter<to_frequency_tag,to_size_type> as Counter;
-  uses interface Counter<from_frequency_tag,from_size_type> as CounterFrom;
+  provides interface Counter<to_precision_tag,to_size_type> as Counter;
+  uses interface Counter<from_precision_tag,from_size_type> as CounterFrom;
 }
 implementation
 {
