@@ -1,4 +1,4 @@
-//$Id: CaptureM.nc,v 1.1.2.1 2005-04-21 22:09:42 jpolastre Exp $
+//$Id: CaptureM.nc,v 1.1.2.2 2005-05-18 18:54:04 jpolastre Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,43 +26,53 @@
 
 generic module CaptureM() {
   provides interface Capture;
-  uses interface MSP430Control;
+  uses interface MSP430TimerControl;
   uses interface MSP430Capture;
   uses interface MSP430GeneralIO;
-  uses interface Counter<T32khz> as LocalTime;
+  uses interface LocalTime<T32khz> as LocalTime;
 }
 implementation {
+  uint32_t adjustTime(uint16_t t) {
+    uint32_t time = call LocalTime.get();
+    if ((time & 0xFFFF) < t) {
+      time -= 0x10000;
+    }
+    time &= 0xFFFF0000;
+    time |= t;
+    return time;
+  }
+
   async command error_t Capture.enableCapture(bool low_to_high) {
     uint8_t _direction;
     atomic {
       call MSP430GeneralIO.selectModuleFunc();
-      call MSP430Control.disableEvents();
+      call MSP430TimerControl.disableEvents();
       if (low_to_high) _direction = MSP430TIMER_CM_RISING;
       else _direction = MSP430TIMER_CM_FALLING;
-      call MSP430Control.setControlAsCapture(_direction);
+      call MSP430TimerControl.setControlAsCapture(_direction);
       call MSP430Capture.clearOverflow();
-      call MSP430Control.clearPendingInterrupt();
-      call MSP430Control.enableEvents();
+      call MSP430TimerControl.clearPendingInterrupt();
+      call MSP430TimerControl.enableEvents();
     }
     return SUCCESS;
   }
 
   async command error_t Capture.disable() {
     atomic {
-      call MSP430Control.disableEvents();
-      call MSP430Control.clearPendingInterrupt();
-      call MSP430Control.selectIOFunc();
+      call MSP430TimerControl.disableEvents();
+      call MSP430TimerControl.clearPendingInterrupt();
+      call MSP430GeneralIO.selectIOFunc();
     }
     return SUCCESS;
   }
 
-  async event void MSP430Capture.captured(uint32_t time) {
-    result_t val = SUCCESS;
-    call MSP430Control.clearPendingInterrupt();
-    val = signal SFD.captured(time);
+  async event void MSP430Capture.captured(uint16_t time) {
+    error_t val = SUCCESS;
+    call MSP430TimerControl.clearPendingInterrupt();
+    val = signal Capture.captured(adjustTime(time));
     if (val == FAIL) {
-      call MSP430Control.disableEvents();
-      call MSP430Control.clearPendingInterrupt();
+      call MSP430TimerControl.disableEvents();
+      call MSP430TimerControl.clearPendingInterrupt();
     }
     else {
       if (call MSP430Capture.isOverflowPending())
@@ -70,9 +80,6 @@ implementation {
     }
   }
 
-  // not worried about overflows at this time
-  event void LocalTime.overflow() { } 
-
   // stop the timer if no one is wired to it
-  default async event error_t SFD.captured(uint32_t val) { return FAIL; }
+  default async event error_t Capture.captured(uint32_t val) { return FAIL; }
 }
