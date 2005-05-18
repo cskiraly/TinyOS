@@ -1,4 +1,4 @@
-//$Id: MSP430InterruptPort1C.nc,v 1.1.2.1 2005-03-15 23:26:48 jpolastre Exp $
+//$Id: MSP430InterruptPort1C.nc,v 1.1.2.2 2005-05-18 17:11:46 jpolastre Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -38,7 +38,7 @@ configuration MSP430InterruptPort1C
 }
 implementation
 {
-  components MSP430InterruptPort1M;
+  components MSP430InterruptPort1M as MSP430InterruptM;
 
 #ifdef __msp430_have_port1
   Port10 = MSP430InterruptM.Port10;
