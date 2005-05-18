@@ -1,4 +1,4 @@
-// $Id: CC2420RadioIO.nc,v 1.1.2.1 2005-03-16 00:58:30 jpolastre Exp $
+// $Id: CC2420RadioIO.nc,v 1.1.2.2 2005-05-18 05:19:19 jpolastre Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -38,7 +38,7 @@ configuration CC2420RadioIO
 implementation
 {
   components
-    , MSP430GeneralIOC as MSPGeneralIO
+      MSP430GeneralIOC as MSPGeneralIO
     , new GeneralIOM() as rCS
     , new GeneralIOM() as rFIFO
     , new GeneralIOM() as rFIFOP
@@ -48,21 +48,22 @@ implementation
     , new GeneralIOM() as rReset
     ;
 
-  CC2420RadioCS = rCS.IO;
-  CC2420RadioFIFO = rFIFO.IO;
-  CC2420RadioFIFOP = rFIFOP.IO;
-  CC2420RadioSFD = rSFD.IO;
-  CC2420RadioCCA = rCCA.IO;
-  CC2420RadioVREF = rVREF.IO;
-  CC2420RadioReset = rReset.IO;
-  CC2420RadioGIO0 = rFIFO.IO;
-  CC2420RadioGIO1 = rCCA.IO;
-  rCS.MSPIO -> MSPGeneralIO.Port42;
-  rFIFO.MSPIO -> MSPGeneralIO.Port13;
-  rFIFOP.MSPIO -> MSPGeneralIO.Port10;
-  rSFD.MSPIO -> MSPGeneralIO.Port41;
-  rCCA.MSPIO -> MSPGeneralIO.Port14;
-  rVREF.MSPIO -> MSPGeneralIO.Port45;
-  rReset.MSPIO -> MSPGeneralIO.Port46;
+  CC2420RadioCS = rCS;
+  CC2420RadioFIFO = rFIFO;
+  CC2420RadioFIFOP = rFIFOP;
+  CC2420RadioSFD = rSFD;
+  CC2420RadioCCA = rCCA;
+  CC2420RadioVREF = rVREF;
+  CC2420RadioReset = rReset;
+  CC2420RadioGIO0 = rFIFO;
+  CC2420RadioGIO1 = rCCA;
+
+  rCS -> MSPGeneralIO.Port42;
+  rFIFO -> MSPGeneralIO.Port13;
+  rFIFOP -> MSPGeneralIO.Port10;
+  rSFD -> MSPGeneralIO.Port41;
+  rCCA -> MSPGeneralIO.Port14;
+  rVREF -> MSPGeneralIO.Port45;
+  rReset -> MSPGeneralIO.Port46;
 }
 

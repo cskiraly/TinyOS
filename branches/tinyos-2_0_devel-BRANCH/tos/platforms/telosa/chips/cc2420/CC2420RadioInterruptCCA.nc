@@ -1,4 +1,4 @@
-// $Id: CC2420RadioInterruptCCA.nc,v 1.1.2.1 2005-03-16 00:58:31 jpolastre Exp $
+// $Id: CC2420RadioInterruptCCA.nc,v 1.1.2.2 2005-05-18 05:19:19 jpolastre Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -30,7 +30,7 @@ configuration CC2420RadioInterruptCCA
 implementation
 {
   components 
-    , MSP430InterruptPort1C
+      MSP430InterruptPort1C
     , new InterruptM()
     ;
 
