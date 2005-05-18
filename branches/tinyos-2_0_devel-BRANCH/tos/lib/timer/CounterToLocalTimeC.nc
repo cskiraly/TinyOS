@@ -1,4 +1,4 @@
-//$Id: CastCounterM.nc,v 1.1.2.1 2005-03-30 17:54:52 cssharp Exp $
+//$Id: CounterToLocalTimeC.nc,v 1.1.2.1 2005-05-18 07:14:14 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -20,37 +20,25 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-// @author Cory Sharp <cssharp@eecs.berkeley.edu>
+//@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-// Cast a 32-bit CounterBase into a standard 32-bit Counter.
-generic module CastCounterM( typedef frequency_tag )
+// The TinyOS Timer interfaces are discussed in TEP 102.
+
+includes Timer;
+
+generic module CounterToLocalTimeC(frequency_tag)
 {
-  provides interface Counter<frequency_tag> as Counter;
-  uses interface CounterBase<frequency_tag,uint32_t> as CounterFrom;
+  provides interface LocalTime<frequency_tag>;
+  uses interface Counter<frequency_tag,uint32_t>;
 }
 implementation
 {
-  async command uint32_t Counter.get()
+  async command uint32_t LocalTime.get()
   {
-    return call CounterFrom.get();
+    return call Counter.get();
   }
 
-  async command bool Counter.isOverflowPending()
-  {
-    return call CounterFrom.isOverflowPending();
-  }
-
-  async command void Counter.clearOverflow()
-  {
-    call CounterFrom.clearOverflow();
-  }
-
-  async event void CounterFrom.overflow()
-  {
-    signal Counter.overflow();
-  }
-
-  default async event void Counter.overflow()
+  async event void Counter.overflow()
   {
   }
 }

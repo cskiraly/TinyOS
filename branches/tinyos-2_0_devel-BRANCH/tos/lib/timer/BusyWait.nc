@@ -1,4 +1,4 @@
-//$Id: TimerAsyncBase.nc,v 1.1.2.1 2005-03-30 17:54:53 cssharp Exp $
+//$Id: BusyWait.nc,v 1.1.2.1 2005-05-18 07:14:14 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,21 +26,9 @@
 
 includes Timer;
 
-interface TimerAsyncBase<frequency_tag,size_type>
+interface BusyWait<frequency_tag,size_type>
 {
   // basic interface
-  async command void startPeriodicNow( size_type dt );
-  async command void startOneShotNow( size_type dt );
-  async command void stop();
-  async event void fired( size_type when, size_type numMissed );
-
-  // extended interface
-  async command bool isRunning();
-  async command bool isOneShot();
-  async command void startPeriodic( size_type t0, size_type dt );
-  async command void startOneShot( size_type t0, size_type dt );
-  async command size_type getNow();
-  async command size_type gett0();
-  async command size_type getdt();
+  async command void wait( size_type dt );
 }
 

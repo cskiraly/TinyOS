@@ -1,4 +1,4 @@
-//$Id: TransformCounterM.nc,v 1.1.2.4 2005-05-12 22:46:41 cssharp Exp $
+//$Id: TransformCounterC.nc,v 1.1.2.1 2005-05-18 07:14:14 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -30,7 +30,7 @@
 // upper bits -- those needed above from_size_type after its shifter right to
 // fill to_size_type.
 
-generic module TransformCounterM(
+generic module TransformCounterC(
   typedef to_frequency_tag,
   typedef to_size_type @integer(),
   typedef from_frequency_tag,
@@ -38,8 +38,8 @@ generic module TransformCounterM(
   uint8_t bit_shift_right,
   typedef upper_count_type @integer() )
 {
-  provides interface CounterBase<to_frequency_tag,to_size_type> as Counter;
-  uses interface CounterBase<from_frequency_tag,from_size_type> as CounterFrom;
+  provides interface Counter<to_frequency_tag,to_size_type> as Counter;
+  uses interface Counter<from_frequency_tag,from_size_type> as CounterFrom;
 }
 implementation
 {
