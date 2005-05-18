@@ -1,4 +1,4 @@
-/// $Id: PlatformM.nc,v 1.1.2.5 2005-05-10 18:13:38 idgay Exp $
+/// $Id: PlatformM.nc,v 1.1.2.6 2005-05-18 23:28:14 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -30,6 +30,7 @@ module PlatformM
 {
   provides interface Init;
   uses interface HPLUART as UART;
+  uses interface Init as MoteInit;
 }
 implementation
 {
@@ -42,8 +43,11 @@ implementation
 
   command error_t Init.init()
   {
-    TOSH_SET_PIN_DIRECTIONS();
-    //timer_init();  // Initialized by system timer in HALAlarm...
+    error_t ok = call MoteInit.init();
+
+    if (ok != SUCCESS)
+      return ok;
+
     power_init();
     call UART.init();
 

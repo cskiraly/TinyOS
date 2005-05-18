@@ -1,4 +1,4 @@
-/* $Id: CSMARadioC.nc,v 1.1.2.1 2005-05-10 20:53:05 idgay Exp $
+/* $Id: CSMARadioC.nc,v 1.1.2.2 2005-05-18 23:28:13 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -29,7 +29,7 @@
 /**
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  */
 
 #include "CC1000Const.h"
@@ -76,7 +76,7 @@ implementation
   CC1000RadioM.CC1000Control -> CC1000ControlM;
   CC1000RadioM.Random -> RandomLfsrC;
   CC1000RadioM.RSSIADC -> HPLCC1000C;
-  CC1000RadioM.CC1000Spi -> HPLCC1000C;
+  CC1000RadioM.HPLCC1000Spi -> HPLCC1000C;
 
   CC1000RadioM.SquelchTimer -> TimerMilliC.TimerMilli[unique("TimerMilli")];
   CC1000RadioM.WakeupTimer -> TimerMilliC.TimerMilli[unique("TimerMilli")];

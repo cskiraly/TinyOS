@@ -1,4 +1,4 @@
-/// $Id: HPLADCM.nc,v 1.1.2.4 2005-05-10 18:21:07 idgay Exp $
+/// $Id: HPLADCM.nc,v 1.1.2.5 2005-05-18 23:28:08 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -87,7 +87,7 @@ implementation
 
   default async event void HPLADC.dataReady(uint16_t done) { }
 
-  TOSH_SIGNAL(SIG_ADC) {
+  AVR_ATOMIC_HANDLER(SIG_ADC) {
       uint16_t data = call HPLADC.getValue();
       data &= ATMEGA128_10BIT_ADC_MASK;
       __nesc_enable_interrupt();

@@ -1,4 +1,4 @@
-// $Id: CC1000Spi.nc,v 1.1.2.1 2005-05-10 20:53:05 idgay Exp $
+// $Id: HPLCC1000Spi.nc,v 1.1.2.1 2005-05-18 23:28:14 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /**
  * Interface to the CC1000 chip using a SPI bus in slave mode
  */
-interface CC1000Spi
+interface HPLCC1000Spi
 {
   async command void writeByte(uint8_t data);
   async command bool isBufBusy();
