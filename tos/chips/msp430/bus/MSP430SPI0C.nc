@@ -1,4 +1,4 @@
-// $Id: MSP430SPI0C.nc,v 1.1.2.2 2005-03-17 06:16:20 jpolastre Exp $
+// $Id: MSP430SPI0C.nc,v 1.1.2.3 2005-05-18 05:18:38 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  *
  * Interfaces for controlling the MSP430 USART0 port in SPI master mode
  */
@@ -31,6 +31,7 @@ configuration MSP430SPI0C
 {
   provides {
     interface Init;
+    interface SPIByte[uint8_t id];
     interface SPIPacket[uint8_t id];
     interface SPIPacketAdvanced[uint8_t id];
     interface BusArbitration[uint8_t id];
@@ -42,6 +43,7 @@ implementation
 
   Init = HPLUSART0C;
   Init = SPIM;
+  SPIByte = SPIM;
   SPIPacket = SPIM;
   SPIPacketAdvanced = SPIM;
   BusArbitration = SPIM;

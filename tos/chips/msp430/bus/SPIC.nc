@@ -1,4 +1,4 @@
-// $Id: SPIC.nc,v 1.1.2.1 2005-03-15 23:31:42 jpolastre Exp $
+// $Id: SPIC.nc,v 1.1.2.2 2005-05-18 05:18:38 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,12 +22,13 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  *
  */
 generic configuration SPIC() {
   provides interface Init;
   provides interface BusArbitration;
+  provides interface SPIByte;
   provides interface SPIPacket;
   provides interface SPIPacketAdvanced;
 }
@@ -39,6 +40,7 @@ implementation {
   };
 
   Init = SPI;
+  SPIByte = SPI.SPIByte[SPI_BUS_ID];
   SPIPacket = SPI.SPIPacket[SPI_BUS_ID];
   SPIPacketAdvanced = SPI.SPIPacketAdvanced[SPI_BUS_ID];
   BusArbitration = SPI.BusArbitration[SPI_BUS_ID];
