@@ -1,4 +1,4 @@
-// $Id: Interrupt.nc,v 1.1.2.2 2005-03-14 03:51:48 jpolastre Exp $
+// $Id: Interrupt.nc,v 1.1.2.3 2005-05-18 19:02:16 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  *
  * Provides a microcontroller-independent presentation of interrupts
  */
@@ -50,8 +50,7 @@ interface Interrupt {
   /**
    * Fired when an edge interrupt occurs.
    *
-   * @return SUCCESS to keep the interrupt enabled (equivalent to
-   *         calling startWait again), FAIL to disable the interrupt
+   * NOTE: Interrupts keep running until "disable()" is called
    */
   async event void fired();
 
