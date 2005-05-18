@@ -1,4 +1,4 @@
-//$Id: TimerBase.nc,v 1.1.2.1 2005-03-30 17:54:53 cssharp Exp $
+//$Id: LocalTime.nc,v 1.1.2.1 2005-05-18 07:14:14 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,21 +26,8 @@
 
 includes Timer;
 
-interface TimerBase<frequency_tag,size_type>
+interface LocalTime<frequency_tag>
 {
-  // basic interface
-  command void startPeriodicNow( size_type dt );
-  command void startOneShotNow( size_type dt );
-  command void stop();
-  event void fired( size_type when, size_type numMissed );
-
-  // extended interface
-  command bool isRunning();
-  command bool isOneShot();
-  command void startPeriodic( size_type t0, size_type dt );
-  command void startOneShot( size_type t0, size_type dt );
-  command size_type getNow();
-  command size_type gett0();
-  command size_type getdt();
+  async command uint32_t get();
 }
 

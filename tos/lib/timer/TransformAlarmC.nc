@@ -1,4 +1,4 @@
-//$Id: TransformAlarmC.nc,v 1.1.2.2 2005-04-01 08:30:56 cssharp Exp $
+//$Id: TransformAlarmC.nc,v 1.1.2.3 2005-05-18 07:14:14 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,30 +24,114 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-// TransformAlarmC increases the size and/or decreases the frequency of an
-// existing Alarm.  It knows how to change the size just given the From and To
-// size types, and will apply bit_shift_right to decrease the frequency by a
-// power of two.
-
-generic configuration TransformAlarmC( 
+generic module TransformAlarmC( 
   typedef to_frequency_tag,
   typedef to_size_type @integer(),
   typedef from_frequency_tag,
-  typedef from_size_type, @integer()
+  typedef from_size_type @integer(),
   uint8_t bit_shift_right )
 {
-  provides interface AlarmBase<to_frequency_tag,to_size_type> as Alarm;
-  uses interface CounterBase<to_frequency_tag,to_size_type> as Counter;
-  uses interface AlarmBase<from_frequency_tag,from_size_type> as AlarmFrom;
+  provides interface Alarm<to_frequency_tag,to_size_type> as Alarm;
+  uses interface Counter<to_frequency_tag,to_size_type> as Counter;
+  uses interface Alarm<from_frequency_tag,from_size_type> as AlarmFrom;
 }
 implementation
 {
-  components new TransformAlarmM( to_frequency_tag, to_size_type,
-    from_frequency_tag, from_size_type, bit_shift_right ) as Transform
-           ;
+  to_size_type m_t0;
+  to_size_type m_dt;
 
-  Alarm = Transform;
-  Counter = Transform;
-  AlarmFrom = Transform;
+  enum
+  {
+    MAX_DELAY_LOG2 = 8 * sizeof(from_size_type) - 1 - bit_shift_right,
+    MAX_DELAY = ((to_size_type)1) << MAX_DELAY_LOG2,
+  };
+
+  async command to_size_type Alarm.getNow()
+  {
+    return call Counter.get();
+  }
+
+  async command to_size_type Alarm.getAlarm()
+  {
+    return m_t0 + m_dt;
+  }
+
+  async command bool Alarm.isRunning()
+  {
+    return call AlarmFrom.isRunning();
+  }
+
+  async command void Alarm.stop()
+  {
+    call AlarmFrom.stop();
+  }
+
+  void set_alarm()
+  {
+    to_size_type now = call Counter.get();
+    from_size_type now_from = now << bit_shift_right;
+    to_size_type elapsed = now - m_t0;
+    if( elapsed >= m_dt )
+    {
+      m_t0 += m_dt;
+      m_dt = 0;
+      call AlarmFrom.start( now_from, 0 );
+    }
+    else
+    {
+      to_size_type remaining = m_dt - elapsed;
+      from_size_type remaining_from = remaining;
+      if( remaining > MAX_DELAY )
+      {
+	m_t0 = now + MAX_DELAY;
+	m_dt = remaining - MAX_DELAY;
+	call AlarmFrom.start( now_from, ((from_size_type)MAX_DELAY) << bit_shift_right );
+      }
+      else
+      {
+	m_t0 += m_dt;
+	m_dt = 0;
+	call AlarmFrom.start( now_from, remaining_from << bit_shift_right );
+      }
+    }
+  }
+
+  async command void Alarm.start( to_size_type t0, to_size_type dt )
+  {
+    atomic
+    {
+      m_t0 = t0;
+      m_dt = dt;
+      set_alarm();
+    }
+  }
+
+  async command void Alarm.startNow( to_size_type dt )
+  {
+    call Alarm.start( call Alarm.getNow(), dt );
+  }
+
+  async event void AlarmFrom.fired()
+  {
+    atomic
+    {
+      if( m_dt == 0 )
+      {
+	signal Alarm.fired();
+      }
+      else
+      {
+	set_alarm();
+      }
+    }
+  }
+
+  async event void Counter.overflow()
+  {
+  }
+
+  default async event void Alarm.fired()
+  {
+  }
 }
 

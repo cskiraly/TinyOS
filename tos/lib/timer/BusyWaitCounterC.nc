@@ -1,4 +1,4 @@
-//$Id: TimerAsync.nc,v 1.1.2.1 2005-03-30 17:54:53 cssharp Exp $
+//$Id: BusyWaitCounterC.nc,v 1.1.2.1 2005-05-18 07:14:14 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,21 +26,37 @@
 
 includes Timer;
 
-interface TimerAsync<frequency_tag>
+generic module BusyWaitC( typedef frequency_tag, typedef size_type @integer() )
 {
-  // basic interface
-  async command void startPeriodicNow( uint32_t dt );
-  async command void startOneShotNow( uint32_t dt );
-  async command void stop();
-  async event void fired( uint32_t when, uint32_t numMissed );
+  provides interface BusyWait<frequency_tag,size_type>;
+  uses interface Counter<frequency_tag,size_type>;
+}
+implementation
+{
+  enum
+  {
+    HALF_MAX_SIZE_TYPE = ((size_type)1) << (8*sizeof(size_type)-1),
+  };
 
-  // extended interface
-  async command bool isRunning();
-  async command bool isOneShot();
-  async command void startPeriodic( uint32_t t0, uint32_t dt );
-  async command void startOneShot( uint32_t t0, uint32_t dt );
-  async command uint32_t getNow();
-  async command uint32_t gett0();
-  async command uint32_t getdt();
+  async command void BusyWait.wait( size_type dt )
+  {
+    atomic
+    {
+      // comparisons are <= to guarantee a wait at least as long as dt
+
+      size_type t0 = call Counter.get();
+      if( dt <= HALF_MAX_SIZE_TYPE )
+      {
+	while( (call Counter.get() - t0) <= dt );
+      }
+      else
+      {
+	dt -= HALF_MAX_SIZE_TYPE;
+	while( (call Counter.get() - t0) <= dt );
+	t0 += dt;
+	while( (call Counter.get() - t0) <= HALF_MAX_SIZE_TYPE );
+      }
+    }
+  }
 }
 

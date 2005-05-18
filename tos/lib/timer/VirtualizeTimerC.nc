@@ -1,4 +1,4 @@
-//$Id: MultiplexTimerM.nc,v 1.1.2.6 2005-05-12 22:46:41 cssharp Exp $
+//$Id: VirtualizeTimerC.nc,v 1.1.2.1 2005-05-18 07:14:14 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -25,17 +25,16 @@
 // This is a generic multiplexer component that takes an alarm and makes a
 // timer.
 
-generic module MultiplexTimerM(
-  typedef frequency_tag,
-  typedef size_type @integer(),
-  int max_timers )
+generic module VirtualizeTimerC( typedef frequency_tag, int max_timers )
 {
   provides interface Init;
-  provides interface TimerAsyncBase<frequency_tag,size_type> as TimerAsyncBase[ uint8_t num ];
-  uses interface AlarmBase<frequency_tag,size_type> as AlarmFrom;
+  provides interface Timer<frequency_tag> as Timer[ uint8_t num ];
+  uses interface Timer<frequency_tag> as TimerFrom;
 }
 implementation
 {
+  typedef uint32_t size_type;
+
   enum
   {
     NUM_TIMERS = max_timers,
@@ -173,14 +172,14 @@ implementation
 	}
 
 	if( fire_timer )
-	  signal TimerAsyncBase.fired[num]( t0, numMissed );
+	  signal Timer.fired[num]( t0, numMissed );
       }
 
       atomic
       {
 	size_type prev_then = then;
 	size_type elapsed_last_exec;
-	then = call AlarmFrom.getNow();
+	then = call TimerFrom.getNow();
 	elapsed_last_exec = then - prev_then;
 	if( m_reprocess_timers )
 	{
@@ -196,16 +195,16 @@ implementation
 	  m_processing_timers = FALSE;
 	  reprocess_timers = FALSE;
 	  if( min_remaining_isset )
-	    call AlarmFrom.start( then, min_remaining - elapsed_last_exec );
+	    call TimerFrom.startOneShot( then, min_remaining - elapsed_last_exec );
 	}
       }
     }
   }
   
 
-  async event void AlarmFrom.fired()
+  event void TimerFrom.fired( uint32_t when, uint32_t num_missed )
   {
-    executeTimers( call AlarmFrom.getAlarm() );
+    executeTimers( when );
   }
 
   void startTimer( uint8_t num, size_type t0, size_type dt, bool isperiodic )
@@ -219,61 +218,61 @@ implementation
       flags->isperiodic = isperiodic;
       insertTimer( num );
     }
-    executeTimers( call AlarmFrom.getNow() );
+    executeTimers( call TimerFrom.getNow() );
   }
 
-  async command void TimerAsyncBase.startPeriodicNow[ uint8_t num ]( size_type dt )
+  command void Timer.startPeriodicNow[ uint8_t num ]( size_type dt )
   {
-    return startTimer( num, call AlarmFrom.getNow(), dt, TRUE );
+    startTimer( num, call TimerFrom.getNow(), dt, TRUE );
   }
 
-  async command void TimerAsyncBase.startOneShotNow[ uint8_t num ]( size_type dt )
+  command void Timer.startOneShotNow[ uint8_t num ]( size_type dt )
   {
-    return startTimer( num, call AlarmFrom.getNow(), dt, FALSE );
+    startTimer( num, call TimerFrom.getNow(), dt, FALSE );
   }
 
-  async command void TimerAsyncBase.stop[ uint8_t num ]()
+  command void Timer.stop[ uint8_t num ]()
   {
     atomic { m_flags[num].isrunning = FALSE; }
   }
 
 
-  async command bool TimerAsyncBase.isRunning[ uint8_t num ]()
+  command bool Timer.isRunning[ uint8_t num ]()
   {
     atomic { return m_flags[num].isrunning; }
   }
 
-  async command bool TimerAsyncBase.isOneShot[ uint8_t num ]()
+  command bool Timer.isOneShot[ uint8_t num ]()
   {
     atomic { return !m_flags[num].isperiodic; }
   }
 
-  async command void TimerAsyncBase.startPeriodic[ uint8_t num ]( size_type t0, size_type dt )
+  command void Timer.startPeriodic[ uint8_t num ]( size_type t0, size_type dt )
   {
-    return startTimer( num, t0, dt, TRUE );
+    startTimer( num, t0, dt, TRUE );
   }
 
-  async command void TimerAsyncBase.startOneShot[ uint8_t num ]( size_type t0, size_type dt )
+  command void Timer.startOneShot[ uint8_t num ]( size_type t0, size_type dt )
   {
-    return startTimer( num, t0, dt, FALSE );
+    startTimer( num, t0, dt, FALSE );
   }
 
-  async command size_type TimerAsyncBase.getNow[ uint8_t num ]()
+  command size_type Timer.getNow[ uint8_t num ]()
   {
-    return call AlarmFrom.getNow();
+    return call TimerFrom.getNow();
   }
 
-  async command size_type TimerAsyncBase.gett0[ uint8_t num ]()
+  command size_type Timer.gett0[ uint8_t num ]()
   {
     atomic { return m_timers[num].t0; }
   }
 
-  async command size_type TimerAsyncBase.getdt[ uint8_t num ]()
+  command size_type Timer.getdt[ uint8_t num ]()
   {
     atomic { return m_timers[num].dt; }
   }
 
-  default async event void TimerAsyncBase.fired[ uint8_t num ]( size_type when, size_type numMissed )
+  default event void Timer.fired[ uint8_t num ]( size_type when, size_type numMissed )
   {
   }
 }
