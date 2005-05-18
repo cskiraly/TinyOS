@@ -1,4 +1,4 @@
-//$Id: Timer.h,v 1.1.2.4 2005-05-10 18:05:32 idgay Exp $
+//$Id: Timer.h,v 1.1.2.1 2005-05-18 11:21:19 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -29,12 +29,6 @@
 typedef struct { } TMilli;
 typedef struct { } T32khz;
 typedef struct { } TMicro;
-typedef struct { } TNano;
-
-typedef struct
-{
-  uint32_t value;
-  bool overflow;
-} stopwatch_t;
 
 #endif
+
