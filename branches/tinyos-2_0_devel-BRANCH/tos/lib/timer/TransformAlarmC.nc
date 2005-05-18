@@ -1,4 +1,4 @@
-//$Id: TransformAlarmC.nc,v 1.1.2.3 2005-05-18 07:14:14 cssharp Exp $
+//$Id: TransformAlarmC.nc,v 1.1.2.4 2005-05-18 11:19:17 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -25,15 +25,15 @@
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
 generic module TransformAlarmC( 
-  typedef to_frequency_tag,
+  typedef to_precision_tag,
   typedef to_size_type @integer(),
-  typedef from_frequency_tag,
+  typedef from_precision_tag,
   typedef from_size_type @integer(),
   uint8_t bit_shift_right )
 {
-  provides interface Alarm<to_frequency_tag,to_size_type> as Alarm;
-  uses interface Counter<to_frequency_tag,to_size_type> as Counter;
-  uses interface Alarm<from_frequency_tag,from_size_type> as AlarmFrom;
+  provides interface Alarm<to_precision_tag,to_size_type> as Alarm;
+  uses interface Counter<to_precision_tag,to_size_type> as Counter;
+  uses interface Alarm<from_precision_tag,from_size_type> as AlarmFrom;
 }
 implementation
 {

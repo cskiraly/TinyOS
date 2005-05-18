@@ -1,4 +1,4 @@
-//$Id: BusyWait.nc,v 1.1.2.1 2005-05-18 07:14:14 cssharp Exp $
+//$Id: BusyWait.nc,v 1.1.2.2 2005-05-18 11:19:17 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,9 +26,8 @@
 
 includes Timer;
 
-interface BusyWait<frequency_tag,size_type>
+interface BusyWait<precision_tag,size_type>
 {
-  // basic interface
   async command void wait( size_type dt );
 }
 
