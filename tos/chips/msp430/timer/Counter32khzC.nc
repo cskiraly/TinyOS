@@ -1,4 +1,4 @@
-//$Id: Counter32khzC.nc,v 1.1.2.2 2005-05-18 07:20:22 cssharp Exp $
+//$Id: Counter32khzC.nc,v 1.1.2.3 2005-05-18 11:25:38 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -29,17 +29,21 @@ configuration Counter32khzC
 {
   provides interface Counter<T32khz,uint16_t> as Counter32khz16;
   provides interface Counter<T32khz,uint32_t> as Counter32khz32;
+  provides interface LocalTime<T32khz> as LocalTime32khz;
 }
 implementation
 {
   components MSP430TimerC
 	   , MSP430Counter32khzC
 	   , new TransformCounterC(T32khz,uint32_t,T32khz,uint16_t,0,uint16_t) as Transform
+	   , new CounterToLocalTimeC(T32khz)
 	   ;
   
   Counter32khz16 = MSP430Counter32khzC;
   Counter32khz32 = Transform.Counter;
+  LocalTime32khz = CounterToLocalTimeC;
 
+  CounterToLocalTimeC.Counter -> Transform;
   Transform.CounterFrom -> MSP430Counter32khzC;
 }
 

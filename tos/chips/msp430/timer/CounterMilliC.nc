@@ -1,4 +1,4 @@
-//$Id: CounterMilliC.nc,v 1.1.2.3 2005-05-18 07:20:22 cssharp Exp $
+//$Id: CounterMilliC.nc,v 1.1.2.4 2005-05-18 11:25:38 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -28,15 +28,20 @@
 configuration CounterMilliC
 {
   provides interface Counter<TMilli,uint32_t> as CounterMilli32;
+  provides interface LocalTime<TMilli> as LocalTimeMilli;
 }
 implementation
 {
   components MSP430TimerC
 	   , MSP430Counter32khzC
 	   , new TransformCounterC(TMilli,uint32_t,T32khz,uint16_t,5,uint32_t) as Transform
+	   , new CounterToLocalTimeC(TMilli)
 	   ;
   
   CounterMilli32 = Transform.Counter;
+  LocalTimeMilli = CounterToLocalTimeC;
+
+  CounterToLocalTimeC.Counter -> Transform;
   Transform.CounterFrom -> MSP430Counter32khzC;
 }
 
