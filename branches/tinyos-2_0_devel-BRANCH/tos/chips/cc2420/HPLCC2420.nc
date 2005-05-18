@@ -1,4 +1,4 @@
-// $Id: HPLCC2420.nc,v 1.1.2.1 2005-01-20 22:07:47 jpolastre Exp $
+// $Id: HPLCC2420.nc,v 1.1.2.2 2005-05-18 05:17:55 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  *
  * Interface for platform independent register access to the CC2420 radio.
  */
@@ -35,22 +35,19 @@ interface HPLCC2420 {
    * 
    * @return status byte from the chipcon
    */
-  async command uint8_t cmd(uint8_t addr);
+  command uint8_t cmd(uint8_t addr);
 
   /**
    * Transmit 16-bit data
    *
    * @return status byte from the chipcon.  0xff is return of command failed.
    */
-  async command uint8_t write(uint8_t addr, uint16_t data);
+  command uint8_t write(uint8_t addr, uint16_t data);
 
   /**
    * Read 16-bit data
    *
    * @return 16-bit register value
    */
-  async command uint16_t read(uint8_t addr);
-
-  
-
+  command uint16_t read(uint8_t addr);
 }

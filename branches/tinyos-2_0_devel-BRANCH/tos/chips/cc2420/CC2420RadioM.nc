@@ -1,4 +1,4 @@
-// $Id: CC2420RadioM.nc,v 1.1.2.6 2005-04-21 23:14:10 jpolastre Exp $
+// $Id: CC2420RadioM.nc,v 1.1.2.7 2005-05-18 05:17:55 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,10 +22,11 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.6 $
+ * Revision:  $Revision: 1.1.2.7 $
  */
 
 includes byteorder;
+includes Timer;
 
 module CC2420RadioM {
   provides {
@@ -39,7 +40,6 @@ module CC2420RadioM {
   }
   uses {
     interface Init as CC2420Init;
-    interface Init as TimerControl;
     interface SplitControl as CC2420SplitControl;
     interface CC2420Control;
     interface HPLCC2420 as HPLChipcon;
@@ -50,6 +50,7 @@ module CC2420RadioM {
     interface GeneralIO as RadioCCA;
     interface GeneralIO as RadioFIFO;
     interface GeneralIO as RadioFIFOP;
+    interface GeneralIO as RadioSFD;
     interface Interrupt as FIFOP;
     interface Capture as SFD;
 
@@ -110,19 +111,19 @@ implementation {
      call FIFOP.startWait(FALSE);
    }
 
-   inline error_t setInitialTimer( uint16_t jiffy ) {
+   void setInitialTimer( uint16_t jiffy ) {
      stateTimer = TIMER_INITIAL;
-     return call BackoffTimerJiffy.startNow(jiffy);
+     call BackoffTimerJiffy.startNow(jiffy);
    }
 
-   inline error_t setBackoffTimer( uint16_t jiffy ) {
+   void setBackoffTimer( uint16_t jiffy ) {
      stateTimer = TIMER_BACKOFF;
-     return call BackoffTimerJiffy.startNow(jiffy);
+     call BackoffTimerJiffy.startNow(jiffy);
    }
 
-   inline error_t setAckTimer( uint16_t jiffy ) {
+   void setAckTimer( uint16_t jiffy ) {
      stateTimer = TIMER_ACK;
-     return call BackoffTimerJiffy.startNow(jiffy);
+     call BackoffTimerJiffy.startNow(jiffy);
    }
 
   /***************************************************************************
@@ -172,8 +173,6 @@ implementation {
       rxbufptr->header.length = 0;
     }
 
-    call TimerControl.init();
-    call Random.init();
     LocalAddr = TOS_LOCAL_ADDRESS;
     return call CC2420Init.init();
   }
@@ -251,9 +250,7 @@ implementation {
     else {
       // try again to send the packet
       atomic stateRadio = PRE_TX_STATE;
-      if (setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) != SUCCESS) {
-        sendFailed();
-      }
+      setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT);
     }
   }
 
@@ -292,8 +289,7 @@ implementation {
       call SFD.enableCapture(TRUE);
       // if acks are enabled and it is a unicast packet, wait for the ack
       if ((bAckEnable) && (txbufptr->header.addr != TOS_BCAST_ADDR)) {
-        if (setAckTimer(CC2420_ACK_DELAY) != SUCCESS)
-          sendFailed();
+        setAckTimer(CC2420_ACK_DELAY);
       }
       // if no acks or broadcast, post packet send done event
       else {
@@ -356,9 +352,7 @@ implementation {
 	   post startSend();
            return;
          }
-         if (setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) != SUCCESS) {
-           sendFailed();
-         }
+         setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT);
        }
      }
   }
@@ -398,11 +392,11 @@ implementation {
 
     if (currentstate == IDLE_STATE) {
       // put default FCF values in to get address checking to pass
-      pMsg->fcflo = CC2420_DEF_FCF_LO;
+      pMsg->header.fcf = CC2420_DEF_FCF_LO;
       if (bAckEnable) 
-        pMsg->fcfhi = CC2420_DEF_FCF_HI_ACK;
+        pMsg->header.fcf |= CC2420_DEF_FCF_HI_ACK << 8;
       else 
-        pMsg->fcfhi = CC2420_DEF_FCF_HI;
+        pMsg->header.fcf |= CC2420_DEF_FCF_HI << 8;
       // destination PAN is broadcast
       pMsg->header.destpan = TOS_BCAST_ADDR;
       // adjust the destination address to be in the right byte order
@@ -418,10 +412,9 @@ implementation {
       txbufptr = pMsg;
       countRetry = MAX_SEND_TRIES;
 
-      if (setInitialTimer(signal CSMABackoff.initial(txbufptr) * CC2420_SYMBOL_UNIT) != SUCCESS) {
-        atomic stateRadio = PRE_TX_STATE;
-        return SUCCESS;
-      }
+      setInitialTimer(signal CSMABackoff.initial(txbufptr) * CC2420_SYMBOL_UNIT);
+      atomic stateRadio = PRE_TX_STATE;
+      return SUCCESS;
     }
     return FAIL;
 
@@ -511,23 +504,20 @@ implementation {
      /** Check for RXFIFO overflow **/     
      if (!call RadioFIFO.get()) {
        flushRXFIFO();
-       return SUCCESS;
+       return;
      }
 
      atomic {
        post delayedRXFIFOtask();
        call FIFOP.disable();
      }
-
-     // return SUCCESS to keep FIFOP events occurring
-     return SUCCESS;
   }
 
   /**
    * After the buffer is received from the RXFIFO,
    * process it, then post a task to signal it to the higher layers
    */
-  async event error_t HPLChipconFIFO.RXFIFODone(uint8_t length, uint8_t *data) {
+  event error_t HPLChipconFIFO.RXFIFODone(uint8_t length, uint8_t *data) {
     // JP NOTE: rare known bug in high contention:
     // radio stack will receive a valid packet, but for some reason the
     // length field will be longer than normal.  The packet data will
@@ -617,34 +607,37 @@ implementation {
    * Notification that the TXFIFO has been filled with the data from the packet
    * Next step is to try to send the packet
    */
-  async event error_t HPLChipconFIFO.TXFIFODone(uint8_t length, uint8_t *data) { 
+  event error_t HPLChipconFIFO.TXFIFODone(uint8_t length, uint8_t *data) { 
      tryToSend();
      return SUCCESS;
   }
 
+  async command error_t CSMAControl.enableCCA() {
+    // TODO
+    return FAIL;
+  }
+
+  async command error_t CSMAControl.disableCCA() {
+    // TODO
+    return FAIL;
+  }
+
   /** Enable link layer hardware acknowledgements **/
-  async command void CSMAControl.enableAck() {
+  async command error_t CSMAControl.enableAck() {
     atomic bAckEnable = TRUE;
     call CC2420Control.enableAddrDecode();
     call CC2420Control.enableAutoAck();
+    return SUCCESS;
   }
 
   /** Disable link layer hardware acknowledgements **/
-  async command void CSMAControl.disableAck() {
+  async command error_t CSMAControl.disableAck() {
     atomic bAckEnable = FALSE;
     call CC2420Control.disableAddrDecode();
     call CC2420Control.disableAutoAck();
+    return SUCCESS;
   }
 
-  /**
-   * XXX: TODO: not yet implemented
-   */
-  async command error_t CSMAControl.enableAck() {
-    return FAIL;
-  }
-  async command error_t CSMAControl.disableAck() {
-    return FAIL;
-  }
   async command message_t* CSMAControl.HaltTx() {
     return NULL;
   }
@@ -654,14 +647,14 @@ implementation {
    * Each basic time period consists of 20 symbols (16uS per symbol)
    */
   default async event uint16_t CSMABackoff.initial(message_t* m) {
-    return (call Random.rand() & 0xF) + 1;
+    return (call Random.rand16() & 0xF) + 1;
   }
   /**
    * How many symbols to back off when there is congestion 
    * (16uS per symbol * 20 symbols/block)
    */
   default async event uint16_t CSMABackoff.congestion(message_t* m) {
-    return (call Random.rand() & 0x3F) + 1;
+    return (call Random.rand16() & 0x3F) + 1;
   }
 
 
