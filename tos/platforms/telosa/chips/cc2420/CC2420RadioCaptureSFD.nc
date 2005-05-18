@@ -1,4 +1,4 @@
-// $Id: CC2420RadioCaptureSFD.nc,v 1.1.2.1 2005-04-21 23:11:06 jpolastre Exp $
+// $Id: CC2420RadioCaptureSFD.nc,v 1.1.2.2 2005-05-18 05:19:19 jpolastre Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -32,6 +32,7 @@ implementation
   components 
       new CaptureM() as SFDM
     , MSP430TimerC
+    , MSP430GeneralIOC
     , Counter32khzC
     ;
 
