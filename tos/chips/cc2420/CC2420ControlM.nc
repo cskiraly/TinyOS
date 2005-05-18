@@ -1,4 +1,4 @@
-// $Id: CC2420ControlM.nc,v 1.1.2.4 2005-05-18 05:17:55 jpolastre Exp $
+// $Id: CC2420ControlM.nc,v 1.1.2.5 2005-05-18 19:04:45 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.4 $
+ * Revision:  $Revision: 1.1.2.5 $
  *
  * This module provides the CONTROL functionality for the 
  * Chipcon2420 series radio. It exports both a standard control 
@@ -428,11 +428,11 @@ implementation
      return SUCCESS;
   }
 
-  async event error_t CCA.fired() {
+  async event void CCA.fired() {
     // reset the CCA pin back to the CCA function
     call HPLChipcon.write(CC2420_IOCFG1, 0);
+    call CCA.disable();
     post PostOscillatorOn();
-    return FAIL;
   }
 }
 
