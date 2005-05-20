@@ -1,4 +1,4 @@
-// $Id: CC2420RadioM.nc,v 1.1.2.7 2005-05-18 05:17:55 jpolastre Exp $
+// $Id: CC2420RadioM.nc,v 1.1.2.8 2005-05-20 10:25:15 cssharp Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.7 $
+ * Revision:  $Revision: 1.1.2.8 $
  */
 
 includes byteorder;
@@ -361,7 +361,7 @@ implementation {
    * Multiplexed timer to control initial backoff, 
    * congestion backoff, and delay while waiting for an ACK
    */
-  async event error_t BackoffTimerJiffy.fired( uint32_t when, uint32_t numMissed ) {
+  async event error_t BackoffTimerJiffy.fired() {
     uint8_t currentstate;
     atomic currentstate = stateRadio;
 
