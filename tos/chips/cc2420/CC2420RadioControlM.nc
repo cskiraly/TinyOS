@@ -1,4 +1,4 @@
-// $Id: CC2420RadioControlM.nc,v 1.1.2.3 2005-05-18 05:17:55 jpolastre Exp $
+// $Id: CC2420RadioControlM.nc,v 1.1.2.4 2005-05-20 20:51:29 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.3 $
+ * Revision:  $Revision: 1.1.2.4 $
  *
  * This module provides a wrapper for hardware independent control of
  * the radio.
@@ -55,7 +55,7 @@ implementation {
     return (call CC2420.GetPreset()) - 11;
   }
 
-  command uint8_t GetMaxChannels() {
+  command uint8_t RadioControl.GetMaxChannels() {
     return TOS_MAX_CHANNELS;
   }
 
@@ -69,25 +69,11 @@ implementation {
   }
 
   command uint8_t RadioControl.GetRFPower() {
-    uint8_t _rfpower;
-    uint8_t _power = call CC2420.GetRFPower();
-    atomic _rfpower = rfpower;
-    // if the output is within the range of its previously set value,
-    // then use the previously set value.
-    if ((_power << 3) - _rfpower > 0) && ((_power << 3) - _rfpower < 8) {
+    uint8_t _rfpower = rfpower;
+    if (_rfpower > 0)
       return _rfpower;
-    }
-    else {
-      if (_power == 0x1F) {
-	_power = 0xFF;
-      }
-      else {
-	if (_power > 0) {
-	_power = CC2420
-	  }
-      }
-      return _power << 3;
-    }
+    else 
+      return call CC2420.GetRFPower() << 3;
   }
 
   /*************************************************************
@@ -100,10 +86,10 @@ implementation {
 
   command uint8_t RadioControl.DBtoRF(int8_t dbm) {
     // power declines like log, but for simplicity, we make it linear
-    if (db > 0) {
+    if (dbm > 0) {
       return 255;
     }
-    else if (db < -25) {
+    else if (dbm < -25) {
       return 0;
     }
     return 255 + (dbm*10);
@@ -137,7 +123,7 @@ implementation {
   }
 
   command error_t RadioPacket.setLength(message_t* msg, uint8_t _length) {
-    atomic msg->header.length = length;
+    atomic msg->header.length = _length;
     return SUCCESS;
   }
 
