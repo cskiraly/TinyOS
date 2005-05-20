@@ -1,4 +1,4 @@
-//$Id: VirtualizeTimerC.nc,v 1.1.2.3 2005-05-20 09:34:56 cssharp Exp $
+//$Id: VirtualizeTimerC.nc,v 1.1.2.4 2005-05-20 19:12:20 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -100,8 +100,10 @@ implementation
 	  }
 	  else
 	  {
+	    // The remaining time is non-positive (the timer had fired).
+	    // So add dt to convert it to remaining for the next event.
 	    timer->t0 += timer->dt;
-	    elapsed -= timer->dt;
+	    remaining += timer->dt; 
 	  }
 
 	  signal Timer.fired[num]();
