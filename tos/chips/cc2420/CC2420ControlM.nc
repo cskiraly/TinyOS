@@ -1,4 +1,4 @@
-// $Id: CC2420ControlM.nc,v 1.1.2.5 2005-05-18 19:04:45 jpolastre Exp $
+// $Id: CC2420ControlM.nc,v 1.1.2.6 2005-05-20 21:30:04 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.5 $
+ * Revision:  $Revision: 1.1.2.6 $
  *
  * This module provides the CONTROL functionality for the 
  * Chipcon2420 series radio. It exports both a standard control 
@@ -60,7 +60,7 @@ implementation
     STOP_STATE,
   };
 
-  uint8_t state = 0;
+  uint8_t state;
   norace uint16_t gCurrentParameters[14];
 
    /************************************************************************
@@ -115,16 +115,7 @@ implementation
    *************************************************************************/
   command error_t Init.init() {
 
-    uint8_t _state = FALSE;
-
-    atomic {
-      if (state == IDLE_STATE) {
-	state = INIT_STATE;
-	_state = TRUE;
-      }
-    }
-    if (!_state)
-      return FAIL;
+    state = INIT_STATE;
 
     call HPLChipconInit.init();
   
@@ -169,7 +160,8 @@ implementation
 
     gCurrentParameters[CP_IOCFG1]   =  0;
 
-    atomic state = INIT_STATE_DONE;
+    state = INIT_STATE_DONE;
+
     return SUCCESS;
   }
 
