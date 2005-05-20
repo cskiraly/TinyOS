@@ -1,4 +1,4 @@
-// $Id: CC2420RadioM.nc,v 1.1.2.8 2005-05-20 10:25:15 cssharp Exp $
+// $Id: CC2420RadioM.nc,v 1.1.2.9 2005-05-20 20:51:30 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.8 $
+ * Revision:  $Revision: 1.1.2.9 $
  */
 
 includes byteorder;
@@ -45,7 +45,7 @@ module CC2420RadioM {
     interface HPLCC2420 as HPLChipcon;
     interface HPLCC2420FIFO as HPLChipconFIFO; 
 
-    interface Alarm<T32khz> as BackoffTimerJiffy;
+    interface Alarm<T32khz,uint16_t> as BackoffTimerJiffy;
 
     interface GeneralIO as RadioCCA;
     interface GeneralIO as RadioFIFO;
@@ -235,6 +235,7 @@ implementation {
 
   /************* END OF STDCONTROL/SPLITCONTROL INIT FUNCITONS **********/
 
+
   /**
    * Try to send a packet.  If unsuccessful, backoff again
    **/
@@ -252,6 +253,10 @@ implementation {
       atomic stateRadio = PRE_TX_STATE;
       setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT);
     }
+  }
+
+  task void taskSendPacket() {
+    sendPacket();
   }
 
   /**
@@ -361,7 +366,7 @@ implementation {
    * Multiplexed timer to control initial backoff, 
    * congestion backoff, and delay while waiting for an ACK
    */
-  async event error_t BackoffTimerJiffy.fired() {
+  async event void BackoffTimerJiffy.fired() {
     uint8_t currentstate;
     atomic currentstate = stateRadio;
 
@@ -375,11 +380,10 @@ implementation {
     case TIMER_ACK:
       if (currentstate == POST_TX_STATE) {
         txbufptr->metadata.ack = 0;
-	post PacketSend();
+	post taskSendPacket();
       }
       break;
     }
-    return SUCCESS;
   }
 
   /**********************************************************
@@ -657,5 +661,12 @@ implementation {
     return (call Random.rand16() & 0x3F) + 1;
   }
 
+  default async event void RadioTimeStamping.txSFD(uint32_t time, message_t* msgBuff) { }
+
+  default async event void RadioTimeStamping.rxSFD(uint32_t time, message_t* msgBuff) { }
+
+  default event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) { return msg; }
+
+  default event void Send.sendDone(message_t* msg, error_t error) { }
 
 }
