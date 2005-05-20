@@ -20,7 +20,7 @@
  */
 /*
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.2 $
+ * Date last modified:  $Revision: 1.1.2.3 $
  *
  * Interface for controlling the radio in a hardware independent manner
  */
@@ -81,7 +81,7 @@ interface RadioControl
    *
    * @result The corresponding output dBm of the input power level
    */
-  command uint8_t RFtoDB(uint8_t power);
+  command int8_t RFtoDB(uint8_t power);
 
   /**
    * Convert a dBm value to a relative RFPower value.
