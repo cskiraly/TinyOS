@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.5 2005-04-22 06:15:39 cssharp Exp $
+// $Id: BlinkM.nc,v 1.1.2.6 2005-05-20 10:03:15 cssharp Exp $
 
 includes Timer;
 
@@ -6,7 +6,7 @@ module BlinkM
 {
   uses interface Boot;
   uses interface Leds;
-  uses interface Alarm<TMilli> as Alarm;
+  uses interface Alarm<TMilli,uint32_t> as Alarm;
 }
 implementation
 {
