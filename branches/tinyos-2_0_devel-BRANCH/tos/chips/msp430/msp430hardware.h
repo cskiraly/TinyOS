@@ -1,4 +1,4 @@
-// $Id: msp430hardware.h,v 1.1.2.7 2005-04-01 07:23:50 cssharp Exp $
+// $Id: msp430hardware.h,v 1.1.2.8 2005-05-20 10:25:16 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -157,6 +157,7 @@ inline void TOSH_wait_250ns(void)
 
 inline void TOSH_uwait(uint16_t u) 
 { 
+  /*
   uint16_t i;
   if (u < 500)
     for (i=2; i < u; i++) { 
@@ -174,7 +175,9 @@ inline void TOSH_uwait(uint16_t u)
                    "nop\n\t"
                    ::);
     }
-  
+  */
+  uint16_t t0 = TAR;
+  while((TAR - t0) <= u);
 } 
 
 void __nesc_disable_interrupt()

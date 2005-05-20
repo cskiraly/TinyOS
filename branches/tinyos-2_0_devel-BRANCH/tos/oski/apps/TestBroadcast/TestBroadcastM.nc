@@ -1,4 +1,4 @@
-// $Id: TestBroadcastM.nc,v 1.1.2.2 2005-05-20 00:25:01 scipio Exp $
+// $Id: TestBroadcastM.nc,v 1.1.2.3 2005-05-20 10:25:16 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -60,7 +60,7 @@ implementation {
     call MilliTimer.startPeriodicNow(1000);
   }
 
-  event void MilliTimer.fired(uint32_t when, uint32_t numMissed) {
+  event void MilliTimer.fired() {
     call Leds.led1Toggle();
     /*if (locked) {
       return;
