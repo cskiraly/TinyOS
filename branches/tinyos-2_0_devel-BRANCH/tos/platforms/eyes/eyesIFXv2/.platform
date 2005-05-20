@@ -8,10 +8,10 @@ push( @includes, qw(
 
   %T/platforms/eyes/eyesIFXv2
   %T/platforms/eyes
-  %T/chips/radios/tda5250 
-  %T/chips/flash/at45db
-  %T/chips/radios/tda5250 
-  %T/chips/pots/ad6200 
+  %T/platforms/eyes/chips/tda5250  
+  %T/chips/at45db
+  %T/chips/tda5250 
+  %T/chips/ad6200 
   %T/chips/msp430
   %T/chips/msp430/adc12  
   %T/chips/msp430/io
