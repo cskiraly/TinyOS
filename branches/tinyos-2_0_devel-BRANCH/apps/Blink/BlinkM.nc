@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.5 2005-03-21 19:34:27 scipio Exp $
+// $Id: BlinkM.nc,v 1.1.2.6 2005-05-20 09:37:52 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -53,17 +53,17 @@ implementation
     call Timer2.startPeriodicNow( 1000 );
   }
 
-  event void Timer0.fired( uint32_t when, uint32_t numMissed )
+  event void Timer0.fired()
   {
     call Leds.led0Toggle();
   }
   
-  event void Timer1.fired( uint32_t when, uint32_t numMissed )
+  event void Timer1.fired()
   {
     call Leds.led1Toggle();
   }
   
-  event void Timer2.fired( uint32_t when, uint32_t numMissed )
+  event void Timer2.fired()
   {
     call Leds.led2Toggle();
   }
