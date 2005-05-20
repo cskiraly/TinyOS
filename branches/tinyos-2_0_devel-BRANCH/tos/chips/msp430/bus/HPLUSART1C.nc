@@ -23,7 +23,7 @@
  *
  * Authors:		Joe Polastre
  *
- * $Id: HPLUSART1C.nc,v 1.1.2.1 2005-04-12 04:14:13 gtolle Exp $
+ * $Id: HPLUSART1C.nc,v 1.1.2.2 2005-05-20 20:45:14 jpolastre Exp $
  */
 
 configuration HPLUSART1C
@@ -37,7 +37,7 @@ configuration HPLUSART1C
 }
 implementation
 {
-  components HPLUSART1M, new BusArbitrationC() as BA, MSP430GeneralIOC as IO;
+  components HPLUSART1M, new BusArbitrationC("Bus.HPLUSART1") as BA, MSP430GeneralIOC as IO;
 
   Init = BA;
 
