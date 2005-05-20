@@ -27,9 +27,9 @@
  *
  * @author Joe Polastre
  *
- * $Id: BusArbitrationM.nc,v 1.1.2.1 2005-02-25 03:09:56 jpolastre Exp $
+ * $Id: BusArbitrationM.nc,v 1.1.2.2 2005-05-20 20:46:26 jpolastre Exp $
  */
-generic module BusArbitrationM() {
+generic module BusArbitrationM(char busname[]) {
   provides {
     interface Init;
     interface BusArbitration[uint8_t id];
@@ -46,7 +46,7 @@ implementation {
     uint8_t i;
     uint8_t currentstate;
     // tell everyone the bus has been released
-    for (i = 0; i < uniqueCount("BusArbitration"); i++) {
+    for (i = 0; i < uniqueCount(busname); i++) {
       atomic currentstate = state;
       if (currentstate == BUS_IDLE) 
         signal BusArbitration.busFree[i]();
