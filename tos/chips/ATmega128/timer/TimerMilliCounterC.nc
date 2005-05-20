@@ -1,4 +1,4 @@
-//$Id: TimerMilliCounterC.nc,v 1.1.2.2 2005-04-18 08:18:31 mturon Exp $
+//$Id: TimerMilliCounterC.nc,v 1.1.2.3 2005-05-20 20:51:57 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -27,22 +27,22 @@
 // TimerMilliCounterC is the counter to be used for all TimerMilli[].
 configuration TimerMilliCounterC
 {
-  provides interface Counter<TMilli> as CounterMilli;
-  provides interface CounterBase<TMilli,uint32_t> as CounterBaseMilli;
+  provides interface Counter<TMilli,uint32_t> as CounterMilli32;
+  provides interface LocalTime<TMilli> as LocalTimeMilli;
 }
 implementation
 {
     components HPLTimerM,
 	new HALCounterM(T32khz, uint8_t) as HALCounter32khz, 
-	new TransformCounterM(TMilli, uint32_t, T32khz, uint8_t,
+	new TransformCounterC(TMilli, uint32_t, T32khz, uint8_t,
 			      0, uint32_t) as Transform,
-	new CastCounterM(TMilli) as Cast
+	 new CounterToLocalTimeC(TMilli)
 	;
   
-  CounterMilli = Cast.Counter;
-  CounterBaseMilli = Transform.Counter;
+  CounterMilli32 = Transform.Counter;
+  LocalTimeMilli = CounterToLocalTimeC;
 
-  Cast.CounterFrom -> Transform.Counter;
+  CounterToLocalTimeC.Counter -> Transform;
   Transform.CounterFrom -> HALCounter32khz;
 
   HALCounter32khz.Timer -> HPLTimerM.Timer0;   // wire async timer to Timer 0

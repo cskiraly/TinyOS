@@ -1,4 +1,4 @@
-//$Id: TimerMilliC.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
+//$Id: TimerMilliC.nc,v 1.1.2.2 2005-05-20 20:51:57 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -39,37 +39,16 @@ configuration TimerMilliC
 }
 implementation
 {
-  components TimerMilliAlarmC
-      , new MultiplexTimerM(TMilli,uint32_t,
-			    uniqueCount("TimerMilli")) as MultiTimerMilli
-      , new SyncAlarmC(TMilli,uint32_t) as SyncAlarm
-      , new CastTimerM(TMilli) as CastTimer
-      ;
+  components TimerMilliAlarmC as AlarmMilliC
+	   , new AlarmToTimerC(TMilli)
+	   , new VirtualizeTimerC(TMilli,uniqueCount("TimerMilli"))
+	   ;
 
-  /* From the bottom:
-  
-     1. A hardware timer is made synchronous via SyncAlarm, though the
-     interface remains marked as async.
-     
-     2. The synchronous alarm is multiplexed into multiple timers.  This
-     multiplexer thinks it's working on async, but it doesn't really matter,
-     and doing it this way lets us use the same multiplexer code for both
-     async and sync timers.
-     
-     3. Those timers are then cast to be marked as synchronous.  This is just
-     a syntax change -- they're already actually synchronous because the
-     synchronous alarm fed into the multiplexer.
-     
-     4. Finally at the top, the hardware timer and timer multiplexer need to
-     be initialized.
-  */
+  Init = AlarmMilliC;
+  Init = VirtualizeTimerC;
+  TimerMilli = VirtualizeTimerC;
 
-  Init = TimerMilliAlarmC;
-  Init = MultiTimerMilli;
-  TimerMilli = CastTimer;
-  
-  CastTimer.TimerFrom -> MultiTimerMilli;
-  MultiTimerMilli.AlarmFrom -> SyncAlarm;
-  SyncAlarm.AlarmBaseFrom -> TimerMilliAlarmC;
+  VirtualizeTimerC.TimerFrom -> AlarmToTimerC;
+  AlarmToTimerC.Alarm -> AlarmMilliC;
 }
 

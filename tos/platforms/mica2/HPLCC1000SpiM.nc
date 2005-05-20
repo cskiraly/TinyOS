@@ -1,4 +1,4 @@
-// $Id: HPLCC1000SpiM.nc,v 1.1.2.2 2005-05-18 23:28:14 idgay Exp $
+// $Id: HPLCC1000SpiM.nc,v 1.1.2.3 2005-05-20 20:51:57 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 
 /* 
  * Authors: Jaein Jeong, Philip buonadonna
- * Date last modified: $Revision: 1.1.2.2 $
+ * Date last modified: $Revision: 1.1.2.3 $
  *
  */
 
@@ -69,6 +69,8 @@ implementation
     SPDR = outgoingByte;
     signal HPLCC1000Spi.dataReady(temp);
   }
+  default async event void HPLCC1000Spi.dataReady(uint8_t data) { }
+  
 
   async command void HPLCC1000Spi.writeByte(uint8_t data) {
     atomic outgoingByte = data;
