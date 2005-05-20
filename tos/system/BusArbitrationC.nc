@@ -31,9 +31,9 @@
  *
  * @author Joe Polastre
  *
- * $Id: BusArbitrationC.nc,v 1.1.2.1 2005-02-25 03:09:56 jpolastre Exp $
+ * $Id: BusArbitrationC.nc,v 1.1.2.2 2005-05-20 20:46:26 jpolastre Exp $
  */
-generic configuration BusArbitrationC()
+generic configuration BusArbitrationC(char busname[])
 {
   provides {
     interface Init;
@@ -42,7 +42,7 @@ generic configuration BusArbitrationC()
 }
 implementation
 {
-  components new BusArbitrationM();
+  components new BusArbitrationM(busname);
 
   Init = BusArbitrationM;
   BusArbitration = BusArbitrationM;
