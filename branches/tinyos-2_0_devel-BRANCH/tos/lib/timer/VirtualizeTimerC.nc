@@ -1,4 +1,4 @@
-//$Id: VirtualizeTimerC.nc,v 1.1.2.2 2005-05-18 11:19:17 cssharp Exp $
+//$Id: VirtualizeTimerC.nc,v 1.1.2.3 2005-05-20 09:34:56 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -22,8 +22,7 @@
 
 // @author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-// This is a generic multiplexer component that takes an alarm and makes a
-// timer.
+// See TEP 102 Timers.
 
 generic module VirtualizeTimerC( typedef precision_tag, int max_timers )
 {
@@ -33,197 +32,140 @@ generic module VirtualizeTimerC( typedef precision_tag, int max_timers )
 }
 implementation
 {
-  typedef uint32_t size_type;
-
   enum
   {
     NUM_TIMERS = max_timers,
     END_OF_LIST = 255,
-    SIGN_BIT = ((size_type)1) << (8 * sizeof(size_type) - 1),
   };
 
   typedef struct
   {
-    size_type t0;
-    size_type dt;
+    uint32_t t0;
+    uint32_t dt;
   } Timer_t;
 
   typedef struct
   {
-    bool isperiodic : 1;
+    bool isoneshot : 1;
     bool isrunning : 1;
     bool _reserved : 6;
   } Flags_t;
 
   Timer_t m_timers[NUM_TIMERS];
   Flags_t m_flags[NUM_TIMERS];
-  bool m_processing_timers;
-  bool m_reprocess_timers;
 
   command error_t Init.init()
   {
-    memset(m_timers, 0, sizeof(m_timers));
-    memset(m_flags, 0, sizeof(m_flags));
-    m_processing_timers = FALSE;
-    m_reprocess_timers = FALSE;
+    memset( m_timers, 0, sizeof(m_timers) );
+    memset( m_flags, 0, sizeof(m_flags) );
     return SUCCESS;
   }
 
-  void insertTimer( uint8_t num )
-  {
-    m_flags[num].isrunning = TRUE;
-  }
+  task void executeTimersNow();
 
-  void executeTimers( size_type then )
+  void executeTimers( uint32_t then )
   {
-    size_type min_remaining = 0;
+    uint32_t min_remaining = ~(uint32_t)0;
     bool min_remaining_isset = FALSE;
-    bool reprocess_timers = TRUE;
+    int num;
 
-    if( m_processing_timers )
+    for( num=0; num<NUM_TIMERS; num++ )
     {
-      m_reprocess_timers = TRUE;
-      return;
-    }
+      Flags_t* flags = &m_flags[num];
 
-    m_processing_timers = TRUE;
-    m_reprocess_timers = FALSE;
-
-    while( reprocess_timers )
-    {
-      int num;
-      reprocess_timers = FALSE;
-      min_remaining = 0;
-      min_remaining = ~min_remaining;
-      min_remaining_isset = FALSE;
-
-      for( num=0; num<NUM_TIMERS; num++ )
+      if( flags->isrunning )
       {
-	Flags_t* flags;
-	Timer_t* timer;
-	bool fire_timer = FALSE;
-	bool calculate_remaining = FALSE;
-	size_type numMissed;
-	size_type elapsed = 0;
-	size_type t0;
+	// Calculate "remaining" before the timer is fired.  If a timer
+	// restarts itself in a fired event, then we 1) need a consistent
+	// "remaining" value to work with, and no worries because 2) all
+	// start commands post executeTimersNow, so the timer will be
+	// recomputed later, anyway.
 
-	flags = &m_flags[num];
-	timer = &m_timers[num];
+	Timer_t* timer = &m_timers[num];
+	int32_t elapsed = then - timer->t0;
+	uint32_t remaining = timer->dt - elapsed;
+	bool compute_min_remaining = TRUE;
 
-	if( flags->isrunning )
+	// If the elapsed time is negative, then t0 is in the future, so
+	// don't process it.  This implies:
+	//   1) t0 in the future is okay
+	//   2) dt can be at most maxval(uint32_t)/2
+
+	if( (elapsed >= 0) && (timer->dt <= (uint32_t)elapsed) )
 	{
-	  elapsed = then - timer->t0;
-	  numMissed = 0;
-
-	  if( (elapsed & SIGN_BIT) != 0 )
+	  if( flags->isoneshot )
 	  {
-	    // if t0 is "in the future" then don't process it
-	    // this means that
-	    //   1) t0 in the future are okay
-	    //   2) dt can be at most maxval(size_type)/2
-	    calculate_remaining = TRUE;
-	  }
-	  else if( timer->dt <= elapsed )
-	  {
-	    if( flags->isperiodic )
-	    {
-	      timer->t0 += timer->dt;
-	      elapsed -= timer->dt;
-
-	      if( timer->dt <= elapsed )
-	      {
-		size_type elapsed_rem = elapsed % timer->dt;
-		numMissed = elapsed / timer->dt;
-		timer->t0 += elapsed - elapsed_rem;
-		elapsed = elapsed_rem;
-	      }
-
-	      fire_timer = TRUE;
-	      calculate_remaining = TRUE;
-	    }
-	    else
-	    {
-	      flags->isrunning = FALSE;
-	      fire_timer = TRUE;
-	    }
+	    flags->isrunning = FALSE;
+	    compute_min_remaining = FALSE;
 	  }
 	  else
 	  {
-	    calculate_remaining = TRUE;
+	    timer->t0 += timer->dt;
+	    elapsed -= timer->dt;
 	  }
+
+	  signal Timer.fired[num]();
 	}
 
-	if( calculate_remaining )
+	// check isrunning in case the timer was stopped in the fired event
+
+	if( compute_min_remaining && flags->isrunning )
 	{
-	  size_type remaining = timer->dt - elapsed;
 	  if( remaining < min_remaining )
 	    min_remaining = remaining;
 	  min_remaining_isset = TRUE;
 	}
-
-	t0 = timer->t0;
-
-	if( fire_timer )
-	  signal Timer.fired[num]( t0, numMissed );
       }
+    }
 
-      {
-	size_type prev_then = then;
-	size_type elapsed_last_exec;
-	then = call TimerFrom.getNow();
-	elapsed_last_exec = then - prev_then;
-	if( m_reprocess_timers )
-	{
-	  reprocess_timers = TRUE;
-	  m_reprocess_timers = FALSE;
-	}
-	else if( min_remaining <= elapsed_last_exec )
-	{
-	  reprocess_timers = TRUE;
-	}
-	else
-	{
-	  m_processing_timers = FALSE;
-	  reprocess_timers = FALSE;
-	  if( min_remaining_isset )
-	    call TimerFrom.startOneShot( then, min_remaining - elapsed_last_exec );
-	}
-      }
+    if( min_remaining_isset )
+    {
+      uint32_t now = call TimerFrom.getNow();
+      uint32_t elapsed = now - then;
+      if( min_remaining <= elapsed )
+	post executeTimersNow();
+      else
+	call TimerFrom.startOneShot( now, min_remaining - elapsed );
     }
   }
   
 
-  event void TimerFrom.fired( uint32_t when, uint32_t num_missed )
+  event void TimerFrom.fired()
   {
-    executeTimers( when );
+    executeTimers( call TimerFrom.gett0() + call TimerFrom.getdt() );
   }
 
-  void startTimer( uint8_t num, size_type t0, size_type dt, bool isperiodic )
+  task void executeTimersNow()
+  {
+    call TimerFrom.stop();
+    executeTimers( call TimerFrom.getNow() );
+  }
+
+  void startTimer( uint8_t num, uint32_t t0, uint32_t dt, bool isoneshot )
   {
     Timer_t* timer = &m_timers[num];
     Flags_t* flags = &m_flags[num];
     timer->t0 = t0;
     timer->dt = dt;
-    flags->isperiodic = isperiodic;
-    insertTimer( num );
-    executeTimers( call TimerFrom.getNow() );
+    flags->isoneshot = isoneshot;
+    flags->isrunning = TRUE;
+    post executeTimersNow();
   }
 
-  command void Timer.startPeriodicNow[ uint8_t num ]( size_type dt )
-  {
-    startTimer( num, call TimerFrom.getNow(), dt, TRUE );
-  }
-
-  command void Timer.startOneShotNow[ uint8_t num ]( size_type dt )
+  command void Timer.startPeriodicNow[ uint8_t num ]( uint32_t dt )
   {
     startTimer( num, call TimerFrom.getNow(), dt, FALSE );
+  }
+
+  command void Timer.startOneShotNow[ uint8_t num ]( uint32_t dt )
+  {
+    startTimer( num, call TimerFrom.getNow(), dt, TRUE );
   }
 
   command void Timer.stop[ uint8_t num ]()
   {
     m_flags[num].isrunning = FALSE;
   }
-
 
   command bool Timer.isRunning[ uint8_t num ]()
   {
@@ -232,35 +174,35 @@ implementation
 
   command bool Timer.isOneShot[ uint8_t num ]()
   {
-    return !m_flags[num].isperiodic;
+    return m_flags[num].isoneshot;
   }
 
-  command void Timer.startPeriodic[ uint8_t num ]( size_type t0, size_type dt )
-  {
-    startTimer( num, t0, dt, TRUE );
-  }
-
-  command void Timer.startOneShot[ uint8_t num ]( size_type t0, size_type dt )
+  command void Timer.startPeriodic[ uint8_t num ]( uint32_t t0, uint32_t dt )
   {
     startTimer( num, t0, dt, FALSE );
   }
 
-  command size_type Timer.getNow[ uint8_t num ]()
+  command void Timer.startOneShot[ uint8_t num ]( uint32_t t0, uint32_t dt )
+  {
+    startTimer( num, t0, dt, TRUE );
+  }
+
+  command uint32_t Timer.getNow[ uint8_t num ]()
   {
     return call TimerFrom.getNow();
   }
 
-  command size_type Timer.gett0[ uint8_t num ]()
+  command uint32_t Timer.gett0[ uint8_t num ]()
   {
     return m_timers[num].t0;
   }
 
-  command size_type Timer.getdt[ uint8_t num ]()
+  command uint32_t Timer.getdt[ uint8_t num ]()
   {
     return m_timers[num].dt;
   }
 
-  default event void Timer.fired[ uint8_t num ]( size_type when, size_type numMissed )
+  default event void Timer.fired[ uint8_t num ]()
   {
   }
 }
