@@ -1,4 +1,4 @@
-//$Id: AlarmToTimerC.nc,v 1.1.2.2 2005-05-18 11:19:17 cssharp Exp $
+//$Id: AlarmToTimerC.nc,v 1.1.2.3 2005-05-20 09:34:56 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -54,10 +54,9 @@ implementation
 
   task void fired()
   { 
-    uint32_t when = call Alarm.getAlarm();
     if( m_oneshot == FALSE )
-      start( when, m_dt, FALSE );
-    signal Timer.fired( when, 0 );
+      start( call Alarm.getAlarm(), m_dt, FALSE );
+    signal Timer.fired();
   }
 
   async event void Alarm.fired()
