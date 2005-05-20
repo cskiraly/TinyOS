@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2005-05-10 21:03:56 $ 
+ * $Revision: 1.1.2.7 $
+ * $Date: 2005-05-20 08:39:04 $ 
  * ======================================================================== 
  */
  
@@ -77,16 +77,20 @@ implementation {
   /**
     Request the use of the shared resource
     
-    If the resource is idle the resource is granted to the
-    requesting user and a SUCCESS is returned.  This user 
-    will receive the granted() event in a synchronous context.
+    If the user has not already requested access to the 
+    resource, the request will be either served immediately 
+    or queued for later service in a round robin fashion.  
+    A SUCCESS value will be returned and the user will receive 
+    the granted() event in synchronous context once it has 
+    been given access to the resource.
     
-    If the resource is busy, the request will be queued and 
-    then served in a round robin fashion based on requests from
-    other users.  The current owner of the bus will receive a 
-    requested() event, notifying him that another user would 
-    like to have access to the resource.
-    An EBUSY event will be returned to the caller.
+    Whenever requests are queued, the current owner of the bus 
+    will receive a requested() event, notifying him that another
+    user would like to have access to the resource.
+    
+    If the user has already requested access to the resource and
+    is waiting on a pending granted() event, an EBUSY value will 
+    be returned to the caller.
   */
   async command error_t Resource.request[uint8_t id]() {
     bool granted = FALSE;
@@ -106,6 +110,24 @@ implementation {
     return EBUSY;
   }  
   
+   /**
+   * Request immediate access to the shared resource.  Requests are
+   * not queued, and no granted event is returned.  A return value 
+   * of SUCCESS signifies that the resource has been granted to you,
+   * while a return value of EBUSY signifies that the resource is 
+   * currently being used.
+   */
+  async command error_t Resource.immediateRequest[uint8_t id]() {
+    atomic {
+      if(state = RES_IDLE) {
+        state = RES_BUSY;
+        resId = id;
+        return SUCCESS;
+      }
+    }
+    return EBUSY;
+  }  
+  
   /**
     Release the use of the shared resource
     
@@ -118,24 +140,24 @@ implementation {
     for immediate access to the resource.
   */
   async command void Resource.release[uint8_t id]() {
-    atomic
-      {
-	if ((state != RES_BUSY) || (resId != id))
-	  return;
-      
-	if(GrantNextRequest() == FAIL) {
-	  state = RES_IDLE;
-	  resId = NO_RES;
-	}
+    atomic {
+      if ((state != RES_BUSY) || (resId != id))
+        return;
+      if(GrantNextRequest() == FAIL) {
+        state = RES_IDLE;
+        resId = NO_RES;
       }
+    }
   }
     
   /**
     Check if the Resource is currently in use
   */    
   command bool ResourceUser.inUse() {
-    if(state == RES_BUSY)
-      return TRUE;
+    atomic {
+      if(state == RES_BUSY)
+        return TRUE;
+    }
     return FALSE;
   }
 
@@ -174,12 +196,11 @@ implementation {
   //Queue the requests so that they can be granted
     //in Round-Robin order after release of the resource  
   bool QueueRequest(uint8_t id) {
-    atomic
-      {
-	if((request[id/8] & (1 << (id % 8))) > 0)
-	  return FAIL;
-	request[id/8] = request[id/8] | (1 << (id % 8));
-      }
+    atomic {
+      if((request[id/8] & (1 << (id % 8))) > 0)
+        return FAIL;
+      request[id/8] = request[id/8] | (1 << (id % 8));
+    }
     return SUCCESS;
   }
   
