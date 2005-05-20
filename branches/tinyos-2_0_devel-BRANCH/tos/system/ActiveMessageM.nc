@@ -1,4 +1,4 @@
-// $Id: ActiveMessageM.nc,v 1.1.2.2 2005-01-18 22:25:06 scipio Exp $
+// $Id: ActiveMessageM.nc,v 1.1.2.3 2005-05-20 00:25:01 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: ActiveMessageM.nc,v 1.1.2.2 2005-01-18 22:25:06 scipio Exp $
+ * Date last modified:  $Id: ActiveMessageM.nc,v 1.1.2.3 2005-05-20 00:25:01 scipio Exp $
  *
  */
 
@@ -40,8 +40,9 @@
  * @date January 17 2005
  */
 
-configuration ActiveMessageM {
+module ActiveMessageM {
   provides {
+    interface Init;
     interface SplitControl;
 
     interface AMSend[am_id_t id];
@@ -52,6 +53,7 @@ configuration ActiveMessageM {
     interface AMPacket;
   }
   uses {
+    interface Init as SubInit;
     interface SplitControl as SubControl;
     interface Send as SubSend;
     interface Receive as SubReceive;
@@ -60,35 +62,39 @@ configuration ActiveMessageM {
 }
 implementation {
 
-  enum {
-    AM_HEADER_SIZE = sizeof(AMHeader);
-  };
-  
   bool active = FALSE;
 
+  command error_t Init.init() {
+    return call SubInit.init();
+  }
+  
   /* Starting and stopping ActiveMessages. */
   command error_t SplitControl.start() {
     return call SubControl.start();
   }
 
-  event void SubControl.startDone() {
-    active = TRUE;
-    signal SplitControl.startDone();
+  event void SubControl.startDone(error_t error) {
+    if (error == SUCCESS) {
+      active = TRUE;
+    }
+    signal SplitControl.startDone(error);
   }
 
   command error_t SplitControl.stop() {
     return call SubControl.stop();    
   }
 
-  event void SubControl.stopDone() {
-    active = FALSE;
-    signal SplitControl.stopDone();
+  event void SubControl.stopDone(error_t error) {
+    if (error == SUCCESS) {
+      active = FALSE;
+    }
+    signal SplitControl.stopDone(error);
   }
 
 
   /* Sending a packet */
   
-  command error_t AMSend.send[am_id_t id](am_addr_t addr, TOSMsg* msg, uint8_t len) {
+  command error_t AMSend.send[am_id_t id](am_addr_t addr, message_t* msg, uint8_t len) {
     if (!active) {
       return EOFF;
     }
@@ -97,14 +103,14 @@ implementation {
       AMHeader* header = (AMHeader*)payload;
       
       header->type = id;
-      header->addr = addr;
+      msg->header.addr = addr;
       len += AM_HEADER_SIZE;
       
       return call SubSend.send(msg, len);
     }
   }
 
-  command error_t AMSend.cancel[am_id_t id](TOSMsg* msg) {
+  command error_t AMSend.cancel[am_id_t id](message_t* msg) {
     if (!active) {
       return EOFF;
     }
@@ -113,23 +119,23 @@ implementation {
     }
   }
 
-  event void SubSend.sendDone(TOSMsg* msg, error_t result) {
+  event void SubSend.sendDone(message_t* msg, error_t result) {
     void* payload = call SubPacket.getPayload(msg, NULL);
     AMHeader* header = (AMHeader*)payload;
-    signal Send.sendDone[header->type](msg, result);
+    signal AMSend.sendDone[header->type](msg, result);
   }
 
 
   /* Receiving a packet */
 
-  event TOSMsg* SubReceive.receive(TOSMsg* msg, void* payload, uint8_t len) {
+  event message_t* SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
     if (!active) {
       return msg;
     }
     else {
       AMHeader* header = (AMHeader*)payload;
       uint8_t* payloadPtr = (uint8_t*)payload;
-      
+
       /* Move payload pointer forward and adjust length. */
       payloadPtr += AM_HEADER_SIZE;
       len -= AM_HEADER_SIZE;
@@ -144,22 +150,22 @@ implementation {
   }
   
   
-  default event TOSMsg* Receive.receive[am_id_t id](TOSMsg* msg, void* payload, uint8_t len) {
+  default event message_t* Receive.receive[am_id_t id](message_t* msg, void* payload, uint8_t len) {
     return msg;
   }
   
-  default event TOSMsg* Snoop.receive[am_id_t id](TOSMsg* msg, void* payload, uint8_t len) {
+  default event message_t* Snoop.receive[am_id_t id](message_t* msg, void* payload, uint8_t len) {
     return msg;
   }
 
   
  /* Packet interface */
   
-  command void Packet.clear(TOSMsg* msg) {
+  command void Packet.clear(message_t* msg) {
     call SubPacket.clear(msg);
   }
 
-  command uint8_t Packet.payloadLength(TOSMsg* msg) {
+  command uint8_t Packet.payloadLength(message_t* msg) {
     uint8_t len = call SubPacket.payloadLength(msg);
     len -= AM_HEADER_SIZE;
     return len;
@@ -169,7 +175,7 @@ implementation {
     return call SubPacket.maxPayloadLength() - AM_HEADER_SIZE;
   }
 
-  command void* Packet.getPayload(TOSMsg* msg, uint8_t* len) {
+  command void* Packet.getPayload(message_t* msg, uint8_t* len) {
     uint8_t* payloadPtr = call SubPacket.getPayload(msg, len);
 
     payloadPtr += AM_HEADER_SIZE;
@@ -179,5 +185,29 @@ implementation {
 
     return (void*)payloadPtr;
   }
+
+  /* AMPacket interface. */
   
+  command am_addr_t AMPacket.localAddress() {
+    return TOS_LOCAL_ADDRESS;
+  }
+ 
+  command am_addr_t AMPacket.destination(message_t* amsg) {
+    return amsg->header.addr;
+    //AMHeader* header = (AMHeader*)call SubPacket.getPayload(amsg, NULL);
+    //return header->dest;
+  }
+
+  command bool AMPacket.isForMe(message_t* amsg) {
+    return (call AMPacket.destination(amsg) == call AMPacket.localAddress() ||
+	    call AMPacket.destination(amsg) == AM_BROADCAST_ADDR);
+  }
+ 
+  command bool AMPacket.isAMPacket(message_t* amsg) {
+    return SUCCESS;
+  }
+
+ default event void AMSend.sendDone[uint8_t id](message_t* msg, error_t err) {
+   return;
+ }
 }

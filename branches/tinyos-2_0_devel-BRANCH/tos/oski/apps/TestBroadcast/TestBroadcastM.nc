@@ -1,4 +1,4 @@
-// $Id: TestBroadcastM.nc,v 1.1.2.1 2005-05-17 21:18:27 scipio Exp $
+// $Id: TestBroadcastM.nc,v 1.1.2.2 2005-05-20 00:25:01 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -43,29 +43,33 @@ module TestBroadcastM {
   uses {
     interface Leds;
     interface Boot;
-    interface Receive;
-    interface Send;
+    //interface Receive;
+    //interface Send;
     interface Timer<TMilli> as MilliTimer;
+    interface Service;
   }
 }
 implementation {
 
-  message_t packet;
+  //message_t packet;
   bool locked;
   
   event void Boot.booted() {
+    call Leds.led2On();
+    call Service.start();
     call MilliTimer.startPeriodicNow(1000);
   }
 
   event void MilliTimer.fired(uint32_t when, uint32_t numMissed) {
-    if (locked) {
+    call Leds.led1Toggle();
+    /*if (locked) {
       return;
     }
     else if (call Send.send(&packet, 0) == SUCCESS) {
       locked = TRUE;
-    }
+      }*/
   }
-
+  /*
   event message_t* Receive.receive(message_t* bufPtr, 
 				   void* payload, uint8_t len) {
      call Leds.led0Toggle();
@@ -77,6 +81,7 @@ implementation {
       locked = FALSE;
     }
   }
+  */
 }
 
 

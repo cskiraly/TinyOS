@@ -3,7 +3,6 @@
 
 typedef nx_struct {
   nx_uint16_t addr;
-  nx_uint8_t type;
   nx_uint8_t group;
   nx_uint8_t length;
 } TOSRadioHeader;

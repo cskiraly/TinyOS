@@ -1,4 +1,4 @@
-// $Id: ServiceOrControllerM.nc,v 1.1.2.1 2005-05-17 21:25:23 scipio Exp $
+// $Id: ServiceOrControllerM.nc,v 1.1.2.2 2005-05-20 00:25:01 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -80,6 +80,12 @@ generic module ServiceOrControllerM(char strID[]) {
 
 implementation {
 
+  enum {
+    STATUS_BITS = uniqueCount(strID),
+    STATUS_BYTES = (STATUS_BITS + 7) / 8,
+  };
+
+  
   typedef struct {
     uint8_t busy:1;
     uint8_t active:1;
@@ -88,20 +94,16 @@ implementation {
   // Bits are stored big-endian. Bit 0 is the 0th bit of the last
   // element, while bit 18 is the 2nd bit of the third to last
   // element.
-  uint8_t bitmask[(uniqueCount(strID) + 7) / 8];
+  uint8_t bitmask[STATUS_BYTES];
 
   // Assume that we are initially busy (the rest of TinyOS is
   // initializing the underlying service, but that it isn't started
   // (that's under our control).
   OrControllerService status = {
-    TRUE,
+    FALSE,
     FALSE
   };
   
-  enum {
-    STATUS_BITS = uniqueCount(strID),
-    STATUS_BYTES = (STATUS_BITS + 7) / 8,
-  };
   
   bool isClear() {
     int i;
@@ -115,6 +117,10 @@ implementation {
 
   uint8_t bitToByte(uint8_t bit) {
     return (STATUS_BYTES - (bit / 8) - 1);
+  }
+
+  bool getBit(uint8_t bit) {
+    return bitmask[bitToByte(bit)] & (1 << (bit % 8));
   }
   
   void setBit(uint8_t bit) {
@@ -139,16 +145,17 @@ implementation {
     }
   }
 
-  command bool Service.isRunning() {
-    return (status.active)? TRUE:FALSE;
+  command bool Service.isRunning[uint8_t id]() {
+    return getBit(id);
   }
   
   command void Service.start[uint8_t id]() {
     setBit(id);
     enactStateChange();
+    return;
   }
 
-  event result_t SplitControl.startDone() {
+  event void SplitControl.startDone(error_t error) {
     status.busy = FALSE;
     status.active = TRUE;
     signal ServiceNotify.started();
@@ -162,7 +169,7 @@ implementation {
     enactStateChange();
   }
 
-  event result_t SplitControl.stopDone() {
+  event void SplitControl.stopDone(error_t error) {
     status.busy = FALSE;
     status.active = FALSE;
     signal ServiceNotify.stopped();
@@ -170,12 +177,8 @@ implementation {
      * service while it was being stopped. */
     enactStateChange();            
   }
-  
-  event result_t SplitControl.initDone() {
-    status.busy = FALSE;
-    /* Invoke enactStateChange() in case there are pending requests
-     * to start the service. */
-    enactStateChange();
-  }
-  
+
+ default event void ServiceNotify.started() {}
+ default event void ServiceNotify.stopped() {}
+ 
 }

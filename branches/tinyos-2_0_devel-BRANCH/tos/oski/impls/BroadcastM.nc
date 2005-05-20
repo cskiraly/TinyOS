@@ -1,4 +1,4 @@
-// $Id: BroadcastM.nc,v 1.1.2.1 2005-05-17 21:25:19 scipio Exp $
+// $Id: BroadcastM.nc,v 1.1.2.2 2005-05-20 00:25:01 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -88,8 +88,8 @@ implementation {
   }
 
   event message_t* SubReceive.receive(message_t* msg,
-				   void* payload,
-				   uint8_t len) {
+				      void* payload,
+				      uint8_t len) {
     BroadcastMsg* bmsg = (BroadcastMsg*)call Packet.getPayload(msg, NULL);
     signal Receive.receive[bmsg->id](msg,
 				     payload + BROADCASTP_OFFSET,
@@ -118,4 +118,12 @@ implementation {
     return payload + BROADCASTP_OFFSET;
   }
 
+ default event void Send.sendDone[uint8_t id](message_t* msg,
+					      error_t error) {return;}
+
+ default event message_t* Receive.receive[uint8_t id](message_t* msg,
+						      void* payload,
+						      uint8_t len) {
+   return msg;
+ }
 }
