@@ -1,4 +1,4 @@
-//$Id: BusyWaitCounterC.nc,v 1.1.2.2 2005-05-18 11:19:17 cssharp Exp $
+//$Id: BusyWaitCounterC.nc,v 1.1.2.3 2005-05-20 09:56:04 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -57,6 +57,10 @@ implementation
 	while( (call Counter.get() - t0) <= HALF_MAX_SIZE_TYPE );
       }
     }
+  }
+
+  async event void Counter.overflow()
+  {
   }
 }
 
