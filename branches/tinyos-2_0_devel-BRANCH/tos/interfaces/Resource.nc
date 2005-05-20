@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2005-04-27 14:27:41 $ 
+ * $Revision: 1.1.2.5 $
+ * $Date: 2005-05-20 08:40:08 $ 
  * ======================================================================== 
  */
  
@@ -45,25 +45,35 @@ interface Resource {
   /**
    * Request access to a shared resource. You must call release()
    * when you are done with it.
-   * @return SUCCESS You have gained access to the resource.
-   *         EBUSY   The resource is busy. The current owner of 
-   *                 the bus will receive the requested() event
+   * @return SUCCESS Request accepted. The granted() event will
+   *           be signaled when you have the resource.
+   *         EBUSY You have already requested this resource via this
+   *           interface.    
    */
   async command error_t request();
-  
-  /**
-   * Some other component has requested this resource. You might
-   * want to consider releasing it.
+   
+   /**
+   * Request immediate access to a shared resource. You must call 
+   * release() when you are done with it. 
+   * @return SUCCESS You now have the resource.
+   *         EBUSY The resource is busy.
    */
-  event void requested();  
+  async command error_t immediateRequest();
 
   /**
-   * You have received access to this resource.
+   * You have received access to this resource. Note that this event
+   * is NOT signaled when immediateRequest() succeeds.
    */
   event void granted();
-
+   
   /**
    * Release a shared resource you previously acquired.
    */
   async command void release();
+   
+  /**
+   * Some other component has requested this resource. You might
+   * want to consider releasing it.
+   */
+  event void requested();
 }
