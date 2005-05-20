@@ -1,4 +1,4 @@
-// $Id: CC2420ControlM.nc,v 1.1.2.6 2005-05-20 21:30:04 jpolastre Exp $
+// $Id: CC2420ControlM.nc,v 1.1.2.7 2005-05-20 21:37:05 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.6 $
+ * Revision:  $Revision: 1.1.2.7 $
  *
  * This module provides the CONTROL functionality for the 
  * Chipcon2420 series radio. It exports both a standard control 
@@ -39,7 +39,6 @@ module CC2420ControlM {
   }
   uses {
     interface Init as HPLChipconInit;
-    interface StdControl as HPLChipconControl;
     interface HPLCC2420 as HPLChipcon;
     interface HPLCC2420RAM as HPLChipconRAM;
 
@@ -181,7 +180,6 @@ implementation
 
     call HPLChipcon.cmd(CC2420_SXOSCOFF); 
     ok = call CCA.disable();
-    ok &= call HPLChipconControl.stop();
 
     call RadioReset.clr();
     ok &= call CC2420Control.VREFOff();
@@ -215,7 +213,6 @@ implementation
     if (!_state)
       return FAIL;
 
-    call HPLChipconControl.start();
     //turn on power
     call CC2420Control.VREFOn();
     // toggle reset
