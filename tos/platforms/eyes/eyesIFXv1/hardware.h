@@ -26,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: hardware.h,v 1.1.2.1 2005-05-17 20:13:11 klueska Exp $
+ * $Id: hardware.h,v 1.1.2.2 2005-05-20 12:49:58 klueska Exp $
  *
  */
 
@@ -34,7 +34,7 @@
 #define TOSH_HARDWARE_EYESIFX
 
 #include "msp430hardware.h"
-//#include "MSP430ADC12.h" 
+#include "MSP430ADC12.h" 
 
 // LED assignments
 TOSH_ASSIGN_PIN(RED_LED, 5, 0); // Compatibility with the mica2
@@ -73,7 +73,7 @@ TOSH_ASSIGN_PIN(SIMO1, 5, 1);
 
 // Sensor assignments
 TOSH_ASSIGN_PIN(RSSI, 6, 3);
-TOSH_ASSIGN_PIN(TEMPERATURE, 6, 0);
+TOSH_ASSIGN_PIN(TEMP, 6, 0);
 TOSH_ASSIGN_PIN(LIGHT, 6, 2);
 TOSH_ASSIGN_PIN(ADC_A1, 6, 1);
 
@@ -100,41 +100,137 @@ TOSH_ASSIGN_PIN(ACLK, 2, 0);
 // Flash 
 TOSH_ASSIGN_PIN(FLASH_CS, 1, 7);
 
-// need to undef atomic inside header files or nesC ignores the directive
+// send a bit via bit-banging to the flash
+void TOSH_FLASH_M25P_DP_bit(bool set) {
+  if (set)
+    TOSH_SET_SIMO0_PIN();
+  else
+    TOSH_CLR_SIMO0_PIN();
+  TOSH_SET_UCLK0_PIN();
+  TOSH_CLR_UCLK0_PIN();
+}
+
+void TOSH_FLASH_M25P_DP() {
+  //  SIMO0, UCLK0
+  TOSH_MAKE_SIMO0_OUTPUT();
+  TOSH_MAKE_UCLK0_OUTPUT();
+  TOSH_MAKE_FLASH_CS_OUTPUT();
+  TOSH_SET_FLASH_CS_PIN();
+
+  TOSH_wait();
+
+  // initiate sequence;
+  TOSH_CLR_FLASH_CS_PIN();
+  TOSH_CLR_UCLK0_PIN();
+  
+  TOSH_FLASH_M25P_DP_bit(TRUE);   // 0
+  TOSH_FLASH_M25P_DP_bit(FALSE);  // 1
+  TOSH_FLASH_M25P_DP_bit(TRUE);   // 2
+  TOSH_FLASH_M25P_DP_bit(TRUE);   // 3
+  TOSH_FLASH_M25P_DP_bit(TRUE);   // 4
+  TOSH_FLASH_M25P_DP_bit(FALSE);  // 5
+  TOSH_FLASH_M25P_DP_bit(FALSE);  // 6
+  TOSH_FLASH_M25P_DP_bit(TRUE);   // 7
+
+  TOSH_SET_FLASH_CS_PIN();
+
+  TOSH_SET_SIMO0_PIN();
+  TOSH_MAKE_SIMO0_INPUT();
+  TOSH_MAKE_UCLK0_INPUT();
+}
+
+
 #undef atomic
 void TOSH_SET_PIN_DIRECTIONS(void)
 {
-  // reset all of the ports to be input and using i/o functionality
-  atomic
-  {
-  P1SEL = 0;
-  P2SEL = 0;
-  P3SEL = 0;
-  P4SEL = 0;
-  P5SEL = 0;
-  P6SEL = 0;
-  
-  P1DIR = 0xff;
-  P1OUT = 0x00;
- 
-  P2DIR = 0xff;
+atomic {
+ P1OUT = 0x00;
   P2OUT = 0x00;
-
-  P3DIR = 0xff;
   P3OUT = 0x00;
-
-  P4DIR = 0xff;
   P4OUT = 0x00;
-  
-  P5DIR = 0xff;
   P5OUT = 0x00;
-
-  P6DIR = 0xff;
   P6OUT = 0x00;
+
+  P1SEL = 0x00;
+  P2SEL = 0x00;
+  P3SEL = 0x00;
+  P4SEL = 0x00;
+  P5SEL = 0x00;
+  P6SEL = 0x00;
+ 
+    P1DIR = 0x07;
+//  P2DIR = 0xff;
+//  P3DIR = 0xff;
+    P4DIR = 0xff;
+    P5DIR = 0x0f;
+    P6DIR = 0xf0;
+
+
+  TOSH_CLR_TDA_PWDDD_PIN(); // radio has to be on on power-up
+  TOSH_MAKE_TDA_PWDDD_OUTPUT();
+
+  TOSH_SET_TDA_ENTDA_PIN(); // deselect the radio
+  TOSH_MAKE_TDA_ENTDA_OUTPUT();
+  
+  TOSH_SET_FLASH_CS_PIN(); // put flash in standby mode
+  TOSH_MAKE_FLASH_CS_OUTPUT();
+ 
+  TOSH_SET_POT_SD_PIN(); // put potentiometer in shutdown mode
+  TOSH_MAKE_POT_SD_OUTPUT();
+
+  TOSH_SET_POT_EN_PIN(); // deselect potentiometer
+  TOSH_MAKE_POT_EN_OUTPUT();
+
+  TOSH_SEL_TEMP_MODFUNC(); //prepare pin for analog excitation from the temperature sensor
+  TOSH_MAKE_TEMP_INPUT();
+  TOSH_SEL_LIGHT_MODFUNC(); //prepare pin for analog excitation from the light sensor
+  TOSH_MAKE_LIGHT_INPUT();
 
   P1IE = 0;
   P2IE = 0;
 
-  }//atomic  
+  // wait 12ms for the radio and flash to start
+  TOSH_uwait(1024*12);
+   //
+  // Put the flash in deep sleep state
+  TOSH_FLASH_M25P_DP();
+  TOSH_SET_TDA_PWDDD_PIN(); // put the radio in sleep
 }
+}
+
+
+#define RSSI_ADC12_STANDARD_SETTINGS   SET_ADC12_STANDARD_SETTINGS(INPUT_CHANNEL_A3, \
+                                                                   REFERENCE_VREFplus_AVss, \
+                                                                   SAMPLE_HOLD_4_CYCLES, \
+                                                                   REFVOLT_LEVEL_1_5)
+#define PHOTO_ADC12_STANDARD_SETTINGS  SET_ADC12_STANDARD_SETTINGS(INPUT_CHANNEL_A2, \
+                                                                   REFERENCE_VREFplus_AVss, \
+                                                                   SAMPLE_HOLD_64_CYCLES, \
+                                                                   REFVOLT_LEVEL_1_5)
+#define TEMP_ADC12_STANDARD_SETTINGS   SET_ADC12_STANDARD_SETTINGS(INPUT_CHANNEL_A0, \
+                                                                   REFERENCE_AVcc_AVss, \
+                                                                   SAMPLE_HOLD_4_CYCLES, \
+                                                                   REFVOLT_LEVEL_1_5)
+                                                                   
+#define RSSI_ADC12_ADVANCED_SETTINGS   SET_ADC12_ADVANCED_SETTINGS(INPUT_CHANNEL_A3, \
+                                                                   REFERENCE_VREFplus_AVss, \
+                                                                   SAMPLE_HOLD_4_CYCLES, \
+                                                                   CLOCK_SOURCE_SMCLK, \
+                                                                   CLOCK_DIV_1, \
+                                                                   HOLDSOURCE_TIMERB_OUT0,\
+                                                                   REFVOLT_LEVEL_1_5)
+#define PHOTO_ADC12_ADVANCED_SETTINGS  SET_ADC12_ADVANCED_SETTINGS(INPUT_CHANNEL_A2, \
+                                                                   REFERENCE_VREFplus_AVss, \
+                                                                   SAMPLE_HOLD_64_CYCLES, \
+                                                                   CLOCK_SOURCE_SMCLK, \
+                                                                   CLOCK_DIV_1, \
+                                                                   HOLDSOURCE_TIMERB_OUT0,\
+                                                                   REFVOLT_LEVEL_1_5)
+#define TEMP_ADC12_ADVANCED_SETTINGS   SET_ADC12_ADVANCED_SETTINGS(INPUT_CHANNEL_A0, \
+                                                                   REFERENCE_AVcc_AVss, \
+                                                                   SAMPLE_HOLD_4_CYCLES, \
+                                                                   CLOCK_SOURCE_SMCLK, \
+                                                                   CLOCK_DIV_1, \
+                                                                   HOLDSOURCE_TIMERB_OUT0, \
+                                                                   REFVOLT_LEVEL_1_5)
 #endif //TOSH_HARDWARE_H
