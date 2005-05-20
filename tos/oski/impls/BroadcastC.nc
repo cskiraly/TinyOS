@@ -1,4 +1,4 @@
-// $Id: BroadcastC.nc,v 1.1.2.2 2005-05-17 21:25:19 scipio Exp $
+// $Id: BroadcastC.nc,v 1.1.2.3 2005-05-20 00:25:01 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -43,6 +43,7 @@ includes Broadcast;
 
 configuration BroadcastC {
   provides {
+    interface Service;
     interface Send[uint8_t id];
     interface Receive[uint8_t id];
     interface Packet;
@@ -51,7 +52,8 @@ configuration BroadcastC {
 
 implementation {
   components BroadcastM, ActiveMessageImplC as AM;
-
+  components new AMServiceC();
+  
   BroadcastM.AMSend -> AM.AMSend[TOS_BCAST_AM_ID];
   BroadcastM.SubReceive -> AM.Receive[TOS_BCAST_AM_ID];
   BroadcastM.SubPacket -> AM;
@@ -60,5 +62,5 @@ implementation {
   Send = BroadcastM;
   Receive = BroadcastM;
   Packet = BroadcastM;
-  
+  Service = AMServiceC;
 }

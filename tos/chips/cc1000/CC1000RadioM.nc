@@ -1,4 +1,4 @@
-// $Id: CC1000RadioM.nc,v 1.1.2.2 2005-05-18 23:28:13 idgay Exp $
+// $Id: CC1000RadioM.nc,v 1.1.2.3 2005-05-20 00:25:01 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -56,6 +56,7 @@ module CC1000RadioM {
     interface CSMAControl;
     interface CSMABackoff;
     interface LowPowerListening;
+    interface Packet;
   }
   uses {
     //interface PowerManagement;
@@ -640,7 +641,7 @@ implementation
 
 	pBuf = rxBufPtr;
       }
-    pBuf = signal Receive.receive(pBuf, pBuf, pBuf->header.length);
+    pBuf = signal Receive.receive(pBuf, pBuf->data, pBuf->header.length);
     atomic
       {
 	if (pBuf) 
@@ -1120,7 +1121,26 @@ implementation
     atomic return sleepTime;
   }
 
+  command void Packet.clear(message_t* msg) {
+    memset(msg, 0, sizeof(message_t));
+  }
 
+  command uint8_t Packet.payloadLength(message_t* msg) {
+    return msg->header.length;
+  }
+ 
+  command uint8_t Packet.maxPayloadLength() {
+    return TOSH_DATA_LENGTH;
+  }
+
+  command void* Packet.getPayload(message_t* msg, uint8_t* len) {
+    if (len != NULL) {
+      *len = msg->header.length;
+    }
+    return (void*)msg->data;
+  }
+
+  
   // Default MAC backoff parameters
   default async event uint16_t CSMABackoff.initial(message_t *m) { 
     // initially back off [1,32] bytes (approx 2/3 packet)
