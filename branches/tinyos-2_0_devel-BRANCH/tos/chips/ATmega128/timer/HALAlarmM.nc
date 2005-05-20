@@ -1,4 +1,4 @@
-/// $Id: HALAlarmM.nc,v 1.1.2.5 2005-05-10 18:13:43 idgay Exp $
+/// $Id: HALAlarmM.nc,v 1.1.2.6 2005-05-20 20:51:57 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -28,7 +28,7 @@ generic module HALAlarmM(typedef frequency_tag,
 			 typedef timer_size @integer())
 {
     provides interface Init;
-    provides interface AlarmBase<frequency_tag,timer_size> as Alarm;
+    provides interface Alarm<frequency_tag,timer_size> as Alarm;
 
     uses interface HPLTimer<timer_size>;
     uses interface HPLCompare<timer_size>;
