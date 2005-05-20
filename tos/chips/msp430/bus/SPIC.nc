@@ -1,4 +1,4 @@
-// $Id: SPIC.nc,v 1.1.2.2 2005-05-18 05:18:38 jpolastre Exp $
+// $Id: SPIC.nc,v 1.1.2.3 2005-05-20 20:45:14 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  *
  */
 generic configuration SPIC() {
@@ -36,7 +36,7 @@ implementation {
   components MSP430SPI0C as SPI;
 
   enum {
-    SPI_BUS_ID = unique("BusHPLUSART0"),
+    SPI_BUS_ID = unique("Bus.HPLUSART0"),
   };
 
   Init = SPI;

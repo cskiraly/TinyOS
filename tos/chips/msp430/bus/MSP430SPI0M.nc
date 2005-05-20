@@ -1,4 +1,4 @@
-// $Id: MSP430SPI0M.nc,v 1.1.2.3 2005-05-18 05:18:38 jpolastre Exp $
+// $Id: MSP430SPI0M.nc,v 1.1.2.4 2005-05-20 20:45:14 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.3 $
+ * Revision:  $Revision: 1.1.2.4 $
  * 
  * Primitives for accessing the hardware SPI module on MSP430 microcontrollers.
  * This module assumes the bus has been reserved and checks that the bus
@@ -72,7 +72,7 @@ implementation
     return SUCCESS;
   }
 
-  command uint8_t SPIByte.tx[uint8_t id](uint8_t value) {
+  async command uint8_t SPIByte.tx[uint8_t id](uint8_t value) {
     uint8_t temp;
     atomic {
       if ((busOwner != id) || (state != SPI_IDLE))
@@ -278,6 +278,10 @@ implementation
   // pass through the busFree event
   event error_t LowerBusArbitration.busFree[uint8_t id]() {
     return signal BusArbitration.busFree[id]();
+  }
+
+  default event error_t BusArbitration.busFree[uint8_t id]() {
+    return FAIL;
   }
 
 }
