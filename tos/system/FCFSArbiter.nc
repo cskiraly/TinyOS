@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-05-20 08:39:04 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-05-21 10:45:48 $ 
  * ======================================================================== 
  */
  
@@ -48,7 +48,7 @@
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  */
  
-generic module FCFSArbiter(uint8_t numUsers) {
+generic module FCFSArbiter(char resourceName[]) {
   provides {
     interface Init;
     interface Resource[uint8_t id];
@@ -59,7 +59,7 @@ implementation {
 
   uint8_t state;
   uint8_t resId;
-  uint8_t resQ[numUsers];
+  uint8_t resQ[uniqueCount(resourceName)];
   uint8_t qHead;
   uint8_t qTail;
   enum {RES_IDLE, RES_BUSY};
@@ -128,7 +128,7 @@ implementation {
    */
   async command error_t Resource.immediateRequest[uint8_t id]() {
     atomic {
-      if(state = RES_IDLE) {
+      if(state == RES_IDLE) {
         state = RES_BUSY;
         resId = id;
         return SUCCESS;
