@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-05-21 10:45:48 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-05-21 16:27:41 $ 
  * ======================================================================== 
  */
  
@@ -163,7 +163,7 @@ implementation {
   /**
     Check if the Resource is currently in use
   */    
-  command bool ResourceUser.inUse() {
+  async command bool ResourceUser.inUse() {
     atomic {
       if(state == RES_BUSY)
         return TRUE;
@@ -176,8 +176,8 @@ implementation {
     If there is no current user, the return value
     will be 0xFF
   */      
-  command uint8_t ResourceUser.user() {
-    return resId;
+  async command uint8_t ResourceUser.user() {
+    atomic return resId;
   }
   
   //Grant a request to the next Pending user
