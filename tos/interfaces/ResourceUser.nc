@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-04-25 18:40:49 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-05-21 16:25:10 $ 
  * ======================================================================== 
  */
  
@@ -49,7 +49,7 @@ interface ResourceUser {
    * @returns TRUE  If the resource is currently allocated
    *          FALSE Otherwise.
    */
-  command bool inUse();
+  async command bool inUse();
 
   /**
    * Get the id of the client currently using the resource.
@@ -57,5 +57,5 @@ interface ResourceUser {
    * @return id of the current owner of the resource
    *         0xFF if no one currently owns the resource
    */
-  command uint8_t user();
+  async command uint8_t user();
 }
