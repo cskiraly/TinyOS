@@ -1,4 +1,4 @@
-// $Id: RadioC.nc,v 1.1.2.3 2005-05-20 20:51:30 jpolastre Exp $
+// $Id: RadioC.nc,v 1.1.2.4 2005-05-21 01:56:23 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,13 +22,12 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.3 $
+ * Revision:  $Revision: 1.1.2.4 $
  */
 
 configuration RadioC
 {
   provides {
-    interface Init;
     interface SplitControl;
     interface RadioControl;
     interface RadioPacket;
@@ -40,7 +39,6 @@ implementation
 {
   components CSMARadioC;
 
-  Init = CSMARadioC;
   SplitControl = CSMARadioC;
   Send = CSMARadioC;
   Receive = CSMARadioC;
