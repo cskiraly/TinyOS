@@ -1,4 +1,4 @@
-// $Id: TestCC2420NullM.nc,v 1.1.2.1 2005-05-20 21:11:53 jpolastre Exp $
+// $Id: TestCC2420NullM.nc,v 1.1.2.2 2005-05-21 01:56:42 jpolastre Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -30,13 +30,19 @@ includes TOSMsg;
 module TestCC2420NullM {
   uses interface Boot;
   uses interface Leds;
+  uses interface SplitControl;
 }
 implementation {
 
   message_t msg;
 
   event void Boot.booted() {
+    // start the radio
+    call SplitControl.start();
   }
+
+  event void SplitControl.startDone(error_t error) { }
+  event void SplitControl.stopDone(error_t error) { }
 
 }
 

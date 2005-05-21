@@ -1,4 +1,4 @@
-// $Id: TestCC2420NullC.nc,v 1.1.2.1 2005-05-20 21:11:53 jpolastre Exp $
+// $Id: TestCC2420NullC.nc,v 1.1.2.2 2005-05-21 01:56:42 jpolastre Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -34,11 +34,11 @@ implementation {
     , RadioC;
   
   Main.SoftwareInit -> LedsC;
-  Main.SoftwareInit -> RadioC;
 
   Impl -> Main.Boot;
 
   Impl.Leds -> LedsC;
+  Impl.SplitControl -> RadioC;
 
 }
 
