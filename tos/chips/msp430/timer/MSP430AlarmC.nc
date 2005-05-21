@@ -1,4 +1,4 @@
-//$Id: MSP430AlarmC.nc,v 1.1.2.1 2005-05-18 07:20:22 cssharp Exp $
+//$Id: MSP430AlarmC.nc,v 1.1.2.2 2005-05-21 10:57:38 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -66,21 +66,25 @@ implementation
 
   async command void Alarm.start( uint16_t t0, uint16_t dt )
   {
-    uint16_t now = call MSP430Timer.get();
-    uint16_t elapsed = now - t0;
-    if( elapsed >= dt )
+    atomic
     {
-      call MSP430Compare.setEventFromNow(2);
-    }
-    else
-    {
-      uint16_t remaining = dt - elapsed;
-      if( remaining <= 2 )
+      uint16_t now = call MSP430Timer.get();
+      uint16_t elapsed = now - t0;
+      if( elapsed >= dt )
+      {
 	call MSP430Compare.setEventFromNow(2);
+      }
       else
-	call MSP430Compare.setEvent( now+remaining );
+      {
+	uint16_t remaining = dt - elapsed;
+	if( remaining <= 2 )
+	  call MSP430Compare.setEventFromNow(2);
+	else
+	  call MSP430Compare.setEvent( now+remaining );
+      }
+      call MSP430TimerControl.clearPendingInterrupt();
+      call MSP430TimerControl.enableEvents();
     }
-    call MSP430TimerControl.enableEvents();
   }
 
   async command uint16_t Alarm.getNow()
