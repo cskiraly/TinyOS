@@ -1,4 +1,4 @@
-// $Id: CSMARadioC.nc,v 1.1.2.5 2005-05-20 20:51:30 jpolastre Exp $
+// $Id: CSMARadioC.nc,v 1.1.2.6 2005-05-21 01:56:23 jpolastre Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.5 $
+ * Revision:  $Revision: 1.1.2.6 $
  */
 
 includes CC2420Const;
@@ -31,7 +31,6 @@ includes TOSMsg;
 configuration CSMARadioC
 {
   provides {
-    interface Init;
     interface SplitControl;
     interface RadioControl;
     interface RadioPacket;
@@ -61,12 +60,14 @@ implementation
     , CC2420RadioInterruptFIFOP
     , CC2420RadioInterruptCCA
     , CC2420RadioCaptureSFD
+    , Main
     ;
 
-  Init = AlarmC;
-  Init = RandomC;
-  Init = HPLCC2420C;
-  Init = CC2420RadioM;
+  Main.SoftwareInit -> AlarmC;
+  Main.SoftwareInit -> RandomC;
+  Main.SoftwareInit -> HPLCC2420C;
+  Main.SoftwareInit -> CC2420RadioM;
+
   SplitControl = CC2420RadioM;
   Send = CC2420RadioM;
   Receive = CC2420RadioM;
