@@ -1,4 +1,4 @@
-// $Id: BuildSource.java,v 1.1.2.1 2005-05-23 22:11:48 idgay Exp $
+// $Id: BuildSource.java,v 1.1.2.2 2005-05-23 22:17:38 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -135,14 +135,8 @@ public class BuildSource {
 
 	if (source.equals("sf"))
 	    retVal =  makeArgsSF(args);
-	if (source.equals("old-sf"))
-	    retVal =  makeArgsOldSF(args);
 	if (source.equals("dummy"))
 	    retVal =  makeDummy();
-	if (source.equals("old-serial"))
-	    retVal =  makeArgsOldSerial(args);
-	if (source.equals("old-network"))
-	    retVal =  makeArgsOldNetwork(args);
 	if (source.equals("serial"))
 	    retVal =  makeArgsSerial(args);
 	if (source.equals("network"))
@@ -161,16 +155,13 @@ public class BuildSource {
     public static String sourceHelp() {
 	return
 "  sf@HOSTNAME:PORTNUMBER          - a serial forwarder\n" +
-"  serial@SERIALPORT:BAUDRATE      - a mote connected to a serial port\n" +
+"  serial@SERIALPORT:PLATFORM      - a mote connected to a serial port\n" +
 "                                    (using TOSBase protocol)\n" +
-"  network@HOSTNAME:PORTNUMBER     - a mote whose serial port is accessed over\n" +
-"                                     the network (using TOSBase protocol)\n" +
-"  old-serial@SERIALPORT[:BAUDRATE][,PACKET-SIZE]\n" +
-"                                  - a mote connected to a serial port\n" +
-"                                    (old, broken protocol - avoid if possible)\n" +
-"  old-network@HOSTNAME:PORTNUMBER[,PACKET-SIZE]\n" +
-"                                  - a mote whose serial port is accessed over\n" +
-"                                    the network (old, broken protocol)\n" +
+"                                    PLATFORM specifies the platform\n" +
+"                                    (mica2, micaz, telos, etc) and implicitly\n"+
+"                                    the baud rate\n"+
+"  network@HOSTNAME:PORTNUMBER,PLATFORM - a mote whose serial port is accessed\n" +
+"                                     over the network (using TOSBase protocol)\n" +
 "  dummy                           - a packet sink and dummy-packet source\n" +
 "  tossim-serial[@HOSTNAME]        - the serial port of tossim node 0\n"+
 "  tossim-radio[@HOSTNAME]         - the radios of tossim nodes\n"+
@@ -225,57 +216,6 @@ public class BuildSource {
  
 
     /**
-     * Make an old, broken serial-port packet source
-     * @param args "COMn[:baudrate][,packetSize]" ("COM1" if args is null)
-     *   baudrate is an integer or mote name (rene, mica, mica2, mica2dot).
-     *   The default baudrate is 19200.
-     * @return The new packet source, or null if the arguments are invalid
-     */
-    public static PacketSource makeArgsOldSerial(String args) {
-	if (args == null)
-	    args = "COM1";
-
-	ParseArgs parser = new ParseArgs(args, ":,");
-	String port = parser.next();
-	int baudrate = decodeBaudrate(parser.next());
-	String packetSizeS = parser.next();
-
-	if (packetSizeS == null) {
-	    return makeOldSerial(port, baudrate);
-	}
-	else {
-	    int packetSize = Integer.parseInt(packetSizeS);
-	    return makeOldSerial(port, baudrate, packetSize);
-	}
-    }
-
-    /**
-     * Make an old, broken serial-port packet source
-     * @param port javax.comm serial port name ("COMn:")
-     * @param baudrate requested baudrate
-     * @param packetSize packet size to use
-     * @return The new packet source
-     */
-    public static PacketSource makeOldSerial(String port, int baudrate,
-					     int packetSize) {
-	return new BrokenPacketizer("old-serial@" + port + ":" + baudrate,
-				    packetSize,
-				    new SerialByteSource(port, baudrate));
-    }
-
-    /**
-     * Make an old, broken serial-port packet source with the default 
-     * packet size.
-     * @param port javax.comm serial port name ("COMn:")
-     * @param baudrate requested baudrate
-     * @return The new packet source
-     */
-    public static PacketSource makeOldSerial(String port, int baudrate) {
-	return makeOldSerial(port, baudrate,
-			     net.tinyos.message.MoteIF.defaultPacketSize);
-    }
-
-    /**
      * Make a serial-port packet source. Serial packet sources report
      * missing acknowledgements via a false result to writePacket.
      * @param args "COMn[:baudrate]" ("COM1" if args is null)
@@ -305,60 +245,6 @@ public class BuildSource {
     public static PacketSource makeSerial(String port, int baudrate, int platform) {
 	return new Packetizer("serial@" + port + ":" + baudrate,
 			      new SerialByteSource(port, baudrate), platform);
-    }
-
-    /**
-     * Make an old, broken serial-port packet source for a network-accessible
-     * serial port
-     * @param args "hostname:portnumber[,packetSize]" (no default)
-     * @return The new packet source, or null if the arguments are invalid
-     */
-    public static PacketSource makeArgsOldNetwork(String args) {
-	if (args == null)
-	    return null;
-
-	ParseArgs parser = new ParseArgs(args, ":,");
-	String host = parser.next();
-	String portS = parser.next();
-	if (portS == null)
-	    return null;
-	int port = Integer.parseInt(portS);
-	String packetSizeS = parser.next();
-
-	if (packetSizeS == null) {
-	    return makeOldNetwork(host, port);
-	}
-	else {
-	    int packetSize = Integer.parseInt(packetSizeS);
-	    return makeOldNetwork(host, port, packetSize);
-	}
-    }
-
-    /**
-     * Make an old, broken serial-port packet source for a network-accessible
-     * serial port
-     * @param host hostname of network-accessible serial port
-     * @param port tcp/ip port number
-     * @param packetSize packet size to use
-     * @return The new packet source
-     */
-    public static PacketSource makeOldNetwork(String host, int port,
-					      int packetSize) {
-	return new BrokenPacketizer("old-network@" + host + ":" + port,
-				    packetSize,
-				    new NetworkByteSource(host, port));
-    }
-
-    /**
-     * Make an old, broken serial-port packet source for a network-accessible
-     * serial port with the default packet size
-     * @param host hostname of network-accessible serial port
-     * @param port tcp/ip port number
-     * @return The new packet source
-     */
-    public static PacketSource makeOldNetwork(String host, int port) {
-	return makeOldNetwork(host, port,
-			      net.tinyos.message.MoteIF.defaultPacketSize);
     }
 
     /**
