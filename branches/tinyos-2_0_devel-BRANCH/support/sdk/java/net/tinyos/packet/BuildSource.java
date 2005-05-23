@@ -1,4 +1,4 @@
-// $Id: BuildSource.java,v 1.1.2.2 2005-05-23 22:17:38 idgay Exp $
+// $Id: BuildSource.java,v 1.1.2.3 2005-05-23 23:14:10 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -135,8 +135,6 @@ public class BuildSource {
 
 	if (source.equals("sf"))
 	    retVal =  makeArgsSF(args);
-	if (source.equals("dummy"))
-	    retVal =  makeDummy();
 	if (source.equals("serial"))
 	    retVal =  makeArgsSerial(args);
 	if (source.equals("network"))
@@ -162,7 +160,6 @@ public class BuildSource {
 "                                    the baud rate\n"+
 "  network@HOSTNAME:PORTNUMBER,PLATFORM - a mote whose serial port is accessed\n" +
 "                                     over the network (using TOSBase protocol)\n" +
-"  dummy                           - a packet sink and dummy-packet source\n" +
 "  tossim-serial[@HOSTNAME]        - the serial port of tossim node 0\n"+
 "  tossim-radio[@HOSTNAME]         - the radios of tossim nodes\n"+
 "where BAUDRATE can be a specific baud rate or a mote model name\n"+
@@ -199,15 +196,6 @@ public class BuildSource {
      */
     public static PacketSource makeSF(String host, int port) {
 	return new SFSource(host, port);
-    }
-
-    /**
-     * Make a dummy packet source (and packet sink). Only good for the most
-     * basic testing...
-     * @return A dummy source
-     */
-    public static PacketSource makeDummy() {
-	return new DummySource();
     }
 
     private static int decodeBaudrate(String rate) {
