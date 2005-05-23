@@ -1,4 +1,4 @@
-// $Id: Listen.java,v 1.1.2.1 2005-05-23 22:11:49 idgay Exp $
+// $Id: Listen.java,v 1.1.2.2 2005-05-23 23:16:58 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -35,7 +35,6 @@ package net.tinyos.tools;
 import java.io.*;
 import net.tinyos.packet.*;
 import net.tinyos.util.*;
-import net.tinyos.message.*;
 
 public class Listen {
     public static void main(String args[]) throws IOException {

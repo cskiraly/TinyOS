@@ -1,4 +1,4 @@
-// $Id: Send.java,v 1.1.2.1 2005-05-23 22:11:49 idgay Exp $
+// $Id: Send.java,v 1.1.2.2 2005-05-23 23:16:58 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -32,7 +32,6 @@ package net.tinyos.tools;
 
 import net.tinyos.util.*;
 import net.tinyos.packet.*;
-import net.tinyos.message.*;
 import java.io.*;
 
 public class Send {

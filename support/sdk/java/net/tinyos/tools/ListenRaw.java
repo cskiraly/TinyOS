@@ -1,4 +1,4 @@
-// $Id: ListenRaw.java,v 1.1.2.1 2005-05-23 22:11:49 idgay Exp $
+// $Id: ListenRaw.java,v 1.1.2.2 2005-05-23 23:16:58 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -47,7 +47,6 @@ import java.io.*;
 import javax.comm.*;
 
 import net.tinyos.util.*;
-import net.tinyos.message.*;
 
 public class ListenRaw {
     private static String CLASS_NAME = "net.tinyos.tools.ListenRaw";
