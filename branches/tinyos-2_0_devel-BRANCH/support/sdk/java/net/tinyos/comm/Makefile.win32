@@ -1,0 +1,35 @@
+#-*-Makefile-*- vim:syntax=make
+#$Id: Makefile.win32,v 1.1.2.1 2005-05-23 22:11:48 idgay Exp $
+
+#@author Cory Sharp <cssharp@eecs.berkeley.edu>
+
+
+TOSCOMMLIB = $(BUILDDIR)/TOSComm.dll
+TOSCOMMDEPS = \
+  NativeSerialEnums.h \
+  NativeSerial_win32.cpp \
+  $(BUILDDIR)/TOSComm_wrap.cxx
+
+lib: builddir $(TOSCOMMLIB)
+	@:
+
+$(TOSCOMMLIB): $(TOSCOMMDEPS)
+	g++ -O2 -s -mno-cygwin -shared \
+	  -I$(BUILDDIR) -I$(JAVADIR)/include -I$(JAVADIR)/include/win32 \
+	  -o $(TOSCOMMLIB) NativeSerial_win32.cpp
+
+$(SWIGOBJS): $(SWIGDEPS)
+	cd $(BUILDDIR) && swig -I.. -java -package net.tinyos.comm -c++ TOSComm.i
+	cd $(BUILDDIR) && perl -i.orig -pe ' \
+	  s{^}{//} if /For gcc on Windows/; \
+	  s/\b(JNICALL) (Java_)/$$1 _$$2/; \
+	' TOSComm_wrap.cxx && rm -f TOSComm_wrap.cxx.orig
+
+install: FORCE
+	install -d $(TOSCOMMDIR)
+	install *.class $(BUILDDIR)/*.class $(TOSCOMMDIR)
+	install $(TOSCOMMLIB) $(INSTALLDIR)
+
+uninstall: FORCE
+	rm -rf $(TOSCOMMDIR)/../comm $(INSTALLDIR)/TOSComm.dll
+
