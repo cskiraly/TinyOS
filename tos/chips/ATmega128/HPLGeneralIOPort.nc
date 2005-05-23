@@ -1,4 +1,4 @@
-// $Id: HPLGeneralIOPort.nc,v 1.1.2.1 2005-03-17 16:26:08 mturon Exp $
+// $Id: HPLGeneralIOPort.nc,v 1.1.2.2 2005-05-23 21:04:36 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,7 +24,7 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-generic configuration HPLGeneralIOPort (uint8_t port_data, uint8_t port_sel)
+generic configuration HPLGeneralIOPort (uint8_t port_addr, uint8_t ddr_addr, uint8_t pin_addr)
 {
   // provides all the ports as raw ports
   provides {
@@ -41,15 +41,14 @@ generic configuration HPLGeneralIOPort (uint8_t port_data, uint8_t port_sel)
 implementation
 {
   components 
-    new HPLGeneralIOPinM (port_data, port_sel, 0) as Bit0,
-    new HPLGeneralIOPinM (port_data, port_sel, 1) as Bit1,
-    new HPLGeneralIOPinM (port_data, port_sel, 2) as Bit2,
-    new HPLGeneralIOPinM (port_data, port_sel, 3) as Bit3,
-    new HPLGeneralIOPinM (port_data, port_sel, 4) as Bit4,
-    new HPLGeneralIOPinM (port_data, port_sel, 5) as Bit5,
-    new HPLGeneralIOPinM (port_data, port_sel, 6) as Bit6,
-    new HPLGeneralIOPinM (port_data, port_sel, 7) as Bit7
-    ;
+    new HPLGeneralIOPinM (port_addr, ddr_addr, pin_addr, 0) as Bit0,
+    new HPLGeneralIOPinM (port_addr, ddr_addr, pin_addr, 1) as Bit1,
+    new HPLGeneralIOPinM (port_addr, ddr_addr, pin_addr, 2) as Bit2,
+    new HPLGeneralIOPinM (port_addr, ddr_addr, pin_addr, 3) as Bit3,
+    new HPLGeneralIOPinM (port_addr, ddr_addr, pin_addr, 4) as Bit4,
+    new HPLGeneralIOPinM (port_addr, ddr_addr, pin_addr, 5) as Bit5,
+    new HPLGeneralIOPinM (port_addr, ddr_addr, pin_addr, 6) as Bit6,
+    new HPLGeneralIOPinM (port_addr, ddr_addr, pin_addr, 7) as Bit7;
 
   Pin0 = Bit0;
   Pin1 = Bit1;

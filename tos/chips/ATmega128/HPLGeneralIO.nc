@@ -1,4 +1,4 @@
-// $Id: HPLGeneralIO.nc,v 1.1.2.2 2005-05-10 18:13:40 idgay Exp $
+// $Id: HPLGeneralIO.nc,v 1.1.2.3 2005-05-23 21:04:36 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -92,19 +92,30 @@ configuration HPLGeneralIO
 implementation
 {
   components 
-    new HPLGeneralIOPort((uint8_t)&PORTA, (uint8_t)&DDRA) as PortA,
-    new HPLGeneralIOPort((uint8_t)&PORTB, (uint8_t)&DDRB) as PortB,
-    new HPLGeneralIOPort((uint8_t)&PORTC, (uint8_t)&DDRC) as PortC,
-    new HPLGeneralIOPort((uint8_t)&PORTD, (uint8_t)&DDRD) as PortD,
-    new HPLGeneralIOPort((uint8_t)&PORTE, (uint8_t)&DDRE) as PortE,
-    new HPLGeneralIOPort((uint8_t)&PORTF, (uint8_t)&DDRF) as PortF,
+    new HPLGeneralIOPort((uint8_t)&PORTA, (uint8_t)&DDRA, (uint8_t)&PINA) as PortA,
+    new HPLGeneralIOPort((uint8_t)&PORTB, (uint8_t)&DDRB, (uint8_t)&PINB) as PortB,
+    new HPLGeneralIOPort((uint8_t)&PORTC, (uint8_t)&DDRC, (uint8_t)&PINC) as PortC,
+    new HPLGeneralIOPort((uint8_t)&PORTD, (uint8_t)&DDRD, (uint8_t)&PIND) as PortD,
+    new HPLGeneralIOPort((uint8_t)&PORTE, (uint8_t)&DDRE, (uint8_t)&PINE) as PortE,
+    new HPLGeneralIOPort((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF) as PortF,
 
-    // PortG only exposes 5 bits...
-    new HPLGeneralIOPinM((uint8_t)&PORTG, (uint8_t)&DDRG, 0) as G0,
-    new HPLGeneralIOPinM((uint8_t)&PORTG, (uint8_t)&DDRG, 1) as G1,
-    new HPLGeneralIOPinM((uint8_t)&PORTG, (uint8_t)&DDRG, 2) as G2,
-    new HPLGeneralIOPinM((uint8_t)&PORTG, (uint8_t)&DDRG, 3) as G3,
-    new HPLGeneralIOPinM((uint8_t)&PORTG, (uint8_t)&DDRG, 4) as G4
+    // PortF cannot use sbi, cbi
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 0) as F0,
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 1) as F1,
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 2) as F2,
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 3) as F3,
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 4) as F4,
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 5) as F5,
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 6) as F6,
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 7) as F7,
+
+
+    // PortG only exposes 5 bits and cannot use sbi, cbi
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 0) as G0,
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 1) as G1,
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 2) as G2,
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 3) as G3,
+    new HPLGeneralIOSlowPinM((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 4) as G4
     ;
 
   PortA0 = PortA.Pin0;
