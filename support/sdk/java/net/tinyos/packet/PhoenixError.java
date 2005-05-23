@@ -1,4 +1,4 @@
-// $Id: PhoenixError.java,v 1.1.2.1 2005-05-23 22:11:49 idgay Exp $
+// $Id: PhoenixError.java,v 1.1.2.2 2005-05-23 23:14:10 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -41,10 +41,7 @@
 package net.tinyos.packet;
 
 /**
- * CommError interface (report MoteIF errors).<p>
- *
- * An interface for listening to messages built from
- * net.tinyos.message.Message
+ * An interface for reporting packet source errors.
  *
  * @version	1, 1 Aug 2003
  * @author	David Gay

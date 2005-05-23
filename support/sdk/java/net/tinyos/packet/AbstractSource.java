@@ -1,4 +1,4 @@
-// $Id: AbstractSource.java,v 1.1.2.1 2005-05-23 22:11:48 idgay Exp $
+// $Id: AbstractSource.java,v 1.1.2.2 2005-05-23 23:14:10 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -35,7 +35,7 @@ package net.tinyos.packet;
 import java.io.*;
 import java.util.*;
 import net.tinyos.util.*;
-import net.tinyos.message.*;
+//import net.tinyos.message.*;
 
 /**
  * Provide a standard, generic implementation of PacketSource. Subclasses
@@ -49,9 +49,6 @@ abstract public class AbstractSource implements PacketSource
     protected int platform = Platform.defaultPlatform;
     protected boolean opened = false;
     protected Messenger messages;
-
-    public int lengthOffset = 4;
-    public int dataOffset = 5;
 
     protected void message(String s) {
 	if (messages != null)
@@ -75,14 +72,7 @@ abstract public class AbstractSource implements PacketSource
 	    throw new IOException("already open");
 	this.messages = messages;
 	openSource();
-	// At this point we actually know the plaftorm that we're running on.
-	// Fixup the offsets
-	MessageFactory mf = new MessageFactory(this);
-	TOSMsg msg = mf.createTOSMsg(10);
-	lengthOffset = msg.offset_length();
-	dataOffset = msg.offset_data(0);
 	opened = true;
-
     }
 
     synchronized public void close() throws IOException {
@@ -122,37 +112,6 @@ abstract public class AbstractSource implements PacketSource
     }
 
     protected byte[] check(byte[] packet) throws IOException {
-	// Check packet length
-	if (false) {
-	    System.err.println("Length offset " + lengthOffset +"\n"+
-			       "Packet Length " + packet.length +"\n" +
-			       "Data offset " + dataOffset+"\n"+
-			       "Estimated payload "+ ((packet[lengthOffset] & 0xff) + dataOffset) +"\n");
-	    for (int i = 0; i< packet.length; i++) {
-		System.err.print(Integer.toHexString(packet[i] & 0xff)+" ");
-	    }
-	    System.err.print("\n");
-	}
-	
-	if (lengthOffset >= packet.length)
-	    throw new IOException("short packet");
-	
-	int realBytes = (packet[lengthOffset] & 0xff) + dataOffset;
-	
-	if (realBytes != packet.length) {
-	    System.err.println("TOS_Msg length is invalid: header_length=" + realBytes + ",real_length=" + packet.length + " ... modifying msg to fit");
-			       
-	    Dump.dump("Received message", packet);
-
-	    if (realBytes < packet.length) {
-	      byte[] newPacket = new byte[realBytes];
-	      System.arraycopy(packet, 0, newPacket, 0, realBytes);
-	      packet = newPacket;
-	    } else if (realBytes > packet.length) {
-	      packet[lengthOffset] = (byte) ((packet.length - dataOffset) & 0xff);
-	    }
-	}
-	
 	return packet;
     }
 
