@@ -1,4 +1,4 @@
-// $Id: crc.h,v 1.1.2.1 2005-05-10 17:54:40 idgay Exp $
+// $Id: crc.h,v 1.1.2.2 2005-05-24 18:20:46 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -28,6 +28,9 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+#ifndef CRC_H
+#define CRC_H
+
 uint16_t crcTable[256] PROGMEM = {
   0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
   0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
@@ -88,3 +91,5 @@ uint16_t crcByte(uint16_t oldCrc, uint8_t byte)
   return PRG_RDB(magic) | ((uint8_t)oldCrc ^ PRG_RDB(magic + 1)) << 8;
 #endif
 }
+
+#endif
