@@ -1,4 +1,4 @@
-// $Id: CC1000RadioM.nc,v 1.1.2.4 2005-05-20 10:25:04 cssharp Exp $
+// $Id: CC1000RadioM.nc,v 1.1.2.5 2005-05-24 21:26:01 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -61,11 +61,18 @@ module CC1000RadioM {
   uses {
     //interface PowerManagement;
     interface CC1000Control;
+    interface CC1000Squelch;
     interface Random;
-    interface AcquireDataNow as RSSIADC;
     interface HPLCC1000Spi;
     interface Timer<TMilli> as WakeupTimer;
     interface Timer<TMilli> as SquelchTimer;
+
+    interface AcquireDataNow as RssiRx;
+    interface AcquireDataNow as RssiNoiseFloor;
+    interface AcquireDataNow as RssiCheckChannel;
+    interface AcquireDataNow as RssiPulseCheck;
+    interface AcquireDataNow as RssiPulseFail;
+    async command void cancelRssi();
   }
 }
 implementation 
@@ -127,20 +134,11 @@ implementation
   uint8_t lplTxPower, lplRxPower;
   uint16_t sleepTime;
 
-  uint16_t clearThreshold = CC1K_SquelchInit;
   uint16_t rssiForSquelch;
-  uint16_t squelchTable[CC1K_SquelchTableSize];
-  uint8_t squelchIndex, squelchCount;
 
   const_uint8_t ackCode[5] = { 0xab, ACK_BYTE1, ACK_BYTE2, 0xaa, 0xaa };
 
-  void cancelRssi();
-  void adjustSquelch(uint16_t data);
   void startSquelchTimer();
-  void checkChannel(uint16_t data);
-  void pulseCheck(uint16_t data);
-  void pulseFail(uint16_t data);
-  void noiseFloor(uint16_t data);
 
 #ifdef UNREACHABLE
   /* We only call this from signalPacketReceived, and a successful post
@@ -148,7 +146,7 @@ implementation
 #define enterIdleStateRssi enterIdleState
 
   void enterIdleState() {
-    cancelRssi();
+    call cancelRssi();
     radioState = IDLE_STATE;
     count = 0;
   }
@@ -159,18 +157,18 @@ implementation
   }
 
   void enterIdleState() {
-    cancelRssi();
+    call cancelRssi();
     enterIdleStateRssi();
   }
 #endif
 
   void enterDisabledState() {
-    cancelRssi();
+    call cancelRssi();
     radioState = DISABLED_STATE;
   }
 
   void enterPowerDownState() {
-    cancelRssi();
+    call cancelRssi();
     radioState = POWERDOWN_STATE;
   }
 
@@ -180,13 +178,13 @@ implementation
   }
 
   void enterSyncState() {
-    cancelRssi();
+    call cancelRssi();
     radioState = SYNC_STATE;
     count = 0;
   }
 
   void enterRxState() {
-    cancelRssi();
+    call cancelRssi();
     radioState = RX_STATE;
     rxBufPtr->header.length = sizeof rxBufPtr->data;
     count = 0;
@@ -194,18 +192,18 @@ implementation
   }
 
   void enterReceivedState() {
-    cancelRssi();
+    call cancelRssi();
     radioState = RECEIVED_STATE;
   }
 
   void enterAckState() {
-    cancelRssi();
+    call cancelRssi();
     radioState = SENDING_ACK;
     count = 0;
   }
 
   void enterPreTxState() {
-    cancelRssi();
+    call cancelRssi();
     radioState = PRETX_STATE;
     count = clearCount = 0;
   }
@@ -250,92 +248,6 @@ implementation
     
   void enterTxDoneState() {
     radioState = TXDONE_STATE;
-  }
-
-  /* RSSI fun. It's used for lots of things, and a request to read it
-     for one purpose may have to be discarded if conditions change. For
-     example, if we've initiated a noise-floor measure, but start 
-     receiving a packet, we have to:
-     - cancel the noise-floor measure (we don't know if the value will
-       reflect the received packet or the previous idle state)
-     - start an RSSI measurement so that we can report signal strength
-       to the application
-  */
-
-  enum { /* The reasons for requesting RSSI */
-    RSSI_IDLE, // no current measurement
-    RSSI_CANCELLED, // an abandoned measurement
-    RSSI_RX, // RSSI indication in received packets
-    RSSI_NOISE_FLOOR, // RSSI for noise-floor estimation
-    RSSI_CHECK_CHANNEL, // for checking whether the channel is clear
-    RSSI_PULSE_CHECK, // low-power-listening channel check
-    RSSI_PULSE_FAIL, // we misjudged packet presence. adjust noise floor before
-     		     // going back to sleep.
-  };
-  uint8_t currentRssiOp;
-  uint8_t nextRssiOp;
-
-  void cancelRssi() {
-    if (currentRssiOp != RSSI_IDLE)
-      currentRssiOp = RSSI_CANCELLED;
-  }
-
-  void startRssi() {
-    if (!call RSSIADC.getData())
-      // XXX. we have a problem
-      ;
-  }
-
-  void requestRssi(uint8_t request) {
-    if (currentRssiOp == RSSI_IDLE)
-      {
-	currentRssiOp = request;
-	startRssi();
-      }
-    else // We should only come here with currentRssiOp = RSSI_CANCELLED
-      nextRssiOp = request;
-  }
-
-#if 0
-  struct {
-    uint8_t radioState;
-    uint16_t rssi;
-  } fun[64];
-  uint8_t pos;
-  uint16_t waited;
-#endif
-
-  async event void RSSIADC.dataReady(uint16_t data) {
-    atomic
-      {
-	uint8_t op = currentRssiOp;
-
-	/* The code assumes that RSSI measurements are 10-bits 
-	   (legacy effect) */
-	data >>= 6;
-
-	if (nextRssiOp != RSSI_IDLE)
-	  {
-	    currentRssiOp = nextRssiOp;
-	    nextRssiOp = RSSI_IDLE;
-	    startRssi();
-	  }
-	else
-	  currentRssiOp = RSSI_IDLE;
-
-	switch (op)
-	  {
-	  case RSSI_CHECK_CHANNEL: checkChannel(data); break;
-	  case RSSI_PULSE_CHECK: pulseCheck(data); break;
-	  case RSSI_RX: rxBufPtr->metadata.strength = data; break;
-	  case RSSI_NOISE_FLOOR: noiseFloor(data); break;
-	  case RSSI_PULSE_FAIL: pulseFail(data); break;
-	  }
-      }
-  }
-
-  event void RSSIADC.error(uint16_t info) {
-    // XXX
   }
 
   /* Low-power listening stuff */
@@ -386,7 +298,7 @@ implementation
 	  {
 	  case IDLE_STATE:
 	    if (!f.txPending)
-	      requestRssi(RSSI_PULSE_FAIL);
+	      call RssiPulseFail.getData();
 	    call WakeupTimer.startOneShotNow(sleepTime);
 	    break;
 
@@ -406,7 +318,7 @@ implementation
 	  case PULSECHECK_STATE:
 	    call CC1000Control.rxMode();
 	    uwait(35);
-	    requestRssi(RSSI_PULSE_CHECK);
+	    call RssiPulseCheck.getData();
 	    uwait(80);
 	    //call CC1000Control.biasOn();
 	    //call CC1000StdControl.stop();
@@ -444,7 +356,7 @@ implementation
 	    call WakeupTimer.startOneShotNow(sleepTime);
 	  }
       }
-    adjustSquelch(squelchData);
+    call CC1000Squelch.adjust(squelchData);
   }
 
   task void justStop() {
@@ -466,12 +378,12 @@ implementation
       }
   }
 
-  void pulseCheck(uint16_t data) {
-    //if(data > clearThreshold - CC1K_SquelchBuffer)
-    if (data > clearThreshold - (clearThreshold >> 2))
+  async event void RssiPulseCheck.dataReady(uint16_t data) {
+    //if(data > call CC1000Squelch.get() - CC1K_SquelchBuffer)
+    if (data > call CC1000Squelch.get() - (call CC1000Squelch.get() >> 2))
       {
 	// don't be too agressive (ignore really quiet thresholds).
-	if (data < clearThreshold + (clearThreshold >> 3))
+	if (data < call CC1000Squelch.get() + (call CC1000Squelch.get() >> 3))
 	  {
 	    // adjust the noise floor level, go back to sleep.
 	    rssiForSquelch = data;
@@ -495,32 +407,34 @@ implementation
       {
 	//call CC1000Control.rxMode();
 	//uwait(35);
-	requestRssi(RSSI_PULSE_CHECK);
+	call RssiPulseCheck.getData();
 	uwait(80);
 	//call CC1000Control.biasOn();
 	//call CC1000StdControl.stop();
       }
   }
 
-  void pulseFail(uint16_t data) {
+  event void RssiPulseCheck.error(uint16_t info) {
+    /* Just give up on this interval. */
+    post justStop();
+  }
+
+  async event void RssiPulseFail.dataReady(uint16_t data) {
     rssiForSquelch = data;
     if (post adjustSquelchAndStop() != SUCCESS)
       ; // XXX.
   }
   
-
+  event void RssiPulseFail.error(uint16_t info) {
+    post justStop();
+  }
 
   command error_t Init.init() {
-    uint8_t i;
-
     call HPLCC1000Spi.initSlave(); // set spi bus to slave mode
     call CC1000Control.init();
     call CC1000Control.selectLock(0x9);		// Select MANCHESTER VIOLATION
     if (call CC1000Control.getLOStatus())
       atomic f.invert = TRUE;
-
-    for (i = 0; i < CC1K_SquelchTableSize; i++)
-      squelchTable[i] = CC1K_SquelchInit;
 
     return SUCCESS;
   }
@@ -692,7 +606,7 @@ implementation
       if (macDelay <= 1)
 	{
 	  enterPreTxState();
-	  requestRssi(RSSI_CHECK_CHANNEL);
+	  call RssiCheckChannel.getData();
 	}
       else
 	--macDelay;
@@ -748,12 +662,20 @@ implementation
 		enterRxState();
 		rxBitOffset = 7 - i;
 		signal RadioTimeStamping.rxSFD(0, rxBufPtr);
-		requestRssi(RSSI_RX);
+		call RssiRx.getData();
 	      }
 	  }
       }
     else // We didn't find it after a reasonable number of tries, so....
       enterIdleState();
+  }
+
+  async event void RssiRx.dataReady(uint16_t data) {
+    rxBufPtr->metadata.strength = data;
+  }
+
+  event void RssiRx.error(uint16_t info) {
+    rxBufPtr->metadata.strength = 0;
   }
 
   void rxData(uint8_t in) {
@@ -924,69 +846,20 @@ implementation
   /* Noise floor stuff */
   /*-------------------*/
 
-  void adjustSquelch(uint16_t data) {
-    uint16_t squelchTab[CC1K_SquelchTableSize];
-    uint8_t i, j, min; 
-    uint32_t newThreshold;
-    uint16_t min_value;
-
-    squelchTable[squelchIndex++] = data;
-    if (squelchIndex >= CC1K_SquelchTableSize)
-      squelchIndex = 0;
-    if (squelchCount <= CC1K_SquelchCount)
-      squelchCount++;  
-
-#if 0
-    // Find 3rd highest (aka lowest signal strength) value
-    memcpy(squelchTab, squelchTable, sizeof squelchTable);
-    min = 0;
-    for (j = 0; ; j++)
-      {
-	for (i = 1; i < CC1K_SquelchTableSize; i++)
-	  if (squelchTab[i] > squelchTab[min])
-	    min = i;
-	if (j == 3)
-	  break;
-	squelchTab[min] = 0;
-      }
-
-    newThreshold = ((uint32_t)clearThreshold << 5) +
-      ((uint32_t)squelchTab[min] << 1);
-    atomic clearThreshold = newThreshold / 34;
-#else
-    for (i=0; i<CC1K_SquelchTableSize; i++) {
-      squelchTab[(int)i] = squelchTable[(int)i];
-    }
-
-    min = 0;
-//    for (j = 0; j < ((CC1K_SquelchTableSize) >> 1); j++) {
-    for (j = 0; j < 3; j++) {
-      for (i = 1; i < CC1K_SquelchTableSize; i++) {
-        if ((squelchTab[(int)i] != 0xFFFF) && 
-           ((squelchTab[(int)i] > squelchTab[(int)min]) ||
-             (squelchTab[(int)min] == 0xFFFF))) {
-          min = i;
-        }
-      }
-      min_value = squelchTab[(int)min];
-      squelchTab[(int)min] = 0xFFFF;
-    }
-
-    newThreshold = ((uint32_t)(clearThreshold << 5) + (uint32_t)(min_value << 1));
-    atomic clearThreshold = (uint16_t)((newThreshold / 34) & 0x0FFFF);
-#endif
-  }
-
   task void adjustSquelchTask() {
     uint16_t squelchData;
 
     atomic squelchData = rssiForSquelch;
-    adjustSquelch(squelchData);
+    call CC1000Squelch.adjust(squelchData);
   }
 
-  void noiseFloor(uint16_t data) {
+  async event void RssiNoiseFloor.dataReady(uint16_t data) {
     rssiForSquelch = data;
     post adjustSquelchTask();
+  }
+
+  event void RssiNoiseFloor.error(uint16_t info) {
+    /* We just ignore failed noise floor measurements */
   }
 
 #ifndef UNREACHABLE
@@ -996,9 +869,9 @@ implementation
   }
 #endif
 
-  void checkChannel(uint16_t data) {
+  async event void RssiCheckChannel.dataReady(uint16_t data) {
     count++;
-    if (data > clearThreshold + CC1K_SquelchBuffer)
+    if (data > call CC1000Squelch.get() + CC1K_SquelchBuffer)
       clearCount++;
     else
       clearCount = 0;
@@ -1006,13 +879,6 @@ implementation
     // if the channel is clear or CCA is disabled, GO GO GO!
     if (clearCount >= 1 || f.ccaOff)
       { 
-#if 0
-	if (txBufPtr->type == 0x2c)
-	  *((uint16_t *)txBufPtr->data) = waited;
-	call Leds.redOff();
-	fun[pos].radioState = 0xfe;
-	//fun[pos].rssi = clearThreshold;
-#endif
 	enterTxPreambleState();
 	call HPLCC1000Spi.writeByte(0xaa);
 	call CC1000Control.txMode();
@@ -1028,11 +894,16 @@ implementation
 #endif
       }
     else 
-      requestRssi(RSSI_CHECK_CHANNEL);
+      call RssiCheckChannel.getData();
+  }
+
+  event void RssiCheckChannel.error(uint16_t info) {
+    /* We'll retry the transmission at the next SPI event. */
+    atomic enterIdleState();
   }
 
   void startSquelchTimer() {
-    if (squelchCount > CC1K_SquelchCount)
+    if (call CC1000Squelch.settled())
       call SquelchTimer.startPeriodicNow(CC1K_SquelchIntervalSlow);
     else
       call SquelchTimer.startPeriodicNow(CC1K_SquelchIntervalFast);
@@ -1041,7 +912,7 @@ implementation
   event void SquelchTimer.fired() {
     atomic
       if (radioState == IDLE_STATE)
-	requestRssi(RSSI_NOISE_FLOOR);
+	call RssiNoiseFloor.getData();
   }
 
   /* Options */
