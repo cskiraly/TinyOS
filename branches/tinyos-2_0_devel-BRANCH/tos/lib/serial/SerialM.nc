@@ -1,4 +1,4 @@
-// $Id: SerialM.nc,v 1.1.2.2 2005-04-18 20:43:12 gtolle Exp $
+// $Id: SerialM.nc,v 1.1.2.3 2005-05-24 18:20:24 idgay Exp $
 
 /* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */ 
 /*									
@@ -37,7 +37,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.2 $
+ * Revision: $Revision: 1.1.2.3 $
  * 
  */
 
@@ -59,12 +59,15 @@
  * @author Gilman Tolle
  */
 
+#include "crc.h"
+
 module SerialM {
 
   provides {
     interface Init;
     interface Receive;
     interface Send;
+    interface Packet;
   }
 
   uses {
@@ -154,7 +157,6 @@ implementation {
 
   /* PROTOTYPES */
   void HDLCInitialize();
-  uint16_t crcByte(uint16_t crc, uint8_t b);
 
   error_t StartTx();
   error_t TxArbitraryByte(uint8_t inByte);
@@ -385,7 +387,7 @@ implementation {
 
     error_t result = SUCCESS;
 
-    msg->length = len;
+    msg->header.length = len;
 
     atomic {
       if (!(gFlags & FLAGS_DATAPEND)) {
@@ -420,7 +422,7 @@ implementation {
         else if (gFlags & FLAGS_DATAPEND) {
           gpTxBuf = (uint8_t *)gpTxMsg;
           gTxProto = PROTO_PACKET_NOACK;
-          gTxLength = gpTxMsg->length;
+          gTxLength = gpTxMsg->header.length + sizeof(gpTxMsg->header);
           fInitiate = TRUE;
           gTxState = TXSTATE_PROTO;
         }
@@ -553,31 +555,26 @@ implementation {
     StartTx();
   }
 
-  /**
-   * Default CRC function. Note that avrmote has a much more efficient one. 
-   *
-   * This CRC-16 function produces a 16-bit running CRC that adheres to the
-   * ITU-T CRC standard.
-   *
-   * The ITU-T polynomial is: G_16(x) = x^16 + x^12 + x^5 + 1
-   *
-   */
-  
-  uint16_t crcByte(uint16_t crc, uint8_t b) {
-    uint8_t i;
-    
-    crc = crc ^ b << 8;
-    i = 8;
-    do
-      if (crc & 0x8000)
-	crc = crc << 1 ^ 0x1021;
-      else
-	crc = crc << 1;
-    while (--i);
-    
-    return crc;
+  command void Packet.clear(message_t* msg) {
+    memset(msg, 0, sizeof(message_t));
   }
 
+  command uint8_t Packet.payloadLength(message_t* msg) {
+    return msg->header.length;
+  }
+ 
+  command uint8_t Packet.maxPayloadLength() {
+    return TOSH_DATA_LENGTH;
+  }
+
+  command void* Packet.getPayload(message_t* msg, uint8_t* len) {
+    if (len != NULL) {
+      *len = msg->header.length;
+    }
+    return (void*)msg->data;
+  }
+
+  
   default event message_t* Receive.receive(message_t* msg, 
 					   void* payload, 
 					   uint8_t len) {

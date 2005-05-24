@@ -3,6 +3,7 @@ configuration SerialC {
     interface Init;
     interface Receive;
     interface Send;
+    interface Packet;    
   }
 }
 implementation {
@@ -12,6 +13,7 @@ implementation {
   Init = SerialM;
   Receive = SerialM;
   Send = SerialM;
+  Packet = SerialM;
 
   SerialM.SerialByteComm -> PlatformSerial;
   SerialM.PacketRcvd -> TinyScheduler.TaskBasic[unique("TinyScheduler.TaskBasic")];
