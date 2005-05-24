@@ -1,4 +1,4 @@
-/* $Id: CC1000SquelchM.nc,v 1.1.2.1 2005-05-24 21:26:01 idgay Exp $
+/* $Id: CC1000SquelchM.nc,v 1.1.2.2 2005-05-24 21:29:04 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -71,7 +71,6 @@ implementation
     if (squelchCount <= CC1K_SquelchCount)
       squelchCount++;  
 
-#if 0
     // Find 3rd highest (aka lowest signal strength) value
     memcpy(squelchTab, squelchTable, sizeof squelchTable);
     min = 0;
@@ -88,28 +87,6 @@ implementation
     newThreshold = ((uint32_t)clearThreshold << 5) +
       ((uint32_t)squelchTab[min] << 1);
     atomic clearThreshold = newThreshold / 34;
-#else
-    for (i=0; i<CC1K_SquelchTableSize; i++) {
-      squelchTab[(int)i] = squelchTable[(int)i];
-    }
-
-    min = 0;
-//    for (j = 0; j < ((CC1K_SquelchTableSize) >> 1); j++) {
-    for (j = 0; j < 3; j++) {
-      for (i = 1; i < CC1K_SquelchTableSize; i++) {
-        if ((squelchTab[(int)i] != 0xFFFF) && 
-           ((squelchTab[(int)i] > squelchTab[(int)min]) ||
-             (squelchTab[(int)min] == 0xFFFF))) {
-          min = i;
-        }
-      }
-      min_value = squelchTab[(int)min];
-      squelchTab[(int)min] = 0xFFFF;
-    }
-
-    newThreshold = ((uint32_t)(clearThreshold << 5) + (uint32_t)(min_value << 1));
-    atomic clearThreshold = (uint16_t)((newThreshold / 34) & 0x0FFFF);
-#endif
   }
 
   async command uint16_t CC1000Squelch.get() {
