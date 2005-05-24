@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Technische Universitaet Berlin
+ * Copyright (c) 2004, Technische Universitat Berlin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  * - Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * - Neither the name of the Technische Universitaet Berlin nor the names
+ * - Neither the name of the Technische Universitat Berlin nor the names
  *   of its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -25,14 +25,17 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * - Revision -------------------------------------------------------------
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-05-24 16:29:04 $ 
+ * ======================================================================== 
+ */
+ 
+ /**
+ * tda5250Const Header File
+ * Defines constants and macros for use with the TDA5250 Radio
  *
- * - Description ---------------------------------------------------------
- * Macros for configuring the TDA5250.
- * - Revision ------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-20 12:55:44 $
- * Author: Kevin Klues (klues@tkn.tu-berlin.de)
- * ========================================================================
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
 #ifndef TDA5250CONST_H
@@ -187,22 +190,22 @@ typedef enum {
 #define TDA5250_XTAL_STARTUP_TIME              500   //us          
 
 // Subaddresses of data registers write
-#define TDA5250_ADRW_CONFIG            0x00
-#define TDA5250_ADRW_FSK               0x01
-#define TDA5250_ADRW_XTAL_TUNING       0x02
-#define TDA5250_ADRW_LPF               0x03
-#define TDA5250_ADRW_ON_TIME           0x04
-#define TDA5250_ADRW_OFF_TIME          0x05
-#define TDA5250_ADRW_COUNT_TH1         0x06
-#define TDA5250_ADRW_COUNT_TH2         0x07
-#define TDA5250_ADRW_RSSI_TH3          0x08
-#define TDA5250_ADRW_CLK_DIV           0x0D
-#define TDA5250_ADRW_XTAL_CONFIG       0x0E
-#define TDA5250_ADRW_BLOCK_PD          0x0F
+#define TDA5250_REG_ADDR_CONFIG            0x00
+#define TDA5250_REG_ADDR_FSK               0x01
+#define TDA5250_REG_ADDR_XTAL_TUNING       0x02
+#define TDA5250_REG_ADDR_LPF               0x03
+#define TDA5250_REG_ADDR_ON_TIME           0x04
+#define TDA5250_REG_ADDR_OFF_TIME          0x05
+#define TDA5250_REG_ADDR_COUNT_TH1         0x06
+#define TDA5250_REG_ADDR_COUNT_TH2         0x07
+#define TDA5250_REG_ADDR_RSSI_TH3          0x08
+#define TDA5250_REG_ADDR_CLK_DIV           0x0D
+#define TDA5250_REG_ADDR_XTAL_CONFIG       0x0E
+#define TDA5250_REG_ADDR_BLOCK_PD          0x0F
 
 // Subaddresses of data registers read
-#define TDA5250_ADRR_STATUS            0x80
-#define TDA5250_ADRR_ADC               0x81
+#define TDA5250_REG_ADDR_STATUS            0x80
+#define TDA5250_REG_ADDR_ADC               0x81
 
 // Mask Values for write registers (16 or 8 bit)
 /************* Apply these masks by & with original */

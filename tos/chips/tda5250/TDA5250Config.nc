@@ -30,91 +30,19 @@
  * Configuring the registers on the TDA5250 Radio.
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-05-20 12:55:44 $
+ * $Date: 2005-05-24 16:29:04 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
  
 #include "tda5250Const.h"
-interface HPLTDA5250Config {
+interface TDA5250Config {
    /**
      Reset all Radio Registers to default values as defined
      in tda5250RegDefaults
    */
    async command void reset();
-   
-   /**
-     Set the exact contents of the radio CONFIG register
-     @param value The 16-bit value to be written
-   */
-   async command void SetRegisterCONFIG(uint16_t value);
-   
-   /**
-     Set the exact contents of the radio FSK register
-     @param value The 16-bit value to be written
-   */   
-   async command void SetRegisterFSK(uint16_t value);
-   
-   /**
-     Set the exact contents of the radio XTAL_TUNING register
-     @param value The 16-bit value to be written
-   */   
-   async command void SetRegisterXTAL_TUNING(uint16_t value);
-   
-   /**
-     Set the exact contents of the radio LPF register
-     @param value The 16-bit value to be written
-   */   
-   async command void SetRegisterLPF(uint8_t value);
-   
-   /**
-     Set the exact contents of the radio ON_TIME register
-     @param value The 16-bit value to be written
-   */   
-   async command void SetRegisterON_TIME(uint16_t value);
-   
-   /**
-     Set the exact contents of the radio OFF_TIME register
-     @param value The 16-bit value to be written
-   */   
-   async command void SetRegisterOFF_TIME(uint16_t value);
-   
-   /**
-     Set the exact contents of the radio COUNT_TH1 register
-     @param value The 16-bit value to be written
-   */   
-   async command void SetRegisterCOUNT_TH1(uint16_t value);
-   
-   /**
-     Set the exact contents of the radio COUNT_TH2 register
-     @param value The 16-bit value to be written
-   */   
-   async command void SetRegisterCOUNT_TH2(uint16_t value);
-   
-   /**
-     Set the exact contents of the radio RSSI_TH3 register
-     @param value The 8-bit value to be written
-   */   
-   async command void SetRegisterRSSI_TH3(uint8_t value);
-   
-   /**
-     Set the exact contents of the radio CLK_DIV register
-     @param value The 8-bit value to be written
-   */   
-   async command void SetRegisterCLK_DIV(uint8_t value);
-   
-   /**
-     Set the exact contents of the radio XTAL_CONFIG register
-     @param value The 8-bit value to be written
-   */   
-   async command void SetRegisterXTAL_CONFIG(uint8_t value);
-   
-   /**
-     Set the exact contents of the radio BLOCK_PD register
-     @param value The 16-bit value to be written
-   */   
-   async command void SetRegisterBLOCK_PD(uint16_t value);
-   
+  
    /**
      Set parts of certain registers according to their 
      logical function
@@ -191,13 +119,6 @@ interface HPLTDA5250Config {
    async command void SetVCCOver5Threshold(uint8_t value);
    async command void SetLowerDataRateThreshold(uint16_t value);
    async command void SetUpperDataRateThreshold(uint16_t value);
-      
-   /**
-      Get the exact contents of the readable radio data 
-      registers
-   */   
-   async command uint8_t GetRegisterSTATUS();
-   async command uint8_t GetRegisterADC();
    
    /**
      Get parts of certain registers according to their 
