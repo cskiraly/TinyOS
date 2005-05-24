@@ -27,45 +27,29 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-05-20 12:54:14 $ 
+ * $Date: 2005-05-24 17:14:47 $ 
  * ======================================================================== 
  */
  
  /**
- * TDA5250RadioIO configuration
- * Configuration file for using the IO pins to the TDA5250 Radio on 
- * the eyesIFX platforms
+ * TDA5250RadioInterruptPWDDD configuration
+ * Configuration file for using the PWDDD interrupt for the TDA5250 Radio 
+ * on the eyesIFX platforms
  * 
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  */
-configuration TDA5250RadioIO
+configuration TDA5250RadioInterruptPWDDD
 {
-  provides interface GeneralIO as TDA5250RadioBUSM;
-  provides interface GeneralIO as TDA5250RadioENTDA;
-  provides interface GeneralIO as TDA5250RadioTXRX;
-  provides interface GeneralIO as TDA5250RadioDATA;
-  provides interface GeneralIO as TDA5250RadioPWDDD;
+  provides interface Interrupt;
 }
-implementation {
-  components
-      MSP430GeneralIOC as MSPGeneralIO
-    , new GeneralIOM() as rBUSM
-    , new GeneralIOM() as rENTDA
-    , new GeneralIOM() as rTXRX
-    , new GeneralIOM() as rDATA
-    , new GeneralIOM() as rPWDD
+implementation
+{
+  components 
+      MSP430InterruptPort1C
+    , new InterruptM()
     ;
 
-  TDA5250RadioBUSM = rBUSM;
-  TDA5250RadioENTDA = rENTDA;
-  TDA5250RadioTXRX = rTXRX;
-  TDA5250RadioDATA = rDATA;
-  TDA5250RadioPWDDD = rPWDD;    
-    
-  rBUSM -> MSPGeneralIO.Port15;
-  rENTDA -> MSPGeneralIO.Port16;
-  rTXRX -> MSPGeneralIO.Port14;
-  rDATA -> MSPGeneralIO.Port11;
-  rPWDD -> MSPGeneralIO.Port10;
+  Interrupt = InterruptM.Interrupt;
+  InterruptM.MSP430Interrupt -> MSP430InterruptPort1C.Port10;
 }
 

@@ -27,33 +27,45 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-05-24 16:19:01 $ 
+ * $Date: 2005-05-24 17:14:47 $ 
  * ======================================================================== 
  */
  
  /**
- * tda5250RegDefaultSettings Header File
- * Defines the default values of the registers for the TDA5250 Radio
- *
- * @author Kevin Klues (klues@tkn.tu-berlin.de)
+ * TDA5250RadioIO configuration
+ * Configuration file for using the IO pins to the TDA5250 Radio on 
+ * the eyesIFX platforms
+ * 
+ * @author Kevin Klues <klues@tkn.tu-berlin.de>
  */
+configuration TDA5250RadioIO
+{
+  provides interface GeneralIO as TDA5250RadioBUSM;
+  provides interface GeneralIO as TDA5250RadioENTDA;
+  provides interface GeneralIO as TDA5250RadioTXRX;
+  provides interface GeneralIO as TDA5250RadioDATA;
+  provides interface GeneralIO as TDA5250RadioPWDDD;
+}
+implementation {
+  components
+      MSP430GeneralIOC as MSPGeneralIO
+    , new GeneralIOM() as rBUSM
+    , new GeneralIOM() as rENTDA
+    , new GeneralIOM() as rTXRX
+    , new GeneralIOM() as rDATA
+    , new GeneralIOM() as rPWDD
+    ;
 
-#ifndef HPLTDA5250REGDEFAULTSETTINGS_H
-#define HPLTDA5250REGDEFAULTSETTINGS_H
-
-// Default values of data registers
-#define TDA5250_REG_DEFAULT_SETTING_CONFIG           0x04F9
-#define TDA5250_REG_DEFAULT_SETTING_FSK              0x0A0C
-#define TDA5250_REG_DEFAULT_SETTING_XTAL_TUNING      0x0012
-#define TDA5250_REG_DEFAULT_SETTING_LPF              0x5A
-#define TDA5250_REG_DEFAULT_SETTING_ON_TIME          0xFEC0
-#define TDA5250_REG_DEFAULT_SETTING_OFF_TIME         0xF380
-#define TDA5250_REG_DEFAULT_SETTING_COUNT_TH1        0x0000
-#define TDA5250_REG_DEFAULT_SETTING_COUNT_TH2        0x0001
-#define TDA5250_REG_DEFAULT_SETTING_RSSI_TH3         0xFF
-#define TDA5250_REG_DEFAULT_SETTING_CLK_DIV          0x08
-#define TDA5250_REG_DEFAULT_SETTING_XTAL_CONFIG      0x01
-#define TDA5250_REG_DEFAULT_SETTING_BLOCK_PD         0xFFFF
-
-#endif //HPLTDA5250REGDEFAULTSETTINGS_H
+  TDA5250RadioBUSM = rBUSM;
+  TDA5250RadioENTDA = rENTDA;
+  TDA5250RadioTXRX = rTXRX;
+  TDA5250RadioDATA = rDATA;
+  TDA5250RadioPWDDD = rPWDD;    
+    
+  rBUSM -> MSPGeneralIO.Port15;
+  rENTDA -> MSPGeneralIO.Port16;
+  rTXRX -> MSPGeneralIO.Port14;
+  rDATA -> MSPGeneralIO.Port11;
+  rPWDD -> MSPGeneralIO.Port10;
+}
 
