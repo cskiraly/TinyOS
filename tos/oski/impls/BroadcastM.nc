@@ -1,4 +1,4 @@
-// $Id: BroadcastM.nc,v 1.1.2.2 2005-05-20 00:25:01 scipio Exp $
+// $Id: BroadcastM.nc,v 1.1.2.3 2005-05-24 23:01:05 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -71,7 +71,7 @@ implementation {
       return ESIZE;
     }
     else {
-      BroadcastMsg* bmsg = (BroadcastMsg*)call Packet.getPayload(msg, NULL);
+      BroadcastMsg* bmsg = (BroadcastMsg*)call SubPacket.getPayload(msg, NULL);
       bmsg->id = id;
       len += BROADCASTP_OFFSET;
       return call AMSend.send(AM_BROADCAST_ADDR, msg, len);
@@ -83,17 +83,17 @@ implementation {
   }
 
   event void AMSend.sendDone(message_t* msg, error_t error) {
-    BroadcastMsg* bmsg = (BroadcastMsg*)call Packet.getPayload(msg, NULL);
+    BroadcastMsg* bmsg = (BroadcastMsg*)call SubPacket.getPayload(msg, NULL);
     signal Send.sendDone[bmsg->id](msg, error);
   }
 
   event message_t* SubReceive.receive(message_t* msg,
 				      void* payload,
 				      uint8_t len) {
-    BroadcastMsg* bmsg = (BroadcastMsg*)call Packet.getPayload(msg, NULL);
-    signal Receive.receive[bmsg->id](msg,
-				     payload + BROADCASTP_OFFSET,
-				     len - BROADCASTP_OFFSET); 
+    BroadcastMsg* bmsg = (BroadcastMsg*)call SubPacket.getPayload(msg, NULL);
+    return signal Receive.receive[bmsg->id](msg,
+					    payload + BROADCASTP_OFFSET,
+					    len - BROADCASTP_OFFSET); 
   }
   
   command void Packet.clear(message_t* msg) {
@@ -113,7 +113,7 @@ implementation {
   }
 
   command void* Packet.getPayload(message_t* msg, uint8_t* len) {
-    void* payload = call SubPacket.getPayload(msg, len);
+    uint8_t* payload = call SubPacket.getPayload(msg, len);
     *len -= BROADCASTP_OFFSET;
     return payload + BROADCASTP_OFFSET;
   }
