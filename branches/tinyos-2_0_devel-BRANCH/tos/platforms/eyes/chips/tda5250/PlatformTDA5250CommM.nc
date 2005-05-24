@@ -29,60 +29,112 @@
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-05-20 12:54:14 $
+ * $Date: 2005-05-24 16:21:09 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
  
-module HPLTDA5250RadioCommM {
+module PlatformTDA5250CommM {
   provides {
     interface Init;
-    interface HPLTDA5250RegComm;
-    interface HPLTDA5250Data;
+    interface TDA5250RegComm;
+    interface TDA5250DataComm;
+    interface TDA5250DataControl;   
+    interface Resource as RegResource;
+    interface Resource as DataResource;
   }
   uses {
+    interface GeneralIO as BUSM;     
+    interface GeneralIO as DATA;
+    interface Resource as SPIResource;
+    interface Resource as UARTResource; 
+    interface ResourceUser;   
     interface HPLUSARTControl as USARTControl;
     interface HPLUSARTFeedback as USARTFeedback;
-    interface GeneralIO as BUSM;
-    interface GeneralIO as ENTDA;
-    interface GeneralIO as DATA;    
   }
 }
 
 implementation {
-   /****************************************************************
-                      Internal Functions Declared 
-   *****************************************************************/
-   void transmitByte(uint8_t data);     
-   
    
    command error_t Init.init() {
      // setting pins to output
      call BUSM.makeOutput();
-     call ENTDA.makeOutput();
-     call DATA.makeOutput();       
+     call DATA.makeOutput(); 
      
-     // initializing pin values
-     call BUSM.set();
-     call ENTDA.set();
-     call DATA.clr();
-     
-     // reverse data direction since default of radio
-       //is receive
-     call DATA.makeInput();           
+     //initializing pin values
+     call BUSM.set();  //Use SPI for writing to Regs
+     call DATA.clr();  //Clear the data line
+       
+     //Make data an input
+     call DATA.makeInput();
+    
      return SUCCESS;
    }   
    
-   async command error_t HPLTDA5250Data.tx(uint8_t data) {
+   async command error_t RegResource.request() {
+     return call SPIResource.request(); 
+   }
+   
+   async command error_t DataResource.request() {
+     return call UARTResource.request(); 
+   }   
+   
+   async command error_t RegResource.immediateRequest() {
+     if(call SPIResource.immediateRequest() == EBUSY)
+       return EBUSY;
+     call USARTControl.setModeSPI();
+     return SUCCESS;
+   }
+   
+   async command error_t DataResource.immediateRequest() {
+     if(call UARTResource.immediateRequest() == EBUSY)
+       return EBUSY;
+     call USARTControl.setModeUART();
+     return SUCCESS;
+   }    
+   
+   async command void RegResource.release() {
+     call SPIResource.release(); 
+   }
+   
+   async command void DataResource.release() {
+     call UARTResource.release(); 
+   }      
+   
+   event void SPIResource.granted() {
+     call USARTControl.setModeSPI();
+     signal RegResource.granted();
+   }
+   
+   event void UARTResource.granted() {
+     call USARTControl.setModeUART();
+     signal DataResource.granted();
+   }    
+   
+   event void UARTResource.requested() {
+     signal DataResource.requested();
+   }   
+   
+   event void SPIResource.requested() {
+     signal RegResource.requested();
+   }   
+   
+   async command error_t TDA5250DataComm.tx(uint8_t data) {
+     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
+       return FAIL;   
      call USARTControl.tx(data);
      return SUCCESS;
    }
    
-   async command bool HPLTDA5250Data.isTxDone() {
+   async command bool TDA5250DataComm.isTxDone() {
+     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
+       return FAIL;   
      return call USARTControl.isTxEmpty();
    }   
    
-   async command error_t HPLTDA5250Data.enableTx() {   
+   async command error_t TDA5250DataControl.enableTx() {   
+     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
+       return FAIL;
      call USARTControl.setClockSource(SSEL_SMCLK);
      call USARTControl.setClockRate(UBR_SMCLK_38400, UMCTL_SMCLK_38400); 
      call USARTControl.setModeUART_TX();            
@@ -90,12 +142,16 @@ implementation {
      return SUCCESS;
    }   
    
-   async command error_t HPLTDA5250Data.disableTx() {
+   async command error_t TDA5250DataControl.disableTx() {
+     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
+       return FAIL;   
      call USARTControl.disableUARTTx();
      return SUCCESS;
    }         
    
-   async command error_t HPLTDA5250Data.enableRx() {  
+   async command error_t TDA5250DataControl.enableRx() {  
+     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
+       return FAIL;   
      call USARTControl.setClockSource(SSEL_SMCLK);
      call USARTControl.setClockRate(UBR_SMCLK_38400, UMCTL_SMCLK_38400);   
      call USARTControl.setModeUART_RX();      
@@ -103,20 +159,26 @@ implementation {
      return SUCCESS;
    }   
    
-   async command error_t HPLTDA5250Data.disableRx() {
+   async command error_t TDA5250DataControl.disableRx() {
+     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
+       return FAIL;   
      call USARTControl.disableUARTRx();
      return SUCCESS;
    }      
    
    async event void USARTFeedback.txDone() {
-     signal HPLTDA5250Data.txReady();
+     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
+       return;   
+     signal TDA5250DataComm.txReady();
    }
    
    async event void USARTFeedback.rxOverflow() {
    }
    
    async event void USARTFeedback.rxDone(uint8_t data) {
-     signal HPLTDA5250Data.rxDone(data);
+     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
+       return;   
+     signal TDA5250DataComm.rxDone(data);
    }  
    
    /****************************************************************
@@ -130,35 +192,38 @@ implementation {
       call USARTControl.clrTxIntr();
    }
 
-   async command void HPLTDA5250RegComm.writeByte(uint8_t address, uint8_t data) {
-      msp430_usartmode_t mode = call USARTControl.getMode();   
-      call USARTControl.setModeSPI(); 
-      call ENTDA.clr();
+   async command error_t TDA5250RegComm.writeByte(uint8_t address, uint8_t data) {  
+     if(call ResourceUser.user() != TDA5250_SPI_BUS_ID)
+       return FAIL;     
+      call USARTControl.setModeSPI();       
       transmitByte(address);
       transmitByte(data);
       while (call USARTControl.isTxEmpty() == FAIL);
-      call ENTDA.set();
-      call USARTControl.setMode(mode); 
+      return SUCCESS;
    } 
 
-   async command void HPLTDA5250RegComm.writeWord(uint8_t address, uint16_t data) {
-      msp430_usartmode_t mode = call USARTControl.getMode();   
-      call USARTControl.setModeSPI();   
-      call ENTDA.clr();
+   async command error_t TDA5250RegComm.writeWord(uint8_t address, uint16_t data) {  
+     if(call ResourceUser.user() != TDA5250_SPI_BUS_ID)
+       return FAIL;        
+      call USARTControl.setModeSPI();       
       transmitByte(address);
       transmitByte((uint8_t) (data >> 8));
       transmitByte((uint8_t) data);
       while (call USARTControl.isTxEmpty() == FALSE);
-      call ENTDA.set();
-      call USARTControl.setMode(mode);
-      return;
+      return SUCCESS;
    }
 
-   async command uint8_t HPLTDA5250RegComm.readByte(uint8_t address){
-      call HPLTDA5250RegComm.writeByte(address, 0x00);  
+   async command uint8_t TDA5250RegComm.readByte(uint8_t address){
+     if(call ResourceUser.user() != TDA5250_SPI_BUS_ID)
+       return 0x00;   
+      call TDA5250RegComm.writeByte(address, 0x00);  
       return call USARTControl.rx();
    }
    
-   default async event void HPLTDA5250Data.txReady() {}
-   default async event void HPLTDA5250Data.rxDone(uint8_t data) {}
+   default event void RegResource.granted() {}
+   default event void RegResource.requested() {}   
+   default event void DataResource.granted() {}
+   default event void DataResource.requested() {}    
+   default async event void TDA5250DataComm.txReady() {}
+   default async event void TDA5250DataComm.rxDone(uint8_t data) {}
 }

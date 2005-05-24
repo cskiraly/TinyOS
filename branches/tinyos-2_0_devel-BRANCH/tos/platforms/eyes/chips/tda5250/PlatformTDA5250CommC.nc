@@ -31,35 +31,49 @@
  * eyesIFX platforms, Configuration.
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-05-20 12:54:14 $
+ * $Date: 2005-05-24 16:21:09 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
  
 #include "msp430baudrates.h"
-configuration HPLTDA5250RadioCommC {
+#include "msp430BusResource.h"
+enum {
+  TDA5250_SPI_BUS_ID = unique(MSP430_SPIO_BUS),
+  TDA5250_UART_BUS_ID = unique(MSP430_UARTO_BUS)
+};     
+configuration PlatformTDA5250CommC {
   provides {
     interface Init;
-    interface HPLTDA5250RegComm;
-    interface HPLTDA5250Data;
+    interface TDA5250RegComm;
+    interface TDA5250DataComm;
+    interface TDA5250DataControl;
+    interface Resource as RegResource;
+    interface Resource as DataResource;
   }
 }
 implementation {
   components HPLUSART0C
-           , HPLTDA5250RadioCommM
+           , PlatformTDA5250CommM
            , TDA5250RadioIO
-           ;
+           ;      
    
   Init = HPLUSART0C;
-  Init = HPLTDA5250RadioCommM;
+  Init = PlatformTDA5250CommM;
+  RegResource = PlatformTDA5250CommM.RegResource;
+  DataResource = PlatformTDA5250CommM.DataResource;
   
-  HPLTDA5250Data = HPLTDA5250RadioCommM;
-  HPLTDA5250RegComm = HPLTDA5250RadioCommM;
+  TDA5250RegComm = PlatformTDA5250CommM;
+  TDA5250DataComm = PlatformTDA5250CommM;
+  TDA5250DataControl = PlatformTDA5250CommM;
+    
+  PlatformTDA5250CommM.SPIResource -> HPLUSART0C.Resource[TDA5250_SPI_BUS_ID];
+  PlatformTDA5250CommM.UARTResource -> HPLUSART0C.Resource[TDA5250_UART_BUS_ID];
+  PlatformTDA5250CommM.ResourceUser -> HPLUSART0C.ResourceUser;  
   
-  HPLTDA5250RadioCommM.BUSM -> TDA5250RadioIO.TDA5250RadioBUSM;
-  HPLTDA5250RadioCommM.ENTDA -> TDA5250RadioIO.TDA5250RadioENTDA;
-  HPLTDA5250RadioCommM.DATA -> TDA5250RadioIO.TDA5250RadioDATA;       
+  PlatformTDA5250CommM.BUSM -> TDA5250RadioIO.TDA5250RadioBUSM;    
+  PlatformTDA5250CommM.DATA -> TDA5250RadioIO.TDA5250RadioDATA;    
   
-  HPLTDA5250RadioCommM.USARTControl -> HPLUSART0C;
-  HPLTDA5250RadioCommM.USARTFeedback -> HPLUSART0C;    
+  PlatformTDA5250CommM.USARTControl -> HPLUSART0C;
+  PlatformTDA5250CommM.USARTFeedback -> HPLUSART0C;    
 }
