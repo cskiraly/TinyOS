@@ -1,4 +1,4 @@
-/* $Id: CC1000SquelchM.nc,v 1.1.2.2 2005-05-24 21:29:04 idgay Exp $
+/* $Id: CC1000SquelchM.nc,v 1.1.2.3 2005-05-24 21:30:25 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -73,9 +73,9 @@ implementation
 
     // Find 3rd highest (aka lowest signal strength) value
     memcpy(squelchTab, squelchTable, sizeof squelchTable);
-    min = 0;
     for (j = 0; ; j++)
       {
+	min = 0;
 	for (i = 1; i < CC1K_SquelchTableSize; i++)
 	  if (squelchTab[i] > squelchTab[min])
 	    min = i;
