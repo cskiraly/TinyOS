@@ -1,4 +1,4 @@
-// $Id: crc.h,v 1.1.2.1 2005-05-10 17:54:40 idgay Exp $
+// $Id: crc.h,v 1.1.2.2 2005-05-24 18:20:46 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -29,6 +29,9 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
+#ifndef CRC_H
+#define CRC_H
+
 /**
  * Default CRC function. Note that avrmote has a much more efficient one. 
  *
@@ -54,3 +57,5 @@ uint16_t crcByte(uint16_t crc, uint8_t b)
 
   return crc;
 }
+
+#endif
