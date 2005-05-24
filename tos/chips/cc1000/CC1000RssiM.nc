@@ -1,4 +1,4 @@
-/* $Id: CC1000RssiM.nc,v 1.1.2.1 2005-05-24 21:26:01 idgay Exp $
+/* $Id: CC1000RssiM.nc,v 1.1.2.2 2005-05-24 23:09:08 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -73,6 +73,7 @@ implementation
       }
     else // We should only come here with currentOp = CANCELLED
       nextOp = reason;
+    return SUCCESS;
   }
 
   void startNextOp() {

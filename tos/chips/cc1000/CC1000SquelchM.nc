@@ -1,4 +1,4 @@
-/* $Id: CC1000SquelchM.nc,v 1.1.2.3 2005-05-24 21:30:25 idgay Exp $
+/* $Id: CC1000SquelchM.nc,v 1.1.2.4 2005-05-24 23:09:08 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -63,7 +63,6 @@ implementation
     uint16_t squelchTab[CC1K_SquelchTableSize];
     uint8_t i, j, min; 
     uint32_t newThreshold;
-    uint16_t min_value;
 
     squelchTable[squelchIndex++] = data;
     if (squelchIndex >= CC1K_SquelchTableSize)
