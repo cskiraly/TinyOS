@@ -1,4 +1,4 @@
-// $Id: CC1000RadioM.nc,v 1.1.2.5 2005-05-24 21:26:01 idgay Exp $
+// $Id: CC1000RadioM.nc,v 1.1.2.6 2005-05-24 23:09:08 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -65,7 +65,6 @@ module CC1000RadioM {
     interface Random;
     interface HPLCC1000Spi;
     interface Timer<TMilli> as WakeupTimer;
-    interface Timer<TMilli> as SquelchTimer;
 
     interface AcquireDataNow as RssiRx;
     interface AcquireDataNow as RssiNoiseFloor;
@@ -138,7 +137,17 @@ implementation
 
   const_uint8_t ackCode[5] = { 0xab, ACK_BYTE1, ACK_BYTE2, 0xaa, 0xaa };
 
-  void startSquelchTimer();
+  void startSquelchTimer() {
+    if (call CC1000Squelch.settled())
+      {
+	if (lplRxPower == 0 || f.txPending)
+	  call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalSlow);
+	else
+	  call WakeupTimer.startOneShotNow(sleepTime);
+      }
+    else
+      call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalFast);
+  }
 
 #ifdef UNREACHABLE
   /* We only call this from signalPacketReceived, and a successful post
@@ -275,7 +284,6 @@ implementation
     uwait(200);
     call CC1000Control.rxMode();
     call HPLCC1000Spi.rxMode();
-    startSquelchTimer();
     call HPLCC1000Spi.enableIntr();
   }
 
@@ -283,23 +291,25 @@ implementation
      PULSECHECK or POWERDOWN) */
   void sendWakeup() {
     enterIdleState();
-    call WakeupTimer.stop();
-    if (post sendWakeupTask() != SUCCESS)
-      ; // XXX. Hmm
+    startSquelchTimer();
+    post sendWakeupTask();
   }
 
   event void WakeupTimer.fired() {
     atomic 
       {
-	if (lplRxPower == 0)
-	  return;
-
 	switch (radioState)
 	  {
 	  case IDLE_STATE:
-	    if (!f.txPending)
+	    if (lplRxPower == 0 || f.txPending ||
+		!call CC1000Squelch.settled())
+	      call RssiNoiseFloor.getData();
+	    else
+	      /* We woke up to listen for a message after a quick pulse
+		 check, but we didn't find anything. Measure current
+		 RSSI, adjust our noise floor, and go to sleep. */
 	      call RssiPulseFail.getData();
-	    call WakeupTimer.startOneShotNow(sleepTime);
+	    startSquelchTimer();
 	    break;
 
 	  case POWERDOWN_STATE:
@@ -332,8 +342,9 @@ implementation
   }
 
   task void idleTimerTask() {
-    startSquelchTimer();
-    call WakeupTimer.startOneShotNow(TIME_AFTER_CHECK);
+    /* Wait TIME_AFTER_CHECK ms for a message, then give up. */
+    if (!f.txPending)
+      call WakeupTimer.startOneShotNow(TIME_AFTER_CHECK);
   }
 
   task void adjustSquelchAndStop() {
@@ -387,8 +398,7 @@ implementation
 	  {
 	    // adjust the noise floor level, go back to sleep.
 	    rssiForSquelch = data;
-	    if (post adjustSquelchAndStop() != SUCCESS)
-	      ; // XXX.
+	    post adjustSquelchAndStop();
 	  }
 	else
 	  post justStop();
@@ -421,8 +431,7 @@ implementation
 
   async event void RssiPulseFail.dataReady(uint16_t data) {
     rssiForSquelch = data;
-    if (post adjustSquelchAndStop() != SUCCESS)
-      ; // XXX.
+    post adjustSquelchAndStop();
   }
   
   event void RssiPulseFail.error(uint16_t info) {
@@ -451,9 +460,6 @@ implementation
 	  f.txPending = f.txBusy = FALSE;
 	  setPreambleLength();
 	  setSleepTime();
-	  // set a time to start sleeping after measuring the noise floor
-	  if (lplRxPower > 0)
-	    call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalSlow);
 	}
       else
 	return SUCCESS;
@@ -484,7 +490,6 @@ implementation
 	call CC1000Control.off();
 	call HPLCC1000Spi.disableIntr();
       }
-    call SquelchTimer.stop();
     call WakeupTimer.stop();
     if (post stopDone() != SUCCESS)
       ; // XXX.
@@ -498,7 +503,7 @@ implementation
 	  return FAIL;
 
 	f.txBusy = TRUE;
-	msg->header.length = len; //XXX???
+	msg->header.length = len;
 	txBufPtr = msg;
 
 	if (!f.ccaOff)
@@ -900,19 +905,6 @@ implementation
   event void RssiCheckChannel.error(uint16_t info) {
     /* We'll retry the transmission at the next SPI event. */
     atomic enterIdleState();
-  }
-
-  void startSquelchTimer() {
-    if (call CC1000Squelch.settled())
-      call SquelchTimer.startPeriodicNow(CC1K_SquelchIntervalSlow);
-    else
-      call SquelchTimer.startPeriodicNow(CC1K_SquelchIntervalFast);
-  }
-
-  event void SquelchTimer.fired() {
-    atomic
-      if (radioState == IDLE_STATE)
-	call RssiNoiseFloor.getData();
   }
 
   /* Options */
