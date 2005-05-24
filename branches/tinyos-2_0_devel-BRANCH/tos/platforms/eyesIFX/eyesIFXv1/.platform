@@ -6,9 +6,9 @@
 
 push( @includes, qw(  
 
-  %T/platforms/eyes/eyesIFXv1
-  %T/platforms/eyes
-  %T/platforms/eyes/chips/tda5250
+  %T/platforms/eyesIFX/eyesIFXv1
+  %T/platforms/eyesIFX
+  %T/platforms/eyesIFX/chips/tda5250
   %T/chips/stm25p 
   %T/chips/tda5250 
   %T/chips/ad6200 

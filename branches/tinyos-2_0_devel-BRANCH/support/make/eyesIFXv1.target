@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: eyesIFXv1.target,v 1.1.2.3 2005-05-17 20:13:11 klueska Exp $
+#$Id: eyesIFXv1.target,v 1.1.2.4 2005-05-24 17:33:12 klueska Exp $
 
 PLATFORM = eyesIFXv1
 
@@ -14,7 +14,7 @@ DEFAULT_PROGRAM = jtag
 endif
 
 NESC_FLAGS:=-Wnesc-all
-PFLAGS += -I$(TOSDIR)/platforms/eyes/eyesIFXv1
+PFLAGS += -I$(TOSDIR)/platforms/eyesIFX/eyesIFXv1
 
 $(call TOSMake_include_platform,msp)
 
