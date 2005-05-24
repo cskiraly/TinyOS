@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: eyesIFXv2.target,v 1.1.2.3 2005-05-17 20:13:11 klueska Exp $
+#$Id: eyesIFXv2.target,v 1.1.2.4 2005-05-24 17:33:13 klueska Exp $
 
 PLATFORM = eyesIFXv2
 
@@ -17,7 +17,7 @@ MSP_BSL_FLAGS ?= --invert-test --invert-reset --f1x
 BSL?=1
 
 NESC_FLAGS:=-Wnesc-all -mdisable-hwmul
-PFLAGS += -I$(TOSDIR)/platforms/eyes/eyesIFXv2
+PFLAGS += -I$(TOSDIR)/platforms/eyesIFX/eyesIFXv2
 
 $(call TOSMake_include_platform,msp)
 
