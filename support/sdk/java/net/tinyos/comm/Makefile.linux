@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: Makefile.linux,v 1.1.2.1 2005-05-23 22:11:48 idgay Exp $
+#$Id: Makefile.linux,v 1.1.2.2 2005-05-24 18:18:18 idgay Exp $
 
 #@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
@@ -23,9 +23,9 @@ $(SWIGOBJS): $(SWIGDEPS)
 
 install: FORCE
 	install -d $(TOSCOMMDIR)
-	install *.class $(BUILDDIR)/*.class $(TOSCOMMDIR)
-	install $(TOSCOMMLIB) $(JAVADIR)/jre/lib/i386
+	install $(BUILDDIR)/*.class $(TOSCOMMDIR)
+	install $(TOSCOMMLIB) $(JAVADIR)/jre/bin
 
 uninstall: FORCE
-	rm -rf $(TOSCOMMDIR)/../comm $(JAVADIR)/jre/lib/i386/libTOSComm.so
+	rm -rf $(TOSCOMMDIR)/../comm $(JAVADIR)/jre/bin/libTOSComm.so
 
