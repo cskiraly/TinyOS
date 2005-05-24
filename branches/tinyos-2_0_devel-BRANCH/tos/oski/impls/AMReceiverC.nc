@@ -1,4 +1,4 @@
-// $Id: AMReceiverC.nc,v 1.1.2.1 2005-05-17 21:25:19 scipio Exp $
+// $Id: AMReceiverC.nc,v 1.1.2.2 2005-05-24 23:01:05 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -38,7 +38,7 @@
 
 includes AM;
 
-generic configuration AMSnooperC(am_id_t AMId) {
+generic configuration AMReceiverC(am_id_t AMId) {
   provides {
     interface Receive;
     interface Packet;
@@ -47,9 +47,9 @@ generic configuration AMSnooperC(am_id_t AMId) {
 }
 
 implementation {
-  components ActiveMessageImpl;
+  components ActiveMessageImplC as Impl;
 
-  Receive = ActiveMessageImpl.Snoop[AMId];
-  Packet = ActiveMessageImpl;
-  AMPacket = ActiveMessageImpl;
+  Receive = Impl.Receive[AMId];
+  Packet = Impl;
+  AMPacket = Impl;
 }

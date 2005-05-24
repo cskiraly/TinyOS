@@ -1,5 +1,5 @@
 enum {
-  TOS_BCAST_AM_ID = 0x0,
+  TOS_BCAST_AM_ID = 0xFF,
 };
 
 typedef nx_uint8_t bcast_id_t;
