@@ -1,4 +1,4 @@
-// $Id: TestBroadcastC.nc,v 1.1.2.3 2005-05-24 23:03:29 scipio Exp $
+// $Id: TestAMServiceC.nc,v 1.1.2.1 2005-05-24 23:03:29 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -37,23 +37,24 @@
  * @date   May 16 2005
  */
 
-configuration TestBroadcastC {}
+configuration TestAMServiceC {}
 implementation {
-  components Main, TestBroadcastM, LedsC;
-  components new BroadcastSenderC(5) as Sender;
-  components new BroadcastReceiverC(5) as Receiver;
-  components new BroadcastServiceC();
+  components Main, TestAMServiceM as App, LedsC;
+  components new AMSenderC(5);
+  components new AMReceiverC(5);
   components new OSKITimerMsC();
+  components new AMServiceC();
   
   Main.SoftwareInit -> LedsC;
   
-  TestBroadcastM.Boot -> Main.Boot;
-
-  TestBroadcastM.Receive -> Receiver;
-  TestBroadcastM.Send -> Sender;
-  TestBroadcastM.Service -> BroadcastServiceC.Service;
-  TestBroadcastM.Leds -> LedsC;
-  TestBroadcastM.MilliTimer -> OSKITimerMsC;
+  App.Boot -> Main.Boot;
+  
+  App.Receive -> AMReceiverC;
+  App.AMSend -> AMSenderC;
+  App.Service -> AMServiceC;
+  App.Leds -> LedsC;
+  App.MilliTimer -> OSKITimerMsC;
+  
 }
 
 
