@@ -1,4 +1,4 @@
-/* $Id: CSMARadioC.nc,v 1.1.2.5 2005-05-24 23:09:08 idgay Exp $
+/* $Id: CSMARadioC.nc,v 1.1.2.6 2005-05-26 00:20:19 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -29,7 +29,7 @@
 /**
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.5 $
+ * Revision:  $Revision: 1.1.2.6 $
  */
 
 #include "CC1000Const.h"
@@ -88,7 +88,6 @@ implementation {
   CC1000RadioM.RssiNoiseFloor -> CC1000RssiM.Rssi[unique("CC1000RSSI")];
   CC1000RadioM.RssiCheckChannel -> CC1000RssiM.Rssi[unique("CC1000RSSI")];
   CC1000RadioM.RssiPulseCheck -> CC1000RssiM.Rssi[unique("CC1000RSSI")];
-  CC1000RadioM.RssiPulseFail -> CC1000RssiM.Rssi[unique("CC1000RSSI")];
   CC1000RadioM.cancelRssi -> CC1000RssiM;
   CC1000RssiM.ActualRssi -> HPLCC1000C;
 }
