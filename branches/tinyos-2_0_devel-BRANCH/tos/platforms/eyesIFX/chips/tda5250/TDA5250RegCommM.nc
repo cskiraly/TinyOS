@@ -28,8 +28,8 @@
  *
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-30 20:06:37 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-05-30 21:13:26 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -41,8 +41,7 @@ module TDA5250RegCommM {
     interface Resource;
   }
   uses {
-    interface GeneralIO as BUSM;     
-    interface GeneralIO as DATA;
+    interface GeneralIO as BUSM;
     interface Resource as SPIResource;
     interface ResourceUser;   
     interface HPLUSARTControl as USARTControl;
