@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-24 16:23:56 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-05-30 19:34:59 $ 
  * ======================================================================== 
  */
  
@@ -54,6 +54,7 @@
 #define TDA5250_REG_TYPE_COUNT_TH1        uint16_t
 #define TDA5250_REG_TYPE_COUNT_TH2        uint16_t
 #define TDA5250_REG_TYPE_RSSI_TH3         uint8_t
+#define TDA5250_REG_TYPE_RF_POWER         uint8_t
 #define TDA5250_REG_TYPE_CLK_DIV          uint8_t
 #define TDA5250_REG_TYPE_XTAL_CONFIG      uint8_t
 #define TDA5250_REG_TYPE_BLOCK_PD         uint16_t

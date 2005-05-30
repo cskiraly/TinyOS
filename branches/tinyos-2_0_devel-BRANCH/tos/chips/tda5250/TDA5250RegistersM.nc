@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-24 16:23:56 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-05-30 19:34:59 $ 
  * ======================================================================== 
  */
  
@@ -49,6 +49,7 @@ module TDA5250RegistersM {
     interface TDA5250WriteReg<TDA5250_REG_TYPE_COUNT_TH1>   as COUNT_TH1;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_COUNT_TH2>   as COUNT_TH2;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_RSSI_TH3>    as RSSI_TH3;
+    interface TDA5250WriteReg<TDA5250_REG_TYPE_RF_POWER>    as RF_POWER;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_CLK_DIV>     as CLK_DIV;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_XTAL_CONFIG> as XTAL_CONFIG;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_BLOCK_PD>    as BLOCK_PD;
@@ -57,6 +58,7 @@ module TDA5250RegistersM {
   }
   uses {  
     interface TDA5250RegComm; 
+		interface Pot;
     interface GeneralIO as ENTDA;
   }  
 }
@@ -89,7 +91,9 @@ implementation {
      call ENTDA.makeOutput();
      
      // initializing pin values
-     call ENTDA.set();     
+     call ENTDA.set();  
+		    
+		 call Pot.init(255); 
      return SUCCESS;
    }   
 
@@ -119,6 +123,9 @@ implementation {
    };
    async command error_t RSSI_TH3.set(uint8_t data) {
      return writeByte(TDA5250_REG_ADDR_RSSI_TH3, data);
+   };
+   async command error_t RF_POWER.set(uint8_t data) {
+     return call Pot.set(data);
    };
    async command error_t CLK_DIV.set(uint8_t data) {
      return writeByte(TDA5250_REG_ADDR_CLK_DIV, data);
