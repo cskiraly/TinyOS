@@ -30,7 +30,7 @@
  * Controlling the TDA5250 at the HPL layer for use with the MSP430 on the 
  * eyesIFX platforms, Configuration.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2005-05-30 20:06:37 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
