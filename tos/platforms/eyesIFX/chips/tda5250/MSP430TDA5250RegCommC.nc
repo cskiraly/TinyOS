@@ -31,7 +31,7 @@
  * eyesIFX platforms, Configuration.
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-05-24 17:14:47 $
+ * $Date: 2005-05-30 19:49:54 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -39,41 +39,31 @@
 #include "msp430baudrates.h"
 #include "msp430BusResource.h"
 enum {
-  TDA5250_SPI_BUS_ID = unique(MSP430_SPIO_BUS),
-  TDA5250_UART_BUS_ID = unique(MSP430_UARTO_BUS)
+  TDA5250_SPI_BUS_ID = unique(MSP430_SPIO_BUS)
 };     
-configuration PlatformTDA5250CommC {
+configuration MSP430TDA5250RegCommC {
   provides {
     interface Init;
     interface TDA5250RegComm;
-    interface TDA5250DataComm;
-    interface TDA5250DataControl;
-    interface Resource as RegResource;
-    interface Resource as DataResource;
+    interface Resource;
   }
 }
 implementation {
   components HPLUSART0C
-           , PlatformTDA5250CommM
+           , MSP430TDA5250RegCommM
            , TDA5250RadioIO
            ;      
    
   Init = HPLUSART0C;
-  Init = PlatformTDA5250CommM;
-  RegResource = PlatformTDA5250CommM.RegResource;
-  DataResource = PlatformTDA5250CommM.DataResource;
+  Init = MSP430TDA5250RegCommM;
+  Resource = MSP430TDA5250RegCommM.Resource;
   
-  TDA5250RegComm = PlatformTDA5250CommM;
-  TDA5250DataComm = PlatformTDA5250CommM;
-  TDA5250DataControl = PlatformTDA5250CommM;
-    
-  PlatformTDA5250CommM.SPIResource -> HPLUSART0C.Resource[TDA5250_SPI_BUS_ID];
-  PlatformTDA5250CommM.UARTResource -> HPLUSART0C.Resource[TDA5250_UART_BUS_ID];
-  PlatformTDA5250CommM.ResourceUser -> HPLUSART0C.ResourceUser;  
+  TDA5250RegComm = MSP430TDA5250RegCommM; 
   
-  PlatformTDA5250CommM.BUSM -> TDA5250RadioIO.TDA5250RadioBUSM;    
-  PlatformTDA5250CommM.DATA -> TDA5250RadioIO.TDA5250RadioDATA;    
+  MSP430TDA5250RegCommM.BUSM -> TDA5250RadioIO.TDA5250RadioBUSM;    
+  MSP430TDA5250RegCommM.DATA -> TDA5250RadioIO.TDA5250RadioDATA;    
   
-  PlatformTDA5250CommM.USARTControl -> HPLUSART0C;
-  PlatformTDA5250CommM.USARTFeedback -> HPLUSART0C;    
+  MSP430TDA5250RegCommM.USARTControl -> HPLUSART0C; 
+  MSP430TDA5250RegCommM.SPIResource -> HPLUSART0C.Resource[TDA5250_SPI_BUS_ID];
+  MSP430TDA5250RegCommM.ResourceUser -> HPLUSART0C.ResourceUser; 	
 }
