@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-30 19:37:09 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-05-30 21:14:36 $ 
  * ======================================================================== 
  */
  
@@ -89,11 +89,7 @@ implementation {
      
      // initializing pin values
      call TXRX.set();
-     call PWDDD.clr();
-       
-     // reset the radio to default values
-     call TDA5250Config.reset();
-     
+     call PWDDD.clr();     
      return SUCCESS;
    }
 
