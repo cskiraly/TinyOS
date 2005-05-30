@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-05-30 19:34:59 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-05-30 21:14:36 $ 
  * ======================================================================== 
  */
  
@@ -61,7 +61,7 @@ configuration TDA5250RegistersC {
 implementation {
   components TDA5250RegistersM
 	         , TDA5250RadioIO
-					 , MSP430TDA5250RegCommC as TDA5250RegCommC
+					 , TDA5250RegCommC
 					 , PotC
            ;
   
