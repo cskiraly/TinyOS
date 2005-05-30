@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-24 16:23:55 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-05-30 19:34:59 $ 
  * ======================================================================== 
  */
  
@@ -40,7 +40,7 @@
 configuration TDA5250RegistersC {
   provides {
     interface Init;
-    interface Resource;
+		interface Resource;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_CONFIG>      as CONFIG;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_FSK>         as FSK;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_XTAL_TUNING> as XTAL_TUNING;
@@ -50,6 +50,7 @@ configuration TDA5250RegistersC {
     interface TDA5250WriteReg<TDA5250_REG_TYPE_COUNT_TH1>   as COUNT_TH1;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_COUNT_TH2>   as COUNT_TH2;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_RSSI_TH3>    as RSSI_TH3;
+    interface TDA5250WriteReg<TDA5250_REG_TYPE_RF_POWER>    as RF_POWER;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_CLK_DIV>     as CLK_DIV;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_XTAL_CONFIG> as XTAL_CONFIG;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_BLOCK_PD>    as BLOCK_PD;
@@ -59,14 +60,14 @@ configuration TDA5250RegistersC {
 }
 implementation {
   components TDA5250RegistersM
-           , PlatformTDA5250CommC
-           , TDA5250RadioIO
+	         , TDA5250RadioIO
+					 , MSP430TDA5250RegCommC as TDA5250RegCommC
+					 , PotC
            ;
   
-  Init = TDA5250RegistersM;                    
-  Init = PlatformTDA5250CommC;
-  Resource = PlatformTDA5250CommC.RegResource;
-  
+  Init = TDA5250RegistersM;
+	Resource = TDA5250RegCommC;
+	
   CONFIG = TDA5250RegistersM.CONFIG;
   FSK = TDA5250RegistersM.FSK;  
   XTAL_TUNING = TDA5250RegistersM.XTAL_TUNING;
@@ -76,13 +77,15 @@ implementation {
   COUNT_TH1 = TDA5250RegistersM.COUNT_TH1;
   COUNT_TH2 = TDA5250RegistersM.COUNT_TH2;
   RSSI_TH3 = TDA5250RegistersM.RSSI_TH3;
+	RF_POWER = TDA5250RegistersM.RF_POWER;
   CLK_DIV = TDA5250RegistersM.CLK_DIV; 
   XTAL_CONFIG = TDA5250RegistersM.XTAL_CONFIG;
   BLOCK_PD = TDA5250RegistersM.BLOCK_PD;
   STATUS = TDA5250RegistersM.STATUS;  
   ADC = TDA5250RegistersM.ADC;
-  
-  TDA5250RegistersM.TDA5250RegComm -> PlatformTDA5250CommC;  
-  TDA5250RegistersM.ENTDA -> TDA5250RadioIO.TDA5250RadioENTDA; 
+	
+	TDA5250RegistersM.TDA5250RegComm -> TDA5250RegCommC;
+	TDA5250RegistersM.Pot -> PotC;
+  TDA5250RegistersM.ENTDA -> TDA5250RadioIO.TDA5250RadioENTDA;	
 }
 
