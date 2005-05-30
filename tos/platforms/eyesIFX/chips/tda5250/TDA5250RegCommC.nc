@@ -30,8 +30,8 @@
  * Controlling the TDA5250 at the HPL layer for use with the MSP430 on the 
  * eyesIFX platforms, Configuration.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-30 20:06:37 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-05-30 21:13:26 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -60,8 +60,7 @@ implementation {
   
   TDA5250RegComm = TDA5250RegCommM; 
   
-  TDA5250RegCommM.BUSM -> TDA5250RadioIO.TDA5250RadioBUSM;    
-  TDA5250RegCommM.DATA -> TDA5250RadioIO.TDA5250RadioDATA;    
+  TDA5250RegCommM.BUSM -> TDA5250RadioIO.TDA5250RadioBUSM; 
   
   TDA5250RegCommM.USARTControl -> HPLUSART0C; 
   TDA5250RegCommM.SPIResource -> HPLUSART0C.Resource[TDA5250_SPI_BUS_ID];
