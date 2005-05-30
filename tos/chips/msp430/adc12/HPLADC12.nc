@@ -26,12 +26,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Description ----------------------------------------------------------
- * Interface for controlling ADC12-functionality of MSP430.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-04-19 20:59:37 $
- * @author: Jan Hauer (hauer@tkn.tu-berlin.de)
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-05-30 23:01:56 $
+ * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
         
@@ -43,9 +41,6 @@ interface HPLADC12
   async command void setControl1(adc12ctl1_t control1);
   async command adc12ctl0_t getControl0(); 
   async command adc12ctl1_t getControl1(); 
-  
-  /* Sets ADC12CTL0 to control0 except it leaves REFON, REF2_5V unchanged */
-  async command void setControl0_IgnoreRef(adc12ctl0_t control0); 
   
   async command void setMemControl(uint8_t index, adc12memctl_t memControl); 
   async command adc12memctl_t getMemControl(uint8_t i); 
@@ -60,7 +55,7 @@ interface HPLADC12
 
   async event void memOverflow();
   async event void timeOverflow();
-  async event void converted(uint8_t number);
+  async event void conversionDone(uint16_t iv);
 
   async command bool isBusy();
   /* ATTENTION: setConversionMode and setSHT etc. require ENC-flag to be reset! 

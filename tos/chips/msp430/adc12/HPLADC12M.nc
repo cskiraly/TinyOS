@@ -26,12 +26,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Description ----------------------------------------------------------
- * ADC lowlevel functions.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-04-19 20:59:37 $
- * @author: Jan Hauer
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-05-30 23:01:56 $
+ * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
@@ -55,13 +53,6 @@ implementation
     ADC12CTL1 = *(uint16_t*)&control1; 
   }
   
-  async command void HPLADC12.setControl0_IgnoreRef(adc12ctl0_t control0){
-    adc12ctl0_t oldControl0 = (*(adc12ctl0_t*) &ADC12CTL0);
-    control0.refon = oldControl0.refon;
-    control0.r2_5v = oldControl0.r2_5v;
-    ADC12CTL0 = (*(uint16_t*)&control0); 
-  }
-     
   async command adc12ctl0_t HPLADC12.getControl0(){ 
     return *(adc12ctl0_t*) &ADC12CTL0; 
   }
@@ -96,10 +87,10 @@ implementation
   async command uint16_t HPLADC12.getIEFlags(){ return (uint16_t) ADC12IE; } 
   
   async command void HPLADC12.resetIFGs(){ 
-    // workaround, because ADC12IFG = 0x0000 has no effect !
     if (!ADC12IFG)
       return;
     else {
+      // workaround, because ADC12IFG is not writable 
       uint8_t i;
       volatile uint16_t mud;
       for (i=0; i<16; i++)
@@ -136,10 +127,10 @@ implementation
     
   async command void HPLADC12.setRefOn(){ ADC12CTL0 |= REFON;}
   async command void HPLADC12.setRefOff(){ ADC12CTL0 &= ~REFON;}
-  async command uint8_t HPLADC12.getRefon(){ return ADC12CTL0 & REFON;}
+  async command uint8_t HPLADC12.getRefon(){ return (ADC12CTL0 & REFON) >> 5;}
   async command void HPLADC12.setRef1_5V(){ ADC12CTL0 &= ~REF2_5V;}
   async command void HPLADC12.setRef2_5V(){ ADC12CTL0 |= REF2_5V;}
-  async command uint8_t HPLADC12.getRef2_5V(){ return ADC12CTL0 & REF2_5V;}
+  async command uint8_t HPLADC12.getRef2_5V(){ return (ADC12CTL0 & REF2_5V) >> 6;}
   
   async command void HPLADC12.setSHT(uint8_t sht){
     uint16_t ctl0 = ADC12CTL0;
@@ -167,8 +158,7 @@ implementation
       case  2: signal HPLADC12.memOverflow(); return;
       case  4: signal HPLADC12.timeOverflow(); return;
     }
-    iv >>= 1;
-    if (iv && iv < 19)
-      signal HPLADC12.converted(iv-3);
+    signal HPLADC12.conversionDone(iv);
   }
 }
+
