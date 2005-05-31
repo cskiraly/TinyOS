@@ -27,31 +27,39 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-04-19 20:59:37 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-05-31 00:10:08 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
+/*
+ * HAL1 for ADC12 on MSP430, see TEP 101.
+ * DO NOT wire to this configuration, use generic MSP430ADC12Client instead.
+ */
 configuration MSP430ADC12C
 {
-  provides interface StdControl;
-  provides interface MSP430ADC12Single[uint8_t id];
-  provides interface MSP430ADC12Multiple[uint8_t id];
+  provides interface Init;
+  provides interface Resource[uint8_t id];
+  provides interface MSP430ADC12SingleChannel as SingleChannel[uint8_t id];
+  provides interface MSP430ADC12SingleChannel as SingleChannelADCC[uint8_t id];
 }
-
 implementation
 {
-  components MSP430ADC12M, HPLADC12M, MSP430TimerC, RefVoltC;
+  components MSP430ADC12M, HPLADC12M, MSP430TimerC, RefVoltGeneratorC, 
+             new FCFSArbiter(MSP430ADC12_CLIENT) as Arbiter;
 
-  StdControl = MSP430ADC12M;
-  MSP430ADC12Single = MSP430ADC12M.ADCSingle;
-  MSP430ADC12Multiple = MSP430ADC12M.ADCMultiple;
+  Init = Arbiter;
+  Resource = Arbiter;
+  SingleChannel = MSP430ADC12M.SingleChannel;
+  SingleChannelADCC = MSP430ADC12M.SingleChannelADCC;
     
+  MSP430ADC12M.ADCResourceUser -> Arbiter;
   MSP430ADC12M.HPLADC12 -> HPLADC12M;
-  MSP430ADC12M.RefVolt -> RefVoltC;
+  MSP430ADC12M.RefVoltGenerator -> RefVoltGeneratorC;
 
   MSP430ADC12M.TimerA -> MSP430TimerC.TimerA;
+  //MSP430ADC12M.TimerAResource -> MSP430TimerC.TimerAResource;
   MSP430ADC12M.ControlA0 -> MSP430TimerC.ControlA0;
   MSP430ADC12M.ControlA1 -> MSP430TimerC.ControlA1;
   MSP430ADC12M.CompareA0 -> MSP430TimerC.CompareA0;

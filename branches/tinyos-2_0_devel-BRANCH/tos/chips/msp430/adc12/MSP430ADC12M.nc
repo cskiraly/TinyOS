@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-04-19 20:59:37 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-05-31 00:10:08 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -37,14 +37,15 @@ includes MSP430ADC12;
 module MSP430ADC12M 
 {
   provides {
-		interface StdControl;
-    interface MSP430ADC12Single as ADCSingle[uint8_t id];
-    interface MSP430ADC12Multiple as ADCMultiple[uint8_t id];
+    interface MSP430ADC12SingleChannel as SingleChannel[uint8_t id];
+    interface MSP430ADC12SingleChannel as SingleChannelADCC[uint8_t id];
 	}
 	uses {
+    interface ResourceUser as ADCResourceUser;
+    interface RefVoltGenerator;
 	  interface HPLADC12;
-    interface RefVolt;
     interface MSP430Timer as TimerA;
+    //interface Resource as TimerAResource;
     interface MSP430TimerControl as ControlA0;
     interface MSP430TimerControl as ControlA1;
     interface MSP430Compare as CompareA0;
@@ -52,105 +53,311 @@ module MSP430ADC12M
 	}
 }
 implementation
-{  
-  #define CHECKARGS 1
-  
-  norace uint8_t cmode;             /* current conversion mode */
+{ 
+  enum { // mode
+    SINGLE_DATA,
+    SINGLE_DATA_REPEAT,
+    MULTIPLE_DATA,
+    MULTIPLE_DATA_REPEAT,
+  };
+  enum { // flagsADC
+    ADC_BUSY = 1,               /* request pending */
+    TIMERA_USED = 2,            /* TimerA used for SAMPCON signal */
+    VREF_USED = 4,              /* VREF generator in use */
+    ADCC_REQUEST = 8,           /* request came through SingleChannelADCC */
+  };
+
+  // norace is safe, because Resource interface resolves conflicts  
   norace uint16_t *bufPtr;          /* result buffer */
   norace uint16_t bufLength;        /* length of buffer */
   norace uint16_t bufOffset;        /* offset into buffer */
-  norace uint8_t owner;             /* interface instance for current conversion */
-  norace uint8_t reserved;          /* reserve() called successfully */
-  norace uint8_t vrefWait;          /* waiting for voltage generator to become stable */
-  norace adc12settings_t adc12settings[uniqueCount("MSP430ADC12")]; /* bind settings */
+  norace uint8_t clientID;          /* ID of interface that issued current request */
+  norace uint8_t flagsADC;          /* see above */
+  norace uint8_t mode;              /* current conversion mode, see above */
   
-  command result_t StdControl.init()
-  { 
-    cmode = ADC_IDLE;
-    reserved = ADC_IDLE;
-    vrefWait = FALSE;
-    call HPLADC12.disableConversion();
-    call HPLADC12.setIEFlags(0x0000);       
-    return SUCCESS;
-  }
+  msp430adc12_result_t checkGetRefVolt(uint8_t referenceVoltage, uint8_t refVolt2_5);
+  result_t checkReleaseRefVolt();
+  void prepareTimerA(uint16_t interval, uint16_t csSAMPCON, uint16_t cdSAMPCON);
+  void startTimerA();
+  void configureAdcPin( uint8_t inputChannel );
+
   
-  command result_t StdControl.start()
+  msp430adc12_result_t newRequest(uint8_t req, msp430adc12_channel_config_t configData,
+      void *dest, uint16_t length, uint16_t jiffies)
   {
-    return SUCCESS; 
+    msp430adc12_result_t result;
+    
+    // Since timerA is used in upmode with OUTMOD=7, i.e. reset/set,
+    // jiffies cannot be 1 (otherwise reset and set is performed simultanously).
+    // Jiffies cannot be 2 either - TAR rollover with TACCR1=0 
+    // does reset OUT0 signal. If jiffies = 0, then repeat mode is chosen.
+    // Note: With timerA running at 1MHz jiffies < 10 will probably 
+    // (depending on ADC12CLK) not work, because of too long sample-hold-time. 
+    if (jiffies){
+      // TODO: get TimerA by arbitration
+      flagsADC |= TIMERA_USED;
+      if (jiffies == 1 || jiffies == 2)
+        return MSP430ADC12_FAIL_JIFFIES;
+    }
+    mode = req;
+     
+    switch (result = checkGetRefVolt(configData.referenceVoltage, configData.refVolt2_5))
+    {
+      case MSP430ADC12_FAIL_VREF: 
+        break;
+      case MSP430ADC12_DELAYED:
+        // VREF is still unstable, setup registers now and start
+        // conversion in RefVoltGenerator.isStable event handler later
+        // fall through
+      case MSP430ADC12_SUCCESS: 
+        {
+          adc12ctl0_t ctl0 = { 
+            adc12sc:0, enc:0, adc12tovie:0, 
+            adc12ovie:0, adc12on:1, 
+            refon: call HPLADC12.getRefon(), 
+            r2_5v: call HPLADC12.getRef2_5V(),
+            msc: (jiffies == 0) ? 1 : 0, 
+            sht0:configData.sampleHoldTime, 
+            sht1:configData.sampleHoldTime
+          };
+          adc12ctl1_t ctl1 = {
+            adc12busy:0, 
+            conseq:0, // will be changed later
+            adc12ssel:configData.clockSourceSHT, 
+            adc12div:configData.clockDivSHT, 
+            issh:0, shp:1, 
+            shs: (jiffies == 0) ? 0 : 1,
+            cstartadd:0
+          };
+          adc12memctl_t memctl = {
+            inch: configData.inputChannel,
+            sref: configData.referenceVoltage,
+            eos: 0
+          };
+          uint16_t i, mask = 1;
+
+          bufPtr = dest;
+          bufLength = length;
+          bufOffset = 0;            
+          switch (req)
+          {
+            case SINGLE_DATA:
+              ctl1.conseq = 0;
+              break;
+            case SINGLE_DATA_REPEAT:
+              ctl1.conseq = 2;
+              break;
+            case MULTIPLE_DATA:
+              if (length > 16)
+                ctl1.conseq = 3;
+              else
+                ctl1.conseq = 1;
+              break;
+            case MULTIPLE_DATA_REPEAT:
+              ctl1.conseq = 3;
+              break;
+          }
+          
+          configureAdcPin( configData.inputChannel );
+          call HPLADC12.disableConversion();
+          call HPLADC12.setControl0(ctl0);
+          call HPLADC12.setControl1(ctl1);
+          for (i=0; i<(length-1) && i < 15; i++)
+            call HPLADC12.setMemControl(i, memctl);
+          memctl.eos = 1;  
+          call HPLADC12.setMemControl(i, memctl);
+          call HPLADC12.setIEFlags(mask << i);
+          
+          if (jiffies)
+            prepareTimerA(jiffies, configData.clockSourceSAMPCON,
+                          configData.clockDivSAMPCON);
+          
+          if (result == MSP430ADC12_SUCCESS){ // VREF stable or unused
+            call HPLADC12.startConversion();
+            if (jiffies)
+              startTimerA(); // go!
+          }
+          break;
+        }
+      default:
+        break;
+    } // of switch
+    return result;
   }
-  
-  command result_t StdControl.stop()
+
+  result_t getAndSetBusy()
   {
-    call HPLADC12.disableConversion();
-    call HPLADC12.setIEFlags(0x0000);
-    return SUCCESS;
-  }
-  
-  command result_t ADCSingle.bind[uint8_t num](MSP430ADC12Settings_t settings)
-  {
-    result_t res = FAIL;
-    adc12memctl_t memctl = {  inch: settings.inputChannel,
-                              sref: settings.referenceVoltage,
-                              eos: 0 };
-    #if CHECKARGS
-    if (num >= uniqueCount("MSP430ADC12"))
+    uint8_t oldFlags;
+    atomic {
+      oldFlags = flagsADC;
+      flagsADC |= ADC_BUSY;
+    }
+    if (oldFlags & ADC_BUSY)
       return FAIL;
-    #endif
-    atomic 
-    {
-      if (cmode == ADC_IDLE || owner != num){
-        adc12settings[num].refVolt2_5 = settings.refVolt2_5;
-        adc12settings[num].gotRefVolt = 0;
-        adc12settings[num].clockSourceSHT = settings.clockSourceSHT;
-        adc12settings[num].clockSourceSAMPCON = settings.clockSourceSAMPCON;   
-        adc12settings[num].clockDivSAMPCON = settings.clockDivSAMPCON;
-        adc12settings[num].clockDivSHT = settings.clockDivSHT;
-        adc12settings[num].sampleHoldTime = settings.sampleHoldTime;
-        adc12settings[num].memctl = memctl;
-        res = SUCCESS;
-      }
+    else
+      return SUCCESS;
+  }
+
+  msp430adc12_result_t getAccess(uint8_t id, bool adccRequest)
+  {
+    if (call ADCResourceUser.user() == id){
+      if (getAndSetBusy() == FAIL)
+        return MSP430ADC12_FAIL_BUSY;
+      clientID = id;
+      if (adccRequest)
+        flagsADC |= ADCC_REQUEST;
+      else
+        flagsADC &= ~ADCC_REQUEST;
+      return MSP430ADC12_SUCCESS;
     }
-    return res;
+    return MSP430ADC12_FAIL_NOT_RESERVED;
   }
 
-  command result_t ADCMultiple.bind[uint8_t num](MSP430ADC12Settings_t settings)
+  msp430adc12_result_t getSingleData(uint8_t id, bool adccRequest)
   {
-    return (call ADCSingle.bind[num](settings));
+    msp430adc12_channel_config_t configData;
+    msp430adc12_result_t result = getAccess(id, adccRequest);
+    if (flagsADC & ADCC_REQUEST)
+      configData = signal SingleChannelADCC.getConfigurationData[id]();
+    else
+      configData = signal SingleChannel.getConfigurationData[id]();
+
+    if (result == MSP430ADC12_SUCCESS)
+      return newRequest(SINGLE_DATA, configData, 0, 1, 0);
+    else
+      return result;
+  }
+      
+  async command msp430adc12_result_t SingleChannel.getSingleData[uint8_t id]()
+  {
+    return getSingleData(id, FALSE);
   }
 
-  msp430ADCresult_t getRefVolt(uint8_t num)
+  async command msp430adc12_result_t SingleChannelADCC.getSingleData[uint8_t id]()
   {
-    msp430ADCresult_t adcResult = MSP430ADC12_SUCCESS;
+    return getSingleData(id, TRUE);
+  }
+    
+  msp430adc12_result_t getSingleDataRepeat(uint8_t id, bool adccRequest, uint16_t jiffies)
+  {
+    msp430adc12_channel_config_t configData;
+    msp430adc12_result_t result = getAccess(id, adccRequest);
+    if (flagsADC & ADCC_REQUEST)
+      configData = signal SingleChannelADCC.getConfigurationData[id]();
+    else
+      configData = signal SingleChannel.getConfigurationData[id]();
+
+    if (result == MSP430ADC12_SUCCESS)
+      return newRequest(SINGLE_DATA_REPEAT, configData, 0, 1, jiffies);
+    else
+      return result;
+  }
+
+  async command msp430adc12_result_t SingleChannel.getSingleDataRepeat[uint8_t id](
+      uint16_t jiffies)
+  {
+    return getSingleDataRepeat(id, FALSE, jiffies);
+  }
+
+  async command msp430adc12_result_t SingleChannelADCC.getSingleDataRepeat[uint8_t id](
+      uint16_t jiffies)
+  {
+    return getSingleDataRepeat(id, TRUE, jiffies);
+  }
+  
+  msp430adc12_result_t getMultipleData(uint8_t id, bool adccRequest, 
+      uint16_t *buf, uint16_t length, uint16_t jiffies)
+  {
+    msp430adc12_channel_config_t configData;
+    msp430adc12_result_t result = getAccess(id, adccRequest);
+    if (flagsADC & ADCC_REQUEST)
+      configData = signal SingleChannelADCC.getConfigurationData[id]();
+    else
+      configData = signal SingleChannel.getConfigurationData[id]();
+
+    if (result == MSP430ADC12_SUCCESS)
+      return newRequest(MULTIPLE_DATA, configData, buf, length, jiffies);
+    else
+      return result;
+  }
+
+  async command msp430adc12_result_t SingleChannel.getMultipleData[uint8_t id](
+      uint16_t *buf, uint16_t length, uint16_t jiffies)
+  {
+    return getMultipleData(id, FALSE, buf, length, jiffies);
+  }
+
+  async command msp430adc12_result_t SingleChannelADCC.getMultipleData[uint8_t id](
+      uint16_t *buf, uint16_t length, uint16_t jiffies)
+  {
+    return getMultipleData(id, TRUE, buf, length, jiffies);
+  }
+
+  msp430adc12_result_t getMultipleDataRepeat(uint8_t id, bool adccRequest, 
+      uint16_t *buf, uint8_t length, uint16_t jiffies)
+  {
+    msp430adc12_channel_config_t configData;
+    msp430adc12_result_t result;
+    if (flagsADC & ADCC_REQUEST)
+      configData = signal SingleChannelADCC.getConfigurationData[id]();
+    else
+      configData = signal SingleChannel.getConfigurationData[id]();
+
+    if (length > 16)
+      return MSP430ADC12_FAIL_LENGTH;
+    result = getAccess(id, adccRequest);
+    if (result == MSP430ADC12_SUCCESS)
+      return newRequest(MULTIPLE_DATA_REPEAT, configData, buf, length, jiffies);
+    else
+      return result;
+  }
+
+  async command msp430adc12_result_t SingleChannel.getMultipleDataRepeat[uint8_t id](
+      uint16_t *buf, uint8_t length, uint16_t jiffies)
+  {
+    return getMultipleDataRepeat(id, FALSE, buf, length, jiffies);
+  }
+
+  async command msp430adc12_result_t SingleChannelADCC.getMultipleDataRepeat[uint8_t id](
+      uint16_t *buf, uint8_t length, uint16_t jiffies)
+  {
+    return getMultipleDataRepeat(id, TRUE, buf, length, jiffies);
+  }
+
+  async event void TimerA.overflow(){}
+  async event void CompareA0.fired(){}
+  async event void CompareA1.fired(){}
+
+  msp430adc12_result_t checkGetRefVolt(uint8_t referenceVoltage, uint8_t refVolt2_5)
+  {
     result_t vrefResult;
-    adc12memctl_t memctl = adc12settings[num].memctl;
-    
-    if (memctl.sref == REFERENCE_VREFplus_AVss ||
-        memctl.sref == REFERENCE_VREFplus_VREFnegterm)
+    if (referenceVoltage == REFERENCE_VREFplus_AVss ||
+        referenceVoltage == REFERENCE_VREFplus_VREFnegterm)
     {
-      if(adc12settings[num].gotRefVolt == 0) {
-        if (adc12settings[num].refVolt2_5)
-          vrefResult = call RefVolt.get(REFERENCE_2_5V);
+      if (refVolt2_5 == REFVOLT_LEVEL_1_5)
+        vrefResult = call RefVoltGenerator.switchOn(REFERENCE_1_5V);
+      else
+        vrefResult = call RefVoltGenerator.switchOn(REFERENCE_2_5V);
+      if (vrefResult == FAIL)
+        return MSP430ADC12_FAIL_VREF;
+      else {
+        flagsADC |= VREF_USED;
+        if (call RefVoltGenerator.getVoltageLevel() == REFERENCE_UNSTABLE)
+          return MSP430ADC12_DELAYED;
         else
-          vrefResult = call RefVolt.get(REFERENCE_1_5V);
-      } else 
-        vrefResult = SUCCESS;
-      if (vrefResult != SUCCESS)
-      {
-        adcResult = MSP430ADC12_FAIL;
-      } else {
-        adc12settings[num].gotRefVolt = 1;
-        if (call RefVolt.getState() == REFERENCE_UNSTABLE)
-          adcResult = MSP430ADC12_DELAYED;
+          return MSP430ADC12_SUCCESS;
       }
+    } else {
+      flagsADC &= ~VREF_USED;
+      return MSP430ADC12_SUCCESS;
     }
-    return adcResult;
   }
     
-  result_t releaseRefVolt(uint8_t num)
+  result_t checkReleaseRefVolt()
   {
-    if (adc12settings[num].gotRefVolt == 1){
-      call RefVolt.release();
-      adc12settings[num].gotRefVolt = 0;
+    if (flagsADC & VREF_USED){
+      call RefVoltGenerator.switchOff();
+      flagsADC &= ~VREF_USED;
       return SUCCESS;
     }
     return FAIL;
@@ -189,299 +396,140 @@ implementation
     //call ControlA1.setControl(ccResetSHI); 
     call ControlA1.setControl(ccRSOutmod);
     call TimerA.setMode(MSP430TIMER_UP_MODE); // go!
-  }    
- 
-  msp430ADCresult_t newRequest(uint8_t req, uint8_t num, void *dataDest, uint16_t length, uint16_t jiffies)
+  }   
+  
+  void configureAdcPin( uint8_t inputChannel )
   {
-    bool access = FALSE;
-    msp430ADCresult_t res = MSP430ADC12_FAIL;
-    // Workaround by Cory Sharp
-    // since msp430 is a 16-bit platform, make num a signed
-    // 16-bit integer to avoid "warning: comparison is always true due to
-    // limited range of data type" if it happens that (num >= 0) is tested.
-    const int16_t num16 = num;
-    
-    #if CHECKARGS
-    if ( num16 >= uniqueCount("MSP430ADC12") || (!reserved &&
-        (!length || (req == REPEAT_SEQUENCE_OF_CHANNELS && length > 16)) ) )
-      return MSP430ADC12_FAIL;
-    
-    // since timerA is used in upmode with OUTMOD=7, i.e. reset/set,
-    // jiffies cannot be 1 (otherwise reset and set is performed simultanously).
-    // it cannot be 2 either - TAR rollover with TACCR1=0 
-    // does reset OUT0 signal. But with timerA running at
-    // 1MHz jiffies < 10 will probably (depending on ADC12CLK) not work 
-    // anyway because of too long sample-hold-time. 
-    if (jiffies == 1 || jiffies == 2)
-      return MSP430ADC12_FAIL;
-    #endif
-     
-    if (reserved & RESERVED)
-      if (!(reserved & VREF_WAIT) && owner == num16 && cmode == req){
-        call HPLADC12.startConversion();
-        if (reserved & TIMER_USED)
-          startTimerA(); // go!
-        reserved = ADC_IDLE;
-        return MSP430ADC12_SUCCESS;
-      } else
-        return MSP430ADC12_FAIL;
-   
-    atomic {
-      if (cmode == ADC_IDLE){
-        owner = num16;
-        cmode = SEQUENCE_OF_CHANNELS;
-        access = TRUE;
-      }
+    if( inputChannel <= 7 ){
+      P6SEL |= (1 << inputChannel); //adc function (instead of general IO)
+      P6DIR &= ~(1 << inputChannel); //input (instead of output)
     }
-
-    if (access){
-      res = MSP430ADC12_SUCCESS;
-      switch (getRefVolt(num16))
-      {
-        case MSP430ADC12_FAIL: 
-          cmode = ADC_IDLE;
-          res = MSP430ADC12_FAIL;
-          break;
-        case MSP430ADC12_DELAYED:
-          // VREF is unstable, simulate reserve call and
-          // start conversion in RefVolt.isStable later
-          req |= (RESERVED | VREF_WAIT);
-          res = MSP430ADC12_DELAYED;               
-          vrefWait = TRUE;
-          // fall through
-        case MSP430ADC12_SUCCESS: 
-          {
-            int8_t i, memctlsUsed = length;
-            uint16_t mask = 1;
-            adc12memctl_t lastMemctl = adc12settings[num16].memctl;
-            uint16_t ctl0 = ADC12CTL0_TIMER_TRIGGERED;
-            adc12ctl1_t ctl1 = {adc12busy:0, conseq:1, 
-                                adc12ssel:adc12settings[num16].clockSourceSHT, 
-                                adc12div:adc12settings[num16].clockDivSHT, issh:0, shp:1, 
-                                shs:1, cstartadd:0};
-            if (length > 16){
-              ctl1.conseq = 3; // repeat sequence mode
-              memctlsUsed = 16;
-            }
-            bufPtr = dataDest;
-            bufLength = length;
-            bufOffset = 0;     
-            
-            // initialize ADC registers
-            call HPLADC12.disableConversion();            
-            if (jiffies == 0){
-              ctl0 = ADC12CTL0_AUTO_TRIGGERED;
-              ctl1.shs = 0;  // ADC12SC starts the conversion
-            }
-            for (i=0; i<memctlsUsed-1; i++)
-              call HPLADC12.setMemControl(i, adc12settings[num16].memctl);
-            lastMemctl.eos = 1;  
-            call HPLADC12.setMemControl(i, lastMemctl);
-            call HPLADC12.setSHT(adc12settings[num16].sampleHoldTime);
-            call HPLADC12.setIEFlags(mask << i);
-            call HPLADC12.setControl0_IgnoreRef(*(adc12ctl0_t*) &ctl0);
-            
-            if (req & SINGLE_CHANNEL){
-                ctl1.conseq = 0; // single channel single conversion
-                cmode = SINGLE_CHANNEL;
-            } else if (req & REPEAT_SINGLE_CHANNEL){
-                ctl1.conseq = 2; // repeat single channel
-                cmode = REPEAT_SINGLE_CHANNEL;
-            } else if (req & REPEAT_SEQUENCE_OF_CHANNELS){
-                ctl1.conseq = 3; // repeat sequence of channels
-                cmode = REPEAT_SEQUENCE_OF_CHANNELS;
-            }
-            call HPLADC12.setControl1(ctl1);
-            
-            if (req & RESERVED){
-              // reserve ADC now
-              reserved = req;
-              if (jiffies != 0){
-                prepareTimerA(jiffies, adc12settings[num16].clockSourceSAMPCON,
-                                adc12settings[num16].clockDivSAMPCON);
-                reserved |= TIMER_USED;
-              }
-            } else {
-               // trigger first conversion now
-               call HPLADC12.startConversion();
-               if (jiffies != 0){
-                 prepareTimerA(jiffies, adc12settings[num16].clockSourceSAMPCON,
-                               adc12settings[num16].clockDivSAMPCON);
-                 startTimerA(); // go!
-               }
-            }
-            res = MSP430ADC12_SUCCESS;
-            break;
-          }
-      } // of switch
-    }
-    return res;
   }
 
-  
-  result_t unreserve(uint8_t num)
+  event void RefVoltGenerator.isStable(uint8_t voltageLevel)
   {
-    if (reserved & RESERVED && owner == num){
-      cmode = reserved = ADC_IDLE;
-      return SUCCESS;
-    }
-    return FAIL;
-  }
-  
-  async command msp430ADCresult_t ADCSingle.getData[uint8_t num]()
-  {
-    return newRequest(SINGLE_CHANNEL, num, 0, 1, 0);
-  }
-
-  async command msp430ADCresult_t ADCSingle.getDataRepeat[uint8_t num](uint16_t jiffies)
-  {
-    return newRequest(REPEAT_SINGLE_CHANNEL, num, 0, 1, jiffies);
-  }
-
-  async command result_t ADCSingle.reserve[uint8_t num]()
-  {
-    if (newRequest(RESERVED | SINGLE_CHANNEL, num, 0, 1, 0) == MSP430ADC12_SUCCESS)
-      return SUCCESS;
-    return FAIL;
-  }
-
-  async command result_t ADCSingle.reserveRepeat[uint8_t num](uint16_t jiffies)
-  {
-    if (newRequest(RESERVED | REPEAT_SINGLE_CHANNEL, num, 0, 1, jiffies) == 
-        MSP430ADC12_SUCCESS)
-      return SUCCESS;
-    return FAIL;
-  }
-
-  async command result_t ADCSingle.unreserve[uint8_t num]()
-  {
-    return unreserve(num);
-  }
-  
-  async command msp430ADCresult_t ADCMultiple.getData[uint8_t num](uint16_t *buf, 
-                                             uint16_t length, uint16_t jiffies)
-  {
-    return newRequest(SEQUENCE_OF_CHANNELS, num, buf, length, jiffies);
-  }
-  
-  async command msp430ADCresult_t ADCMultiple.getDataRepeat[uint8_t num](uint16_t *buf, 
-                                             uint8_t length, uint16_t jiffies) 
-  {
-    return newRequest(REPEAT_SEQUENCE_OF_CHANNELS, num, buf, length, jiffies);
-  }
-
-  async command result_t ADCMultiple.reserve[uint8_t num](uint16_t *buf, 
-                                      uint16_t length, uint16_t jiffies)
-  {
-    if (newRequest(SEQUENCE_OF_CHANNELS | RESERVED, num, buf, length, jiffies)
-        == MSP430ADC12_SUCCESS)
-      return SUCCESS;
-    return FAIL;
-  }
-  
-  async command result_t ADCMultiple.reserveRepeat[uint8_t num](uint16_t *buf,
-                                            uint16_t length, uint16_t jiffies)
-  {
-    if (newRequest(REPEAT_SEQUENCE_OF_CHANNELS | RESERVED, num, buf, length, jiffies)
-        == MSP430ADC12_SUCCESS)
-      return SUCCESS;
-    return FAIL;
-  }
-  
-  async command result_t  ADCMultiple.unreserve[uint8_t num]()
-  {
-    return unreserve(num);
-  }
-     
-  async event void TimerA.overflow(){}
-  async event void CompareA0.fired(){}
-  async event void CompareA1.fired(){}
-
-  default async event result_t ADCSingle.dataReady[uint8_t num](uint16_t data)
-  {
-    return FAIL;
-  }
-  default async event uint16_t* ADCMultiple.dataReady[uint8_t num](uint16_t *buf,
-                                                          uint16_t length)
-  {
-    return (uint16_t*) 0;
-  }
-
-  event void RefVolt.isStable(RefVolt_t vref)
-  {
-    if (vrefWait){
+    if (flagsADC & VREF_USED){
       call HPLADC12.startConversion();
-      if (reserved & TIMER_USED)
+      if (flagsADC & TIMERA_USED)
         startTimerA(); // go!
-      reserved = ADC_IDLE;
-      vrefWait = FALSE;
     }
   }
     
   void stopConversion()
   {
-    call TimerA.setMode(MSP430TIMER_STOP_MODE);
+    if (flagsADC & TIMERA_USED){
+      call TimerA.setMode(MSP430TIMER_STOP_MODE);
+      // TODO: release TimerA through arbitration
+    }
     call HPLADC12.stopConversion();
     call HPLADC12.setIEFlags(0);
     call HPLADC12.resetIFGs();
-    if (adc12settings[owner].gotRefVolt)
-      releaseRefVolt(owner);
-    cmode = ADC_IDLE;  // enable access to ADC, owner now invalid
+    checkReleaseRefVolt();
+    flagsADC &= ~ADC_BUSY;
   }
   
-  async event void HPLADC12.converted(uint8_t number){
-    switch (cmode) 
+
+  
+  async event void HPLADC12.conversionDone(uint16_t iv)
+  {
+    switch (mode) 
     { 
-       case SINGLE_CHANNEL:
-            {
-              volatile uint8_t ownerTmp = owner;
-              stopConversion();
-              signal ADCSingle.dataReady[ownerTmp](call HPLADC12.getMem(0));
-            }
-            break;
-       case REPEAT_SINGLE_CHANNEL:
-            if (signal ADCSingle.dataReady[owner](call HPLADC12.getMem(0)) == FAIL)
-              stopConversion();
-            break;
-        case SEQUENCE_OF_CHANNELS:
-            {
-              uint16_t i = 0, length = (bufLength - bufOffset > 16) ? 16 : bufLength - bufOffset;
-              do {
-                *bufPtr++ = call HPLADC12.getMem(i);
-              } while (++i < length);
-               
-              bufOffset += length;
+      case SINGLE_DATA:
+        stopConversion();
+        if (flagsADC & ADCC_REQUEST)
+          signal SingleChannelADCC.singleDataReady[clientID](call HPLADC12.getMem(0));
+        else
+          signal SingleChannel.singleDataReady[clientID](call HPLADC12.getMem(0));
+        break;
+      case SINGLE_DATA_REPEAT:
+        {
+          result_t repeatContinue;
+          if (flagsADC & ADCC_REQUEST)
+            repeatContinue = signal SingleChannelADCC.singleDataReady[clientID](
+                call HPLADC12.getMem(0));
+          else
+            repeatContinue = signal SingleChannel.singleDataReady[clientID](
+                call HPLADC12.getMem(0));
+          if (repeatContinue == FAIL)
+            stopConversion();
+          break;
+        }
+      case MULTIPLE_DATA:
+        {
+          uint16_t i = 0, length = (bufLength - bufOffset > 16) ? 16 : bufLength - bufOffset;
+          do {
+            *bufPtr++ = call HPLADC12.getMem(i);
+          } while (++i < length);
+          bufOffset += length;
               
-              if (bufLength - bufOffset > 15)
-                return;
-              else if (bufLength - bufOffset > 0){
-                adc12memctl_t memctl = call HPLADC12.getMemControl(0);
-                memctl.eos = 1;
-                call HPLADC12.setMemControl(bufLength - bufOffset, memctl);
-              } else {
-                stopConversion();
-                signal ADCMultiple.dataReady[owner](bufPtr - bufLength, bufLength);
-              }
-            }
-            break;
-        case REPEAT_SEQUENCE_OF_CHANNELS:
-            {
-              uint8_t i = 0;
-              do {
-                *bufPtr++ = call HPLADC12.getMem(i);
-              } while (++i < bufLength);
-              if ((bufPtr = signal ADCMultiple.dataReady[owner](bufPtr-bufLength,
-                        bufLength)) == 0)
-                stopConversion();
-              break;
-            }
-        default:
-            {
-              //volatile uint16_t data = call HPLADC12.getMem(number);
-              call HPLADC12.resetIFGs();
-            }
-            break;
+          if (bufLength - bufOffset > 15)
+            return;
+          else if (bufLength - bufOffset > 0){
+            adc12memctl_t memctl = call HPLADC12.getMemControl(0);
+            memctl.eos = 1;
+            call HPLADC12.setMemControl(bufLength - bufOffset, memctl);
+          } else {
+            stopConversion();
+            if (flagsADC & ADCC_REQUEST)
+              signal SingleChannelADCC.multipleDataReady[clientID](bufPtr - bufLength, bufLength);
+            else
+              signal SingleChannel.multipleDataReady[clientID](bufPtr - bufLength, bufLength);
+          }
+        }
+        break;
+      case MULTIPLE_DATA_REPEAT:
+        {
+          uint8_t i = 0;
+          do {
+            *bufPtr++ = call HPLADC12.getMem(i);
+          } while (++i < bufLength);
+          if (flagsADC & ADCC_REQUEST)
+            bufPtr = signal SingleChannelADCC.multipleDataReady[clientID](bufPtr-bufLength,
+                    bufLength);
+          else
+            bufPtr = signal SingleChannel.multipleDataReady[clientID](bufPtr-bufLength,
+                    bufLength);
+          if (!bufPtr)  
+            stopConversion();
+          break;
+        }
       } // switch
+  }
+
+  default async event msp430adc12_channel_config_t 
+    SingleChannel.getConfigurationData[uint8_t id]()
+  {
+    msp430adc12_channel_config_t config = {0,0,0,0,0,0,0,0};
+    return config;
+  }
+  
+  default async event msp430adc12_channel_config_t 
+    SingleChannelADCC.getConfigurationData[uint8_t id]()
+  {
+    msp430adc12_channel_config_t config = {0,0,0,0,0,0,0,0};
+    return config;
+  }
+  
+  default async event result_t SingleChannel.singleDataReady[uint8_t id](uint16_t data)
+  {
+    return FAIL;
+  }
+  
+  default async event result_t SingleChannelADCC.singleDataReady[uint8_t id](uint16_t data)
+  {
+    return FAIL;
+  }
+  
+  default async event uint16_t* SingleChannel.multipleDataReady[uint8_t id](
+      uint16_t *buf, uint16_t length)
+  {
+    return 0;
+  }
+  
+  default async event uint16_t* SingleChannelADCC.multipleDataReady[uint8_t id](
+      uint16_t *buf, uint16_t length)
+  {
+    return 0;
   }
   
   async event void HPLADC12.memOverflow(){}
