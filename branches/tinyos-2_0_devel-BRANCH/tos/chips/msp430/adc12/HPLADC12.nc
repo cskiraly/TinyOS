@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-05-30 23:01:56 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-05-31 00:11:43 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -60,7 +60,6 @@ interface HPLADC12
   async command bool isBusy();
   /* ATTENTION: setConversionMode and setSHT etc. require ENC-flag to be reset! 
      (disableConversion) */
-  async command void setConversionMode(uint8_t mode);
   async command void setSHT(uint8_t sht);
   async command void setMSC();
   async command void resetMSC();
