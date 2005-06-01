@@ -26,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: hardware.h,v 1.1.2.1 2005-05-24 17:14:47 klueska Exp $
+ * $Id: hardware.h,v 1.1.2.2 2005-06-01 03:22:02 janhauer Exp $
  *
  */
 
@@ -34,7 +34,6 @@
 #define TOSH_HARDWARE_EYESIFX
 
 #include "msp430hardware.h"
-#include "MSP430ADC12.h" 
 
 // LED assignments
 TOSH_ASSIGN_PIN(RED_LED, 5, 0); // Compatibility with the mica2
@@ -197,40 +196,4 @@ atomic {
   TOSH_SET_TDA_PWDDD_PIN(); // put the radio in sleep
 }
 }
-
-
-#define RSSI_ADC12_STANDARD_SETTINGS   SET_ADC12_STANDARD_SETTINGS(INPUT_CHANNEL_A3, \
-                                                                   REFERENCE_VREFplus_AVss, \
-                                                                   SAMPLE_HOLD_4_CYCLES, \
-                                                                   REFVOLT_LEVEL_1_5)
-#define PHOTO_ADC12_STANDARD_SETTINGS  SET_ADC12_STANDARD_SETTINGS(INPUT_CHANNEL_A2, \
-                                                                   REFERENCE_VREFplus_AVss, \
-                                                                   SAMPLE_HOLD_64_CYCLES, \
-                                                                   REFVOLT_LEVEL_1_5)
-#define TEMP_ADC12_STANDARD_SETTINGS   SET_ADC12_STANDARD_SETTINGS(INPUT_CHANNEL_A0, \
-                                                                   REFERENCE_AVcc_AVss, \
-                                                                   SAMPLE_HOLD_4_CYCLES, \
-                                                                   REFVOLT_LEVEL_1_5)
-                                                                   
-#define RSSI_ADC12_ADVANCED_SETTINGS   SET_ADC12_ADVANCED_SETTINGS(INPUT_CHANNEL_A3, \
-                                                                   REFERENCE_VREFplus_AVss, \
-                                                                   SAMPLE_HOLD_4_CYCLES, \
-                                                                   CLOCK_SOURCE_SMCLK, \
-                                                                   CLOCK_DIV_1, \
-                                                                   HOLDSOURCE_TIMERB_OUT0,\
-                                                                   REFVOLT_LEVEL_1_5)
-#define PHOTO_ADC12_ADVANCED_SETTINGS  SET_ADC12_ADVANCED_SETTINGS(INPUT_CHANNEL_A2, \
-                                                                   REFERENCE_VREFplus_AVss, \
-                                                                   SAMPLE_HOLD_64_CYCLES, \
-                                                                   CLOCK_SOURCE_SMCLK, \
-                                                                   CLOCK_DIV_1, \
-                                                                   HOLDSOURCE_TIMERB_OUT0,\
-                                                                   REFVOLT_LEVEL_1_5)
-#define TEMP_ADC12_ADVANCED_SETTINGS   SET_ADC12_ADVANCED_SETTINGS(INPUT_CHANNEL_A0, \
-                                                                   REFERENCE_AVcc_AVss, \
-                                                                   SAMPLE_HOLD_4_CYCLES, \
-                                                                   CLOCK_SOURCE_SMCLK, \
-                                                                   CLOCK_DIV_1, \
-                                                                   HOLDSOURCE_TIMERB_OUT0, \
-                                                                   REFVOLT_LEVEL_1_5)
 #endif //TOSH_HARDWARE_H
