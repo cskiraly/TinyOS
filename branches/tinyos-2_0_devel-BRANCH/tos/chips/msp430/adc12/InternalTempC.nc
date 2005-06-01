@@ -26,32 +26,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-04-19 20:59:37 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-06-01 03:15:26 $
  * @author Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
-includes InternalTemp;
 configuration InternalTempC
 {
-  provides interface ADC as InternalTempADC;
-  provides interface ADCSingle;
-  provides interface ADCMultiple;
-  provides interface StdControl;
+  provides interface AcquireData;
 }
 implementation
 {
-  components InternalTempM, ADCC, MSP430ADC12C;
+  // channel 10: Temperature diode
+  components new ADCChannelC(10) as TemperatureDiode;
   
-  StdControl = InternalTempM;
-  StdControl = ADCC;
-  StdControl = MSP430ADC12C;
-  ADCSingle = InternalTempM;
-  ADCMultiple = InternalTempM;
-  InternalTempADC = ADCC.ADC[TOS_ADC_INTERNAL_TEMP_PORT];
-  
-  InternalTempM.ADCControl -> ADCC;
-  InternalTempM.MSP430ADC12Single -> MSP430ADC12C.MSP430ADC12Single[unique("MSP430ADC12")];
-  InternalTempM.MSP430ADC12Multiple -> MSP430ADC12C.MSP430ADC12Multiple[unique("MSP430ADC12")];
+  AcquireData = TemperatureDiode;
 }
+
