@@ -1,4 +1,4 @@
-// $Id: AcquireDataBuffered.nc,v 1.1.2.1 2005-06-01 00:22:21 janhauer Exp $
+// $Id: AcquireDataBuffered.nc,v 1.1.2.2 2005-06-01 03:12:28 janhauer Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -65,7 +65,7 @@ interface AcquireDataBuffered {
      *    The data acquisition SHOULD start immediately (within 
      *    hardware constraints).
      */
-    async command result_t getData();
+    async command error_t getData();
 
     /** Data has been acquired.
      * @param buffer Buffer containing the data.
