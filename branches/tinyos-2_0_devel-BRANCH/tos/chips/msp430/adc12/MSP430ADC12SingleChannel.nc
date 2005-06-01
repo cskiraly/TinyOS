@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-31 00:10:08 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-06-01 03:17:37 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -109,7 +109,7 @@ interface MSP430ADC12SingleChannel
    * in the second it defines whether another conversion takes
    * place (SUCCESS) or not (FAIL).
    */  
-  async event result_t singleDataReady(uint16_t data);
+  async event error_t singleDataReady(uint16_t data);
 
  /**
    * Data from call to getMultipleData() or getMultipleDataRepeat() 

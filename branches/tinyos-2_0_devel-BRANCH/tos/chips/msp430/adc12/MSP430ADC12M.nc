@@ -27,13 +27,13 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-05-31 00:10:08 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-06-01 03:17:37 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
-includes MSP430ADC12;
 
+includes MSP430ADC12;
 module MSP430ADC12M 
 {
   provides {
@@ -76,7 +76,7 @@ implementation
   norace uint8_t mode;              /* current conversion mode, see above */
   
   msp430adc12_result_t checkGetRefVolt(uint8_t referenceVoltage, uint8_t refVolt2_5);
-  result_t checkReleaseRefVolt();
+  error_t checkReleaseRefVolt();
   void prepareTimerA(uint16_t interval, uint16_t csSAMPCON, uint16_t cdSAMPCON);
   void startTimerA();
   void configureAdcPin( uint8_t inputChannel );
@@ -185,7 +185,7 @@ implementation
     return result;
   }
 
-  result_t getAndSetBusy()
+  error_t getAndSetBusy()
   {
     uint8_t oldFlags;
     atomic {
@@ -330,7 +330,7 @@ implementation
 
   msp430adc12_result_t checkGetRefVolt(uint8_t referenceVoltage, uint8_t refVolt2_5)
   {
-    result_t vrefResult;
+    error_t vrefResult;
     if (referenceVoltage == REFERENCE_VREFplus_AVss ||
         referenceVoltage == REFERENCE_VREFplus_VREFnegterm)
     {
@@ -353,7 +353,7 @@ implementation
     }
   }
     
-  result_t checkReleaseRefVolt()
+  error_t checkReleaseRefVolt()
   {
     if (flagsADC & VREF_USED){
       call RefVoltGenerator.switchOff();
@@ -443,7 +443,7 @@ implementation
         break;
       case SINGLE_DATA_REPEAT:
         {
-          result_t repeatContinue;
+          error_t repeatContinue;
           if (flagsADC & ADCC_REQUEST)
             repeatContinue = signal SingleChannelADCC.singleDataReady[clientID](
                 call HPLADC12.getMem(0));
@@ -510,12 +510,12 @@ implementation
     return config;
   }
   
-  default async event result_t SingleChannel.singleDataReady[uint8_t id](uint16_t data)
+  default async event error_t SingleChannel.singleDataReady[uint8_t id](uint16_t data)
   {
     return FAIL;
   }
   
-  default async event result_t SingleChannelADCC.singleDataReady[uint8_t id](uint16_t data)
+  default async event error_t SingleChannelADCC.singleDataReady[uint8_t id](uint16_t data)
   {
     return FAIL;
   }
