@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-31 00:19:31 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-06-01 03:18:09 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * @author: Kevin Klues <klues@tkn.tu-berlin.de>
  * ========================================================================
@@ -69,9 +69,9 @@ implementation
   task void switchOffDelay();
   task void switchOffRetry();
   
-  async command result_t Generator.switchOn(uint8_t voltageLevel)
+  async command error_t Generator.switchOn(uint8_t voltageLevel)
   {
-    result_t result = SUCCESS;
+    error_t result = SUCCESS;
     atomic {
       if (semaCount == 0) {
         if (call HPLADC12.isBusy())
@@ -142,8 +142,8 @@ implementation
       signal Generator.isStable(REFERENCE_2_5V);         
   }
 
-  async command result_t Generator.switchOff() {
-    result_t result = FAIL;
+  async command error_t Generator.switchOff() {
+    error_t result = FAIL;
     
     atomic {
       if(semaCount <= 0)
@@ -168,7 +168,7 @@ implementation
   }
   
   inline void switchRefOff() {
-    result_t result;
+    error_t result;
   
     atomic {
       if(switchOff == FALSE)
