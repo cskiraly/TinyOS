@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-05-31 00:10:08 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-06-01 03:17:37 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -36,6 +36,7 @@
 #ifndef MSP430ADC12_H
 #define MSP430ADC12_H
 #include "RefVoltGenerator.h"
+#include "ADC.h"
 
 typedef enum
 {
@@ -65,63 +66,66 @@ typedef struct
  * When the MSP430ADC12SingleChannel.getConfigurationData() event is 
  * signalled an application must return the settings for the channel
  * it wants to sample as a msp430adc12_channel_config_t. 
- * For convienience a macro, ADC12_SETTINGS, is provided below that
- * allows a msp430adc12_channel_config_t to be defined as
+ * For convenience a macro, ADC12_SETTINGS, is provided below that
+ * allows a msp430adc12_channel_config_t to be displayed as a
  * constant (e.g. to be placed in hardware.h or sensorboard file):
  * The macro takes 8 arguments:
- * 
  * ADC12_SETTINGS(IC, RV, SHT, CS_SHT, CD_SHT, CS_SAMPCON, CD_SAMPCON, RVL)
  *   
- * The arguments have the following meaning:
+ * IC: Input channel to be sampled. An (external) input channel maps
+ *     to one of msp430's pins (see device specific data sheet which pin
+ *     it is mapped to, A0-A7).  The HAL1 will take care of configuring
+ *     the corresponding pin automatically (set it to module function and
+ *     input). Use inputChannel_enum (below) for IC.
  * 
- * IC: Input channel to be sampled. An (external) input channel maps to one of
- * msp430's pins (see device specific data sheet which pin it is mapped to, A0-A7).
- * The HAL1 will take care of configuring the corresponding pin automatically 
- * (set it to module function and input). Use inputChannel_enum (below) for IC.
+ * RV: Reference voltage for the conversion(s). The MSP430 allows
+ *     conversions with VREF+ as a stable reference voltage (see
+ *     RefVoltGenerator component). Therefore the HAL1 module checks each
+ *     request for the reference voltage and if necessary switches on
+ *     VREF+ automatically (via RefVoltGenerator component).  Because
+ *     there is a startup delay of 17ms for the reference voltage
+ *     generator to become stable, a call getData() might result in an
+ *     event dataReady() delayed by 17ms.  To avoid this, the application
+ *     can start the reference voltage generator itself (via
+ *     RefVoltGenerator component) 17ms prior to the first conversion.
+ *     Use referenceVoltage_enum (below) for RV.
  * 
- * RV: Reference voltage for the conversion(s). The MSP430 allows conversions with
- * VREF+ as a stable reference voltage (see RefVoltGenerator component). Therefore the
- * HAL1 module checks each request for the reference voltage and if necessary
- * switches on VREF+ automatically (via RefVoltGenerator component).  Because there
- * is a startup delay of 17ms for the reference voltage generator to become
- * stable, a call getData() might result in an event dataReady() delayed by 17ms.
- * To avoid this, the application can start the reference voltage generator itself
- * (via RefVoltGenerator component) 17ms prior to the first conversion. 
- * Use referenceVoltage_enum (below) for RV.
- * 
- * SHT: Sample-hold-time. This defines the time a channel is actually sampled for.  It
- * is measured in clock cycles of the sample-hold clock source (CS_SHT) and depends
- * on the external source resistance, see section ADC12, subsection "Sample Timing
- * Considerations" in msp430 User Guide. Use sampleHold_enum for SHT.
+ * SHT: Sample-hold-time. This defines the time a channel is actually
+ *     sampled for.  It is measured in clock cycles of the sample-hold
+ *     clock source (CS_SHT) and depends on the external source
+ *     resistance, see section ADC12, subsection "Sample Timing
+ *     Considerations" in msp430 User Guide. Use sampleHold_enum for SHT.
  *      
- * CS_SHT: Clock source for sample-hold-time. Use clockSourceSHT_enum for CS_SHT.
+ * CS_SHT: Clock source for sample-hold-time. Use clockSourceSHT_enum
+ *     for CS_SHT.
  * 
  * CD_SHT: Clock divider for clock source of sample-hold-time. Use
- * clockDivSHT_enum for CD_SHT.
+ *     clockDivSHT_enum for CD_SHT.
  *
- * CS_SAMPCON: Clock source for the SAMPCON signal.
- * One characteristic of the MSP430 ADC12 is the ability to define the time 
- * interval between subsequent conversions and let multiple conversions
- * be performed completely in hardware. This is reflected by an additional 
- * parameter (jiffies) in the relevant commands of the HAL interfaces.
- * CS_SAMPCON defines the clock source for and jiffies defines the
- * period in cycles of CS_SAMPCON (see example below). Use
- * clockSourceSAMPCON_enum for CS_SAMPCON.
- *             
- * CD_SAMPCON: Clock divider for clock source of SAMPCON signal.  Together with
- * CS_SAMPCON and the *jiffies* parameter in a getData() command the CD_SAMPCON
- * defines the period a channel is sampled. Use clockSourceSAMPCON_enum for
- * CS_SAMPCON.
+ * CS_SAMPCON: Clock source for the SAMPCON signal.  One
+ *     characteristic of the MSP430 ADC12 is the ability to define the
+ *     time interval between subsequent conversions and let multiple
+ *     conversions be performed completely in hardware. This is reflected
+ *     by an additional parameter (jiffies) in the relevant commands of
+ *     the HAL interfaces.  CS_SAMPCON defines the clock source for and
+ *     jiffies defines the period in cycles of CS_SAMPCON (see example
+ *     below). Use clockSourceSAMPCON_enum for CS_SAMPCON.
+ *                 
+ * CD_SAMPCON: Clock divider for clock source of SAMPCON signal.
+ *     Together with CS_SAMPCON and the *jiffies* parameter in a getData()
+ *     command the CD_SAMPCON defines the period a channel is sampled. Use
+ *     clockSourceSAMPCON_enum for CS_SAMPCON.
  * 
  * RVL: Reference voltage level. This is only valid it for RV either
- * REFERENCE_VREFplus_AVss or REFERENCE_VREFplus_VREFnegterm was chosen, otherwise
- * it is ignored. It specifies the level of VREF+. Use refVolt2_5_enum for RVL.
+ *     REFERENCE_VREFplus_AVss or REFERENCE_VREFplus_VREFnegterm was
+ *     chosen, otherwise it is ignored. It specifies the level of VREF+.
+ *     Use refVolt2_5_enum for RVL.
  * 
  * EXAMPLE:
  * Settings for a sensor on channel A1, using 
  * reference voltage VR+ = VREF+ and VR­ = AVSS, a sample hold-time
  * of 4 * (1/5000000) * 2 = 1.6us, a sampcon source of SMCLK and
- * reference voltage generator level of 1.5 Volt:
+ * reference voltage level of 1.5 Volt:
  *
  * // in hardware.h:
  * #define CHANNEL_A1_SETTINGS ADC12_SETTINGS(INPUT_CHANNEL_A1, \
@@ -139,15 +143,15 @@ typedef struct
  *   return CHANNEL_A1_SETTINGS;
  * }
  * 
- * Now the following command takes 100 samples, each separated by 1ms 
- * (assuming SMCLK runs at 1MHz):
+ * The following command now takes 100 samples, each separated by a
+ * 1ms delay (assuming SMCLK runs at 1MHz):
  *
  * call MSP430ADC12SingleChannel.getMultipleData(buf, 100, 1000);
  *
- * After 17ms (initial start of reference voltage generator) + 100 * 1 ms
- * = 117 ms the multipleDataReady() event is signalled.
- * Note that the SAMPCON signal is concurrent to the sampling process,
- * i.e. sample-hold-time is not relevant for the calculation of the 117ms.
+ * After 17ms (initial start of reference voltage generator) + 100 *
+ * 1000 us = 117 ms the multipleDataReady() event is signalled.  Note
+ * that the SAMPCON signal is concurrent to the sampling process, i.e.
+ * sample-hold-time is not relevant for the calculation of the 117ms.
  */
 #define ADC12_SETTINGS(IC, RV, SHT, CS_SHT, CD_SHT, CS_SAMPCON, CD_SAMPCON, RVL) \
         (int2adcSettings(((((((((((((((((uint32_t) SHT) << 4) + IC) << 3) \
@@ -250,16 +254,24 @@ typedef union {
    msp430adc12_channel_config_t s;
 } msp430adc12_channel_config_ut;
 
-
-inline msp430adc12_channel_config_t int2adcSettings(uint32_t i){
+ msp430adc12_channel_config_t int2adcSettings(uint32_t i){
   msp430adc12_channel_config_ut u;
   u.i = i;
   return u.s;
 }
 
-// The unique string for allocating ADC resource interfaces
-#define MSP430ADC12_CLIENT "MSP430ADC12Client"
-  
+// Wrappers wiring to HAL1 must do so via MSP430ADC12Client, which
+// uses the same interface ID for the Resource and 
+// MSP430ADC12SingleChannel interfaces, because HAL1 checks each 
+// request from MSP430ADC12SingleChannel for matching reservation. 
+// In order not to mess up the ADCC reservations the MSP430ADC12Client
+// wires to Resource interface instances starting with the ID defined
+// below. Thus the ADCC may use Resource ID 0 to 
+// ADC_RESOURCE_RESERVED_BY_ADCC-1 and MSP430ADC12Client may use use IDs
+// ADC_RESOURCE_RESERVED_BY_ADCC to 255 of HAL1. Note that this is
+// transparent from wrapper/application. 
+#define ADC_RESOURCE_RESERVED_BY_ADCC 128
+
 /* Test for GCC bug (bitfield access) - only version 3.2.3 is known to be stable */
 #define GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__ * 10 + __GNUC_PATCHLEVEL__)
 #if GCC_VERSION == 332
