@@ -26,32 +26,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-04-19 20:59:37 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-06-01 03:15:26 $
  * @author Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
-includes InternalVoltage;
+
 configuration InternalVoltageC
 {
-  provides interface ADC as InternalVoltageADC;
-  provides interface ADCSingle;
-  provides interface ADCMultiple;
-  provides interface StdControl;
+  provides interface AcquireData;
 }
 implementation
 {
-  components InternalVoltageM, ADCC, MSP430ADC12C;
+  // channel 11: (AVCC – AVSS) / 2
+  components new ADCChannelC(11) as InternalVoltageChannel;
   
-  StdControl = InternalVoltageM;
-  StdControl = ADCC;
-  StdControl = MSP430ADC12C;
-  ADCSingle = InternalVoltageM;
-  ADCMultiple = InternalVoltageM;
-  InternalVoltageADC = ADCC.ADC[TOS_ADC_INTERNAL_VOLTAGE_PORT];
-  
-  InternalVoltageM.ADCControl -> ADCC;
-  InternalVoltageM.MSP430ADC12Single -> MSP430ADC12C.MSP430ADC12Single[unique("MSP430ADC12")];
-  InternalVoltageM.MSP430ADC12Multiple -> MSP430ADC12C.MSP430ADC12Multiple[unique("MSP430ADC12")];
+  AcquireData = InternalVoltageChannel;
 }
-
