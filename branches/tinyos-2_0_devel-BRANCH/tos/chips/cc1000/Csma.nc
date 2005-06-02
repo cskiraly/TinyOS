@@ -1,4 +1,4 @@
-// $Id: Csma.nc,v 1.1.2.2 2005-06-02 22:55:37 idgay Exp $
+// $Id: Csma.nc,v 1.1.2.3 2005-06-02 22:59:31 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -200,18 +200,17 @@ implementation
 
 	  case POWERDOWN_STATE:
 	    enterPulseCheckState();
+	    // Turn radio on, wait for 1ms
 	    call CC1000Control.biasOn();
 	    break;
 
 	  case PULSECHECK_STATE:
+	    // Switch to RX mode to get RSSI output
 	    call CC1000Control.rxMode();
 	    call RssiPulseCheck.getData();
 	    uwait(80);
-	    //call CC1000Control.biasOn();
-	    //call CC1000StdControl.stop();
 	    return; // don't set wakeup timer
 	  }
-
 	setWakeup();
       }
   }
@@ -241,7 +240,7 @@ implementation
   void lplSendWakeup() {
     enterIdleStateSetWakeup();
     call CC1000Control.coreOn();
-    //uwait(2000);
+    uwait(2000);
     call CC1000Control.biasOn();
     uwait(200);
     call CC1000Control.rxMode();
@@ -264,7 +263,6 @@ implementation
   task void adjustSquelch();
 
   async event void RssiPulseCheck.dataReady(uint16_t data) {
-    //if(data > call CC1000Squelch.get() - CC1K_SquelchBuffer)
     if (data > call CC1000Squelch.get() - (call CC1000Squelch.get() >> 2))
       {
 	// don't be too agressive (ignore really quiet thresholds).
@@ -282,8 +280,8 @@ implementation
 	enterIdleStateSetWakeup();
 	f.lplReceive = TRUE;
 	call CC1000Control.rxMode();
-	call HPLCC1000Spi.rxMode();     // SPI to miso
-	call HPLCC1000Spi.enableIntr(); // enable spi interrupt
+	call HPLCC1000Spi.rxMode();
+	call HPLCC1000Spi.enableIntr();
       }
     else
       {
@@ -298,7 +296,7 @@ implementation
   }
 
   command error_t Init.init() {
-    call HPLCC1000Spi.initSlave(); // set spi bus to slave mode
+    call HPLCC1000Spi.initSlave();
     call CC1000Control.init();
     call ByteRadioInit.init();
 
@@ -564,6 +562,5 @@ implementation
 
   default async event uint16_t CSMABackoff.congestion(message_t *m) { 
     return (call Random.rand16() & 0xF) + 1;
-    //return (((call Random.rand16() & 0x3)) + 1) << 10;
   }
 }
