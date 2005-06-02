@@ -1,4 +1,4 @@
-/* $Id: CC1000ControlM.nc,v 1.1.2.1 2005-05-10 20:53:05 idgay Exp $
+/* $Id: CC1000ControlM.nc,v 1.1.2.2 2005-06-02 22:20:14 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -28,7 +28,7 @@
  */
 /**
  * @author Philip Buonadonna, Jaein Jeong
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  */
 
 /**
@@ -43,13 +43,14 @@ module CC1000ControlM {
     interface CC1000Control;
   }
   uses {
-    interface HPLCC1000;
+    interface HPLCC1000 as CC;
   }
 }
 implementation
 {
-  uint32_t gCurrentChannel;
-  uint8_t gCurrentParameters[31];
+  uint8_t ccParameters[CC1K_PLL + 1];
+  uint8_t matchRegister;
+  uint8_t txCurrent;
 
   enum {
     IF = 150000,
@@ -87,79 +88,53 @@ implementation
 			       0x39C,
 			       0x3E3};
   
-  /************************************************************/
-  /* Function: chipcon_cal                                    */
-  /* Description: places the chipcon radio in calibrate mode  */
-  /*                                                          */
-  /************************************************************/
+  void calibrateNow() {
+    // start cal
+    call CC.write(CC1K_CAL,
+		  1 << CC1K_CAL_START |
+		  1 << CC1K_CAL_WAIT |
+		  6 << CC1K_CAL_ITERATE);
+    while ((call CC.read(CC1K_CAL) & 1 << CC1K_CAL_COMPLETE) == 0)
+      ;
 
-  void chipcon_cal() {
-    call HPLCC1000.write(CC1K_PA_POW,0x00);  // turn off rf amp
-    call HPLCC1000.write(CC1K_TEST4,0x3f);   // chip rate >= 38.4kb
+    //exit cal mode
+    call CC.write(CC1K_CAL, 1 << CC1K_CAL_WAIT | 6 << CC1K_CAL_ITERATE);
+  }
+
+  void calibrate() {
+    call CC.write(CC1K_PA_POW, 0x00);  // turn off rf amp
+    call CC.write(CC1K_TEST4, 0x3f);   // chip rate >= 38.4kb
 
     // RX - configure main freq A
-    call HPLCC1000.write(CC1K_MAIN,
-			 ((1<<CC1K_TX_PD) | (1<<CC1K_RESET_N)));
+    call CC.write(CC1K_MAIN, 1 << CC1K_TX_PD | 1 << CC1K_RESET_N);
     //uwait(2000);
 
-    // start cal
-    call HPLCC1000.write(CC1K_CAL,
-			 ((1<<CC1K_CAL_START) | 
-			  (1<<CC1K_CAL_WAIT) | (6<<CC1K_CAL_ITERATE)));
-#if 0
-    for (i=0;i<34;i++)  // need 34 ms delay
-      uwait(1000);
-#endif
-    while (((call HPLCC1000.read(CC1K_CAL)) & (1<<CC1K_CAL_COMPLETE)) == 0);
-
-    //exit cal mode
-    call HPLCC1000.write(CC1K_CAL,
-			 ((1<<CC1K_CAL_WAIT) | (6<<CC1K_CAL_ITERATE)));
-
+    calibrateNow();
 
     // TX - configure main freq B
-    call HPLCC1000.write(CC1K_MAIN,
-			 ((1<<CC1K_RXTX) | (1<<CC1K_F_REG) | (1<<CC1K_RX_PD) | 
-			  (1<<CC1K_RESET_N)));
+    call CC.write(CC1K_MAIN,
+		  1 << CC1K_RXTX |
+		  1 << CC1K_F_REG |
+		  1 << CC1K_RX_PD | 
+		  1 << CC1K_RESET_N);
     // Set TX current
-    call HPLCC1000.write(CC1K_CURRENT,gCurrentParameters[29]);
-    call HPLCC1000.write(CC1K_PA_POW,0x00);
+    call CC.write(CC1K_CURRENT, txCurrent);
+    call CC.write(CC1K_PA_POW, 0);
     //uwait(2000);
 
-    // start cal
-    call HPLCC1000.write(CC1K_CAL,
-			 ((1<<CC1K_CAL_START) | 
-			  (1<<CC1K_CAL_WAIT) | (6<<CC1K_CAL_ITERATE)));
-#if 0
-    for (i=0;i<28;i++)  // need 28 ms delay
-      uwait(1000);
-#endif
-    while (((call HPLCC1000.read(CC1K_CAL)) & (1<<CC1K_CAL_COMPLETE)) == 0);
-
-    //exit cal mode
-    call HPLCC1000.write(CC1K_CAL,
-			 ((1<<CC1K_CAL_WAIT) | (6<<CC1K_CAL_ITERATE)));
-    
+    calibrateNow();
     //uwait(200);
   }
 
   void cc1000SetFreq() {
     uint8_t i;
+
     // FREQA, FREQB, FSEP, CURRENT(RX), FRONT_END, POWER, PLL
-    for (i = 1;i < 0x0d;i++) {
-      call HPLCC1000.write(i,gCurrentParameters[i]);
-    }
+    for (i = CC1K_FREQ_2A; i <= CC1K_PLL; i++)
+      call CC.write(i, ccParameters[i]);
+    call CC.write(CC1K_MATCH, matchRegister);
 
-    // MATCH
-    call HPLCC1000.write(CC1K_MATCH,gCurrentParameters[0x12]);
-
-    chipcon_cal();
-  }
-
-  void cc1000SetModem() {
-    call HPLCC1000.write(CC1K_MODEM2,gCurrentParameters[0x0f]);
-    call HPLCC1000.write(CC1K_MODEM1,gCurrentParameters[0x10]);
-    call HPLCC1000.write(CC1K_MODEM0,gCurrentParameters[0x11]);
+    calibrate();
   }
 
   /*
@@ -188,155 +163,142 @@ implementation
     uint8_t RefDiv = 0;
     uint8_t i;
 
-    for (i = 0; i < 9; i++) {
+    for (i = 0; i < 9; i++)
+      {
+	uint32_t NRef = desiredFreq + IF;
+	uint32_t FRef = read_uint32_t(&fRefTbl[i]);
+	uint32_t Channel = 0;
+	uint32_t RXCalc = 0, TXCalc = 0;
+	int32_t  diff;
 
-      uint32_t NRef = ((desiredFreq + IF));
-      uint32_t FRef = read_uint32_t(&fRefTbl[i]);
-      uint32_t Channel = 0;
-      uint32_t RXCalc = 0, TXCalc = 0;
-      int32_t  diff;
+	NRef = ((desiredFreq + IF)  <<  2) / FRef;
+	if (NRef & 0x1)
+	  NRef++;
 
-      NRef = ((desiredFreq + IF) << 2) / FRef;
-      if (NRef & 0x1) {
- 	NRef++;
-      }
+	if (NRef & 0x2)
+	  {
+	    RXCalc = 16384 >> 1;
+	    Channel = FRef >> 1;
+	  }
 
-      if (NRef & 0x2) {
-	RXCalc = 16384 >> 1;
-	Channel = FRef >> 1;
-      }
+	NRef >>= 2;
 
-      NRef >>= 2;
-
-      RXCalc += (NRef * 16384) - 8192;
-      if ((RXCalc < FREQ_MIN) || (RXCalc > FREQ_MAX)) 
-	continue;
+	RXCalc += (NRef * 16384) - 8192;
+	if ((RXCalc < FREQ_MIN) || (RXCalc > FREQ_MAX)) 
+	  continue;
     
-      TXCalc = RXCalc - read_uint16_t(&corTbl[i]);
-      if ((TXCalc < FREQ_MIN) || (TXCalc > FREQ_MAX)) 
-	continue;
+	TXCalc = RXCalc - read_uint16_t(&corTbl[i]);
+	if (TXCalc < FREQ_MIN || TXCalc > FREQ_MAX)
+	  continue;
 
-      Channel += (NRef * FRef);
-      Channel -= IF;
+	Channel += NRef * FRef;
+	Channel -= IF;
 
-      diff = Channel - desiredFreq;
-      if (diff < 0)
-	diff = 0 - diff;
+	diff = Channel - desiredFreq;
+	if (diff < 0)
+	  diff = -diff;
 
-      if (diff < Offset) {
-	RXFreq = RXCalc;
-	TXFreq = TXCalc;
-	ActualChannel = Channel;
-	FSep = read_uint16_t(&fSepTbl[i]);
-	RefDiv = i + 6;
-	Offset = diff;
+	if (diff < Offset)
+	  {
+	    RXFreq = RXCalc;
+	    TXFreq = TXCalc;
+	    ActualChannel = Channel;
+	    FSep = read_uint16_t(&fSepTbl[i]);
+	    RefDiv = i + 6;
+	    Offset = diff;
+	  }
       }
 
-    }
+    if (RefDiv != 0)
+      {
+	ccParameters[CC1K_FREQ_0A] = RXFreq;
+	ccParameters[CC1K_FREQ_1A] = RXFreq >> 8;
+	ccParameters[CC1K_FREQ_2A] = RXFreq >> 16;
 
-    if (RefDiv != 0) {
-      // FREQA
-      gCurrentParameters[0x3] = (uint8_t)((RXFreq) & 0xFF);  // LSB
-      gCurrentParameters[0x2] = (uint8_t)((RXFreq >> 8) & 0xFF);
-      gCurrentParameters[0x1] = (uint8_t)((RXFreq >> 16) & 0xFF);  // MSB
-      // FREQB
-      gCurrentParameters[0x6] = (uint8_t)((TXFreq) & 0xFF); // LSB
-      gCurrentParameters[0x5] = (uint8_t)((TXFreq >> 8) & 0xFF);
-      gCurrentParameters[0x4] = (uint8_t)((TXFreq >> 16) & 0xFF);  // MSB
-      // FSEP
-      gCurrentParameters[0x8] = (uint8_t)((FSep) & 0xFF);  // LSB
-      gCurrentParameters[0x7] = (uint8_t)((FSep >> 8) & 0xFF); //MSB
+	ccParameters[CC1K_FREQ_0B] = TXFreq;
+	ccParameters[CC1K_FREQ_1B] = TXFreq >> 8;
+	ccParameters[CC1K_FREQ_2B] = TXFreq >> 16;
 
-      if (ActualChannel < 500000000) {
-	if (ActualChannel < 400000000) {
-	// CURRENT (RX)
-	  gCurrentParameters[0x9] = ((8 << CC1K_VCO_CURRENT) | (1 << CC1K_LO_DRIVE));
-	// CURRENT (TX)
-	  gCurrentParameters[0x1d] = ((9 << CC1K_VCO_CURRENT) | (1 << CC1K_PA_DRIVE));
-	}
-	else {
-	// CURRENT (RX)
-	  gCurrentParameters[0x9] = ((4 << CC1K_VCO_CURRENT) | (1 << CC1K_LO_DRIVE));
-	// CURRENT (TX)
-	  gCurrentParameters[0x1d] = ((8 << CC1K_VCO_CURRENT) | (1 << CC1K_PA_DRIVE));
-	}
-	// FRONT_END
-	gCurrentParameters[0xa] = (1 << CC1K_IF_RSSI); 
-	// MATCH
-	gCurrentParameters[0x12] = (7 << CC1K_RX_MATCH);
+	ccParameters[CC1K_FSEP0] = FSep;
+	ccParameters[CC1K_FSEP1] = FSep >> 8;
+
+	// ccParameters[CC1K_CURRENT] is rx current, tx current is
+	// stored separately.
+	if (ActualChannel < 500000000)
+	  {
+	    if (ActualChannel < 400000000)
+	      {
+		ccParameters[CC1K_CURRENT] =
+		  8 << CC1K_VCO_CURRENT | 1 << CC1K_LO_DRIVE;
+		txCurrent = 9 << CC1K_VCO_CURRENT | 1 << CC1K_PA_DRIVE;
+	      }
+	    else
+	      {
+		ccParameters[CC1K_CURRENT] =
+		  4 << CC1K_VCO_CURRENT | 1 << CC1K_LO_DRIVE;
+		txCurrent = 8 << CC1K_VCO_CURRENT | 1 << CC1K_PA_DRIVE;
+	      }
+	    ccParameters[CC1K_FRONT_END] = 1 << CC1K_IF_RSSI;
+	    matchRegister = 7 << CC1K_RX_MATCH;
+	  }
+	else
+	  {
+	    ccParameters[CC1K_CURRENT] =
+	      8 << CC1K_VCO_CURRENT | 3 << CC1K_LO_DRIVE;
+	    txCurrent = 15 << CC1K_VCO_CURRENT | 3 << CC1K_PA_DRIVE;
+
+	    ccParameters[CC1K_FRONT_END] =
+	      1 << CC1K_BUF_CURRENT | 2 << CC1K_LNA_CURRENT | 
+	      1 << CC1K_IF_RSSI;
+	    matchRegister = 2 << CC1K_RX_MATCH; // datasheet says to use 1...
+	  }
+	ccParameters[CC1K_PLL] = RefDiv << CC1K_REFDIV;
       }
-      else {
-	// CURRENT (RX)
-	  gCurrentParameters[0x9] = ((8 << CC1K_VCO_CURRENT) | (3 << CC1K_LO_DRIVE));
-	// CURRENT (TX)
-	  gCurrentParameters[0x1d] = ((15 << CC1K_VCO_CURRENT) | (3 << CC1K_PA_DRIVE));
 
-	// FRONT_END
-	gCurrentParameters[0xa] = ((1<<CC1K_BUF_CURRENT) | (2<<CC1K_LNA_CURRENT) | 
-				 (1<<CC1K_IF_RSSI));
-	// MATCH
-	gCurrentParameters[0x12] = (2 << CC1K_RX_MATCH);
-
-      }
-      // PLL
-      gCurrentParameters[0xc] = (RefDiv << CC1K_REFDIV);
-    }
-
-    gCurrentChannel = ActualChannel;
     return ActualChannel;
   }
 
   command void CC1000Control.init() {
-    call HPLCC1000.init();
+    call CC.init();
 
     // wake up xtal and reset unit
-    call HPLCC1000.write(CC1K_MAIN,
-			  ((1<<CC1K_RX_PD) | (1<<CC1K_TX_PD) | 
-			   (1<<CC1K_FS_PD) | (1<<CC1K_BIAS_PD))); 
+    call CC.write(CC1K_MAIN,
+		  1 << CC1K_RX_PD | 1 << CC1K_TX_PD | 
+		  1 << CC1K_FS_PD | 1 << CC1K_BIAS_PD); 
     // clear reset.
-    call HPLCC1000.write(CC1K_MAIN,
-			  ((1<<CC1K_RX_PD) | (1<<CC1K_TX_PD) | 
-			   (1<<CC1K_FS_PD) | (1<<CC1K_BIAS_PD) |
-			   (1<<CC1K_RESET_N))); 
+    call CC.write(CC1K_MAIN,
+		  1 << CC1K_RX_PD | 1 << CC1K_TX_PD | 
+		  1 << CC1K_FS_PD | 1 << CC1K_BIAS_PD |
+		  1 << CC1K_RESET_N); 
     // reset wait time
     uwait(2000);        
 
     // Set default parameter values
-    // POWER 0dbm
-    gCurrentParameters[0xb] = ((8 << CC1K_PA_HIGHPOWER) | (0 << CC1K_PA_LOWPOWER)); 
-    call HPLCC1000.write(CC1K_PA_POW, gCurrentParameters[0xb]);
+    // POWER: 0dbm (~900MHz), 6dbm (~430MHz)
+    ccParameters[CC1K_PA_POW] = 8 << CC1K_PA_HIGHPOWER | 0 << CC1K_PA_LOWPOWER;
+    call CC.write(CC1K_PA_POW, ccParameters[CC1K_PA_POW]);
 
-    // LOCK Manchester Violation default
-    gCurrentParameters[0xd] = (9 << CC1K_LOCK_SELECT);
-    call HPLCC1000.write(CC1K_LOCK_SELECT, gCurrentParameters[0xd]);
+    // select Manchester Violation for CHP_OUT
+    call CC.write(CC1K_LOCK_SELECT, 9 << CC1K_LOCK_SELECT);
 
     // Default modem values = 19.2 Kbps (38.4 kBaud), Manchester encoded
-    // MODEM2
-    gCurrentParameters[0xf] = 0;
-    //call HPLCC1000.write(CC1K_MODEM2,gCurrentParameters[0xf]);
-    // MODEM1
-    gCurrentParameters[0x10] = ((3<<CC1K_MLIMIT) | (1<<CC1K_LOCK_AVG_MODE) | 
-				(3<<CC1K_SETTLING) | (1<<CC1K_MODEM_RESET_N));
-    //call HPLCC1000.write(CC1K_MODEM1,gCurrentParameters[0x10]);
-    // MODEM0
-    gCurrentParameters[0x11] = ((5<<CC1K_BAUDRATE) | (1<<CC1K_DATA_FORMAT) | 
-				(1<<CC1K_XOSC_FREQ));
-    //call HPLCC1000.write(CC1K_MODEM0,gCurrentParameters[0x11]);
+    call CC.write(CC1K_MODEM2, 0);
+    call CC.write(CC1K_MODEM1, 
+		  3 << CC1K_MLIMIT |
+		  1 << CC1K_LOCK_AVG_MODE | 
+		  3 << CC1K_SETTLING |
+		  1 << CC1K_MODEM_RESET_N);
+    call CC.write(CC1K_MODEM0, 
+		  5 << CC1K_BAUDRATE |
+		  1 << CC1K_DATA_FORMAT | 
+		  1 << CC1K_XOSC_FREQ);
 
-    cc1000SetModem();
-    // FSCTRL
-    gCurrentParameters[0x13] = (1 << CC1K_FS_RESET_N);
-    call HPLCC1000.write(CC1K_FSCTRL,gCurrentParameters[0x13]);
+    call CC.write(CC1K_FSCTRL, 1 << CC1K_FS_RESET_N);
 
-    // HIGH Side LO
-    gCurrentParameters[0x1e] = TRUE;
-
-
-    // Program registers w/ default freq and calibrate
 #ifdef CC1K_DEF_FREQ
     call CC1000Control.tuneManual(CC1K_DEF_FREQ);
 #else
-    call CC1000Control.tunePreset(CC1K_DEF_PRESET);     // go to default tune frequency
+    call CC1000Control.tunePreset(CC1K_DEF_PRESET);
 #endif
   }
 
@@ -345,10 +307,9 @@ implementation
   command void CC1000Control.tunePreset(uint8_t freq) {
     int i;
 
-    for (i=1;i < 31 /*0x14*/;i++) {
-      //call HPLCC1000.write(i,PRG_RDB(&CC1K_Params[freq][i]));
-      gCurrentParameters[i] = read_uint8_t(&CC1K_Params[freq][i]);
-    }
+    for (i = CC1K_FREQ_2A; i <= CC1K_PLL; i++)
+      ccParameters[i] = read_uint8_t(&CC1K_Params[freq][i]);
+    matchRegister = read_uint8_t(&CC1K_Params[freq][CC1K_MATCH]);
     cc1000SetFreq();
   }
 
@@ -364,41 +325,39 @@ implementation
 
   async command void CC1000Control.txMode() {
     // MAIN register to TX mode
-    call HPLCC1000.write(CC1K_MAIN,
-			  ((1<<CC1K_RXTX) | (1<<CC1K_F_REG) | (1<<CC1K_RX_PD) | 
-			   (1<<CC1K_RESET_N)));
+    call CC.write(CC1K_MAIN,
+			  ((1 << CC1K_RXTX) | (1 << CC1K_F_REG) | (1 << CC1K_RX_PD) | 
+			   (1 << CC1K_RESET_N)));
     // Set the TX mode VCO Current
-    call HPLCC1000.write(CC1K_CURRENT,gCurrentParameters[29]);
+    call CC.write(CC1K_CURRENT, txCurrent);
     uwait(250);
-    call HPLCC1000.write(CC1K_PA_POW,gCurrentParameters[0xb] /*rfpower*/);
+    call CC.write(CC1K_PA_POW, ccParameters[CC1K_PA_POW]);
     uwait(20);
   }
 
   async command void CC1000Control.rxMode() {
     // MAIN register to RX mode
     // Powerup Freqency Synthesizer and Receiver
-    call HPLCC1000.write(CC1K_CURRENT,gCurrentParameters[0x09]);
-    call HPLCC1000.write(CC1K_PA_POW,0x00); // turn off power amp
-    call HPLCC1000.write(CC1K_MAIN,
-			  ((1<<CC1K_TX_PD) | (1<<CC1K_RESET_N)));
-    // Sex the RX mode VCO Current
+    call CC.write(CC1K_CURRENT, ccParameters[CC1K_CURRENT]);
+    call CC.write(CC1K_PA_POW, 0); // turn off power amp
+    call CC.write(CC1K_MAIN, 1 << CC1K_TX_PD | 1 << CC1K_RESET_N);
     uwait(125);
   }
 
   async command void CC1000Control.biasOff() {
     // MAIN register to SLEEP mode
-    call HPLCC1000.write(CC1K_MAIN,
-			  ((1<<CC1K_RX_PD) | (1<<CC1K_TX_PD) | 
-			   (1<<CC1K_FS_PD) | (1<<CC1K_BIAS_PD) |
-			   (1<<CC1K_RESET_N)));
+    call CC.write(CC1K_MAIN,
+			  ((1 << CC1K_RX_PD) | (1 << CC1K_TX_PD) | 
+			   (1 << CC1K_FS_PD) | (1 << CC1K_BIAS_PD) |
+			   (1 << CC1K_RESET_N)));
   }
 
   async command void CC1000Control.biasOn() {
     //call CC1000Control.RxMode();
-    call HPLCC1000.write(CC1K_MAIN,
-			  ((1<<CC1K_RX_PD) | (1<<CC1K_TX_PD) | 
-			   (1<<CC1K_FS_PD) | 
-			   (1<<CC1K_RESET_N)));
+    call CC.write(CC1K_MAIN,
+			  ((1 << CC1K_RX_PD) | (1 << CC1K_TX_PD) | 
+			   (1 << CC1K_FS_PD) | 
+			   (1 << CC1K_RESET_N)));
     
     //uwait(200 /*500*/);
   }
@@ -406,20 +365,20 @@ implementation
 
   async command void CC1000Control.off() {
     // MAIN register to power down mode. Shut everything off
-    call HPLCC1000.write(CC1K_MAIN,
-			  ((1<<CC1K_RX_PD) | (1<<CC1K_TX_PD) | 
-			   (1<<CC1K_FS_PD) | (1<<CC1K_CORE_PD) | (1<<CC1K_BIAS_PD) |
-			   (1<<CC1K_RESET_N)));
+    call CC.write(CC1K_MAIN,
+			  ((1 << CC1K_RX_PD) | (1 << CC1K_TX_PD) | 
+			   (1 << CC1K_FS_PD) | (1 << CC1K_CORE_PD) | (1 << CC1K_BIAS_PD) |
+			   (1 << CC1K_RESET_N)));
 
-    call HPLCC1000.write(CC1K_PA_POW,0x00);  // turn off rf amp
+    call CC.write(CC1K_PA_POW,0x00);  // turn off rf amp
   }
 
   async command void CC1000Control.on() {
     // wake up xtal osc
-    call HPLCC1000.write(CC1K_MAIN,
-			 ((1<<CC1K_RX_PD) | (1<<CC1K_TX_PD) | 
-			  (1<<CC1K_FS_PD) | (1<<CC1K_BIAS_PD) |
-			  (1<<CC1K_RESET_N)));
+    call CC.write(CC1K_MAIN,
+			 ((1 << CC1K_RX_PD) | (1 << CC1K_TX_PD) | 
+			  (1 << CC1K_FS_PD) | (1 << CC1K_BIAS_PD) |
+			  (1 << CC1K_RESET_N)));
 
     //uwait(2000);
     //call CC1000Control.RxMode();
@@ -427,29 +386,25 @@ implementation
 
 
   command void CC1000Control.setRFPower(uint8_t power) {
-    gCurrentParameters[0xb] = power;
-    //call HPLCC1000.write(CC1K_PA_POW,rfpower); // Set power amp value
+    ccParameters[CC1K_PA_POW] = power;
   }
 
   command uint8_t CC1000Control.getRFPower() {
-    return gCurrentParameters[0xb];
+    return ccParameters[CC1K_PA_POW];
   }
 
-  command void CC1000Control.selectLock(uint8_t Value) {
-    //LockVal = Value;
-    gCurrentParameters[0xd] = (Value << CC1K_LOCK_SELECT);
-    call HPLCC1000.write(CC1K_LOCK,(Value << CC1K_LOCK_SELECT));
+  command void CC1000Control.selectLock(uint8_t fn) {
+    // Select function of CHP_OUT pin (readable via getLock)
+    call CC.write(CC1K_LOCK, fn << CC1K_LOCK_SELECT);
   }
 
   command uint8_t CC1000Control.getLock() {
-    uint8_t retVal;
-    retVal = (uint8_t)call HPLCC1000.getLOCK(); 
-    return retVal;
+    return call CC.getLOCK(); 
   }
 
   command bool CC1000Control.getLOStatus() {
-    return gCurrentParameters[0x1e];
+    // We use a high-side LO (local oscillator) frequency -> data will be
+    // inverted. See cc1000ComputeFreq and CC1000 datasheet p.23.
+    return TRUE;
   }
 }
-
-
