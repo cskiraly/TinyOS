@@ -1,4 +1,4 @@
-// $Id: CC1000Const.h,v 1.1.2.1 2005-05-10 20:53:05 idgay Exp $
+// $Id: CC1000Const.h,v 1.1.2.2 2005-06-02 22:20:14 idgay Exp $
 
 /* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */ 
 /*									tab:4
@@ -272,8 +272,7 @@ static const_uint8_t CC1K_LPL_SleepPreamble[CC1K_LPL_STATES] = {
     8
 };
 
-
-static const_uint8_t CC1K_Params[6][31] = {
+static const_uint8_t CC1K_Params[6][19] = {
   // (0) 433.002 MHz channel, 19.2 Kbps data, Manchester Encoding, High Side LO
   { // MAIN   0x00
     0x31,
@@ -283,41 +282,29 @@ static const_uint8_t CC1K_Params[6][31] = {
     0x57,0xf6,0x85,    //XBOW
     // FSEP1, FSEP0     0x07-0x08
     0X03,0x55,
-    // CURRENT (RX MODE VALUE)   0x09 (also see below)
-    ((4<<CC1K_VCO_CURRENT) | (1<<CC1K_LO_DRIVE)),	
+    // CURRENT RX MODE VALUE   0x09 also see below
+    4 << CC1K_VCO_CURRENT | 1 << CC1K_LO_DRIVE,	
     // FRONT_END  0x0a
-    ((1<<CC1K_IF_RSSI)),
+    1 << CC1K_IF_RSSI,
     // PA_POW  0x0b
-    ((0x0<<CC1K_PA_HIGHPOWER) | (0xf<<CC1K_PA_LOWPOWER)), 
+    0x0 << CC1K_PA_HIGHPOWER | 0xf << CC1K_PA_LOWPOWER, 
     // PLL  0x0c
-    ((12<<CC1K_REFDIV)),		
+    12 << CC1K_REFDIV,		
     // LOCK  0x0d
-    ((0xe<<CC1K_LOCK_SELECT)),
+    0xe << CC1K_LOCK_SELECT,
     // CAL  0x0e
-    ((1<<CC1K_CAL_WAIT) | (6<<CC1K_CAL_ITERATE)),	
+    1 << CC1K_CAL_WAIT | 6 << CC1K_CAL_ITERATE,	
     // MODEM2  0x0f
-    ((0<<CC1K_PEAKDETECT) | (28<<CC1K_PEAK_LEVEL_OFFSET)),
+    0 << CC1K_PEAKDETECT | 28 << CC1K_PEAK_LEVEL_OFFSET,
     // MODEM1  0x10
-    ((3<<CC1K_MLIMIT) | (1<<CC1K_LOCK_AVG_MODE) | (CC1K_Settling<<CC1K_SETTLING) | (1<<CC1K_MODEM_RESET_N)), 
+    3 << CC1K_MLIMIT | 1 << CC1K_LOCK_AVG_MODE | CC1K_Settling << CC1K_SETTLING | 1 << CC1K_MODEM_RESET_N, 
     // MODEM0  0x11
-    ((5<<CC1K_BAUDRATE) | (1<<CC1K_DATA_FORMAT) | (1<<CC1K_XOSC_FREQ)),
+    5 << CC1K_BAUDRATE | 1 << CC1K_DATA_FORMAT | 1 << CC1K_XOSC_FREQ,
     // MATCH  0x12
-    ((0x7<<CC1K_RX_MATCH) | (0x0<<CC1K_TX_MATCH)),
-    // FSCTRL 0x13
-    ((1<<CC1K_FS_RESET_N)),			
-    // FSHAPE7 - FSHAPE1   0x14-0x1a
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,	
-    // FSDELAY   0x1b
-    0x00,	
-    // PRESCALER    0x1c
-    0x00,
-    // CURRENT (TX MODE VALUE)  0x1d
-    ((8<<CC1K_VCO_CURRENT) | (1<<CC1K_PA_DRIVE)),
-    // High side LO  0x1e (i.e. do we need to invert the data?)
-    TRUE
+    0x7 << CC1K_RX_MATCH | 0x0 << CC1K_TX_MATCH,
   },
 
-  // (1) 915.9988 MHz channel, 19.2 Kbps data, Manchester Encoding, High Side LO
+  // 1 915.9988 MHz channel, 19.2 Kbps data, Manchester Encoding, High Side LO
   { // MAIN   0x00 
     0x31,
     // FREQ2A,FREQ1A,FREQ0A  0x01-0x03
@@ -326,53 +313,38 @@ static const_uint8_t CC1K_Params[6][31] = {
     0x7b,0xf9,0xae,					
     // FSEP1, FSEP0     0x07-0x8
     0x02,0x38,
-    // CURRENT (RX MODE VALUE)   0x09 (also see below)
-    ((8<<CC1K_VCO_CURRENT) | (3<<CC1K_LO_DRIVE)),
+    // CURRENT RX MODE VALUE   0x09 also see below
+    8 << CC1K_VCO_CURRENT | 3 << CC1K_LO_DRIVE,
     //0x8C,	
     // FRONT_END  0x0a
-    ((1<<CC1K_BUF_CURRENT) | (2<<CC1K_LNA_CURRENT) | (1<<CC1K_IF_RSSI)),
+    1 << CC1K_BUF_CURRENT | 2 << CC1K_LNA_CURRENT | 1 << CC1K_IF_RSSI,
     //0x32,
     // PA_POW  0x0b
-    ((0x8<<CC1K_PA_HIGHPOWER) | (0x0<<CC1K_PA_LOWPOWER)), 
+    0x8 << CC1K_PA_HIGHPOWER | 0x0 << CC1K_PA_LOWPOWER, 
     //0xff,
     // PLL  0xc
-    ((8<<CC1K_REFDIV)),		
+    8 << CC1K_REFDIV,		
     //0x40,
     // LOCK  0xd
-    ((0x1<<CC1K_LOCK_SELECT)),
+    0x1 << CC1K_LOCK_SELECT,
     //0x10,
     // CAL  0xe
-    ((1<<CC1K_CAL_WAIT) | (6<<CC1K_CAL_ITERATE)),	
+    1 << CC1K_CAL_WAIT | 6 << CC1K_CAL_ITERATE,	
     //0x26,
     // MODEM2  0xf
-    ((1<<CC1K_PEAKDETECT) | (33<<CC1K_PEAK_LEVEL_OFFSET)),
+    1 << CC1K_PEAKDETECT | 33 << CC1K_PEAK_LEVEL_OFFSET,
     //0xA1,
     // MODEM1  0x10
-    ((3<<CC1K_MLIMIT) | (1<<CC1K_LOCK_AVG_MODE) | (CC1K_Settling<<CC1K_SETTLING) | (1<<CC1K_MODEM_RESET_N)), 
+    3 << CC1K_MLIMIT | 1 << CC1K_LOCK_AVG_MODE | CC1K_Settling << CC1K_SETTLING | 1 << CC1K_MODEM_RESET_N, 
     //0x6f, 
     // MODEM0  0x11
-    ((5<<CC1K_BAUDRATE) | (1<<CC1K_DATA_FORMAT) | (1<<CC1K_XOSC_FREQ)),
+    5 << CC1K_BAUDRATE | 1 << CC1K_DATA_FORMAT | 1 << CC1K_XOSC_FREQ,
     //0x55,
     // MATCH 0x12
-    ((0x1<<CC1K_RX_MATCH) | (0x0<<CC1K_TX_MATCH)),
-    //0x10,
-    // FSCTRL  0x13
-    ((1<<CC1K_FS_RESET_N)),			
-    //0x01,
-    // FSHAPE7 - FSHAPE1   0x14..0x1a
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,	
-    // FSDELAY   0x1b
-    0x00,	
-    // PRESCALER    0x1c
-    0x00,
-    // CURRENT (TX MODE VALUE)  0x1d
-    ((15<<CC1K_VCO_CURRENT) | (3<<CC1K_PA_DRIVE)),
-    //0xf3,
-    // High side LO  0x1e (i.e. do we need to invert the data?)
-    TRUE
+    0x1 << CC1K_RX_MATCH | 0x0 << CC1K_TX_MATCH,
   },
 
-  // (2) 434.845200 MHz channel, 19.2 Kbps data, Manchester Encoding, High Side LO
+  // 2 434.845200 MHz channel, 19.2 Kbps data, Manchester Encoding, High Side LO
   { // MAIN   0x00
     0x31,
     // FREQ2A,FREQ1A,FREQ0A  0x01-0x03
@@ -381,42 +353,30 @@ static const_uint8_t CC1K_Params[6][31] = {
     0x50,0xf7,0x4F,    //XBOW
     // FSEP1, FSEP0     0x07-0x08
     0X03,0x0E,
-    // CURRENT (RX MODE VALUE)   0x09 (also see below)
-    ((4<<CC1K_VCO_CURRENT) | (1<<CC1K_LO_DRIVE)),	
+    // CURRENT RX MODE VALUE   0x09 also see below
+    4 << CC1K_VCO_CURRENT | 1 << CC1K_LO_DRIVE,	
     // FRONT_END  0x0a
-    ((1<<CC1K_IF_RSSI)),
+    1 << CC1K_IF_RSSI,
     // PA_POW  0x0b
-    ((0x0<<CC1K_PA_HIGHPOWER) | (0xf<<CC1K_PA_LOWPOWER)), 
+    0x0 << CC1K_PA_HIGHPOWER | 0xf << CC1K_PA_LOWPOWER, 
     // PLL  0x0c
-    ((11<<CC1K_REFDIV)),		
+    11 << CC1K_REFDIV,		
     // LOCK  0x0d
-    ((0xe<<CC1K_LOCK_SELECT)),
+    0xe << CC1K_LOCK_SELECT,
     // CAL  0x0e
-    ((1<<CC1K_CAL_WAIT) | (6<<CC1K_CAL_ITERATE)),	
+    1 << CC1K_CAL_WAIT | 6 << CC1K_CAL_ITERATE,	
     // MODEM2  0x0f
-    ((1<<CC1K_PEAKDETECT) | (33<<CC1K_PEAK_LEVEL_OFFSET)),
+    1 << CC1K_PEAKDETECT | 33 << CC1K_PEAK_LEVEL_OFFSET,
     // MODEM1  0x10
-    ((3<<CC1K_MLIMIT) | (1<<CC1K_LOCK_AVG_MODE) | (CC1K_Settling<<CC1K_SETTLING) | (1<<CC1K_MODEM_RESET_N)), 
+    3 << CC1K_MLIMIT | 1 << CC1K_LOCK_AVG_MODE | CC1K_Settling << CC1K_SETTLING | 1 << CC1K_MODEM_RESET_N, 
     // MODEM0  0x11
-    ((5<<CC1K_BAUDRATE) | (1<<CC1K_DATA_FORMAT) | (1<<CC1K_XOSC_FREQ)),
+    5 << CC1K_BAUDRATE | 1 << CC1K_DATA_FORMAT | 1 << CC1K_XOSC_FREQ,
     // MATCH  0x12
-    ((0x7<<CC1K_RX_MATCH) | (0x0<<CC1K_TX_MATCH)),
-    // FSCTRL 0x13
-    ((1<<CC1K_FS_RESET_N)),			
-    // FSHAPE7 - FSHAPE1   0x14-0x1a
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,	
-    // FSDELAY   0x1b
-    0x00,	
-    // PRESCALER    0x1c
-    0x00,
-    // CURRENT (TX MODE VALUE)  0x1d
-    ((8<<CC1K_VCO_CURRENT) | (1<<CC1K_PA_DRIVE)),
-    // High side LO  0x1e (i.e. do we need to invert the data?)
-    TRUE
+    0x7 << CC1K_RX_MATCH | 0x0 << CC1K_TX_MATCH,
   },
 
  
-  // (3) 914.077 MHz channel, 19.2 Kbps data, Manchester Encoding, High Side LO
+  // 3 914.077 MHz channel, 19.2 Kbps data, Manchester Encoding, High Side LO
   { // MAIN   0x00 
     0x31,
     // FREQ2A,FREQ1A,FREQ0A  0x01-0x03
@@ -425,53 +385,38 @@ static const_uint8_t CC1K_Params[6][31] = {
     0x5c,0xdb,0x42,					
     // FSEP1, FSEP0     0x07-0x8
     0x01,0xAA,
-    // CURRENT (RX MODE VALUE)   0x09 (also see below)
-    ((8<<CC1K_VCO_CURRENT) | (3<<CC1K_LO_DRIVE)),
+    // CURRENT RX MODE VALUE   0x09 also see below
+    8 << CC1K_VCO_CURRENT | 3 << CC1K_LO_DRIVE,
     //0x8C,	
     // FRONT_END  0x0a
-    ((1<<CC1K_BUF_CURRENT) | (2<<CC1K_LNA_CURRENT) | (1<<CC1K_IF_RSSI)),
+    1 << CC1K_BUF_CURRENT | 2 << CC1K_LNA_CURRENT | 1 << CC1K_IF_RSSI,
     //0x32,
     // PA_POW  0x0b
-    ((0x8<<CC1K_PA_HIGHPOWER) | (0x0<<CC1K_PA_LOWPOWER)), 
+    0x8 << CC1K_PA_HIGHPOWER | 0x0 << CC1K_PA_LOWPOWER, 
     //0xff,
     // PLL  0xc
-    ((6<<CC1K_REFDIV)),		
+    6 << CC1K_REFDIV,		
     //0x40,
     // LOCK  0xd
-    ((0x1<<CC1K_LOCK_SELECT)),
+    0x1 << CC1K_LOCK_SELECT,
     //0x10,
     // CAL  0xe
-    ((1<<CC1K_CAL_WAIT) | (6<<CC1K_CAL_ITERATE)),	
+    1 << CC1K_CAL_WAIT | 6 << CC1K_CAL_ITERATE,	
     //0x26,
     // MODEM2  0xf
-    ((1<<CC1K_PEAKDETECT) | (33<<CC1K_PEAK_LEVEL_OFFSET)),
+    1 << CC1K_PEAKDETECT | 33 << CC1K_PEAK_LEVEL_OFFSET,
     //0xA1,
     // MODEM1  0x10
-    ((3<<CC1K_MLIMIT) | (1<<CC1K_LOCK_AVG_MODE) | (CC1K_Settling<<CC1K_SETTLING) | (1<<CC1K_MODEM_RESET_N)), 
+    3 << CC1K_MLIMIT | 1 << CC1K_LOCK_AVG_MODE | CC1K_Settling << CC1K_SETTLING | 1 << CC1K_MODEM_RESET_N, 
     //0x6f, 
     // MODEM0  0x11
-    ((5<<CC1K_BAUDRATE) | (1<<CC1K_DATA_FORMAT) | (1<<CC1K_XOSC_FREQ)),
+    5 << CC1K_BAUDRATE | 1 << CC1K_DATA_FORMAT | 1 << CC1K_XOSC_FREQ,
     //0x55,
     // MATCH 0x12
-    ((0x1<<CC1K_RX_MATCH) | (0x0<<CC1K_TX_MATCH)),
-    //0x10,
-    // FSCTRL  0x13
-    ((1<<CC1K_FS_RESET_N)),			
-    //0x01,
-    // FSHAPE7 - FSHAPE1   0x14..0x1a
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,	
-    // FSDELAY   0x1b
-    0x00,	
-    // PRESCALER    0x1c
-    0x00,
-    // CURRENT (TX MODE VALUE)  0x1d
-    ((15<<CC1K_VCO_CURRENT) | (3<<CC1K_PA_DRIVE)),
-    //0xf3,
-    // High side LO  0x1e (i.e. do we need to invert the data?)
-    TRUE 
+    0x1 << CC1K_RX_MATCH | 0x0 << CC1K_TX_MATCH,
   },
 
-  // (4) 315.178985 MHz channel, 38.4 Kbps data, Manchester Encoding, High Side LO
+  // 4 315.178985 MHz channel, 38.4 Kbps data, Manchester Encoding, High Side LO
   { // MAIN   0x00
     0x31,
     // FREQ2A,FREQ1A,FREQ0A  0x01-0x03
@@ -480,41 +425,29 @@ static const_uint8_t CC1K_Params[6][31] = {
     0x45,0x55,0xBB,
     // FSEP1, FSEP0     0x07-0x08
     0X03,0x9C,
-    // CURRENT (RX MODE VALUE)   0x09 (also see below)
-    ((8<<CC1K_VCO_CURRENT) | (0<<CC1K_LO_DRIVE)),	
+    // CURRENT RX MODE VALUE   0x09 also see below
+    8 << CC1K_VCO_CURRENT | 0 << CC1K_LO_DRIVE,	
     // FRONT_END  0x0a
-    ((1<<CC1K_IF_RSSI)),
+    1 << CC1K_IF_RSSI,
     // PA_POW  0x0b
-    ((0x0<<CC1K_PA_HIGHPOWER) | (0xf<<CC1K_PA_LOWPOWER)), 
+    0x0 << CC1K_PA_HIGHPOWER | 0xf << CC1K_PA_LOWPOWER, 
     // PLL  0x0c
-    ((13<<CC1K_REFDIV)),		
+    13 << CC1K_REFDIV,		
     // LOCK  0x0d
-    ((0xe<<CC1K_LOCK_SELECT)),
+    0xe << CC1K_LOCK_SELECT,
     // CAL  0x0e
-    ((1<<CC1K_CAL_WAIT) | (6<<CC1K_CAL_ITERATE)),	
+    1 << CC1K_CAL_WAIT | 6 << CC1K_CAL_ITERATE,	
     // MODEM2  0x0f
-    ((1<<CC1K_PEAKDETECT) | (33<<CC1K_PEAK_LEVEL_OFFSET)),
+    1 << CC1K_PEAKDETECT | 33 << CC1K_PEAK_LEVEL_OFFSET,
     // MODEM1  0x10
-    ((3<<CC1K_MLIMIT) | (1<<CC1K_LOCK_AVG_MODE) | (CC1K_Settling<<CC1K_SETTLING) | (1<<CC1K_MODEM_RESET_N)), 
+    3 << CC1K_MLIMIT | 1 << CC1K_LOCK_AVG_MODE | CC1K_Settling << CC1K_SETTLING | 1 << CC1K_MODEM_RESET_N, 
     // MODEM0  0x11
-    ((5<<CC1K_BAUDRATE) | (1<<CC1K_DATA_FORMAT) | (0<<CC1K_XOSC_FREQ)),
+    5 << CC1K_BAUDRATE | 1 << CC1K_DATA_FORMAT | 0 << CC1K_XOSC_FREQ,
     // MATCH  0x12
-    ((0x7<<CC1K_RX_MATCH) | (0x0<<CC1K_TX_MATCH)),
-    // FSCTRL 0x13
-    ((1<<CC1K_FS_RESET_N)),			
-    // FSHAPE7 - FSHAPE1   0x14-0x1a
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,	
-    // FSDELAY   0x1b
-    0x00,	
-    // PRESCALER    0x1c
-    0x00,
-    // CURRENT (TX MODE VALUE)  0x1d
-    ((8<<CC1K_VCO_CURRENT) | (1<<CC1K_PA_DRIVE)),
-    // High side LO  0x1e (i.e. do we need to invert the data?)
-    TRUE
+    0x7 << CC1K_RX_MATCH | 0x0 << CC1K_TX_MATCH,
   },
 
-  // (5) Spare
+  // 5 Spare
   { // MAIN   0x00
     0x31,
     // FREQ2A,FREQ1A,FREQ0A  0x01-0x03
@@ -523,37 +456,25 @@ static const_uint8_t CC1K_Params[6][31] = {
     0x57,0xf6,0x85,    //XBOW
     // FSEP1, FSEP0     0x07-0x08
     0X03,0x55,
-    // CURRENT (RX MODE VALUE)   0x09 (also see below)
-    ((8<<CC1K_VCO_CURRENT) | (4<<CC1K_LO_DRIVE)),	
+    // CURRENT RX MODE VALUE   0x09 also see below
+    8 << CC1K_VCO_CURRENT | 4 << CC1K_LO_DRIVE,	
     // FRONT_END  0x0a
-    ((1<<CC1K_IF_RSSI)),
+    1 << CC1K_IF_RSSI,
     // PA_POW  0x0b
-    ((0x0<<CC1K_PA_HIGHPOWER) | (0xf<<CC1K_PA_LOWPOWER)), 
+    0x0 << CC1K_PA_HIGHPOWER | 0xf << CC1K_PA_LOWPOWER, 
     // PLL  0x0c
-    ((12<<CC1K_REFDIV)),		
+    12 << CC1K_REFDIV,		
     // LOCK  0x0d
-    ((0xe<<CC1K_LOCK_SELECT)),
+    0xe << CC1K_LOCK_SELECT,
     // CAL  0x0e
-    ((1<<CC1K_CAL_WAIT) | (6<<CC1K_CAL_ITERATE)),	
+    1 << CC1K_CAL_WAIT | 6 << CC1K_CAL_ITERATE,	
     // MODEM2  0x0f
-    ((1<<CC1K_PEAKDETECT) | (33<<CC1K_PEAK_LEVEL_OFFSET)),
+    1 << CC1K_PEAKDETECT | 33 << CC1K_PEAK_LEVEL_OFFSET,
     // MODEM1  0x10
-    ((3<<CC1K_MLIMIT) | (1<<CC1K_LOCK_AVG_MODE) | (CC1K_Settling<<CC1K_SETTLING) | (1<<CC1K_MODEM_RESET_N)),    // MODEM0  0x11
-    ((5<<CC1K_BAUDRATE) | (1<<CC1K_DATA_FORMAT) | (1<<CC1K_XOSC_FREQ)),
+    3 << CC1K_MLIMIT | 1 << CC1K_LOCK_AVG_MODE | CC1K_Settling << CC1K_SETTLING | 1 << CC1K_MODEM_RESET_N,    // MODEM0  0x11
+    5 << CC1K_BAUDRATE | 1 << CC1K_DATA_FORMAT | 1 << CC1K_XOSC_FREQ,
     // MATCH  0x12
-    ((0x7<<CC1K_RX_MATCH) | (0x0<<CC1K_TX_MATCH)),
-    // FSCTRL 0x13
-    ((1<<CC1K_FS_RESET_N)),			
-    // FSHAPE7 - FSHAPE1   0x14-0x1a
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,	
-    // FSDELAY   0x1b
-    0x00,	
-    // PRESCALER    0x1c
-    0x00,
-    // CURRENT (TX MODE VALUE)  0x1d
-    ((8<<CC1K_VCO_CURRENT) | (1<<CC1K_PA_DRIVE)),
-    // High side LO  0x1e (i.e. do we need to invert the data?)
-    TRUE
+    0x7 << CC1K_RX_MATCH | 0x0 << CC1K_TX_MATCH,
   },
 };
 
