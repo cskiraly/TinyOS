@@ -1,4 +1,4 @@
-/* $Id: CC1000Control.nc,v 1.1.2.2 2005-06-02 22:55:37 idgay Exp $
+/* $Id: CC1000Control.nc,v 1.1.2.3 2005-06-02 23:19:36 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -28,7 +28,7 @@
  */
 /**
  * @author Philip Buonadonna, Jaein Jeong
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  */
 /**
  * CC1000 Radio Control interface.
@@ -64,7 +64,6 @@ interface CC1000Control
    * of '0' indicates that no frequency was computed and the radio was not
    * tuned.
    */
-
   command uint32_t tuneManual(uint32_t DesiredFreq);
 
   /**
@@ -84,7 +83,6 @@ interface CC1000Control
    *
    * @return SUCCESS if the radio was successfully switched to RX mode.
    */
-
   async command void rxMode();
 
   /**
@@ -94,7 +92,6 @@ interface CC1000Control
    *
    * @return SUCCESS when the bias powered is shutdown.
    */
-
   async command void coreOn();			
 
   /**
@@ -105,7 +102,6 @@ interface CC1000Control
    *
    * @return SUCCESS when bias power has been restored.
    */
-
   async command void biasOn();
 
   /**
@@ -117,9 +113,7 @@ interface CC1000Control
    * @param power A power index between 1 and 255.
    * 
    * @result SUCCESS if the radio power was adequately set.
-   *
    */
-
   command void setRFPower(uint8_t power);	
 
   /**
@@ -127,8 +121,7 @@ interface CC1000Control
    *
    * @result The power index value.
    */
-
-  command uint8_t  getRFPower();		
+  command uint8_t getRFPower();		
 
   /** 
    * Select the signal to monitor at the CHP_OUT pin of the CC1000.  See
@@ -137,20 +130,16 @@ interface CC1000Control
    * @param LockVal The index of the signal to monitor at the CHP_OUT pin
    * 
    * @result SUCCESS if the selected signal was programmed into the CC1000
-   *
    */
-
   command void selectLock(uint8_t LockVal); 
 
   /**
-   * Get the binary value from the CHP_OUT pin.  Analog signals cannot be read using
-   * function.
+   * Get the binary value from the CHP_OUT pin.  Analog signals cannot be
+   * read using function.
    *
    * @result 1 - Pin is high or 0 - Pin is low
-   *
    */
-
-  command uint8_t  getLock();
+  command uint8_t getLock();
 
   /**
    * Returns whether the present frequency set is using high-side LO
@@ -160,5 +149,5 @@ interface CC1000Control
    * @result TRUE if high-side LO injection is being used (i.e. data does NOT need to be inverted
    * at the receiver.
    */
-  command bool	   getLOStatus();		// Query if frequency set LO side. High side LO = TRUE
+  command bool getLOStatus();
 }

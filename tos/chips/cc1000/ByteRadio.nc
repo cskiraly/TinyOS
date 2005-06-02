@@ -1,14 +1,14 @@
 interface ByteRadio
 {
-  command void rts();
-  async event void cts();
-  async command void sendDone();
+  event void rts();
+  async command void cts();
+  async event void sendDone();
 
-  async event void setAck(bool on);
-  async event void setPreambleLength(uint16_t bytes);
-  async event uint16_t getPreambleLength();
+  async command void setAck(bool on);
+  async command void setPreambleLength(uint16_t bytes);
+  async command uint16_t getPreambleLength();
 
-  async event void cd();
-  async command void rxDone();
-  async command void rxAborted();
+  async command void cd();
+  async event void rxDone();
+  async event void rxAborted();
 }
