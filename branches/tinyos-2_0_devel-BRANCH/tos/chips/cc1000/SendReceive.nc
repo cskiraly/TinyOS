@@ -1,4 +1,4 @@
-// $Id: SendReceive.nc,v 1.1.2.1 2005-06-02 22:20:14 idgay Exp $
+// $Id: SendReceive.nc,v 1.1.2.2 2005-06-02 23:19:36 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -54,9 +54,9 @@ module SendReceive {
     interface Receive;
     interface RadioTimeStamping;
     interface Packet;
+    interface ByteRadio;
   }
   uses {
-    interface ByteRadio;
     //interface PowerManagement;
     interface CC1000Control;
     interface HPLCC1000Spi;
@@ -183,13 +183,16 @@ implementation
   }
 
   command error_t Init.init() {
-    if (call CC1000Control.getLOStatus())
-      atomic f.invert = TRUE;
+    call HPLCC1000Spi.initSlave();
     return SUCCESS;
   }
 
   command error_t StdControl.start() {
-    atomic f.txBusy = FALSE;
+    atomic 
+      {
+	f.txBusy = FALSE;
+	f.invert = call CC1000Control.getLOStatus();
+      }
     return SUCCESS;
   }
 
@@ -208,12 +211,12 @@ implementation
 	msg->header.length = len;
 	txBufPtr = msg;
       }
-    call ByteRadio.rts();
+    signal ByteRadio.rts();
 
     return SUCCESS;
   }
 
-  async event void ByteRadio.cts() {
+  async command void ByteRadio.cts() {
     enterTxPreambleState();
     call HPLCC1000Spi.writeByte(0xaa);
     call CC1000Control.txMode();
@@ -330,13 +333,13 @@ implementation
 
   void txDone() {
     post signalPacketSent();
-    call ByteRadio.sendDone();
+    signal ByteRadio.sendDone();
   }
 
   /* Receive */
   /* ------- */
 
-  async event void ByteRadio.cd() {
+  async command void ByteRadio.cd() {
     enterSyncState();
   }
 
@@ -356,7 +359,7 @@ implementation
 	if (pBuf) 
 	  rxBufPtr = pBuf;
 	enterInactiveState();
-	call ByteRadio.rxDone();
+	signal ByteRadio.rxDone();
       }
   }
 
@@ -430,7 +433,7 @@ implementation
     else // We didn't find it after a reasonable number of tries, so....
       {
 	enterInactiveState();
-	call ByteRadio.rxAborted();
+	signal ByteRadio.rxAborted();
       }
   }
 
@@ -451,7 +454,7 @@ implementation
       {
 	// The packet's screwed up, so just dump it
 	enterInactiveState();
-	call ByteRadio.rxDone();
+	signal ByteRadio.rxDone();
 	return;
       }
 
@@ -506,15 +509,15 @@ implementation
   /* Options */
   /*---------*/
 
-  async event void ByteRadio.setAck(bool on) {
+  async command void ByteRadio.setAck(bool on) {
     atomic f.ack = on;
   }
 
-  async event void ByteRadio.setPreambleLength(uint16_t bytes) {
+  async command void ByteRadio.setPreambleLength(uint16_t bytes) {
     atomic preambleLength = bytes;
   }
 
-  async event uint16_t ByteRadio.getPreambleLength() {
+  async command uint16_t ByteRadio.getPreambleLength() {
     atomic return preambleLength;
   }
 

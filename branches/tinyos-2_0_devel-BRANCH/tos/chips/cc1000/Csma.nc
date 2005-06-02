@@ -1,4 +1,4 @@
-// $Id: Csma.nc,v 1.1.2.3 2005-06-02 22:59:31 idgay Exp $
+// $Id: Csma.nc,v 1.1.2.4 2005-06-02 23:19:36 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -53,12 +53,11 @@ module Csma {
     interface CSMAControl;
     interface CSMABackoff;
     interface LowPowerListening;
-
-    interface ByteRadio;
   }
   uses {
     interface Init as ByteRadioInit;
     interface StdControl as ByteRadioControl;
+    interface ByteRadio;
 
     //interface PowerManagement;
     interface CC1000Control;
@@ -217,11 +216,27 @@ implementation
 
   /* Low-power listening stuff */
   /*---------------------------*/
+
+  void radioOn() {
+    call CC1000Control.coreOn();
+    uwait(2000);
+    call CC1000Control.biasOn();
+    uwait(200);
+    call CC1000Control.rxMode();
+    call HPLCC1000Spi.rxMode();
+    call HPLCC1000Spi.enableIntr();
+  }
+
+  void radioOff() {
+    call HPLCC1000Spi.disableIntr();
+    call CC1000Control.off();
+  }
+
   void setPreambleLength() {
     uint16_t len =
       (uint16_t)read_uint8_t(&CC1K_LPL_PreambleLength[lplTxPower * 2]) << 8
       | read_uint8_t(&CC1K_LPL_PreambleLength[lplTxPower * 2 + 1]);
-    signal ByteRadio.setPreambleLength(len);
+    call ByteRadio.setPreambleLength(len);
   }
 
   void setSleepTime() {
@@ -232,32 +247,28 @@ implementation
 
   void lplSleep() {
     enterPowerDownState();
-    call HPLCC1000Spi.disableIntr();
-    call CC1000Control.off();
+    radioOff();
     setWakeup();
   }
 
-  void lplSendWakeup() {
-    enterIdleStateSetWakeup();
-    call CC1000Control.coreOn();
-    uwait(2000);
-    call CC1000Control.biasOn();
-    uwait(200);
-    call CC1000Control.rxMode();
-    call HPLCC1000Spi.rxMode();
-    call HPLCC1000Spi.enableIntr();
-  }
-
   task void sleepCheck() {
+    bool turnOn = FALSE;
+
     atomic
       if (f.txPending)
 	{
 	  if (radioState == PULSECHECK_STATE || radioState == POWERDOWN_STATE)
-	    lplSendWakeup();
+	    {
+	      enterIdleStateSetWakeup();
+	      turnOn = TRUE;
+	    }
 	}
       else if (lplRxPower > 0 && call CC1000Squelch.settled() &&
 	       (radioState == IDLE_STATE || radioState == PULSECHECK_STATE))
 	lplSleep();
+
+    if (turnOn)
+      radioOn();
   }
 
   task void adjustSquelch();
@@ -296,9 +307,8 @@ implementation
   }
 
   command error_t Init.init() {
-    call HPLCC1000Spi.initSlave();
-    call CC1000Control.init();
     call ByteRadioInit.init();
+    call CC1000Control.init();
 
     return SUCCESS;
   }
@@ -327,13 +337,7 @@ implementation
       else
 	return SUCCESS;
 
-    call CC1000Control.coreOn();
-    uwait(2000);
-    call CC1000Control.biasOn();
-    uwait(200);
-    call HPLCC1000Spi.rxMode();
-    call CC1000Control.rxMode();
-    call HPLCC1000Spi.enableIntr();
+    radioOn();
 
     post startStopDone();
 
@@ -345,15 +349,14 @@ implementation
       {
 	call ByteRadioControl.stop();
 	enterDisabledState();
-	call CC1000Control.off();
-	call HPLCC1000Spi.disableIntr();
+	radioOff();
       }
     call WakeupTimer.stop();
     post startStopDone();
     return SUCCESS;
   }
 
-  command void ByteRadio.rts() {
+  event void ByteRadio.rts() {
     atomic
       {
 	if (!f.ccaOff)
@@ -368,7 +371,7 @@ implementation
       }
   }
 
-  async command void ByteRadio.sendDone() {
+  async event void ByteRadio.sendDone() {
     f.txPending = FALSE;
     enterIdleStateSetWakeup();
   }
@@ -384,7 +387,7 @@ implementation
 	if (count > CC1K_ValidPrecursor)
 	  {
 	    enterRxState();
-	    signal ByteRadio.cd();
+	    call ByteRadio.cd();
 	  }
       }
     else if (f.txPending)
@@ -408,11 +411,11 @@ implementation
       }
   }
 
-  async command void ByteRadio.rxAborted() {
+  async event void ByteRadio.rxAborted() {
     enterIdleState();
   }
 
-  async command void ByteRadio.rxDone() {
+  async event void ByteRadio.rxDone() {
     enterIdleStateSetWakeup();
   }
 
@@ -457,7 +460,7 @@ implementation
     if (clearCount >= 1 || f.ccaOff)
       {
 	enterTxState();
-	signal ByteRadio.cts();
+	call ByteRadio.cts();
       }
     else if (count == CC1K_MaxRSSISamples)
       {
@@ -482,12 +485,12 @@ implementation
   /*---------*/
 
   async command error_t CSMAControl.enableAck() {
-    signal ByteRadio.setAck(TRUE);
+    call ByteRadio.setAck(TRUE);
     return SUCCESS;
   }
 
   async command error_t CSMAControl.disableAck() {
-    signal ByteRadio.setAck(FALSE);
+    call ByteRadio.setAck(FALSE);
     return SUCCESS;
   }
 
@@ -537,12 +540,12 @@ implementation
   }
 
   async command error_t LowPowerListening.setPreambleLength(uint16_t bytes) {
-    signal ByteRadio.setPreambleLength(bytes);
+    call ByteRadio.setPreambleLength(bytes);
     return SUCCESS;
   }
 
   async command uint16_t LowPowerListening.getPreambleLength() {
-    return signal ByteRadio.getPreambleLength();
+    return call ByteRadio.getPreambleLength();
   }
 
   async command error_t LowPowerListening.setCheckInterval(uint16_t ms) {

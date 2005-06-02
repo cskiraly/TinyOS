@@ -1,4 +1,4 @@
-/* $Id: CSMARadioC.nc,v 1.1.2.7 2005-06-02 22:20:14 idgay Exp $
+/* $Id: CSMARadioC.nc,v 1.1.2.8 2005-06-02 23:19:36 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -29,7 +29,7 @@
 /**
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.7 $
+ * Revision:  $Revision: 1.1.2.8 $
  */
 
 #include "CC1000Const.h"
@@ -82,7 +82,7 @@ implementation {
   //Csma.PowerManagement ->HPLPowerManagementM.PowerManagement;
   //HPLSpiM.PowerManagement ->HPLPowerManagementM.PowerManagement;
 
-  Csma.ByteRadio <- SendReceive;
+  Csma.ByteRadio -> SendReceive;
   Csma.ByteRadioInit -> SendReceive;
   Csma.ByteRadioControl -> SendReceive;
 
