@@ -1,4 +1,4 @@
-/* $Id: CC1000Control.nc,v 1.1.2.1 2005-05-10 20:53:05 idgay Exp $
+/* $Id: CC1000Control.nc,v 1.1.2.2 2005-06-02 22:55:37 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -28,7 +28,7 @@
  */
 /**
  * @author Philip Buonadonna, Jaein Jeong
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  */
 /**
  * CC1000 Radio Control interface.
@@ -73,11 +73,6 @@ interface CC1000Control
   async command void off();
 
   /**
-   * Turn the CC1000 on
-   */
-  async command void on();
-
-  /**
    * Shift the CC1000 Radio into transmit mode.
    *
    * @return SUCCESS if the radio was successfully switched to TX mode.
@@ -100,7 +95,7 @@ interface CC1000Control
    * @return SUCCESS when the bias powered is shutdown.
    */
 
-  async command void biasOff();			
+  async command void coreOn();			
 
   /**
    * Turn the bias power on. This function must be followed by a call to

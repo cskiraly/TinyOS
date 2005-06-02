@@ -1,4 +1,4 @@
-/* $Id: CC1000ControlM.nc,v 1.1.2.2 2005-06-02 22:20:14 idgay Exp $
+/* $Id: CC1000ControlM.nc,v 1.1.2.3 2005-06-02 22:55:37 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -27,8 +27,10 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * @author Philip Buonadonna, Jaein Jeong
- * Revision:  $Revision: 1.1.2.2 $
+ * @author Philip Buonadonna
+ * @author Jaein Jeong
+ * @author David Gay
+ * Revision:  $Revision: 1.1.2.3 $
  */
 
 /**
@@ -107,7 +109,6 @@ implementation
 
     // RX - configure main freq A
     call CC.write(CC1K_MAIN, 1 << CC1K_TX_PD | 1 << CC1K_RESET_N);
-    //uwait(2000);
 
     calibrateNow();
 
@@ -120,10 +121,8 @@ implementation
     // Set TX current
     call CC.write(CC1K_CURRENT, txCurrent);
     call CC.write(CC1K_PA_POW, 0);
-    //uwait(2000);
 
     calibrateNow();
-    //uwait(200);
   }
 
   void cc1000SetFreq() {
@@ -266,11 +265,7 @@ implementation
 		  1 << CC1K_RX_PD | 1 << CC1K_TX_PD | 
 		  1 << CC1K_FS_PD | 1 << CC1K_BIAS_PD); 
     // clear reset.
-    call CC.write(CC1K_MAIN,
-		  1 << CC1K_RX_PD | 1 << CC1K_TX_PD | 
-		  1 << CC1K_FS_PD | 1 << CC1K_BIAS_PD |
-		  1 << CC1K_RESET_N); 
-    // reset wait time
+    call CC1000Control.coreOn();
     uwait(2000);        
 
     // Set default parameter values
@@ -300,6 +295,7 @@ implementation
 #else
     call CC1000Control.tunePreset(CC1K_DEF_PRESET);
 #endif
+    call CC1000Control.off();
   }
 
 
@@ -326,8 +322,10 @@ implementation
   async command void CC1000Control.txMode() {
     // MAIN register to TX mode
     call CC.write(CC1K_MAIN,
-			  ((1 << CC1K_RXTX) | (1 << CC1K_F_REG) | (1 << CC1K_RX_PD) | 
-			   (1 << CC1K_RESET_N)));
+		  1 << CC1K_RXTX |
+		  1 << CC1K_F_REG |
+		  1 << CC1K_RX_PD | 
+		  1 << CC1K_RESET_N);
     // Set the TX mode VCO Current
     call CC.write(CC1K_CURRENT, txCurrent);
     uwait(250);
@@ -344,46 +342,36 @@ implementation
     uwait(125);
   }
 
-  async command void CC1000Control.biasOff() {
+  async command void CC1000Control.coreOn() {
     // MAIN register to SLEEP mode
     call CC.write(CC1K_MAIN,
-			  ((1 << CC1K_RX_PD) | (1 << CC1K_TX_PD) | 
-			   (1 << CC1K_FS_PD) | (1 << CC1K_BIAS_PD) |
-			   (1 << CC1K_RESET_N)));
+		  1 << CC1K_RX_PD |
+		  1 << CC1K_TX_PD | 
+		  1 << CC1K_FS_PD |
+		  1 << CC1K_BIAS_PD |
+		  1 << CC1K_RESET_N);
   }
 
   async command void CC1000Control.biasOn() {
-    //call CC1000Control.RxMode();
     call CC.write(CC1K_MAIN,
-			  ((1 << CC1K_RX_PD) | (1 << CC1K_TX_PD) | 
-			   (1 << CC1K_FS_PD) | 
-			   (1 << CC1K_RESET_N)));
-    
-    //uwait(200 /*500*/);
+		  1 << CC1K_RX_PD |
+		  1 << CC1K_TX_PD | 
+		  1 << CC1K_FS_PD | 
+		  1 << CC1K_RESET_N);
   }
 
 
   async command void CC1000Control.off() {
     // MAIN register to power down mode. Shut everything off
     call CC.write(CC1K_MAIN,
-			  ((1 << CC1K_RX_PD) | (1 << CC1K_TX_PD) | 
-			   (1 << CC1K_FS_PD) | (1 << CC1K_CORE_PD) | (1 << CC1K_BIAS_PD) |
-			   (1 << CC1K_RESET_N)));
-
-    call CC.write(CC1K_PA_POW,0x00);  // turn off rf amp
+		  1 << CC1K_RX_PD |
+		  1 << CC1K_TX_PD | 
+		  1 << CC1K_FS_PD |
+		  1 << CC1K_CORE_PD |
+		  1 << CC1K_BIAS_PD |
+		  1 << CC1K_RESET_N);
+    call CC.write(CC1K_PA_POW, 0);  // turn off rf amp
   }
-
-  async command void CC1000Control.on() {
-    // wake up xtal osc
-    call CC.write(CC1K_MAIN,
-			 ((1 << CC1K_RX_PD) | (1 << CC1K_TX_PD) | 
-			  (1 << CC1K_FS_PD) | (1 << CC1K_BIAS_PD) |
-			  (1 << CC1K_RESET_N)));
-
-    //uwait(2000);
-    //call CC1000Control.RxMode();
-  }
-
 
   command void CC1000Control.setRFPower(uint8_t power) {
     ccParameters[CC1K_PA_POW] = power;

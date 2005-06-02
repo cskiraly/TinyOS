@@ -1,4 +1,4 @@
-// $Id: Csma.nc,v 1.1.2.1 2005-06-02 22:20:14 idgay Exp $
+// $Id: Csma.nc,v 1.1.2.2 2005-06-02 22:55:37 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -205,7 +205,6 @@ implementation
 
 	  case PULSECHECK_STATE:
 	    call CC1000Control.rxMode();
-	    uwait(35);
 	    call RssiPulseCheck.getData();
 	    uwait(80);
 	    //call CC1000Control.biasOn();
@@ -241,7 +240,7 @@ implementation
 
   void lplSendWakeup() {
     enterIdleStateSetWakeup();
-    call CC1000Control.on();
+    call CC1000Control.coreOn();
     //uwait(2000);
     call CC1000Control.biasOn();
     uwait(200);
@@ -288,12 +287,8 @@ implementation
       }
     else
       {
-	//call CC1000Control.rxMode();
-	//uwait(35);
 	call RssiPulseCheck.getData();
 	uwait(80);
-	//call CC1000Control.biasOn();
-	//call CC1000StdControl.stop();
       }
   }
 
@@ -334,8 +329,8 @@ implementation
       else
 	return SUCCESS;
 
-    call CC1000Control.on();
-    //uwait(2000);
+    call CC1000Control.coreOn();
+    uwait(2000);
     call CC1000Control.biasOn();
     uwait(200);
     call HPLCC1000Spi.rxMode();
