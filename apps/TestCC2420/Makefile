@@ -1,3 +1,0 @@
-COMPONENT=TestCC2420NullC
-include $(MAKERULES)
-

@@ -1,3 +1,0 @@
-COMPONENT=NullC
-include $(MAKERULES)
-
