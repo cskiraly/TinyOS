@@ -1,4 +1,4 @@
-// $Id: CC1000RadioM.nc,v 1.1.2.7 2005-05-26 00:20:19 idgay Exp $
+// $Id: CC1000RadioM.nc,v 1.1.2.8 2005-06-02 16:31:48 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -143,7 +143,6 @@ implementation
     call cancelRssi();
     radioState = IDLE_STATE;
     count = 0;
-    post setWakeupTask();
   }
 
   void enterDisabledState() {
@@ -275,7 +274,7 @@ implementation
 	if (lplRxPower == 0 || f.txPending)
 	  call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalSlow);
 	else
-	  lplSleep();
+	  call WakeupTimer.startOneShotNow(sleepTime);
       }
     else
       call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalFast);
@@ -285,23 +284,22 @@ implementation
      PULSECHECK or POWERDOWN) */
   void sendWakeup() {
     enterIdleState();
+    idleWakeup();
     post sendWakeupTask();
   }
 
   void setWakeup() {
-    switch (radioState)
+    atomic
       {
-      case IDLE_STATE:
-	idleWakeup();
-	break;
-      case PULSECHECK_STATE:
-	if (f.txPending)
-	  sendWakeup();
-	else
+	if (lplRxPower == 0 || f.txPending ||
+	    !call CC1000Squelch.settled())
+	  {
+	    if (radioState == PULSECHECK_STATE)
+	      sendWakeup();
+	  }
+	else if ((radioState == IDLE_STATE && lplRxPower > 0) ||
+		 radioState == PULSECHECK_STATE)
 	  lplSleep();
-	break;
-      default: /* Do nothing. */
-	break;
       }
   }
 
@@ -317,6 +315,7 @@ implementation
 	  case IDLE_STATE:
 	    call cancelRssi();
 	    call RssiNoiseFloor.getData();
+	    idleWakeup();
 	    break;
 
 	  case POWERDOWN_STATE:
@@ -339,6 +338,12 @@ implementation
 	    break;
 	  }
       }
+  }
+
+  task void idleTimerTask() {
+    /* Wait TIME_AFTER_CHECK ms for a message, then give up. */
+    if (!f.txPending)
+      call WakeupTimer.startOneShotNow(TIME_AFTER_CHECK);
   }
 
   task void adjustSquelch() {
@@ -375,6 +380,7 @@ implementation
 	call CC1000Control.rxMode();
 	call HPLCC1000Spi.rxMode();     // SPI to miso
 	call HPLCC1000Spi.enableIntr(); // enable spi interrupt
+	post idleTimerTask();
       }
     else
       {
@@ -424,6 +430,7 @@ implementation
     uwait(200);
     call HPLCC1000Spi.rxMode();
     call CC1000Control.rxMode();
+    idleWakeup();
     call HPLCC1000Spi.enableIntr();
 
     post startDone();
