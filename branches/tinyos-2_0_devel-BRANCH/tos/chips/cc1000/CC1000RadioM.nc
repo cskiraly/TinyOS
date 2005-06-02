@@ -1,4 +1,4 @@
-// $Id: CC1000RadioM.nc,v 1.1.2.8 2005-06-02 16:31:48 idgay Exp $
+// $Id: CC1000RadioM.nc,v 1.1.2.9 2005-06-02 17:29:10 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -145,6 +145,11 @@ implementation
     count = 0;
   }
 
+  void enterIdleStateSetWakeup() {
+    enterIdleState();
+    post setWakeupTask();
+  }
+
   void enterDisabledState() {
     call cancelRssi();
     radioState = DISABLED_STATE;
@@ -247,11 +252,50 @@ implementation
       read_uint8_t(&CC1K_LPL_SleepTime[lplRxPower * 2 + 1]);
   }
 
-  task void sendWakeupTask() {
-    atomic
-      if (radioState != IDLE_STATE)
-	return;
+  void setWakeup() {
+    switch (radioState)
+      {
+      case IDLE_STATE: case PRETX_STATE: case SYNC_STATE:
+	/* We se the timers in PreTx and Sync states because these
+	   may abort back to IDLE. When doing that, they don't 
+	   reset timers (to avoid perturbing the lpl-wakeup timeout).
+	   So we always set the next timer here, even though we're
+	   likely to move to the Rx or Tx states. */
+	if (call CC1000Squelch.settled())
+	  {
+	    if (lplRxPower == 0 || f.txPending)
+	      call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalSlow);
+	    else if (f.lplReceive)
+	      /* Wait TIME_AFTER_CHECK ms for a message, then give up. */
+	      call WakeupTimer.startOneShotNow(TIME_AFTER_CHECK);
+	    else
+	      call WakeupTimer.startOneShotNow(sleepTime);
+	  }
+	else
+	  call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalFast);
+	break;
+      case PULSECHECK_STATE:
+	call WakeupTimer.startOneShotNow(1);
+	break;
+      case POWERDOWN_STATE:
+	call WakeupTimer.startOneShotNow(sleepTime);
+	break;
+      }
+  }
 
+  task void setWakeupTask() {
+    atomic setWakeup();
+  }
+
+  void lplSleep() {
+    enterPowerDownState();
+    call HPLCC1000Spi.disableIntr();
+    call CC1000Control.off();
+    setWakeup();
+  }
+
+  void lplSendWakeup() {
+    enterIdleStateSetWakeup();
     call CC1000Control.on();
     //uwait(2000);
     call CC1000Control.biasOn();
@@ -261,67 +305,33 @@ implementation
     call HPLCC1000Spi.enableIntr();
   }
 
-  void lplSleep() {
-    enterPowerDownState();
-    call HPLCC1000Spi.disableIntr();
-    call CC1000Control.off();
-    call WakeupTimer.startOneShotNow(sleepTime);
-  }
-
-  void idleWakeup() {
-    if (call CC1000Squelch.settled())
-      {
-	if (lplRxPower == 0 || f.txPending)
-	  call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalSlow);
-	else
-	  call WakeupTimer.startOneShotNow(sleepTime);
-      }
-    else
-      call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalFast);
-  }
-
-  /* Prepare to send when currently in low-power listen mode (i.e., 
-     PULSECHECK or POWERDOWN) */
-  void sendWakeup() {
-    enterIdleState();
-    idleWakeup();
-    post sendWakeupTask();
-  }
-
-  void setWakeup() {
+  task void sleepCheck() {
     atomic
-      {
-	if (lplRxPower == 0 || f.txPending ||
-	    !call CC1000Squelch.settled())
-	  {
-	    if (radioState == PULSECHECK_STATE)
-	      sendWakeup();
-	  }
-	else if ((radioState == IDLE_STATE && lplRxPower > 0) ||
-		 radioState == PULSECHECK_STATE)
-	  lplSleep();
-      }
-  }
-
-  task void setWakeupTask() {
-    atomic setWakeup();
+      if (f.txPending)
+	{
+	  if (radioState == PULSECHECK_STATE || radioState == POWERDOWN_STATE)
+	    lplSendWakeup();
+	}
+      else if (lplRxPower > 0 && call CC1000Squelch.settled() &&
+	       (radioState == IDLE_STATE || radioState == PULSECHECK_STATE))
+	lplSleep();
   }
 
   event void WakeupTimer.fired() {
     atomic 
       {
+	f.lplReceive = FALSE;
+
 	switch (radioState)
 	  {
 	  case IDLE_STATE:
 	    call cancelRssi();
 	    call RssiNoiseFloor.getData();
-	    idleWakeup();
 	    break;
 
 	  case POWERDOWN_STATE:
 	    enterPulseCheckState();
 	    call CC1000Control.biasOn();
-	    call WakeupTimer.startOneShotNow(1);
 	    break;
 
 	  case PULSECHECK_STATE:
@@ -331,29 +341,17 @@ implementation
 	    uwait(80);
 	    //call CC1000Control.biasOn();
 	    //call CC1000StdControl.stop();
-	    break;
-
-	  default:
-	    call WakeupTimer.startOneShotNow(5);
-	    break;
+	    return; // don't set wakeup timer
 	  }
-      }
-  }
 
-  task void idleTimerTask() {
-    /* Wait TIME_AFTER_CHECK ms for a message, then give up. */
-    if (!f.txPending)
-      call WakeupTimer.startOneShotNow(TIME_AFTER_CHECK);
+	setWakeup();
+      }
   }
 
   task void adjustSquelch() {
     uint16_t squelchData;
 
-    atomic
-      {
-	squelchData = rssiForSquelch;
-	setWakeup();
-      }
+    atomic squelchData = rssiForSquelch;
     call CC1000Squelch.adjust(squelchData);
   }
 
@@ -368,19 +366,16 @@ implementation
 	    rssiForSquelch = data;
 	    post adjustSquelch();
 	  }
-	else
-	  post setWakeupTask();
-	
+	post sleepCheck();
       }
     else if (count++ > 5)
       {
 	//go to the idle state since no outliers were found
-	enterIdleState();
+	enterIdleStateSetWakeup();
 	f.lplReceive = TRUE;
 	call CC1000Control.rxMode();
 	call HPLCC1000Spi.rxMode();     // SPI to miso
 	call HPLCC1000Spi.enableIntr(); // enable spi interrupt
-	post idleTimerTask();
       }
     else
       {
@@ -395,7 +390,7 @@ implementation
 
   event void RssiPulseCheck.error(uint16_t info) {
     /* Just give up on this interval. */
-    atomic setWakeup();
+    post sleepCheck();
   }
 
   command error_t Init.init() {
@@ -408,15 +403,22 @@ implementation
     return SUCCESS;
   }
 
-  task void startDone() {
-    signal SplitControl.startDone(SUCCESS);
+  task void startStopDone() {
+    uint8_t s;
+
+    // Save a byte of RAM by sharing start/stopDone task
+    atomic s = radioState;
+    if (s == DISABLED_STATE)
+      signal SplitControl.stopDone(SUCCESS);
+    else
+      signal SplitControl.startDone(SUCCESS);
   }
 
   command error_t SplitControl.start() {
     atomic 
       if (radioState == DISABLED_STATE)
 	{
-	  enterIdleState();
+	  enterIdleStateSetWakeup();
 	  f.lplReceive = f.txPending = f.txBusy = FALSE;
 	  setPreambleLength();
 	  setSleepTime();
@@ -430,16 +432,11 @@ implementation
     uwait(200);
     call HPLCC1000Spi.rxMode();
     call CC1000Control.rxMode();
-    idleWakeup();
     call HPLCC1000Spi.enableIntr();
 
-    post startDone();
+    post startStopDone();
 
     return SUCCESS;
-  }
-
-  task void stopDone() {
-    signal SplitControl.stopDone(SUCCESS);
   }
 
   command error_t SplitControl.stop() {
@@ -450,8 +447,7 @@ implementation
 	call HPLCC1000Spi.disableIntr();
       }
     call WakeupTimer.stop();
-    if (post stopDone() != SUCCESS)
-      ; // XXX.
+    post startStopDone();
     return SUCCESS;
   }
 
@@ -473,7 +469,7 @@ implementation
 	f.lplReceive = FALSE;
 
 	if (radioState == POWERDOWN_STATE)
-	  sendWakeup();
+	  post sleepCheck();
       }
 
     return SUCCESS;
@@ -498,8 +494,8 @@ implementation
 	  return;
 
 	pBuf = txBufPtr;
-	if (lplRxPower > 0)
-	  call WakeupTimer.startOneShotNow(CC1K_LPL_PACKET_TIME);
+	//if (lplRxPower > 0)
+	//call WakeupTimer.startOneShotNow(CC1K_LPL_PACKET_TIME);
 	f.txBusy = FALSE;
       }
     signal Send.sendDone(pBuf, SUCCESS);
@@ -520,16 +516,13 @@ implementation
       {
 	if (pBuf) 
 	  rxBufPtr = pBuf;
-	enterIdleState();
+	enterIdleStateSetWakeup();
       }
   }
 
   void packetReceiveDone() {
-    // We just drop packets which we could not send to the upper layers
-    if (post signalPacketReceived() == SUCCESS)
-      enterReceivedState();
-    else
-      enterIdleState();
+    post signalPacketReceived();
+    enterReceivedState();
   }
 
   void packetReceived() {
@@ -644,7 +637,7 @@ implementation
     if (rxLength > TOSH_DATA_LENGTH + offsetof(message_t, data))
       {
 	// The packet's screwed up, so just dump it
-	enterIdleState();
+	enterIdleStateSetWakeup();
 	return;
       }
 
@@ -766,13 +759,9 @@ implementation
   }
 
   void txDone() {
-    if (post signalPacketSent() == SUCCESS)
-      {
-	// If the post operation succeeds, goto Idle. Otherwise, we'll just
-	// try the post again on the next SPI interrupt
-	f.txPending = FALSE;
-	enterIdleState();
-      }
+    post signalPacketSent();
+    f.txPending = FALSE;
+    enterIdleStateSetWakeup();
   }
 
   async event void HPLCC1000Spi.dataReady(uint8_t data) {
@@ -804,11 +793,12 @@ implementation
   async event void RssiNoiseFloor.dataReady(uint16_t data) {
     rssiForSquelch = data;
     post adjustSquelch();
+    post sleepCheck();
   }
 
   event void RssiNoiseFloor.error(uint16_t info) {
     /* We just ignore failed noise floor measurements */
-    atomic setWakeup();
+    post sleepCheck();
   }
 
   async event void RssiCheckChannel.dataReady(uint16_t data) {
