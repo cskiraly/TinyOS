@@ -1,4 +1,4 @@
-// $Id: SendReceive.nc,v 1.1.2.4 2005-06-03 18:43:21 idgay Exp $
+// $Id: SendReceive.nc,v 1.1.2.5 2005-06-03 19:04:44 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -37,8 +37,9 @@
  * listen() command is called, and stops listening when off() is called.
  *
  * This code has some degree of platform-independence, via the
- * CC1000Control, RSSIADC and SpiByteFifo interfaces. However, these
- * interfaces may be still somewhat platform-dependent.
+ * CC1000Control, RSSIADC and SpiByteFifo interfaces which must be provided
+ * by the platform. However, these interfaces may still reflect some
+ * particularities of the mica2 hardware implementation.
  *
  * @author Philip Buonadonna
  * @author Jaein Jeong

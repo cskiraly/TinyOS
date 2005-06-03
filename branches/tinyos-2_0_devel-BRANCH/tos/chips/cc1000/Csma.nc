@@ -1,4 +1,4 @@
-// $Id: Csma.nc,v 1.1.2.6 2005-06-03 18:43:38 idgay Exp $
+// $Id: Csma.nc,v 1.1.2.7 2005-06-03 19:04:44 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -34,8 +34,9 @@
  * packet transmission and reception is in SendReceive.
  *
  * This code has some degree of platform-independence, via the
- * CC1000Control, RSSIADC and SpiByteFifo interfaces. However, these
- * interfaces may be still somewhat platform-dependent.
+ * CC1000Control, RSSIADC and SpiByteFifo interfaces which must be provided
+ * by the platform. However, these interfaces may still reflect some
+ * particularities of the mica2 hardware implementation.
  *
  * @author Philip Buonadonna
  * @author Jaein Jeong
@@ -139,68 +140,7 @@ implementation
     radioState = TX_STATE;
   }
 
-  /* Wakeup timer */
-  /* ------------ */
-
-  void setWakeup() {
-    switch (radioState)
-      {
-      case IDLE_STATE: 
-	if (call CC1000Squelch.settled())
-	  {
-	    if (lplRxPower == 0 || f.txPending)
-	      call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalSlow);
-	    else
-	      call WakeupTimer.startOneShotNow(sleepTime);
-	  }
-	else
-	  call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalFast);
-	break;
-      case PULSECHECK_STATE:
-	call WakeupTimer.startOneShotNow(1);
-	break;
-      case POWERDOWN_STATE:
-	call WakeupTimer.startOneShotNow(sleepTime);
-	break;
-      }
-  }
-
-  task void setWakeupTask() {
-    atomic setWakeup();
-  }
-
-  event void WakeupTimer.fired() {
-    atomic 
-      {
-	switch (radioState)
-	  {
-	  case IDLE_STATE:
-	    if (!call ByteRadio.syncing())
-	      {
-		call cancelRssi();
-		call RssiNoiseFloor.getData();
-	      }
-	    break;
-
-	  case POWERDOWN_STATE:
-	    enterPulseCheckState();
-	    // Turn radio on, wait for 1ms
-	    call CC1000Control.biasOn();
-	    break;
-
-	  case PULSECHECK_STATE:
-	    // Switch to RX mode to get RSSI output
-	    call CC1000Control.rxMode();
-	    call RssiPulseCheck.getData();
-	    uwait(80);
-	    return; // don't set wakeup timer
-	  }
-	setWakeup();
-      }
-  }
-
-  /* Low-power listening stuff */
-  /*---------------------------*/
+  /* Basic radio power control */
 
   void radioOn() {
     call CC1000Control.coreOn();
@@ -215,6 +155,8 @@ implementation
     call CC1000Control.off();
   }
 
+  /* LPL preamble length and sleep time computation */
+
   void setPreambleLength() {
     uint16_t len =
       (uint16_t)read_uint8_t(&CC1K_LPL_PreambleLength[lplTxPower * 2]) << 8
@@ -228,70 +170,8 @@ implementation
       read_uint8_t(&CC1K_LPL_SleepTime[lplRxPower * 2 + 1]);
   }
 
-  void lplSleep() {
-    radioOff();
-    enterPowerDownState();
-    setWakeup();
-  }
-
-  task void sleepCheck() {
-    bool turnOn = FALSE;
-
-    atomic
-      if (f.txPending)
-	{
-	  if (radioState == PULSECHECK_STATE || radioState == POWERDOWN_STATE)
-	    {
-	      enterIdleStateSetWakeup();
-	      turnOn = TRUE;
-	    }
-	}
-      else if (lplRxPower > 0 && call CC1000Squelch.settled() &&
-	       !call ByteRadio.syncing())
-	lplSleep();
-
-    if (turnOn)
-      radioOn();
-  }
-
-  task void adjustSquelch();
-
-  task void lplCheck() {
-    // timeout for receiving a message after an lpl check indicates
-    // channel activity.
-    call WakeupTimer.startOneShotNow(TIME_AFTER_CHECK);
-  }
-
-  async event void RssiPulseCheck.dataReady(uint16_t data) {
-    if (data > call CC1000Squelch.get() - (call CC1000Squelch.get() >> 2))
-      {
-	// don't be too agressive (ignore really quiet thresholds).
-	if (data < call CC1000Squelch.get() + (call CC1000Squelch.get() >> 3))
-	  {
-	    // adjust the noise floor level, go back to sleep.
-	    rssiForSquelch = data;
-	    post adjustSquelch();
-	  }
-	post sleepCheck();
-      }
-    else if (count++ > 5)
-      {
-	//go to the idle state since no outliers were found
-	enterIdleState();
-	post lplCheck();
-	call ByteRadio.listen();
-      }
-    else
-      {
-	call RssiPulseCheck.getData();
-	uwait(80);
-      }
-  }
-
-  event void RssiPulseCheck.error(uint16_t info) {
-    /* Just give up on this interval. */
-    post sleepCheck();
-  }
+  /* Initialisation, startup and stopping */
+  /*--------------------------------------*/
 
   command error_t Init.init() {
     call ByteRadioInit.init();
@@ -343,6 +223,142 @@ implementation
     return SUCCESS;
   }
 
+  /* Wakeup timer */
+  /*-------------*/
+
+  /* All timer setting code is placed in setWakeup, for consistency. */
+  void setWakeup() {
+    switch (radioState)
+      {
+      case IDLE_STATE: 
+	if (call CC1000Squelch.settled())
+	  {
+	    if (lplRxPower == 0 || f.txPending)
+	      call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalSlow);
+	    else
+	      // timeout for receiving a message after an lpl check
+	      // indicates channel activity.
+	      call WakeupTimer.startOneShotNow(TIME_AFTER_CHECK);
+	  }
+	else
+	  call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalFast);
+	break;
+      case PULSECHECK_STATE:
+	// Radio warm-up time.
+	call WakeupTimer.startOneShotNow(1);
+	break;
+      case POWERDOWN_STATE:
+	// low-power listening check interval
+	call WakeupTimer.startOneShotNow(sleepTime);
+	break;
+      }
+  }
+
+  task void setWakeupTask() {
+    atomic setWakeup();
+  }
+
+  event void WakeupTimer.fired() {
+    atomic 
+      {
+	switch (radioState)
+	  {
+	  case IDLE_STATE:
+	    /* If we appear to be receiving a packet we don't check the
+	       noise floor. For LPL, this means that going to sleep will
+	       be delayed by another TIME_AFTER_CHECK ms. */
+	    if (!call ByteRadio.syncing())
+	      {
+		call cancelRssi();
+		call RssiNoiseFloor.getData();
+	      }
+	    break;
+
+	  case POWERDOWN_STATE:
+	    // Turn radio on, wait for 1ms
+	    enterPulseCheckState();
+	    call CC1000Control.biasOn();
+	    break;
+
+	  case PULSECHECK_STATE:
+	    // Switch to RX mode and get RSSI output
+	    call CC1000Control.rxMode();
+	    call RssiPulseCheck.getData();
+	    uwait(80);
+	    return; // don't set wakeup timer
+	  }
+	setWakeup();
+      }
+  }
+
+  /* Low-power listening stuff */
+  /*---------------------------*/
+
+  /* Should we go to sleep, or turn the radio fully on? */
+  task void sleepCheck() {
+    bool turnOn = FALSE;
+
+    atomic
+      if (f.txPending)
+	{
+	  if (radioState == PULSECHECK_STATE || radioState == POWERDOWN_STATE)
+	    {
+	      enterIdleStateSetWakeup();
+	      turnOn = TRUE;
+	    }
+	}
+      else if (lplRxPower > 0 && call CC1000Squelch.settled() &&
+	       !call ByteRadio.syncing())
+	{
+	  radioOff();
+	  enterPowerDownState();
+	  setWakeup();
+	}
+
+    if (turnOn)
+      radioOn();
+  }
+
+  task void adjustSquelch();
+
+  async event void RssiPulseCheck.dataReady(uint16_t data) {
+    /* We got some RSSI data for our LPL check. Decide whether to:
+       - go back to sleep (quiet)
+       - wake up (channel active)
+       - get more RSSI data
+    */
+    if (data > call CC1000Squelch.get() - (call CC1000Squelch.get() >> 2))
+      {
+	// don't be too agressive (ignore really quiet thresholds).
+	if (data < call CC1000Squelch.get() + (call CC1000Squelch.get() >> 3))
+	  {
+	    // adjust the noise floor level, go back to sleep.
+	    rssiForSquelch = data;
+	    post adjustSquelch();
+	  }
+	post sleepCheck();
+      }
+    else if (count++ > 5)
+      {
+	//go to the idle state since no outliers were found
+	enterIdleStateSetWakeup();
+	call ByteRadio.listen();
+      }
+    else
+      {
+	call RssiPulseCheck.getData();
+	uwait(80);
+      }
+  }
+
+  event void RssiPulseCheck.error(uint16_t info) {
+    /* Just give up on this interval. */
+    post sleepCheck();
+  }
+
+  /* CSMA */
+  /*------*/
+
   event void ByteRadio.rts() {
     atomic
       {
@@ -380,35 +396,6 @@ implementation
       }
   }
 
-  async event void ByteRadio.rx() {
-    enterRxState();
-  }
-
-  async event void ByteRadio.rxDone() {
-    enterIdleStateSetWakeup();
-  }
-
-  /* Noise floor stuff */
-  /*-------------------*/
-
-  task void adjustSquelch() {
-    uint16_t squelchData;
-
-    atomic squelchData = rssiForSquelch;
-    call CC1000Squelch.adjust(squelchData);
-  }
-
-  async event void RssiNoiseFloor.dataReady(uint16_t data) {
-    rssiForSquelch = data;
-    post adjustSquelch();
-    post sleepCheck();
-  }
-
-  event void RssiNoiseFloor.error(uint16_t info) {
-    /* We just ignore failed noise floor measurements */
-    post sleepCheck();
-  }
-
   async event void RssiCheckChannel.dataReady(uint16_t data) {
     count++;
     if (data > call CC1000Squelch.get() + CC1K_SquelchBuffer)
@@ -433,13 +420,45 @@ implementation
     atomic macDelay = 1;
   }
 
-  async command message_t* CSMAControl.HaltTx() {
-    /* We simply ignore cancellations. */
-    return NULL;
+  /* Message being received. We basically just go inactive. */
+  /*--------------------------------------------------------*/
+
+  async event void ByteRadio.rx() {
+    enterRxState();
+  }
+
+  async event void ByteRadio.rxDone() {
+    enterIdleStateSetWakeup();
+  }
+
+  /* Noise floor */
+  /*-------------*/
+
+  task void adjustSquelch() {
+    uint16_t squelchData;
+
+    atomic squelchData = rssiForSquelch;
+    call CC1000Squelch.adjust(squelchData);
+  }
+
+  async event void RssiNoiseFloor.dataReady(uint16_t data) {
+    rssiForSquelch = data;
+    post adjustSquelch();
+    post sleepCheck();
+  }
+
+  event void RssiNoiseFloor.error(uint16_t info) {
+    /* We just ignore failed noise floor measurements */
+    post sleepCheck();
   }
 
   /* Options */
   /*---------*/
+
+  async command message_t* CSMAControl.HaltTx() {
+    /* We simply ignore cancellations. */
+    return NULL;
+  }
 
   async command error_t CSMAControl.enableAck() {
     call ByteRadio.setAck(TRUE);
@@ -514,7 +533,9 @@ implementation
     atomic return sleepTime;
   }
 
-  // Default MAC backoff parameters
+  /* Default MAC backoff parameters */
+  /*--------------------------------*/
+
   default async event uint16_t CSMABackoff.initial(message_t *m) { 
     // initially back off [1,32] bytes (approx 2/3 packet)
     return (call Random.rand16() & 0x1F) + 1;
