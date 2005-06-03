@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-06-01 03:17:37 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-06-03 01:43:32 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -42,7 +42,6 @@ configuration MSP430ADC12C
   provides interface Init;
   provides interface Resource[uint8_t id];
   provides interface MSP430ADC12SingleChannel as SingleChannel[uint8_t id];
-  provides interface MSP430ADC12SingleChannel as SingleChannelADCC[uint8_t client];
 }
 implementation
 {
@@ -52,7 +51,6 @@ implementation
   Init = Arbiter;
   Resource = Arbiter;
   SingleChannel = MSP430ADC12M.SingleChannel;
-  SingleChannelADCC = MSP430ADC12M.SingleChannelADCC;
     
   MSP430ADC12M.ADCResourceUser -> Arbiter;
   MSP430ADC12M.HPLADC12 -> HPLADC12M;
