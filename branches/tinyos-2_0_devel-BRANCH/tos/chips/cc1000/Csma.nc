@@ -1,4 +1,4 @@
-// $Id: Csma.nc,v 1.1.2.4 2005-06-02 23:19:36 idgay Exp $
+// $Id: Csma.nc,v 1.1.2.5 2005-06-03 00:51:48 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -63,7 +63,6 @@ module Csma {
     interface CC1000Control;
     interface CC1000Squelch;
     interface Random;
-    interface HPLCC1000Spi;
     interface Timer<TMilli> as WakeupTimer;
 
     interface AcquireDataNow as RssiNoiseFloor;
@@ -78,7 +77,6 @@ implementation
     DISABLED_STATE,
     IDLE_STATE,
     RX_STATE,
-    PRETX_STATE,
     TX_STATE,
     POWERDOWN_STATE,
     PULSECHECK_STATE
@@ -94,7 +92,7 @@ implementation
     uint8_t lplReceive : 1;
     uint8_t txPending : 1;
   } f; // f for flags
-  uint16_t count;
+  uint8_t count;
   uint8_t clearCount;
 
   int16_t macDelay;
@@ -109,7 +107,6 @@ implementation
   void enterIdleState() {
     call cancelRssi();
     radioState = IDLE_STATE;
-    count = 0;
   }
 
   void enterIdleStateSetWakeup() {
@@ -137,12 +134,6 @@ implementation
     radioState = RX_STATE;
   }
 
-  void enterPreTxState() {
-    call cancelRssi();
-    radioState = PRETX_STATE;
-    count = clearCount = 0;
-  }
-
   void enterTxState() {
     radioState = TX_STATE;
   }
@@ -153,12 +144,7 @@ implementation
   void setWakeup() {
     switch (radioState)
       {
-      case IDLE_STATE: case PRETX_STATE: case RX_STATE:
-	/* We se the timers in PreTx and Sync states because these
-	   may abort back to IDLE. When doing that, they don't 
-	   reset timers (to avoid perturbing the lpl-wakeup timeout).
-	   So we always set the next timer here, even though we're
-	   likely to move to the Rx or Tx states. */
+      case IDLE_STATE: 
 	if (call CC1000Squelch.settled())
 	  {
 	    if (lplRxPower == 0 || f.txPending)
@@ -193,8 +179,11 @@ implementation
 	switch (radioState)
 	  {
 	  case IDLE_STATE:
-	    call cancelRssi();
-	    call RssiNoiseFloor.getData();
+	    if (!call ByteRadio.syncing())
+	      {
+		call cancelRssi();
+		call RssiNoiseFloor.getData();
+	      }
 	    break;
 
 	  case POWERDOWN_STATE:
@@ -222,13 +211,11 @@ implementation
     uwait(2000);
     call CC1000Control.biasOn();
     uwait(200);
-    call CC1000Control.rxMode();
-    call HPLCC1000Spi.rxMode();
-    call HPLCC1000Spi.enableIntr();
+    call ByteRadio.listen();
   }
 
   void radioOff() {
-    call HPLCC1000Spi.disableIntr();
+    call ByteRadio.off();
     call CC1000Control.off();
   }
 
@@ -246,8 +233,8 @@ implementation
   }
 
   void lplSleep() {
-    enterPowerDownState();
     radioOff();
+    enterPowerDownState();
     setWakeup();
   }
 
@@ -264,7 +251,7 @@ implementation
 	    }
 	}
       else if (lplRxPower > 0 && call CC1000Squelch.settled() &&
-	       (radioState == IDLE_STATE || radioState == PULSECHECK_STATE))
+	       !call ByteRadio.syncing())
 	lplSleep();
 
     if (turnOn)
@@ -290,9 +277,7 @@ implementation
 	//go to the idle state since no outliers were found
 	enterIdleStateSetWakeup();
 	f.lplReceive = TRUE;
-	call CC1000Control.rxMode();
-	call HPLCC1000Spi.rxMode();
-	call HPLCC1000Spi.enableIntr();
+	call ByteRadio.listen();
       }
     else
       {
@@ -359,15 +344,15 @@ implementation
   event void ByteRadio.rts() {
     atomic
       {
-	if (!f.ccaOff)
-	  macDelay = signal CSMABackoff.initial(NULL);
-	else
-	  macDelay = 0;
 	f.txPending = TRUE;
 	f.lplReceive = FALSE;
 
 	if (radioState == POWERDOWN_STATE)
 	  post sleepCheck();
+	if (!f.ccaOff)
+	  macDelay = signal CSMABackoff.initial(call ByteRadio.getTxMessage());
+	else
+	  macDelay = 1;
       }
   }
 
@@ -376,56 +361,30 @@ implementation
     enterIdleStateSetWakeup();
   }
 
-  /* Basic SPI functions */
+  void congestion() {
+    macDelay = signal CSMABackoff.congestion(call ByteRadio.getTxMessage());
+  }
 
-  void idleData(uint8_t in) {
-    // Look for enough preamble bytes
-    if (in == 0xaa || in == 0x55)
+  async event void ByteRadio.idleByte(bool preamble) {
+    if (f.txPending)
       {
-	/* XXX: reset macDelay if txPending? */
-	count++;
-	if (count > CC1K_ValidPrecursor)
+	if (!f.ccaOff && preamble)
+	  congestion();
+	else if (macDelay && !--macDelay)
 	  {
-	    enterRxState();
-	    call ByteRadio.cd();
+	    call cancelRssi();
+	    count = 0;
+	    call RssiCheckChannel.getData();
 	  }
       }
-    else if (f.txPending)
-      if (macDelay <= 1)
-	{
-	  enterPreTxState();
-	  call RssiCheckChannel.getData();
-	}
-      else
-	--macDelay;
   }
 
-  void preTxData(uint8_t in) {
-    // If we detect a preamble when we're trying to send, abort.
-    if (in == 0xaa || in == 0x55)
-      {
-	macDelay = signal CSMABackoff.congestion(NULL);
-	enterIdleState();
-	// we could set count to 1 here (one preamble byte seen).
-	// count = 1;
-      }
-  }
-
-  async event void ByteRadio.rxAborted() {
-    enterIdleState();
+  async event void ByteRadio.rx() {
+    enterRxState();
   }
 
   async event void ByteRadio.rxDone() {
     enterIdleStateSetWakeup();
-  }
-
-  async event void HPLCC1000Spi.dataReady(uint8_t data) {
-    switch (radioState)
-      {
-      default: break;
-      case IDLE_STATE: idleData(data); break;
-      case PRETX_STATE: preTxData(data); break;
-      }
   }
 
   /* Noise floor stuff */
@@ -463,17 +422,14 @@ implementation
 	call ByteRadio.cts();
       }
     else if (count == CC1K_MaxRSSISamples)
-      {
-	macDelay = signal CSMABackoff.congestion(NULL);
-	enterIdleState();
-      }
+      congestion();
     else 
       call RssiCheckChannel.getData();
   }
 
   event void RssiCheckChannel.error(uint16_t info) {
     /* We'll retry the transmission at the next SPI event. */
-    atomic enterIdleState();
+    atomic macDelay = 1;
   }
 
   async command message_t* CSMAControl.HaltTx() {
