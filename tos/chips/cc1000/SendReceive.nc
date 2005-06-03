@@ -1,4 +1,4 @@
-// $Id: SendReceive.nc,v 1.1.2.3 2005-06-03 00:51:48 idgay Exp $
+// $Id: SendReceive.nc,v 1.1.2.4 2005-06-03 18:43:21 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -30,6 +30,11 @@
  */
 /**
  * A rewrite of the low-power-listening CC1000 radio stack.
+ * This file contains the send and receive logic for the CC1000 radio.
+ * It does not do any media-access control. It requests the channel
+ * via the ready-to-send event (rts) and starts transmission on reception
+ * of the clear-to-send command (cts). It listens for packets if the
+ * listen() command is called, and stops listening when off() is called.
  *
  * This code has some degree of platform-independence, via the
  * CC1000Control, RSSIADC and SpiByteFifo interfaces. However, these
@@ -67,14 +72,17 @@ module SendReceive {
 implementation 
 {
   enum {
-    INACTIVE_STATE,
+    INACTIVE_STATE,		/* Off */
 
-    LISTEN_STATE,
+    LISTEN_STATE,		/* Listening for packets */
+
+    /* Reception states */
     SYNC_STATE,
     RX_STATE,
     RECEIVED_STATE,
     SENDING_ACK,
 
+    /* Transmission states */
     TXPREAMBLE_STATE,
     TXSYNC_STATE,
     TXDATA_STATE,
@@ -101,12 +109,12 @@ implementation
     uint8_t ack : 1;
     uint8_t txBusy : 1;
     uint8_t invert : 1;
+    uint8_t rxBitOffset : 3;
   } f; // f for flags
   uint16_t count;
   uint16_t runningCrc;
 
   uint16_t rxShiftBuf;
-  uint8_t rxBitOffset;
   message_t rxBuf;
   message_t *rxBufPtr = &rxBuf;
 
@@ -116,15 +124,14 @@ implementation
 
   const_uint8_t ackCode[5] = { 0xab, ACK_BYTE1, ACK_BYTE2, 0xaa, 0xaa };
 
+  /* State transition functions */
+  /*----------------------------*/
+
   void enterInactiveState() {
-    if (radioState == SYNC_STATE)
-      runningCrc = 23;
     radioState = INACTIVE_STATE;
   }
 
   void enterListenState() {
-    if (radioState == SYNC_STATE)
-      runningCrc = 22;
     radioState = LISTEN_STATE;
     count = 0;
   }
@@ -211,6 +218,9 @@ implementation
     return SUCCESS;
   }
 
+  /* Send side. Outside requests, SPI handlers for each state */
+  /*----------------------------------------------------------*/
+
   command error_t Send.send(message_t *msg, uint8_t len) {
     atomic
       {
@@ -227,6 +237,7 @@ implementation
   }
 
   async command void ByteRadio.cts() {
+    /* We're set to go! Start with our exciting preamble... */
     enterTxPreambleState();
     call HPLCC1000Spi.writeByte(0xaa);
     call CC1000Control.txMode();
@@ -236,18 +247,6 @@ implementation
   command error_t Send.cancel(message_t *msg) {
     /* We simply ignore cancellations. */
     return FAIL;
-  }
-
-  task void signalPacketSent() {
-    message_t *pBuf;
-
-    atomic
-      {
-	pBuf = txBufPtr;
-	f.txBusy = FALSE;
-	enterListenState();
-      }
-    signal Send.sendDone(pBuf, SUCCESS);
   }
 
   void sendNextByte() {
@@ -341,13 +340,28 @@ implementation
       }
   }
 
+  task void signalPacketSent() {
+    message_t *pBuf;
+
+    atomic
+      {
+	pBuf = txBufPtr;
+	f.txBusy = FALSE;
+	enterListenState();
+      }
+    signal Send.sendDone(pBuf, SUCCESS);
+  }
+
   void txDone() {
     post signalPacketSent();
     signal ByteRadio.sendDone();
   }
 
   /* Receive */
-  /* ------- */
+  /*---------*/
+
+  void packetReceived();
+  void packetReceiveDone();
 
   async command void ByteRadio.listen() {
     enterListenState();
@@ -360,50 +374,6 @@ implementation
     enterInactiveState();
     call HPLCC1000Spi.disableIntr();
   }
-
-  task void signalPacketReceived() {
-    message_t *pBuf;
-
-    atomic
-      {
-	if (radioState != RECEIVED_STATE)
-	  return;
-
-	pBuf = rxBufPtr;
-      }
-    pBuf = signal Receive.receive(pBuf, pBuf->data, pBuf->header.length);
-    atomic
-      {
-	if (pBuf) 
-	  rxBufPtr = pBuf;
-	enterListenState();
-	signal ByteRadio.rxDone();
-      }
-  }
-
-  void packetReceiveDone() {
-    post signalPacketReceived();
-    enterReceivedState();
-  }
-
-  void packetReceived() {
-    // Packet filtering based on bad CRC's is done at higher layers.
-    // So sayeth the TOS weenies.
-    rxBufPtr->footer.crc = rxBufPtr->footer.crc == runningCrc;
-
-    if (f.ack &&
-	rxBufPtr->footer.crc && rxBufPtr->header.addr == TOS_LOCAL_ADDRESS)
-      {
-	enterAckState();
-	call CC1000Control.txMode();
-	call HPLCC1000Spi.txMode();
-	call HPLCC1000Spi.writeByte(0xaa);
-      }
-    else
-      packetReceiveDone();
-  }
-
-  /* Basic SPI functions */
 
   void listenData(uint8_t in) {
     bool preamble = in == 0xaa || in == 0x55;
@@ -419,10 +389,6 @@ implementation
       count = 0;
 
     signal ByteRadio.idleByte(preamble);
-  }
-
-  async command bool ByteRadio.syncing() {
-    return radioState == SYNC_STATE;
   }
 
   void syncData(uint8_t in) {
@@ -463,7 +429,7 @@ implementation
 	      {
 		enterRxState();
 		signal ByteRadio.rx();
-		rxBitOffset = 7 - i;
+		f.rxBitOffset = 7 - i;
 		signal RadioTimeStamping.rxSFD(0, rxBufPtr);
 		call RssiRx.getData();
 	      }
@@ -495,7 +461,7 @@ implementation
       }
 
     rxShiftBuf = rxShiftBuf << 8 | in;
-    nextByte = rxShiftBuf >> rxBitOffset;
+    nextByte = rxShiftBuf >> f.rxBitOffset;
     ((uint8_t *)rxBufPtr)[count++] = nextByte;
 
     if (count <= rxLength)
@@ -509,6 +475,23 @@ implementation
       packetReceived();
   }
 
+  void packetReceived() {
+    // Packet filtering based on bad CRC's is done at higher layers.
+    // So sayeth the TOS weenies.
+    rxBufPtr->footer.crc = rxBufPtr->footer.crc == runningCrc;
+
+    if (f.ack &&
+	rxBufPtr->footer.crc && rxBufPtr->header.addr == TOS_LOCAL_ADDRESS)
+      {
+	enterAckState();
+	call CC1000Control.txMode();
+	call HPLCC1000Spi.txMode();
+	call HPLCC1000Spi.writeByte(0xaa);
+      }
+    else
+      packetReceiveDone();
+  }
+
   void ackData(uint8_t in) {
     if (++count >= ACK_LENGTH)
       { 
@@ -518,6 +501,31 @@ implementation
       }
     else if (count >= ACK_LENGTH - sizeof ackCode)
       call HPLCC1000Spi.writeByte(read_uint8_t(&ackCode[count + sizeof ackCode - ACK_LENGTH]));
+  }
+
+  task void signalPacketReceived() {
+    message_t *pBuf;
+
+    atomic
+      {
+	if (radioState != RECEIVED_STATE)
+	  return;
+
+	pBuf = rxBufPtr;
+      }
+    pBuf = signal Receive.receive(pBuf, pBuf->data, pBuf->header.length);
+    atomic
+      {
+	if (pBuf) 
+	  rxBufPtr = pBuf;
+	enterListenState();
+	signal ByteRadio.rxDone();
+      }
+  }
+
+  void packetReceiveDone() {
+    post signalPacketReceived();
+    enterReceivedState();
   }
 
   async event void HPLCC1000Spi.dataReady(uint8_t data) {
@@ -543,8 +551,8 @@ implementation
       }
   }
 
-  /* Options */
-  /*---------*/
+  /* Interaction with rest of stack */
+  /*--------------------------------*/
 
   async command void ByteRadio.setAck(bool on) {
     atomic f.ack = on;
@@ -561,6 +569,12 @@ implementation
   async command message_t *ByteRadio.getTxMessage() {
     return txBufPtr;
   }
+
+  async command bool ByteRadio.syncing() {
+    return radioState == SYNC_STATE;
+  }
+
+  /* Abstract packet layout */
 
   command void Packet.clear(message_t* msg) {
     memset(msg, 0, sizeof(message_t));
