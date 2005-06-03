@@ -1,4 +1,4 @@
-// $Id: Csma.nc,v 1.1.2.5 2005-06-03 00:51:48 idgay Exp $
+// $Id: Csma.nc,v 1.1.2.6 2005-06-03 18:43:38 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -30,6 +30,8 @@
  */
 /**
  * A rewrite of the low-power-listening CC1000 radio stack.
+ * This file contains the CSMA and low-power listening logic. Actual
+ * packet transmission and reception is in SendReceive.
  *
  * This code has some degree of platform-independence, via the
  * CC1000Control, RSSIADC and SpiByteFifo interfaces. However, these
@@ -89,7 +91,6 @@ implementation
   uint8_t radioState = DISABLED_STATE;
   struct {
     uint8_t ccaOff : 1;
-    uint8_t lplReceive : 1;
     uint8_t txPending : 1;
   } f; // f for flags
   uint8_t count;
@@ -149,9 +150,6 @@ implementation
 	  {
 	    if (lplRxPower == 0 || f.txPending)
 	      call WakeupTimer.startOneShotNow(CC1K_SquelchIntervalSlow);
-	    else if (f.lplReceive)
-	      /* Wait TIME_AFTER_CHECK ms for a message, then give up. */
-	      call WakeupTimer.startOneShotNow(TIME_AFTER_CHECK);
 	    else
 	      call WakeupTimer.startOneShotNow(sleepTime);
 	  }
@@ -174,8 +172,6 @@ implementation
   event void WakeupTimer.fired() {
     atomic 
       {
-	f.lplReceive = FALSE;
-
 	switch (radioState)
 	  {
 	  case IDLE_STATE:
@@ -260,6 +256,12 @@ implementation
 
   task void adjustSquelch();
 
+  task void lplCheck() {
+    // timeout for receiving a message after an lpl check indicates
+    // channel activity.
+    call WakeupTimer.startOneShotNow(TIME_AFTER_CHECK);
+  }
+
   async event void RssiPulseCheck.dataReady(uint16_t data) {
     if (data > call CC1000Squelch.get() - (call CC1000Squelch.get() >> 2))
       {
@@ -275,8 +277,8 @@ implementation
     else if (count++ > 5)
       {
 	//go to the idle state since no outliers were found
-	enterIdleStateSetWakeup();
-	f.lplReceive = TRUE;
+	enterIdleState();
+	post lplCheck();
 	call ByteRadio.listen();
       }
     else
@@ -315,7 +317,7 @@ implementation
 	{
 	  call ByteRadioControl.start();
 	  enterIdleStateSetWakeup();
-	  f.lplReceive = f.txPending = FALSE;
+	  f.txPending = FALSE;
 	  setPreambleLength();
 	  setSleepTime();
 	}
@@ -345,7 +347,6 @@ implementation
     atomic
       {
 	f.txPending = TRUE;
-	f.lplReceive = FALSE;
 
 	if (radioState == POWERDOWN_STATE)
 	  post sleepCheck();
