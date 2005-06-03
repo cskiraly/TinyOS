@@ -1,4 +1,4 @@
-/* $Id: CC1000ControlM.nc,v 1.1.2.3 2005-06-02 22:55:37 idgay Exp $
+/* $Id: CC1000ControlM.nc,v 1.1.2.4 2005-06-03 18:43:10 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * @author Philip Buonadonna
  * @author Jaein Jeong
  * @author David Gay
- * Revision:  $Revision: 1.1.2.3 $
+ * Revision:  $Revision: 1.1.2.4 $
  */
 
 /**
@@ -50,9 +50,7 @@ module CC1000ControlM {
 }
 implementation
 {
-  uint8_t ccParameters[CC1K_PLL + 1];
-  uint8_t matchRegister;
-  uint8_t txCurrent;
+  uint8_t txCurrent, rxCurrent, power;
 
   enum {
     IF = 150000,
@@ -125,17 +123,6 @@ implementation
     calibrateNow();
   }
 
-  void cc1000SetFreq() {
-    uint8_t i;
-
-    // FREQA, FREQB, FSEP, CURRENT(RX), FRONT_END, POWER, PLL
-    for (i = CC1K_FREQ_2A; i <= CC1K_PLL; i++)
-      call CC.write(i, ccParameters[i]);
-    call CC.write(CC1K_MATCH, matchRegister);
-
-    calibrate();
-  }
-
   /*
    * cc1000ComputeFreq(uint32_t desiredFreq);
    *
@@ -154,13 +141,13 @@ implementation
    *  - ~32 bytes RAM
    *  - 9400 cycles
    */
-  uint32_t cc1000ComputeFreq(uint32_t desiredFreq) {
+  uint32_t cc1000SetFrequency(uint32_t desiredFreq) {
     uint32_t ActualChannel = 0;
     uint32_t RXFreq = 0, TXFreq = 0;
     int32_t Offset = 0x7fffffff;
     uint16_t FSep = 0;
     uint8_t RefDiv = 0;
-    uint8_t i;
+    uint8_t i, match, frontend;
 
     for (i = 0; i < 9; i++)
       {
@@ -210,48 +197,46 @@ implementation
 
     if (RefDiv != 0)
       {
-	ccParameters[CC1K_FREQ_0A] = RXFreq;
-	ccParameters[CC1K_FREQ_1A] = RXFreq >> 8;
-	ccParameters[CC1K_FREQ_2A] = RXFreq >> 16;
+	call CC.write(CC1K_FREQ_0A, RXFreq);
+	call CC.write(CC1K_FREQ_1A, RXFreq >> 8);
+	call CC.write(CC1K_FREQ_2A, RXFreq >> 16);
 
-	ccParameters[CC1K_FREQ_0B] = TXFreq;
-	ccParameters[CC1K_FREQ_1B] = TXFreq >> 8;
-	ccParameters[CC1K_FREQ_2B] = TXFreq >> 16;
+	call CC.write(CC1K_FREQ_0B, TXFreq);
+	call CC.write(CC1K_FREQ_1B, TXFreq >> 8);
+	call CC.write(CC1K_FREQ_2B, TXFreq >> 16);
 
-	ccParameters[CC1K_FSEP0] = FSep;
-	ccParameters[CC1K_FSEP1] = FSep >> 8;
+	call CC.write(CC1K_FSEP0, FSep);
+	call CC.write(CC1K_FSEP1, FSep >> 8);
 
-	// ccParameters[CC1K_CURRENT] is rx current, tx current is
-	// stored separately.
 	if (ActualChannel < 500000000)
 	  {
 	    if (ActualChannel < 400000000)
 	      {
-		ccParameters[CC1K_CURRENT] =
-		  8 << CC1K_VCO_CURRENT | 1 << CC1K_LO_DRIVE;
+		rxCurrent = 8 << CC1K_VCO_CURRENT | 1 << CC1K_LO_DRIVE;
 		txCurrent = 9 << CC1K_VCO_CURRENT | 1 << CC1K_PA_DRIVE;
 	      }
 	    else
 	      {
-		ccParameters[CC1K_CURRENT] =
-		  4 << CC1K_VCO_CURRENT | 1 << CC1K_LO_DRIVE;
+		rxCurrent = 4 << CC1K_VCO_CURRENT | 1 << CC1K_LO_DRIVE;
 		txCurrent = 8 << CC1K_VCO_CURRENT | 1 << CC1K_PA_DRIVE;
 	      }
-	    ccParameters[CC1K_FRONT_END] = 1 << CC1K_IF_RSSI;
-	    matchRegister = 7 << CC1K_RX_MATCH;
+	    frontend = 1 << CC1K_IF_RSSI;
+	    match = 7 << CC1K_RX_MATCH;
 	  }
 	else
 	  {
-	    ccParameters[CC1K_CURRENT] =
-	      8 << CC1K_VCO_CURRENT | 3 << CC1K_LO_DRIVE;
+	    rxCurrent = 8 << CC1K_VCO_CURRENT | 3 << CC1K_LO_DRIVE;
 	    txCurrent = 15 << CC1K_VCO_CURRENT | 3 << CC1K_PA_DRIVE;
 
-	    ccParameters[CC1K_FRONT_END] =
+	    frontend =
 	      1 << CC1K_BUF_CURRENT | 2 << CC1K_LNA_CURRENT | 
 	      1 << CC1K_IF_RSSI;
-	    matchRegister = 2 << CC1K_RX_MATCH; // datasheet says to use 1...
+	    match = 2 << CC1K_RX_MATCH; // datasheet says to use 1...
 	  }
-	ccParameters[CC1K_PLL] = RefDiv << CC1K_REFDIV;
+	call CC.write(CC1K_CURRENT, rxCurrent);
+	call CC.write(CC1K_MATCH, match);
+	call CC.write(CC1K_FRONT_END, frontend);
+	call CC.write(CC1K_PLL, RefDiv << CC1K_REFDIV);
       }
 
     return ActualChannel;
@@ -270,8 +255,8 @@ implementation
 
     // Set default parameter values
     // POWER: 0dbm (~900MHz), 6dbm (~430MHz)
-    ccParameters[CC1K_PA_POW] = 8 << CC1K_PA_HIGHPOWER | 0 << CC1K_PA_LOWPOWER;
-    call CC.write(CC1K_PA_POW, ccParameters[CC1K_PA_POW]);
+    power = 8 << CC1K_PA_HIGHPOWER | 0 << CC1K_PA_LOWPOWER;
+    call CC.write(CC1K_PA_POW, power);
 
     // select Manchester Violation for CHP_OUT
     call CC.write(CC1K_LOCK_SELECT, 9 << CC1K_LOCK_SELECT);
@@ -298,23 +283,23 @@ implementation
     call CC1000Control.off();
   }
 
-
-
   command void CC1000Control.tunePreset(uint8_t freq) {
     int i;
 
+    // FREQA, FREQB, FSEP, CURRENT(RX), FRONT_END, POWER, PLL
     for (i = CC1K_FREQ_2A; i <= CC1K_PLL; i++)
-      ccParameters[i] = read_uint8_t(&CC1K_Params[freq][i]);
-    matchRegister = read_uint8_t(&CC1K_Params[freq][CC1K_MATCH]);
-    cc1000SetFreq();
+      call CC.write(i, read_uint8_t(&CC1K_Params[freq][i]));
+    call CC.write(CC1K_MATCH, read_uint8_t(&CC1K_Params[freq][CC1K_MATCH]));
+
+    calibrate();
   }
 
   command uint32_t CC1000Control.tuneManual(uint32_t DesiredFreq) {
     uint32_t actualFreq;
 
-    actualFreq = cc1000ComputeFreq(DesiredFreq);
+    actualFreq = cc1000SetFrequency(DesiredFreq);
 
-    cc1000SetFreq();
+    calibrate();
 
     return actualFreq;
   }
@@ -329,14 +314,14 @@ implementation
     // Set the TX mode VCO Current
     call CC.write(CC1K_CURRENT, txCurrent);
     uwait(250);
-    call CC.write(CC1K_PA_POW, ccParameters[CC1K_PA_POW]);
+    call CC.write(CC1K_PA_POW, power);
     uwait(20);
   }
 
   async command void CC1000Control.rxMode() {
     // MAIN register to RX mode
     // Powerup Freqency Synthesizer and Receiver
-    call CC.write(CC1K_CURRENT, ccParameters[CC1K_CURRENT]);
+    call CC.write(CC1K_CURRENT, rxCurrent);
     call CC.write(CC1K_PA_POW, 0); // turn off power amp
     call CC.write(CC1K_MAIN, 1 << CC1K_TX_PD | 1 << CC1K_RESET_N);
     uwait(125);
@@ -373,12 +358,12 @@ implementation
     call CC.write(CC1K_PA_POW, 0);  // turn off rf amp
   }
 
-  command void CC1000Control.setRFPower(uint8_t power) {
-    ccParameters[CC1K_PA_POW] = power;
+  command void CC1000Control.setRFPower(uint8_t newPower) {
+    power = newPower;
   }
 
   command uint8_t CC1000Control.getRFPower() {
-    return ccParameters[CC1K_PA_POW];
+    return power;
   }
 
   command void CC1000Control.selectLock(uint8_t fn) {
