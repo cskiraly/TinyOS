@@ -1,4 +1,4 @@
-// $Id: SendReceive.nc,v 1.1.2.2 2005-06-02 23:19:36 idgay Exp $
+// $Id: SendReceive.nc,v 1.1.2.3 2005-06-03 00:51:48 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -69,6 +69,7 @@ implementation
   enum {
     INACTIVE_STATE,
 
+    LISTEN_STATE,
     SYNC_STATE,
     RX_STATE,
     RECEIVED_STATE,
@@ -116,7 +117,16 @@ implementation
   const_uint8_t ackCode[5] = { 0xab, ACK_BYTE1, ACK_BYTE2, 0xaa, 0xaa };
 
   void enterInactiveState() {
+    if (radioState == SYNC_STATE)
+      runningCrc = 23;
     radioState = INACTIVE_STATE;
+  }
+
+  void enterListenState() {
+    if (radioState == SYNC_STATE)
+      runningCrc = 22;
+    radioState = LISTEN_STATE;
+    count = 0;
   }
 
   void enterSyncState() {
@@ -235,7 +245,7 @@ implementation
       {
 	pBuf = txBufPtr;
 	f.txBusy = FALSE;
-	enterInactiveState();
+	enterListenState();
       }
     signal Send.sendDone(pBuf, SUCCESS);
   }
@@ -339,8 +349,16 @@ implementation
   /* Receive */
   /* ------- */
 
-  async command void ByteRadio.cd() {
-    enterSyncState();
+  async command void ByteRadio.listen() {
+    enterListenState();
+    call CC1000Control.rxMode();
+    call HPLCC1000Spi.rxMode();
+    call HPLCC1000Spi.enableIntr();
+  }
+
+  async command void ByteRadio.off() {
+    enterInactiveState();
+    call HPLCC1000Spi.disableIntr();
   }
 
   task void signalPacketReceived() {
@@ -358,7 +376,7 @@ implementation
       {
 	if (pBuf) 
 	  rxBufPtr = pBuf;
-	enterInactiveState();
+	enterListenState();
 	signal ByteRadio.rxDone();
       }
   }
@@ -386,6 +404,26 @@ implementation
   }
 
   /* Basic SPI functions */
+
+  void listenData(uint8_t in) {
+    bool preamble = in == 0xaa || in == 0x55;
+
+    // Look for enough preamble bytes
+    if (preamble)
+      {
+	count++;
+	if (count > CC1K_ValidPrecursor)
+	  enterSyncState();
+      }
+    else
+      count = 0;
+
+    signal ByteRadio.idleByte(preamble);
+  }
+
+  async command bool ByteRadio.syncing() {
+    return radioState == SYNC_STATE;
+  }
 
   void syncData(uint8_t in) {
     // draw in the preamble bytes and look for a sync byte
@@ -424,6 +462,7 @@ implementation
 	    if (tmp == SYNC_WORD)
 	      {
 		enterRxState();
+		signal ByteRadio.rx();
 		rxBitOffset = 7 - i;
 		signal RadioTimeStamping.rxSFD(0, rxBufPtr);
 		call RssiRx.getData();
@@ -431,10 +470,7 @@ implementation
 	  }
       }
     else // We didn't find it after a reasonable number of tries, so....
-      {
-	enterInactiveState();
-	signal ByteRadio.rxAborted();
-      }
+      enterListenState();
   }
 
   async event void RssiRx.dataReady(uint16_t data) {
@@ -453,7 +489,7 @@ implementation
     if (rxLength > TOSH_DATA_LENGTH + offsetof(message_t, data))
       {
 	// The packet's screwed up, so just dump it
-	enterInactiveState();
+	enterListenState();
 	signal ByteRadio.rxDone();
 	return;
       }
@@ -500,6 +536,7 @@ implementation
       case TXREADACK_STATE: txReadAck(data); break;
       case TXDONE_STATE: txDone(); break;
 
+      case LISTEN_STATE: listenData(data); break;
       case SYNC_STATE: syncData(data); break;
       case RX_STATE: rxData(data); break;
       case SENDING_ACK: ackData(data); break;
@@ -519,6 +556,10 @@ implementation
 
   async command uint16_t ByteRadio.getPreambleLength() {
     atomic return preambleLength;
+  }
+
+  async command message_t *ByteRadio.getTxMessage() {
+    return txBufPtr;
   }
 
   command void Packet.clear(message_t* msg) {

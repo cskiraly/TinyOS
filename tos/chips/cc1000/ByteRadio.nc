@@ -7,8 +7,13 @@ interface ByteRadio
   async command void setAck(bool on);
   async command void setPreambleLength(uint16_t bytes);
   async command uint16_t getPreambleLength();
+  async command message_t *getTxMessage();
 
-  async command void cd();
+  async command void listen();
+  async command void off();
+  async event void idleByte(bool preamble);
+
+  async command bool syncing();
+  async event void rx();
   async event void rxDone();
-  async event void rxAborted();
 }
