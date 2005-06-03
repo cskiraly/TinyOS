@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-06-01 03:17:37 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-06-03 01:43:32 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -41,7 +41,7 @@
 typedef enum
 {
    MSP430ADC12_SUCCESS,            // conversion started successfully 
-   MSP430ADC12_DELAYED,            // conversion will start when VREF high (max 17ms)
+   MSP430ADC12_DELAYED,            // conversion will start when VREF stable (max 17ms)
    MSP430ADC12_FAIL_NOT_RESERVED,  // error: client has not reserved (request failed)
    MSP430ADC12_FAIL_VREF,          // VREF in use at different voltage level (request failed)
    MSP430ADC12_FAIL_JIFFIES,       // jiffies out of bounds (request failed)
@@ -259,18 +259,6 @@ typedef union {
   u.i = i;
   return u.s;
 }
-
-// Wrappers wiring to HAL1 must do so via MSP430ADC12Client, which
-// uses the same interface ID for the Resource and 
-// MSP430ADC12SingleChannel interfaces, because HAL1 checks each 
-// request from MSP430ADC12SingleChannel for matching reservation. 
-// In order not to mess up the ADCC reservations the MSP430ADC12Client
-// wires to Resource interface instances starting with the ID defined
-// below. Thus the ADCC may use Resource ID 0 to 
-// ADC_RESOURCE_RESERVED_BY_ADCC-1 and MSP430ADC12Client may use use IDs
-// ADC_RESOURCE_RESERVED_BY_ADCC to 255 of HAL1. Note that this is
-// transparent from wrapper/application. 
-#define ADC_RESOURCE_RESERVED_BY_ADCC 128
 
 /* Test for GCC bug (bitfield access) - only version 3.2.3 is known to be stable */
 #define GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__ * 10 + __GNUC_PATCHLEVEL__)

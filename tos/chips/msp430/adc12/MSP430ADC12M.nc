@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-06-01 03:17:37 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-06-03 01:43:32 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -38,7 +38,6 @@ module MSP430ADC12M
 {
   provides {
     interface MSP430ADC12SingleChannel as SingleChannel[uint8_t id];
-    interface MSP430ADC12SingleChannel as SingleChannelADCC[uint8_t id];
 	}
 	uses {
     interface ResourceUser as ADCResourceUser;
@@ -64,7 +63,6 @@ implementation
     ADC_BUSY = 1,               /* request pending */
     TIMERA_USED = 2,            /* TimerA used for SAMPCON signal */
     VREF_USED = 4,              /* VREF generator in use */
-    ADCC_REQUEST = 8,           /* request came through SingleChannelADCC */
   };
 
   // norace is safe, because Resource interface resolves conflicts  
@@ -72,8 +70,8 @@ implementation
   norace uint16_t bufLength;        /* length of buffer */
   norace uint16_t bufOffset;        /* offset into buffer */
   norace uint8_t clientID;          /* ID of interface that issued current request */
-  norace uint8_t flagsADC;          /* see above */
   norace uint8_t mode;              /* current conversion mode, see above */
+  norace uint8_t flagsADC;          /* current state, see above */
   
   msp430adc12_result_t checkGetRefVolt(uint8_t referenceVoltage, uint8_t refVolt2_5);
   error_t checkReleaseRefVolt();
@@ -198,130 +196,65 @@ implementation
       return SUCCESS;
   }
 
-  msp430adc12_result_t getAccess(uint8_t id, bool adccRequest)
+  msp430adc12_result_t getAccess(uint8_t id)
   {
     if (call ADCResourceUser.user() == id){
       if (getAndSetBusy() == FAIL)
         return MSP430ADC12_FAIL_BUSY;
       clientID = id;
-      if (adccRequest)
-        flagsADC |= ADCC_REQUEST;
-      else
-        flagsADC &= ~ADCC_REQUEST;
       return MSP430ADC12_SUCCESS;
     }
     return MSP430ADC12_FAIL_NOT_RESERVED;
   }
 
-  msp430adc12_result_t getSingleData(uint8_t id, bool adccRequest)
-  {
-    msp430adc12_channel_config_t configData;
-    msp430adc12_result_t result = getAccess(id, adccRequest);
-    if (flagsADC & ADCC_REQUEST)
-      configData = signal SingleChannelADCC.getConfigurationData[id]();
-    else
-      configData = signal SingleChannel.getConfigurationData[id]();
-
-    if (result == MSP430ADC12_SUCCESS)
-      return newRequest(SINGLE_DATA, configData, 0, 1, 0);
-    else
-      return result;
-  }
-      
   async command msp430adc12_result_t SingleChannel.getSingleData[uint8_t id]()
   {
-    return getSingleData(id, FALSE);
-  }
-
-  async command msp430adc12_result_t SingleChannelADCC.getSingleData[uint8_t id]()
-  {
-    return getSingleData(id, TRUE);
-  }
-    
-  msp430adc12_result_t getSingleDataRepeat(uint8_t id, bool adccRequest, uint16_t jiffies)
-  {
-    msp430adc12_channel_config_t configData;
-    msp430adc12_result_t result = getAccess(id, adccRequest);
-    if (flagsADC & ADCC_REQUEST)
-      configData = signal SingleChannelADCC.getConfigurationData[id]();
+    msp430adc12_result_t access = getAccess(id);
+    if (access == MSP430ADC12_SUCCESS)
+      return newRequest(SINGLE_DATA, 
+                        signal SingleChannel.getConfigurationData[id](), 
+                        0, 1, 0);
     else
-      configData = signal SingleChannel.getConfigurationData[id]();
-
-    if (result == MSP430ADC12_SUCCESS)
-      return newRequest(SINGLE_DATA_REPEAT, configData, 0, 1, jiffies);
-    else
-      return result;
+      return access;
   }
 
   async command msp430adc12_result_t SingleChannel.getSingleDataRepeat[uint8_t id](
       uint16_t jiffies)
   {
-    return getSingleDataRepeat(id, FALSE, jiffies);
-  }
-
-  async command msp430adc12_result_t SingleChannelADCC.getSingleDataRepeat[uint8_t id](
-      uint16_t jiffies)
-  {
-    return getSingleDataRepeat(id, TRUE, jiffies);
-  }
-  
-  msp430adc12_result_t getMultipleData(uint8_t id, bool adccRequest, 
-      uint16_t *buf, uint16_t length, uint16_t jiffies)
-  {
-    msp430adc12_channel_config_t configData;
-    msp430adc12_result_t result = getAccess(id, adccRequest);
-    if (flagsADC & ADCC_REQUEST)
-      configData = signal SingleChannelADCC.getConfigurationData[id]();
+    msp430adc12_result_t access = getAccess(id);
+    if (access == MSP430ADC12_SUCCESS)
+      return newRequest(SINGLE_DATA_REPEAT,
+                        signal SingleChannel.getConfigurationData[id](),
+                        0, 1, jiffies);
     else
-      configData = signal SingleChannel.getConfigurationData[id]();
-
-    if (result == MSP430ADC12_SUCCESS)
-      return newRequest(MULTIPLE_DATA, configData, buf, length, jiffies);
-    else
-      return result;
+      return access;
   }
 
   async command msp430adc12_result_t SingleChannel.getMultipleData[uint8_t id](
       uint16_t *buf, uint16_t length, uint16_t jiffies)
   {
-    return getMultipleData(id, FALSE, buf, length, jiffies);
-  }
-
-  async command msp430adc12_result_t SingleChannelADCC.getMultipleData[uint8_t id](
-      uint16_t *buf, uint16_t length, uint16_t jiffies)
-  {
-    return getMultipleData(id, TRUE, buf, length, jiffies);
-  }
-
-  msp430adc12_result_t getMultipleDataRepeat(uint8_t id, bool adccRequest, 
-      uint16_t *buf, uint8_t length, uint16_t jiffies)
-  {
-    msp430adc12_channel_config_t configData;
-    msp430adc12_result_t result;
-    if (flagsADC & ADCC_REQUEST)
-      configData = signal SingleChannelADCC.getConfigurationData[id]();
+    msp430adc12_result_t access = getAccess(id);
+    if (access == MSP430ADC12_SUCCESS)
+      return newRequest(MULTIPLE_DATA,
+                        signal SingleChannel.getConfigurationData[id](),
+                        buf, length, jiffies);
     else
-      configData = signal SingleChannel.getConfigurationData[id]();
-
-    if (length > 16)
-      return MSP430ADC12_FAIL_LENGTH;
-    result = getAccess(id, adccRequest);
-    if (result == MSP430ADC12_SUCCESS)
-      return newRequest(MULTIPLE_DATA_REPEAT, configData, buf, length, jiffies);
-    else
-      return result;
+      return access;
   }
 
   async command msp430adc12_result_t SingleChannel.getMultipleDataRepeat[uint8_t id](
       uint16_t *buf, uint8_t length, uint16_t jiffies)
   {
-    return getMultipleDataRepeat(id, FALSE, buf, length, jiffies);
-  }
-
-  async command msp430adc12_result_t SingleChannelADCC.getMultipleDataRepeat[uint8_t id](
-      uint16_t *buf, uint8_t length, uint16_t jiffies)
-  {
-    return getMultipleDataRepeat(id, TRUE, buf, length, jiffies);
+    msp430adc12_result_t access;
+    if (length > 16)
+      return MSP430ADC12_FAIL_LENGTH;
+    access = getAccess(id);
+    if (access == MSP430ADC12_SUCCESS)
+      return newRequest(MULTIPLE_DATA_REPEAT, 
+                        signal SingleChannel.getConfigurationData[id](),
+                        buf, length, jiffies);
+    else
+      return access;    
   }
 
   async event void TimerA.overflow(){}
@@ -436,19 +369,12 @@ implementation
     { 
       case SINGLE_DATA:
         stopConversion();
-        if (flagsADC & ADCC_REQUEST)
-          signal SingleChannelADCC.singleDataReady[clientID](call HPLADC12.getMem(0));
-        else
-          signal SingleChannel.singleDataReady[clientID](call HPLADC12.getMem(0));
+        signal SingleChannel.singleDataReady[clientID](call HPLADC12.getMem(0));
         break;
       case SINGLE_DATA_REPEAT:
         {
           error_t repeatContinue;
-          if (flagsADC & ADCC_REQUEST)
-            repeatContinue = signal SingleChannelADCC.singleDataReady[clientID](
-                call HPLADC12.getMem(0));
-          else
-            repeatContinue = signal SingleChannel.singleDataReady[clientID](
+          repeatContinue = signal SingleChannel.singleDataReady[clientID](
                 call HPLADC12.getMem(0));
           if (repeatContinue == FAIL)
             stopConversion();
@@ -470,10 +396,7 @@ implementation
             call HPLADC12.setMemControl(bufLength - bufOffset, memctl);
           } else {
             stopConversion();
-            if (flagsADC & ADCC_REQUEST)
-              signal SingleChannelADCC.multipleDataReady[clientID](bufPtr - bufLength, bufLength);
-            else
-              signal SingleChannel.multipleDataReady[clientID](bufPtr - bufLength, bufLength);
+            signal SingleChannel.multipleDataReady[clientID](bufPtr - bufLength, bufLength);
           }
         }
         break;
@@ -483,11 +406,8 @@ implementation
           do {
             *bufPtr++ = call HPLADC12.getMem(i);
           } while (++i < bufLength);
-          if (flagsADC & ADCC_REQUEST)
-            bufPtr = signal SingleChannelADCC.multipleDataReady[clientID](bufPtr-bufLength,
-                    bufLength);
-          else
-            bufPtr = signal SingleChannel.multipleDataReady[clientID](bufPtr-bufLength,
+          
+          bufPtr = signal SingleChannel.multipleDataReady[clientID](bufPtr-bufLength,
                     bufLength);
           if (!bufPtr)  
             stopConversion();
@@ -503,30 +423,12 @@ implementation
     return config;
   }
   
-  default async event msp430adc12_channel_config_t 
-    SingleChannelADCC.getConfigurationData[uint8_t id]()
-  {
-    msp430adc12_channel_config_t config = {0,0,0,0,0,0,0,0};
-    return config;
-  }
-  
   default async event error_t SingleChannel.singleDataReady[uint8_t id](uint16_t data)
   {
     return FAIL;
   }
   
-  default async event error_t SingleChannelADCC.singleDataReady[uint8_t id](uint16_t data)
-  {
-    return FAIL;
-  }
-  
   default async event uint16_t* SingleChannel.multipleDataReady[uint8_t id](
-      uint16_t *buf, uint16_t length)
-  {
-    return 0;
-  }
-  
-  default async event uint16_t* SingleChannelADCC.multipleDataReady[uint8_t id](
       uint16_t *buf, uint16_t length)
   {
     return 0;
