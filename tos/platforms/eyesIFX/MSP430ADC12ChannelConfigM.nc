@@ -27,13 +27,13 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-06-01 03:20:31 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-06-04 00:04:57 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
-/* channel configuration data required by ADCC */
+/* channel configuration data for eyesIFX{1,2} onboard sensors required by ADCC */
 module MSP430ADC12ChannelConfigM {
   uses {
     interface MSP430ADC12ChannelConfig;  
@@ -43,45 +43,48 @@ implementation
 {
   async event msp430adc12_channel_config_t MSP430ADC12ChannelConfig.getConfigurationData(uint8_t channel)
   {
-    msp430adc12_channel_config_t config = {0,0,0,0,0,0,0,0};
+    msp430adc12_channel_config_t defaultConfig = {0,0,0,0,0,0,0,0};
     switch (channel)
     {
-      case 0: 
+      case 0:
+        { 
         // external temperature sensor
-        config = ADC12_SETTINGS( \
-           INPUT_CHANNEL_A0, REFERENCE_AVcc_AVss, SAMPLE_HOLD_4_CYCLES, \
-           SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPCON_SOURCE_SMCLK, \
-           SAMPCON_CLOCK_DIV_1, REFVOLT_LEVEL_1_5);
-        break;
+        msp430adc12_channel_config_t config = {
+                      INPUT_CHANNEL_A0, REFERENCE_AVcc_AVss, REFVOLT_LEVEL_1_5,
+                      SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
+                      SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
+        return config;
+        }
       case 2: 
+        {
         // light sensor
-        config = ADC12_SETTINGS( \
-           INPUT_CHANNEL_A2, REFERENCE_VREFplus_AVss, SAMPLE_HOLD_64_CYCLES, \
-           SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPCON_SOURCE_SMCLK, \
-           SAMPCON_CLOCK_DIV_1, REFVOLT_LEVEL_1_5);
-        break;
+        msp430adc12_channel_config_t config = {
+                      INPUT_CHANNEL_A2, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
+                      SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_64_CYCLES,
+                      SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
+        return config;
+        }
       case 3: 
+        {
         // rssi sensor (vref)
-        config = ADC12_SETTINGS( \
-           INPUT_CHANNEL_A3, REFERENCE_VREFplus_AVss, SAMPLE_HOLD_4_CYCLES, \
-           SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPCON_SOURCE_SMCLK, \
-           SAMPCON_CLOCK_DIV_1, REFVOLT_LEVEL_1_5);
+        msp430adc12_channel_config_t config = {
+                      INPUT_CHANNEL_A3, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
+                      SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
+                      SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
         /*
         // rssi sensor (vcc)
-        config =  ADC12_SETTINGS(INPUT_CHANNEL_A3, \
-                                    REFERENCE_AVcc_AVss, \
-                                    SAMPLE_HOLD_4_CYCLES, \
-                                    SHT_SOURCE_SMCLK, \
-                                    SHT_CLOCK_DIV_1, \
-                                    SAMPCON_SOURCE_SMCLK, \
-                                    SAMPCON_CLOCK_DIV_1, \
-                                    REFVOLT_LEVEL_1_5) 
+        msp430adc12_channel_config_t config = {
+                      INPUT_CHANNEL_A3, REFERENCE_AVcc_AVss, REFVOLT_LEVEL_1_5,
+                      SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
+                      SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
         */
+        return config;
+        }
         break;
       default:
         break;
     }
-    return config;
+    return defaultConfig;
   }
 }
 
