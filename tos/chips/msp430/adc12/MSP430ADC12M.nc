@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2005-06-03 01:43:32 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2005-06-04 00:03:57 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -73,11 +73,11 @@ implementation
   norace uint8_t mode;              /* current conversion mode, see above */
   norace uint8_t flagsADC;          /* current state, see above */
   
-  msp430adc12_result_t checkGetRefVolt(uint8_t referenceVoltage, uint8_t refVolt2_5);
+  msp430adc12_result_t checkGetRefVolt(uint8_t sref, uint8_t ref2_5v);
   error_t checkReleaseRefVolt();
   void prepareTimerA(uint16_t interval, uint16_t csSAMPCON, uint16_t cdSAMPCON);
   void startTimerA();
-  void configureAdcPin( uint8_t inputChannel );
+  void configureAdcPin( uint8_t inch );
 
   
   msp430adc12_result_t newRequest(uint8_t req, msp430adc12_channel_config_t configData,
@@ -99,7 +99,7 @@ implementation
     }
     mode = req;
      
-    switch (result = checkGetRefVolt(configData.referenceVoltage, configData.refVolt2_5))
+    switch (result = checkGetRefVolt(configData.sref, configData.ref2_5v))
     {
       case MSP430ADC12_FAIL_VREF: 
         break;
@@ -115,21 +115,21 @@ implementation
             refon: call HPLADC12.getRefon(), 
             r2_5v: call HPLADC12.getRef2_5V(),
             msc: (jiffies == 0) ? 1 : 0, 
-            sht0:configData.sampleHoldTime, 
-            sht1:configData.sampleHoldTime
+            sht0:configData.sht, 
+            sht1:configData.sht
           };
           adc12ctl1_t ctl1 = {
             adc12busy:0, 
             conseq:0, // will be changed later
-            adc12ssel:configData.clockSourceSHT, 
-            adc12div:configData.clockDivSHT, 
+            adc12ssel:configData.adc12ssel, 
+            adc12div:configData.adc12div, 
             issh:0, shp:1, 
             shs: (jiffies == 0) ? 0 : 1,
             cstartadd:0
           };
           adc12memctl_t memctl = {
-            inch: configData.inputChannel,
-            sref: configData.referenceVoltage,
+            inch: configData.inch,
+            sref: configData.sref,
             eos: 0
           };
           uint16_t i, mask = 1;
@@ -156,7 +156,7 @@ implementation
               break;
           }
           
-          configureAdcPin( configData.inputChannel );
+          configureAdcPin( configData.inch );
           call HPLADC12.disableConversion();
           call HPLADC12.setControl0(ctl0);
           call HPLADC12.setControl1(ctl1);
@@ -167,8 +167,8 @@ implementation
           call HPLADC12.setIEFlags(mask << i);
           
           if (jiffies)
-            prepareTimerA(jiffies, configData.clockSourceSAMPCON,
-                          configData.clockDivSAMPCON);
+            prepareTimerA(jiffies, configData.sampcon_ssel,
+                          configData.sampcon_id);
           
           if (result == MSP430ADC12_SUCCESS){ // VREF stable or unused
             call HPLADC12.startConversion();
@@ -261,13 +261,13 @@ implementation
   async event void CompareA0.fired(){}
   async event void CompareA1.fired(){}
 
-  msp430adc12_result_t checkGetRefVolt(uint8_t referenceVoltage, uint8_t refVolt2_5)
+  msp430adc12_result_t checkGetRefVolt(uint8_t sref, uint8_t ref2_5v)
   {
     error_t vrefResult;
-    if (referenceVoltage == REFERENCE_VREFplus_AVss ||
-        referenceVoltage == REFERENCE_VREFplus_VREFnegterm)
+    if (sref == REFERENCE_VREFplus_AVss ||
+        sref == REFERENCE_VREFplus_VREFnegterm)
     {
-      if (refVolt2_5 == REFVOLT_LEVEL_1_5)
+      if (ref2_5v == REFVOLT_LEVEL_1_5)
         vrefResult = call RefVoltGenerator.switchOn(REFERENCE_1_5V);
       else
         vrefResult = call RefVoltGenerator.switchOn(REFERENCE_2_5V);
@@ -331,11 +331,11 @@ implementation
     call TimerA.setMode(MSP430TIMER_UP_MODE); // go!
   }   
   
-  void configureAdcPin( uint8_t inputChannel )
+  void configureAdcPin( uint8_t inch )
   {
-    if( inputChannel <= 7 ){
-      P6SEL |= (1 << inputChannel); //adc function (instead of general IO)
-      P6DIR &= ~(1 << inputChannel); //input (instead of output)
+    if( inch <= 7 ){
+      P6SEL |= (1 << inch); //adc function (instead of general IO)
+      P6DIR &= ~(1 << inch); //input (instead of output)
     }
   }
 
