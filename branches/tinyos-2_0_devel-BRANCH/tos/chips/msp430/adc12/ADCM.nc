@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-06-01 03:14:27 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-06-04 00:03:56 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -76,9 +76,9 @@ implementation
   msp430adc12_channel_config_t getInternalChannelConfigData(uint8_t channel)
   {
     msp430adc12_channel_config_t config = {
-                      REFVOLT_LEVEL_1_5, SHT_SOURCE_ACLK, SAMPCON_SOURCE_SMCLK,
-                      SAMPCON_CLOCK_DIV_1, REFERENCE_VREFplus_AVss, SHT_CLOCK_DIV_1,
-                      channel, SAMPLE_HOLD_4_CYCLES};
+                      channel, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
+                      SHT_SOURCE_ACLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
+                      SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
     return config;
   }
 
@@ -145,11 +145,11 @@ implementation
       request = ACQUIRE_DATA_BUFFERED;
     }
     if (m_rate & 0xFFFF0000){
-      channelConfig.clockSourceSAMPCON = SAMPCON_SOURCE_SMCLK; // 1MHz
-      channelConfig.clockDivSAMPCON = SAMPCON_CLOCK_DIV_1;
+      channelConfig.sampcon_ssel = SAMPCON_SOURCE_SMCLK; // 1MHz
+      channelConfig.sampcon_id = SAMPCON_CLOCK_DIV_1;
     } else {
-      channelConfig.clockSourceSAMPCON = SAMPCON_SOURCE_ACLK; // 32Khz
-      channelConfig.clockDivSAMPCON = SAMPCON_CLOCK_DIV_1;
+      channelConfig.sampcon_ssel = SAMPCON_SOURCE_ACLK; // 32Khz
+      channelConfig.sampcon_id = SAMPCON_CLOCK_DIV_1;
     } 
     call ResourceHAL1.request(); // FCFS
     return SUCCESS;
