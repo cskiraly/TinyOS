@@ -1,4 +1,4 @@
-/// $Id: HPLSPIM.nc,v 1.1.2.1 2005-06-04 23:56:53 mturon Exp $
+/// $Id: HPLSPIM.nc,v 1.1.2.2 2005-06-05 00:10:27 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -79,23 +79,6 @@ implementation
       return !(call SPI.getStatus()).bits.spif;
   }
 
-#if 0
-#define CONTROL_BIT_SERVICE(name, bit, type)             \
-  async command ##type SPI.get##name () {                \
-      return (call SPI.getControl()).bits.##bit##;       \
-  }                                                      \
-  async command error_t SPI.set##name (##type v) {       \
-      ATm128SPIControl_t ctrl = call SPI.getControl();   \
-      ctrl.bits.##bit = v;                               \
-      call SPI.setControl(ctrl);                         \
-      return SUCCESS;                                    \
-  }
-
-  CONTROL_BIT_SERVICE(Enable, spe, bool);
-  CONTROL_BIT_SERVICE(Interrupt, spie, bool);
-  CONTROL_BIT_SERVICE(Speed, spr, uint8_t);
-#else
-
   async command bool SPI.getEnable () {                
       return (call SPI.getControl()).bits.spe;       
   }                                                      
@@ -126,15 +109,10 @@ implementation
       return SUCCESS;                                    
   }
 
-#endif 
-  /**
-   * Puts the bus to sleep.
-   */
-  async command error_t SPI.disable() {
-/*
-      call SPI.setStatus(0);
-      call SPI.setControl(0);
-*/
+  /** Puts the bus to sleep. */
+  async command error_t SPI.sleep() {
+      //call SPI.setStatus(0);
+      //call SPI.setControl(0);
       CLR_BIT(SPCR, SPIE);
       call Ss.makeOutput();
       call Ss.set();     // Sleep bus
@@ -144,11 +122,16 @@ implementation
   
   //=== Slave initialization and control. ==============================
 
+  /** 
+   * Initialize the SPI bus to act as a slave device.  
+   * The default timing in this routine may be directed for 
+   * connection to a CC1000 radio as used on the mica2 platform.
+   */
   async command error_t SPI.slaveInit() {  
       ATm128SPIControl_t ctrl;
       ATm128SPIStatus_t  stts;
 
-      stts.bits = (ATm128SPIStatus_s) { spi2x : 1 };
+      stts.bits = (ATm128SPIStatus_s) { spi2x : 0 };
       ctrl.bits = (ATm128SPIControl_s) {
 	  spr  : ATM128_SPI_CLK_DIVIDE_4,
 	  spie : 1,                       //!< Enable SPI Interrupt
@@ -178,6 +161,11 @@ implementation
 
   //=== Master initialization and control. ==============================
 
+  /** 
+   * Initialize the SPI bus to act as a master device.  
+   * The default timing in this routine may be directed for 
+   * connection to a CC2420 radio as used on the micaz platform.
+   */
   async command error_t SPI.masterInit() {
       ATm128SPIControl_t ctrl;
       ATm128SPIStatus_t  stts;
