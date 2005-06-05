@@ -1,4 +1,4 @@
-/// $Id: ATm128SPI.h,v 1.1.2.1 2005-04-20 18:32:49 mturon Exp $
+/// $Id: ATm128SPI.h,v 1.1.2.2 2005-06-05 00:10:27 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -34,11 +34,10 @@ enum {
     ATM128_SPI_CLK_DIVIDE_16 = 1,
     ATM128_SPI_CLK_DIVIDE_64 = 2,
     ATM128_SPI_CLK_DIVIDE_128 = 3,
-}
+};
 
 /** SPI Control Register */
-typedef struct
-{
+typedef struct {
     uint8_t spr   : 2;  //!< SPI Clock Rate
     uint8_t cpha  : 1;  //!< SPI Clock Phase
     uint8_t cpol  : 1;  //!< SPI Clock Polarity
@@ -46,16 +45,24 @@ typedef struct
     uint8_t dord  : 1;  //!< SPI Data Order
     uint8_t spe   : 1;  //!< SPI Enable
     uint8_t spie  : 1;  //!< SPI Interrupt Enable
+} ATm128SPIControl_s;
+typedef union {
+    uint8_t flat;
+    ATm128SPIControl_s bits;
 } ATm128SPIControl_t;
 
 typedef ATm128SPIControl_t ATm128_SPCR_t;  //!< SPI Control Register
 
 /** SPI Status Register */
-struct {
+typedef struct {
     uint8_t spi2x : 1;  //!< SPI Parity Error
     uint8_t rsvd  : 5;  //!< Reserved
     uint8_t wcol  : 1;  //!< SPI Write COLision flag
     uint8_t spif  : 1;  //!< SPI Interrupt Flag
+} ATm128SPIStatus_s;
+typedef union {
+    uint8_t flat;
+    ATm128SPIStatus_s bits;
 } ATm128SPIStatus_t;
 
 typedef ATm128SPIStatus_t ATm128_SPSR_t;  //!< SPI Status Register
