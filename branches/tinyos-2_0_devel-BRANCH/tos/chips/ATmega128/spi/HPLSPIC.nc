@@ -1,4 +1,4 @@
-/// $Id: HPLSPIC.nc,v 1.1.2.1 2005-06-05 00:11:45 mturon Exp $
+/// $Id: HPLSPIC.nc,v 1.1.2.2 2005-06-05 00:12:58 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,13 +24,9 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-//includes hardware;
-
 configuration HPLSPIC
 {
-    provides {
-	interface HPLSPI as SpiBus;
-    }
+    provides interface HPLSPI as SpiBus;
 }
 implementation
 {
@@ -43,4 +39,3 @@ implementation
     HPLSPIM.Mosi -> HPLGeneralIO.PortB2;  // Master out, slave in
     HPLSPIM.Miso -> HPLGeneralIO.PortB3;  // Master in, slave out
 }
-
