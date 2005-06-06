@@ -43,7 +43,6 @@ implementation
 
   /* Initialize the seed from the ID of the node */
   command error_t Init.init() {
-    dbg(DBG_BOOT, "RANDOM_MLCG initialized.\n");
     atomic  seed = (uint32_t)(TOS_LOCAL_ADDRESS + 1);
     
     return SUCCESS;
@@ -51,7 +50,6 @@ implementation
 
   /* Initialize with 16-bit seed */ 
   command error_t SeedInit.init(uint16_t s) {
-    dbg(DBG_BOOT, "RANDOM_MLCG initialized.\n");
     atomic  seed = (uint32_t)(s + 1);
     
     return SUCCESS;
