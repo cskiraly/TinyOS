@@ -1,4 +1,4 @@
-// $Id: CSMARadioC.nc,v 1.1.2.6 2005-05-21 01:56:23 jpolastre Exp $
+// $Id: CSMARadioC.nc,v 1.1.2.7 2005-06-06 17:31:29 scipio Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.6 $
+ * Revision:  $Revision: 1.1.2.7 $
  */
 
 includes CC2420Const;
@@ -52,7 +52,7 @@ implementation
     , CC2420ControlM
     , HPLCC2420C
     , CC2420RadioControlM
-    , RandomLfsrC as RandomC
+    , RandomC
     , new Alarm32khzC() as AlarmC
     , LedsC
     // defined by each platform
