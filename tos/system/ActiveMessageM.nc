@@ -1,4 +1,4 @@
-// $Id: ActiveMessageM.nc,v 1.1.2.3 2005-05-20 00:25:01 scipio Exp $
+// $Id: ActiveMessageM.nc,v 1.1.2.4 2005-06-06 17:16:00 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: ActiveMessageM.nc,v 1.1.2.3 2005-05-20 00:25:01 scipio Exp $
+ * Date last modified:  $Id: ActiveMessageM.nc,v 1.1.2.4 2005-06-06 17:16:00 scipio Exp $
  *
  */
 
@@ -63,6 +63,10 @@ module ActiveMessageM {
 implementation {
 
   bool active = FALSE;
+
+  enum {
+    AMP_OFFSET = offsetof(ActiveMsg, data),
+  };
 
   command error_t Init.init() {
     return call SubInit.init();
@@ -100,11 +104,11 @@ implementation {
     }
     else {
       void* payload = call SubPacket.getPayload(msg, NULL);
-      AMHeader* header = (AMHeader*)payload;
+      ActiveMsg* header = (ActiveMsg*)payload;
       
       header->type = id;
       msg->header.addr = addr;
-      len += AM_HEADER_SIZE;
+      len += AMP_OFFSET;
       
       return call SubSend.send(msg, len);
     }
@@ -121,7 +125,7 @@ implementation {
 
   event void SubSend.sendDone(message_t* msg, error_t result) {
     void* payload = call SubPacket.getPayload(msg, NULL);
-    AMHeader* header = (AMHeader*)payload;
+    ActiveMsg* header = (ActiveMsg*)payload;
     signal AMSend.sendDone[header->type](msg, result);
   }
 
@@ -133,12 +137,12 @@ implementation {
       return msg;
     }
     else {
-      AMHeader* header = (AMHeader*)payload;
+      ActiveMsg* header = (ActiveMsg*)payload;
       uint8_t* payloadPtr = (uint8_t*)payload;
 
       /* Move payload pointer forward and adjust length. */
-      payloadPtr += AM_HEADER_SIZE;
-      len -= AM_HEADER_SIZE;
+      payloadPtr += AMP_OFFSET;
+      len -= AMP_OFFSET;
       
       if (call AMPacket.isForMe(msg)) {
 	return signal Receive.receive[header->type](msg, payloadPtr, len);
@@ -167,20 +171,20 @@ implementation {
 
   command uint8_t Packet.payloadLength(message_t* msg) {
     uint8_t len = call SubPacket.payloadLength(msg);
-    len -= AM_HEADER_SIZE;
+    len -= AMP_OFFSET;
     return len;
   }
 
   command uint8_t Packet.maxPayloadLength() {
-    return call SubPacket.maxPayloadLength() - AM_HEADER_SIZE;
+    return call SubPacket.maxPayloadLength() - AMP_OFFSET;
   }
 
   command void* Packet.getPayload(message_t* msg, uint8_t* len) {
     uint8_t* payloadPtr = call SubPacket.getPayload(msg, len);
 
-    payloadPtr += AM_HEADER_SIZE;
+    payloadPtr += AMP_OFFSET;
     if (len != NULL) {
-      *len -= AM_HEADER_SIZE;
+      *len -= AMP_OFFSET;
     }
 
     return (void*)payloadPtr;
@@ -194,8 +198,6 @@ implementation {
  
   command am_addr_t AMPacket.destination(message_t* amsg) {
     return amsg->header.addr;
-    //AMHeader* header = (AMHeader*)call SubPacket.getPayload(amsg, NULL);
-    //return header->dest;
   }
 
   command bool AMPacket.isForMe(message_t* amsg) {
