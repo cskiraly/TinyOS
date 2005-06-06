@@ -1,4 +1,4 @@
-// $Id: TestAMM.nc,v 1.1.2.3 2005-06-06 19:41:31 scipio Exp $
+// $Id: RadioCountToLedsM.nc,v 1.1.2.1 2005-06-06 19:41:31 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -30,23 +30,27 @@
  */
 
 /**
- *  Implementation of the OSKI TestBroadcast application.
+ *  Implementation of the OSKI RadioCountToLeds application. This
+ *  application periodically broadcasts a 16-bit counter, and displays
+ *  broadcasts it hears on its LEDs.
  *
  *  @author Philip Levis
- *  @date   May 16 2005
+ *  @date   June 6 2005
  *
  **/
 
 includes Timer;
+includes RadioCountToLeds;
 
-module TestAMM {
+module RadioCountToLedsM {
   uses {
     interface Leds;
     interface Boot;
     interface Receive;
     interface AMSend;
     interface Timer<TMilli> as MilliTimer;
-    interface SplitControl;
+    interface Service;
+    interface Packet;
   }
 }
 implementation {
@@ -54,41 +58,63 @@ implementation {
   message_t packet;
 
   bool locked;
-  uint8_t counter = 0;
+  uint16_t counter = 0;
   
   event void Boot.booted() {
-    call SplitControl.start();
+    call Service.start();
+    call MilliTimer.startPeriodicNow(1000);
   }
   
   event void MilliTimer.fired() {
     counter++;
     if (locked) {
       return;
-     }
-    else if (call AMSend.send(AM_BROADCAST_ADDR, &packet, 0) == SUCCESS) {
-      call Leds.led0On();
-      locked = TRUE;
+    }
+    else {
+      uint8_t len;
+      RadioCountMsg* rcm = (RadioCountMsg*)call Packet.getPayload(&packet, &len);
+      if (len < sizeof(RadioCountMsg)) {
+	return;
+      }
+
+      rcm->counter = counter;
+      if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(RadioCountMsg)) == SUCCESS) {
+	locked = TRUE;
+      }
     }
   }
 
   event message_t* Receive.receive(message_t* bufPtr, 
 				   void* payload, uint8_t len) {
-    call Leds.led1Toggle();
-    return bufPtr;
+    if (len != sizeof(RadioCountMsg)) {return bufPtr;}
+    else {
+      RadioCountMsg* rcm = (RadioCountMsg*)payload;
+      if (rcm->counter & 0x1) {
+	call Leds.led0On();
+      }
+      else {
+	call Leds.led0Off();
+      }
+      if (rcm->counter & 0x2) {
+	call Leds.led1On();
+      }
+      else {
+	call Leds.led1Off();
+      }
+      if (rcm->counter & 0x4) {
+	call Leds.led2On();
+      }
+      else {
+	call Leds.led2Off();
+      }
+      return bufPtr;
+    }
   }
 
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {
     if (&packet == bufPtr) {
       locked = FALSE;
-      call Leds.led0Off();
     }
-  }
-
-  event void SplitControl.startDone(error_t err) {
-    call MilliTimer.startPeriodicNow(1000);
-  }
-
-  event void SplitControl.stopDone(error_t err) {
   }
 
 }
