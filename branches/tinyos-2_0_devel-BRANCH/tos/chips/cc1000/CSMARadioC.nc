@@ -1,4 +1,4 @@
-/* $Id: CSMARadioC.nc,v 1.1.2.10 2005-06-03 19:04:44 idgay Exp $
+/* $Id: CSMARadioC.nc,v 1.1.2.11 2005-06-06 17:31:29 scipio Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -43,7 +43,7 @@
  *
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.10 $
+ * Revision:  $Revision: 1.1.2.11 $
  */
 
 #include "CC1000Const.h"
@@ -68,7 +68,7 @@ configuration CSMARadioC{
 }
 implementation {
   components Csma, SendReceive, CC1000RssiM, CC1000SquelchM, CC1000ControlM;
-  components HPLCC1000C, RandomLfsrC, TimerMilliC;
+  components HPLCC1000C, RandomC, TimerMilliC;
 
   Init = Csma;
   Init = TimerMilliC;
@@ -87,7 +87,7 @@ implementation {
   RadioTimeStamping = SendReceive;
 
   Csma.CC1000Control -> CC1000ControlM;
-  Csma.Random -> RandomLfsrC;
+  Csma.Random -> RandomC;
   Csma.CC1000Squelch -> CC1000SquelchM;
   Csma.WakeupTimer -> TimerMilliC.TimerMilli[unique("TimerMilli")];
 
