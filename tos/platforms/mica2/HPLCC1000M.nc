@@ -1,4 +1,4 @@
-// $Id: HPLCC1000M.nc,v 1.1.2.2 2005-05-18 23:28:14 idgay Exp $
+// $Id: HPLCC1000M.nc,v 1.1.2.3 2005-06-06 18:05:15 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Jaein Jeong, Philip Buonadonna
- * Date last modified:  $Revision: 1.1.2.2 $
+ * Date last modified:  $Revision: 1.1.2.3 $
  *
  */
 
@@ -181,11 +181,7 @@ implementation
 
 
   async command bool HPLCC1000.getLOCK() {
-    char cVal;
-
-    cVal = call CHP_OUT.get();
-
-    return cVal;
+    return call CHP_OUT.get();
   }
 }
   
