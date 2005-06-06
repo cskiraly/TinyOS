@@ -1,4 +1,4 @@
-// $Id: BlinkC.nc,v 1.1.2.4 2005-04-16 06:21:00 cssharp Exp $
+// $Id: BlinkC.nc,v 1.1.2.5 2005-06-06 17:12:32 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -44,9 +44,9 @@ implementation
 {
   components Main
 	   , BlinkM
-	   , new TimerMilli() as Timer0
-	   , new TimerMilli() as Timer1
-	   , new TimerMilli() as Timer2
+	   , new OSKITimerMsC() as Timer0
+	   , new OSKITimerMsC() as Timer1
+	   , new OSKITimerMsC() as Timer2
 	   , LedsC
 	   ;
 
