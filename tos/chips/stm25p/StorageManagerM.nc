@@ -1,7 +1,7 @@
-// $Id: StorageManagerM.nc,v 1.1.2.1 2005-02-09 01:45:52 jwhui Exp $
+// $Id: StorageManagerM.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2004 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -27,29 +27,58 @@
 
 module StorageManagerM {
   provides {
+    interface SectorStorage[volume_t volume];
     interface Mount[volume_t volume];
     interface StdControl;
     interface StorageRemap[volume_t volume];
+    interface StorageManager[volume_t volume];
+  }
+  uses {
+    interface Crc;
+    interface HALSTM25P;
+    interface Leds;
   }
 }
 
 implementation {
 
   enum {
-    NUM_VOLUMES = uniqueCount("StorageManager"),
+    NUM_VOLUMES = unique("StorageManager"),
   };
 
-  uint8_t volumeMap[NUM_VOLUMES];
-  volume_t curVolume;
+  enum {
+    S_NEVER_USED,
+    S_READY,
+    S_MOUNT,
+    S_READ,
+    S_COMPUTE_CRC,
+    S_WRITE,
+    S_ERASE,
+  };
+
+  uint8_t state;
+
+  SectorTable sectorTable;
+  uint8_t baseSector[NUM_VOLUMES];
+  volume_t clientVolume;
+  volume_id_t curVolumeId;
+  uint16_t crcScratch;
+  
+  stm25p_addr_t rwAddr;
+  stm25p_addr_t rwLen;
+  void* rwData;
 
   command result_t StdControl.init() {
 
     uint8_t i;
+    
+    state = S_NEVER_USED;
 
-    curVolume = SM_INVALID_VOLUME;
+    for ( i = 0; i < STM25P_NUM_SECTORS; i++ )
+      sectorTable.sector[i].volumeId = STM25P_INVALID_VOLUME_ID;
 
     for ( i = 0; i < NUM_VOLUMES; i++ )
-      volumeMap[i] = SM_INVALID_VOLUME;
+      baseSector[i] = STM25P_INVALID_SECTOR;
 
     return SUCCESS; 
 
@@ -61,43 +90,264 @@ implementation {
 
   command result_t StdControl.stop() { 
     return SUCCESS; 
+ }
+
+  void signalDone(storage_result_t result) {
+
+    uint8_t tmpState = state;
+    state = S_READY;
+
+    switch(tmpState) {
+    case S_MOUNT: signal Mount.mountDone[clientVolume](result, curVolumeId); break;
+    case S_WRITE: signal SectorStorage.writeDone[clientVolume](result); break;
+    case S_ERASE: signal SectorStorage.eraseDone[clientVolume](result); break;
+    }
+    
   }
 
-  void signalMounted() {
-    volume_id_t tmpVolume = curVolume;
-    curVolume = SM_INVALID_VOLUME;
-    signal Mount.mountDone[tmpVolume](STORAGE_OK, volumeMap[tmpVolume]);
+  uint16_t computeSectorTableCrc() {
+    return call Crc.crc16(&sectorTable, sizeof(SectorTable)-2);
   }
 
-  task void mounted() {
-    signalMounted();
+  void actualMount() {
+
+    volume_id_t i;
+
+    // find base sector
+    for ( i = 0; i < STM25P_NUM_SECTORS; i++ ) {
+      if (sectorTable.sector[i].volumeId == curVolumeId) {
+	baseSector[clientVolume] = i;
+	signalDone(STORAGE_OK);
+	return;
+      }
+    }
+
+    signalDone(STORAGE_FAIL);
+
+  }
+
+  task void mount() {
+    actualMount();
+  }
+
+  stm25p_addr_t physicalAddr(stm25p_addr_t volumeAddr) {
+    return STM25P_SECTOR_SIZE*baseSector[clientVolume] + volumeAddr;
+  }
+
+  stm25p_addr_t calcNumBytes() {
+
+    uint32_t numBytes;
+
+    if ( state == S_MOUNT )
+      return STM25P_SECTOR_SIZE;
+    else if ( state == S_WRITE )
+      numBytes = STM25P_PAGE_SIZE - (rwAddr % STM25P_PAGE_SIZE);
+    else 
+      numBytes = STM25P_SECTOR_SIZE - (rwAddr % STM25P_SECTOR_SIZE);
+
+    if ( rwLen < numBytes )
+      numBytes = rwLen;
+    
+    return numBytes;
+    
+  }
+
+  result_t continueOp() {
+    stm25p_addr_t pAddr = physicalAddr(rwAddr);
+
+    switch(state) {
+    case S_READ: return call HALSTM25P.read(pAddr, rwData, rwLen);
+    case S_COMPUTE_CRC: return call HALSTM25P.computeCrc(&crcScratch, crcScratch, pAddr, rwLen);
+    case S_MOUNT: pAddr = rwAddr;
+    case S_ERASE: return call HALSTM25P.sectorErase(pAddr);
+    case S_WRITE: return call HALSTM25P.pageProgram(pAddr, rwData, calcNumBytes());
+    }
+    return FAIL;
+  }
+
+  result_t formatFlash() {
+
+    uint8_t i;
+
+    for ( i = 0; i < STM25P_NUM_SECTORS; i++ )
+      sectorTable.sector[i].volumeId = STM25P_INVALID_VOLUME_ID;
+    
+    sectorTable.sector[0].volumeId = 0xD0;
+    sectorTable.sector[1].volumeId = 0xD1;
+    sectorTable.sector[STM25P_NUM_SECTORS-1].volumeId = 0xDF;
+    sectorTable.crc = computeSectorTableCrc();
+    
+    rwAddr = 0;
+    rwLen = STM25P_SECTOR_SIZE*STM25P_NUM_SECTORS;
+
+    return continueOp();
+
   }
 
   command result_t Mount.mount[volume_t volume](volume_id_t volumeID) {
 
-    if (curVolume != SM_INVALID_VOLUME || volumeID >= SM_MAX_VOLUMES)
+    stm25p_addr_t addr = 0;
+    result_t result;
+    
+    if (state != S_READY && state != S_NEVER_USED)
       return FAIL;
+    
+    curVolumeId = volumeID;
+    clientVolume = volume;
 
-    curVolume = volume;
-    volumeMap[volume] = volumeID;
+    // if never used, look for partition table
+    if (state == S_NEVER_USED) {
+
+      // if never used, find valid sector table
+      for ( addr = STM25P_SECTOR_SIZE - sizeof(SectorTable); 
+	    addr < STM25P_SECTOR_SIZE*STM25P_NUM_SECTORS;
+	    addr += STM25P_SECTOR_SIZE ) {
+	if (call HALSTM25P.read(addr, &sectorTable, sizeof(SectorTable)) == FAIL)
+	  return FAIL;
+	if (sectorTable.crc == computeSectorTableCrc())
+	  break;
+      }
+      
+    }
+
+    state = S_MOUNT;
     
-    post mounted();
-    
-    return SUCCESS;
+    // continue with mount operation
+    if ( addr < STM25P_SECTOR_SIZE*STM25P_NUM_SECTORS ) {
+      result = post mount();
+      if (!result)
+	state = S_READY;
+    }
+    // if flash has no valid sector tables, format it
+    else {
+      result = formatFlash();
+      if (result == FAIL)
+	state = S_NEVER_USED;
+    }
+
+    return result;
 
   }
-  
-  command uint32_t StorageRemap.physicalAddr[volume_t _volume](uint32_t volumeAddr) {
-    
-    uint32_t base = (uint32_t)volumeMap[_volume]*SM_VOLUME_SIZE;
-    
-    if (volumeMap[_volume] == SM_INVALID_VOLUME || volumeAddr >= SM_VOLUME_SIZE)
-      return SM_INVALID_ADDR;
-    
-    return base + volumeAddr;
-    
+
+  command uint32_t StorageRemap.physicalAddr[volume_t volume](uint32_t volumeAddr) {
+    if (baseSector[volume] == STM25P_INVALID_SECTOR)
+      return STM25P_INVALID_ADDR;
+    clientVolume = volume;
+    return physicalAddr(volumeAddr);
   }
 
-  default event void Mount.mountDone[volume_t volume](storage_result_t result, volume_id_t id) { ; }
+  command uint8_t StorageManager.getNumSectors[volume_t volume]() {
+    uint8_t i = baseSector[volume];
+    uint8_t tmpVolumeId = sectorTable.sector[i].volumeId;
+    
+    if (baseSector[volume] == STM25P_INVALID_SECTOR)
+      return STM25P_INVALID_SECTOR;
+    
+    for ( ; i < STM25P_NUM_SECTORS && sectorTable.sector[i].volumeId == tmpVolumeId; i++ );
+
+    return (i - baseSector[volume]);
+  }
+
+  command stm25p_addr_t StorageManager.getVolumeSize[volume_t volume]() {
+    if (baseSector[volume] == STM25P_INVALID_SECTOR)
+      return STM25P_INVALID_ADDR;
+    return STM25P_SECTOR_SIZE * call StorageManager.getNumSectors[volume]();
+  }
+
+  result_t newRequest(uint8_t newState, volume_t volume, 
+		      stm25p_addr_t addr, void* data, stm25p_addr_t len) {
+
+    result_t result;
+
+    if (state != S_READY)
+      return FALSE;
+
+    state = newState;
+    clientVolume = volume;
+
+    rwAddr = addr;
+    rwData = data;
+    rwLen = len;
+
+    result = continueOp();
+
+    if (result == FAIL || state == S_READ || state == S_COMPUTE_CRC)
+      state = S_READY;
+
+    return result;
+
+  }
+
+  command result_t SectorStorage.read[volume_t volume](stm25p_addr_t addr, void* data, stm25p_addr_t len) {
+    return newRequest(S_READ, volume, addr, data, len);
+  }
+
+  command result_t SectorStorage.write[volume_t volume](stm25p_addr_t addr, void* data, stm25p_addr_t len) {
+    return newRequest(S_WRITE, volume, addr, data, len);
+  }
+
+  command result_t SectorStorage.erase[volume_t volume](stm25p_addr_t addr, stm25p_addr_t len) {
+    return newRequest(S_ERASE, volume, addr, NULL, 0);
+  }
+
+  command result_t SectorStorage.computeCrc[volume_t volume](uint16_t* crcResult, uint16_t crc, 
+							     stm25p_addr_t addr, stm25p_addr_t len) {
+    result_t result;
+    crcScratch = crc;
+    result = newRequest(S_COMPUTE_CRC, volume, addr, NULL, len);
+    *crcResult = crcScratch;
+    return result;
+  }
+
+  void pageProgramDone() {
+
+    stm25p_addr_t lastBytes;
+    
+    lastBytes = calcNumBytes();
+    rwAddr += lastBytes;
+    rwData += lastBytes;
+    rwLen -= lastBytes;
+    if ( rwLen == 0 ) {
+      if (state == S_MOUNT)
+	actualMount();
+      else
+	signalDone(STORAGE_OK);
+      return;
+    }
+
+    if (continueOp() == FAIL)
+      signalDone(STORAGE_FAIL);
+
+  }
+
+  event void HALSTM25P.pageProgramDone() {
+    pageProgramDone();
+  }
+
+  event void HALSTM25P.sectorEraseDone() {
+
+    uint8_t sector = rwAddr / STM25P_SECTOR_SIZE;
+
+    if (state != S_MOUNT)
+      sector += baseSector[clientVolume];
+
+    if ( sector == STM25P_NUM_SECTORS - 1 ||
+	 sectorTable.sector[sector].volumeId != sectorTable.sector[sector+1].volumeId ) {
+      stm25p_addr_t addr = STM25P_SECTOR_SIZE*(sector+1) - sizeof(SectorTable);
+      if (call HALSTM25P.pageProgram(addr, &sectorTable, sizeof(SectorTable)) == FAIL)
+	signalDone(STORAGE_FAIL);
+    }
+    else {
+      pageProgramDone();
+    }
+
+  }
+
+  event void HALSTM25P.bulkEraseDone() {}
+  event void HALSTM25P.writeSRDone() {}
+
+  default event void Mount.mountDone[volume_t volume](storage_result_t result, volume_id_t id) {}
+  default event void SectorStorage.eraseDone[volume_t volume](result_t result) {}
+  default event void SectorStorage.writeDone[volume_t volume](result_t result) {}
 
 }

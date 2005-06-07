@@ -1,7 +1,7 @@
-// $Id: BlockRead.nc,v 1.1.2.1 2005-02-09 01:45:52 jwhui Exp $
+// $Id: BlockRead.nc,v 1.1.2.2 2005-06-07 20:05:34 jwhui Exp $
 
-/*									tab:4
- * "Copyright (c) 2000-2004 The Regents of the University  of California.  
+/*									tab:2
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -28,12 +28,16 @@
 includes BlockStorage;
 
 interface BlockRead {
-  command result_t read(block_addr_t addr, uint8_t* buf, block_addr_t len);
-  event void readDone(result_t result);
+
+  command result_t read(block_addr_t addr, void* buf, block_addr_t len);
+  event void readDone(storage_result_t result, block_addr_t addr, void* buf, block_addr_t len);
 
   command result_t verify();
-  event void verifyDone(result_t result);
+  event void verifyDone(storage_result_t result);
 
   command result_t computeCrc(block_addr_t addr, block_addr_t len);
-  event void computeCrcDone(result_t result, uint16_t crc);
+  event void computeCrcDone(storage_result_t result, uint16_t crc, block_addr_t addr, block_addr_t len);
+
+  command block_addr_t getSize();
+
 }

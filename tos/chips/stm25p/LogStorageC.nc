@@ -1,6 +1,6 @@
-// $Id: StorageRemap.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: LogStorageC.nc,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
 
-/*									tab:4
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -25,8 +25,34 @@
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
 
-includes HALSTM25P;
+includes LogStorage;
 
-interface StorageRemap {
-  command uint32_t physicalAddr(uint32_t volumeAddr);
+generic configuration LogStorageC() {
+  provides {
+    interface Mount;
+    interface LogRead;
+    interface LogWrite;
+  }
+}
+
+implementation {
+
+  enum {
+    LOG_ID = unique("LogStorage"),
+    VOLUME_ID = unique("StorageManager"),
+  };
+
+  components LogStorageM, Main, StorageManagerC, LedsC as Leds;
+
+  Mount = LogStorageM.Mount[LOG_ID];
+  LogRead = LogStorageM.LogRead[LOG_ID];
+  LogWrite = LogStorageM.LogWrite[LOG_ID];
+
+  Main.StdControl -> StorageManagerC;
+
+  LogStorageM.SectorStorage[LOG_ID] -> StorageManagerC.SectorStorage[VOLUME_ID];
+  LogStorageM.StorageManager[LOG_ID] -> StorageManagerC.StorageManager[VOLUME_ID];
+  LogStorageM.ActualMount[LOG_ID] -> StorageManagerC.Mount[VOLUME_ID];
+  LogStorageM.Leds -> Leds;
+  
 }

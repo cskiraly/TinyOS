@@ -1,7 +1,7 @@
-// $Id: BlockStorageM.nc,v 1.1.2.1 2005-02-09 01:45:52 jwhui Exp $
+// $Id: BlockStorageM.nc,v 1.1.2.2 2005-06-07 20:05:34 jwhui Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2004 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -32,8 +32,10 @@ module BlockStorageM {
     interface BlockWrite[blockstorage_t blockId];
   }
   uses {
-    interface HALSTM25P[blockstorage_t blockId];
+    interface SectorStorage[blockstorage_t blockId];
+    interface Leds;
     interface Mount as ActualMount[blockstorage_t blockId];
+    interface StorageManager[blockstorage_t blockId];
   }
 }
 
@@ -49,41 +51,12 @@ implementation {
     S_CRC,
   };
 
-  uint8_t baseAddr;
-
   uint8_t state;
   uint8_t client;
 
-  uint8_t* bufPtr;
-  block_addr_t curAddr;
-  block_addr_t bytesRemaining;
-  uint16_t crc;
-
-  void actualSignal(result_t result) {
-
-    uint8_t tmpState = state;
-
-    state = S_IDLE;
-
-    switch(tmpState) {
-    case S_READ: signal BlockRead.readDone[client](result); break;
-    case S_WRITE: signal BlockWrite.writeDone[client](result); break;
-    case S_ERASE: signal BlockWrite.eraseDone[client](result); break;
-    case S_CRC: signal BlockRead.computeCrcDone[client](result, crc); break;
-    }
-
-  }
-
-  task void signalSuccess() { actualSignal(SUCCESS); }
-  
-  task void signalFail() { actualSignal(FAIL); }
-
-  void signalDone(result_t result) {
-    if (result == SUCCESS)
-      post signalSuccess();
-    else
-      post signalFail();
-  }
+  block_addr_t rwAddr, rwLen;
+  void* rwBuf;
+  uint16_t crcScratch;
 
   command result_t Mount.mount[blockstorage_t blockId](volume_id_t id) {
     return call ActualMount.mount[blockId](id);
@@ -93,173 +66,117 @@ implementation {
     signal Mount.mountDone[blockId](result, id);
   }
 
-  bool admitRequest(blockstorage_t blockId) {
+  void signalDone(storage_result_t result) {
+    uint8_t tmpState = state;
+    state = S_IDLE;
+    switch(tmpState) {
+    case S_WRITE: signal BlockWrite.writeDone[client](result, rwAddr, rwBuf, rwLen); break;
+    case S_ERASE: signal BlockWrite.eraseDone[client](result); break;
+    case S_COMMIT: signal BlockWrite.commitDone[client](result); break;
+    case S_READ: signal BlockRead.readDone[client](result, rwAddr, rwBuf, rwLen); break;
+    case S_VERIFY: signal BlockRead.verifyDone[client](result); break;
+    case S_CRC: signal BlockRead.computeCrcDone[client](result, crcScratch, rwAddr, rwLen); break;
+    }
+  }
+
+  task void signalDoneTask() {
+    signalDone(STORAGE_OK);
+  }
+
+  result_t newRequest(uint8_t newState, blockstorage_t blockId, 
+		      block_addr_t addr, void* buf, block_addr_t len) {
+
+    result_t result = FAIL;
+
     if (state != S_IDLE)
-      return FALSE;
+      return FAIL;
+
     client = blockId;
-    return TRUE;
-  }
 
-  block_addr_t calcNumBytes() {
+    rwAddr = addr;
+    rwBuf = buf;
+    rwLen = len;
 
-    block_addr_t pageOffset = curAddr % (block_addr_t)STM25P_PAGE_SIZE;
-    block_addr_t numBytes = STM25P_PAGE_SIZE - pageOffset;
-
-    if (bytesRemaining < numBytes)
-      numBytes = bytesRemaining;
-
-    return numBytes;
-
-  }
-
-  command result_t BlockWrite.write[blockstorage_t blockId](block_addr_t addr, uint8_t* buf, block_addr_t len) {
-
-    if (admitRequest(blockId) == FAIL)
-      return FAIL;
-
-    curAddr = addr;
-    bufPtr = buf;
-    bytesRemaining = len;
-
-    state = S_WRITE;
-
-    if (call HALSTM25P.pageProgram[blockId](addr, buf, calcNumBytes()) == FAIL) {
-      state = S_IDLE;
-      return FAIL;
+    switch(newState) {
+    case S_READ:
+      result = call SectorStorage.read[blockId](rwAddr, rwBuf, rwLen);
+      break;
+    case S_CRC:
+      result = call SectorStorage.computeCrc[blockId](&crcScratch, 0, rwAddr, rwLen);
+      break;
+    case S_VERIFY:
+      break;
+    case S_WRITE:
+      result = call SectorStorage.write[blockId](rwAddr, rwBuf, rwLen);
+      break;
+    case S_ERASE:
+      result = call SectorStorage.erase[blockId](0, call StorageManager.getVolumeSize[blockId]());
+      break;
+    case S_COMMIT:
+      break;
     }
     
-    return SUCCESS;
-
-  }
-
-  command result_t BlockWrite.erase[blockstorage_t blockId]() {
-
-    if (admitRequest(blockId) == FAIL)
-      return FAIL;
-
-    state = S_ERASE;
-
-    if (call HALSTM25P.sectorErase[blockId](0) == FAIL) {
-      state = S_IDLE;
-      return FAIL;
+    if (newState == S_READ || newState == S_CRC || newState == S_VERIFY) {
+      if (result == SUCCESS) 
+	result = post signalDoneTask();
     }
+    
+    if (result == SUCCESS)
+      state = newState;
 
-    return SUCCESS;
-
-  }
-
-  command result_t BlockWrite.commit[blockstorage_t blockId]() {
-
-    if (admitRequest(blockId) == FAIL)
-      return FAIL;
-
-    state = S_COMMIT;
-
-    state = S_IDLE;
-
-    return SUCCESS;
+    return result;
 
   }
+  
+  command uint32_t BlockRead.getSize[blockstorage_t blockId]() {
+    return call StorageManager.getVolumeSize[blockId]();
+  }
 
-  command result_t BlockRead.read[blockstorage_t blockId](block_addr_t addr, uint8_t* buf, block_addr_t len) {
-
-    if (admitRequest(blockId) == FAIL)
-      return FAIL;
-
-    state = S_READ;
-
-    if (call HALSTM25P.read[blockId](addr, buf, len) == FAIL) {
-      state = S_IDLE;
-      return FAIL;
-    }
-
-    return SUCCESS;
-
+  command result_t BlockRead.read[blockstorage_t blockId](block_addr_t addr, void* buf, block_addr_t len) {
+    return newRequest(S_READ, blockId, addr, buf, len);
   }
 
   command result_t BlockRead.verify[blockstorage_t blockId]() {
-    if (admitRequest(blockId) == FAIL)
-      return FAIL;
-    state = S_VERIFY;
-    state = S_IDLE;
-    return SUCCESS;
+    return newRequest(S_VERIFY, blockId, 0, NULL, 0);
   }
 
   command result_t BlockRead.computeCrc[blockstorage_t blockId](block_addr_t addr, block_addr_t len) {
-
-    if (admitRequest(blockId) == FAIL)
-      return FAIL;
-
-    state = S_CRC;
-
-    if (call HALSTM25P.computeCrc[blockId](addr, len) == FAIL) {
-      state = S_IDLE;
-      return FAIL;
-    }
-
-    return SUCCESS;
-
+    return newRequest(S_CRC, blockId, addr, NULL, len);
   }
 
-  event void HALSTM25P.readDone[blockstorage_t blockId](result_t result) {
+  command result_t BlockWrite.erase[blockstorage_t blockId]() {
+    return newRequest(S_ERASE, blockId, 0, NULL, 0);
+  }
+
+  command result_t BlockWrite.write[blockstorage_t blockId](block_addr_t addr, void* buf, block_addr_t len) {
+    return newRequest(S_WRITE, blockId, addr, buf, len);
+  }
+  
+  command result_t BlockWrite.commit[blockstorage_t blockId]() {
+    return newRequest(S_COMMIT, blockId, 0, NULL, 0);
+  }
+  
+  event void SectorStorage.writeDone[blockstorage_t blockId](storage_result_t result) {
     signalDone(result);
   }
-
-  event void HALSTM25P.pageProgramDone[blockstorage_t blockId](result_t result) {
-
-    block_addr_t lastBytes = calcNumBytes();
-
-    if (bytesRemaining <= lastBytes) {
-      signalDone(SUCCESS);
-      return;
-    }
-    else {
-      curAddr += lastBytes;
-      bufPtr += lastBytes;
-      bytesRemaining -= lastBytes;
-    }
-
-    if (call HALSTM25P.pageProgram[blockId](curAddr, bufPtr, calcNumBytes()) == FAIL)
-      signalDone(FAIL);
-
-    return;
-
-  }
-
-  event void HALSTM25P.sectorEraseDone[blockstorage_t blockId](result_t result) {
+  
+  event void SectorStorage.eraseDone[blockstorage_t blockId](storage_result_t result) {
     signalDone(result);
-    return;
-  }
-
-  event void HALSTM25P.bulkEraseDone[blockstorage_t blockId](result_t result) { 
-    return;
-  }
-
-  event void HALSTM25P.writeSRDone[blockstorage_t blockId](result_t result) {
-    return;
-  }
-
-  event void HALSTM25P.computeCrcDone[blockstorage_t blockId](result_t result, uint16_t crcResult) {
-    crc = crcResult;
-    signalDone(result);
-    return;
   }
 
   default command result_t ActualMount.mount[blockstorage_t blockId](volume_id_t id) { return FAIL; }
-  default command result_t HALSTM25P.read[blockstorage_t blockId](stm25p_addr_t addr, uint8_t* data, stm25p_addr_t len) { return FAIL; }
-  default command result_t HALSTM25P.pageProgram[blockstorage_t blockId](stm25p_addr_t addr, uint8_t* data, stm25p_addr_t len) { return FAIL; }
-  default command result_t HALSTM25P.sectorErase[blockstorage_t blockId](stm25p_addr_t addr) { return FAIL; }
-  default command result_t HALSTM25P.bulkErase[blockstorage_t blockId]() { return FAIL; }
-  default command result_t HALSTM25P.writeSR[blockstorage_t blockId](uint8_t value) { return FAIL; }
-  default command result_t HALSTM25P.computeCrc[blockstorage_t blockId](stm25p_addr_t addr, stm25p_addr_t len) { return FAIL; }
-  default command stm25p_sig_t HALSTM25P.getSignature[blockstorage_t blockId]() { return FAIL; }
+  default command result_t SectorStorage.read[blockstorage_t blockId](stm25p_addr_t addr, void* data, stm25p_addr_t len) { return FAIL; }
+  default command result_t SectorStorage.write[blockstorage_t blockId](stm25p_addr_t addr, void* data, stm25p_addr_t len) { return FAIL; }
+  default command result_t SectorStorage.erase[blockstorage_t blockId](stm25p_addr_t addr, stm25p_addr_t len) { return FAIL; }
+  default command result_t SectorStorage.computeCrc[blockstorage_t blockId](uint16_t* crcResult, uint16_t crc, stm25p_addr_t addr, stm25p_addr_t len) { return FAIL; }
+  default command stm25p_addr_t StorageManager.getVolumeSize[blockstorage_t blockId]() { return STM25P_INVALID_ADDR; }
 
-  default event void BlockWrite.writeDone[blockstorage_t blockId](result_t result) { return; }
-  default event void BlockWrite.eraseDone[blockstorage_t blockId](result_t result) { return; }
-  default event void BlockWrite.commitDone[blockstorage_t blockId](result_t result) { return; }
-  default event void BlockRead.readDone[blockstorage_t blockId](result_t result) { return; }
-  default event void BlockRead.verifyDone[blockstorage_t blockId](result_t result) { return; }
-  default event void BlockRead.computeCrcDone[blockstorage_t blockId](result_t result, uint16_t crcResult) { return; }
+  default event void BlockWrite.writeDone[blockstorage_t blockId](storage_result_t result, block_addr_t addr, void* buf, block_addr_t len) { ; }
+  default event void BlockWrite.eraseDone[blockstorage_t blockId](storage_result_t result) { ; }
+  default event void BlockWrite.commitDone[blockstorage_t blockId](storage_result_t result) { ; }
+  default event void BlockRead.readDone[blockstorage_t blockId](storage_result_t result, block_addr_t addr, void* buf, block_addr_t len) { ; }
+  default event void BlockRead.verifyDone[blockstorage_t blockId](storage_result_t result) { ; }
+  default event void BlockRead.computeCrcDone[blockstorage_t blockId](storage_result_t result, uint16_t crcResult, block_addr_t addr, block_addr_t len) { ; }
 
   default event void Mount.mountDone[blockstorage_t blockId](storage_result_t result, volume_id_t id) { ; }
 

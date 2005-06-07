@@ -1,6 +1,6 @@
-// $Id: StorageRemap.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: ConfigRead.nc,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
 
-/*									tab:4
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -25,8 +25,12 @@
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
 
-includes HALSTM25P;
+interface ConfigRead {
+  
+  command result_t open(char* name);
+  event void openDone(storage_result_t result, char* name);
+  
+  command result_t read(config_addr_t addr, void* buf, config_addr_t len);
+  event void readDone(storage_result_t result, config_addr_t addr, void* buf, config_addr_t len);
 
-interface StorageRemap {
-  command uint32_t physicalAddr(uint32_t volumeAddr);
 }

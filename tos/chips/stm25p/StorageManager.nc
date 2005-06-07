@@ -1,6 +1,6 @@
-// $Id: StorageRemap.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: StorageManager.nc,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
 
-/*									tab:4
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -27,6 +27,7 @@
 
 includes HALSTM25P;
 
-interface StorageRemap {
-  command uint32_t physicalAddr(uint32_t volumeAddr);
+interface StorageManager {
+  command uint8_t getNumSectors();
+  command stm25p_addr_t getVolumeSize();
 }

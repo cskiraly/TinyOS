@@ -1,7 +1,7 @@
-// $Id: BlockStorage.h,v 1.1.2.1 2005-02-09 01:45:52 jwhui Exp $
+// $Id: BlockStorage.h,v 1.1.2.2 2005-06-07 20:05:34 jwhui Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2004 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -28,7 +28,7 @@
 #ifndef __BLOCK_STORAGE_H__
 #define __BLOCK_STORAGE_H__
 
-typedef uint16_t block_addr_t;
+typedef uint32_t block_addr_t;
 typedef uint8_t blockstorage_t;
 
 #endif

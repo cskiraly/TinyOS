@@ -1,7 +1,7 @@
-// $Id: StorageManager.h,v 1.1.2.1 2005-02-09 01:45:52 jwhui Exp $
+// $Id: LogWrite.nc,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
 
-/*									tab:4
- * "Copyright (c) 2000-2004 The Regents of the University  of California.  
+/*									tab:2
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -25,17 +25,19 @@
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
 
-#ifndef __STORAGE_MANAGER_H__
-#define __STORAGE_MANAGER_H__
+includes LogStorage;
 
-#include "HALSTM25P.h"
+interface LogWrite {
 
-enum {
-  SM_INVALID_VOLUME = 0xff,
-  SM_VOLUME_SIZE = ((stm25p_addr_t)0x10000),
-  SM_GOLDEN_IMAGE = 0xf,
-  SM_MAX_VOLUMES = 16,
-  SM_INVALID_ADDR = ((stm25p_addr_t)0xffffffff),
-};
+  command result_t erase();
+  event void eraseDone(storage_result_t result);
+  
+  command result_t append(void* data, log_len_t numBytes);
+  event void appendDone(storage_result_t result, void* data, log_len_t numBytes);
+  
+  command result_t sync();
+  event void syncDone(storage_result_t result);
 
-#endif
+  command log_cookie_t currentOffset();
+  
+}
