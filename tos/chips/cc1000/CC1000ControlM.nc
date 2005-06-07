@@ -1,4 +1,4 @@
-/* $Id: CC1000ControlM.nc,v 1.1.2.4 2005-06-03 18:43:10 idgay Exp $
+/* $Id: CC1000ControlM.nc,v 1.1.2.5 2005-06-07 00:40:24 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * @author Philip Buonadonna
  * @author Jaein Jeong
  * @author David Gay
- * Revision:  $Revision: 1.1.2.4 $
+ * Revision:  $Revision: 1.1.2.5 $
  */
 
 /**
@@ -290,6 +290,9 @@ implementation
     for (i = CC1K_FREQ_2A; i <= CC1K_PLL; i++)
       call CC.write(i, read_uint8_t(&CC1K_Params[freq][i]));
     call CC.write(CC1K_MATCH, read_uint8_t(&CC1K_Params[freq][CC1K_MATCH]));
+    rxCurrent = read_uint8_t(&CC1K_Params[freq][CC1K_CURRENT]);
+    txCurrent = read_uint8_t(&CC1K_Params[freq][CC1K_MATCH + 1]);
+    power = read_uint8_t(&CC1K_Params[freq][CC1K_PA_POW]);
 
     calibrate();
   }

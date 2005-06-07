@@ -1,4 +1,4 @@
-// $Id: CC1000Const.h,v 1.1.2.2 2005-06-02 22:20:14 idgay Exp $
+// $Id: CC1000Const.h,v 1.1.2.3 2005-06-07 00:40:24 idgay Exp $
 
 /* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */ 
 /*									tab:4
@@ -272,7 +272,7 @@ static const_uint8_t CC1K_LPL_SleepPreamble[CC1K_LPL_STATES] = {
     8
 };
 
-static const_uint8_t CC1K_Params[6][19] = {
+static const_uint8_t CC1K_Params[6][20] = {
   // (0) 433.002 MHz channel, 19.2 Kbps data, Manchester Encoding, High Side LO
   { // MAIN   0x00
     0x31,
@@ -302,6 +302,8 @@ static const_uint8_t CC1K_Params[6][19] = {
     5 << CC1K_BAUDRATE | 1 << CC1K_DATA_FORMAT | 1 << CC1K_XOSC_FREQ,
     // MATCH  0x12
     0x7 << CC1K_RX_MATCH | 0x0 << CC1K_TX_MATCH,
+    // tx current (extra)
+    8 << CC1K_VCO_CURRENT | 1 << CC1K_PA_DRIVE,
   },
 
   // 1 915.9988 MHz channel, 19.2 Kbps data, Manchester Encoding, High Side LO
@@ -342,6 +344,8 @@ static const_uint8_t CC1K_Params[6][19] = {
     //0x55,
     // MATCH 0x12
     0x1 << CC1K_RX_MATCH | 0x0 << CC1K_TX_MATCH,
+    // tx current (extra)
+    15 << CC1K_VCO_CURRENT | 3 << CC1K_PA_DRIVE,
   },
 
   // 2 434.845200 MHz channel, 19.2 Kbps data, Manchester Encoding, High Side LO
@@ -373,6 +377,8 @@ static const_uint8_t CC1K_Params[6][19] = {
     5 << CC1K_BAUDRATE | 1 << CC1K_DATA_FORMAT | 1 << CC1K_XOSC_FREQ,
     // MATCH  0x12
     0x7 << CC1K_RX_MATCH | 0x0 << CC1K_TX_MATCH,
+    // tx current (extra)
+    8 << CC1K_VCO_CURRENT | 1 << CC1K_PA_DRIVE,
   },
 
  
@@ -414,6 +420,8 @@ static const_uint8_t CC1K_Params[6][19] = {
     //0x55,
     // MATCH 0x12
     0x1 << CC1K_RX_MATCH | 0x0 << CC1K_TX_MATCH,
+    // tx current (extra)
+    15 << CC1K_VCO_CURRENT | 3 << CC1K_PA_DRIVE,
   },
 
   // 4 315.178985 MHz channel, 38.4 Kbps data, Manchester Encoding, High Side LO
@@ -445,6 +453,8 @@ static const_uint8_t CC1K_Params[6][19] = {
     5 << CC1K_BAUDRATE | 1 << CC1K_DATA_FORMAT | 0 << CC1K_XOSC_FREQ,
     // MATCH  0x12
     0x7 << CC1K_RX_MATCH | 0x0 << CC1K_TX_MATCH,
+    // tx current (extra)
+    8 << CC1K_VCO_CURRENT | 1 << CC1K_PA_DRIVE,
   },
 
   // 5 Spare
@@ -475,6 +485,8 @@ static const_uint8_t CC1K_Params[6][19] = {
     5 << CC1K_BAUDRATE | 1 << CC1K_DATA_FORMAT | 1 << CC1K_XOSC_FREQ,
     // MATCH  0x12
     0x7 << CC1K_RX_MATCH | 0x0 << CC1K_TX_MATCH,
+    // tx current (extra)
+    8 << CC1K_VCO_CURRENT | 1 << CC1K_PA_DRIVE,
   },
 };
 
