@@ -1,6 +1,6 @@
-// $Id: StorageRemap.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: ConfigStorageC.nc,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
 
-/*									tab:4
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -25,8 +25,32 @@
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
 
-includes HALSTM25P;
+generic configuration ConfigStorageC() {
+  provides {
+    interface Mount;
+    interface ConfigRead;
+    interface ConfigWrite;
+  }
+}
 
-interface StorageRemap {
-  command uint32_t physicalAddr(uint32_t volumeAddr);
+implementation {
+
+  enum {
+    CONFIG_ID = unique("ConfigStorage"),
+    VOLUME_ID = unique("StorageManager"),
+  };
+
+  components ConfigStorageM, Main, StorageManagerC, LedsC as Leds;
+
+  Mount = ConfigStorageM.Mount[CONFIG_ID];
+  ConfigRead = ConfigStorageM.ConfigRead[CONFIG_ID];
+  ConfigWrite = ConfigStorageM.ConfigWrite[CONFIG_ID];
+
+  Main.StdControl -> StorageManagerC;
+
+  ConfigStorageM.SectorStorage[CONFIG_ID] -> StorageManagerC.SectorStorage[VOLUME_ID];
+  ConfigStorageM.StorageManager[CONFIG_ID] -> StorageManagerC.StorageManager[VOLUME_ID];
+  ConfigStorageM.ActualMount[CONFIG_ID] -> StorageManagerC.Mount[VOLUME_ID];
+  ConfigStorageM.Leds -> Leds;
+
 }

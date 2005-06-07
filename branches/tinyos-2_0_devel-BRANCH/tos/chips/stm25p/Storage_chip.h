@@ -1,6 +1,6 @@
-// $Id: StorageRemap.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: Storage_chip.h,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
 
-/*									tab:4
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -25,8 +25,9 @@
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
 
-includes HALSTM25P;
+#ifndef __STORAGE_CHIP_H__
+#define __STORAGE_CHIP_H__
 
-interface StorageRemap {
-  command uint32_t physicalAddr(uint32_t volumeAddr);
-}
+#include "HALSTM25P.h"
+
+#endif

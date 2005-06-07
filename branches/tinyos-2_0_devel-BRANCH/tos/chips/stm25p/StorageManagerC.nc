@@ -1,7 +1,7 @@
-// $Id: StorageManagerC.nc,v 1.1.2.1 2005-02-09 01:45:52 jwhui Exp $
+// $Id: StorageManagerC.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2004 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -25,27 +25,32 @@
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
 
-includes StorageManager;
+includes HALSTM25P;
 
 configuration StorageManagerC {
   provides {
-    interface HALSTM25P[volume_t volume];
+    interface SectorStorage[volume_t volume];
     interface Mount[volume_t volume];
     interface StdControl;
     interface StorageRemap[volume_t volume];
+    interface StorageManager[volume_t volume];
   }
 }
 
 implementation {
 
-  components HALSTM25PC, StorageManagerM;
+  components CrcC, HALSTM25PC, StorageManagerM, LedsC;
 
   StdControl = StorageManagerM;
   StdControl = HALSTM25PC;
-  HALSTM25P = HALSTM25PC;
+  
+  SectorStorage = StorageManagerM.SectorStorage;
   Mount = StorageManagerM;
   StorageRemap = StorageManagerM;
-
-  HALSTM25PC.StorageRemap -> StorageManagerM;
+  StorageManager = StorageManagerM;
+  
+  StorageManagerM.Crc -> CrcC;
+  StorageManagerM.HALSTM25P -> HALSTM25PC.HALSTM25P[unique("HALSTM25P")];
+  StorageManagerM.Leds -> LedsC;
 
 }

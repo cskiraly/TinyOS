@@ -1,6 +1,6 @@
-// $Id: StorageRemap.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: SectorStorage.nc,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
 
-/*									tab:4
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -27,6 +27,16 @@
 
 includes HALSTM25P;
 
-interface StorageRemap {
-  command uint32_t physicalAddr(uint32_t volumeAddr);
+interface SectorStorage {
+
+  command result_t read(stm25p_addr_t addr, void* data, stm25p_addr_t len);
+
+  command result_t write(stm25p_addr_t addr, void* data, stm25p_addr_t len);
+  event void writeDone(storage_result_t result);
+
+  command result_t erase(stm25p_addr_t addr, stm25p_addr_t len);
+  event void eraseDone(storage_result_t result);
+  
+  command result_t computeCrc(uint16_t* crcResult, uint16_t crc, stm25p_addr_t addr, stm25p_addr_t len);
+
 }

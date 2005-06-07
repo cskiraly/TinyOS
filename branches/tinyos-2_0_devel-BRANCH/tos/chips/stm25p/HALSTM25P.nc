@@ -1,7 +1,7 @@
-// $Id: HALSTM25P.nc,v 1.1.2.1 2005-02-09 01:45:52 jwhui Exp $
+// $Id: HALSTM25P.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2004 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -28,23 +28,25 @@
 includes HALSTM25P;
 
 interface HALSTM25P {
-  command result_t read(stm25p_addr_t addr, uint8_t* data, stm25p_addr_t len);
-  event void readDone(result_t result);
 
-  command result_t pageProgram(stm25p_addr_t addr, uint8_t* data, stm25p_addr_t len);
-  event void pageProgramDone(result_t result);
+  command result_t read(stm25p_addr_t addr, void* data, stm25p_addr_t len);
+
+  command result_t pageProgram(stm25p_addr_t addr, void* data, stm25p_addr_t len);
+  event void pageProgramDone();
 
   command result_t sectorErase(stm25p_addr_t addr);
-  event void sectorEraseDone(result_t result);
+  event void sectorEraseDone();
 
   command result_t bulkErase();
-  event void bulkEraseDone(result_t result);
+  event void bulkEraseDone();
+
+  command result_t readSR(void* value);
 
   command result_t writeSR(uint8_t value);
-  event void writeSRDone(result_t result);
+  event void writeSRDone();
 
-  command result_t computeCrc(stm25p_addr_t addr, stm25p_addr_t len);
-  event void computeCrcDone(result_t result, uint16_t crc);
+  command result_t computeCrc(uint16_t* crcResult, uint16_t crc, stm25p_addr_t addr, stm25p_addr_t len);
 
   command stm25p_sig_t getSignature();
+
 }

@@ -1,6 +1,6 @@
-// $Id: StorageRemap.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: FormatStorage.nc,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
 
-/*									tab:4
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -25,8 +25,16 @@
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
 
-includes HALSTM25P;
+includes Storage;
 
-interface StorageRemap {
-  command uint32_t physicalAddr(uint32_t volumeAddr);
+interface FormatStorage {
+
+  command result_t init();
+
+  command result_t allocate(volume_id_t id, storage_addr_t size);
+  command result_t allocateFixed(volume_id_t id, storage_addr_t addr, storage_addr_t size);
+
+  command result_t commit();
+  event void commitDone(storage_result_t result);
+
 }

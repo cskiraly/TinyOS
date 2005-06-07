@@ -1,7 +1,7 @@
-// $Id: HALSTM25PM.nc,v 1.1.2.1 2005-02-09 01:45:52 jwhui Exp $
+// $Id: HALSTM25PM.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2004 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -33,23 +33,23 @@ module HALSTM25PM {
   uses {
     interface HPLSTM25P;
     interface Leds;
-    interface StorageRemap[volume_t volume];
+    interface Timer;
   }
 }
 
 implementation {
-  
+
   enum {
-    S_POWEROFF, // deep power-down state
-    S_POWERON,  // awake state, no command in progress
+    S_POWEROFF = 0xfe,  // deep power-down state
+    S_POWERON  = 0xff,  // awake state, no command in progress
   };
 
+  volume_t curVolume;
   stm25p_sig_t signature;
-  uint16_t     crc;
-  uint8_t      curCmd;
-  volume_t     curVolume;
+  uint16_t crcScratch;
+  uint8_t curCmd;
 
-  void sendCmd(uint8_t cmd, stm25p_addr_t addr, uint8_t* data, stm25p_addr_t len);
+  void sendCmd(uint8_t cmd, stm25p_addr_t addr, void* data, stm25p_addr_t len);
 
   command result_t StdControl.init() {
     curCmd = S_POWEROFF;
@@ -60,26 +60,20 @@ implementation {
   command result_t StdControl.start() { return SUCCESS; }
   command result_t StdControl.stop() { return SUCCESS; }
 
-  void signalDone(result_t result) {
+  void signalDone() {
+
     uint8_t tmpCmd = curCmd;
     curCmd = S_POWERON;
 
+    call Timer.start(TIMER_ONE_SHOT, STM25P_POWEROFF_DELAY);
+
     switch(tmpCmd) {
-    case STM25P_READ: signal HALSTM25P.readDone[curVolume](result); break;
-    case STM25P_PP: signal HALSTM25P.pageProgramDone[curVolume](result); break;
-    case STM25P_SE: signal HALSTM25P.sectorEraseDone[curVolume](result); break;
-    case STM25P_BE: signal HALSTM25P.bulkEraseDone[curVolume](result); break;
-    case STM25P_WRSR: signal HALSTM25P.writeSRDone[curVolume](result); break;
-    case STM25P_CRC: signal HALSTM25P.computeCrcDone[curVolume](result, crc); break;
+    case STM25P_PP: signal HALSTM25P.pageProgramDone[curVolume](); break;
+    case STM25P_SE: signal HALSTM25P.sectorEraseDone[curVolume](); break;
+    case STM25P_BE: signal HALSTM25P.bulkEraseDone[curVolume](); break;
+    case STM25P_WRSR: signal HALSTM25P.writeSRDone[curVolume](); break;
     }
-  }
 
-  task void signalSuccess() { signalDone(SUCCESS); }
-  task void signalFail() { signalDone(FAIL); }
-
-  void checkPost(bool result) {
-    if (result == FALSE)
-      signalDone(FAIL);
   }
 
   bool isWriting() {
@@ -88,66 +82,7 @@ implementation {
       return TRUE;
     sendCmd(STM25P_RDSR, 0, &status, sizeof(status));
     call HPLSTM25P.releaseBus();
-    return (status & 0x1) ? TRUE : FALSE;
-  }
-
-  // probably better to use a timer since write operations can take on
-  // the order of seconds to complete
-  task void checkWriteDone() {
-    if (isWriting()) {
-      checkPost(post checkWriteDone());
-      return;
-    }
-    signalDone(SUCCESS);
-  }
-
-  void sendCmd(uint8_t cmd, stm25p_addr_t addr, uint8_t* data, stm25p_addr_t len) {
-
-    uint8_t addrBytes[STM25P_ADDR_SIZE];
-    stm25p_addr_t i;
-
-    // start command
-    switch(cmd) {
-    case STM25P_CRC: call HPLSTM25P.beginCmd(STM25P_READ); break;
-    default: call HPLSTM25P.beginCmd(cmd); break;
-    }
-    
-    // address
-    switch(cmd) {
-    case STM25P_READ: case STM25P_FAST_READ: case STM25P_PP: 
-    case STM25P_SE: case STM25P_CRC:
-      for ( i = 0; i < STM25P_ADDR_SIZE; i++ )
-	addrBytes[i] = (addr >> ((STM25P_ADDR_SIZE-1-i)*8)) & 0xff;
-      call HPLSTM25P.txBuf(addrBytes, STM25P_ADDR_SIZE);
-      break;
-    }
-
-    // dummy bytes
-    switch(cmd) {
-    case STM25P_FAST_READ:
-      call HPLSTM25P.txBuf(addrBytes, STM25P_FR_DUMMY_BYTES);
-      break;
-    case STM25P_RES:
-      call HPLSTM25P.txBuf(addrBytes, STM25P_RES_DUMMY_BYTES);
-      break;
-    }
-
-    // data
-    switch(cmd) {
-    case STM25P_RDSR: case STM25P_READ: case STM25P_FAST_READ: case STM25P_RES:
-      call HPLSTM25P.rxBuf(data, len);
-      break;
-    case STM25P_WRSR: case STM25P_PP:
-      call HPLSTM25P.txBuf(data, len);
-      break;
-    case STM25P_CRC:
-      call HPLSTM25P.computeCrc(&crc, len);
-      break;
-    }
-
-    // end command
-    call HPLSTM25P.endCmd();
-
+    return !!(status & 0x1);
   }
 
   void powerOff() {
@@ -161,51 +96,89 @@ implementation {
     curCmd = S_POWERON;
   }
 
-  result_t newRequest(uint8_t cmd, volume_t volume, stm25p_addr_t addr, uint8_t* data, stm25p_addr_t len) {
+  event result_t Timer.fired() {
 
-    // make sure flash is powered on
-    if (curCmd == S_POWEROFF)
-      powerOn();
-    // make sure nothing else is in progress
-    else if (curCmd != S_POWERON)
-      return FAIL;
-    // make sure we can get the bus
-    else if (call HPLSTM25P.getBus() == FAIL)
-      return FAIL;
-
-    addr = call StorageRemap.physicalAddr[volume](addr);
-
-    curVolume = volume;
-    
-    curCmd = cmd;
-    crc = 0;
-    
-    // enable writes if needed
-    if (curCmd == STM25P_WRSR || curCmd == STM25P_PP 
-	|| curCmd == STM25P_SE || curCmd == STM25P_BE)
-      sendCmd(STM25P_WREN, 0, NULL, 0);
-    
-    // send command
-    sendCmd(curCmd, addr, data, len);
-
-    call HPLSTM25P.releaseBus();
-
-    // setup check for write done
-    if (curCmd == STM25P_WRSR || curCmd == STM25P_PP 
-	|| curCmd == STM25P_SE || curCmd == STM25P_BE)
-      checkPost(post checkWriteDone());
+    if (curCmd == S_POWERON)
+      powerOff();
+    else if (isWriting())
+      call Timer.start(TIMER_ONE_SHOT, 1);
     else
-      checkPost(post signalSuccess());
+      signalDone();
 
     return SUCCESS;
 
   }
 
-  command result_t HALSTM25P.read[volume_t volume](stm25p_addr_t addr, uint8_t* data, stm25p_addr_t len) {
+  void sendCmd(uint8_t cmd, stm25p_addr_t addr, void* data, stm25p_addr_t len) {
+
+    uint8_t cmdBytes[2*STM25P_ADDR_SIZE + 1];
+    uint8_t i;
+
+    // begin command
+    call HPLSTM25P.beginCmd();
+    
+    cmdBytes[0] = STM25P_CMDS[cmd].cmd;
+
+    // command, address and dummy bytes
+    for ( i = 0; i < STM25P_ADDR_SIZE; i++ )
+      cmdBytes[i+1] = (addr >> ((STM25P_ADDR_SIZE-1-i)*8)) & 0xff;
+    call HPLSTM25P.txBuf(cmdBytes, (STM25P_CMD_SIZE +
+				    STM25P_CMDS[cmd].address +
+				    STM25P_CMDS[cmd].dummy) );
+
+    // data
+    if (STM25P_CMDS[cmd].receive)
+      call HPLSTM25P.rxBuf(data, len, &crcScratch);
+    else if (STM25P_CMDS[cmd].transmit)
+      call HPLSTM25P.txBuf(data, len);
+
+    // end command
+    call HPLSTM25P.endCmd();
+
+  }
+
+  result_t newRequest(uint8_t cmd, volume_t volume, stm25p_addr_t addr, uint8_t* data, stm25p_addr_t len) {
+
+    if (curCmd != S_POWERON && curCmd != S_POWEROFF)
+      return FAIL;
+    
+    if (call HPLSTM25P.getBus() == FAIL)
+      return FAIL;
+
+    call Timer.stop();
+    
+    if (curCmd == S_POWEROFF)
+      powerOn();
+
+    curVolume = volume;
+    curCmd = cmd;
+
+    // enable writes
+    if (STM25P_CMDS[curCmd].write)
+      sendCmd(STM25P_WREN, 0, NULL, 0);
+
+    // send command
+    sendCmd(curCmd, addr, data, len);
+
+    // post check for write done
+    if (STM25P_CMDS[curCmd].write)
+      call Timer.start(TIMER_ONE_SHOT, 1);
+    else {
+      curCmd = S_POWERON;
+      call Timer.start(TIMER_ONE_SHOT, STM25P_POWEROFF_DELAY);
+    }
+
+    call HPLSTM25P.releaseBus();
+
+    return SUCCESS;
+
+  }
+
+  command result_t HALSTM25P.read[volume_t volume](stm25p_addr_t addr, void* data, stm25p_addr_t len) {
     return newRequest(STM25P_READ, volume, addr, data, len);
   }
 
-  command result_t HALSTM25P.pageProgram[volume_t volume](stm25p_addr_t addr, uint8_t* data, stm25p_addr_t len) {
+  command result_t HALSTM25P.pageProgram[volume_t volume](stm25p_addr_t addr, void* data, stm25p_addr_t len) {
     return newRequest(STM25P_PP, volume, addr, data, len);
   }
 
@@ -217,23 +190,29 @@ implementation {
     return newRequest(STM25P_BE, volume, 0, NULL, 0);
   }
 
+  command result_t HALSTM25P.readSR[volume_t volume](void* value) {
+    return newRequest(STM25P_RDSR, volume, 0, value, 1);
+  }
+
   command result_t HALSTM25P.writeSR[volume_t volume](uint8_t value) {
     return newRequest(STM25P_WRSR, volume, 0, &value, 1);
   }
 
-  command result_t HALSTM25P.computeCrc[volume_t volume](stm25p_addr_t addr, stm25p_addr_t len) {
-    return newRequest(STM25P_CRC, volume, addr, NULL, len);
+  command result_t HALSTM25P.computeCrc[volume_t volume](uint16_t* crcResult, uint16_t crc, stm25p_addr_t addr, stm25p_addr_t len) {
+    result_t result;
+    crcScratch = crc;
+    result = newRequest(STM25P_CRC, volume, addr, NULL, len);
+    *crcResult = crcScratch;
+    return result;
   }
 
   command stm25p_sig_t HALSTM25P.getSignature[volume_t volume]() { 
     return signature; 
   }
   
-  default event void HALSTM25P.readDone[volume_t volume](result_t result) { ; }
-  default event void HALSTM25P.pageProgramDone[volume_t volume](result_t result) { ; }
-  default event void HALSTM25P.sectorEraseDone[volume_t volume](result_t result) { ; }
-  default event void HALSTM25P.bulkEraseDone[volume_t volume](result_t result) { ; }
-  default event void HALSTM25P.writeSRDone[volume_t volume](result_t result) { ; }
-  default event void HALSTM25P.computeCrcDone[volume_t volume](result_t result, uint16_t crcResult) { ; }
+  default event void HALSTM25P.pageProgramDone[volume_t volume]() {}
+  default event void HALSTM25P.sectorEraseDone[volume_t volume]() {}
+  default event void HALSTM25P.bulkEraseDone[volume_t volume]() {}
+  default event void HALSTM25P.writeSRDone[volume_t volume]() {}
 
 }

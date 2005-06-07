@@ -1,6 +1,6 @@
-// $Id: StorageRemap.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: ConfigStorage.h,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
 
-/*									tab:4
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -25,8 +25,42 @@
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
 
-includes HALSTM25P;
+#ifndef __CONFIG_STORAGE_H__
+#define __CONFIG_STORAGE_H__
 
-interface StorageRemap {
-  command uint32_t physicalAddr(uint32_t volumeAddr);
-}
+#include "Storage.h"
+
+enum {
+  CONFIG_MAX_STR_LEN = 32,
+  CONFIG_MAX_ITEMS = 1L,
+  CONFIG_INVALID_ID = 0xffff,
+  CONFIG_INVALID_SIZE = 0xffff,
+  CONFIG_INVALID_VER = 0xffff,
+};
+
+typedef struct {
+  uint16_t id;        // unique id of block
+  uint16_t size;      // size of block
+} config_header_t;
+
+typedef struct {
+  char name[CONFIG_MAX_STR_LEN];
+  uint16_t id;
+} config_entry_t;
+
+typedef struct {
+  int16_t ver;
+  int16_t crc;
+} config_sector_header_t;
+
+typedef uint16_t config_addr_t;
+typedef uint8_t configstorage_t;
+
+enum {
+  CONFIG_ID_SIZE = CONFIG_MAX_ITEMS*sizeof(config_entry_t),
+  CONFIG_DATA_ADDR = CONFIG_ID_SIZE+sizeof(config_sector_header_t),
+  CONFIG_MAX_SIZE = 16L*1024L, //STM25P_SECTOR_SIZE - CONFIG_DATA_ADDR,
+};
+
+
+#endif

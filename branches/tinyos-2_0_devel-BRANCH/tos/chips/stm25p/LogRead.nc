@@ -1,6 +1,6 @@
-// $Id: StorageRemap.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: LogRead.nc,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
 
-/*									tab:4
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -25,8 +25,14 @@
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
 
-includes HALSTM25P;
+includes LogStorage;
 
-interface StorageRemap {
-  command uint32_t physicalAddr(uint32_t volumeAddr);
+interface LogRead {
+  
+  command result_t read(void* data, log_len_t numBytes);
+  event void readDone(storage_result_t result, void* data, log_len_t numBytes);
+  
+  command result_t seek(log_cookie_t cookie);
+  event void seekDone(storage_result_t result, log_cookie_t cookie);
+  
 }

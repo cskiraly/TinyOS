@@ -1,6 +1,6 @@
-// $Id: StorageRemap.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: FormatStorageC.nc,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
 
-/*									tab:4
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -25,8 +25,24 @@
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
 
-includes HALSTM25P;
+includes crc;
 
-interface StorageRemap {
-  command uint32_t physicalAddr(uint32_t volumeAddr);
+configuration FormatStorageC {
+  provides {
+    interface FormatStorage;
+  }
+}
+
+implementation {
+
+  components CrcC, FormatStorageM, HALSTM25PC, Main;
+
+  FormatStorage = FormatStorageM;
+
+  Main.StdControl -> FormatStorageM;
+  Main.StdControl -> HALSTM25PC;
+
+  FormatStorageM.Crc -> CrcC;
+  FormatStorageM.HALSTM25P -> HALSTM25PC.HALSTM25P[unique("HALSTM25P")];
+
 }

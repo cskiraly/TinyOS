@@ -1,6 +1,6 @@
-// $Id: StorageRemap.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: ConfigWrite.nc,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
 
-/*									tab:4
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -25,8 +25,18 @@
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
 
-includes HALSTM25P;
+interface ConfigWrite {
 
-interface StorageRemap {
-  command uint32_t physicalAddr(uint32_t volumeAddr);
+  command result_t create(char* name);
+  event void createDone(storage_result_t result, char* name);
+
+  command result_t beginWrite(config_addr_t newLen);
+  event void beginWriteDone(storage_result_t result, config_addr_t newLen);
+
+  command result_t write(config_addr_t addr, void* buf, config_addr_t len);
+  event void writeDone(storage_result_t result, config_addr_t addr, void* buf, config_addr_t len);
+
+  command result_t endWrite();
+  event void endWriteDone(storage_result_t result);
+
 }
