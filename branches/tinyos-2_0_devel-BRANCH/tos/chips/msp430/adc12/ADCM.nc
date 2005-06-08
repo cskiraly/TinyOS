@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-06-04 00:03:56 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-06-08 08:08:16 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -36,6 +36,7 @@
 module ADCM {
   provides {
     interface StdControl as StdControlNull;
+    interface Resource as ResourceHAL2[uint8_t client];
     interface AcquireData[uint8_t port];
     interface AcquireDataNow[uint8_t port];
     interface AcquireDataBuffered[uint8_t port];  
@@ -63,6 +64,11 @@ implementation
     
   void task signalSingleDataReady();
   void task signalBufferedDataReady();
+
+
+
+
+  
   
   // StdControl must be provided for platform independent services
   // but there is nothing to do for it on the MSP430.
@@ -72,6 +78,26 @@ implementation
   command error_t StdControlNull.stop() {
     return SUCCESS;
   } 
+  
+  async command error_t ResourceHAL2.request[uint8_t client]()
+  {
+    return call ResourceHAL1.request();
+  }
+
+  async command error_t ResourceHAL2.immediateRequest[uint8_t client]()
+  {
+    return call ResourceHAL1.immediateRequest();
+  }
+
+  async command void ResourceHAL2.release[uint8_t client]()
+  {
+    return;
+  }
+
+  event void ResourceHAL1.granted()
+  {
+    signal ResourceHAL2.granted[currentClientID]();
+  }
 
   msp430adc12_channel_config_t getInternalChannelConfigData(uint8_t channel)
   {
@@ -81,9 +107,10 @@ implementation
                       SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
     return config;
   }
-
-  command error_t AcquireData.getData[uint8_t port]()
+  
+  error_t getDataHAL1(uint8_t port, bool now)
   {
+    msp430adc12_result_t hal1Result;
     atomic {
       if (port < 8)
         channelConfig = signal ChannelConfig.getConfigurationData(port);
@@ -91,27 +118,28 @@ implementation
         channelConfig = getInternalChannelConfigData(port);
       else 
         return ESIZE;
-      currentClientID = port;
-      request = ACQUIRE_DATA;
     }
-    call ResourceHAL1.request(); // FCFS
-    return SUCCESS;
+    hal1Result = call SingleChannel.getSingleData();
+    if (hal1Result != MSP430ADC12_SUCCESS && hal1Result != MSP430ADC12_DELAYED)
+      return EBUSY;
+    else {
+      currentClientID = port;
+      if (now)
+        atomic request = ACQUIRE_DATA_NOW;
+      else
+        atomic request = ACQUIRE_DATA;
+      return SUCCESS;
+    }
+  }
+
+  command error_t AcquireData.getData[uint8_t port]()
+  {
+    return getDataHAL1(port, FALSE);
   }
 
   async command error_t AcquireDataNow.getData[uint8_t port]()
   {
-    atomic {
-      if (port < 8)
-        channelConfig = signal ChannelConfig.getConfigurationData(port);
-      else if (port < 16)
-        channelConfig = getInternalChannelConfigData(port);
-      else 
-        return ESIZE;
-      currentClientID = port;
-      request = ACQUIRE_DATA_NOW;
-    }
-    call ResourceHAL1.request(); // FCFS
-    return SUCCESS;
+    return getDataHAL1(port, TRUE);
   }
 
   command error_t AcquireDataBuffered.prepare[uint8_t port](uint16_t *buffer, 
@@ -134,6 +162,7 @@ implementation
 
   async command error_t AcquireDataBuffered.getData[uint8_t port]()
   {
+    msp430adc12_result_t hal1Result;
     atomic {
       if (port < 8)
         channelConfig = signal ChannelConfig.getConfigurationData(port);
@@ -141,45 +170,24 @@ implementation
         channelConfig = getInternalChannelConfigData(port);
       else 
         return ESIZE;
-      currentClientID = port;
-      request = ACQUIRE_DATA_BUFFERED;
     }
     if (m_rate & 0xFFFF0000){
       channelConfig.sampcon_ssel = SAMPCON_SOURCE_SMCLK; // 1MHz
       channelConfig.sampcon_id = SAMPCON_CLOCK_DIV_1;
+      hal1Result = call SingleChannel.getMultipleData(m_buffer, m_count, 
+              (uint16_t) m_rate);
     } else {
       channelConfig.sampcon_ssel = SAMPCON_SOURCE_ACLK; // 32Khz
       channelConfig.sampcon_id = SAMPCON_CLOCK_DIV_1;
-    } 
-    call ResourceHAL1.request(); // FCFS
-    return SUCCESS;
-  }
-
-  event void ResourceHAL1.granted() 
-  {
-    msp430adc12_result_t hal1Result;
-    switch (request)
-    {
-      case ACQUIRE_DATA:
-        hal1Result = call SingleChannel.getSingleData();
-        if (hal1Result != MSP430ADC12_SUCCESS && hal1Result != MSP430ADC12_DELAYED)
-          signal AcquireData.error[currentClientID](hal1Result);
-        break;
-      case ACQUIRE_DATA_NOW:  
-        hal1Result = call SingleChannel.getSingleData();
-        if (hal1Result != MSP430ADC12_SUCCESS && hal1Result != MSP430ADC12_DELAYED)
-          signal AcquireDataNow.error[currentClientID](hal1Result);
-        break;
-      case ACQUIRE_DATA_BUFFERED:
-        if (m_rate & 0xFFFF0000)
-          hal1Result = call SingleChannel.getMultipleData(m_buffer, m_count, 
-              (uint16_t) m_rate);
-        else
-          hal1Result = call SingleChannel.getMultipleData(m_buffer, m_count, 
+      hal1Result = call SingleChannel.getMultipleData(m_buffer, m_count, 
               m_rate >> 5);
-        if (hal1Result != MSP430ADC12_SUCCESS && hal1Result != MSP430ADC12_DELAYED)
-          signal AcquireDataBuffered.error[currentClientID](hal1Result);
-        break;
+    }
+    currentClientID = port;
+    if (hal1Result != MSP430ADC12_SUCCESS && hal1Result != MSP430ADC12_DELAYED)
+      return EBUSY;
+    else {
+      atomic request = ACQUIRE_DATA_BUFFERED;
+      return SUCCESS;
     }
   }
 
@@ -232,5 +240,7 @@ implementation
   default event void AcquireDataBuffered.dataReady[uint8_t port](uint16_t *buffer,
       uint16_t count){}
   default event void AcquireDataBuffered.error[uint8_t port](uint16_t info){}
+  default event void ResourceHAL2.granted[uint8_t client](){}
+  
 }
 

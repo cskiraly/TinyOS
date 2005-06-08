@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-06-03 01:43:31 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-06-08 08:08:16 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -41,7 +41,7 @@ generic configuration MSP430ADC12Client()
   components MSP430ADC12C;
    
   enum {
-    ID = unique(ADC_RESOURCE),
+    ID = unique(MSP430ADC12_RESOURCE),
   };
   Resource = MSP430ADC12C.Resource[ID];
   MSP430ADC12SingleChannel = MSP430ADC12C.SingleChannel[ID];
