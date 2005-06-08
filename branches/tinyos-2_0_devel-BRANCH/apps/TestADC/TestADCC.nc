@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-06-01 03:31:35 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-06-08 08:06:18 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -38,7 +38,11 @@ configuration TestADCC
 }
 implementation
 {
-  components Main, TestADCM, DemoSensorC as Sensor, LedsC;
+  // NOTE: The channel/port number to be sampled is defined by
+  // the parameter given to ADCChannelC (default 0). This is  
+  // actually a platform dependent property, but for this test  
+  // application it is sufficient to sample *any* channel.
+  components Main, TestADCM, new ADCChannelC(0) as Sensor, LedsC;
 
   TestADCM -> Main.Boot;
   Main.SoftwareInit -> LedsC;
