@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2005-06-04 00:03:57 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2005-06-08 08:08:16 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -253,6 +253,9 @@ enum sampcon_id_enum
 };
 
  /******************************* internal ***********************************/
+
+// The unique string for allocating ADC resource interfaces on HAL1
+#define MSP430ADC12_RESOURCE "MSP430ADC12HAL1Client.resource"
 
 /* Test for GCC bug (bitfield access) - only version 3.2.3 is known to be stable */
 // check: is this relevant anymore ?
