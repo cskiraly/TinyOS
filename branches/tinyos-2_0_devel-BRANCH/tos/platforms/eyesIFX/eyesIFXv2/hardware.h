@@ -26,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: hardware.h,v 1.1.2.1 2005-05-24 17:14:47 klueska Exp $
+ * $Id: hardware.h,v 1.1.2.2 2005-06-09 00:21:07 janhauer Exp $
  *
  */
 
@@ -34,7 +34,6 @@
 #define TOSH_HARDWARE_EYESIFXV2
 
 #include "msp430hardware.h"
-#include "MSP430ADC12.h"
 
 // LED assignments
 TOSH_ASSIGN_PIN(RED_LED, 5, 0); // Compatibility with the mica2
