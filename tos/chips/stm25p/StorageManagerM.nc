@@ -1,4 +1,4 @@
-// $Id: StorageManagerM.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: StorageManagerM.nc,v 1.1.2.3 2005-06-12 19:19:41 jwhui Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -43,7 +43,7 @@ module StorageManagerM {
 implementation {
 
   enum {
-    NUM_VOLUMES = unique("StorageManager"),
+    NUM_VOLUMES = uniqueCount("StorageManager"),
   };
 
   enum {
