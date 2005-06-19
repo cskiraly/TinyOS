@@ -1,4 +1,4 @@
-// $Id: AMPacket.nc,v 1.1.2.3 2005-03-14 03:54:19 jpolastre Exp $
+// $Id: AMPacket.nc,v 1.1.2.4 2005-06-19 23:28:22 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -47,7 +47,7 @@ interface AMPacket {
    *
    */
 
-  command am_addr_t localAddress();
+  command am_addr_t address();
 
   /**
    * Return the AM address of the destination field of the AM packet.
@@ -60,18 +60,29 @@ interface AMPacket {
   /**
    * Return whether <tt>amsg</tt> is destined for this mote. This is
    * partially a shortcut for testing whether the return value of
-   * <tt>destination</tt> and <tt>localAddress</tt> are the same. It
+   * <tt>destination</tt> and <tt>address</tt> are the same. It
    * may, however, include additional logic. For example, there
    * may be an AM broadcast address: <tt>destination</tt> will return
-   * the broadcast address, but <tt>localAddress</tt> will still be
+   * the broadcast address, but <tt>address</tt> will still be
    * the mote's local address. If <tt>amsg</tt> is not an AM packet,
    * the results of this command are undefined.
    */
   command bool isForMe(message_t* amsg);
+  
+  /**
+   * Return the AM type of the AM packet.
+   * If <tt>amsg</tt> is not an AM packet, the results of this command
+   * are undefined.
+   */
+  
+  command am_id_t type(message_t* amsg);
 
   /**
-   * Return whether <tt>amsg</tt> is an AM packet.
+   * Return the AM local group of the AM packet.
+   * If <tt>amsg</tt> is not an AM packet, the results of this command
+   * are undefined.
    */
-  command bool isAMPacket(message_t* amsg);
   
+  //  command am_group_t group(message_t* amsg);
+
 }
