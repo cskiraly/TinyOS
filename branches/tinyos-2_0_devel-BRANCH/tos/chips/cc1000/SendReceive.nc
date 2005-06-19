@@ -1,4 +1,4 @@
-// $Id: SendReceive.nc,v 1.1.2.5 2005-06-03 19:04:44 idgay Exp $
+// $Id: SendReceive.nc,v 1.1.2.6 2005-06-19 23:28:22 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -68,6 +68,7 @@ module SendReceive {
     interface HPLCC1000Spi;
 
     interface AcquireDataNow as RssiRx;
+    async command am_addr_t amAddress();
   }
 }
 implementation 
@@ -482,7 +483,8 @@ implementation
     rxBufPtr->footer.crc = rxBufPtr->footer.crc == runningCrc;
 
     if (f.ack &&
-	rxBufPtr->footer.crc && rxBufPtr->header.addr == TOS_LOCAL_ADDRESS)
+	rxBufPtr->footer.crc &&
+	rxBufPtr->header.addr == call amAddress())
       {
 	enterAckState();
 	call CC1000Control.txMode();

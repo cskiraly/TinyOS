@@ -1,4 +1,4 @@
-/* $Id: CSMARadioC.nc,v 1.1.2.12 2005-06-06 18:06:49 scipio Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.1 2005-06-19 23:28:22 scipio Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -43,18 +43,16 @@
  *
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.12 $
+ * Revision:  $Revision: 1.1.2.1 $
  */
 
 #include "CC1000Const.h"
 #include "TOSMsg.h"
 
-configuration CSMARadioC{
+configuration CC1000CsmaRadioC {
   provides {
     interface Init;
     interface SplitControl;
-    //interface RadioControl;
-    //interface RadioPacket;
     interface Send;
     interface Receive;
 
@@ -68,7 +66,7 @@ configuration CSMARadioC{
 }
 implementation {
   components Csma, SendReceive, CC1000RssiM, CC1000SquelchM, CC1000ControlM;
-  components HPLCC1000C, RandomC, TimerMilliC;
+  components HPLCC1000C, RandomC, TimerMilliC, ActiveMessageAddressC;
 
   Init = Csma;
   Init = TimerMilliC;
@@ -100,7 +98,8 @@ implementation {
 
   SendReceive.CC1000Control -> CC1000ControlM;
   SendReceive.HPLCC1000Spi -> HPLCC1000C;
-
+  SendReceive.amAddress -> ActiveMessageAddressC;
+  
   SendReceive.RssiRx -> CC1000RssiM.Rssi[unique("CC1000RSSI")];
   Csma.RssiNoiseFloor -> CC1000RssiM.Rssi[unique("CC1000RSSI")];
   Csma.RssiCheckChannel -> CC1000RssiM.Rssi[unique("CC1000RSSI")];

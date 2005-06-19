@@ -1,5 +1,6 @@
-/* $Id: RadioPacketC.nc,v 1.1.2.1 2005-05-23 18:22:30 scipio Exp $
- * "Copyright (c) 2000-2005 The Regents of the University  of California.  
+// $Id: UARTReceiver.nc,v 1.1.2.1 2005-06-19 23:28:23 scipio Exp $
+/*									tab:4
+ * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -18,7 +19,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2005 Intel Corporation
+ * Copyright (c) 2004 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -26,32 +27,27 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+
+
 /**
- * The mica2 radio packet abstraction, encapsulating the CC1000.
+ * The OSKI presentation of receiving over the UART.
  *
  * @author Philip Levis
- * @date   May 16 2005
- * Revision:  $Revision: 1.1.2.1 $
- */
+ * @date   January 5 2005
+ */ 
 
+includes UART;
 
-configuration RadioPacketC {
+generic configuration UARTReceiver(uart_id_t id) {  
   provides {
-    interface Init;
-    interface SplitControl;
-    interface Send;
     interface Receive;
     interface Packet;
-    interface RadioTimeStamping;
   }
 }
-implementation {
-  components CSMARadioC;
 
-  Init = CSMARadioC;
-  SplitControl = CSMARadioC;
-  Send = CSMARadioC;
-  Receive = CSMARadioC;
-  RadioTimeStamping = CSMARadioC;
-  Packet = CSMARadioC;
+implementation {
+  components UARTImpl;
+
+  Receive = UARTImpl.Receive[id];
+  Packet = UARTImpl;
 }
