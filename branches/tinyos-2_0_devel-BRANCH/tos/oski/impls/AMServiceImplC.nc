@@ -1,4 +1,4 @@
-// $Id: AMServiceImplC.nc,v 1.1.2.2 2005-05-20 00:25:01 scipio Exp $
+// $Id: AMServiceImplC.nc,v 1.1.2.3 2005-06-20 01:09:28 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -39,11 +39,13 @@
 
 configuration AMServiceImplC {
   provides interface Service[uint8_t id];
+  provides interface ServiceNotify;
 }
 implementation {
   components ActiveMessageImplC;
   components new ServiceOrControllerM("OSKI.AMServiceImplC.Service");
   
   Service = ServiceOrControllerM;
-  ServiceOrControllerM.SplitControl -> ActiveMessageImplC;  
+  ServiceOrControllerM.SplitControl -> ActiveMessageImplC;
+  ServiceNotify = ServiceOrControllerM;
 }
