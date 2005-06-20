@@ -1,6 +1,7 @@
-// $Id: AMServiceImpl.nc,v 1.1.2.2 2005-05-17 21:25:19 scipio Exp $
+// $Id: ActiveMessageAddressC.nc,v 1.1.2.1 2005-06-20 01:09:28 scipio Exp $
+
 /*									tab:4
- * "Copyright (c) 2005 The Regents of the University  of California.  
+ * "Copyright (c) 2004-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,7 +20,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2004 Intel Corporation
+ * Copyright (c) 2004-2005 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -27,23 +28,32 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
-
+/*
+ *
+ * Authors:		Philip Levis
+ * Date last modified:  $Id: ActiveMessageAddressC.nc,v 1.1.2.1 2005-06-20 01:09:28 scipio Exp $
+ *
+ */
 
 /**
- * The OSKI presentation of the operating status of the Active Message
- * subsystem.
+ * Accessor methods for Active Messages.
  *
  * @author Philip Levis
- * @date   January 5 2005
- */ 
+ * @date June 19 2005
+ */
 
-configuration AMServiceImplC {
-  provides interface Service[uint8_t id];
+module ActiveMessageAddressC  {
+  provides async command am_addr_t amAddress();
+  provides async command void setAmAddress(am_addr_t a);
 }
 implementation {
-  components ActiveMessageImplC;
-  components new ServiceOrControllerM("OSKI.AMServiceImpl.Service");
-  
-  Service = ServiceOrControllerM;
-  ServiceOrControllerM.SplitControl -> ActiveMessageImplC;  
+  am_addr_t addr = TOS_AM_ADDRESS;
+
+  async command am_addr_t amAddress() {
+    return addr;
+  }
+
+  async command void setAmAddress(am_addr_t a) {
+    addr = a;
+  }
 }
