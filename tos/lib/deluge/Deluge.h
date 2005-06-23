@@ -1,9 +1,9 @@
-// $Id: Deluge.h,v 1.1.2.1 2005-06-12 19:21:13 jwhui Exp $
+// $Id: Deluge.h,v 1.1.2.2 2005-06-23 19:30:33 jwhui Exp $
 
 /*									tab:4
  *
  *
- * "Copyright (c) 2000-2004 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -33,9 +33,12 @@
 
 #include "DelugeMetadata.h"
 
+#ifndef DELUGE_NUM_IMAGES
+#define DELUGE_NUM_IMAGES 3
+#endif
+
 enum {
   DELUGE_VERSION                    = 2,
-  DELUGE_NUM_IMAGES                 = 3,
   DELUGE_MIN_ADV_PERIOD_LOG2        = 8,
   DELUGE_MAX_ADV_PERIOD_LOG2        = 20,
   DELUGE_NUM_NEWDATA_ADVS_REQUIRED  = 2,
@@ -64,23 +67,11 @@ enum {
   DELUGE_INVALID_PGNUM              = 0xff,
 };
 
-enum {
-  DELUGE_VOLUME_ID_0 = 0,
-  DELUGE_VOLUME_ID_1 = 1,
-  DELUGE_VOLUME_ID_2 = 2,
-};
-
 #include "Storage.h"
 
 struct deluge_image_t {
   imgnum_t imageNum;
   volume_id_t volumeId;
-};
-
-static const struct deluge_image_t DELUGE_IMAGES[DELUGE_NUM_IMAGES] = {
-  { DELUGE_VOLUME_ID_0, 0xDF },
-  { DELUGE_VOLUME_ID_1, 0xD0 },
-  { DELUGE_VOLUME_ID_2, 0xD1 },
 };
 
 typedef struct DelugeAdvTimer {
@@ -96,5 +87,55 @@ typedef struct DelugeNodeDesc {
   uint8_t   dummy;
   uint16_t  crc;
 } DelugeNodeDesc;
+
+enum {
+  DELUGE_VOLUME_ID_0 = 0,
+#if DELUGE_NUM_IMAGES >= 2
+  DELUGE_VOLUME_ID_1 = 1,
+#if DELUGE_NUM_IMAGES >= 3
+  DELUGE_VOLUME_ID_2 = 2,
+#if DELUGE_NUM_IMAGES >= 4
+  DELUGE_VOLUME_ID_3 = 3,
+#if DELUGE_NUM_IMAGES >= 5
+  DELUGE_VOLUME_ID_4 = 4,
+#if DELUGE_NUM_IMAGES >= 6
+  DELUGE_VOLUME_ID_5 = 5,
+#if DELUGE_NUM_IMAGES >= 7
+  DELUGE_VOLUME_ID_6 = 6,
+#if DELUGE_NUM_IMAGES >= 8
+  DELUGE_VOLUME_ID_7 = 7,
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+};
+
+static const struct deluge_image_t DELUGE_IMAGES[DELUGE_NUM_IMAGES] = {
+  { DELUGE_VOLUME_ID_0, 0xDF },
+#if DELUGE_NUM_IMAGES >= 2
+  { DELUGE_VOLUME_ID_1, 0xD0 },
+#if DELUGE_NUM_IMAGES >= 3
+  { DELUGE_VOLUME_ID_2, 0xD1 },
+#if DELUGE_NUM_IMAGES >= 4
+  { DELUGE_VOLUME_ID_3, 0xD2 },
+#if DELUGE_NUM_IMAGES >= 5
+  { DELUGE_VOLUME_ID_4, 0xD3 },
+#if DELUGE_NUM_IMAGES >= 6
+  { DELUGE_VOLUME_ID_5, 0xD4 },
+#if DELUGE_NUM_IMAGES >= 7
+  { DELUGE_VOLUME_ID_6, 0xD5 },
+#if DELUGE_NUM_IMAGES >= 8
+  { DELUGE_VOLUME_ID_7, 0xD6 },
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+};
 
 #endif

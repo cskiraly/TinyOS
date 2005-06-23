@@ -1,9 +1,9 @@
-// $Id: DelugeStorageC.nc,v 1.1.2.1 2005-06-07 20:20:49 jwhui Exp $
+// $Id: DelugeStorageC.nc,v 1.1.2.2 2005-06-23 19:30:33 jwhui Exp $
 
 /*									tab:4
  *
  *
- * "Copyright (c) 2000-2004 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -37,13 +37,7 @@ configuration DelugeStorageC {
 }
 implementation {
 
-  components
-    Main,
-    DelugeStorageM as Storage,
-    new BlockStorageC() as BlockStorage0,
-    new BlockStorageC() as BlockStorage1,
-    new BlockStorageC() as BlockStorage2,
-    LedsC as Leds;
+  components Main, DelugeStorageM as Storage, LedsC as Leds;
 
   DataRead = Storage;
   DataWrite = Storage;
@@ -53,19 +47,59 @@ implementation {
 
   Storage.Leds -> Leds;
 
+  components new BlockStorageC() as BlockStorage0;
   Storage.BlockRead[DELUGE_VOLUME_ID_0] -> BlockStorage0;
   Storage.BlockWrite[DELUGE_VOLUME_ID_0] -> BlockStorage0;
   Storage.Mount[DELUGE_VOLUME_ID_0] -> BlockStorage0;
   Storage.StorageRemap[DELUGE_VOLUME_ID_0] -> BlockStorage0;
-
+#if DELUGE_NUM_IMAGES >= 2
+  components new BlockStorageC() as BlockStorage1;
   Storage.BlockRead[DELUGE_VOLUME_ID_1] -> BlockStorage1;
   Storage.BlockWrite[DELUGE_VOLUME_ID_1] -> BlockStorage1;
   Storage.Mount[DELUGE_VOLUME_ID_1] -> BlockStorage1;
   Storage.StorageRemap[DELUGE_VOLUME_ID_1] -> BlockStorage1;
-
+#if DELUGE_NUM_IMAGES >= 3
+  components new BlockStorageC() as BlockStorage2;
   Storage.BlockRead[DELUGE_VOLUME_ID_2] -> BlockStorage2;
   Storage.BlockWrite[DELUGE_VOLUME_ID_2] -> BlockStorage2;
   Storage.Mount[DELUGE_VOLUME_ID_2] -> BlockStorage2;
   Storage.StorageRemap[DELUGE_VOLUME_ID_2] -> BlockStorage2;
+#if DELUGE_NUM_IMAGES >= 4
+  components new BlockStorageC() as BlockStorage3;
+  Storage.BlockRead[DELUGE_VOLUME_ID_3] -> BlockStorage3;
+  Storage.BlockWrite[DELUGE_VOLUME_ID_3] -> BlockStorage3;
+  Storage.Mount[DELUGE_VOLUME_ID_3] -> BlockStorage3;
+  Storage.StorageRemap[DELUGE_VOLUME_ID_3] -> BlockStorage3;
+#if DELUGE_NUM_IMAGES >= 5
+  components new BlockStorageC() as BlockStorage3;
+  Storage.BlockRead[DELUGE_VOLUME_ID_4] -> BlockStorage4;
+  Storage.BlockWrite[DELUGE_VOLUME_ID_4] -> BlockStorage4;
+  Storage.Mount[DELUGE_VOLUME_ID_4] -> BlockStorage4;
+  Storage.StorageRemap[DELUGE_VOLUME_ID_4] -> BlockStorage4;
+#if DELUGE_NUM_IMAGES >= 6
+  components new BlockStorageC() as BlockStorage3;
+  Storage.BlockRead[DELUGE_VOLUME_ID_5] -> BlockStorage5;
+  Storage.BlockWrite[DELUGE_VOLUME_ID_5] -> BlockStorage5;
+  Storage.Mount[DELUGE_VOLUME_ID_5] -> BlockStorage5;
+  Storage.StorageRemap[DELUGE_VOLUME_ID_5] -> BlockStorage5;
+#if DELUGE_NUM_IMAGES >= 7
+  components new BlockStorageC() as BlockStorage3;
+  Storage.BlockRead[DELUGE_VOLUME_ID_6] -> BlockStorage6;
+  Storage.BlockWrite[DELUGE_VOLUME_ID_6] -> BlockStorage6;
+  Storage.Mount[DELUGE_VOLUME_ID_6] -> BlockStorage6;
+  Storage.StorageRemap[DELUGE_VOLUME_ID_6] -> BlockStorage6;
+#if DELUGE_NUM_IMAGES >= 8
+  components new BlockStorageC() as BlockStorage3;
+  Storage.BlockRead[DELUGE_VOLUME_ID_7] -> BlockStorage7;
+  Storage.BlockWrite[DELUGE_VOLUME_ID_7] -> BlockStorage7;
+  Storage.Mount[DELUGE_VOLUME_ID_7] -> BlockStorage7;
+  Storage.StorageRemap[DELUGE_VOLUME_ID_7] -> BlockStorage7;
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
 
 }
