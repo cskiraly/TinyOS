@@ -1,4 +1,4 @@
-// $Id: StorageManagerM.nc,v 1.1.2.3 2005-06-12 19:19:41 jwhui Exp $
+// $Id: StorageManagerM.nc,v 1.1.2.4 2005-06-23 18:38:43 jwhui Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -170,11 +170,7 @@ implementation {
     uint8_t i;
 
     for ( i = 0; i < STM25P_NUM_SECTORS; i++ )
-      sectorTable.sector[i].volumeId = STM25P_INVALID_VOLUME_ID;
-    
-    sectorTable.sector[0].volumeId = 0xD0;
-    sectorTable.sector[1].volumeId = 0xD1;
-    sectorTable.sector[STM25P_NUM_SECTORS-1].volumeId = 0xDF;
+      sectorTable.sector[i].volumeId = 0xd0 + i;
     sectorTable.crc = computeSectorTableCrc();
     
     rwAddr = 0;
