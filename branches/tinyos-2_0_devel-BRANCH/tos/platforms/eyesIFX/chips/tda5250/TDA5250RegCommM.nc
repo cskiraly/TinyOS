@@ -28,8 +28,8 @@
  *
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-06-24 11:47:43 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-06-24 14:08:38 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -100,7 +100,7 @@ implementation {
        return FAIL;      
       transmitByte(address);
       transmitByte(data);
-      while (call USARTControl.isTxEmpty() == FAIL);
+      while (call USARTControl.isTxEmpty() == FALSE);
       return SUCCESS;
    } 
 
