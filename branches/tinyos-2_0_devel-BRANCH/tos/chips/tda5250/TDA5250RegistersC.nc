@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-05-30 21:14:36 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-06-24 11:45:05 $ 
  * ======================================================================== 
  */
  
@@ -66,6 +66,7 @@ implementation {
            ;
   
   Init = TDA5250RegistersM;
+	Init = TDA5250RegCommC;
 	Resource = TDA5250RegCommC;
 	
   CONFIG = TDA5250RegistersM.CONFIG;
