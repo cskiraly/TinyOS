@@ -28,8 +28,8 @@
  *
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-05-30 21:13:26 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-06-24 11:47:43 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -97,8 +97,7 @@ implementation {
 
    async command error_t TDA5250RegComm.writeByte(uint8_t address, uint8_t data) {  
      if(call ResourceUser.user() != TDA5250_SPI_BUS_ID)
-       return FAIL;     
-      call USARTControl.setModeSPI();       
+       return FAIL;      
       transmitByte(address);
       transmitByte(data);
       while (call USARTControl.isTxEmpty() == FAIL);
@@ -107,8 +106,7 @@ implementation {
 
    async command error_t TDA5250RegComm.writeWord(uint8_t address, uint16_t data) {  
      if(call ResourceUser.user() != TDA5250_SPI_BUS_ID)
-       return FAIL;        
-      call USARTControl.setModeSPI();       
+       return FAIL;    
       transmitByte(address);
       transmitByte((uint8_t) (data >> 8));
       transmitByte((uint8_t) data);
