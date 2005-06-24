@@ -28,8 +28,8 @@
  *
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-30 21:14:36 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-06-24 11:45:05 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -47,9 +47,6 @@ module TDA5250RegCommM {
 
 implementation {
 
-   uint8_t txBuf[3];
-	 uint8_t rxBuf[1];
-   
    command error_t Init.init() {
      // setting pins to output
      call BUSM.makeOutput();

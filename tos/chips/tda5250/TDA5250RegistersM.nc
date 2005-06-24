@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-05-30 19:34:59 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-06-24 11:45:05 $ 
  * ======================================================================== 
  */
  
@@ -67,7 +67,7 @@ implementation {
    error_t writeByte(uint8_t addr, uint16_t data) {
      error_t result;
      call ENTDA.clr();
-     result = call TDA5250RegComm.writeWord(addr, data);  
+     result = call TDA5250RegComm.writeByte(addr, data);  
      call ENTDA.set();
      return result;
    }
