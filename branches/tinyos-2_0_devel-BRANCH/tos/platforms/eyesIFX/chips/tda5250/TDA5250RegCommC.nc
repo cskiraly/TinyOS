@@ -30,13 +30,12 @@
  * Controlling the TDA5250 at the HPL layer for use with the MSP430 on the 
  * eyesIFX platforms, Configuration.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-05-30 21:13:26 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-06-24 11:47:43 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
  
-#include "msp430baudrates.h"
 #include "msp430BusResource.h"
 enum {
   TDA5250_SPI_BUS_ID = unique(MSP430_SPIO_BUS)
