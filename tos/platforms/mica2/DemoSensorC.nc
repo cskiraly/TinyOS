@@ -1,4 +1,4 @@
-/// $Id: DemoSensorC.nc,v 1.1.2.1 2005-06-27 05:50:59 husq Exp $
+/// $Id: DemoSensorC.nc,v 1.1.2.2 2005-06-27 08:30:25 husq Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -35,3 +35,4 @@ implementation
   StdControl  = DemoChannel;    
   AcquireData = DemoChannel;
 }
+

@@ -1,4 +1,4 @@
-/// $Id: VoltageM.nc,v 1.1.2.1 2005-06-27 05:50:59 husq Exp $
+/// $Id: VoltageM.nc,v 1.1.2.2 2005-06-27 08:30:28 husq Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -25,20 +25,22 @@
 
 module VoltageM
 {
-  provides interface StdControl;	
+  provides interface StdControl;
+  uses interface GeneralIO as BAT_MON;	
 }
 implementation
 {
   
-  command result_t StdControl.start() {
-	TOSH_MAKE_BAT_MON_OUTPUT();
-	TOSH_SET_BAT_MON_PIN();
+  command error_t StdControl.start() {
+	call BAT_MON.makeOutput();
+	call BAT_MON.set();
     return SUCCESS;
   }
 
-  command result_t StdControl.stop() {
-	TOSH_CLR_BAT_MON_PIN();
+  command error_t StdControl.stop() {
+	call BAT_MON.clr();
     return SUCCESS;
   }	
 
 }
+
