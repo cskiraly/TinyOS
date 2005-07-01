@@ -27,7 +27,7 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-06-24 11:46:23 $ 
+ * $Date: 2005-07-01 13:05:11 $ 
  * ======================================================================== 
  */
  
@@ -42,28 +42,28 @@
 #include "msp430BusResource.h"
 enum {
   TDA5250_UART_BUS_ID = unique(MSP430_UARTO_BUS)
-};     
-configuration TDA5250DataC {
+};
+configuration HPLTDA5250DataC {
   provides {
     interface Init;  
-    interface TDA5250Data;
+    interface HPLTDA5250Data;
     interface Resource as Resource;
   }
 }
 implementation {
-  components TDA5250DataM
+  components HPLTDA5250DataM
 	         , HPLUSART0C
            , TDA5250RadioIO
            ;
    
-  Init = TDA5250DataM;
+  Init = HPLTDA5250DataM;
 	Init = HPLUSART0C;
-  Resource = TDA5250DataM.Resource;
-  TDA5250Data = TDA5250DataM;
+  Resource = HPLTDA5250DataM.Resource;
+  HPLTDA5250Data = HPLTDA5250DataM;
   
-	TDA5250DataM.DATA -> TDA5250RadioIO.TDA5250RadioDATA;
-	TDA5250DataM.USARTControl -> HPLUSART0C;
-	TDA5250DataM.USARTFeedback -> HPLUSART0C;
-	TDA5250DataM.UARTResource -> HPLUSART0C.Resource[TDA5250_UART_BUS_ID];
-  TDA5250DataM.ResourceUser -> HPLUSART0C.ResourceUser; 	
+	HPLTDA5250DataM.DATA -> TDA5250RadioIO.TDA5250RadioDATA;
+	HPLTDA5250DataM.USARTControl -> HPLUSART0C;
+	HPLTDA5250DataM.USARTFeedback -> HPLUSART0C;
+	HPLTDA5250DataM.UARTResource -> HPLUSART0C.Resource[TDA5250_UART_BUS_ID];
+  HPLTDA5250DataM.ResourceUser -> HPLUSART0C.ResourceUser; 	
 }

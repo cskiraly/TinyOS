@@ -29,14 +29,14 @@
  * - Description ---------------------------------------------------------
  * Configuring the registers on the TDA5250 Radio.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-24 16:29:04 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-07-01 13:05:11 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
  
 #include "tda5250Const.h"
-interface TDA5250Config {
+interface HPLTDA5250Config {
    /**
      Reset all Radio Registers to default values as defined
      in tda5250RegDefaults
@@ -111,6 +111,13 @@ interface TDA5250Config {
    async command void Use32KHzClock();
    async command void UseWindowCountAsClock();
    async command void SetRadioClock(TDA5250ClockOutFreqs_t freq);  
+	 
+	 
+   /**
+      Set the value on the attached Potentiometer
+      for the RF Power setting
+   */	 
+	 command void SetRFPower(uint8_t value);	
    
    /**
       Sets the threshold Values for internal evaluation
@@ -142,6 +149,17 @@ interface TDA5250Config {
    async command void SetTxMode();
    async command void SetRxMode();
    async command void SetSleepMode();
+	 
+	 async event void SetTxModeDone();
+	 async event void SetRxModeDone();
+	 async event void SetSleepModeDone();
+	 
+	 
+   /**
+      Signals that the RSSI level is stable after
+			being switched into Rx Mode
+   */	 
+	 async event void RSSIStable();
 
    /**
       Interrupt avialable on the PWD_DD pin when in 

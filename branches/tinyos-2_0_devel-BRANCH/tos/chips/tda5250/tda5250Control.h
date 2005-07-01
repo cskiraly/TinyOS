@@ -30,24 +30,35 @@
  * Macros for configuring the TDA5250.
  * - Revision ------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-05-20 12:55:44 $
+ * $Date: 2005-07-01 13:05:11 $
  * Author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
 
-#ifndef TDA5250_H
-#define TDA5250_H
+#ifndef TDA5250CONTROL_H
+#define TDA5250CONTROL_H
 
 typedef enum {
-  RADIO_MODE_NULL,
-  RADIO_MODE_DISABLED,
-  RADIO_MODE_PENDING,
+  RADIO_MODE_ON_TRANSITION,
+	RADIO_MODE_ON,
+  RADIO_MODE_OFF_TRANSITION,
+  RADIO_MODE_OFF,
+  RADIO_MODE_TX_TRANSITION,
   RADIO_MODE_TX,
+  RADIO_MODE_RX_TRANSITION,
   RADIO_MODE_RX,
+  RADIO_MODE_CCA_TRANSITION,
   RADIO_MODE_CCA,
-  RADIO_MODE_SLEEP,
+  RADIO_MODE_TIMER_TRANSITION,
   RADIO_MODE_TIMER,
-  RADIO_MODE_SELF_POLLING
+  RADIO_MODE_SELF_POLLING_TRANSITION,
+  RADIO_MODE_SELF_POLLING,
+  RADIO_MODE_SLEEP_TRANSITION,
+  RADIO_MODE_SLEEP
 } radioMode_t;
 
-#endif //TDA5250_H
+#define INIT_RSSI_THRESHOLD     26
+#define TH1_VALUE               0x0000
+#define TH2_VALUE               0xFFFF
+
+#endif //TDA5250CONTROL_H
