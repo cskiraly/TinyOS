@@ -20,6 +20,7 @@ push( @includes, qw(
   %T/chips/msp430/bus_resource
   %T/chips/msp430/timer
   %T/lib/timer  
+  %T/lib/ByteRadio  
 
 ) );
 
