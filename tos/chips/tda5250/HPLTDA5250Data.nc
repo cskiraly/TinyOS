@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-06-24 11:46:23 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-07-01 13:05:11 $ 
  * ======================================================================== 
  */
  
@@ -38,7 +38,7 @@
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
  
-interface TDA5250Data {
+interface HPLTDA5250Data {
 
  /**
    * Transmit a byte of data over the radio. 
@@ -66,7 +66,7 @@ interface TDA5250Data {
    * @param data The data byte received
    */
   async event void rxDone(uint8_t data);
-	
+ 
   /**
    * Enable transmitting over the radio
   */  
@@ -85,6 +85,6 @@ interface TDA5250Data {
   /**
    * Disable receiving over the radio
   */    
-  async command error_t disableRx();	
+  async command error_t disableRx(); 	
 }
 

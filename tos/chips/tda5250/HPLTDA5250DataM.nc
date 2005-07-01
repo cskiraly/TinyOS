@@ -27,20 +27,20 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-06-24 11:46:23 $ 
+ * $Date: 2005-07-01 13:05:11 $ 
  * ======================================================================== 
  */
  
  /**
- * TDA5250DataM module
+ * HPLTDA5250DataM module
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
  
-module TDA5250DataM {
+module HPLTDA5250DataM {
   provides {
     interface Init;
-    interface TDA5250Data;
+    interface HPLTDA5250Data;
 		interface Resource;
   }
   uses {
@@ -101,20 +101,20 @@ implementation {
      signal Resource.requested();
    } 
 	 
-	async command error_t TDA5250Data.tx(uint8_t data) {
+	async command error_t HPLTDA5250Data.tx(uint8_t data) {
     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
       return FAIL;
     call USARTControl.tx(data);
     return SUCCESS;
   }
   
-  async command bool TDA5250Data.isTxDone() {
+  async command bool HPLTDA5250Data.isTxDone() {
     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
       return FAIL;
     return call USARTControl.isTxEmpty();
   }
  	 
-  async command error_t TDA5250Data.enableTx() {
+  async command error_t HPLTDA5250Data.enableTx() {
     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
       return FAIL;
     call USARTControl.setClockSource(SSEL_SMCLK);
@@ -124,14 +124,14 @@ implementation {
     return SUCCESS;
   }
   	 
-  async command error_t TDA5250Data.disableTx() {
+  async command error_t HPLTDA5250Data.disableTx() {
     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
       return FAIL;
     call USARTControl.disableUARTTx();
     return SUCCESS;
   }
   	 
-  async command error_t TDA5250Data.enableRx() {
+  async command error_t HPLTDA5250Data.enableRx() {
     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
       return FAIL;
     call USARTControl.setClockSource(SSEL_SMCLK);
@@ -141,7 +141,7 @@ implementation {
     return SUCCESS;
   }
   	 
-  async command error_t TDA5250Data.disableRx() {
+  async command error_t HPLTDA5250Data.disableRx() {
     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
       return FAIL;
     call USARTControl.disableUARTRx();
@@ -151,7 +151,7 @@ implementation {
   async event void USARTFeedback.txDone() {
     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
       return;
-    signal TDA5250Data.txReady();
+    signal HPLTDA5250Data.txReady();
   }
   	 
   async event void USARTFeedback.rxOverflow() {
@@ -160,11 +160,11 @@ implementation {
   async event void USARTFeedback.rxDone(uint8_t data) {
     if(call ResourceUser.user() != TDA5250_UART_BUS_ID)
       return;
-    signal TDA5250Data.rxDone(data);
+    signal HPLTDA5250Data.rxDone(data);
   }
 	
   default event void Resource.granted() {}
   default event void Resource.requested() {}
-  default async event void TDA5250Data.txReady() {}
-  default async event void TDA5250Data.rxDone(uint8_t data) {}
+  default async event void HPLTDA5250Data.txReady() {}
+  default async event void HPLTDA5250Data.rxDone(uint8_t data) {}
 }
