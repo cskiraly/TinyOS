@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  * Controlling the TDA5250, switching modes and initializing.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-07-01 13:05:12 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-07-02 01:48:41 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -152,7 +152,7 @@ implementation {
    
    event void DataResource.granted() {
      switch(radioMode) {   
-       case RADIO_MODE_TX_TRANSITION:      
+       case RADIO_MODE_TX_TRANSITION:
          call HPLTDA5250Config.SetTxMode();
        break;       
        case RADIO_MODE_RX_TRANSITION:    
@@ -282,7 +282,7 @@ implementation {
    }
    
    async command bool RadioByteComm.isTxDone() {
-     call HPLTDA5250Data.isTxDone();   
+     return call HPLTDA5250Data.isTxDone();   
    }
   
   default async event void TDA5250Control.TimerModeDone(){

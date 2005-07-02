@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-07-01 13:05:11 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-07-02 01:48:41 $ 
  * ======================================================================== 
  */
  
@@ -442,7 +442,7 @@ implementation {
        call TXRX.clr();
        call PWDDD.clr();
       }
-			call ReceiverDelay.startNow(TDA5250_TRANSMITTER_SETUP_TIME);
+			call TransmitterDelay.startNow(TDA5250_TRANSMITTER_SETUP_TIME);
    }
    
    async command void HPLTDA5250Config.SetRxMode() { 
