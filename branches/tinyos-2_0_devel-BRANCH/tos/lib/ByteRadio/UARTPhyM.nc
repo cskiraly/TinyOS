@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-07-02 07:42:40 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-07-04 00:39:37 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -76,7 +76,6 @@ implementation
    uint16_t numPreambles;  //Number of preambles to send before the packet
    uint16_t crc;           //CRC value of either the current incoming or outgoing packet
 	 uint16_t length;       //Length of the payload to be sent by PacketSerializerM
-	 bool cancelled;
 
    /**************** Local Function Declarations  *****************/
    void TransmitNextByte();
@@ -88,7 +87,6 @@ implementation
        phyState = STATE_NULL;
        numPreambles = 1;  
        crc = 0;
-		   cancelled = FALSE;
      }     
      return SUCCESS;
    }  
@@ -132,15 +130,18 @@ implementation
          case STATE_SYNC:
          case STATE_SFD:
          case STATE_LENGTH:
+         case STATE_HEADER_DONE:
             atomic phyState = STATE_CANCEL_HEADER;
-            break;
+            return SUCCESS;
+         case STATE_DATA:
+            atomic phyState = STATE_CANCEL_DATA;
+            return SUCCESS;           
          case STATE_CRC1:
          case STATE_CRC2:
             atomic phyState = STATE_CANCEL_FOOTER;
-            break;
+            return SUCCESS;
          default:
-           atomic phyState = STATE_CANCEL_DATA;         
-           break;
+           return FAIL;
        }   
 	 }
 	 
