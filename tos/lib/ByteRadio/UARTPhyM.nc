@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-07-04 00:39:37 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-07-04 15:15:58 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -84,8 +84,7 @@ implementation
    /**************** Radio Init  *****************/
    command error_t Init.init(){
      atomic {
-       phyState = STATE_NULL;
-       numPreambles = 1;  
+       phyState = STATE_NULL;  
        crc = 0;
      }     
      return SUCCESS;
@@ -95,6 +94,7 @@ implementation
      atomic {
        phyState = STATE_PREAMBLE;
        length = length_value;
+			 numPreambles = 1;
        crc = 0;
      }     
      TransmitNextByte();
@@ -117,7 +117,10 @@ implementation
 
    /**************** Radio Recv ****************/
    async command void PhyPacketRx.recvHeader() {
-     atomic phyState = STATE_PREAMBLE;
+     atomic {
+		   phyState = STATE_PREAMBLE;
+			 crc = 0;
+		 }
    }
    
    async command void PhyPacketRx.recvFooter() {
@@ -185,7 +188,7 @@ implementation
          call RadioByteComm.txByte(SYNC_BYTE);
 				 break;
        case STATE_SFD:
-         atomic phyState = STATE_HEADER_DONE;
+         atomic phyState = STATE_LENGTH;
          call RadioByteComm.txByte(SFD_BYTE);
 				 break;
        case STATE_LENGTH:
@@ -250,7 +253,7 @@ implementation
            else atomic phyState = STATE_SFD;
         }
         break;
-      case STATE_SFD:         
+      case STATE_SFD:
         if (data == SFD_BYTE)
            atomic phyState = STATE_LENGTH;
         else atomic phyState = STATE_PREAMBLE;
@@ -278,8 +281,8 @@ implementation
         atomic phyState = STATE_NULL;
         if (data == (uint8_t)(crc))
           signal PhyPacketRx.recvFooterDone(TRUE);
-        else
-          signal PhyPacketRx.recvFooterDone(TRUE);
+        else		
+          signal PhyPacketRx.recvFooterDone(FALSE);
         break;
       default:
         break;
