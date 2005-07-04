@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  * Controlling the TDA5250, switching modes and initializing.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-07-04 00:27:16 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-07-04 10:59:28 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -178,7 +178,7 @@ implementation {
        if(radioBusy() == FALSE) {
          radioMode = RADIO_MODE_TIMER_TRANSITION;  
          onTime = on_time;
-         onTime = off_time;
+         offTime = off_time;
        }
      }
      if(radioMode == RADIO_MODE_TIMER_TRANSITION)  
@@ -201,7 +201,7 @@ implementation {
        if(radioBusy() == FALSE) {      
          radioMode = RADIO_MODE_SELF_POLLING_TRANSITION;  
          onTime = on_time;
-         onTime = off_time;
+         offTime = off_time;
        }
      }
      if(radioMode == RADIO_MODE_SELF_POLLING_TRANSITION)
