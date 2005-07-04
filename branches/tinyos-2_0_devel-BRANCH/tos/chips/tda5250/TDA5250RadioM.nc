@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  * Controlling the TDA5250, switching modes and initializing.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-07-02 01:48:41 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-07-04 00:27:16 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -72,7 +72,7 @@ implementation {
 	 
    /**************** Radio Stop  *****************/
    command error_t SplitControl.stop(){
-		 radioMode = RADIO_MODE_OFF_TRANSITION;
+		 atomic radioMode = RADIO_MODE_OFF_TRANSITION;
 		 return call ConfigResource.request();
    }  
    
@@ -90,6 +90,7 @@ implementation {
        case RADIO_MODE_CCA_TRANSITION:
        case RADIO_MODE_TIMER_TRANSITION:
        case RADIO_MODE_SELF_POLLING_TRANSITION:
+       case RADIO_MODE_SLEEP_TRANSITION:
          return TRUE;
        default:
          return FALSE;
@@ -129,9 +130,9 @@ implementation {
        case RADIO_MODE_TX_TRANSITION:     
        case RADIO_MODE_RX_TRANSITION:     
        case RADIO_MODE_CCA_TRANSITION:     
-         call HPLTDA5250Config.SetSlaveMode();  
+         call HPLTDA5250Config.SetSlaveMode();       
          call ConfigResource.release(); 
-         call DataResource.request(); 
+         call DataResource.request();             
          break;             
        case RADIO_MODE_TIMER_TRANSITION:
          call HPLTDA5250Config.SetTimerMode(onTime, offTime);
@@ -154,13 +155,15 @@ implementation {
      switch(radioMode) {   
        case RADIO_MODE_TX_TRANSITION:
          call HPLTDA5250Config.SetTxMode();
-       break;       
+         break;       
        case RADIO_MODE_RX_TRANSITION:    
          ccaMode = FALSE; 
-         call HPLTDA5250Config.SetRxMode();       
+         call HPLTDA5250Config.SetRxMode();
+         break; 
        case RADIO_MODE_CCA_TRANSITION:    
          ccaMode = TRUE;
          call HPLTDA5250Config.SetRxMode();
+         break;
        default:
          break;
      }         
@@ -171,70 +174,90 @@ implementation {
       The choices are TIMER_MODE, SELF_POLLING_MODE
    */
    async command error_t TDA5250Control.TimerMode(float on_time, float off_time) {
-     if(radioBusy() == FALSE) {
-       radioMode = RADIO_MODE_TIMER_TRANSITION;  
-       onTime = on_time;
-       onTime = off_time;
-       return call ConfigResource.request();       
+     atomic {
+       if(radioBusy() == FALSE) {
+         radioMode = RADIO_MODE_TIMER_TRANSITION;  
+         onTime = on_time;
+         onTime = off_time;
+       }
      }
+     if(radioMode == RADIO_MODE_TIMER_TRANSITION)  
+       return call ConfigResource.request();
      return FAIL;
    }
    
    async command error_t TDA5250Control.ResetTimerMode() {
-     if(radioBusy() == FALSE) {   
-       radioMode = RADIO_MODE_TIMER_TRANSITION;
-       return call ConfigResource.request();    
+     atomic {
+       if(radioBusy() == FALSE)
+         radioMode = RADIO_MODE_TIMER_TRANSITION;  
      }
+     if(radioMode == RADIO_MODE_TIMER_TRANSITION)  
+       return call ConfigResource.request();
      return FAIL;           
    }
    
    async command error_t TDA5250Control.SelfPollingMode(float on_time, float off_time) {   
-     if(radioBusy() == FALSE) {      
-       radioMode = RADIO_MODE_SELF_POLLING_TRANSITION;  
-       onTime = on_time;
-       onTime = off_time;
-       return call ConfigResource.request();    
+     atomic {
+       if(radioBusy() == FALSE) {      
+         radioMode = RADIO_MODE_SELF_POLLING_TRANSITION;  
+         onTime = on_time;
+         onTime = off_time;
+       }
      }
+     if(radioMode == RADIO_MODE_SELF_POLLING_TRANSITION)
+        return call ConfigResource.request();
      return FAIL;     
    }
    
    async command error_t TDA5250Control.ResetSelfPollingMode() {  
-     if(radioBusy() == FALSE) {      
-       radioMode = RADIO_MODE_SELF_POLLING_TRANSITION;
-       return call ConfigResource.request(); 
+     atomic {
+       if(radioBusy() == FALSE)    
+         radioMode = RADIO_MODE_SELF_POLLING_TRANSITION;  
      }
+     if(radioMode == RADIO_MODE_SELF_POLLING_TRANSITION)
+        return call ConfigResource.request();
      return FAIL;     
    }
    
    async command error_t TDA5250Control.SleepMode() {
-     if(radioBusy() == FALSE) {   
-       radioMode = RADIO_MODE_SLEEP_TRANSITION;     
+     atomic {
+       if(radioBusy() == FALSE) 
+         radioMode = RADIO_MODE_SLEEP_TRANSITION;     
+     }
+     if(radioMode == RADIO_MODE_SLEEP_TRANSITION) {
        call HPLTDA5250Config.SetSleepMode();
+       return SUCCESS;
      }
      return FAIL;     
    }   
    
    async command error_t TDA5250Control.TxMode() {  
-     if(radioBusy() == FALSE) {
-       radioMode = RADIO_MODE_TX_TRANSITION;
-       return call ConfigResource.request();
+     atomic {
+       if(radioBusy() == FALSE)
+         radioMode = RADIO_MODE_TX_TRANSITION;
      }
+     if(radioMode == RADIO_MODE_TX_TRANSITION)
+       return call ConfigResource.request();
      return FAIL;
    }   
    
-   async command error_t TDA5250Control.RxMode() {  
-     if(radioBusy() == FALSE) {
-       radioMode = RADIO_MODE_RX_TRANSITION;
-       return call ConfigResource.request();
+   async command error_t TDA5250Control.RxMode() {
+     atomic {
+       if(radioBusy() == FALSE)
+         radioMode = RADIO_MODE_RX_TRANSITION;
      }
+     if(radioMode == RADIO_MODE_RX_TRANSITION)
+       return call ConfigResource.request();
      return FAIL;
    }   
    
    async command error_t TDA5250Control.CCAMode() {  
-     if(radioBusy() == FALSE) {
-       radioMode = RADIO_MODE_CCA_TRANSITION;
-       return call ConfigResource.request();
+     atomic {
+       if(radioBusy() == FALSE)
+         radioMode = RADIO_MODE_CCA_TRANSITION;
      }
+     if(radioMode == RADIO_MODE_CCA_TRANSITION)
+       return call ConfigResource.request();
      return FAIL;
    }      
    
