@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-05-24 16:29:04 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-07-04 15:13:39 $ 
  * ======================================================================== 
  */
  
@@ -181,13 +181,13 @@ typedef enum {
 #define TDA5250_CONVERT_FREQ_TO_TH_VALUE(freq, clock_freq) \
            ((TDA5250_CONSTANT_FOR_FREQ_TO_TH_VALUE/(clock_freq*freq))*1000)
            
-#define TDA5250_SYSTEM_SETUP_TIME            12000   //us
-#define TDA5250_RECEIVER_SETUP_TIME           2860   //us
-#define TDA5250_DATA_DETECTION_SETUP_TIME     3380   //us
-#define TDA5250_RSSI_STABLE_TIME              3380   //us
-#define TDA5250_CLOCK_OUT_SETUP_TIME           500   //us
-#define TDA5250_TRANSMITTER_SETUP_TIME        1430   //us
-#define TDA5250_XTAL_STARTUP_TIME              500   //us          
+#define TDA5250_SYSTEM_SETUP_TIME            (12000/TDA5250_INTERNAL_OSC_FREQUENCY) //12000us
+#define TDA5250_RECEIVER_SETUP_TIME           (2860/TDA5250_INTERNAL_OSC_FREQUENCY) // 2860us
+#define TDA5250_DATA_DETECTION_SETUP_TIME     (3380/TDA5250_INTERNAL_OSC_FREQUENCY) // 3380us
+#define TDA5250_RSSI_STABLE_TIME              (3380/TDA5250_INTERNAL_OSC_FREQUENCY) // 3380us
+#define TDA5250_CLOCK_OUT_SETUP_TIME           (500/TDA5250_INTERNAL_OSC_FREQUENCY) //  500us
+#define TDA5250_TRANSMITTER_SETUP_TIME        (1430/TDA5250_INTERNAL_OSC_FREQUENCY) // 1430us
+#define TDA5250_XTAL_STARTUP_TIME              (500/TDA5250_INTERNAL_OSC_FREQUENCY) //  500us          
 
 // Subaddresses of data registers write
 #define TDA5250_REG_ADDR_CONFIG            0x00
