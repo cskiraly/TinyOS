@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-07-02 01:48:41 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-07-04 15:12:13 $ 
  * ======================================================================== 
  */
  
@@ -452,7 +452,7 @@ implementation {
        call CONFIG.set(currentConfig);
      }
      else {
-       call TXRX.set();
+       call TXRX.set();	 
        call PWDDD.clr();
      }
 		 call ReceiverDelay.startNow(TDA5250_RECEIVER_SETUP_TIME);
@@ -463,7 +463,10 @@ implementation {
        currentConfig = CONFIG_ALL_PD_POWER_DOWN(currentConfig);
        call CONFIG.set(currentConfig);
      }
-     else call PWDDD.set();
+     else {	 
+		   call PWDDD.makeOutput();
+		   call PWDDD.set();
+		 }
 		 signal HPLTDA5250Config.SetSleepModeDone();
    }
          
