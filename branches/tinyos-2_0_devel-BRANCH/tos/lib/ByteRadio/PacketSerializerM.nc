@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-07-04 09:28:14 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-07-04 15:18:04 $
  * ========================================================================
  */
  
@@ -55,6 +55,7 @@ implementation
    /**************** Module Global Variables  *****************/
    uint8_t *txBufPtr;  // pointer to tx buffer
    uint8_t *rxBufPtr;  // pointer to rx buffer
+	 message_t rxMsg;    // rx message buffer
    uint16_t byteCnt;      // index into current data
    uint16_t msgLength;   // Length of message
    bool txCancel;
@@ -75,13 +76,14 @@ implementation
    }
    task void ReceiveTask() {
      signal Receive.receive((message_t*)rxBufPtr, (void*)rxBufPtr, msgLength);
+		 call PhyPacketRx.recvHeader();
    }   
 
    /**************** Radio Init  *****************/
    command error_t Init.init(){
       atomic {
          txBufPtr = NULL;
-         rxBufPtr = NULL;
+         rxBufPtr = (uint8_t*)(&rxMsg);
          byteCnt = 0;
          msgLength = 0;
          txCancel = FALSE;
@@ -141,6 +143,7 @@ implementation
   
    async event void PhyPacketRx.recvHeaderDone(uint8_t length_value) {
      byteCnt = 0;
+		 msgLength = length_value;
    }  
    
    /**************** Rx Done ****************/
