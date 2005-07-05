@@ -13,6 +13,7 @@ push( @includes, qw(
   %T/platforms/eyesIFX/chips/ad5200			
   %T/chips/at45db
   %T/chips/tda5250 
+  %T/chips/tda5250/mac
   %T/chips/ad5200 
   %T/chips/msp430
   %T/chips/msp430/adc12  
