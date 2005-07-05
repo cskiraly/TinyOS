@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-07-04 15:18:04 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-07-05 22:57:54 $
  * ========================================================================
  */
  
@@ -58,7 +58,6 @@ implementation
 	 message_t rxMsg;    // rx message buffer
    uint16_t byteCnt;      // index into current data
    uint16_t msgLength;   // Length of message
-   bool txCancel;
 
    /**************** Local Function Declarations  *****************/
    void TransmitNextByte();
@@ -76,7 +75,6 @@ implementation
    }
    task void ReceiveTask() {
      signal Receive.receive((message_t*)rxBufPtr, (void*)rxBufPtr, msgLength);
-		 call PhyPacketRx.recvHeader();
    }   
 
    /**************** Radio Init  *****************/
@@ -86,7 +84,6 @@ implementation
          rxBufPtr = (uint8_t*)(&rxMsg);
          byteCnt = 0;
          msgLength = 0;
-         txCancel = FALSE;
       }     
      return SUCCESS;
    }
@@ -97,7 +94,6 @@ implementation
        txBufPtr = (uint8_t*)msg;
        msgLength = len;
        byteCnt = 0;
-       txCancel = FALSE;
      }
      call PhyPacketTx.sendHeader(len);
      return SUCCESS;
@@ -138,7 +134,6 @@ implementation
      else if(error == ECANCEL)
        post SendDoneCancelTask();        
      else post SendDoneFailTask();
-     call PhyPacketRx.recvHeader();
   }
   
    async event void PhyPacketRx.recvHeaderDone(uint8_t length_value) {
