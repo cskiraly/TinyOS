@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-07-04 15:15:58 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-07-06 18:09:21 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -85,7 +85,6 @@ implementation
    command error_t Init.init(){
      atomic {
        phyState = STATE_NULL;  
-       crc = 0;
      }     
      return SUCCESS;
    }  
@@ -96,7 +95,7 @@ implementation
        length = length_value;
 			 numPreambles = 1;
        crc = 0;
-     }     
+     }
      TransmitNextByte();
    }
    
