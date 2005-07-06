@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.4 2005-05-10 18:13:46 idgay Exp $
+ *  $Id: hardware.h,v 1.1.2.5 2005-07-06 16:13:17 mturon Exp $
  */
 
 #ifndef TOSH_HARDWARE_H
@@ -49,6 +49,7 @@
 #include <atmega128hardware.h>
 
 // LED assignments
+/*
 TOSH_ASSIGN_PIN(RED_LED, A, 2);
 TOSH_ASSIGN_PIN(GREEN_LED, A, 1);
 TOSH_ASSIGN_PIN(YELLOW_LED, A, 0);
@@ -128,7 +129,9 @@ TOSH_ASSIGN_PIN(AC_NEG, E, 3);        // RFID Reader Red LED
 TOSH_ASSIGN_PIN(UART_RXD1, D, 2);
 TOSH_ASSIGN_PIN(UART_TXD1, D, 3);
 TOSH_ASSIGN_PIN(UART_XCK1, D, 5);
+*/
 
+/*
 void TOSH_SET_PIN_DIRECTIONS(void)
 {
 // LED pins
@@ -173,6 +176,7 @@ void TOSH_SET_PIN_DIRECTIONS(void)
     TOSH_SET_GREEN_LED_PIN();
 }
 
+
 enum 
 {
     TOSH_ACTUAL_VOLTAGE_PORT = 30,    // map to internal BG ref
@@ -186,7 +190,40 @@ enum
     TOS_ADC_BANDGAP_PORT = 10,
     TOS_ADC_GND_PORT     = 11
 };
+*/
 
+// A/D channels
+enum {
+  CHANNEL_THERMISTOR = 1,    // normally unpopulated
+  CHANNEL_BATTERY    = 7,
+  CHANNEL_BANDGAP    = 30,   // 1.23V Fixed bandgap reference
+  CHANNEL_GND        = 31
+};
+
+void inline uwait(int u_sec) {
+    while (u_sec > 0) {
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      asm volatile  ("nop" ::);
+      u_sec--;
+    }
+}
+
+#define TOSH_uwait(x) uwait(x)
+
+// What is the desired timing for this routine used by cc2420??!?
+inline void TOSH_wait(void)
+{
+    asm volatile  ("nop" ::);
+    asm volatile  ("nop" ::);
+    asm volatile  ("nop" ::);
+    asm volatile  ("nop" ::);
+}
 
 #endif //TOSH_HARDWARE_H
 
