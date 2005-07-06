@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-07-05 22:57:54 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-07-06 18:09:21 $
  * ========================================================================
  */
  
@@ -109,9 +109,9 @@ implementation
      if(error == SUCCESS)
        TransmitNextByte();
      else if(error == ECANCEL)
-       post SendDoneCancelTask();        
+		   post SendDoneCancelTask();
      else post SendDoneFailTask();
-   }
+	 }
    
    /**************** Rx Done ****************/
    async event void RadioByteComm.txByteReady(error_t error) {
