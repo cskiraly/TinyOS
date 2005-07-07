@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-07-06 18:09:58 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-07-07 10:53:29 $
  * ========================================================================
  */
  
@@ -185,8 +185,8 @@ implementation
    
    async event void TDA5250PhyPacketRx.recvFooterDone(bool error) {
 	   call RxTimeoutTimer.stop();
+     atomic rxBusy = FALSE;		 
      call TDA5250PhyPacketRx.recvHeader();	 
-     atomic rxBusy = FALSE;
      signal PhyPacketRx.recvFooterDone(error);
    }
    
