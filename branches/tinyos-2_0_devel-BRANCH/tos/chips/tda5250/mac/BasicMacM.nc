@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2005-07-07 10:53:29 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2005-07-07 12:16:00 $
  * ========================================================================
  */
  
@@ -146,20 +146,19 @@ implementation
    
    async event void TDA5250PhyPacketTx.sendHeaderDone(error_t error) {
      if(error != SUCCESS)
-       atomic txBusy = FALSE;
+       call TDA5250Control.RxMode();
      signal PhyPacketTx.sendHeaderDone(error);
    }
    
    /**************** Rx Done ****************/
    async event void TDA5250RadioByteComm.txByteReady(error_t error) {
      if(error != SUCCESS)
-       atomic txBusy = FALSE;   
+       call TDA5250Control.RxMode();   
      signal RadioByteComm.txByteReady(error);    
    }
    
   async event void TDA5250PhyPacketTx.sendFooterDone(error_t error) {
     call TDA5250Control.RxMode();
-    atomic txBusy = FALSE;
     signal PhyPacketTx.sendFooterDone(error);
   }
   
@@ -198,7 +197,11 @@ implementation
   async event void TDA5250Control.SelfPollingModeDone(){         
   }  
   async event void TDA5250Control.RxModeDone(){ 
-    call TDA5250PhyPacketRx.recvHeader();
+	  atomic {
+		  txBusy = FALSE;
+		  rxBusy = FALSE;
+			call TDA5250PhyPacketRx.recvHeader();
+		}
 		if(started == FALSE)
 		  post StartDone();
   }
