@@ -1,4 +1,4 @@
-// $Id: StorageManagerM.nc,v 1.1.2.4 2005-06-23 18:38:43 jwhui Exp $
+// $Id: StorageManagerM.nc,v 1.1.2.5 2005-07-11 05:35:50 jwhui Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -60,6 +60,7 @@ implementation {
 
   SectorTable sectorTable;
   uint8_t baseSector[NUM_VOLUMES];
+  uint8_t numSectors[NUM_VOLUMES];
   volume_t clientVolume;
   volume_id_t curVolumeId;
   uint16_t crcScratch;
@@ -77,8 +78,10 @@ implementation {
     for ( i = 0; i < STM25P_NUM_SECTORS; i++ )
       sectorTable.sector[i].volumeId = STM25P_INVALID_VOLUME_ID;
 
-    for ( i = 0; i < NUM_VOLUMES; i++ )
+    for ( i = 0; i < NUM_VOLUMES; i++ ) {
       baseSector[i] = STM25P_INVALID_SECTOR;
+      numSectors[i] = 0;
+    }
 
     return SUCCESS; 
 
@@ -112,17 +115,18 @@ implementation {
   void actualMount() {
 
     volume_id_t i;
+    result_t result = STORAGE_FAIL;
 
     // find base sector
     for ( i = 0; i < STM25P_NUM_SECTORS; i++ ) {
       if (sectorTable.sector[i].volumeId == curVolumeId) {
 	baseSector[clientVolume] = i;
-	signalDone(STORAGE_OK);
-	return;
+	numSectors[clientVolume]++;
+	result = STORAGE_OK;
       }
     }
 
-    signalDone(STORAGE_FAIL);
+    signalDone(result);
 
   }
 
@@ -130,20 +134,19 @@ implementation {
     actualMount();
   }
 
-  stm25p_addr_t physicalAddr(stm25p_addr_t volumeAddr) {
-    return STM25P_SECTOR_SIZE*baseSector[clientVolume] + volumeAddr;
+  stm25p_addr_t physicalAddr(volume_t volume, stm25p_addr_t addr) {
+    return STM25P_SECTOR_SIZE*baseSector[volume] + addr;
   }
 
   stm25p_addr_t calcNumBytes() {
 
-    uint32_t numBytes;
+    uint16_t numBytes;
 
-    if ( state == S_MOUNT )
-      return STM25P_SECTOR_SIZE;
-    else if ( state == S_WRITE )
-      numBytes = STM25P_PAGE_SIZE - (rwAddr % STM25P_PAGE_SIZE);
-    else 
-      numBytes = STM25P_SECTOR_SIZE - (rwAddr % STM25P_SECTOR_SIZE);
+    switch( state ) {
+    case S_MOUNT: return STM25P_SECTOR_SIZE;
+    case S_WRITE: numBytes = STM25P_PAGE_SIZE - ((uint16_t)rwAddr % STM25P_PAGE_SIZE); break;
+    default: numBytes = STM25P_SECTOR_SIZE - (uint16_t)rwAddr; break;
+    }
 
     if ( rwLen < numBytes )
       numBytes = rwLen;
@@ -153,7 +156,7 @@ implementation {
   }
 
   result_t continueOp() {
-    stm25p_addr_t pAddr = physicalAddr(rwAddr);
+    stm25p_addr_t pAddr = physicalAddr(clientVolume, rwAddr);
 
     switch(state) {
     case S_READ: return call HALSTM25P.read(pAddr, rwData, rwLen);
@@ -200,7 +203,8 @@ implementation {
 	    addr += STM25P_SECTOR_SIZE ) {
 	if (call HALSTM25P.read(addr, &sectorTable, sizeof(SectorTable)) == FAIL)
 	  return FAIL;
-	if (sectorTable.crc == computeSectorTableCrc())
+	if ( sectorTable.crc == computeSectorTableCrc() 
+	     && sectorTable.crc != 0 )
 	  break;
       }
       
@@ -228,25 +232,14 @@ implementation {
   command uint32_t StorageRemap.physicalAddr[volume_t volume](uint32_t volumeAddr) {
     if (baseSector[volume] == STM25P_INVALID_SECTOR)
       return STM25P_INVALID_ADDR;
-    clientVolume = volume;
-    return physicalAddr(volumeAddr);
+    return physicalAddr(volume, volumeAddr);
   }
 
   command uint8_t StorageManager.getNumSectors[volume_t volume]() {
-    uint8_t i = baseSector[volume];
-    uint8_t tmpVolumeId = sectorTable.sector[i].volumeId;
-    
-    if (baseSector[volume] == STM25P_INVALID_SECTOR)
-      return STM25P_INVALID_SECTOR;
-    
-    for ( ; i < STM25P_NUM_SECTORS && sectorTable.sector[i].volumeId == tmpVolumeId; i++ );
-
-    return (i - baseSector[volume]);
+    return numSectors[volume];
   }
 
   command stm25p_addr_t StorageManager.getVolumeSize[volume_t volume]() {
-    if (baseSector[volume] == STM25P_INVALID_SECTOR)
-      return STM25P_INVALID_ADDR;
     return STM25P_SECTOR_SIZE * call StorageManager.getNumSectors[volume]();
   }
 
@@ -303,7 +296,7 @@ implementation {
     rwAddr += lastBytes;
     rwData += lastBytes;
     rwLen -= lastBytes;
-    if ( rwLen == 0 ) {
+    if ( !rwLen ) {
       if (state == S_MOUNT)
 	actualMount();
       else
