@@ -1,6 +1,6 @@
-// $Id: BlockStorageM.nc,v 1.1.2.2 2005-06-07 20:05:34 jwhui Exp $
+// $Id: BlockStorageM.nc,v 1.1.2.3 2005-07-11 05:36:33 jwhui Exp $
 
-/*									tab:4
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -116,7 +116,8 @@ implementation {
       break;
     }
     
-    if (newState == S_READ || newState == S_CRC || newState == S_VERIFY) {
+    if (newState == S_READ || newState == S_CRC || 
+	newState == S_VERIFY || newState == S_COMMIT) {
       if (result == SUCCESS) 
 	result = post signalDoneTask();
     }
@@ -169,7 +170,7 @@ implementation {
   default command result_t SectorStorage.write[blockstorage_t blockId](stm25p_addr_t addr, void* data, stm25p_addr_t len) { return FAIL; }
   default command result_t SectorStorage.erase[blockstorage_t blockId](stm25p_addr_t addr, stm25p_addr_t len) { return FAIL; }
   default command result_t SectorStorage.computeCrc[blockstorage_t blockId](uint16_t* crcResult, uint16_t crc, stm25p_addr_t addr, stm25p_addr_t len) { return FAIL; }
-  default command stm25p_addr_t StorageManager.getVolumeSize[blockstorage_t blockId]() { return STM25P_INVALID_ADDR; }
+  default command stm25p_addr_t StorageManager.getVolumeSize[blockstorage_t blockId]() { return 0; }
 
   default event void BlockWrite.writeDone[blockstorage_t blockId](storage_result_t result, block_addr_t addr, void* buf, block_addr_t len) { ; }
   default event void BlockWrite.eraseDone[blockstorage_t blockId](storage_result_t result) { ; }
