@@ -1,4 +1,4 @@
-/// $Id: ATm128ADCMultiple.nc,v 1.1.2.1 2005-07-11 17:25:32 idgay Exp $
+/// $Id: ATm128ADCMultiple.nc,v 1.1.2.2 2005-07-11 21:56:42 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -95,4 +95,12 @@ interface ATm128ADCMultiple
    */	
   async event bool dataReady(uint16_t data, bool precise, uint8_t channel,
 			     uint8_t *newChannel, uint8_t *newRefVoltage);
+
+
+  /* Note: there is no cancel in free-running mode because you cannot tell
+     from a successful (or unsuccessful) cancellation whether there will
+     be another dataReady event. Thus you cannot tell when you can safely
+     reuse the ADC (short of waiting one ADC conversion period, in which
+     case you might as well use the result of dataReady to cancel).
+  */
 }

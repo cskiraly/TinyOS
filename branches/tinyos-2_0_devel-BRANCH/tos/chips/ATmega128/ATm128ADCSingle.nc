@@ -1,4 +1,4 @@
-/// $Id: ATm128ADCSingle.nc,v 1.1.2.1 2005-07-11 17:25:32 idgay Exp $
+/// $Id: ATm128ADCSingle.nc,v 1.1.2.2 2005-07-11 21:56:42 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -59,4 +59,14 @@ interface ATm128ADCSingle
    *   values matches the result from the <code>getData</code> call.
    */	
   async event void dataReady(uint16_t data, bool precise);
+
+  /**
+   * Cancel an outstanding getData operation. Use with care, to
+   * avoid problems with races between the dataReady event and cancel.
+   * @return TRUE if a conversion was in-progress or an interrupt
+   *   was pending. dataReady will not be signaled. FALSE if the
+   *   conversion was already complete. dataReady will be (or has
+   *   already been) signaled.
+   */
+  async command bool cancel();
 }

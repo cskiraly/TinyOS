@@ -1,4 +1,4 @@
-/// $Id: HPLADC.nc,v 1.1.2.2 2005-05-10 18:21:07 idgay Exp $
+/// $Id: HPLADC.nc,v 1.1.2.3 2005-07-11 21:56:42 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -30,33 +30,49 @@ includes ATm128ADC;
 interface HPLADC
 {
   /// ADC selection register: Direct access
-  async command ATm128ADCSelection_t getSelection();
-  async command void setSelection( ATm128ADCSelection_t selection );
+  async command ATm128Admux_t getAdmux();
+  async command void setAdmux(ATm128Admux_t admux);
 
   /// ADC control register: Direct access
-  async command ATm128ADCControl_t getControl();
-  async command void setControl( ATm128ADCControl_t control );
+  async command ATm128Adcsra_t getAdcsra();
+  async command void setAdcsra(ATm128Adcsra_t adcsra);
 
   /// ADC data register: Direct access
   async command uint16_t getValue();
 
-  /// Interrupt flag utilites: Bit level set/clr
+  /// A/D control utilities. All of these clear any pending A/D interrupt.
   async command void enableADC();         //<! Enable ADC sampling
   async command void disableADC();        //<! Disable ADC sampling
-  async command void startConversion();          //<! Start ADC conversion
-  async command void stopConversion();           //<! Stop ADC conversion
-  async command void enableInterruption();        //<! Enable ADC Interruption
-  async command void disableInterruption();       //<! Disable ADC Interruption
-  async command void setContinuous();  //<! Enable continuous sampling
-  async command void setSingle();      //<! Disable continuous sampling
-  async command void reset();          //<! Clear the ADC interrupt flag
-  async command bool isComplete();     //<! Did ADC interrupt occur?
-  async command bool isStarted();      //<! Is ADC started on?
-  async command bool isEnabled();      //<! Is ADC enabled?
+
+  async command void enableInterruption();//<! Enable ADC Interruption
+  async command void disableInterruption();//<! Disable ADC Interruption
+
+  async command void resetInterrupt();    //<! Clear the ADC interrupt flag
+  async command void startConversion();   //<! Start ADC conversion
+  async command void setContinuous();     //<! Enable continuous sampling
+  async command void setSingle();         //<! Disable continuous sampling
+
+  /* A/D status checks */
+  async command bool isEnabled();         //<! Is ADC enabled?
+  async command bool isStarted();         //<! A/D conversion in progress?
+  async command bool isComplete();        //<! A/D conversion complete?
+  					  //   (cleared when interrupt taken)
+
   async command void setPrescaler(uint8_t scale);  //<! Set ADC prescaler selection bits
 
   /**
-   * Signaled when a data ready is ready.
+   * Cancel A/D conversion and any pending A/D interrupt. Also disables the
+   * ADC interruption (otherwise a sample might start at the next sleep
+   * instruction). This command can assume that the A/D converter is enabled. 
+   * @return TRUE if an A/D conversion was in progress or an A/D interrupt
+   *   was pending, FALSE otherwise. In single conversion mode, a return
+   *   of TRUE implies that the dataReady event will not be signaled.
+   */
+  async command bool cancel();
+
+  /**
+   * A/D interrupt occured
+   * @param data Latest A/D conversion result
    */
   async event void dataReady(uint16_t data);     
 }

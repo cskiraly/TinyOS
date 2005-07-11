@@ -1,4 +1,4 @@
-/* $Id: ADCM.nc,v 1.1.2.2 2005-07-11 17:25:32 idgay Exp $
+/* $Id: ADCM.nc,v 1.1.2.3 2005-07-11 21:56:42 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -23,26 +23,22 @@ module ADCM {
 }
 implementation {
   enum {
-    IDLE,
     ACQUIRE_DATA,
     ACQUIRE_DATA_NOW
   };
-  uint8_t state = IDLE;
-  uint8_t client;
-  uint16_t val;
+  /* Resource reservation is required, and it's incorrect to call getData
+     again before dataReady is signaled, so there are no races */
+  norace uint8_t state;
+  norace uint8_t client;
+  norace uint16_t val;
 
   error_t startGet(uint8_t newState, uint8_t port) {
-    atomic
-      {
-	/* Note: we ignore potentially imprecise results. Instead, we could
-	   retry them in dataReady. There's a tension between latency and
-	   precision here...
-	*/
-	call ATm128ADCSingle.getData[port](call ATm128ADCConfig.getRefVoltage[port](),
-					   TRUE,
-					   call ATm128ADCConfig.getPrescaler[port]());
-	state = newState;
-      }
+    /* Note: we retry imprecise results in dataReady */
+    state = newState;
+    call ATm128ADCSingle.getData[port](call ATm128ADCConfig.getRefVoltage[port](),
+				       TRUE,
+				       call ATm128ADCConfig.getPrescaler[port]());
+
     return SUCCESS;
   }
 
@@ -55,36 +51,26 @@ implementation {
   }
 
   task void acquiredData() {
-    uint8_t c;
-    uint16_t v;
-
-    atomic 
-      {
-	v = val;
-	c = client;
-      }
-    signal AcquireData.dataReady[c](v);
+    signal AcquireData.dataReady[client](val);
   }
 
   async event void ATm128ADCSingle.dataReady[uint8_t port](uint16_t data, bool precise) {
-    uint8_t lstate;
+    /* Retry imprecise results */
+    if (!precise)
+      {
+	startGet(state, port);
+	return;
+      }
 
     // Signal the upper-level interface that made the request
-    atomic 
-      {
-	lstate = state;
-	state = IDLE;
-      }
-    switch (lstate)
+    switch (state)
       {
       case ACQUIRE_DATA:
-	atomic
-	  {
-	    val = data;
-	    client = port;
-	  }
+	val = data;
+	client = port;
 	post acquiredData();
 	break;
+
       case ACQUIRE_DATA_NOW:
 	signal AcquireDataNow.dataReady[port](data);
 	break;

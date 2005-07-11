@@ -1,4 +1,4 @@
-/// $Id: HPLADCM.nc,v 1.1.2.6 2005-07-11 17:25:32 idgay Exp $
+/// $Id: HPLADCM.nc,v 1.1.2.7 2005-07-11 21:56:42 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,6 +24,7 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 /// @author Hu Siquan <husq@xbow.com>
+/// @author David Gay
 
 #include "ATm128ADC.h"
 
@@ -32,64 +33,92 @@ module HPLADCM {
 }
 implementation
 {
-
   //=== Direct read of HW registers. =================================
-  async command ATm128ADCSelection_t HPLADC.getSelection() { 
-      return *(ATm128ADCSelection_t*)&ADMUX; 
+  async command ATm128Admux_t HPLADC.getAdmux() { 
+    return *(ATm128Admux_t*)&ADMUX; 
   }
-  async command ATm128ADCControl_t HPLADC.getControl() { 
-      return *(ATm128ADCControl_t*)&ADCSR; 
+  async command ATm128Adcsra_t HPLADC.getAdcsra() { 
+    return *(ATm128Adcsra_t*)&ADCSRA; 
   }
   async command uint16_t HPLADC.getValue() { 
-      return ADC; 
+    return ADC; 
   }
 
-  DEFINE_UNION_CAST(ADCSelection2int, ATm128ADCSelection_t, uint8_t);
-  DEFINE_UNION_CAST(ADCControl2int, ATm128ADCControl_t, uint8_t);
+  DEFINE_UNION_CAST(Admux2int, ATm128Admux_t, uint8_t);
+  DEFINE_UNION_CAST(Adcsra2int, ATm128Adcsra_t, uint8_t);
 
   //=== Direct write of HW registers. ================================
-  async command void HPLADC.setSelection( ATm128ADCSelection_t x ) { 
-      ADMUX = ADCSelection2int(x); 
+  async command void HPLADC.setAdmux( ATm128Admux_t x ) { 
+    ADMUX = Admux2int(x); 
   }
-  async command void HPLADC.setControl( ATm128ADCControl_t x ) { 
-      ADCSR = ADCControl2int(x); 
+  async command void HPLADC.setAdcsra( ATm128Adcsra_t x ) { 
+    ADCSRA = Adcsra2int(x); 
   }
 
   async command void HPLADC.setPrescaler(uint8_t scale){
-    ATm128ADCControl_t  current_val = call HPLADC.getControl(); 
+    ATm128Adcsra_t  current_val = call HPLADC.getAdcsra(); 
+    current_val.adif = FALSE;
     current_val.adps = scale;
-    call HPLADC.setControl(current_val);
+    call HPLADC.setAdcsra(current_val);
   }
 
-  // power management routine should call following commands 
-  async command void HPLADC.enableADC()        { SET_BIT(ADCSR, ADEN); }
-  async command void HPLADC.disableADC()       { CLR_BIT(ADCSR, ADEN); }
+  // Individual bit manipulation. These all clear any pending A/D interrupt.
+  // It's not clear these are that useful...
+  async command void HPLADC.enableADC() { SET_BIT(ADCSRA, ADEN); }
+  async command void HPLADC.disableADC() { CLR_BIT(ADCSRA, ADEN); }
+  async command void HPLADC.enableInterruption() { SET_BIT(ADCSRA, ADIE); }
+  async command void HPLADC.disableInterruption() { CLR_BIT(ADCSRA, ADIE); }
+  async command void HPLADC.setContinuous() { SET_BIT(ADCSRA, ADFR); }
+  async command void HPLADC.setSingle() { CLR_BIT(ADCSRA, ADFR); }
+  async command void HPLADC.resetInterrupt() { SET_BIT(ADCSRA, ADIF); }
+  async command void HPLADC.startConversion() { SET_BIT(ADCSRA, ADSC); }
+
+
+  /* A/D status checks */
   async command bool HPLADC.isEnabled()     {       
-    return (call HPLADC.getControl()).aden; 
+    return (call HPLADC.getAdcsra()).aden; 
   }
 
-  async command void HPLADC.startConversion()         { SET_BIT(ADCSR, ADSC); }
-  async command void HPLADC.stopConversion()          { CLR_BIT(ADCSR, ADSC); }
   async command bool HPLADC.isStarted()     {
-    return (call HPLADC.getControl()).adsc; 
+    return (call HPLADC.getAdcsra()).adsc; 
   }
   
-  async command void HPLADC.enableInterruption()        { SET_BIT(ADCSR, ADIE); }
-  async command void HPLADC.disableInterruption()       { CLR_BIT(ADCSR, ADIE); }
-
-  async command void HPLADC.setContinuous() { SET_BIT(ADCSR, ADFR); }
-  async command void HPLADC.setSingle()     { CLR_BIT(ADCSR, ADFR); }
-
-  async command void HPLADC.reset()         { SET_BIT(ADCSR, ADIF); }
   async command bool HPLADC.isComplete()    {
-    return (call HPLADC.getControl()).adif; 
+    return (call HPLADC.getAdcsra()).adif; 
+  }
+
+  /* A/D interrupt handlers. Signals dataReady event with interrupts enabled */
+  AVR_ATOMIC_HANDLER(SIG_ADC) {
+    uint16_t data = call HPLADC.getValue();
+    
+    __nesc_enable_interrupt();
+    signal HPLADC.dataReady(data);
   }
 
   default async event void HPLADC.dataReady(uint16_t done) { }
 
-  AVR_ATOMIC_HANDLER(SIG_ADC) {
-      uint16_t data = call HPLADC.getValue();
-      __nesc_enable_interrupt();
-      signal HPLADC.dataReady(data);
+  async command bool HPLADC.cancel() { 
+    /* This is tricky */
+    atomic
+      {
+	ATm128Adcsra_t oldSr = call HPLADC.getAdcsra(), newSr;
+
+	/* To cancel a conversion, first turn off ADEN, then turn off
+	   ADSC. We also cancel any pending interrupt.
+	   Finally we reenable the ADC.
+	*/
+	newSr = oldSr;
+	newSr.aden = FALSE;
+	newSr.adif = TRUE; /* This clears a pending interrupt... */
+	newSr.adie = FALSE; /* We don't want to start sampling again at the
+			       next sleep */
+	call HPLADC.setAdcsra(newSr);
+	newSr.adsc = FALSE;
+	call HPLADC.setAdcsra(newSr);
+	newSr.aden = TRUE;
+	call HPLADC.setAdcsra(newSr);
+
+	return oldSr.adif || oldSr.adsc;
+      }
   }
 }
