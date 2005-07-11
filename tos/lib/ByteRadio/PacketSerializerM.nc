@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2005-07-06 18:09:21 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2005-07-11 16:05:06 $
  * ========================================================================
  */
  
@@ -75,6 +75,7 @@ implementation
    }
    task void ReceiveTask() {
      signal Receive.receive((message_t*)rxBufPtr, (void*)rxBufPtr, msgLength);
+		 call PhyPacketRx.recvHeader();
    }   
 
    /**************** Radio Init  *****************/
