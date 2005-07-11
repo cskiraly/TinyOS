@@ -1,4 +1,4 @@
-/* $Id: HALADCM.nc,v 1.1.2.3 2005-07-11 17:25:32 idgay Exp $
+/* $Id: HALADCM.nc,v 1.1.2.4 2005-07-11 21:56:42 idgay Exp $
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -18,7 +18,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2003 Intel Corporation
+ * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -70,16 +70,17 @@ module HALADCM
 }
 implementation
 {  
+  /* State for the current and next (multiple-sampling only) conversion */
   struct {
-    bool multiple : 1;
-    bool precise : 1;
-    uint8_t channel : 5;
+    bool multiple : 1;		/* single and multiple-sampling mode */
+    bool precise : 1;		/* is this result going to be precise? */
+    uint8_t channel : 5;	/* what channel did this sample come from? */
   } f, nextF;
   
   command error_t Init.init() {
     atomic
       {
-	ATm128ADCControl_t adcsr;
+	ATm128Adcsra_t adcsr;
 
 	adcsr.aden = ATM128_ADC_ENABLE_OFF;
 	adcsr.adsc = ATM128_ADC_START_CONVERSION_OFF;  
@@ -87,12 +88,17 @@ implementation
 	adcsr.adif = ATM128_ADC_INT_FLAG_OFF;               
 	adcsr.adie = ATM128_ADC_INT_ENABLE_OFF;       
 	adcsr.adps = ATM128_ADC_PRESCALE;
-	call HPLADC.setControl(adcsr);
+	call HPLADC.setAdcsra(adcsr);
       }
     return SUCCESS;
   }
 
+  /* We enable the A/D when start is called, and disable it when stop is
+     called. This drops A/D conversion latency by a factor of two (but
+     increases idle mode power consumption a little). 
+  */
   command error_t StdControl.start() {
+    atomic call HPLADC.enableADC();
     return SUCCESS;
   }
 
@@ -102,7 +108,11 @@ implementation
     return SUCCESS;
   }
 
-  inline bool isPrecise(ATm128ADCSelection_t admux, uint8_t channel, uint8_t refVoltage) {
+  /* Return TRUE if switching to 'channel' with reference voltage 'refVoltage'
+     will give a precise result (the first sample after changing reference
+     voltage or switching to/between a differential channel is imprecise)
+  */
+  inline bool isPrecise(ATm128Admux_t admux, uint8_t channel, uint8_t refVoltage) {
     return refVoltage == admux.refs &&
       (channel <= ATM128_ADC_SNGL_ADC7 || channel >= ATM128_ADC_SNGL_1_23 || channel == admux.mux);
   }
@@ -119,16 +129,28 @@ implementation
       }
 
     if (!multiple)
-      signal ATm128ADCSingle.dataReady[channel](data, precise);
+      {
+	/* A single sample. Disable the ADC interrupt to avoid starting
+	   a new sample at the next "sleep" instruction. */
+	call HPLADC.disableInterruption();
+	signal ATm128ADCSingle.dataReady[channel](data, precise);
+      }
     else
       {
+	/* Multiple sampling. The user can:
+	   - tell us to stop sampling
+	   - or, to continue sampling on a new channel, possibly with a
+	     new reference voltage; however this change applies not to
+	     the next sample (the hardware has already started working on
+	     that), but on the one after.
+	*/
 	bool cont;
 	uint8_t nextChannel, nextVoltage;
-	ATm128ADCSelection_t admux;
+	ATm128Admux_t admux;
 
 	atomic 
 	  {
-	    admux = call HPLADC.getSelection();
+	    admux = call HPLADC.getAdmux();
 	    nextVoltage = admux.refs;
 	    nextChannel = admux.mux;
 	  }
@@ -138,31 +160,35 @@ implementation
 	atomic
 	  if (cont)
 	    {
+	      /* Switch channels and update our internal channel+precision
+		 tracking state (f and nextF). Note that this tracking will
+		 be incorrect if we take too long to get to this point. */
 	      admux.refs = nextVoltage;
 	      admux.mux = nextChannel;
-	      call HPLADC.setSelection(admux);
+	      call HPLADC.setAdmux(admux);
 
 	      f = nextF;
 	      nextF.channel = nextChannel;
 	      nextF.precise = isPrecise(admux, nextChannel, nextVoltage);
 	    }
 	  else
-	    call HPLADC.setSingle();
+	    call HPLADC.cancel();
       }
   }
 
+  /* Start sampling based on request parameters */
   void getData(uint8_t channel, uint8_t refVoltage, bool leftJustify, uint8_t prescaler) {
-    ATm128ADCSelection_t admux;
-    ATm128ADCControl_t adcsr;
+    ATm128Admux_t admux;
+    ATm128Adcsra_t adcsr;
 
-    admux = call HPLADC.getSelection();
+    admux = call HPLADC.getAdmux();
     f.precise = isPrecise(admux, channel, refVoltage);
     f.channel = channel;
 
     admux.refs = refVoltage;
     admux.adlar = leftJustify;
     admux.mux = channel;
-    call HPLADC.setSelection(admux);
+    call HPLADC.setAdmux(admux);
 
     adcsr.aden = ATM128_ADC_ENABLE_ON;
     adcsr.adsc = ATM128_ADC_START_CONVERSION_ON;
@@ -170,7 +196,7 @@ implementation
     adcsr.adif = ATM128_ADC_INT_FLAG_OFF;
     adcsr.adie = ATM128_ADC_INT_ENABLE_ON;
     adcsr.adps = prescaler;
-    call HPLADC.setControl(adcsr);
+    call HPLADC.setAdcsra(adcsr);
   }
 
   async command bool ATm128ADCSingle.getData[uint8_t channel](uint8_t refVoltage, bool leftJustify,
@@ -184,6 +210,12 @@ implementation
       }
   }
 
+  async command bool ATm128ADCSingle.cancel[uint8_t channel]() {
+    /* There is no ATm128ADCMultiple.cancel, for reasons discussed in that
+       interface */
+    return call HPLADC.cancel();
+  }
+
   default async event void ATm128ADCSingle.dataReady[uint8_t channel](uint16_t data, bool precise) {
   }
 
@@ -194,6 +226,7 @@ implementation
 	f.multiple = TRUE;
 	getData(channel, refVoltage, leftJustify, prescaler);
 	nextF = f;
+	/* We assume the 2nd sample is precise */
 	nextF.precise = TRUE;
 
 	return f.precise;
@@ -205,4 +238,3 @@ implementation
     return FALSE; // stop conversion if we somehow end up here.
   }
 }
-

@@ -1,4 +1,4 @@
-/// $Id: ATm128ADC.h,v 1.1.2.7 2005-07-11 17:25:32 idgay Exp $
+/// $Id: ATm128ADC.h,v 1.1.2.8 2005-07-11 21:56:42 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -87,11 +87,7 @@ typedef struct
     uint8_t mux   : 5;  //!< Analog Channel and Gain Selection Bits
     uint8_t adlar : 1;  //!< ADC Left Adjust Result
     uint8_t refs  : 2;  //!< Reference Selection Bits
-} ATm128ADCSelection_t;
-
-typedef ATm128ADCSelection_t ATm128_ADMUX_t;  //!< ADC Multiplexer Selection
-
-#define ATMEGA128_10BIT_ADC_MASK 0x3ff 
+} ATm128Admux_t;
 
 /** ADC Prescaler Settings */
 /* Note: each platform must define ATM128_ADC_PRESCALE to the smallest
@@ -146,12 +142,7 @@ typedef struct
     uint8_t adfr  : 1;  //!< ADC Free Running Select
     uint8_t adsc  : 1;  //!< ADC Start Conversion
     uint8_t aden  : 1;  //!< ADC Enable
-} ATm128ADCControl_t;
-
-
-
-typedef ATm128ADCControl_t ATm128_ADCSRA_t;  //!< ADC Multiplexer Selection
-
+} ATm128Adcsra_t;
 
 typedef uint8_t ATm128_ADCH_t;         //!< ADC data register high
 typedef uint8_t ATm128_ADCL_t;         //!< ADC data register low
