@@ -1,4 +1,4 @@
-// $Id: LogWrite.nc,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
+// $Id: LogWrite.nc,v 1.1.2.2 2005-07-11 05:41:10 jwhui Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -29,15 +29,42 @@ includes LogStorage;
 
 interface LogWrite {
 
+  /**
+   * Erase the log completely.
+   *
+   * @return  <code>SUCCESS</code> if the command has been issued,
+   *          <code>FAIL</code> otherwise.
+   */
   command result_t erase();
   event void eraseDone(storage_result_t result);
   
-  command result_t append(void* data, log_len_t numBytes);
-  event void appendDone(storage_result_t result, void* data, log_len_t numBytes);
-  
+  /**
+   * Append a log entry.
+   *
+   * @param data  Buffer to write data from.
+   * @param len   Length of log entry.
+   * @return      <code>SUCCESS</code> if the command has been issued,
+   *              <code>FAIL</code> otherwise.
+   */
+  command result_t append(void* data, log_len_t len);
+  event void appendDone(storage_result_t result, void* data, log_len_t len);
+
+  /**
+   * Sync the log to persistant storage. On signalling of 
+   * <code>LogWrite.syncDone()</code>, data is guaranteed to 
+   * remain persistant.
+   *
+   * @return  <code>SUCCESS</code> if the command has been issued,
+   *          <code>FAIL</code> otherwise.
+   */
   command result_t sync();
   event void syncDone(storage_result_t result);
 
+  /**
+   * Obtain an opaque pointer for the current write position of the log.
+   *
+   * @return  An opaque pointer to the current write position of the log.
+   */
   command log_cookie_t currentOffset();
   
 }

@@ -1,4 +1,4 @@
-// $Id: LogRead.nc,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
+// $Id: LogRead.nc,v 1.1.2.2 2005-07-11 05:41:10 jwhui Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -29,10 +29,35 @@ includes LogStorage;
 
 interface LogRead {
   
-  command result_t read(void* data, log_len_t numBytes);
-  event void readDone(storage_result_t result, void* data, log_len_t numBytes);
+  /**
+   * Read data from the current log entry.
+   *
+   * @param data  Buffer to read data into.
+   * @param len   Number of bytes to read from the current log entry. Each
+   *              read call will advance the read pointer to the beginning of
+   *              the next log entry.
+   * @return      <code>SUCCESS</code> if the command has been issued,
+   *              <code>FAIL</code> otherwise.
+   */
+  command result_t read(void* data, log_len_t len);
+  event void readDone(storage_result_t result, void* data, log_len_t len);
   
+  /**
+   * Seek to a specific position in the log. This is a constant time operation.
+   *
+   * @param cookie  An opaque pointer obtained from <code>LogRead.currentOffset()
+   *                </code> or <code>LogWrite.currentOffset()</code>.
+   * @return        <code>SUCCESS</code> if the command has been issued and if
+   *                the cookie seems valid, <code>FAIL</code> otherwise.
+   */
   command result_t seek(log_cookie_t cookie);
   event void seekDone(storage_result_t result, log_cookie_t cookie);
+
+  /**
+   * Obtain an opaque pointer for the current read position of the log.
+   *
+   * @return  An opaque pointer to the current read position of the log.
+   */
+  command log_cookie_t currentOffset();
   
 }
