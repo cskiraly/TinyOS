@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  * Controlling the TDA5250, switching modes and initializing.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2005-07-04 10:59:28 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2005-07-11 15:58:23 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -101,11 +101,6 @@ implementation {
    }
    
    event void DataResource.requested() {
-     if(radioBusy() == TRUE) {
-       call HPLTDA5250Data.disableTx();
-       call HPLTDA5250Data.disableRx(); 
-       call DataResource.release();
-     }
    }      
 	 
 	 event void ConfigResource.granted() {
@@ -181,8 +176,11 @@ implementation {
          offTime = off_time;
        }
      }
-     if(radioMode == RADIO_MODE_TIMER_TRANSITION)  
-       return call ConfigResource.request();
+     if(radioMode == RADIO_MODE_TIMER_TRANSITION) {
+		   call DataResource.release();
+       call ConfigResource.request();
+			 return SUCCESS;
+		 }
      return FAIL;
    }
    
@@ -191,8 +189,11 @@ implementation {
        if(radioBusy() == FALSE)
          radioMode = RADIO_MODE_TIMER_TRANSITION;  
      }
-     if(radioMode == RADIO_MODE_TIMER_TRANSITION)  
-       return call ConfigResource.request();
+     if(radioMode == RADIO_MODE_TIMER_TRANSITION) {
+		   call DataResource.release();
+       call ConfigResource.request();
+			 return SUCCESS;
+		 }
      return FAIL;           
    }
    
@@ -204,8 +205,11 @@ implementation {
          offTime = off_time;
        }
      }
-     if(radioMode == RADIO_MODE_SELF_POLLING_TRANSITION)
-        return call ConfigResource.request();
+     if(radioMode == RADIO_MODE_SELF_POLLING_TRANSITION) {
+		   call DataResource.release();		 
+       call ConfigResource.request();
+			 return SUCCESS;
+		 }
      return FAIL;     
    }
    
@@ -214,8 +218,11 @@ implementation {
        if(radioBusy() == FALSE)    
          radioMode = RADIO_MODE_SELF_POLLING_TRANSITION;  
      }
-     if(radioMode == RADIO_MODE_SELF_POLLING_TRANSITION)
-        return call ConfigResource.request();
+     if(radioMode == RADIO_MODE_SELF_POLLING_TRANSITION) {
+		   call DataResource.release();		 
+       call ConfigResource.request();
+			 return SUCCESS;
+		 }
      return FAIL;     
    }
    
@@ -236,8 +243,11 @@ implementation {
        if(radioBusy() == FALSE)
          radioMode = RADIO_MODE_TX_TRANSITION;
      }
-     if(radioMode == RADIO_MODE_TX_TRANSITION)
-       return call ConfigResource.request();
+     if(radioMode == RADIO_MODE_TX_TRANSITION) {
+		   call DataResource.release();		 
+       call ConfigResource.request();
+			 return SUCCESS;
+		 }
      return FAIL;
    }   
    
@@ -246,8 +256,11 @@ implementation {
        if(radioBusy() == FALSE)
          radioMode = RADIO_MODE_RX_TRANSITION;
      }
-     if(radioMode == RADIO_MODE_RX_TRANSITION)
-       return call ConfigResource.request();
+     if(radioMode == RADIO_MODE_RX_TRANSITION) {
+		 	 call DataResource.release();
+       call ConfigResource.request();
+			 return SUCCESS;
+		 }
      return FAIL;
    }   
    
@@ -256,8 +269,11 @@ implementation {
        if(radioBusy() == FALSE)
          radioMode = RADIO_MODE_CCA_TRANSITION;
      }
-     if(radioMode == RADIO_MODE_CCA_TRANSITION)
-       return call ConfigResource.request();
+     if(radioMode == RADIO_MODE_CCA_TRANSITION) {
+		   call DataResource.release();		 
+       call ConfigResource.request();
+			 return SUCCESS;
+		 }
      return FAIL;
    }      
    
@@ -268,15 +284,15 @@ implementation {
      signal RadioByteComm.rxByteReady(data);
    }  
 
-   async event void HPLTDA5250Config.SetTxModeDone() {
-     radioMode = RADIO_MODE_TX;    
+   async event void HPLTDA5250Config.SetTxModeDone() {  
      call HPLTDA5250Data.enableTx();
+     atomic radioMode = RADIO_MODE_TX;  		 
      signal TDA5250Control.TxModeDone();
    }
    async event void HPLTDA5250Config.SetRxModeDone() {
      if(ccaMode == FALSE) {
-       radioMode = RADIO_MODE_RX;    
        call HPLTDA5250Data.enableRx();
+			 atomic radioMode = RADIO_MODE_RX;    
        signal TDA5250Control.RxModeDone();  
      }
    }
