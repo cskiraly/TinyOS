@@ -1,4 +1,4 @@
-// $Id: LogStorageM.nc,v 1.1.2.2 2005-07-11 05:41:10 jwhui Exp $
+// $Id: LogStorageM.nc,v 1.1.2.3 2005-07-11 19:18:25 jwhui Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -45,6 +45,8 @@ implementation {
     NUM_LOGS = uniqueCount("LogStorage"),
     BLOCK_SIZE = 1024,
     BLOCK_MASK = BLOCK_SIZE-1,
+    INVALID_PTR = 0xffffffff,
+    INVALID_HDR = 0xff,
   };
 
   enum {
@@ -144,24 +146,24 @@ implementation {
     log->volumeSize = call StorageManager.getVolumeSize[logId]();
 
     tmpWritePtr = 0;
-    tmpReadPtr = 0xffffffff;
+    tmpReadPtr = INVALID_PTR;
 
     for ( curAddr = 0; curAddr < log->volumeSize; curAddr += BLOCK_SIZE ) {
       call SectorStorage.read[logId](curAddr, &tmpPtr, sizeof(tmpPtr));
 
       // skip if pointer is all ones
-      if (!~tmpPtr)
+      if ( tmpPtr == INVALID_PTR )
 	continue;
 
       // remember smallest/largest pointer for sector
-      if (tmpPtr < tmpReadPtr)
+      if ( tmpPtr < tmpReadPtr )
 	tmpReadPtr = tmpPtr;
-      if (tmpPtr > tmpWritePtr)
+      if ( tmpPtr > tmpWritePtr )
 	tmpWritePtr = tmpPtr;
     }
 
     // log is empty, reset read pointer
-    if ( !~tmpReadPtr ) {
+    if ( tmpReadPtr == INVALID_PTR ) {
       tmpReadPtr = 0;
     }
 
@@ -173,7 +175,7 @@ implementation {
       do {
 	tmpWritePtr += header + sizeof(header);
 	call SectorStorage.read[logId](toVolAddr(tmpWritePtr), &header, sizeof(header));
-      } while ( header != 0xff );
+      } while ( header != INVALID_HDR );
 
     }
 
@@ -213,10 +215,10 @@ implementation {
 	return FAIL;
       
       // skip to next log block if at end of current block
-      if ( !~header )
+      if ( header == INVALID_HDR )
 	tmpReadPtr += BLOCK_SIZE - (tmpReadPtr % BLOCK_SIZE);
-      
-    } while ( !~header );
+
+    } while ( header == INVALID_HDR );
     
     tmpReadPtr += sizeof(header);
     bytesRead = ( len < header ) ? len : header;
