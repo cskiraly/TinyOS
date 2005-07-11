@@ -1,4 +1,4 @@
-/* $Id: ADCC.nc,v 1.1.2.1 2005-05-10 18:48:49 idgay Exp $
+/* $Id: ADCC.nc,v 1.1.2.2 2005-07-11 17:25:32 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -21,6 +21,7 @@ configuration ADCC {
     interface AcquireData[uint8_t port];
     interface AcquireDataNow[uint8_t port];
   }
+  uses interface ATm128ADCConfig[uint8_t port];
 }
 implementation {
   components HALADCC, ADCM;
@@ -31,6 +32,7 @@ implementation {
 
   AcquireData = ADCM;
   AcquireDataNow = ADCM;
+  ATm128ADCConfig = ADCM;
 
-  ADCM.ATm128ADC -> HALADCC;
+  ADCM.ATm128ADCSingle -> HALADCC;
 }

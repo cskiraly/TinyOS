@@ -1,4 +1,4 @@
-/* $Id: ADCM.nc,v 1.1.2.1 2005-05-10 18:48:49 idgay Exp $
+/* $Id: ADCM.nc,v 1.1.2.2 2005-07-11 17:25:32 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -16,7 +16,10 @@ module ADCM {
     interface AcquireData[uint8_t port];
     interface AcquireDataNow[uint8_t port];
   }
-  uses interface ATm128ADC[uint8_t port];
+  uses {
+    interface ATm128ADCSingle[uint8_t port];
+    interface ATm128ADCConfig[uint8_t port];
+  }
 }
 implementation {
   enum {
@@ -29,29 +32,18 @@ implementation {
   uint16_t val;
 
   error_t startGet(uint8_t newState, uint8_t port) {
-    error_t ok;
-
-    /* We currently assume that getData may fail. Is this 
-       necessary? (given that reservation is required)
-       Also, there's an intrinsic race in dataReady if we don't assume
-       that users follow the reservation/no call before dataReady rules:
-       - assume that ATm128ADC.dataReady below has just been called
-       - the lower level component is now idle, and we are not in an
-         atomic section
-       - an interrupt occurs, and calls the lower level getData
-         This succeeds (it is idle). 
-       - assume further that the A/D conversion completes immediately, so
-         ATm128ADC.dataReady will be called again, and the higher level of
-	 this component will be called with data from the wrong sampling
-	 operation
-    */
     atomic
       {
-	ok = call ATm128ADC.getData[port]();
-	if (ok == SUCCESS)
-	  state = newState;
+	/* Note: we ignore potentially imprecise results. Instead, we could
+	   retry them in dataReady. There's a tension between latency and
+	   precision here...
+	*/
+	call ATm128ADCSingle.getData[port](call ATm128ADCConfig.getRefVoltage[port](),
+					   TRUE,
+					   call ATm128ADCConfig.getPrescaler[port]());
+	state = newState;
       }
-    return ok;
+    return SUCCESS;
   }
 
   command error_t AcquireData.getData[uint8_t port]() {
@@ -63,13 +55,20 @@ implementation {
   }
 
   task void acquiredData() {
-    signal AcquireData.dataReady[client](val);
+    uint8_t c;
+    uint16_t v;
+
+    atomic 
+      {
+	v = val;
+	c = client;
+      }
+    signal AcquireData.dataReady[c](v);
   }
 
-  async event error_t ATm128ADC.dataReady[uint8_t port](uint16_t data) {
+  async event void ATm128ADCSingle.dataReady[uint8_t port](uint16_t data, bool precise) {
     uint8_t lstate;
 
-    data <<= 6; // left-justify HAL bits
     // Signal the upper-level interface that made the request
     atomic 
       {
@@ -90,7 +89,14 @@ implementation {
 	signal AcquireDataNow.dataReady[port](data);
 	break;
       }
-    return SUCCESS;
+  }
+
+  /* Default reference and prescaler values for A/D conversion */
+  default async command uint8_t ATm128ADCConfig.getRefVoltage[uint8_t port]() {
+    return ATM128_ADC_VREF_OFF;
+  }
+  default async command uint8_t ATm128ADCConfig.getPrescaler[uint8_t port]() {
+    return ATM128_ADC_PRESCALE;
   }
 
   default event void AcquireData.dataReady[uint8_t port](uint16_t d) { }
