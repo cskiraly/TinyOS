@@ -1,4 +1,4 @@
-// $Id: StorageManagerM.nc,v 1.1.2.5 2005-07-11 05:35:50 jwhui Exp $
+// $Id: StorageManagerM.nc,v 1.1.2.6 2005-07-11 21:30:15 jwhui Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -71,7 +71,7 @@ implementation {
 
   command result_t StdControl.init() {
 
-    uint8_t i;
+    int i;
     
     state = S_NEVER_USED;
 
@@ -170,7 +170,7 @@ implementation {
 
   result_t formatFlash() {
 
-    uint8_t i;
+    int i;
 
     for ( i = 0; i < STM25P_NUM_SECTORS; i++ )
       sectorTable.sector[i].volumeId = 0xd0 + i;
