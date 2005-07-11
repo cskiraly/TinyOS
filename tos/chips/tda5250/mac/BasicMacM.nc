@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2005-07-07 12:16:00 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2005-07-11 16:03:06 $
  * ========================================================================
  */
  
@@ -108,7 +108,7 @@ implementation
 			 }
 		 }
 		 if(busy == FALSE) {
-       if(call TDA5250Control.TxMode() != FAIL)
+       if(call TDA5250Control.TxMode() == SUCCESS)
 			   return;
 			 atomic txBusy = FALSE;
 			 signal PhyPacketTx.sendHeaderDone(FAIL);
@@ -133,6 +133,7 @@ implementation
 
    /**************** Radio Recv ****************/
    async command void PhyPacketRx.recvHeader() {
+	 	 rxBusy = FALSE;
      call TDA5250PhyPacketRx.recvHeader();
    }
    
@@ -184,8 +185,6 @@ implementation
    
    async event void TDA5250PhyPacketRx.recvFooterDone(bool error) {
 	   call RxTimeoutTimer.stop();
-     atomic rxBusy = FALSE;		 
-     call TDA5250PhyPacketRx.recvHeader();	 
      signal PhyPacketRx.recvFooterDone(error);
    }
    
@@ -199,7 +198,7 @@ implementation
   async event void TDA5250Control.RxModeDone(){ 
 	  atomic {
 		  txBusy = FALSE;
-		  rxBusy = FALSE;
+			rxBusy = FALSE;
 			call TDA5250PhyPacketRx.recvHeader();
 		}
 		if(started == FALSE)
