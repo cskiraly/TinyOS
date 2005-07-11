@@ -1,4 +1,4 @@
-// $Id: LogStorage.h,v 1.1.2.1 2005-06-07 20:05:35 jwhui Exp $
+// $Id: LogStorage.h,v 1.1.2.2 2005-07-11 05:41:10 jwhui Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -28,31 +28,8 @@
 #ifndef __LOG_STORAGE_H__
 #define __LOG_STORAGE_H__
 
-typedef uint32_t log_len_t;
+typedef uint16_t log_len_t;
 typedef uint32_t log_cookie_t;
 typedef uint8_t logstorage_t;
-
-typedef uint16_t log_block_addr_t;
-
-typedef struct {
-  log_cookie_t cookie;
-} LogSectorHeader;
-
-typedef struct {
-  log_block_addr_t length : 12;
-  log_block_addr_t flags  : 4;
-} LogBlockHeader;
-
-enum {
-  LOG_BLOCK_ALLOCATED = 1 << 0,
-  LOG_BLOCK_VALID = 1 << 1,
-};
-
-enum {
-  LOG_BLOCK_MAX_LENGTH = 1 << 8,
-  LOG_BLOCK_LENGTH_MASK = (1 << 12) - 1,
-  LOG_BLOCK_FLAGS_MASK = 0xf,
-  LOG_MAX_COOKIE = 0xffffffff,
-};
 
 #endif
