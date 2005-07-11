@@ -1,4 +1,4 @@
-/// $Id: ATm128ADC.nc,v 1.1.2.4 2005-05-10 18:28:23 idgay Exp $
+/// $Id: ATm128ADCSingle.nc,v 1.1.2.1 2005-07-11 17:25:32 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,37 +23,40 @@
  */
 
 /// @author Hu Siquan <husq@xbow.com>
+/// @author David Gay
+/// @author Jason Hill
+/// @author Philip Levis
 /**
- * Hardware Abstraction Layer interface of Atmega128.
- * Any time only one channel can access ADC, other requests will be blocked.
+ * Hardware Abstraction Layer interface of Atmega128 for acquiring
+ * a single sample from a channel.
  */        
-interface ATm128ADC
+interface ATm128ADCSingle
 {
-	
   /**
    * Initiates an ADC conversion on a given channel.
    *
-   * @return SUCCESS if the ADC is free and available to accept the request
+   * @param refVoltage Select reference voltage for A/D conversion. See
+   *   the ATM128_ADC_VREF_xxx constants in ATm128ADC.h
+   * @param leftJustify TRUE to place A/D result in high-order bits 
+   *   (i.e., shifted left by 6 bits), low to place it in the low-order bits
+   * @param prescaler Prescaler value for the A/D conversion clock. Normally
+   *  this should be ATM128_ADC_PRESCALE to guarantee full precision. Other
+   *  prescalers can be used to get faster conversions. See the ATmega128
+   *  manual for details.
+   * @return TRUE if the conversion will be precise, FALSE if it will be 
+   *   imprecise (due to a change in refernce voltage, or switching to a
+   *   differential input channel)
    */
-  async command error_t getData();
+  async command bool getData(uint8_t refVoltage, bool leftJustify,
+			     uint8_t prescaler);
   
-  /**
-   * Initiates a series of ADC conversions in free running mode. If return SUCCESS from 
-   * <code>dataReady()</code> initiates the next conversion, or stop future conversions.
-   *
-   * @return SUCCESS if the ADC is free and available to accept the request
-   */	
-  async command error_t getContinuousData();
-
   /**
    * Indicates a sample has been recorded by the ADC as the result
    * of a <code>getData()</code> command.
    *
    * @param data a 2 byte unsigned data value sampled by the ADC.
-   *
-   * @return SUCCESS if ready for the next conversion in continuous mode.
-   * @return FAIL will stop future continuous sampling.
-   * if not in continuous mode, the return code is ignored.
+   * @param precise if the conversion precise, FALSE if it wasn't. This
+   *   values matches the result from the <code>getData</code> call.
    */	
-  async event error_t dataReady(uint16_t data);
+  async event void dataReady(uint16_t data, bool precise);
 }

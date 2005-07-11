@@ -1,4 +1,4 @@
-/// $Id: HALADCC.nc,v 1.1.2.3 2005-05-23 21:04:36 idgay Exp $
+/// $Id: HALADCC.nc,v 1.1.2.4 2005-07-11 17:25:32 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -42,7 +42,8 @@ configuration HALADCC
     interface Init;
     interface StdControl;
     interface Resource[uint8_t client];
-    interface ATm128ADC[uint8_t port];
+    interface ATm128ADCSingle[uint8_t channel];
+    interface ATm128ADCMultiple;
   }
 }
 implementation
@@ -55,7 +56,8 @@ implementation
   StdControl = HALADCM;
 
   Resource = ADCArbiter;
-  ATm128ADC = HALADCM.ATm128ADC;
+  ATm128ADCSingle = HALADCM;
+  ATm128ADCMultiple = HALADCM;
 
   HALADCM.HPLADC -> HPLADCM;
 }

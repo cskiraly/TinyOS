@@ -1,4 +1,4 @@
-/* $Id: HALADCM.nc,v 1.1.2.2 2005-05-10 18:28:24 idgay Exp $
+/* $Id: HALADCM.nc,v 1.1.2.3 2005-07-11 17:25:32 idgay Exp $
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -61,7 +61,8 @@ module HALADCM
   provides {
     interface Init;
     interface StdControl;
-    interface ATm128ADC[uint8_t port];		// The RAW ADC interface
+    interface ATm128ADCSingle[uint8_t channel];
+    interface ATm128ADCMultiple;
   }
   uses {
     interface HPLADC;
@@ -69,37 +70,26 @@ module HALADCM
 }
 implementation
 {  
-  enum {
-    IDLE,
-    SINGLE_CONVERSION,
-    CONTINUOUS_CONVERSION
-  };
+  struct {
+    bool multiple : 1;
+    bool precise : 1;
+    uint8_t channel : 5;
+  } f, nextF;
   
-  uint8_t state;
-  uint8_t curPort, reservedPort;
-
   command error_t Init.init() {
-    atomic {
-      curPort = 0xFF; // invalid port definition
-      reservedPort = 0xFF;
-      state = IDLE;
-    }
+    atomic
+      {
+	ATm128ADCControl_t adcsr;
 
-    // Enable ADC Interupts, 
-    // Set Prescaler division factor to 64 
-    atomic {
-      ATm128ADCControl_t adcsr;
-
-      adcsr.aden = ATM128_ADC_ENABLE_OFF;
-      adcsr.adsc = ATM128_ADC_START_CONVERSION_OFF;  
-      adcsr.adfr = ATM128_ADC_FREE_RUNNING_OFF; 
-      adcsr.adif = ATM128_ADC_INT_FLAG_OFF;               
-      adcsr.adie = ATM128_ADC_INT_ENABLE_ON;       
-      adcsr.adps = ATM128_ADC_PRESCALE_64;
-      call HPLADC.setControl(adcsr);
-    }
+	adcsr.aden = ATM128_ADC_ENABLE_OFF;
+	adcsr.adsc = ATM128_ADC_START_CONVERSION_OFF;  
+	adcsr.adfr = ATM128_ADC_FREE_RUNNING_OFF; 
+	adcsr.adif = ATM128_ADC_INT_FLAG_OFF;               
+	adcsr.adie = ATM128_ADC_INT_ENABLE_OFF;       
+	adcsr.adps = ATM128_ADC_PRESCALE;
+	call HPLADC.setControl(adcsr);
+      }
     return SUCCESS;
-
   }
 
   command error_t StdControl.start() {
@@ -112,63 +102,107 @@ implementation
     return SUCCESS;
   }
 
-  default async event error_t ATm128ADC.dataReady[uint8_t port](uint16_t data) {
-    return FAIL; // ensures ADC is disabled if no handler
+  inline bool isPrecise(ATm128ADCSelection_t admux, uint8_t channel, uint8_t refVoltage) {
+    return refVoltage == admux.refs &&
+      (channel <= ATM128_ADC_SNGL_ADC7 || channel >= ATM128_ADC_SNGL_1_23 || channel == admux.mux);
   }
 
   async event void HPLADC.dataReady(uint16_t data) {
-    uint8_t donePort;
-    error_t ok;
-    
+    bool precise, multiple;
+    uint8_t channel;
+
     atomic 
       {
-	donePort = curPort;
-	if (state == SINGLE_CONVERSION)
-	  {
-	    call HPLADC.disableADC();
-	    state = IDLE;
-	  }
+	channel = f.channel;
+	precise = f.precise;
+	multiple = f.multiple;
       }
-    ok = signal ATm128ADC.dataReady[donePort](data);   
-    atomic
-      if (state == CONTINUOUS_CONVERSION && ok != SUCCESS)
-	{
-	  call HPLADC.disableADC();
-	  state = IDLE;
-	}
-  }
 
-  inline error_t startGet(uint8_t newState, uint8_t port) {
-    atomic
+    if (!multiple)
+      signal ATm128ADCSingle.dataReady[channel](data, precise);
+    else
       {
+	bool cont;
+	uint8_t nextChannel, nextVoltage;
 	ATm128ADCSelection_t admux;
 
-	if (state != IDLE)
-	  return FAIL;
+	atomic 
+	  {
+	    admux = call HPLADC.getSelection();
+	    nextVoltage = admux.refs;
+	    nextChannel = admux.mux;
+	  }
 
-	curPort = port;
-	state = newState;
-	if (newState == SINGLE_CONVERSION)
-	  call HPLADC.setSingle();
-	else
-	  call HPLADC.setContinuous();	  
+	cont = signal ATm128ADCMultiple.dataReady(data, precise, channel,
+						  &nextChannel, &nextVoltage);
+	atomic
+	  if (cont)
+	    {
+	      admux.refs = nextVoltage;
+	      admux.mux = nextChannel;
+	      call HPLADC.setSelection(admux);
 
-	admux.refs = ATM128_ADC_VREF_OFF;
-	admux.adlar = ATM128_ADC_RIGHT_ADJUST;
-	admux.mux = port;
-	call HPLADC.setSelection(admux);
-	call HPLADC.enableADC();
-	call HPLADC.startConversion(); 
+	      f = nextF;
+	      nextF.channel = nextChannel;
+	      nextF.precise = isPrecise(admux, nextChannel, nextVoltage);
+	    }
+	  else
+	    call HPLADC.setSingle();
       }
-    return SUCCESS;
   }
 
-  async command error_t ATm128ADC.getData[uint8_t port]() {
-    return startGet(SINGLE_CONVERSION, port);
+  void getData(uint8_t channel, uint8_t refVoltage, bool leftJustify, uint8_t prescaler) {
+    ATm128ADCSelection_t admux;
+    ATm128ADCControl_t adcsr;
+
+    admux = call HPLADC.getSelection();
+    f.precise = isPrecise(admux, channel, refVoltage);
+    f.channel = channel;
+
+    admux.refs = refVoltage;
+    admux.adlar = leftJustify;
+    admux.mux = channel;
+    call HPLADC.setSelection(admux);
+
+    adcsr.aden = ATM128_ADC_ENABLE_ON;
+    adcsr.adsc = ATM128_ADC_START_CONVERSION_ON;
+    adcsr.adfr = f.multiple;
+    adcsr.adif = ATM128_ADC_INT_FLAG_OFF;
+    adcsr.adie = ATM128_ADC_INT_ENABLE_ON;
+    adcsr.adps = prescaler;
+    call HPLADC.setControl(adcsr);
   }
 
-  async command error_t ATm128ADC.getContinuousData[uint8_t port]() {
-    return startGet(CONTINUOUS_CONVERSION, port);
-  }  
+  async command bool ATm128ADCSingle.getData[uint8_t channel](uint8_t refVoltage, bool leftJustify,
+							      uint8_t prescaler) {
+    atomic
+      {
+	f.multiple = FALSE;
+	getData(channel, refVoltage, leftJustify, prescaler);
+
+	return f.precise;
+      }
+  }
+
+  default async event void ATm128ADCSingle.dataReady[uint8_t channel](uint16_t data, bool precise) {
+  }
+
+  async command bool ATm128ADCMultiple.getData(uint8_t channel, uint8_t refVoltage,
+					       bool leftJustify, uint8_t prescaler) {
+    atomic
+      {
+	f.multiple = TRUE;
+	getData(channel, refVoltage, leftJustify, prescaler);
+	nextF = f;
+	nextF.precise = TRUE;
+
+	return f.precise;
+      }
+  }
+
+  default async event bool ATm128ADCMultiple.dataReady(uint16_t data, bool precise, uint8_t channel,
+						       uint8_t *newChannel, uint8_t *newRefVoltage) {
+    return FALSE; // stop conversion if we somehow end up here.
+  }
 }
 
