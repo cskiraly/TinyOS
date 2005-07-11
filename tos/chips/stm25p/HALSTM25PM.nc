@@ -1,4 +1,4 @@
-// $Id: HALSTM25PM.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: HALSTM25PM.nc,v 1.1.2.3 2005-07-11 21:30:15 jwhui Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -112,7 +112,7 @@ implementation {
   void sendCmd(uint8_t cmd, stm25p_addr_t addr, void* data, stm25p_addr_t len) {
 
     uint8_t cmdBytes[2*STM25P_ADDR_SIZE + 1];
-    uint8_t i;
+    int i;
 
     // begin command
     call HPLSTM25P.beginCmd();
