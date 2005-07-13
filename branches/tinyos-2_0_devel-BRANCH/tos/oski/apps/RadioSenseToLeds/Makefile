@@ -1,0 +1,6 @@
+COMPONENT=RadioSenseToLedsC
+PFLAGS += -I$(TOSDIR)/oski/impls -I$(TOSDIR)/lib/adc 
+# -DCC1K_MANUAL_FREQ=434845229
+
+include $(MAKERULES)
+
