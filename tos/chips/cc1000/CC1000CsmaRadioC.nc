@@ -1,4 +1,4 @@
-/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.1 2005-06-19 23:28:22 scipio Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.2 2005-07-13 03:56:08 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -43,7 +43,7 @@
  *
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  */
 
 #include "CC1000Const.h"
@@ -106,4 +106,5 @@ implementation {
   Csma.RssiPulseCheck -> CC1000RssiM.Rssi[unique("CC1000RSSI")];
   Csma.cancelRssi -> CC1000RssiM;
   CC1000RssiM.ActualRssi -> HPLCC1000C;
+  Csma.RssiControl -> HPLCC1000C.RssiControl;
 }

@@ -1,4 +1,4 @@
-// $Id: Csma.nc,v 1.1.2.7 2005-06-03 19:04:44 idgay Exp $
+// $Id: Csma.nc,v 1.1.2.8 2005-07-13 03:56:10 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -68,6 +68,7 @@ module Csma {
     interface Random;
     interface Timer<TMilli> as WakeupTimer;
 
+    interface StdControl as RssiControl;
     interface AcquireDataNow as RssiNoiseFloor;
     interface AcquireDataNow as RssiCheckChannel;
     interface AcquireDataNow as RssiPulseCheck;
@@ -143,16 +144,18 @@ implementation
   /* Basic radio power control */
 
   void radioOn() {
+    call RssiControl.start();
     call CC1000Control.coreOn();
     uwait(2000);
     call CC1000Control.biasOn();
     uwait(200);
-    call ByteRadio.listen();
+    atomic call ByteRadio.listen();
   }
 
   void radioOff() {
     call ByteRadio.off();
     call CC1000Control.off();
+    call RssiControl.stop();
   }
 
   /* LPL preamble length and sleep time computation */
@@ -282,6 +285,7 @@ implementation
 
 	  case PULSECHECK_STATE:
 	    // Switch to RX mode and get RSSI output
+	    call RssiControl.start();
 	    call CC1000Control.rxMode();
 	    call RssiPulseCheck.getData();
 	    uwait(80);
