@@ -1,4 +1,4 @@
-//$Id: TransformAlarmC.nc,v 1.1.2.4 2005-05-18 11:19:17 cssharp Exp $
+//$Id: TransformAlarmC.nc,v 1.1.2.5 2005-07-13 03:54:14 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -53,7 +53,8 @@ implementation
 
   async command to_size_type Alarm.getAlarm()
   {
-    return m_t0 + m_dt;
+    atomic return m_t0 + m_dt;
+    //return m_t0 + m_dt;
   }
 
   async command bool Alarm.isRunning()
