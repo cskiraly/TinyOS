@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.10 $
- * $Date: 2005-05-31 16:47:08 $ 
+ * $Revision: 1.1.2.11 $
+ * $Date: 2005-07-13 03:54:14 $ 
  * ======================================================================== 
  */
  
@@ -56,7 +56,7 @@ implementation {
 
   uint8_t state;
   uint8_t resId;
-	uint8_t reqResId;
+  uint8_t reqResId;
   uint8_t request[(uniqueCount(resourceName)-1)/8 + 1];
   enum {RES_IDLE, RES_BUSY};
   enum {NO_RES = 0xFF};
@@ -208,14 +208,19 @@ implementation {
   //Task for pulling the Resource.granted() signal
     //into synchronous context  
   task void GrantedTask() {
-	  atomic resId = reqResId;
-    signal Resource.granted[resId]();
+    uint8_t id;
+
+    atomic id = resId = reqResId;
+    signal Resource.granted[id]();
   }
   
   //Task for pulling the Resource.requested() signal
     //into synchronous context   
   task void RequestedTask() {
-    signal Resource.requested[resId]();
+    uint8_t id;
+
+    atomic id = resId;
+    signal Resource.requested[id]();
   } 
   
   //Default event handlers for all of the other
