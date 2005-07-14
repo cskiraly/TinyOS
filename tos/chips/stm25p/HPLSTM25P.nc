@@ -1,4 +1,4 @@
-// $Id: HPLSTM25P.nc,v 1.1.2.2 2005-06-07 20:05:35 jwhui Exp $
+// $Id: HPLSTM25P.nc,v 1.1.2.3 2005-07-14 08:27:53 jwhui Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -28,10 +28,10 @@
 interface HPLSTM25P {
   async command result_t getBus();
   async command result_t releaseBus();
-  async command result_t beginCmd();
-  async command result_t endCmd();
-  async command result_t hold();
-  async command result_t unhold();
-  async command result_t txBuf(void* buf, stm25p_addr_t len);
-  async command result_t rxBuf(void* buf, stm25p_addr_t len, uint16_t* crc);
+  async command void beginCmd();
+  async command void endCmd();
+  async command void hold();
+  async command void unhold();
+  async command void txBuf(void* buf, stm25p_addr_t len);
+  async command uint16_t rxBuf(void* buf, stm25p_addr_t len, uint16_t crc);
 }
