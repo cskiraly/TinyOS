@@ -9,5 +9,5 @@ implementation {
 
   Send = SerialDispatcherC.Send[TOS_SERIAL_802_15_4_ID];
   Receive = SerialDispatcherC.Receive[TOS_SERIAL_802_15_4_ID];
-  UartDispatcherC.SerialPacketInfo[TOS_SERIAL_802_15_4_ID] -> SerialPacketInfo802_15_4C;
+  SerialDispatcherC.SerialPacketInfo[TOS_SERIAL_802_15_4_ID] -> SerialPacketInfo802_15_4C;
 }
