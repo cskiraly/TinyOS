@@ -5,7 +5,7 @@ generic module UARTDispatcherM {
     interface OffsetSend[uart_id_t];
   }
   uses {
-    interface Key<uint8_t> as OffsetKey[uart_id_t];
+    interface UARTPacketInfo as PacketInfo[uart_id_t];
     interface HPLUART as SerialByteComm;
   }
 }
@@ -18,7 +18,7 @@ implementation {
 
   receive pseudocode:
   when I receive the first byte of a UART frame, store it
-  in currentRecvType and call UARTOffset with it as a key to 
+  in currentRecvType and call UARTPacketInfo.offset with it as a key to 
   determine the initial value of recvIndex. mark recv state to be busy.
 
   subsequent bytes are read into the current message buffer,
@@ -26,13 +26,18 @@ implementation {
   If recvIndex > sizeof(message_t), drop the packet.
 
   Set up the next buffer for reception, set recv state to idle,
-  and signal reception. 
+  and signal reception. The length passed to the higher layer is
+  PacketInfo[id].upperLength(msg, len), where len is the size of the
+  UART frame. 
+
 
   send pseudocode:
   if already sending return EBUSY
   otherwise store offset and type in currentSendType and
   currentSendIndex.
   spool out the bytes
+  (the number of bytes to send is PacketInfo[id].dataLinkLength(msg, len),
+   where len is the number passed in from the higher layer)
   signal sendDone.
 
 }
