@@ -2,7 +2,7 @@ generic module UARTDispatcherM {
   provides {
     interface Init;
     interface Receive[uart_id_t];
-    interface OffsetSend[uart_id_t];
+    interface Send[uart_id_t];
   }
   uses {
     interface UARTPacketInfo as PacketInfo[uart_id_t];
