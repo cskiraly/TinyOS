@@ -17,6 +17,15 @@
 interface SendBytePacket {
   async command error_t startSend(uint8_t b);
   async command error_t sendComplete();
+
+  /* The semantics on this are a bit tricky, as it should be able to
+   * handle nested interrupts (self-preemption) if the signalling
+   * component has a buffer. Signals to this event
+   * are considered atomic. This means that the underlying component MUST
+   * have updated its state so that if it is preempted then bytes will
+   * be put in the right place (store variables on the stack, etc).
+   */
+  
   async event uint8_t nextByte();
 }
 
