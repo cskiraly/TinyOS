@@ -1,4 +1,4 @@
-// $Id: HALSTM25PC.nc,v 1.1.2.3 2005-06-07 20:05:35 jwhui Exp $
+// $Id: HALSTM25PC.nc,v 1.1.2.4 2005-07-17 20:58:41 jwhui Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -40,6 +40,7 @@ implementation {
 
   StdControl = HALSTM25PM;
   StdControl = HPLSTM25PC;
+  StdControl = TimerC;
   HALSTM25P = HALSTM25PM;
 
   HALSTM25PM.HPLSTM25P -> HPLSTM25PC;
