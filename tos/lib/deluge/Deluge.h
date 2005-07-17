@@ -1,4 +1,4 @@
-// $Id: Deluge.h,v 1.1.2.2 2005-06-23 19:30:33 jwhui Exp $
+// $Id: Deluge.h,v 1.1.2.3 2005-07-17 23:12:49 jwhui Exp $
 
 /*									tab:4
  *
@@ -83,6 +83,7 @@ typedef struct DelugeAdvTimer {
 
 typedef struct DelugeNodeDesc {
   imgvnum_t vNum;
+  uint32_t  uid;
   imgnum_t  imgNum;
   uint8_t   dummy;
   uint16_t  crc;

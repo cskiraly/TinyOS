@@ -1,4 +1,4 @@
-// $Id: DelugeStorageC.nc,v 1.1.2.2 2005-06-23 19:30:33 jwhui Exp $
+// $Id: DelugeStorageC.nc,v 1.1.2.3 2005-07-17 23:12:49 jwhui Exp $
 
 /*									tab:4
  *
@@ -30,8 +30,9 @@
 
 configuration DelugeStorageC {
   provides {
-    interface DelugeDataRead as DataRead[uint8_t id];
-    interface DelugeDataWrite as DataWrite[uint8_t id];
+    interface DelugeDataRead as DataRead;
+    interface DelugeDataWrite as DataWrite;
+    interface DelugeMetadataStore as MetadataStore;
     interface DelugeStorage;
   }
 }
@@ -42,8 +43,7 @@ implementation {
   DataRead = Storage;
   DataWrite = Storage;
   DelugeStorage = Storage;
-
-  Main.StdControl -> Storage;
+  MetadataStore = Storage;
 
   Storage.Leds -> Leds;
 
