@@ -1,4 +1,4 @@
-// $Id: StorageManagerM.nc,v 1.1.2.6 2005-07-11 21:30:15 jwhui Exp $
+// $Id: StorageManagerM.nc,v 1.1.2.7 2005-07-18 22:28:59 jwhui Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -248,7 +248,7 @@ implementation {
 
     result_t result;
 
-    if (state != S_READY)
+    if ( state != S_READY || !numSectors[volume] )
       return FALSE;
 
     state = newState;
