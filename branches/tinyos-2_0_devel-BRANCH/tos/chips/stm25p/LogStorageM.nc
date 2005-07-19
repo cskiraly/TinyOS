@@ -1,4 +1,4 @@
-// $Id: LogStorageM.nc,v 1.1.2.3 2005-07-11 19:18:25 jwhui Exp $
+// $Id: LogStorageM.nc,v 1.1.2.4 2005-07-19 23:04:12 jwhui Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -44,7 +44,6 @@ implementation {
   enum {
     NUM_LOGS = uniqueCount("LogStorage"),
     BLOCK_SIZE = 1024,
-    BLOCK_MASK = BLOCK_SIZE-1,
     INVALID_PTR = 0xffffffff,
     INVALID_HDR = 0xff,
   };
@@ -370,6 +369,7 @@ implementation {
     if ( state == S_ERASE ) {
       log->curReadPtr = sizeof(stm25p_addr_t);
       log->curWritePtr = 0;
+      appendState = S_ERASE_SECTOR;
       signalDone(result); 
     }
 
