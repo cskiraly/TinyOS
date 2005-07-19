@@ -1,4 +1,4 @@
-// $Id: BlockStorageM.nc,v 1.1.2.3 2005-07-11 05:36:33 jwhui Exp $
+// $Id: BlockStorageM.nc,v 1.1.2.4 2005-07-19 23:13:31 jwhui Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -113,6 +113,7 @@ implementation {
       result = call SectorStorage.erase[blockId](0, call StorageManager.getVolumeSize[blockId]());
       break;
     case S_COMMIT:
+      result = SUCCESS;
       break;
     }
     
