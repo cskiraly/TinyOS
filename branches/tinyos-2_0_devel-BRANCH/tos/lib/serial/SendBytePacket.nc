@@ -16,7 +16,7 @@
 
 interface SendBytePacket {
   async command error_t startSend(uint8_t b);
-  async command error_t sendComplete();
+  async command error_t completeSend();
 
   /* The semantics on this are a bit tricky, as it should be able to
    * handle nested interrupts (self-preemption) if the signalling
@@ -27,6 +27,8 @@ interface SendBytePacket {
    */
   
   async event uint8_t nextByte();
+
+  async event void sendCompleted(error_t error);
 }
 
 
