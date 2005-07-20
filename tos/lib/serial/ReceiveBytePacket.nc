@@ -15,12 +15,12 @@
 interface ReceiveBytePacket {
 
   
-  async event void startPacket();
+  async event error_t startPacket();
 
   /* This implementation must be able to handle nested interrupts. As
    * the data sharing is one way, that's not a big deal (atomically
    * put it in). */
   async event void byteReceived(uint8_t b);
-  async event void endPacket();
+  async event void endPacket(error_t result);
 }
 
