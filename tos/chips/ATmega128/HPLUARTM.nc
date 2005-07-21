@@ -1,4 +1,4 @@
-/// $Id: HPLUARTM.nc,v 1.1.2.4 2005-05-18 23:28:13 idgay Exp $
+/// $Id: HPLUARTM.nc,v 1.1.2.5 2005-07-21 19:27:01 bengreenstein Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -29,14 +29,16 @@
 module HPLUARTM
 {
   provides {
-      interface HPLUART as UART0;
-      interface HPLUART as UART1;
+    interface Init as UART0Init;
+    interface Init as UART1Init;
+      interface SerialByteComm as UART0;
+      interface SerialByteComm as UART1;
   }
 }
 implementation
 {
   //=== UART Init Commands. ====================================
-  async command error_t UART0.init() {
+  async command error_t UART0Init.init() {
       ATm128UARTMode_t    mode;
       ATm128UARTStatus_t  stts;
       ATm128UARTControl_t ctrl;
@@ -53,7 +55,7 @@ implementation
 
       return SUCCESS;
   }
-  async command error_t UART1.init() {
+  async command error_t UART1Init.init() {
       ATm128UARTMode_t    mode;
       ATm128UARTStatus_t  stts;
       ATm128UARTControl_t ctrl;
@@ -71,19 +73,19 @@ implementation
       return SUCCESS;
   }
 
-  //=== UART Stop Commands. ====================================
-  async command error_t UART0.stop() {
-      UCSR0A = 0;
-      UCSR0B = 0;
-      UCSR0C = 0;
-      return SUCCESS;
-  }
-  async command error_t UART1.stop() {
-      UCSR0A = 0;
-      UCSR0B = 0;
-      UCSR0C = 0;
-      return SUCCESS;
-  }
+/*   //=== UART Stop Commands. ==================================== */
+/*   async command error_t UART0.stop() { */
+/*       UCSR0A = 0; */
+/*       UCSR0B = 0; */
+/*       UCSR0C = 0; */
+/*       return SUCCESS; */
+/*   } */
+/*   async command error_t UART1.stop() { */
+/*       UCSR0A = 0; */
+/*       UCSR0B = 0; */
+/*       UCSR0C = 0; */
+/*       return SUCCESS; */
+/*   } */
 
   //=== UART Put Commands. ====================================
   async command error_t UART0.put(uint8_t data) {
@@ -102,23 +104,23 @@ implementation
   }
   
   //=== UART Get Events. ======================================
-  default async event error_t UART0.get(uint8_t data) { return SUCCESS; }
+  default async event void UART0.get(uint8_t data) { return; }
   AVR_ATOMIC_HANDLER(SIG_UART0_RECV) {
       if (READ_BIT(UCSR0A, RXC))
 	  signal UART0.get(UDR0);
   }
-  default async event error_t UART1.get(uint8_t data) { return SUCCESS; }
+  default async event void UART1.get(uint8_t data) { return; }
   AVR_ATOMIC_HANDLER(SIG_UART1_RECV) {
       if (READ_BIT(UCSR1A, RXC))
 	  signal UART1.get(UDR1);
   }
 
   //=== UART Put Done Events. =================================
-  default async event error_t UART0.putDone() { return SUCCESS; }
+  default async event void UART0.putDone() { return; }
   AVR_NONATOMIC_HANDLER(SIG_UART0_TRANS) {
       signal UART0.putDone();
   }
-  default async event error_t UART1.putDone() { return SUCCESS; }
+  default async event void UART1.putDone() { return; }
   AVR_NONATOMIC_HANDLER(SIG_UART1_TRANS) {
       signal UART1.putDone();
   }
