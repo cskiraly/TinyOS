@@ -1,6 +1,5 @@
 generic module SerialDispatcherM {
   provides {
-    interface Init;
     interface Receive[uart_id_t];
     interface Send[uart_id_t];
   }
@@ -120,16 +119,21 @@ implementation {
   }
   
   async event void ReceiveBytePacket.startPacket() {
+    error_t result = SUCCESS;
     atomic {
       if (!isCurrentBufferLocked()) {
-	// We are implicitly in RECV_STATE_IDLE, as it is the only
-	// way our current buffer could be unlocked.
-	lockCurrentBuffer();
-	receiveState = RECV_STATE_BEGIN;
-	receiveIndex = 0;
-	receiveType = TOS_SERIAL_UNKNOWN_ID;
+        // We are implicitly in RECV_STATE_IDLE, as it is the only
+        // way our current buffer could be unlocked.
+        lockCurrentBuffer();
+        receiveState = RECV_STATE_BEGIN;
+        receiveIndex = 0;
+        receiveType = TOS_SERIAL_UNKNOWN_ID;
+      }
+      else {
+        result = EBUSY;
       }
     }
+    return result;
   }
 
   async event void ReceiveBytePacket.byteReceived(uint8_t b) {

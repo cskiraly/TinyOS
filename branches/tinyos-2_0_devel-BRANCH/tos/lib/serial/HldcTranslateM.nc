@@ -9,7 +9,7 @@ implementation {
     uint8_t receiveEscape:1;
   } HldcState;
   
-  HdlcState state;
+  HdlcState state = {0,0};
   uint8_t txTemp;
   
   async event void SerialByteComm.get(uint8_t data) {

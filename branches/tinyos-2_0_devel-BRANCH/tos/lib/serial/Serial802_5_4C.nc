@@ -1,3 +1,4 @@
+includes Serial;
 configuration Serial802_15_4C {
   provides {
     interface Send;

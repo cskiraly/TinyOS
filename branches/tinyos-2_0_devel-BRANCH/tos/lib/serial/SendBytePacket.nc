@@ -29,6 +29,7 @@ interface SendBytePacket {
   async event uint8_t nextByte();
 
   async event void sendCompleted(error_t error);
+  async event void clearToSend();
 }
 
 

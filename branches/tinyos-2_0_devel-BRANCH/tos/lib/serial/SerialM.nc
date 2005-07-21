@@ -1,4 +1,4 @@
-// $Id: SerialM.nc,v 1.1.2.3 2005-05-24 18:20:24 idgay Exp $
+// $Id: SerialM.nc,v 1.1.2.4 2005-07-21 19:25:34 bengreenstein Exp $
 
 /* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */ 
 /*									
@@ -37,7 +37,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.3 $
+ * Revision: $Revision: 1.1.2.4 $
  * 
  */
 
@@ -49,43 +49,44 @@
  * Receiving is similar EXCEPT that the component expects a special token byte
  * be received before the data payload. The purpose of the token is to feed back
  * an acknowledgement to the sender which serves as a crude form of flow-control.
- * This module is intended for use with the Packetizer class found in
- * tools/java/net/packet/Packetizer.java.
  * 
  */
 
 /**
  * @author Phil Buonadonna
- * @author Gilman Tolle
+ * Then, completely rewritten by L. Girod & B. Greenstein
  */
 
-#include "crc.h"
+
+includes AM;
+includes crc;
+includes AM_emstar;
+includes status_types;
 
 module SerialM {
 
   provides {
     interface Init;
-    interface Receive;
-    interface Send;
-    interface Packet;
+    interface SendBytePacket;
+    interface ReceiveBytePacket;
   }
 
   uses {
+    interface SerialFrameComm;
     interface Leds;
-    interface HPLUART as SerialByteComm;
-    interface TaskBasic as PacketRcvd;
-    interface TaskBasic as PacketSent;
   }
 }
-
 implementation {
 
   enum {
-    HDLC_QUEUESIZE	   = 2,
-    HDLC_MTU		   = 36,
-    HDLC_FCS_SIZE          = 2,
-    HDLC_FLAG_BYTE	   = 0x7e,
-    HDLC_CTLESC_BYTE	   = 0x7d,
+    RX_DATA_BUFFER_SIZE = 2,
+    TX_DATA_BUFFER_SIZE = 4,
+    SERIAL_MTU = 255,
+    SERIAL_VERSION = 1,
+    ACK_QUEUE_SIZE = 5,
+  };
+
+  enum {
     PROTO_ACK              = 64,
     PROTO_PACKET_ACK       = 65,
     PROTO_PACKET_NOACK     = 66,
@@ -96,497 +97,618 @@ implementation {
     RXSTATE_NOSYNC,
     RXSTATE_PROTO,
     RXSTATE_TOKEN,
-    RXSTATE_INFO,
-    RXSTATE_ESC
+    RXSTATE_INFO
   };
 
   enum {
     TXSTATE_IDLE,
     TXSTATE_PROTO,
+    TXSTATE_SEQNO,
     TXSTATE_INFO,
-    TXSTATE_ESC,
     TXSTATE_FCS1,
     TXSTATE_FCS2,
     TXSTATE_ENDFLAG,
+    TXSTATE_ENDWAIT,
     TXSTATE_FINISH,
-    TXSTATE_ERROR
+    TXSTATE_ERROR,
   };
 
-  enum {
-    FLAGS_TOKENPEND = 0x2,
-    FLAGS_DATAPEND  = 0x4,
-    FLAGS_UNKNOWN   = 0x8
-  };
-
-  message_t gMsgRcvBuf[HDLC_QUEUESIZE];
-
-  typedef struct _MsgRcvEntry {
-    uint16_t Length;	// Does not include 'Proto' or 'Token' fields
-    uint8_t Proto;
-    uint8_t Token;	// Used for sending acknowledgements
-    message_t* pMsg;
-  } MsgRcvEntry_t ;
-
-  MsgRcvEntry_t gMsgRcvTbl[HDLC_QUEUESIZE];
-
-  uint8_t* gpRxBuf;    
-  uint8_t* gpTxBuf;
-
-  uint8_t  gFlags;
-
-  // Flags variable protects atomicity
-  norace uint8_t  gTxState;
-  norace uint8_t  gPrevTxState;
-  norace uint16_t  gTxProto;
-  norace uint16_t gTxByteCnt;
-  norace uint16_t gTxLength;
-  norace uint16_t gTxRunningCRC;
+  typedef enum {
+    BUFFER_AVAILABLE,
+    BUFFER_FILLING,
+    BUFFER_COMPLETE,
+  } tx_data_buffer_states_t;
 
 
-  uint8_t  gRxState;
-  uint8_t  gRxHeadIndex;
-  uint8_t  gRxTailIndex;
-  uint16_t gRxByteCnt;
+  typedef struct {
+    uint8_t writePtr;
+    uint8_t readPtr;
+    uint8_t buf[RX_DATA_BUFFER_SIZE+1]; // one wasted byte: writePtr == readPtr means empty
+  } rx_buf_t;
+
+  typedef struct {
+    uint8_t state;
+    uint8_t reserved; // word alignment fwiw
+    uint8_t writePtr;
+    uint8_t readPtr;
+    uint8_t buf[TX_DATA_BUFFER_SIZE+1]; // one wasted byte: writePtr == readPtr means empty    
+  } tx_buf_t;
   
-  uint16_t gRxRunningCRC;
+  typedef struct {
+    uint8_t writePtr;
+    uint8_t readPtr;
+    uint8_t buf[ACK_QUEUE_SIZE+1]; // one wasted byte: writePtr == readPtr means empty    
+  } ack_queue_t;
+
+  /* Buffers */
+
+  rx_buf_t RxBuf;
+  tx_buf_t TxBuf;
+
+  /* Receive State */
+
+  uint8_t  RxState;
+  uint8_t  RxByteCnt;
+  uint8_t  RxProto;
+  uint8_t  RxSeqno;
+  uint16_t RxCRC;
+
+  /* Transmit State */
+
+  uint8_t  TxState;
+  uint8_t  TxByteCnt;
+  uint8_t  TxProto;
+  uint8_t  TxSeqno;
+  uint16_t TxCRC;
+  uint8_t  TxPending;
   
-  message_t* gpTxMsg;
-  uint8_t gTxTokenBuf;
-  uint8_t gTxUnknownBuf;
-  norace uint8_t gTxEscByte;
+  /* Ack Queue */
+  ack_queue_t AckQ;
 
-  /* PROTOTYPES */
-  void HDLCInitialize();
+  /* stats */
+  radio_stats_t stats;
 
-  error_t StartTx();
-  error_t TxArbitraryByte(uint8_t inByte);
 
+#ifdef REENTRANT_SERIALM
+  uint8_t RxReentered = 0;
+  uint8_t RxReenteredBuffer;
+  uint8_t TxReentered = 0;
+#endif
+
+  inline void txInit(){
+    tx_buffer_init();
+    TxState = TXSTATE_IDLE;
+    TxByteCnt = 0;
+    TxProto = 0;
+    TxSeqno = 0;
+    TxCRC = 0; 
+    TxPending = FALSE;
+  }
+
+  inline void rxInit(){
+    RxBuf.writePtr = RxBuf.readPtr = 0;
+    RxState = RXSTATE_NOSYNC;
+    RxByteCnt = 0;
+    RxProto = 0;
+    RxSeqno = 0;
+    RxCRC = 0;
+  }
+
+  inline void ackInit(){
+    AckQ.writePtr = AckQ.readPtr = 0;
+  }
+
+  inline void statsInit(){
+    memset(&stats, 0, sizeof(stats));
+    stats.mote_platform = TOSH_PLATFORM;
+    stats.MTU = SERIAL_MTU;
+    stats.tosbase_version = SERIAL_VERSION;
+  }
+  
   command error_t Init.init() {
-    HDLCInitialize();
-    call SerialByteComm.init();
+
+    call Leds.init();
+
+    txInit();
+    rxInit();
+    ackInit();
+    statsInit();
+
+#ifdef REENTRANT_SERIALM
+    atomic {
+      RxReentered = 0;
+      TxReentered = 0;
+    }
+#ifdef REENTRANT_SERIALM      
+
     return SUCCESS;
   }
 
-  void HDLCInitialize() {
-    int i;
-    atomic {
-      for (i = 0;i < HDLC_QUEUESIZE; i++) {
-        gMsgRcvTbl[i].pMsg = &gMsgRcvBuf[i];
-        gMsgRcvTbl[i].Length = 0;
-        gMsgRcvTbl[i].Token = 0;
-      }
-      gTxState = TXSTATE_IDLE;
-      gTxByteCnt = 0;
-      gTxLength = 0;
-      gTxRunningCRC = 0;
-      gpTxMsg = NULL;
-      
-      gRxState = RXSTATE_NOSYNC;
-      gRxHeadIndex = 0;
-      gRxTailIndex = 0;
-      gRxByteCnt = 0;
-      gRxRunningCRC = 0;
-      gpRxBuf = (uint8_t *)gMsgRcvTbl[gRxHeadIndex].pMsg;
+
+  /*
+   *  buffer and queue manipulation
+   */
+
+  inline bool ack_queue_is_full(){ 
+    uint8_t tmp = AckQ.writePtr;
+    if (++tmp > ACK_QUEUE_SIZE) tmp = 0;
+    return (tmp == AckQ.readPtr);
+  }
+
+  inline bool ack_queue_is_empty(){ 
+    return (AckQ.writePtr == AckQ.readPtr); 
+  }
+
+  inline void ack_queue_push(uint8_t token) {
+    if (!ack_queue_is_full()){
+      AckQ.buf[AckQ.writePtr] = token;
+      if (++AckQ.writePtr > ACK_QUEUE_SIZE) AckQ.writePtr = 0;
+      MaybeScheduleTx();
     }
   }
 
-  async event error_t SerialByteComm.get(uint8_t data) {
+  inline uint8_t ack_queue_top() {
+    if (!ack_queue_is_empty()){
+      return AckQ.buf[AckQ.readPtr];
+    }
+    return 0;
+  }
 
-    switch (gRxState) {
+  uint8_t ack_queue_pop() {
+    uint8_t retval = 0;
+    if (AckQ.writePtr != AckQ.readPtr){
+      retval =  AckQ.buf[AckQ.readPtr];
+      if (++(AckQ.readPtr) > ACK_QUEUE_SIZE) AckQ.readPtr = 0;
+    }
+    return retval;
+  }
 
-    case RXSTATE_NOSYNC: 
 
-//      call Leds.led1Toggle();
+  /* 
+   * Buffer Manipulation
+   */
 
-      if ((data == HDLC_FLAG_BYTE) && 
-	  (gMsgRcvTbl[gRxHeadIndex].Length == 0)) {
-        gMsgRcvTbl[gRxHeadIndex].Token = 0;
-	gRxByteCnt = gRxRunningCRC = 0;
-        gpRxBuf = (uint8_t *)gMsgRcvTbl[gRxHeadIndex].pMsg;
-    	gRxState = RXSTATE_PROTO;
+  inline void rx_buffer_init(){
+    RxBuf.state = BUFFER_AVAILABLE;
+    RxBuf.writePtr = RxBuf.readPtr = 0;
+  }
+  inline bool rx_buffer_is_full() {
+    uint8_t tmp = RxBuf.writePtr;
+    if (++tmp > RX_DATA_BUFFER_SIZE) tmp = 0;
+    return (tmp == RxBuf.readPtr);
+  }
+  inline bool rx_buffer_is_empty(){
+    return (RxBuf.readPtr == RxBuf.writePtr);
+  }
+  inline void rx_buffer_push(uint8_t data){
+    RxBuf.buf[RxBuf.writePtr] = data;
+    if (++(RxBuf.writePtr) > RX_DATA_BUFFER_SIZE) RxBuf.writePtr = 0;
+  }
+  inline uint8_t rx_buffer_top(){
+    uint8_t tmp = RxBuf.buf[RxBuf.readPtr];
+    return tmp;
+  }
+  inline uint8_t rx_buffer_pop(){
+    uint8_t tmp = RxBuf.buf[RxBuf.readPtr];
+    if (++(RxBuf.readPtr) > RX_DATA_BUFFER_SIZE) RxBuf.readPtr = 0;
+    return tmp;
+  }
+  
+  inline uint16_t rx_current_crc(){
+    uint16_t crc;
+    uint8_t tmp = RxBuf.writePtr;
+    if (tmp == 0) tmp = RX_DATA_BUFFER_SIZE;
+    crc = RxBuf.buf[--tmp] & 0xff;
+    if (tmp == 0) tmp = RX_DATA_BUFFER_SIZE;
+    crc = (crc << 8) | (RxBuf.buf[--tmp] & 0xff);
+    return crc;
+  }
+
+  inline void tx_buffer_init(){
+    TxBuf.state = BUFFER_AVAILABLE;
+    TxBuf.writePtr = TxBuf.readPtr = 0;
+  }
+  inline bool tx_buffer_is_full() {
+    uint8_t tmp = TxBuf.writePtr;
+    if (++tmp > TX_DATA_BUFFER_SIZE) tmp = 0;
+    return (tmp == TxBuf.readPtr);
+  }
+  inline bool tx_buffer_is_empty(){
+    return (TxBuf.readPtr == TxBuf.writePtr);
+  }
+  inline void tx_buffer_push(uint8_t data){
+    TxBuf.buf[TxBuf.writePtr] = data;
+    if (++(TxBuf.writePtr) > TX_DATA_BUFFER_SIZE) TxBuf.writePtr = 0;
+  }
+  inline uint8_t tx_buffer_top(){
+    uint8_t tmp = TxBuf.buf[TxBuf.readPtr];
+    return tmp;
+  }
+  inline uint8_t tx_buffer_pop(){
+    uint8_t tmp = TxBuf.buf[TxBuf.readPtr];
+    if (++(TxBuf.readPtr) > TX_DATA_BUFFER_SIZE) TxBuf.readPtr = 0;
+    return tmp;
+  }
+
+  inline void tx_buffer_fill(){
+    uint8_t tmp;
+    while (TxBuf.state == FILLING && !tx_buffer_is_full()){
+      tmp = signal SendBytePacket.nextByte();
+      if (TxBuf.state == FILLING){ // sendComplete could be called within nextByte()
+        tx_buffer_push(tmp);
       }
+    }
+  }
 
+
+  /*
+   *  Receive Path
+   */ 
+  
+  
+  async event void SerialFrameComm.delimeterReceived(){
+    rx_state_machine(TRUE,0);
+  }
+  async event void SerialFrameComm.dataReceived(uint8_t data){
+    rx_state_machine(FALSE,data);
+  }
+
+
+  void rx_state_machine(bool isDelimeter, uint8_t data){
+
+    uint8_t abort_reentry=0;
+    uint8_t retry;
+    uint8_t i;
+    uint8_t escaped=0;
+
+#ifdef REENTRANT_SERIALM
+    atomic {
+      if (RxReentered > 0) {
+        abort_reentry = 1;
+        /* buffer one byte.. */
+        RxReenteredBuffer=data;
+        RxReentered=2;
+      }
+      else
+        RxReentered=1;
+    }
+    if (abort_reentry) 
+      return SUCCESS;
+#endif
+
+  again:
+    
+    switch (RxState) {
+      
+    case RXSTATE_NOSYNC: 
+      if (isDelimeter) {
+        rxInit();
+        RxState = RXSTATE_PROTO;
+      }
       break;
       
     case RXSTATE_PROTO:
-
-      if (data == HDLC_FLAG_BYTE) {
-        break;
-      }
-      gMsgRcvTbl[gRxHeadIndex].Proto = data;
-      gRxRunningCRC = crcByte(gRxRunningCRC,data);
-      switch (data) {
-      case PROTO_PACKET_ACK:
-	gRxState = RXSTATE_TOKEN;
-	break;
-      case PROTO_PACKET_NOACK:
-	gRxState = RXSTATE_INFO;
-	break;
-      default:  // PROTO_ACK packets are not handled
-	gRxState = RXSTATE_NOSYNC;
-	break;
-      }
-
+      if (!isDelimeter){
+        RxCRC = crcByte(RxCRC,data);
+        RxState = RXSTATE_TOKEN;
+        RxProto = data;
+        //TODO verify RxProto is valid
+        if (signal ReceiveBytePacket.startPacket() != SUCCESS){
+          goto nosync;
+        }
+        signal ReceiveBytePacket.byteReceived(RxProto);
+      }      
       break;
-
-    case RXSTATE_TOKEN:
-
-      if (data == HDLC_FLAG_BYTE) {
-        gRxState = RXSTATE_NOSYNC;
-      }
-      else if (data == HDLC_CTLESC_BYTE) {
-        gMsgRcvTbl[gRxHeadIndex].Token = 0x20;
-      }
-      else {
-        gMsgRcvTbl[gRxHeadIndex].Token ^= data;
-        gRxRunningCRC = crcByte(gRxRunningCRC,gMsgRcvTbl[gRxHeadIndex].Token);
-        gRxState = RXSTATE_INFO;
-      }
-
-      break;
-
-    case RXSTATE_INFO:
-
-      if (gRxByteCnt > HDLC_MTU) {
-	gRxByteCnt = gRxRunningCRC = 0;
-	gMsgRcvTbl[gRxHeadIndex].Length = 0;
-	gMsgRcvTbl[gRxHeadIndex].Token = 0;
-	gRxState = RXSTATE_NOSYNC;
-      }
-      else if (data == HDLC_CTLESC_BYTE) {
-	gRxState = RXSTATE_ESC;
-      }
-      else if (data == HDLC_FLAG_BYTE) {
-	if (gRxByteCnt >= 2) {
-	  uint16_t usRcvdCRC = (gpRxBuf[(gRxByteCnt-1)] & 0xff);
-	  usRcvdCRC = (usRcvdCRC << 8) | (gpRxBuf[(gRxByteCnt-2)] & 0xff);
-	  if (usRcvdCRC == gRxRunningCRC) {
-	    gMsgRcvTbl[gRxHeadIndex].Length = gRxByteCnt - 2;
-
-	    call PacketRcvd.postTask();
-	    if (++gRxHeadIndex >= HDLC_QUEUESIZE) gRxHeadIndex = 0;
-
-	    // what the task does
-/*
-	    call Leds.led0Toggle();
-	    gMsgRcvTbl[gRxHeadIndex].Length = 0;
-	    gMsgRcvTbl[gRxHeadIndex].Token = 0;
-	    if (++gRxTailIndex >= HDLC_QUEUESIZE) gRxTailIndex = 0;
-*/
-
-          } else {
-	    gMsgRcvTbl[gRxHeadIndex].Length = 0;
-	    gMsgRcvTbl[gRxHeadIndex].Token = 0;
-          }
-	  if (gMsgRcvTbl[gRxHeadIndex].Length == 0) {
-	    gpRxBuf = (uint8_t *)gMsgRcvTbl[gRxHeadIndex].pMsg;
-	    gRxState = RXSTATE_PROTO;
-	  }
-	  else {
-	    gRxState = RXSTATE_NOSYNC;
-	  }
-	} else {
-	  gMsgRcvTbl[gRxHeadIndex].Length = 0;
-	  gMsgRcvTbl[gRxHeadIndex].Token = 0;
-	  gRxState = RXSTATE_NOSYNC;
-	}
-	gRxByteCnt = gRxRunningCRC = 0;
-      }
-      else {
-	gpRxBuf[gRxByteCnt] = data;
-	if (gRxByteCnt >= 2) {
-	  gRxRunningCRC = crcByte(gRxRunningCRC,gpRxBuf[(gRxByteCnt-2)]);
-	}
-	gRxByteCnt++;
-      }
-
-      break;
-
-    case RXSTATE_ESC:
-
-      if (data == HDLC_FLAG_BYTE) {
-	// Error case, fail and resync
-	gRxByteCnt = gRxRunningCRC = 0;
-	gMsgRcvTbl[gRxHeadIndex].Length = 0;
-	gMsgRcvTbl[gRxHeadIndex].Token = 0;
-	gRxState = RXSTATE_NOSYNC;
-      }
-      else {
-	data = data ^ 0x20;
-        gpRxBuf[gRxByteCnt] = data;
-	if (gRxByteCnt >= 2) {
-	  gRxRunningCRC = crcByte(gRxRunningCRC,gpRxBuf[(gRxByteCnt-2)]);
-	}
-	gRxByteCnt++;
-	gRxState = RXSTATE_INFO;
-      }
-
-      break;
-
-    default:
-      gRxState = RXSTATE_NOSYNC;
-      break;
-    }
-
-    return SUCCESS;
-  }
-
-  event void PacketRcvd.runTask() {
-    MsgRcvEntry_t *pRcv = &gMsgRcvTbl[gRxTailIndex];
-    message_t* pBuf = pRcv->pMsg;
-    bool sendResponse = FALSE;
-
-    call Leds.led1Toggle();
-
-    if (pRcv->Length >= offsetof(message_t,data)) {
       
-      switch(pRcv->Proto) {
-      case PROTO_ACK:
-	break;
-
-      case PROTO_PACKET_ACK:
-	atomic {
-	  if (!(gFlags & FLAGS_TOKENPEND)) {
-	    gFlags |= FLAGS_TOKENPEND;
-	    gTxTokenBuf = pRcv->Token;
-	    sendResponse = TRUE;
-	  }
-	}
-	pBuf = signal Receive.receive(pBuf, pBuf, pRcv->Length);
-	break;
-
-      case PROTO_PACKET_NOACK:
-	pBuf = signal Receive.receive(pBuf, pBuf, pRcv->Length);	
-	break;
-
-      default:
-	atomic {
-	  gFlags |= FLAGS_UNKNOWN;
-	  gTxUnknownBuf = pRcv->Proto;
-	  sendResponse = TRUE;
-	}
-	break;
-      }
-    }
-
-    atomic {
-      if (pBuf) {
-	pRcv->pMsg = pBuf;
-      }
-      pRcv->Length = 0; 
-      pRcv->Token = 0; 
-    }
-    if (++gRxTailIndex >= HDLC_QUEUESIZE) gRxTailIndex = 0;
-    
-    if (sendResponse) {
-      StartTx();
-    }
-  }
-
-  command error_t Send.send(message_t* msg, uint8_t len) {
-
-    error_t result = SUCCESS;
-
-    msg->header.length = len;
-
-    atomic {
-      if (!(gFlags & FLAGS_DATAPEND)) {
-       gFlags |= FLAGS_DATAPEND; 
-       gpTxMsg = msg;
+    case RXSTATE_TOKEN:
+      if (isDelimeter) {
+        stats.serial_short_packets++;
+        goto nosync;
       }
       else {
-        result = FAIL;
+        RxSeqno = data;
+        RxCRC = crcByte(RxCRC,RxSeqno);
+        RxState = RXSTATE_INFO;
       }
+      break;
+      
+    case RXSTATE_INFO:
+      if (RxByteCnt < SERIAL_MTU){ 
+        if (isDelimeter) { /* handle end of frame */
+          if (RxByteCnt >= 2) {
+            if (rx_current_crc() == RxCRC) {
+              signal ReceiveBytePacket.endPacket(SUCCESS);
+              ack_queue_push(RxSeqno);
+              goto nosync;
+            }
+            else {
+              stats.serial_crc_fail++;
+              goto nosync;
+            }
+          }
+          else {
+            stats.serial_short_packets++;
+            goto nosync;
+          }
+       }
+        else { /* handle new bytes to save */
+          if (RxByteCnt >= 2){ 
+            signal ReceiveBytePacket.byteReceived(rx_buffer_top());
+            RxCRC = crcByte(RxCRC,rx_buffer_pop());
+          }
+          rx_buffer_push(data);
+          RxByteCnt++;
+        }
+      }
+      
+      /* no valid message.. */
+      else {
+        stats.serial_proto_drops++;
+        goto nosync;
+       }
+      break;
+      
+    default:      
+      goto nosync;
     }
+    goto done:
 
-    if (result == SUCCESS) {
-      result = StartTx();
+  nosync:
+    /* reset all counters, etc */
+    rxInit();
+    signal ReceiveBytePacket.endPacket(ERROR);
+    
+    /* if this was a flag, start in proto state.. */
+    if (isDelimeter) {
+      RxState = RXSTATE_PROTO;
     }
-
-    return result;
+    
+  done:
+#ifdef REENTRANT_SERIALM
+    atomic {
+      RxReentered--;
+      if (RxReentered > 0) {
+        data = RxReenteredBuffer;
+        retry=1;
+        //call Leds.redToggle();
+      }
+      else 
+        retry=0;
+    }
+    if (retry) goto again; 
+#endif
   }
 
-  error_t StartTx() {
-    error_t result = SUCCESS;
-    bool fInitiate = FALSE;
+  
+  /*
+   *  Send Path
+   */ 
 
+
+  void MaybeScheduleTx() {
     atomic {
-      if (gTxState == TXSTATE_IDLE) {
-        if (gFlags & FLAGS_TOKENPEND) {
-          gpTxBuf = (uint8_t *)&gTxTokenBuf;
-          gTxProto = PROTO_ACK;
-          gTxLength = sizeof(gTxTokenBuf);
-          fInitiate = TRUE;
-          gTxState = TXSTATE_PROTO;
-        }
-        else if (gFlags & FLAGS_DATAPEND) {
-          gpTxBuf = (uint8_t *)gpTxMsg;
-          gTxProto = PROTO_PACKET_NOACK;
-          gTxLength = gpTxMsg->header.length + sizeof(gpTxMsg->header);
-          fInitiate = TRUE;
-          gTxState = TXSTATE_PROTO;
-        }
-        else if (gFlags & FLAGS_UNKNOWN) {
-          gpTxBuf = (uint8_t *)&gTxUnknownBuf;
-          gTxProto = PROTO_UNKNOWN;
-          gTxLength = sizeof(gTxUnknownBuf);
-          fInitiate = TRUE;
-          gTxState = TXSTATE_PROTO;
+      if (TxPending == 0) {
+        if (post RunTx() == SUCCESS) {
+          TxPending = 1;
         }
       }
     }
-    
-    if (fInitiate) {
-      atomic {
-        gTxRunningCRC = 0; gTxByteCnt = 0;
-      }
-      result = call SerialByteComm.put(HDLC_FLAG_BYTE);
-      if (result != SUCCESS) {
-        atomic gTxState = TXSTATE_ERROR;
-        call PacketSent.postTask();
-      }
-    }
-    
-    return result;
-  }    
+  }
 
-  async event error_t SerialByteComm.putDone() {
-    error_t TxResult = SUCCESS;
-    uint8_t nextByte;
 
-    if (gTxState == TXSTATE_FINISH) {
-      gTxState = TXSTATE_IDLE;
-      call PacketSent.postTask();
+  async command error_t SendBytePacket.sendComplete(){
+    if (TxBuf.state == FILLING){
+      TxBuf.state = COMPLETE;
       return SUCCESS;
     }
-    
-    switch (gTxState) {
-
-    case TXSTATE_PROTO:
-      gTxState = TXSTATE_INFO;
-      gTxRunningCRC = crcByte(gTxRunningCRC,(uint8_t)(gTxProto & 0x0FF));
-      TxResult = call SerialByteComm.put((uint8_t)(gTxProto & 0x0FF));
-      break;
-      
-    case TXSTATE_INFO:
-      nextByte = gpTxBuf[gTxByteCnt];
-      
-      gTxRunningCRC = crcByte(gTxRunningCRC,nextByte);
-      gTxByteCnt++;
-      if (gTxByteCnt >= gTxLength) {
-	gTxState = TXSTATE_FCS1;
-      }
-      
-      TxResult = TxArbitraryByte(nextByte);
-      break;
-      
-    case TXSTATE_ESC:
-
-      TxResult = call SerialByteComm.put((gTxEscByte ^ 0x20));
-      gTxState = gPrevTxState;
-      break;
-	
-    case TXSTATE_FCS1:
-      nextByte = (uint8_t)(gTxRunningCRC & 0xff); // LSB
-      gTxState = TXSTATE_FCS2;
-      TxResult = TxArbitraryByte(nextByte);
-      break;
-
-    case TXSTATE_FCS2:
-      nextByte = (uint8_t)((gTxRunningCRC >> 8) & 0xff); // MSB
-      gTxState = TXSTATE_ENDFLAG;
-      TxResult = TxArbitraryByte(nextByte);
-      break;
-
-    case TXSTATE_ENDFLAG:
-      gTxState = TXSTATE_FINISH;
-      TxResult = call SerialByteComm.put(HDLC_FLAG_BYTE);
-
-      break;
-
-    case TXSTATE_FINISH:
-    case TXSTATE_ERROR:
-
-    default:
-      break;
-
+    else {
+      return FAIL;
     }
-
-    if (TxResult != SUCCESS) {
-      gTxState = TXSTATE_ERROR;
-      call PacketSent.postTask();
-    }
-
-    return SUCCESS;
   }
 
-  error_t TxArbitraryByte(uint8_t inByte) {
-    if ((inByte == HDLC_FLAG_BYTE) || (inByte == HDLC_CTLESC_BYTE)) {
-      atomic {
-        gPrevTxState = gTxState;
-        gTxState = TXSTATE_ESC;
-        gTxEscByte = inByte;
-      }
-      inByte = HDLC_CTLESC_BYTE;
+  async command error_t SendBytePacket.startSend(uint8_t b){
+    if (TxBuf.state == AVAILABLE){
+      TxProto = b;
+      TxBuf.state = FILLING;
+      tx_buffer_fill();
+      maybe_start_sending();
+      return SUCCESS;
     }
-    
-    return call SerialByteComm.put(inByte);
+    else {
+      return EBUSY;
+    }
   }
 
-  event void PacketSent.runTask() {
-    error_t TxResult = SUCCESS;
+  task void RunTx() {
+    uint8_t idle;
+    uint8_t done;
+    uint8_t fail;
 
+    uint8_t proto;
+    error_t result;
+    bool send_completed = FALSE;
+    bool start_it = FALSE;
+
+    atomic { 
+      TxPending = 0;
+      idle = (TxState == TXSTATE_IDLE);
+      done = (TxState == TXSTATE_FINISH);
+      fail = (TxState == TXSTATE_ERROR);
+      if (idle || done || fail){ 
+        TxState = TXSTATE_IDLE;
+        tx_buffer_buffer_init();
+      }
+    }
+
+    /* if done, call the send done */
+    if (done || fail) {
+      if (fail) atomic stats.serial_tx_fail++;
+      TxSeqno++;
+      if (TxProto == SERIAL_PROTO_ACK){
+        ack_queue_pop();
+      }
+      else {
+        proto = TxProto;
+        result = done ? SUCCESS : FAIL;
+        send_completed = TRUE;
+      }
+      idle = TRUE;
+    }
+
+    /* if idle, set up next packet to TX */ 
+    if (idle) {
+      uint8_t low_prio = 255;
+      uint8_t client_index = 255;
+      uint8_t i;
+
+      /* acks are top priority */
+      if (!ack_queue_is_empty() && TxBuf.state == BUFFER_AVAILABLE) {
+        TxBuf.buf[0] = ack_queue_top();
+        TxBuf.writePtr = 1; 
+        TxBuf.readPtr = 0;
+        TxBuf.state = BUFFER_COMPLETE;
+        TxProto = SERIAL_PROTO_ACK;
+        start_it = TRUE;
+      }
+      else if (TxBuf.state == BUFFER_FILLING || TxBuf.state == BUFFER_COMPLETE){
+        start_it = TRUE;
+      }
+      else {
+        /* nothing to send now.. */
+      }
+    }
+    else {
+      /* we're in the middle of transmitting */
+    }
+
+    if (send_completed){
+      signal SendBytePacket.sendCompleted[proto](result);
+    }
+
+    if (start_it){
+      /* OK, start transmitting ! */
+      atomic { 
+        TxCRC = 0;
+        TxByteCnt = 0;
+        TxState = TXSTATE_PROTO; 
+      }
+      if (call SerialFrameComm.putDelimeter() != SUCCESS) {
+        atomic TxState = TXSTATE_ERROR; 
+        MaybeScheduleTx();
+      }
+    }
+    
+  }
+
+  async event void SerialFrameComm.putDone(bool LastByteSuccess) {
+    uint8_t abort_reentry = 0;
+    
     atomic {
-      if (gTxState == TXSTATE_ERROR) {
-	TxResult = FAIL;
-        gTxState = TXSTATE_IDLE;
+      if (TxReentered > 0) {
+        call Leds.greenToggle();
+        abort_reentry = 1;
       }
+      TxReentered++;
     }
-    if (gTxProto == PROTO_ACK) {
-      atomic gFlags ^= FLAGS_TOKENPEND;
+    if (abort_reentry) 
+      return SUCCESS;
+    
+  again:
+    {
+      result_t TxResult = SUCCESS;
+      uint8_t nextByte;
+      
+      if (LastByteSuccess != TRUE) {
+        TxState = TXSTATE_ERROR;
+      }
+      
+      switch (TxState) {
+        
+      case TXSTATE_PROTO:
+#ifdef NO_TX_SEQNO
+        TxState = TXSTATE_INFO;
+#else
+        TxState = TXSTATE_SEQNO;
+#endif
+        TxCRC = crcByte(TxCRC,TxProto);
+        TxResult = call SerialFrameComm.putData(TxProto);
+        break;
+        
+      case TXSTATE_SEQNO:
+        TxState = TXSTATE_INFO;
+        TxCRC = crcByte(TxCRC,TxSeqno);
+        TxResult = call SerialFrameComm.putData(TxSeqno);
+        break;
+        
+      case TXSTATE_INFO:
+        nextByte = tx_buffer_pop();
+        tx_buffer_fill();
+        TxCRC = crcByte(TxCRC,nextByte);
+        TxByteCnt++;
+        if (tx_buffer_is_empty() || TxByteCnt >= SERIAL_MTU) {
+          TxState = TXSTATE_FCS1;
+        }      
+        TxResult = call SerialFrameComm.putData(nextByte);
+        
+        break;
+        
+      case TXSTATE_FCS1:
+        nextByte = (uint8_t)(TxCRC & 0xff); // LSB
+        TxState = TXSTATE_FCS2;
+        TxResult = call SerialFrameComm.putData(nextByte);
+        break;
+        
+      case TXSTATE_FCS2:
+        nextByte = (uint8_t)((TxCRC >> 8) & 0xff); // MSB
+        TxState = TXSTATE_ENDFLAG;
+        TxResult = call SerialFrameComm.putData(nextByte);
+        break;
+        
+      case TXSTATE_ENDFLAG:
+        TxState = TXSTATE_ENDWAIT;
+        TxResult = call SerialFrameComm.putDelimeter();
+        break;
+        
+      case TXSTATE_ENDWAIT:
+        TxState = TXSTATE_FINISH;
+      case TXSTATE_FINISH:
+      case TXSTATE_ERROR:
+        goto send_complete;
+        
+      default:
+        goto send_complete;
+      }
+      
+      if (TxResult != SUCCESS) {
+        TxState = TXSTATE_ERROR;
+        goto send_complete;
+      }
+      
+      MaybeScheduleTx();
+      goto done;
+      
+    send_complete:
+      if (TxState == TXSTATE_ERROR) {
+      }
+      MaybeScheduleTx();
+      goto done;
+      
+    done:
+
+#ifdef REENTRANT_SERIALM
+      {
+        uint8_t do_over = 0;
+        atomic {
+          TxReentered--;
+          if (TxReentered > 0) {
+            do_over=1;
+          }
+        }
+        if (do_over) goto again;
+      }
+#endif
+      return SUCCESS;
     }
-    else{
-      atomic gFlags ^= FLAGS_DATAPEND;
-      signal Send.sendDone((message_t*)gpTxMsg,TxResult);
-      atomic gpTxMsg = NULL;
-    }
-
-    // Trigger transmission in case something else is pending
-    StartTx();
   }
 
-  command void Packet.clear(message_t* msg) {
-    memset(msg, 0, sizeof(message_t));
-  }
-
-  command uint8_t Packet.payloadLength(message_t* msg) {
-    return msg->header.length;
-  }
- 
-  command uint8_t Packet.maxPayloadLength() {
-    return TOSH_DATA_LENGTH;
-  }
-
-  command void* Packet.getPayload(message_t* msg, uint8_t* len) {
-    if (len != NULL) {
-      *len = msg->header.length;
-    }
-    return (void*)msg->data;
-  }
-
-  
-  default event message_t* Receive.receive(message_t* msg, 
-					   void* payload, 
-					   uint8_t len) {
-    return msg;
-  }
-
-  command error_t Send.cancel(message_t* msg) {
-    return FAIL;
-  }
-  
-  default event void Send.sendDone(message_t* msg, 
-				   error_t error) {
-
-  }
 }
