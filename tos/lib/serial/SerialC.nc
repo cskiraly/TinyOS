@@ -1,14 +1,23 @@
 configuration SerialC {
   provides {
     interface Init;
-    interface Receive;
-    interface Send;
-    interface Packet;    
+    interface Receive[uart_id_t];
+    interface Send[uart_id_t];
   }
 }
 implementation {
-  components SerialM, PlatformSerial, LedsC;
-  components TinyScheduler;
+  components SerialM, 
+             SerialDispatcherM,
+             HldcTranslateM as HDLCTranslateM,
+             LedsC;
+
+  
+  Send = SerialDispatcherM;
+  Receive = SerialDispatcherM;
+
+
+
+
 
   Init = SerialM;
   Receive = SerialM;
