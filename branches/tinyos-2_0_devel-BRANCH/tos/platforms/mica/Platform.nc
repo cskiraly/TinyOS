@@ -1,4 +1,4 @@
-/// $Id: Platform.nc,v 1.1.2.4 2005-05-18 23:28:14 idgay Exp $
+/// $Id: Platform.nc,v 1.1.2.5 2005-07-22 08:33:32 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -35,7 +35,8 @@ implementation
   components PlatformM, MotePlatformC, HPLUARTM;
 
   Init = PlatformM;
-  PlatformM.UART -> HPLUARTM.UART0;
+  Init = HPLUARTM.UART0Init;
+
   PlatformM.MoteInit -> MotePlatformC;
 }
 
