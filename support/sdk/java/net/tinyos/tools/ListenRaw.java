@@ -1,4 +1,4 @@
-// $Id: ListenRaw.java,v 1.1.2.2 2005-05-23 23:16:58 idgay Exp $
+// $Id: ListenRaw.java,v 1.1.2.3 2005-07-26 20:31:00 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -44,7 +44,7 @@ package net.tinyos.tools;
 
 import java.util.*;
 import java.io.*;
-import javax.comm.*;
+import net.tinyos.comm.*;
 
 import net.tinyos.util.*;
 
@@ -59,7 +59,6 @@ public class ListenRaw {
     private int packetLength;
     private int portSpeed;
 
-    private CommPortIdentifier portId;
     private SerialPort port;
     private String portName;
     private InputStream in;
@@ -71,21 +70,15 @@ public class ListenRaw {
     }
 
 
-    public void open() throws NoSuchPortException, PortInUseException, IOException, UnsupportedCommOperationException {
+    public void open() throws IOException, UnsupportedCommOperationException {
 	System.out.println("Opening port " + portName);
-	portId = CommPortIdentifier.getPortIdentifier(portName);
-	port = (SerialPort)portId.open(CLASS_NAME, 0);
+	port = new TOSSerial(portName);
 	in = port.getInputStream();
 	out = port.getOutputStream();
 	
-	port.setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
-	port.disableReceiveFraming();
-	//printPortStatus();
+	//port.setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
 	// These are the mote UART parameters
-	port.setSerialPortParams(portSpeed,
-				 SerialPort.DATABITS_8,
-				 SerialPort.STOPBITS_1,
-				 SerialPort.PARITY_NONE);
+	port.setSerialPortParams(portSpeed, 8, 1, false);
 	printPortStatus();
 	System.out.println();
     }
@@ -97,23 +90,6 @@ public class ListenRaw {
 	System.out.println(" parity:    " + port.getParity());
     }
 
-    private static void printAllPorts() {
-	Enumeration ports = CommPortIdentifier.getPortIdentifiers();
-	
-	if (ports == null) {
-	    System.out.println("No comm ports found!");
-	    return;
-	}
-	
-	// print out all ports
-	System.out.println("printing all ports...");
-	while (ports.hasMoreElements()) {
-	    System.out.println("  " + ((CommPortIdentifier)ports.nextElement()).getName());
-	}
-    }
-
-    
-    
     public void read() throws IOException {
 	int i; 
 	int count = 0;
@@ -150,9 +126,6 @@ public class ListenRaw {
 	for (int i = 0; i < args.length; i++) {
 	    if (args[i].equals("-h") || args[i].equals("--help")) {
 		printUsage();
-	    }
-	    if (args[i].equals("-p")) {
-		printAllPorts();
 	    }
 	    if (args[i].equals("-mica2")) {
 	        speed = PORT_SPEED_MICA2;
