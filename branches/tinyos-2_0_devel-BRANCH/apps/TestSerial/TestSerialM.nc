@@ -1,4 +1,4 @@
-// $Id: TestSerialM.nc,v 1.1.2.2 2005-04-18 17:56:32 gtolle Exp $
+// $Id: TestSerialM.nc,v 1.1.2.3 2005-07-26 02:10:36 bengreenstein Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -37,7 +37,7 @@
 
 includes Timer;
 
-module TestSerialM {
+module TestSerialM { 
   uses {
     interface Leds;
     interface Boot;
