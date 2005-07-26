@@ -2,11 +2,11 @@ includes Serial;
 
 generic module SerialDispatcherM() {
   provides {
-    interface Receive[uart_id_t];
-    interface Send[uart_id_t];
+    interface Receive[uart_id_t id];
+    interface Send[uart_id_t id];
   }
   uses {
-    interface SerialPacketInfo as PacketInfo[uart_id_t];
+    interface SerialPacketInfo as PacketInfo[uart_id_t id];
     interface ReceiveBytePacket;
     interface SendBytePacket;
   }
@@ -253,7 +253,6 @@ implementation {
       }
     }
   }
-
   default async command uint8_t PacketInfo.offset[uart_id_t id](){
     return 0;
   }
@@ -265,12 +264,15 @@ implementation {
                                                        uint8_t dataLinkLen){
     return 0;
   }
-  default event message_t *Receive.receive[uart_id_t id](message_t *msg, 
+
+
+  default event message_t *Receive.receive[uart_id_t idxxx](message_t *msg,
                                                          void *payload,
                                                          uint8_t len){
     return msg;
   }
-  default event void Send.sendDone[uart_id_t id](message_t *msg, error_t error){
+  default event void Send.sendDone[uart_id_t idxxx](message_t *msg, error_t error){
+    return;
   }
 
   

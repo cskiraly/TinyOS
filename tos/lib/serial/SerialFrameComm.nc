@@ -3,6 +3,8 @@
 interface SerialFrameComm {
   async command error_t putDelimiter();
   async command error_t putData(uint8_t data);
+  async command void resetSend();
+  async command void resetReceive();
   async event void delimiterReceived();
   async event void dataReceived(uint8_t data);
   async event void putDone(); // maybe success? e.g. putDone(bool lastByteSuccess)
