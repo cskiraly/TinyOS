@@ -1,0 +1,10 @@
+.dates-set
+Makefile
+autom4te.cache
+config.log
+config.status
+uisp.1
+kernel
+uisp.spec
+config.cache
+configure
