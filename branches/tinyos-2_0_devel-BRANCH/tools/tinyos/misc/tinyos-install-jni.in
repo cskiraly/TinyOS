@@ -11,6 +11,6 @@ if [ $? -ne 0 ]; then
 fi
 echo "Installing Java JNI code in $jni ... "
 for lib in $tinyoslibdir/*.@JNISUFFIX@; do 
-  @INSTALLJNI@ $lib $jni || exit 1
+  @INSTALLJNI@ $lib "$jni" || exit 1
 done
 echo "done."

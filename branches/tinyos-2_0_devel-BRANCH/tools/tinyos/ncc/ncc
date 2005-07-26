@@ -10,7 +10,7 @@
 # 94704.  Attention:  Intel License Inquiry.
 
 # Configuration
-$TOSDIR = "/home/dgay/motes/tinyos-1.x/tos";
+$TOSDIR = "/home/degay/motes/tinyos-1.x/tos";
 $TOSDIR = $ENV{"TOSDIR"} if defined($ENV{"TOSDIR"});
 $nescc = "/usr/local/bin/nescc";
 
