@@ -2,3 +2,4 @@ Makefile
 Makefile.in
 .deps
 raw_listen
+tinyos-install-jni

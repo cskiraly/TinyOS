@@ -1,4 +1,4 @@
-//$Id: TOSComm.i,v 1.1.2.1 2005-07-26 17:15:25 idgay Exp $
+//$Id: TOSComm.i,v 1.1.2.2 2005-07-26 20:11:31 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -47,6 +47,3 @@
 }
 
 %include "NativeSerial.h"
-
-char* getenv( const char* name );
-

@@ -17,6 +17,7 @@ AC_CONFIG_AUX_DIR(config-aux)
 AM_INIT_AUTOMAKE
 
 AC_PROG_CC
+AC_PROG_CXX
 AC_PROG_RANLIB
 
 if test -z "$NESCC_PREFIX"; then
@@ -59,10 +60,34 @@ TOSDIR=`(cd $TOSDIR;pwd)`
 AC_MSG_NOTICE(TinyOS directory is $TOSDIR)
 AC_SUBST(TOSDIR)
 
-GETENVLIB=libgetenv.so
+AC_MSG_CHECKING(for cygwin)
+case $host in
+  *-*-cygwin*)
+    AC_MSG_RESULT(yes)
+    JNIPREFIX=
+    JNISUFFIX=dll
+    INSTALLJNI="install --group=SYSTEM"
+    ;;
+  *)
+    JNIPREFIX=lib
+    JNISUFFIX=so
+    INSTALLJNI="install"
+    AC_MSG_RESULT(no)
+esac
+
+AC_MSG_CHECKING(for JDK location)
 JDK=/opt/IBMJava2-141
+AC_MSG_RESULT($JDK)
+
+GETENVLIB=${JNIPREFIX}getenv.$JNISUFFIX
+TOSCOMMLIB=${JNIPREFIX}toscomm.$JNISUFFIX
+
 AC_SUBST(GETENVLIB)
+AC_SUBST(TOSCOMMLIB)
 AC_SUBST(JDK)
+AC_SUBST(INSTALLJNI)
+AC_SUBST(JNIPREFIX)
+AC_SUBST(JNISUFFIX)
 
 AC_CONFIG_SUBDIRS(platforms/mica/uisp)
 
@@ -75,6 +100,8 @@ AC_OUTPUT(
 	tinyos/Makefile
 	tinyos/java/Makefile
 	tinyos/java/env/Makefile
+	tinyos/java/serial/Makefile
+	tinyos/misc/tinyos-install-jni
 	tinyos/misc/Makefile
 	tinyos/ncc/Makefile
 	tinyos/ncc/mig

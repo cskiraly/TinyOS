@@ -6,6 +6,7 @@ bin_SCRIPTS = ident_flags \
 	      set-mote-id \
 	      tinyos-serial-configure \
 	      toscheck \
-	      write_tos_image
+	      write_tos_image \
+	      tinyos-install-jni
 
 bin_PROGRAMS = raw_listen
