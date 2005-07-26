@@ -1,4 +1,4 @@
-//$Id: TOSCommLibraryLoader.java,v 1.1.2.1 2005-05-23 22:11:48 idgay Exp $
+//$Id: TOSCommLibraryLoader.java,v 1.1.2.2 2005-07-26 20:08:34 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -30,17 +30,15 @@ public class TOSCommLibraryLoader
   {
     try
     {
-      System.loadLibrary("TOSComm");
+      System.loadLibrary("toscomm");
     }
     catch( Throwable t )
     {
       System.err.println(
-        "The TOSComm JNI library was not found.\n"
-      + "Please make sure the net.tinyos.comm package is properly installed.\n"
-      //+ "See tinyos-1.x/tools/java/net/tinyos/comm/README.TOSComm for more details.\n"
-      + "See tinyos-1.x/beta/TOSComm/README.TOSComm for more details.\n"
-      + "Aborting."
-      );
+        "The toscomm JNI library was not found.\n"+
+	"Check that your tinyos-tools package is installed and try\n"+
+	"rerunning tinyos-install-jni."+
+	"Aborting.");
       System.exit(1);
     }
   }
