@@ -1,4 +1,4 @@
-// $Id: SerialByteSource.java,v 1.1.2.1 2005-05-23 22:11:49 idgay Exp $
+// $Id: SerialByteSource.java,v 1.1.2.2 2005-07-26 20:56:23 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -37,10 +37,7 @@ import java.io.*;
 import net.tinyos.comm.*;
 
 /**
- * A serial port byte source, with extra special hack to deal with
- * broken javax.comm implementations (IBM's javax.comm does not set the
- * port to raw mode, on Linux, at least in some implementations - call
- * an external program (tinyos-serial-configure) to "fix" this)
+ * A serial port byte source using net.tinyos.comm
  */
 public class SerialByteSource extends StreamByteSource implements SerialPortListener
 {
@@ -55,28 +52,7 @@ public class SerialByteSource extends StreamByteSource implements SerialPortList
 
     public void openStreams() throws IOException {
 	try {
-          if(true)
-          {
-            //tosserial
             serialPort = new TOSSerial(portName);
-          }
-/*
-          else
-          {
-            //javaserial
-            javax.comm.CommPortIdentifier portId;
-            try {
-              portId = javax.comm.CommPortIdentifier.getPortIdentifier(portName);
-            }
-            catch(javax.comm.NoSuchPortException e) {
-              throw new IOException("Invalid port. "+allPorts());
-            }
-            javax.comm.SerialPort sp = (javax.comm.SerialPort)portId.open( 
-              "SerialByteSource", javax.comm.CommPortIdentifier.PORT_SERIAL
-            );
-            serialPort = new JavaxCommSerialPort(sp);
-          }
-*/
 	}
 	catch (Exception e) {
 	    throw new IOException("Could not open " + portName + ": " + e.getMessage());
@@ -96,13 +72,6 @@ public class SerialByteSource extends StreamByteSource implements SerialPortList
 	    serialPort.close();
 	    throw new IOException("Could not configure " + portName + ": " + e.getMessage() );
 	}
-
-	// Try & run external program to setup serial port correctly
-	// (necessary on Linux, IBM's javax.comm leaves port in cooked mode)
-//	try {
-//	    Runtime.getRuntime().exec("tinyos-serial-configure " + portName);
-//	}
-//	catch (IOException e) { }
 
 	is = serialPort.getInputStream();
 	os = serialPort.getOutputStream();
