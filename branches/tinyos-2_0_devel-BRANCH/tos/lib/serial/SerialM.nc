@@ -1,4 +1,4 @@
-// $Id: SerialM.nc,v 1.1.2.6 2005-07-26 02:07:52 bengreenstein Exp $
+// $Id: SerialM.nc,v 1.1.2.7 2005-07-26 20:32:56 bengreenstein Exp $
 
 /* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */ 
 /*									
@@ -37,7 +37,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.6 $
+ * Revision: $Revision: 1.1.2.7 $
  * 
  */
 
@@ -485,6 +485,7 @@ implementation {
   nosync:
     /* reset all counters, etc */
     rxInit();
+    call SerialFrameComm.resetReceive();
     signal ReceiveBytePacket.endPacket(FAIL);
     
     /* if this was a flag, start in proto state.. */

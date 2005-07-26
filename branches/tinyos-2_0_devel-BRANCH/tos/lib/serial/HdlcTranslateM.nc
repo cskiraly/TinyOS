@@ -15,7 +15,12 @@ implementation {
   norace uint8_t txTemp;
   
   // TODO: add reset for when SerialM goes no-sync.
-
+  async command void SerialFrameComm.resetReceive(){
+    state.receiveEscape = 0;
+  }
+  async command void SerialFrameComm.resetSend(){
+    state.sendEscape = 0;
+  }
   async event void SerialByteComm.get(uint8_t data) {
     if (data == HDLC_FLAG_BYTE) {
       signal SerialFrameComm.delimiterReceived();
