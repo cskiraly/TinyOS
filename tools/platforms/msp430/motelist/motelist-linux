@@ -1,0 +1,317 @@
+#!/usr/bin/perl
+#
+# Reads /proc/bus/usb/devices and selectively lists and/or
+# interprets it with /proc/tty/driver/usb-serial to determine which
+# motes are connected on which virtual comm ports at /dev/ttyUSB*
+#
+# Written by Joe Polastre
+#
+# $Id: motelist-linux,v 1.1.2.1 2005-07-26 21:19:25 idgay Exp $
+#
+
+use Getopt::Std;
+
+sub custom {
+  (split /\t/,$a)[1] <=>
+      (split /\t/,$b)[1];
+}
+
+$DEVFILENAME = "/proc/bus/usb/devices";
+$DRIVERFILENAME = "/proc/tty/driver/usb-serial";
+$PROGNAME = $0;
+$debug = 0;
+
+if (@ARGV > 0) {
+  $help = getopts('hclf:');
+  if ($opt_h == 1) {
+	print "usage: $0 [-l] [-c] [-f <file>]\n\n";
+	print '  $Revision: 1.1.2.1 $ $Date: 2005-07-26 21:19:25 $' . "\n\n";
+	print "options:\n";
+	print "  -h  display this help\n";
+	print "  -l  long format, also display disconnected devices\n";
+	print "  -c  compact format, not pretty but easier for parsing\n";
+        print "  -f  use file specified for 'usb-serial' instead of /proc/tty/driver\n";
+	exit(0);
+  }
+}
+
+if (! open (DEVNUM, "<$DEVFILENAME"))
+{
+	print "$PROGNAME: cannot open '$DEVFILENAME'\n";
+	exit 1;
+}
+if ($opt_f) {
+  if (! open (DRIVERNUM, "<$opt_f"))
+  {
+	print "$PROGNAME: cannot open '$DRIVERFILENAME'\n\n";
+        print "make sure that $DRIVERFILENAME is world readable by either\n";
+	print "running $0 as root or setting up a cron job to copy\n";
+	print "/proc/tty/driver/usb-serial to /tmp periodically\n\n";
+	print "use '$0 -h' for help\n";
+	exit 1;
+  }
+}
+else {
+  if (! open (DRIVERNUM, "<$DRIVERFILENAME"))
+  {
+	print "$PROGNAME: cannot open '$DRIVERFILENAME'\n\n";
+        print "make sure that $DRIVERFILENAME is world readable by either\n";
+	print "running $0 as root or setting up a cron job to copy\n";
+	print "/proc/tty/driver/usb-serial to /tmp periodically\n\n";
+	print "use '$0 -h' for help\n";
+	exit 1;
+  }
+}
+
+$showconfig = "yes";
+$currentlevel = 0;
+$portstr = "";
+
+
+while ($line = <DEVNUM>)	# read a text line from DEVNUM
+{
+        $origline = $line;
+	# skip all lines except those we recognize:
+	if (($line !~ "^C:")		# Configuration: one is active
+		    && ($line !~ "^D:")	# Device:
+		    && ($line !~ "^I:")	# Interface: protocol group
+		    && ($line !~ "^S:") # String: used with root hub
+		    && ($line !~ "^T:")	# Topology: starts each device
+		    && ($line !~ "^P:")	# Product : vendor and prod id
+		    )
+	{
+		next;	# to the next line
+	}
+
+	chomp $line;		# remove line endings
+
+	# First convert '=' signs to spaces.
+	$line =~ tr/=/ /;
+
+	# and convert all '(' and ')' to spaces.
+	$line =~ tr/(/ /;
+	$line =~ tr/)/ /;
+
+	# split the line at spaces.
+	@fields = split / +/, $line;
+
+	# T:  Bus=01 Lev=01 Prnt=01 Port=03 Cnt=01 Dev#=  3 Spd=1.5 MxCh= 0
+	if ($line =~ "^T:")
+	{
+		# split yields: $bus, $level, $parent, $port, $count, $devnum, $speed, $maxchild.
+
+		$bus    = @fields [2];
+		$level  = @fields [4];
+		$parent = @fields [6];		# parent devnum
+		$port   = @fields [8] + 1;	# make $port 1-based
+		$count  = @fields [10];
+		$devnum = @fields [12];
+		$speed  = @fields [14];
+		$maxchild = @fields [16];
+
+		if (($level == 0) && ($currentlevel == 0)) {
+		    $portstr = $port;
+		    $currentlevel = $level;
+		}
+                elsif ($level > $currentlevel) {
+		    $portstr = $portstr . "." . $port;
+		    $currentlevel = $level;
+		}
+		elsif ($level <= $currentlevel) {
+		    @portsplit = split /\./, $portstr;
+                    $portstr = @portsplit[0];
+		    for ($i = 1; $i < $level; $i++) {
+			$portstr = $portstr . "\." . @portsplit[$i];
+		    }
+		    $portstr = $portstr . "\." . $port;
+		    $currentlevel = $level;
+		}
+
+		$devclass = "?";
+		$intclass = "?";
+		$driver   = "?";
+		$ifnum    = "?";
+		$showclass = "?";	# derived from $devclass or $intclass
+		$lastif = "?";			# show only first altsetting
+		$HCtype = "?";
+                $vendor = "?";
+                $prodid = "?";
+		$showconfig = "no";
+		$nconfig = "0";
+		next;
+	} # end T: line
+
+        elsif ( $line =~ "^P:" ) {
+	    $vendor = @fields[2];
+            $prodid = @fields[4];
+            next;
+        }
+
+	# only show the _active_ configuration
+	# C:* #Ifs= 1 Cfg#= 1 Atr=a0 MxPwr=100mA
+	elsif ( $line =~ "^C:" ) {
+	    if ( $line =~ "^C:\\*" ) {
+		$showconfig = @fields[4];
+	    } else {
+		$showconfig = "no";
+	    }
+	    next;
+	}
+
+	# D:  Ver= 1.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1
+	elsif ($line =~ "^D:")
+	{ # for D: line
+		$devclass = @fields [5];
+		$nconfig = @fields [13];
+		next;
+	}
+
+	# in case this is a root hub, look at the device strings.
+	#  - S:  Manufacturer:Linux 2.6.5 ehci_hcd	[all 2.6]
+	#  - S:  Product=USB UHCI Root Hub 		[all 2.4, 2.2]
+	#  - S:  Product=OPTi Inc 82C861		[2.6/PCI_NAMES]
+	elsif ( $line =~ "^S:" )
+	{ # for S: line
+		if ( $level == 00 && $line =~ "hcd" )
+		{
+		    $HCtype = @fields [4];
+		}
+		elsif ( $level == 00 && $line =~ "HCI" && $HCtype eq "?")
+		{
+		    $HCtype = @fields [3];
+		}
+                elsif ( ($line =~ "Product") && ($vendor = "0403") ) 
+		{
+		    chomp($origline);
+		    @temparr = split /^S:  Product=/, $origline;
+		    $product = @temparr[1];
+		    chomp($product);
+                }
+                  
+                elsif ( ($line =~ "SerialNumber") && ( $vendor == "0403" )) 
+                {
+		    @temparr = split /\./, $portstr;
+		    $temparrlen = @temparr;
+		    $realstr = @temparr[1];
+		    for ($i = 2; $i < $temparrlen; $i++) {
+			$realstr = $realstr . "\." . @temparr[$i];
+		    }
+		    push ( @serialnums, @fields[2] );
+                    push ( @deviceids, $realstr );
+		    push ( @productids, $product );
+                }
+		next;
+	}
+
+	# the rest of this code:
+	#  - only shows interface descriptors
+	#  - for the active configuration
+	#  - for the first (prefer: active!) altsetting
+	elsif ( ! ( $line =~ "^I:" )
+		|| "$showconfig" eq "no") {
+	    next;
+	}
+
+	
+	# I:  If#= 0 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=01 Prot=02 Driver=hid
+	$intclass = @fields [9];
+	$ifnum    = @fields [2];
+	$driver   = @fields [15];
+
+	if (($devclass eq ">ifc") || ($devclass eq "unk."))
+	{	# then use InterfaceClass, not DeviceClass
+		$showclass = $intclass;
+	}
+	else
+	{	# use DeviceClass
+		$showclass = $devclass;
+	}
+
+	if ($level == 0)
+	{
+	    # substitute real driver name
+	    if ( $HCtype =~ "UHCI-alt" )
+	    {
+		$HC = "uhci";
+	    }
+	    elsif ( $HCtype =~ "UHCI" )
+	    {
+		$HC = "usb-uhci";
+	    }
+	    elsif ( $HCtype =~ "OHCI" )
+	    {
+		$HC = "usb-ohci";
+	    }
+	    else
+	    {
+		$HC = $HCtype;
+	    }
+
+	    if ($debug != 0) {
+		print sprintf ("/:  Bus $bus.Port $port: Dev $devnum, Class=root_hub, Driver=%s/%sp, %sM\n",
+			 $HC, $maxchild, $speed );
+	    }
+	}
+	elsif ($lastif ne $ifnum)
+	{
+		$temp = $level;
+		if ($debug != 0) {
+		    while ($temp >= 1)
+		    {
+			print "    ";
+			$temp--;
+		    }
+
+		    if ($nconfig ne "1") {
+			$temp = " Cfg $showconfig/$nconfig";
+		    } else {
+			$temp = "";
+		    }
+
+		    print sprintf ("|__ Port $port: Dev $devnum$temp, If $ifnum, Class=$showclass, Driver=$driver%s, %sM\n",
+				   ($maxchild == 0) ? "" : ("/" . $maxchild . "p"),
+				   $speed);
+		}
+	   
+		$lastif = $ifnum;
+	}
+} # end while DEVNUM
+
+close (DEVNUM);
+
+$count = @serialnums;
+while ($line = <DRIVERNUM>)	# read a text line from DEVNUM
+{
+    for ($i = 0; $i < $count; $i++) {
+	if ($line =~ $deviceids[$i]) {
+	    @temparr = split ":", $line;
+	    @devaddress[$i] = @temparr[0];
+	}
+    }
+}
+
+close (DRIVERNUM);
+
+for ($i = 0; $i < $count; $i++) {
+    @sortarray[$i] = $serialnums[$i] . "\t" . $devaddress[$i] . "\t" . $productids[$i];
+}
+
+@sorted = sort custom @sortarray;
+
+if ($opt_c != 1) {
+    print "Reference  \tCommPort   \tDescription\n";
+    print "---------- \t---------- \t----------------------------------------\n";
+}
+
+for ($i = 0; $i < $count; $i++) {
+    $temp = @sorted[$i];
+    @fields = split /\t/,$temp;
+    if ($opt_c == 1) {
+      print @fields[0] . ",/dev/ttyUSB" . @fields[1] . ",0," . @fields[2] . "\n";
+    }
+    else {
+      print @fields[0] . "\t/dev/ttyUSB" . @fields[1] . "\t" . @fields[2] . "\n";
+    }
+}
+
+# END.
