@@ -11,7 +11,7 @@ configuration SerialDispatcherC {
 }
 implementation {
   components SerialM, new SerialDispatcherM(), 
-    HldcTranslateM as HdlcTranslateM, 
+    HdlcTranslateM, 
     HPLUARTM;
   
   Send = SerialDispatcherM;
