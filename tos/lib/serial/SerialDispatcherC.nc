@@ -6,21 +6,24 @@ configuration SerialDispatcherC {
   }
   uses {
     interface SerialPacketInfo[uart_id_t];
+    interface Leds;
   }
 }
 implementation {
-  components SerialM, SerialDispatcherM, HldcTranslateM as HdlcTranslateM, 
-    HPLUARTM, LedsC;
+  components SerialM, new SerialDispatcherM(), 
+    HldcTranslateM as HdlcTranslateM, 
+    HPLUARTM;
   
   Send = SerialDispatcherM;
   Receive = SerialDispatcherM;
-  SerialPacketInfo = SerialDispatcherM;
+  SerialPacketInfo = SerialDispatcherM.PacketInfo;
   
   Init = SerialM;
   Init = HPLUARTM.UART0Init;
+  Leds = SerialM;
 
-  SerialDispatcherM.ReceiveBytePacket = SerialM;
-  SerialDispatcherM.SendBytePacket = SerialM;
+  SerialDispatcherM.ReceiveBytePacket -> SerialM;
+  SerialDispatcherM.SendBytePacket -> SerialM;
 
   SerialM.SerialFrameComm -> HdlcTranslateM;
   HdlcTranslateM.SerialByteComm -> HPLUARTM.UART0;
