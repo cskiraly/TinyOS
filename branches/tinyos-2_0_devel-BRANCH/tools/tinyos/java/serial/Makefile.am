@@ -1,10 +1,26 @@
+JDK = @JDK@
+
 tinyoslibdir=$(libdir)/tinyos
 
-TOSCOMM = @SOPREFIX@TOSComm.@SOSUFFIX@
+tinyoslib_PROGRAMS = @TOSCOMMLIB@
 
-tinyoslib_DATA = $(TOSCOMM)
+EXTRA_PROGRAMS = libtoscomm.so toscomm.dll
 
-@SOPREFIX@TOSComm_@SOSUFFIX@_SOURCES = 
+libtoscomm_so_SOURCES = \
+  NativeSerialEnums.h \
+  NativeSerial_linux.cpp \
+  TOSComm_wrap.cxx
 
-$(TOSCOMM) : net_tinyos_util_Env.h net_tinyos_util_Env.c
-	gcc -o$@ @JNIFLAGS@ net_tinyos_util_Env.c
+toscomm_dll_SOURCES = \
+  NativeSerialEnums.h \
+  NativeSerial_win32.cpp \
+  TOSComm_wrap.cxx
+
+libtoscomm.so: $(libtoscomm_so_SOURCES)
+	$(CXX) -O2 -shared -I$(JDK)/include -I$(JDK)/include/linux \
+	  -o $@ NativeSerial_linux.cpp
+
+toscomm.dll: $(toscomm_dll_SOURCES)
+	$(CXX) -O2 -s -mno-cygwin -shared -I$(JDK)/include -I$(JDK)/include/win32 \
+	  -o $@ NativeSerial_win32.cpp
+
