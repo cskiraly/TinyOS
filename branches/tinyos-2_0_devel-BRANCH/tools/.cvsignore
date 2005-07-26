@@ -1,13 +1,8 @@
-.dates-set
 Makefile
 Makefile.in
 aclocal.m4
-config
 autom4te.cache
+config-aux
 config.log
 config.status
-uisp.1
-kernel
-uisp.spec
-config.cache
 configure
