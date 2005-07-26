@@ -1,4 +1,4 @@
-//$Id: TOSCommLibraryLoader.java,v 1.1.2.2 2005-07-26 20:08:34 idgay Exp $
+//$Id: TOSCommLibraryLoader.java,v 1.1.2.3 2005-07-26 20:56:23 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -37,7 +37,7 @@ public class TOSCommLibraryLoader
       System.err.println(
         "The toscomm JNI library was not found.\n"+
 	"Check that your tinyos-tools package is installed and try\n"+
-	"rerunning tinyos-install-jni."+
+	"rerunning tinyos-install-jni.\n"+
 	"Aborting.");
       System.exit(1);
     }
