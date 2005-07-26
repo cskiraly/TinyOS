@@ -1,0 +1,83 @@
+#!/bin/sh
+# This script attempts to locate the jre directory of the current
+# Java installation, even when java is not in the path
+
+# We only support it for Sun's Java on Windows and IBM's Java on Linux
+
+# We require an option to specify which directory is desired:
+# --java: directory with java executable
+# --javac: directory with javac executable
+# --jni: directory where JNI code is placed
+
+if [ "$1" = "--jni" ]; then
+  jni=yes
+elif [ "$1" = "--java" ]; then
+  java=yes
+elif [ "$1" = "--javac" ]; then
+  javac=yes
+else
+  echo "Usage: locate-jre --java|--javac|--jni" >&2
+  exit 2
+fi
+
+case `uname` in
+  CYGWIN*)
+        # Hopefully this will always work on cygwin with Sun's Java
+	jversion=`regtool -q get '\HKLM\SOFTWARE\JavaSoft\Java Development Kit\CurrentVersion'`
+	if [ $? != 0 ]; then
+	    exit 1
+	fi
+	jhome=`regtool -q get '\HKLM\SOFTWARE\JavaSoft\Java Development Kit\'$jversion'\JavaHome'`
+	if [ $? != 0 ]; then
+	    exit 1
+	fi
+	jhome=`cygpath -u "$jhome"`
+	;;
+    Linux)
+        # On Linux, we first try to find it from the rpm
+	j=`rpm -ql IBMJava2-SDK | grep -m 1 'bin/javac$'`
+	if [ $? != 0 ]; then
+            # Next we try the path. This won't work within rpms, as they reset
+            # the path (and we can't just execute the profile as that tends to 
+            # execute locate-jre ...). Life is hard...
+	    j=`which javac 2>/dev/null`
+	    if [ $? != 0 ]; then
+		exit 1
+	    fi
+	fi
+	jbin=`dirname "$j"`
+	jhome=`dirname "$jbin"`
+	;;
+    FreeBSD)
+	if [ -f /usr/local/jdk1.4*/bin/java ]; then
+	    jbin=/usr/local/jdk1.4*/bin
+	else
+	    exit 1
+	fi
+	jhome=`dirname $jbin`
+	;;
+esac
+
+# These are correct for Sun's Window java and IBM's Linux java
+if [ "$jni" = "yes" ]; then
+  case `uname` in
+    FreeBSD)
+        UNAMEM=`uname -m`
+	dir="$jhome/jre/lib/$UNAMEM"
+	;;
+    *)
+	dir="$jhome/jre/bin"
+	;;
+  esac
+elif [ "$javac" = "yes" ]; then
+  dir="$jhome/bin"
+elif [ "$java" = "yes" ]; then
+  dir="$jhome/jre/bin"
+fi
+
+# Check that what we found actually exists
+if [ -d "$dir" ]; then
+  echo $dir
+else
+  exit 1
+fi

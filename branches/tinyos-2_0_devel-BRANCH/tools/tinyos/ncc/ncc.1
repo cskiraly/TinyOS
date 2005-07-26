@@ -1,0 +1,253 @@
+.TH ncc 1 "April 27, 2004"
+.LO 1
+.SH NAME
+ncc - nesC compiler for TinyOS
+.SH SYNOPSIS
+
+\fBncc\fR [\fB-target=\fIpc|mica|mica2|mica2dot|...\fR] [\fB-print-platforms\fR]
+    [\fB-board=\fImicasb|basicsb|micawb|...\fR]
+    [\fB-tosdir=\fIdir\fR] [\fB-print-tosdir\fR] [\fB-nostdinc\fR] 
+    [\fB-docdir=\fIdir\fR] [\fB-topdir=\fIdir\fR] [\fB-graphviz=y\fI|\fBn\fR]
+    [\fB-fnesc-nido-tosnodes=\fIn\fR] [\fB-fnesc-cfile=\fIfile\fR] [\fB-fnesc-no-inline\fR]
+    [\fB--version\fR] [\fB-fnesc-verbose\fR] [\fB-Wnesc-\fI...\fR]
+    [\fB-fnesc-dump=\fIspecification\fR] [\fB-fnesc-dumpfile=\fIfile\fR]
+    [\fB-fnesc-scheduler=\fIspecification\fR]
+    [any gcc option] \fIfiles\fR...
+.SH DESCRIPTION
+
+\fBncc\fR is an extension to \fBgcc\fR that knows how to compile nesC
+applications in the TinyOS environment. If invoked on regular C files, it
+behaves exactly like \fBgcc\fR. When invoked on a nesC component or
+interface (\fB.nc\fR extension) file it compiles and links (except if the
+usual \fB-c\fR, \fB-S\fR, \fB-E\fR or \fB-fsyntax-only\fR options are used)
+that component with the other files specified on the command line.
+.SH OPTIONS
+
+\fBncc\fR accepts all \fBgcc\fR options, and some additional TinyOS
+and nesC specific options:
+.TP
+\fB-target=\fIX\fR 
+Specify the target architecture for this compilation. If \fBpc\fR is
+specified, the compilation uses the tossim environment and produces a
+locally executable file. The default target is \fBmica\fR, the possible
+targets are set by the TinyOS distribution (see the \fBtos/platforms\fR
+directory). A platform that is not in the TinyOS distribution can be used
+if its directory is specified with an explicit -I directive (the platform
+name is taken from the directory's name, platform directories are
+recognised by the presence of a \fB.platform\fR file).
+.TP
+\fB-tosdir=\fIdir\fR 
+Specify the location of TinyOS. This location can also be specified with
+the \fBTOSDIR\fR environment variable. If the variable and the option are both
+given, \fBncc\fR uses the value specified with the option. If neither the
+environment variable or option are specified, ncc uses its compiled-in
+TinyOS directory.
+.TP
+\fB-print-tosdir\fR
+Print the TinyOS directory to be used and exit, taking into account the
+\fB-tosdir\fR option and \fBTOSDIR\fR environment variable. No compilation
+occurs when \fB-print-tosdir\fR is used.
+.TP
+\fB-print-platforms\fR
+Print the valid TinyOS platforms, including those made available by
+explicit \fB-I\fR directives (see \fB-target\fR option).
+.TP
+\fB-nostdinc\fR
+Do not automatically include the TinyOS directories in the search path. See
+the discussion of search paths below for more details.
+.TP
+\fB-board=\fIY\fR
+Specify one (or more) sensor boards. This effects the search path and
+preprocessor symbols. The set of boards is set by the TinyOS distribution
+(see the \fBtos/sensorboards\fR directory). As with targets, a sensorboard
+directory can be made available via an explicit \fB-I\fR directive
+(sensorboard directories are recognised by the presence of a \fB.sensor\fR
+file).
+.TP
+\fB-docdir=\fIdir\fR 
+Generate documentation for the compiled component in directory \fIdir\fR.
+.TP
+\fB-topdir=\fIdir\fR 
+Specify directory paths that should be stripped from the source file names
+when generating "package names" for the documentation files.  The directory
+above \fBTOSDIR\fR is automatically added, so this option is only needed for
+directories outside the main TinyOS distribution.
+.TP
+\fB-graphviz=y\fR|\fBn\fR 
+Explicitly enable or disable the use of the graphviz tool in the generated
+documentation. Without this option, graphviz is enabled iff the \fBdot\fR
+program is found in the current path. Use of graphviz requires \fBdot\fR.  The
+documentation generation tool checks the version of \fBdot\fR, and enables
+client-side image maps, if supported.
+.TP
+\fB-fnesc-nido-tosnodes=\fIn\fR 
+Specify the maximum number of nodes that can be simulated in the tossim
+(\fBpc\fR target) environment.
+.TP
+\fB-fnesc-no-inline\fR
+Disabled the automatic inlining of all small functions, and of all functions
+with a single call site.
+.TP
+\fB-fnesc-cfile=\fIfile\fR 
+Specify a file in which to save the C code generated when compiling a
+component. Note: if you specify two components on the command line, then
+the C code from the second one will overwrite the C code from the first.
+.TP
+\fB--version\fR
+Print the version of \fBncc\fR, \fBnescc\fR and of the gcc compiler
+used for the selected target.
+.TP
+\fB-fnesc-include=\fIheader-file\fR
+Include the specified file before compiling a nesC component. Behaves
+as if \fBincludes \fIheader-file\fB;\fR was included at the start of
+that component.
+.TP
+\fB-fnesc-dump=\fIspecification\fR
+Output information on the compiled programs structure, and in particular
+its user-specified attributes. For more details, see the separate nesC
+dump documentation.
+.TP
+\fB-fnesc-dumpfile=\fIfile\fR
+Where to output the information requested by \fB-fnesc-dump\fR. Defaults to
+stdout.
+.TP
+\fB-fnesc-verbose\fR
+Be more verbose than \fB-v\fR.
+.TP
+\fB-fnesc-scheduler=\fIcomponent\fR,\fIunique-string\fR,\fIinterface-name\fR,\fIinterface-definition\fR,\fIrun-event\fR,\fIpost-command\fR
+By default, nesC compiles uses of \fBtask void \fItaskname\fB() ...\fR to
+\fBvoid \fItaskname\fB()\fR, and \fBpost \fItaskname()\fR to
+\fBTOS_post(\fItaskname\fB)\fR. 
+
+With this option, each task gets its own \fIinterface-definition\fR
+interface, the task implementation is transformed into a \fIrun-event\fR
+event and posts becomes a call to the \fIpost-command\fR command. This
+per-task interface is automatically connected to the parameterised
+\fIinterface-name\fR interface of scheduler component \fIcomponent\fR. The
+parameter id for the connection is chosen with
+\fBunique("\fIunique-string\fB")\fR.
+.PP
+There are a number of warnings specific to nesC, specified with
+\fB-Wnesc-\fR (all these warnings are off by
+default):
+.TP
+\fB-Wnesc-fnptr\fR
+Warn when function pointers are used (use of function pointers is
+deprecated in nesC and leads to inaccurate data race detection).
+.TP
+\fB-Wnesc-async\fR 
+Warn when interrupt handlers call commands or events not annotated with
+\fBasync\fR.
+.TP
+\fB-Wnesc-data-race\fR
+Warn about potential data races.
+.TP
+\fB-Wnesc-combine\fR
+Warn when configuration wiring leads to "fan-out" and the function return
+type does not have a combining function defined.
+.TP
+\fB-Wnesc-docstring\fR
+Warn when unexpected documentation strings (starting with \fB/**\fR) are
+seen.
+.TP
+\fB-Wnesc-all\fR
+Turns on \fB-Wnesc-fnptr\fR, \fB-Wnesc-async\fR, \fB-Wnesc-combine\fR 
+and\fB-Wnesc-data-race\fR.
+.TP
+\fB-Wnesc-error\fR
+Turns the \fB-Wnesc-fnptr\fR, \fB-Wnesc-async\fR, \fB-Wnesc-combine\fR and
+\fB-Wnesc-data-race\fR warnings into errors.
+.PP
+When compiling a nesC component, the nesC compiler recognizes the gcc C
+language (\fB-f...\fR) and warning (\fB-W...\fR) options. The \fB-S\fR,
+\fB-c\fR and \fB-o\fR options work as usual, the \fB-x\fR option accepts
+\fBnesc\fR. The \fB-v\fR option causes the nesC compiler to print out the
+paths of all components and interfaces that are loaded. Directories can be
+added to nesC\fRs search path with \fB-I\fR (see the search path discussion
+below).
+.SH EXAMPLES
+
+If you wish to compile a component Bar.nc to a C file, you can do:
+.IP
+ncc -c -o /dev/null -fnesc-cfile=Bar.c Bar.nc
+.SH SEARCH PATH
+
+\fBncc\fR performs the following substitutions on the directories specified
+with the \fB-I\fR option: \fB%T\fR is replaced by the TinyOS directory,
+\fB%p\fR is replaced by the selected target, \fB%%\fR is replaced by
+\fB%\fR.
+
+Except when \fB-nostdinc\fR is specified, the search path for nesC
+components is as follows, where \fItosdir\fR is the TinyOS directory
+requested and \fItarget\fR is the selected target:
+.IP *
+The current directory
+.IP *
+\fB-I\fR directives (in option order)
+.IP *
+%T/sensorboards/\fIboardname\fR, for each
+\fB-board=\fIboardname\fR option specified (in option order) -
+except if the sensorboard was found via an explicit -I directive
+.IP *
+%T/platform/%p  - except if the platform was found via an
+explicit -I directive
+.IP *
+Additional directories requested by the selected target (e.g.,
+%T/platform/avrmote for the mica target)
+.IP *
+%T/interfaces
+.IP *
+%T/system
+.IP *
+%T/lib
+.IP *
+\fBNESCPATH\fR environment variable directories (note that %T and %p
+subsitution is not performed on these directories).
+.PP
+When \fB-nostdinc\fR is specified, the search path is simply:
+.IP *
+The current directory
+.IP *
+\fB-I\fR directives
+.IP *
+\fBNESCPATH\fR environment variable directories
+.SH PREPROCESSOR SYMBOLS
+
+\fBncc\fR defines the following preprocessor symbols:
+.TP
+\fBNESC\fR (since v1.1) 
+set to XYZ where x.yz is the nesC version
+.TP
+\fBPLATFORM_\fItarget\fR 
+where \fItarget\fR is the selected target name, converted to upper case
+.TP
+\fBBOARD_\fIboardname\fR 
+for each \fB-board=\fIboardname\fR option (the
+boardname is converted to upper case)
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B TOSDIR
+If the \fB-tosdir=\fIdir\fR option is not used, the \fBTOSDIR\fR
+environment variable specifies the location of TinyOS.
+.TP
+.B NESCPATH 
+A colon separated list of additional search directories for
+nesC components.
+.SH SEE ALSO
+
+.IR gcc (1),
+platform-specific gcc,
+.IR nescc (1)
+.SH NOTES
+
+\fBncc\fR is built over \fBnescc\fR, which handles the non-TinyOS-specific
+functionality of \fBncc\fR. Users of nesC in a non-TinyOS context may
+prefer to use \fBnescc\fR (see the source code of ncc and nescc for
+details).
+
+The warnings for the new nesC 1.1 features (see \fB-Wnesc-all\fR) are off
+by default to increase compatibility with nesC 1.0 code. To match the
+language specification in the nesC 1.1 reference manual, you should compile
+with \fB-Wnesc-all\fR and \fB-Wnesc-error\fR. These options will become the
+default in future releases.
