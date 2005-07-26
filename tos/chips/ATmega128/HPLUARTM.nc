@@ -1,4 +1,4 @@
-/// $Id: HPLUARTM.nc,v 1.1.2.5 2005-07-21 19:27:01 bengreenstein Exp $
+/// $Id: HPLUARTM.nc,v 1.1.2.6 2005-07-26 02:09:54 bengreenstein Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -38,7 +38,7 @@ module HPLUARTM
 implementation
 {
   //=== UART Init Commands. ====================================
-  async command error_t UART0Init.init() {
+  command error_t UART0Init.init() {
       ATm128UARTMode_t    mode;
       ATm128UARTStatus_t  stts;
       ATm128UARTControl_t ctrl;
@@ -55,7 +55,7 @@ implementation
 
       return SUCCESS;
   }
-  async command error_t UART1Init.init() {
+  command error_t UART1Init.init() {
       ATm128UARTMode_t    mode;
       ATm128UARTStatus_t  stts;
       ATm128UARTControl_t ctrl;
