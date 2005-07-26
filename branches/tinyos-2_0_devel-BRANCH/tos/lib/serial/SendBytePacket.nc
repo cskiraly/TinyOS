@@ -15,7 +15,7 @@
      
 
 interface SendBytePacket {
-  async command error_t startSend(uint8_t b);
+  async command error_t startSend(uint8_t first_byte);
   async command error_t completeSend();
 
   /* The semantics on this are a bit tricky, as it should be able to
@@ -29,7 +29,6 @@ interface SendBytePacket {
   async event uint8_t nextByte();
 
   async event void sendCompleted(error_t error);
-  async event void clearToSend();
 }
 
 
