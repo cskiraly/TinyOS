@@ -1,5 +1,7 @@
 JDK = @JDK@
 
+EXEEXT=
+
 tinyoslibdir=$(libdir)/tinyos
 
 tinyoslib_PROGRAMS = @TOSCOMMLIB@
@@ -17,10 +19,10 @@ toscomm_dll_SOURCES = \
   TOSComm_wrap.cxx
 
 libtoscomm.so: $(libtoscomm_so_SOURCES)
-	$(CXX) -O2 -shared -I$(JDK)/include -I$(JDK)/include/linux \
+	$(CXX) -O2 -shared "-I$(JDK)/include" "-I$(JDK)/include/linux" \
 	  -o $@ NativeSerial_linux.cpp
 
 toscomm.dll: $(toscomm_dll_SOURCES)
-	$(CXX) -O2 -s -mno-cygwin -shared -I$(JDK)/include -I$(JDK)/include/win32 \
+	$(CXX) -O2 -s -mno-cygwin -shared "-I$(JDK)/include" "-I$(JDK)/include/win32" -D_JNI_IMPLEMENTATION -Wl,--kill-at \
 	  -o $@ NativeSerial_win32.cpp
 

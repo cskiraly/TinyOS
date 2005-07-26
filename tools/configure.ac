@@ -15,6 +15,7 @@ AC_PREREQ(2.50)
 AC_INIT(tinyos-tools, 1.2pre1)
 AC_CONFIG_AUX_DIR(config-aux)
 AM_INIT_AUTOMAKE
+AC_CANONICAL_HOST
 
 AC_PROG_CC
 AC_PROG_CXX
@@ -25,8 +26,8 @@ if test -z "$NESCC_PREFIX"; then
   if test -z "$pathnescc"; then
     AC_MSG_ERROR(I can't find nescc)
   else
-    NESCC_PREFIX=`dirname $pathnescc`
-    NESCC_PREFIX=`dirname $NESCC_PREFIX`
+    NESCC_PREFIX=`dirname "$pathnescc"`
+    NESCC_PREFIX=`dirname "$NESCC_PREFIX"`
   fi
 fi
 nescc_prefix=`(cd $NESCC_PREFIX;pwd)`
@@ -80,7 +81,7 @@ JAVAC_DIR=`tinyos/misc/locate-jre --javac`
 if test $? -ne 0; then
   AC_ERROR(java not found)
 fi
-JDK=`dirname $JAVAC_DIR`
+JDK=`dirname "$JAVAC_DIR"`
 AC_MSG_RESULT($JDK)
 
 GETENVLIB=${JNIPREFIX}getenv.$JNISUFFIX
