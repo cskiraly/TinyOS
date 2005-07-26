@@ -1,0 +1,16 @@
+README.txt
+LICENSE.txt
+setup.py
+elf.py
+bsl.py
+makefile
+install-pybsl.nsi
+BL_150S_44x.txt
+BL_150S_14x.txt
+readme-BL.txt
+6port.a43
+serial/__init__.py
+serial/serialjava.py
+serial/serialposix.py
+serial/serialutil.py
+serial/serialwin32.py
