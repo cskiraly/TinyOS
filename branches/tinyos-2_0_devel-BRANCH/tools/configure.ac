@@ -76,7 +76,11 @@ case $host in
 esac
 
 AC_MSG_CHECKING(for JDK location)
-JDK=/opt/IBMJava2-141
+JAVAC_DIR=`tinyos/misc/locate-jre --javac`
+if test $? -ne 0; then
+  AC_ERROR(java not found)
+fi
+JDK=`dirname $JAVAC_DIR`
 AC_MSG_RESULT($JDK)
 
 GETENVLIB=${JNIPREFIX}getenv.$JNISUFFIX
