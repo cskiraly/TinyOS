@@ -1,4 +1,4 @@
-// $Id: SerialM.nc,v 1.1.2.5 2005-07-26 02:03:59 bengreenstein Exp $
+// $Id: SerialM.nc,v 1.1.2.6 2005-07-26 02:07:52 bengreenstein Exp $
 
 /* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */ 
 /*									
@@ -37,7 +37,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.5 $
+ * Revision: $Revision: 1.1.2.6 $
  * 
  */
 
@@ -45,7 +45,7 @@
  * FramerM
  * 
  * This modules provides framing for TOS_Msg's using PPP-HDLC-like framing 
- * (see RFC 1662).  When sending, a TOS_Msg is encapsulated in an HLDC frame.
+ * (see RFC 1662).  When sending, a TOS_Msg is encapsulated in an HDLC frame.
  * Receiving is similar EXCEPT that the component expects a special token byte
  * be received before the data payload. The purpose of the token is to feed back
  * an acknowledgement to the sender which serves as a crude form of flow-control.

@@ -1,5 +1,5 @@
-interface UARTPacketInfo {
-  command uint8_t offset();
-  command uint8_t dataLinkLength(message_t* msg, uint8_t upperLen);
-  comment uint8_t upperLength(message_t* msg, uint8_t dataLinkLen);
+interface SerialPacketInfo {
+  async command uint8_t offset();
+  async command uint8_t dataLinkLength(message_t* msg, uint8_t upperLen);
+  async command uint8_t upperLength(message_t* msg, uint8_t dataLinkLen);
 }
