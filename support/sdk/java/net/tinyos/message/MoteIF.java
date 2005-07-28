@@ -1,4 +1,4 @@
-// $Id: MoteIF.java,v 1.1.2.1 2005-06-10 00:13:52 idgay Exp $
+// $Id: MoteIF.java,v 1.1.2.2 2005-07-28 15:32:24 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -117,9 +117,11 @@ public class MoteIF {
 	// Start source if it isn't started yet
 	try {
 	    source.start();
-	    source.awaitStartup();
 	}
 	catch (IllegalThreadStateException e) { }
+	try {
+	    source.awaitStartup();
+	}
 	catch (IOException e) { 
 	    e.printStackTrace();
 	}
