@@ -1,4 +1,4 @@
-// $Id: CC2420RadioInterruptCCA.nc,v 1.1.2.1 2005-07-13 07:02:28 mturon Exp $
+// $Id: CC2420RadioInterruptCCA.nc,v 1.1.2.2 2005-07-29 05:24:15 mturon Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -31,10 +31,10 @@ configuration CC2420RadioInterruptCCA
 implementation
 {
   components 
-      CC2420RadioIO
-    , new InterruptM()
+      HPLInterruptC,
+      new InterruptM()
     ;
 
   Interrupt = InterruptM.Interrupt;
-  InterruptM.HPLInterrupt -> CC2420RadioIO.CC2420RadioCCA;
+  InterruptM.HPLInterrupt -> HPLInterruptC.NoInt;  // not connected to irq
 }
