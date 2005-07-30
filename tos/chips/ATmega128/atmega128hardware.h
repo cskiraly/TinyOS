@@ -33,7 +33,7 @@
  *  @author Jason Hill, Philip Levis, Nelson Lee, David Gay
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: atmega128hardware.h,v 1.1.2.9 2005-05-18 23:28:13 idgay Exp $
+ *  $Id: atmega128hardware.h,v 1.1.2.10 2005-07-30 23:09:02 mturon Exp $
  */
 
 #ifndef _H_atmega128hardware_H
@@ -63,6 +63,9 @@
 #define CLR_BIT(port, bit)    ((port) &= ~_BV(bit))
 #define READ_BIT(port, bit)   (((port) & _BV(bit)) != 0)
 #define FLIP_BIT(port, bit)   ((port) ^= _BV(bit))
+#define WRITE_BIT(port, bit, value) \
+   if (value) SET_BIT((port), (bit)); \
+   else CLR_BIT((port), (bit))
 
 /// Bit operators using bit flag mask
 #define SET_FLAG(port, flag)  ((port) |= (flag))

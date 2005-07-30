@@ -1,4 +1,4 @@
-// $Id: CC2420RadioInterruptCCA.nc,v 1.1.2.3 2005-07-30 00:35:00 mturon Exp $
+// $Id: CC2420RadioInterruptCCA.nc,v 1.1.2.4 2005-07-30 23:09:03 mturon Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -42,6 +42,6 @@ implementation
 	new SoftIrqC(CC2420CCA_SOFT_IRQ_RATE) as SoftIrq,
         CC2420RadioIO;
     
-    Interrupt = SoftIrq.Interrupt;
-    SoftIrq.IrqPin -> CC2420RadioIO.CC2420RadioCCA;
+    Interrupt = SoftIrq;
+    SoftIrq -> CC2420RadioIO.CC2420RadioCCA;
 }

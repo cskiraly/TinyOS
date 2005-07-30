@@ -1,4 +1,4 @@
-/// $Id: HPLCapture.nc,v 1.1.2.1 2005-04-14 08:20:45 mturon Exp $
+/// $Id: HPLCapture.nc,v 1.1.2.2 2005-07-30 23:09:03 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -33,11 +33,13 @@ interface HPLCapture<size_type>
   /// Interrupt signals
   async event void captured(size_type t);  //<! Signalled on capture interrupt
 
-  /// Interrupt flag utilites: Bit level set/clr
+  /// Interrupt flag utilites: Bit level set/clr  
   async command void reset();         //<! Clear the capture interrupt flag
   async command void start();         //<! Enable the capture interrupt
   async command void stop();          //<! Turn off capture interrupts
   async command bool test();          //<! Did capture interrupt occur?
   async command bool isOn();          //<! Is capture interrupt on?
+
+  async command void setEdge(bool);   //<! True = detect rising edge
 }
 
