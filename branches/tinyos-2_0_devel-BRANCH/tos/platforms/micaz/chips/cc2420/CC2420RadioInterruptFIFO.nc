@@ -1,4 +1,4 @@
-// $Id: CC2420RadioInterruptFIFO.nc,v 1.1.2.3 2005-07-30 00:35:01 mturon Exp $
+// $Id: CC2420RadioInterruptFIFO.nc,v 1.1.2.4 2005-07-30 23:09:03 mturon Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -39,10 +39,10 @@ configuration CC2420RadioInterruptFIFO
 implementation
 {
     components 
-	new HalSoftInterruptPinC(CC2420FIFO_SOFT_IRQ_RATE) as SoftIrq,
+	new SoftIrqC(CC2420FIFO_SOFT_IRQ_RATE) as SoftIrq,
 	CC2420RadioIO;
     
-    Interrupt = SoftIrq.Interrupt;
+    Interrupt = SoftIrq;
     SoftIrq.IrqPin -> CC2420RadioIO.CC2420RadioFIFO;
 }
 

@@ -1,4 +1,4 @@
-/// $Id: HPLTimerM.nc,v 1.1.2.5 2005-05-18 23:28:13 idgay Exp $
+/// $Id: HPLTimerM.nc,v 1.1.2.6 2005-07-30 23:09:03 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -261,6 +261,9 @@ implementation
       return (call Timer2Ctrl.getInterruptMask()).bits.ocie2; 
   }
 
+  //=== Capture 16-bit implementation. ===================================
+  async command void Capture1.setEdge(bool up) { WRITE_BIT(TCCR1B,ICES1, up); }
+  async command void Capture3.setEdge(bool up) { WRITE_BIT(TCCR3B,ICES3, up); }
 
   //=== Timer 16-bit implementation. ===================================
   async command void Timer1.reset()    { SET_BIT(TIFR,TOV1); }
