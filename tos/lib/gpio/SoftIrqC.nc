@@ -24,7 +24,7 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: SoftIrqC.nc,v 1.1.2.1 2005-07-30 00:35:00 mturon Exp $
+ *  $Id: SoftIrqC.nc,v 1.1.2.2 2005-07-30 00:52:05 mturon Exp $
  */
 
 /**
@@ -42,11 +42,10 @@ implementation
 {
     components
 	new SoftIrqM(interval), 
-	new OSKITimerMsC() as IrqTimer,
-	;
+	new OSKITimerMsC() as IrqTimer;
 
     Interrupt = SoftIrqM;
     GeneralIO = SoftIrqM;
     
-    SoftIrqPinM.Timer -> IrqTimer;   // strap into an OSKI system timer
+    SoftIrqM.Timer -> IrqTimer;   // strap into an OSKI system timer
 }
