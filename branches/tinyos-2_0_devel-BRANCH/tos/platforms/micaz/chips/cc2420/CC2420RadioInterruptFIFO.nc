@@ -1,4 +1,4 @@
-// $Id: CC2420RadioInterruptFIFO.nc,v 1.1.2.2 2005-07-29 05:24:15 mturon Exp $
+// $Id: CC2420RadioInterruptFIFO.nc,v 1.1.2.3 2005-07-30 00:35:01 mturon Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -24,18 +24,25 @@
  * @author Joe Polastre
  * @author Martin Turon
  */
+
+// Set to 1 msec resolution
+#define CC2420FIFO_SOFT_IRQ_RATE 1
+
+/**
+ * Create a SoftIrq to provide standard interrupt interface
+ * for a CPU pin that doesn't handle external interrupts.
+ */
 configuration CC2420RadioInterruptFIFO
 {
   provides interface Interrupt;
 }
 implementation
 {
-  components 
-      HPLInterruptC,
-      new InterruptM()
-    ;
-
-  Interrupt = InterruptM.Interrupt;
-  InterruptM.HPLInterrupt -> HPLInterruptC.NoInt;  // not connected to irq
+    components 
+	new HalSoftInterruptPinC(CC2420FIFO_SOFT_IRQ_RATE) as SoftIrq,
+	CC2420RadioIO;
+    
+    Interrupt = SoftIrq.Interrupt;
+    SoftIrq.IrqPin -> CC2420RadioIO.CC2420RadioFIFO;
 }
 
