@@ -1,4 +1,4 @@
-// $Id: TinyError.h,v 1.1.2.7 2005-02-10 01:29:50 scipio Exp $
+// $Id: TinyError.h,v 1.1.2.8 2005-07-30 00:00:35 idgay Exp $
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -22,35 +22,27 @@
 
 /**
  * @author Phil Levis
- * Revision:  $Revision: 1.1.2.7 $
+ * Revision:  $Revision: 1.1.2.8 $
  *
  * Defines global error codes for error_t in TinyOS.
  */
 
-typedef enum {
+enum {
   SUCCESS        = 0,          
   FAIL           = 1,           // Generic condition: backwards compatible
   ESIZE          = 2,           // Parameter passed in was too big.
   ECANCEL        = 3,           // Operation cancelled by a call.
   EOFF           = 4,           // Subsystem is not active
   EBUSY          = 5,           // The posted task has already been posted
-} error_t;
+};
 
-error_t rcombine(error_t r1, error_t r2)
-/* Returns: FAIL if r1 or r2 == FAIL , r2 otherwise. This is the standard
-     combining rule for results
+typedef uint8_t error_t __attribute__((combine(ecombine)));
+
+error_t ecombine(error_t r1, error_t r2)
+/* Returns: r1 if r1 == r2, FAIL otherwise. This is the standard error
+     combination function: two successes, or two identical errors are
+     preserved, while conflicting errors are represented by FAIL.
 */
 {
-  return (r1 || r2)? SUCCESS:FAIL;
-}
-
-error_t rcombine3(error_t r1, error_t r2, error_t r3)
-{
-  return rcombine(r1, rcombine(r2, r3));
-}
-
-error_t rcombine4(error_t r1, error_t r2, error_t r3,
-				 error_t r4)
-{
-  return rcombine(r1, rcombine(r2, rcombine(r3, r4)));
+  return r1 == r2 ? r1 : FAIL;
 }
