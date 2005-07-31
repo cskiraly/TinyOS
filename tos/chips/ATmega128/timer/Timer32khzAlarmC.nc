@@ -1,4 +1,4 @@
-/// $Id: TimerMilliAlarmC.nc,v 1.1.2.4 2005-07-31 03:17:54 mturon Exp $
+/// $Id: Timer32khzAlarmC.nc,v 1.1.2.1 2005-07-31 03:17:54 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,31 +24,35 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-// Glue hardware timers into TimerMilliC.
-configuration TimerMilliAlarmC
+// Glue hardware timers into Alarm32khzC.
+configuration Timer32khzAlarmC
 {
   provides interface Init;
-  provides interface Alarm<TMilli,uint32_t> as TimerMilliBase;
+  provides interface Alarm<T32khz,uint16_t> as Alarm32khz16;
+  provides interface Alarm<T32khz,uint32_t> as Alarm32khz32;
 }
 implementation
 {
-    components 
-//      HPLTimerM,
-//      new HALAlarmM(T32khz,uint8_t) as HALAlarm,
-	Timer32khzAlarmC as HALAlarm,
-	new TransformAlarmC(TMilli,uint32_t,T32khz,uint32_t,5) as Transform,
-	TimerMilliCounterC as Counter
-	;
+  components HPLTimerM,
+      new HALAlarmM(T32khz,uint8_t) as HALAlarm,
+      new TransformAlarmC(T32khz,uint16_t,T32khz,uint8_t,0) as Transform16,
+      new TransformAlarmC(T32khz,uint32_t,T32khz,uint16_t,0) as Transform32,
+      Timer32khzCounterC as Counter
+      ;
 
-  TimerMilliBase = Transform;
-
-  // Alarm Transform Wiring
-  Transform.AlarmFrom -> HALAlarm;
-  Transform.Counter -> Counter;
+  // Top-level interface wiring
+  Alarm32khz16 = Transform16;
+  Alarm32khz32 = Transform32;
 
   // Strap in low-level hardware timer (Timer0)
   Init = HALAlarm;
-//  HALAlarm.HPLTimer -> HPLTimerM.Timer0;
-//  HALAlarm.HPLCompare -> HPLTimerM.Compare0;
+  HALAlarm.HPLTimer -> HPLTimerM.Timer0;      // assign HW resource : TIMER0
+  HALAlarm.HPLCompare -> HPLTimerM.Compare0;  // assign HW resource : COMPARE0
+
+  // Alarm Transform Wiring
+  Transform16.AlarmFrom -> HALAlarm;      // start with 8-bit hardware alarm
+  Transform16.Counter -> Counter;         // uses 16-bit virtualized counter
+  Transform32.AlarmFrom -> Transform16;   // then feed that into 32-bit xform
+  Transform32.Counter -> Counter;         // uses 32-bit virtualized counter
 }
 
