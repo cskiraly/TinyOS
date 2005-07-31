@@ -1,4 +1,4 @@
-//$Id: TimerMilliCounterC.nc,v 1.1.2.4 2005-07-31 03:17:54 mturon Exp $
+//$Id: Timer32khzCounterC.nc,v 1.1.2.1 2005-07-31 03:17:54 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,29 +24,36 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-// TimerMilliCounterC is the counter to be used for all TimerMilli[].
-configuration TimerMilliCounterC
+// Timer32khzCounterC is the counter to be used for all Timer32khz[].
+configuration Timer32khzCounterC
 {
-  provides interface Counter<TMilli,uint32_t> as CounterMilli32;
-  provides interface LocalTime<TMilli> as LocalTimeMilli;
+  provides interface Counter<T32khz,uint16_t> as Counter32khz16;
+  provides interface Counter<T32khz,uint32_t> as Counter32khz32;
+  provides interface LocalTime<T32khz> as LocalTime32khz;
 }
 implementation
 {
     components HPLTimerM,
-	//new HALCounterM(T32khz, uint8_t) as HALCounter32khz, 
-	Timer32khzCounterC as HALCounter32khz, 
-	new TransformCounterC(TMilli, uint32_t, T32khz, uint32_t,
-			      5, uint32_t) as Transform,
-	new CounterToLocalTimeC(TMilli)
+	new HALCounterM(T32khz, uint8_t) as HALCounter32khz, 
+	new TransformCounterC(T32khz, uint16_t, T32khz, uint8_t,
+			      0, uint16_t) as Transform16,
+	new TransformCounterC(T32khz, uint32_t, T32khz, uint16_t,
+			      0, uint32_t) as Transform32,
+	new CounterToLocalTimeC(T32khz)
 	;
   
-  CounterMilli32 = Transform.Counter;
-  LocalTimeMilli = CounterToLocalTimeC;
+  // Top-level interface wiring
+  Counter32khz16 = Transform16.Counter;
+  Counter32khz32 = Transform32.Counter;
+  LocalTime32khz = CounterToLocalTimeC;
 
-  Transform.CounterFrom -> HALCounter32khz;
+  // Strap in low-level hardware timer (Timer0)
+  HALCounter32khz.Timer -> HPLTimerM.Timer0;   // wire async timer to Timer 0
 
-  CounterToLocalTimeC.Counter -> Transform;
+  // Counter Transform Wiring
+  Transform16.CounterFrom -> HALCounter32khz;
+  Transform32.CounterFrom -> Transform16;
 
-  //HALCounter32khz.Timer -> HPLTimerM.Timer0;   // wire async timer to Timer 0
+  CounterToLocalTimeC.Counter -> Transform32;
 }
 

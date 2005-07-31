@@ -27,7 +27,7 @@
  *  @author Joe Polastre
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: HalSpiMasterM.nc,v 1.1.2.1 2005-07-29 05:35:58 mturon Exp $
+ *  $Id: HalSpiMasterM.nc,v 1.1.2.2 2005-07-31 03:17:53 mturon Exp $
  */
 
 /**
@@ -51,7 +51,7 @@ module HalSpiMasterM
   }
   uses {
     interface HPLSPI as SpiBus;
-    interface BusArbitration as LowerBusArbitration[uint8_t token];
+//    interface BusArbitration as LowerBusArbitration[uint8_t token];
   }
 }
 implementation
@@ -244,7 +244,8 @@ implementation
 
   // keep track of who currently has the bus
   async command error_t BusArbitration.getBus[uint8_t id]() {
-      if (call LowerBusArbitration.getBus[id]() == SUCCESS) {
+//      if (call LowerBusArbitration.getBus[id]() == SUCCESS) {
+      if (busOwner == 0xFF) {
 	  // new bus owner
 	  busOwner = id;
 	  return SUCCESS;
@@ -254,18 +255,19 @@ implementation
 
   async command error_t BusArbitration.releaseBus[uint8_t id]() {
       if (busOwner == id) {
-	  if (call LowerBusArbitration.releaseBus[id]()) {
+//	  if (call LowerBusArbitration.releaseBus[id]()) {
+	      signal BusArbitration.busFree[id]();
 	      busOwner = 0xFF;
 	      return SUCCESS;
-	  }
+//	  }
       }
       return FAIL;
   }
   
   // pass through the busFree event
-  event error_t LowerBusArbitration.busFree[uint8_t id]() {
-      return signal BusArbitration.busFree[id]();
-  }
+//  event error_t LowerBusArbitration.busFree[uint8_t id]() {
+//      return signal BusArbitration.busFree[id]();
+//  }
   
   default event error_t BusArbitration.busFree[uint8_t id]() {
       return FAIL;

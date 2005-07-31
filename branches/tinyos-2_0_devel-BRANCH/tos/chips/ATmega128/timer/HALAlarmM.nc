@@ -1,4 +1,4 @@
-/// $Id: HALAlarmM.nc,v 1.1.2.6 2005-05-20 20:51:57 idgay Exp $
+/// $Id: HALAlarmM.nc,v 1.1.2.7 2005-07-31 03:17:54 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -43,7 +43,8 @@ implementation
 	  call HPLTimer.setScale(AVR_CLOCK_OFF);
 	  call HPLTimer.set(0);
 	  call HPLTimer.start();
-	  call HPLTimer.setScale(ATM128_CLK8_DIVIDE_32);
+	  //call HPLTimer.setScale(ATM128_CLK8_DIVIDE_32);
+	  call HPLTimer.setScale(ATM128_CLK8_NORMAL);
       }
       return SUCCESS;
   }

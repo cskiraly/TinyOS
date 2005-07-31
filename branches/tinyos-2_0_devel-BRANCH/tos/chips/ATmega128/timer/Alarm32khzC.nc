@@ -1,4 +1,4 @@
-//$Id: TimerMilliCounterC.nc,v 1.1.2.4 2005-07-31 03:17:54 mturon Exp $
+/// $Id: Alarm32khzC.nc,v 1.1.2.1 2005-07-31 03:17:54 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,29 +24,20 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-// TimerMilliCounterC is the counter to be used for all TimerMilli[].
-configuration TimerMilliCounterC
+// Glue hardware timers into Alarm32khzC.
+generic configuration Alarm32khzC()
 {
-  provides interface Counter<TMilli,uint32_t> as CounterMilli32;
-  provides interface LocalTime<TMilli> as LocalTimeMilli;
+  provides interface Init;
+  provides interface Alarm<T32khz,uint16_t> as Alarm32khz16;
+  provides interface Alarm<T32khz,uint32_t> as Alarm32khz32;
 }
 implementation
 {
-    components HPLTimerM,
-	//new HALCounterM(T32khz, uint8_t) as HALCounter32khz, 
-	Timer32khzCounterC as HALCounter32khz, 
-	new TransformCounterC(TMilli, uint32_t, T32khz, uint32_t,
-			      5, uint32_t) as Transform,
-	new CounterToLocalTimeC(TMilli)
-	;
-  
-  CounterMilli32 = Transform.Counter;
-  LocalTimeMilli = CounterToLocalTimeC;
+  components Timer32khzAlarmC;
 
-  Transform.CounterFrom -> HALCounter32khz;
-
-  CounterToLocalTimeC.Counter -> Transform;
-
-  //HALCounter32khz.Timer -> HPLTimerM.Timer0;   // wire async timer to Timer 0
+  // Top-level interface wiring
+  Init         = Timer32khzAlarmC;
+  Alarm32khz16 = Timer32khzAlarmC;
+  Alarm32khz32 = Timer32khzAlarmC;
 }
 

@@ -1,6 +1,5 @@
 /**
  *  Copyright (c) 2004-2005 Crossbow Technology, Inc.
- *  Copyright (c) 2000-2005 The Regents of the University  of California.
  *  All rights reserved.
  *
  *  Permission to use, copy, modify, and distribute this software and its
@@ -23,31 +22,20 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  *  THE POSSIBILITY OF SUCH DAMAGE.
  *
- *  @author Joe Polastre
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: SPIC.nc,v 1.1.2.2 2005-07-31 03:17:53 mturon Exp $
+ *  $Id: HPLInterruptSig.nc,v 1.1.2.1 2005-07-31 03:17:53 mturon Exp $
  */
 
-generic configuration SPIC() {
-  provides interface Init;
-  provides interface BusArbitration;
-  provides interface SPIByte;
-  provides interface SPIPacket;
-  provides interface SPIPacketAdvanced;
+/**
+ * Exposes just the interrupt vector routine for 
+ * easy linking to generic components.
+ */
+interface HPLInterruptSig
+{
+  /**
+   * Signalled when an interrupt occurs on a pin
+   */
+  async event void fired();
 }
-implementation {
-  components HalSpiMasterM as SpiMaster, HPLSPIC;
 
-  enum {
-    SPI_BUS_ID = unique("Bus.HPLSPI"),
-  };
-
-  Init = SpiMaster;
-  SPIByte = SpiMaster.SPIByte[SPI_BUS_ID];
-  SPIPacket = SpiMaster.SPIPacket[SPI_BUS_ID];
-  SPIPacketAdvanced = SpiMaster.SPIPacketAdvanced[SPI_BUS_ID];
-  BusArbitration = SpiMaster.BusArbitration[SPI_BUS_ID];
-
-  SpiMaster.SpiBus -> HPLSPIC;
-}

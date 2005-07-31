@@ -1,4 +1,4 @@
-// $Id: HPLCC2420M.nc,v 1.1.2.1 2005-07-06 16:11:59 mturon Exp $
+// $Id: HPLCC2420M.nc,v 1.1.2.2 2005-07-31 03:17:54 mturon Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -23,7 +23,7 @@
 /*
  *
  * Authors: Joe Polastre
- * Date last modified:  $Revision: 1.1.2.1 $
+ * Date last modified:  $Revision: 1.1.2.2 $
  *
  */
 
@@ -79,7 +79,7 @@ implementation
   }
 
   command error_t Init.init() {
-    state = IDLE;
+    atomic state = IDLE;
     call RadioCSN.makeOutput();
     call RadioCSN.set();
     return SUCCESS;
