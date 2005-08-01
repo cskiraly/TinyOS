@@ -1,7 +1,7 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: tos_image.extra,v 1.1.2.1 2005-03-23 19:34:55 cssharp Exp $
+#$Id: tos_image.extra,v 1.1.2.2 2005-08-01 22:48:36 idgay Exp $
 
-TOS_IMAGE_PL ?= $(TOSDIR)/../tools/scripts/write_tos_image
+TOS_IMAGE_PL ?= $(TOSDIR)/../tools/tinyos/misc/write_tos_image
 IDENT_PROGRAM_NAME ?= $(COMPONENT)
 
 build_tosimage: FORCE
