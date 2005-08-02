@@ -1,4 +1,4 @@
-// $Id: TestSerialC.nc,v 1.1.2.2 2005-04-18 17:56:32 gtolle Exp $
+// $Id: TestSerialC.nc,v 1.1.2.3 2005-08-02 02:15:53 bengreenstein Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -42,6 +42,7 @@ implementation {
   TestSerialM.Send -> SerialC.Send;
 
   TestSerialM.Leds -> LedsC;
+  SerialC.Leds -> LedsC;
 }
 
 
