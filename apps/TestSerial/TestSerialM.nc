@@ -1,4 +1,4 @@
-// $Id: TestSerialM.nc,v 1.1.2.3 2005-07-26 02:10:36 bengreenstein Exp $
+// $Id: TestSerialM.nc,v 1.1.2.4 2005-08-02 02:15:53 bengreenstein Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -48,8 +48,8 @@ module TestSerialM {
 implementation {
 
   message_t buf;
-  message_t *bufPtr;
-  bool locked;
+  message_t *bufPtr = &buf;
+  bool locked = FALSE;
 
   event void Boot.booted() {
     bufPtr = &buf;
@@ -59,7 +59,7 @@ implementation {
 				   void* payload, uint8_t len) {
     message_t *swap;
 
-    call Leds.led0Toggle();
+    //       call Leds.led0Toggle();
 
     if (!locked) {
       locked = TRUE;
