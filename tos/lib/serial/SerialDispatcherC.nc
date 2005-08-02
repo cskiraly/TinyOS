@@ -21,6 +21,9 @@ implementation {
   Init = SerialM;
   Init = HPLUARTM.UART0Init;
   Leds = SerialM;
+  Leds = SerialDispatcherM;
+  Leds = HdlcTranslateM;
+  Leds = HPLUARTM;
 
   SerialDispatcherM.ReceiveBytePacket -> SerialM;
   SerialDispatcherM.SendBytePacket -> SerialM;
