@@ -9,6 +9,7 @@ generic module SerialDispatcherM() {
     interface SerialPacketInfo as PacketInfo[uart_id_t id];
     interface ReceiveBytePacket;
     interface SendBytePacket;
+    interface Leds;
   }
 }
 implementation {
@@ -244,6 +245,8 @@ implementation {
 
     if (result == SUCCESS){
       // TODO is the payload the same as the message?
+      call Leds.led1Toggle();
+      if (myType == TOS_SERIAL_ACTIVE_MESSAGE_ID) call Leds.led2Toggle();
       myBuf = signal Receive.receive[myType](myBuf, myBuf, mySize);
     }
     atomic {

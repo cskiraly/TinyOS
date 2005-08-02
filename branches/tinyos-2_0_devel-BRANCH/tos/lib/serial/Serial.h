@@ -15,8 +15,10 @@ enum {
 };
 
 enum {
-  SERIAL_PROTO_DATA = 0,
-  SERIAL_PROTO_ACK = 1,
+  SERIAL_PROTO_ACK = 64,
+  SERIAL_PROTO_PACKET_ACK = 65,
+  SERIAL_PROTO_PACKET_NOACK = 66,
+  SERIAL_PROTO_PACKET_UNKNOWN = 255
 };
 
 typedef struct radio_stats {
