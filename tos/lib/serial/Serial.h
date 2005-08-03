@@ -7,6 +7,9 @@ enum {
   HDLC_FLAG_BYTE	   = 0x7e,
   HDLC_CTLESC_BYTE	   = 0x7d,
 };
+
+// message_t type dispatch
+
 enum {
   TOS_SERIAL_UNKNOWN_ID,
   TOS_SERIAL_ACTIVE_MESSAGE_ID,
@@ -14,6 +17,7 @@ enum {
   TOS_SERIAL_802_15_4_ID,
 };
 
+// Framer-level dispatch
 enum {
   SERIAL_PROTO_ACK = 64,
   SERIAL_PROTO_PACKET_ACK = 65,

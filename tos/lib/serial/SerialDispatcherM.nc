@@ -56,6 +56,13 @@ implementation {
   bool sendCancelled = FALSE;
   uint8_t sendId = 0;
 
+
+  uint8_t receiveTaskPending = FALSE;
+  uart_id_t receiveTaskType = 0;
+  uint8_t receiveTaskWhich;
+  message_t *receiveTaskBuf = NULL;
+  uint8_t receiveTaskSize = 0;
+  
   command error_t Send.send[uint8_t id](message_t* msg, uint8_t len) {
     uint8_t myState;
     atomic {
@@ -124,7 +131,7 @@ implementation {
       sendIndex++;
       indx = sendIndex;
     }
-    if (indx >= sendLen) {
+    if (indx > sendLen) {
       call SendBytePacket.completeSend();
       return 0;
     }
@@ -213,7 +220,47 @@ implementation {
     }
   }
   
+  task void receiveTask(){
+    uart_id_t myType;
+    message_t *myBuf;
+    uint8_t mySize;
+    uint8_t myWhich;
+    atomic {
+      myType = receiveTaskType;
+      myBuf = receiveTaskBuf;
+      mySize = receiveTaskSize;
+      myWhich = receiveTaskWhich;
+    }
+    mySize -= call PacketInfo.offset[myType]();
+    mySize = call PacketInfo.upperLength[myType](myBuf, mySize);
+    myBuf = signal Receive.receive[myType](myBuf, myBuf, mySize);
+    atomic {
+      messagePtrs[myWhich] = myBuf;
+      if (myWhich) {
+        unlockBuffer(myWhich);
+      }
+      receiveTaskPending = FALSE;
+    }
+  }
+
   async event void ReceiveBytePacket.endPacket(error_t result) {
+    uint8_t postsignalreceive = FALSE;
+    atomic {
+      if (!receiveTaskPending && result == SUCCESS){
+        postsignalreceive = TRUE;
+        receiveTaskPending = TRUE;
+        receiveTaskType = recvType;
+        receiveTaskWhich = receiveState.which;
+        receiveTaskBuf = (message_t *)receiveBuffer;
+        receiveTaskSize = recvIndex;
+        receiveBufferSwap();
+        receiveState.state = RECV_STATE_IDLE;
+      }
+    }
+    if (postsignalreceive){
+      post receiveTask();
+    }    
+
     // These are all local variables to release component state that
     // will allow the component to start receiving serial packets
     // ASAP.
@@ -222,40 +269,39 @@ implementation {
     // before the signal returns, at which point receiveState.which
     // might revert back to us (via receiveBufferSwap()).
     
-    uart_id_t myType;   // What is the type of the packet in flight? 
-    uint8_t myWhich;  // Which buffer ptr entry is it?
-    uint8_t mySize;   // How large is it?
-    message_t* myBuf; // A pointer, for buffer swapping
+/*     uart_id_t myType;   // What is the type of the packet in flight?  */
+/*     uint8_t myWhich;  // Which buffer ptr entry is it? */
+/*     uint8_t mySize;   // How large is it? */
+/*     message_t* myBuf; // A pointer, for buffer swapping */
 
     // First, copy out all of the important state so we can receive
     // the next packet. Then do a receiveBufferSwap, which will
     // tell the component to use the other available buffer.
     // If the buffer is 
-    atomic {
-      myType = recvType;
-      myWhich = receiveState.which;
-      myBuf = (message_t*)receiveBuffer;
-      mySize = recvIndex;
-      receiveBufferSwap();
-      receiveState.state = RECV_STATE_IDLE;
-    }
+/*     atomic { */
+/*       myType = recvType; */
+/*       myWhich = receiveState.which; */
+/*       myBuf = (message_t*)receiveBuffer; */
+/*       mySize = recvIndex; */
+/*       receiveBufferSwap(); */
+/*       receiveState.state = RECV_STATE_IDLE; */
+/*     } */
 
-    mySize -= call PacketInfo.offset[myType]();
-    mySize = call PacketInfo.upperLength[myType](myBuf, mySize);
+/*     mySize -= call PacketInfo.offset[myType](); */
+/*     mySize = call PacketInfo.upperLength[myType](myBuf, mySize); */
 
-    if (result == SUCCESS){
-      // TODO is the payload the same as the message?
-      call Leds.led1Toggle();
-      if (myType == TOS_SERIAL_ACTIVE_MESSAGE_ID) call Leds.led2Toggle();
-      myBuf = signal Receive.receive[myType](myBuf, myBuf, mySize);
-    }
-    atomic {
-      messagePtrs[myWhich] = myBuf;
-      if (myWhich) {
-        unlockBuffer(myWhich);
-      }
-    }
+/*     if (result == SUCCESS){ */
+/*       // TODO is the payload the same as the message? */
+/*       myBuf = signal Receive.receive[myType](myBuf, myBuf, mySize); */
+/*     } */
+/*     atomic { */
+/*       messagePtrs[myWhich] = myBuf; */
+/*       if (myWhich) { */
+/*         unlockBuffer(myWhich); */
+/*       } */
+/*     } */
   }
+
   default async command uint8_t PacketInfo.offset[uart_id_t id](){
     return 0;
   }
