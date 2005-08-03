@@ -1,3 +1,3 @@
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = pybsl motelist
+SUBDIRS = motelist
