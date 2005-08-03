@@ -1,4 +1,4 @@
-// $Id: TestSerialM.nc,v 1.1.2.4 2005-08-02 02:15:53 bengreenstein Exp $
+// $Id: TestSerialM.nc,v 1.1.2.5 2005-08-03 00:00:31 bengreenstein Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -56,28 +56,39 @@ implementation {
   }
 
   event message_t* Receive.receive(message_t* msg, 
-				   void* payload, uint8_t len) {
+                                   void* payload, uint8_t len) {
     message_t *swap;
-
-    //       call Leds.led0Toggle();
+    
+    // net.tinyos.tools.Send 5 4 2 1 3 6 7
+    if ((msg->header.addr == 0x0504) &&
+        msg->header.length == 0x02 &&
+        msg->header.group == 0x01 &&
+        msg->header.type == 0x03 &&
+        msg->data[0] == 6 &&
+        msg->data[1] == 7) call Leds.led0Toggle();
 
     if (!locked) {
       locked = TRUE;
       swap = bufPtr;
       bufPtr = msg;
-      call Send.send(bufPtr, len);
+      if (call Send.send(bufPtr, len) == SUCCESS){
+        call Leds.led1Toggle();
+      }
       return swap;
-    } else {
+    } 
+    else {
       return msg;
     }
   }
-
+  
   event void Send.sendDone(message_t* msg, error_t error) {
-    if (msg == bufPtr)
+    if (msg == bufPtr){
       locked = FALSE;
+      call Leds.led2Toggle();
+    }
   }
-}
-
+}  
+  
 
 
 
