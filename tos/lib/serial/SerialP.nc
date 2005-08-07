@@ -1,6 +1,4 @@
-// $Id: SerialM.nc,v 1.1.2.9 2005-08-03 00:04:02 bengreenstein Exp $
-
-/* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */ 
+// $Id: SerialP.nc,v 1.1.2.1 2005-08-07 21:56:15 scipio Exp $
 /*									
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
@@ -37,31 +35,31 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.9 $
+ * Revision: $Revision: 1.1.2.1 $
  * 
  */
 
 /*
- * FramerM
  * 
- * This modules provides framing for TOS_Msg's using PPP-HDLC-like framing 
- * (see RFC 1662).  When sending, a TOS_Msg is encapsulated in an HDLC frame.
- * Receiving is similar EXCEPT that the component expects a special token byte
- * be received before the data payload. The purpose of the token is to feed back
- * an acknowledgement to the sender which serves as a crude form of flow-control.
- * 
- */
-
-/**
+ * This modules provides framing for TOS_Msgs using PPP-HDLC-like
+ * framing (see RFC 1662).  When sending, a TOS_Msg is encapsulated in
+ * an HDLC frame.  Receiving is similar EXCEPT that the component
+ * expects a special token byte be received before the data
+ * payload. The purpose of the token is to feed back an
+ * acknowledgement to the sender which serves as a crude form of
+ * flow-control.
+ *
  * @author Phil Buonadonna
- * Then, completely rewritten by L. Girod & B. Greenstein
+ * @author Lewis Girod
+ * @author Ben Greenstein
+ * @date   August 7 2005
  */
 
 
 includes AM;
 includes crc;
 
-module SerialM {
+module SerialP {
 
   provides {
     interface Init;
