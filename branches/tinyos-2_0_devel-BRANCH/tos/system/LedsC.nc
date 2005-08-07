@@ -1,4 +1,4 @@
-// $Id: LedsC.nc,v 1.1.2.4 2005-03-21 19:34:47 scipio Exp $
+// $Id: LedsC.nc,v 1.1.2.5 2005-08-07 21:12:50 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -30,12 +30,12 @@ configuration LedsC {
   provides interface Leds;
 }
 implementation {
-  components LedsM, PlatformLeds;
-  Init = LedsM;
-  Leds = LedsM;
+  components LedsP, PlatformLedsC;
+  Init = LedsP;
+  Leds = LedsP;
 
-  LedsM.Led0 -> PlatformLeds.Led0;
-  LedsM.Led1 -> PlatformLeds.Led1;
-  LedsM.Led2 -> PlatformLeds.Led2;
+  LedsP.Led0 -> PlatformLedsC.Led0;
+  LedsP.Led1 -> PlatformLedsC.Led1;
+  LedsP.Led2 -> PlatformLedsC.Led2;
 }
 

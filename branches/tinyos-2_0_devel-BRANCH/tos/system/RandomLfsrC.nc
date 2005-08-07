@@ -1,4 +1,4 @@
-// $Id: RandomLfsrC.nc,v 1.1.2.1 2005-05-10 18:00:00 idgay Exp $
+// $Id: RandomLfsrC.nc,v 1.1.2.2 2005-08-07 21:12:50 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -52,8 +52,8 @@ configuration RandomLfsrC
 }
 implementation
 {
-  components RandomLfsrM;
+  components RandomLfsrP;
 
-  Init = RandomLfsrM;
-  Random = RandomLfsrM;
+  Init = RandomLfsrP;
+  Random = RandomLfsrP;
 }

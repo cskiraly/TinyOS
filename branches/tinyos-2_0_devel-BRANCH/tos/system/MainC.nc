@@ -1,4 +1,4 @@
-// $Id: MainC.nc,v 1.1.2.1 2005-08-07 20:33:56 scipio Exp $
+// $Id: MainC.nc,v 1.1.2.2 2005-08-07 21:12:50 scipio Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: MainC.nc,v 1.1.2.1 2005-08-07 20:33:56 scipio Exp $
+ * Date last modified:  $Id: MainC.nc,v 1.1.2.2 2005-08-07 21:12:50 scipio Exp $
  *
  */
 
@@ -48,13 +48,13 @@ configuration MainC {
   uses interface Init as SoftwareInit;
 }
 implementation {
-  components Platform, RealMain, TinyScheduler;
+  components PlatformC, RealMainP, TinySchedulerC;
 
-  RealMain.Scheduler -> TinyScheduler;
-  RealMain.PlatformInit -> Platform;
+  RealMainP.Scheduler -> TinySchedulerC;
+  RealMainP.PlatformInit -> PlatformC;
 
   // Export the SoftwareInit and Booted for applications
-  SoftwareInit = RealMain.SoftwareInit;
-  Boot = RealMain;
+  SoftwareInit = RealMainP.SoftwareInit;
+  Boot = RealMainP;
 }
 
