@@ -1,4 +1,4 @@
-// $Id: HPLCC1000M.nc,v 1.1.2.3 2005-06-06 18:05:15 idgay Exp $
+// $Id: HPLCC1000P.nc,v 1.1.2.1 2005-08-07 22:10:38 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Jaein Jeong, Philip Buonadonna
- * Date last modified:  $Revision: 1.1.2.3 $
+ * Date last modified:  $Revision: 1.1.2.1 $
  *
  */
 
@@ -41,7 +41,7 @@
  * @author Philip Buonadonna
  */
 
-module HPLCC1000M {
+module HPLCC1000P {
   provides {
     interface Init as PlatformInit;
     interface HPLCC1000;

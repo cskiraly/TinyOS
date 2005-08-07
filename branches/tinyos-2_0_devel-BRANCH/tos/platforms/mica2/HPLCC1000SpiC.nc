@@ -1,4 +1,4 @@
-// $Id: HPLCC1000SpiM.nc,v 1.1.2.3 2005-05-20 20:51:57 idgay Exp $
+// $Id: HPLCC1000SpiC.nc,v 1.1.2.1 2005-08-07 22:10:38 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 
 /* 
  * Authors: Jaein Jeong, Philip buonadonna
- * Date last modified: $Revision: 1.1.2.3 $
+ * Date last modified: $Revision: 1.1.2.1 $
  *
  */
 
@@ -41,8 +41,7 @@
  */
 
 
-module HPLCC1000SpiM
-{
+module HPLCC1000SpiC {
   provides interface Init as PlatformInit;
   provides interface HPLCC1000Spi;
   //uses interface PowerManagement;
