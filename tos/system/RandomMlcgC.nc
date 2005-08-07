@@ -23,7 +23,8 @@
  * This is the configuration for RandomMlcgC, a 
  * multiplicative linear congruential generator. 
  *
- * @author  Barbara Hohlt 
+ * @author  Barbara Hohlt
+ * @author  Philip Levis
  * @date    March 1 2005
  */
 
@@ -34,10 +35,10 @@ configuration RandomMlcgC {
 }
 
 implementation {
-  components RandomMlcgM;
+  components RandomMlcgP;
 
-  Init = RandomMlcgM;
-  SeedInit = RandomMlcgM;
-  Random = RandomMlcgM;
+  Init = RandomMlcgP;
+  SeedInit = RandomMlcgP;
+  Random = RandomMlcgP;
 
 } 

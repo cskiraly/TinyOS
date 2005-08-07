@@ -1,4 +1,4 @@
-// $Id: NoLedsC.nc,v 1.1.2.1 2005-03-19 20:29:21 scipio Exp $
+// $Id: NoLedsC.nc,v 1.1.2.2 2005-08-07 21:12:50 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -37,8 +37,8 @@ configuration NoLedsC {
   provides interface Leds;
 }
 implementation {
-  components NoLedsM;
-  Init = NoLedsM;
-  Leds = NoLedsM;
+  components NoLedsP;
+  Init = NoLedsP;
+  Leds = NoLedsP;
 }
 
