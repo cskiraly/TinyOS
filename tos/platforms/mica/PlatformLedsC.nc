@@ -1,4 +1,4 @@
-/// $Id: PlatformM.nc,v 1.1.2.7 2005-07-22 08:33:32 mturon Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.1 2005-08-07 22:27:03 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -26,30 +26,19 @@
 
 includes hardware;
 
-module PlatformM
+configuration PlatformLedsC
 {
-  provides interface Init;
-  uses interface Init as MoteInit;
+    provides interface GeneralIO as Led0;
+    provides interface GeneralIO as Led1;
+    provides interface GeneralIO as Led2;
 }
 implementation
 {
-  void power_init() {
-      atomic {
-	MCUCR = _BV(SE);      // Internal RAM, IDLE, rupt vector at 0x0002,
-			      // enable sleep instruction!
-      }
-  }
+    components HPLGeneralIO;
+    
+    Led0 = HPLGeneralIO.PortA2;  // Pin A2 = Red LED
+    Led1 = HPLGeneralIO.PortA1;  // Pin A1 = Green LED
+    Led2 = HPLGeneralIO.PortA0;  // Pin A0 = Yellow LED
 
-  command error_t Init.init()
-  {
-    error_t ok = call MoteInit.init();
-
-    if (ok != SUCCESS)
-      return ok;
-
-    power_init();
-
-    return SUCCESS;
-  }
 }
 

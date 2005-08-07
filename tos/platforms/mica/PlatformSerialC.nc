@@ -1,4 +1,4 @@
-/// $Id: PlatformSerial.nc,v 1.1.2.1 2005-04-21 07:37:47 mturon Exp $
+/// $Id: PlatformSerialC.nc,v 1.1.2.1 2005-08-07 22:27:03 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,13 +22,21 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+/**
+ * A platform's basic UART abstraction. On a mica mote, this is UART0 of
+ * the HPL.
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ * @author Philip Levis
+ * @date August 7 2005
+ */
 
-configuration PlatformSerial {
-  provides interface HPLUART as SerialByteComm;
+configuration PlatformSerialC {
+  provides interface SerialByteComm;
 }
 implementation {
-  components HPLUARTM;
+  components HPLUARTM, PlatformC;
 
   SerialByteComm = HPLUARTM.UART0;
+  PlatformC.SubInit -> HPLUARTM;
 }
