@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.6 2005-05-20 09:37:52 cssharp Exp $
+// $Id: BlinkAppC.nc,v 1.1.2.1 2005-08-07 22:58:56 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -20,7 +20,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2003 Intel Corporation
+ * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -30,42 +30,30 @@
  */
 
 /**
- * Implementation for Blink application.  Toggle the red LED when a
- * Timer fires.
+ * Blink is a basic application that toggles the a mote LED periodically.
+ * It does so by starting a Timer that fires every second. It uses the
+ * OSKI TimerMilli service to achieve this goal.
+ *
+ * @author tinyos-help@millennium.berkeley.edu
  **/
 
-includes Timer;
-
-module BlinkM
+configuration BlinkAppC
 {
-  uses interface Timer<TMilli> as Timer0;
-  uses interface Timer<TMilli> as Timer1;
-  uses interface Timer<TMilli> as Timer2;
-  uses interface Leds;
-  uses interface Boot;
 }
 implementation
 {
-  event void Boot.booted()
-  {
-    call Timer0.startPeriodicNow( 250 );
-    call Timer1.startPeriodicNow( 500 );
-    call Timer2.startPeriodicNow( 1000 );
-  }
+  components MainC, BlinkC, LedsC;
+  components new OSKITimerMsC() as Timer0;
+  components new OSKITimerMsC() as Timer1;
+  components new OSKITimerMsC() as Timer2;
 
-  event void Timer0.fired()
-  {
-    call Leds.led0Toggle();
-  }
-  
-  event void Timer1.fired()
-  {
-    call Leds.led1Toggle();
-  }
-  
-  event void Timer2.fired()
-  {
-    call Leds.led2Toggle();
-  }
+
+  BlinkC -> MainC.Boot;
+  MainC.SoftwareInit -> LedsC;
+
+  BlinkC.Timer0 -> Timer0;
+  BlinkC.Timer1 -> Timer1;
+  BlinkC.Timer2 -> Timer2;
+  BlinkC.Leds -> LedsC;
 }
 
