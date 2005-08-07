@@ -1,4 +1,4 @@
-/* $Id: MotePlatformC.nc,v 1.1.2.2 2005-05-20 20:51:58 idgay Exp $
+/* $Id: MotePlatformC.nc,v 1.1.2.3 2005-08-07 22:10:38 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -17,10 +17,10 @@ configuration MotePlatformC
   provides interface Init as PlatformInit;
 }
 implementation {
-  components MotePlatformM, HPLCC1000InitC, HPLGeneralIO;
+  components MotePlatformP, HPLCC1000InitC, HPLGeneralIOC;
 
-  PlatformInit = MotePlatformM;
+  PlatformInit = MotePlatformP;
   PlatformInit = HPLCC1000InitC;
 
-  MotePlatformM.SerialIdPin -> HPLGeneralIO.PortA4;
+  MotePlatformP.SerialIdPin -> HPLGeneralIOC.PortA4;
 }

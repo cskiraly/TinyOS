@@ -1,4 +1,4 @@
-/// $Id: VoltageM.nc,v 1.1.2.2 2005-06-27 08:30:28 husq Exp $
+/// $Id: VoltageP.nc,v 1.1.2.1 2005-08-07 22:10:38 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,17 +23,15 @@
  */
 /// @author Hu Siquan <husq@xbow.com>
 
-module VoltageM
-{
+module VoltageP {
   provides interface StdControl;
   uses interface GeneralIO as BAT_MON;	
 }
-implementation
-{
+implementation {
   
   command error_t StdControl.start() {
-	call BAT_MON.makeOutput();
-	call BAT_MON.set();
+    call BAT_MON.makeOutput();
+    call BAT_MON.set();
     return SUCCESS;
   }
 

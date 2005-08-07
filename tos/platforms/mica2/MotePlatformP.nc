@@ -1,4 +1,4 @@
-/* $Id: MotePlatformM.nc,v 1.1.2.1 2005-05-18 23:28:14 idgay Exp $
+/* $Id: MotePlatformP.nc,v 1.1.2.1 2005-08-07 22:10:38 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -12,7 +12,7 @@
  * 
  * @author David Gay
  */
-module MotePlatformM
+module MotePlatformP
 {
   provides interface Init as PlatformInit;
   uses interface GeneralIO as SerialIdPin;
