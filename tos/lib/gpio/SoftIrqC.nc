@@ -24,7 +24,7 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: SoftIrqC.nc,v 1.1.2.3 2005-07-30 23:28:57 mturon Exp $
+ *  $Id: SoftIrqC.nc,v 1.1.2.4 2005-08-07 21:01:52 scipio Exp $
  */
 
 /**
@@ -41,11 +41,11 @@ generic configuration SoftIrqC (uint8_t interval) {
 implementation
 {
     components
-	new SoftIrqM(interval), 
+	new SoftIrqP(interval), 
 	new OSKITimerMsC() as IrqTimer;
 
-    Interrupt = SoftIrqM;
-    GeneralIO = SoftIrqM;
+    Interrupt = SoftIrqP;
+    GeneralIO = SoftIrqP;
     
-    SoftIrqM.IrqTimer -> IrqTimer;   // strap into an OSKI system timer
+    SoftIrqP.IrqTimer -> IrqTimer;   // strap into an OSKI system timer
 }

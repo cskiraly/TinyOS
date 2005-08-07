@@ -25,7 +25,7 @@
  *  @author Matt Miller, Crossbow <mmiller@xbow.com>
  *  @author Martin Turon, Crossbow <mturon@xbow.com>
  *
- *  $Id: SoftIrqM.nc,v 1.1.2.1 2005-07-30 00:35:00 mturon Exp $
+ *  $Id: SoftIrqP.nc,v 1.1.2.1 2005-08-07 21:01:52 scipio Exp $
  */
 
 /**
@@ -33,7 +33,7 @@
  *
  * @param  interval   How often to check soft irq pin in msec
  */
-generic module SoftIrqM (uint8_t interval)
+generic module SoftIrqP (uint8_t interval)
 {
     provides interface Interrupt as SoftIrq;
     
