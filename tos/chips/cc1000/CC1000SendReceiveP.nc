@@ -1,4 +1,4 @@
-// $Id: SendReceive.nc,v 1.1.2.6 2005-06-19 23:28:22 scipio Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.1 2005-08-07 22:42:34 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -52,7 +52,7 @@
 #include "CC1000Const.h"
 #include "Timer.h"
 
-module SendReceive {
+module CC1000SendReceiveP {
   provides {
     interface Init;
     interface StdControl;

@@ -1,4 +1,4 @@
-/* $Id: CC1000RssiM.nc,v 1.1.2.2 2005-05-24 23:09:08 idgay Exp $
+/* $Id: CC1000RssiP.nc,v 1.1.2.1 2005-08-07 22:42:34 scipio Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -41,7 +41,7 @@
 */
 
 #define CC1000RSSI "cc1000.rssi"
-module CC1000RssiM
+module CC1000RssiP
 {
   provides {
     interface AcquireDataNow as Rssi[uint8_t reason];
