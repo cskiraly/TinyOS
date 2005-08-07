@@ -1,4 +1,4 @@
-// $Id: LedsM.nc,v 1.1.2.4 2005-03-21 19:34:47 scipio Exp $
+// $Id: LedsP.nc,v 1.1.2.1 2005-08-07 20:33:56 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -30,7 +30,7 @@
  * @date   March 21, 2005
  */
 
-module LedsM {
+module LedsP {
   provides {
     interface Init;
     interface Leds;

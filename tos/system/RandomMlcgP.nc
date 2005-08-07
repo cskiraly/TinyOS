@@ -31,8 +31,7 @@
  * @date   March 1 2005
  */
 
-module RandomMlcgM
-{
+module RandomMlcgP {
   provides interface Init;
   provides interface ParameterInit<uint16_t> as SeedInit;
   provides interface Random as Random;

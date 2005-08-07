@@ -1,4 +1,4 @@
-// $Id: RealMain.nc,v 1.1.2.10 2005-07-13 03:54:38 idgay Exp $
+// $Id: RealMainP.nc,v 1.1.2.1 2005-08-07 20:33:57 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: RealMain.nc,v 1.1.2.10 2005-07-13 03:54:38 idgay Exp $
+ * Date last modified:  $Id: RealMainP.nc,v 1.1.2.1 2005-08-07 20:33:57 scipio Exp $
  *
  */
 
@@ -42,15 +42,13 @@
  * @date   January 17 2005
  */
 
-module RealMain
-{
+module RealMainP {
   provides interface Boot;
   uses interface Scheduler;
   uses interface Init as PlatformInit;
   uses interface Init as SoftwareInit;
 }
-implementation
-{
+implementation {
   int main() __attribute__ ((C, spontaneous)) {
     atomic
       {

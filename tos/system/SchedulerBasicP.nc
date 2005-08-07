@@ -1,4 +1,4 @@
-// $Id: SchedulerBasic.nc,v 1.1.2.9 2005-04-17 10:00:14 cssharp Exp $
+// $Id: SchedulerBasicP.nc,v 1.1.2.1 2005-08-07 20:33:57 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: SchedulerBasic.nc,v 1.1.2.9 2005-04-17 10:00:14 cssharp Exp $
+ * Date last modified:  $Id: SchedulerBasicP.nc,v 1.1.2.1 2005-08-07 20:33:57 scipio Exp $
  *
  */
 
@@ -46,8 +46,7 @@
 
 includes hardware;
 
-module SchedulerBasic
-{
+module SchedulerBasicP {
   provides interface Scheduler;
   provides interface TaskBasic[uint8_t id];
 }

@@ -26,29 +26,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2005-05-31 16:47:08 $ 
+ * $Revision: 1.1.2.1 $
+ * $Date: 2005-08-07 20:33:57 $ 
  * ======================================================================== 
  */
  
  /**
- * FCFSArbiter generic module
- * The FCFSArbiter component provides the Resource and ResourceUser 
- * interfaces.  It provides arbitration to a shared resource on a first 
- * first served basis.  An array keeps track of which users have put in 
+ * RoundRobinArbiter generic module
+ * The RoundRobinArbiter component provides the Resource and ResourceUser 
+ * interfaces.  It provides arbitration to a shared resource in a round 
+ * robin fashion.  An array keeps track of which users have put in 
  * requests for the resource.  Upon the release of the resource, this
- * array is checked and the next user (in FCFS order) that has 
+ * array is checked and the next user (in round robin order) that has 
  * a pending request will ge granted the resource.  If there are no 
  * pending reequests, then the resource is released and any user can 
  * put in a request and immediately receive access to the bus.
- *
- * The code for implementing the FCFS scheme has been borrowed from the 
- * SchedulerBasic component written by Philip Levis and Cory Sharp
  * 
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  */
  
-generic module FCFSArbiter(char resourceName[]) {
+generic module RoundRobinArbiterC(char resourceName[]) {
   provides {
     interface Init;
     interface Resource[uint8_t id];
@@ -59,16 +56,14 @@ implementation {
 
   uint8_t state;
   uint8_t resId;
-	uint8_t reqResId;
-  uint8_t resQ[uniqueCount(resourceName)];
-  uint8_t qHead;
-  uint8_t qTail;
+  uint8_t reqResId;
+  uint8_t request[(uniqueCount(resourceName)-1)/8 + 1];
   enum {RES_IDLE, RES_BUSY};
   enum {NO_RES = 0xFF};
   
   task void GrantedTask();
   task void RequestedTask();
-  bool QueueRequest(uint8_t id);
+  bool QueueRequest(uint8_t id);  
   bool GrantNextRequest();
   
   /**  
@@ -76,11 +71,7 @@ implementation {
   */
   command error_t Init.init() {
     state = RES_IDLE;
-    resId = NO_RES;
-    
-    memset(resQ, NO_RES, sizeof(resQ));
-    qHead = NO_RES;
-    qTail = NO_RES;
+    resId = 0xFF;
     return SUCCESS;
   }  
   
@@ -89,7 +80,7 @@ implementation {
     
     If the user has not already requested access to the 
     resource, the request will be either served immediately 
-    or queued for later service in an FCFS fashion.  
+    or queued for later service in a round robin fashion.  
     A SUCCESS value will be returned and the user will receive 
     the granted() event in synchronous context once it has 
     been given access to the resource.
@@ -118,7 +109,7 @@ implementation {
     if(QueueRequest(id) == SUCCESS)
       post RequestedTask();
     return EBUSY;
-  } 
+  }  
   
    /**
    * Request immediate access to the shared resource.  Requests are
@@ -136,7 +127,7 @@ implementation {
       }
     }
     return EBUSY;
-  }    
+  }  
   
   /**
     Release the use of the shared resource
@@ -144,11 +135,10 @@ implementation {
     The resource will only actually be released if
     there are no pending requests for the resource.
     If requests are pending, then the next pending request
-    will be serviced, according to a Fist come first serve
-    arbitration scheme.  If no requests are currently 
-    pending, then the resource is released, and any 
-    users can put in a request for immediate access to 
-    the resource.
+    will be serviced, according to a round robin arbitration
+    scheme.  If no requests are currently pending, then the
+    resource is released, and any users can put in a request
+    for immediate access to the resource.
   */
   async command void Resource.release[uint8_t id]() {
     atomic {
@@ -159,7 +149,7 @@ implementation {
         resId = NO_RES;
       }
     }
-  } 
+  }
     
   /**
     Check if the Resource is currently in use
@@ -182,51 +172,55 @@ implementation {
   }
   
   //Grant a request to the next Pending user
-    //in FCFS order
+    //in Round-Robin order
   bool GrantNextRequest() {
-    if(qHead != NO_RES) {
-      uint8_t id = qHead;
-      qHead = resQ[qHead];
-      if(qHead == NO_RES)
-        qTail = NO_RES;
-      resQ[id] = NO_RES;
-      reqResId = id;
-      post GrantedTask();
-      return SUCCESS;
+    int i;
+    for(i=resId+1; i<uniqueCount(resourceName); i++) {
+      if((request[i/8] & (1 << (i % 8))) > 0) {
+        reqResId = i;
+			  request[resId/8] = request[resId/8] & ~(1 << (resId % 8));
+        post GrantedTask();
+        return SUCCESS;
+      }  
     }
-    else {
-      return FAIL;
+    for(i=0; i<=resId; i++) {
+      if((request[i/8] & (1 << (i % 8))) > 0) {
+        reqResId = i;
+			  request[resId/8] = request[resId/8] & ~(1 << (resId % 8));
+        post GrantedTask();
+        return SUCCESS;
+      }
     }
+    return FAIL;
   }
   
   //Queue the requests so that they can be granted
-    //in FCFS order after release of the resource
-    bool QueueRequest(uint8_t id) {
-    if((resQ[id] == NO_RES) || (qTail != id)) {
-      if(qHead == NO_RES ) {
-        qHead = id;
-        qTail = id;
-      }
-      else {
-        resQ[qTail] = id;
-        qTail = id;
-      }
-      return SUCCESS;
+    //in Round-Robin order after release of the resource  
+  bool QueueRequest(uint8_t id) {
+    atomic {
+      if((request[id/8] & (1 << (id % 8))) > 0)
+        return FAIL;
+      request[id/8] = request[id/8] | (1 << (id % 8));
     }
-    return FAIL;
+    return SUCCESS;
   }
   
   //Task for pulling the Resource.granted() signal
     //into synchronous context  
   task void GrantedTask() {
-	  atomic resId = reqResId;
-    signal Resource.granted[resId]();
+    uint8_t id;
+
+    atomic id = resId = reqResId;
+    signal Resource.granted[id]();
   }
   
   //Task for pulling the Resource.requested() signal
     //into synchronous context   
   task void RequestedTask() {
-    signal Resource.requested[resId]();
+    uint8_t id;
+
+    atomic id = resId;
+    signal Resource.requested[id]();
   } 
   
   //Default event handlers for all of the other

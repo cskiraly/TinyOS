@@ -1,4 +1,4 @@
-// $Id: SendQueueFIFOM.nc,v 1.1.2.1 2005-01-18 22:25:08 scipio Exp $
+// $Id: SendQueueFifoC.nc,v 1.1.2.1 2005-08-07 20:33:57 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -36,7 +36,7 @@
  * @date   January 5 2005
  */ 
 
-generic module SendQueueFIFOM(uint8_t depth) {
+generic module SendQueueFifoC(uint8_t depth) {
   provides {
     interface Send;
   }
