@@ -1,4 +1,4 @@
-// $Id: RandomLfsrM.nc,v 1.1.2.1 2005-05-10 18:00:01 idgay Exp $
+// $Id: RandomLfsrP.nc,v 1.1.2.1 2005-08-07 20:33:56 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -45,7 +45,7 @@
  * @author Philip Levis
  */
 
-module RandomLfsrM
+module RandomLfsrP
 {
   provides interface Init;
   provides interface Random;
