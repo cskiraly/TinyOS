@@ -1,4 +1,4 @@
-/* $Id: ADCNowChannelArbiterC.nc,v 1.1.2.1 2005-06-01 00:14:03 janhauer Exp $
+/* $Id: AdcNowChannelArbiterC.nc,v 1.1.2.1 2005-08-07 21:19:15 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -20,9 +20,9 @@
  * 
  * @author David Gay
  */
-#include "ADC.h"
+#include "Adc.h"
 
-configuration ADCNowChannelArbiterC {
+configuration AdcNowChannelArbiterC {
   provides {
     interface AcquireDataNow[uint8_t client];
   }
@@ -32,12 +32,11 @@ configuration ADCNowChannelArbiterC {
   }
 }
 implementation {
-  components ADCC, new AcquireDataNowRoundRobinM() as Arbiter, Main;
+  components AdcC, new AcquireDataNowRoundRobinM() as Arbiter, Main;
 
   AcquireDataNow = Arbiter;
   Service = Arbiter;
   Resource = Arbiter;
 
-  Main.SoftwareInit -> ADCC;
-  //Main.StdControl -> ADCC;
+  Main.SoftwareInit -> AdcC;
 }
