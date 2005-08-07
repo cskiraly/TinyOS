@@ -1,4 +1,4 @@
-//$Id: ReceiveBytePacket.nc,v 1.1.2.4 2005-08-07 21:56:15 scipio Exp $
+//$Id: SerialPacketInfo802_15_4P.nc,v 1.1.2.1 2005-08-07 21:56:15 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -21,16 +21,8 @@
  */
 
 /**
- * This is the data interface that a serial protocol (F) provides and
- * a serial dispatcher (D) uses. D assumes this pattern of calls: (
- * start+ data* end+)*
- *
- * It ignores any signals that do not fit this pattern. If it receives
- * the following sequence
- *
- *   start data data start data data end
-
- * it ignores the second start and reads in a four byte packet. 
+ * Implementation of the metdata necessary for a dispatcher to
+ * communicate 802.15.4 message_t packets over a serial port.
  *
  * @author Philip Levis
  * @author Ben Greenstein
@@ -38,15 +30,18 @@
  *
  */
 
-interface ReceiveBytePacket {
-
-  
-  async event error_t startPacket();
-
-  /* This implementation must be able to handle nested interrupts. As
-   * the data sharing is one way, that's not a big deal (atomically
-   * put it in). */
-  async event void byteReceived(uint8_t b);
-  async event void endPacket(error_t result);
+includes 802_15_4;
+module SerialPacketInfo802_15_4P {
+  provides interface SerialPacketInfo as Info;
 }
-
+implementation {
+  async command uint8_t Info.offset() {
+    return sizeof(TOSRadioHeader) - sizeof(TOS802Header);
+  }
+  async command uint8_t Info.dataLinkLength(message_t* msg, uint8_t upperLen) {
+    return upperLen + sizeof(TOS802Header) + sizeof(TOS802Footer);
+  }
+  async command uint8_t Info.upperLength(message_t* msg, uint8_t dataLinkLen) {
+    return dataLinkLen - (sizeof(TOS802Header) + sizeof(TOS802Footer));
+  }
+}
