@@ -1,4 +1,4 @@
-// $Id: CC1000ActiveMessageM.nc,v 1.1.2.1 2005-06-19 23:28:22 scipio Exp $
+// $Id: CC1000ActiveMessageP.nc,v 1.1.2.1 2005-08-07 22:42:34 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: CC1000ActiveMessageM.nc,v 1.1.2.1 2005-06-19 23:28:22 scipio Exp $
+ * Date last modified:  $Id: CC1000ActiveMessageP.nc,v 1.1.2.1 2005-08-07 22:42:34 scipio Exp $
  *
  */
 
@@ -40,7 +40,7 @@
  * @date June 19 2005
  */
 
-module CC1000ActiveMessageM {
+module CC1000ActiveMessageP {
   provides {
     interface AMSend[am_id_t id];
     interface Receive[am_id_t id];

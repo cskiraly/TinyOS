@@ -1,4 +1,4 @@
-/* $Id: CC1000ControlM.nc,v 1.1.2.5 2005-06-07 00:40:24 idgay Exp $
+/* $Id: CC1000ControlP.nc,v 1.1.2.1 2005-08-07 22:42:34 scipio Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * @author Philip Buonadonna
  * @author Jaein Jeong
  * @author David Gay
- * Revision:  $Revision: 1.1.2.5 $
+ * Revision:  $Revision: 1.1.2.1 $
  */
 
 /**
@@ -40,7 +40,7 @@
  */
 #include "CC1000Const.h"
 
-module CC1000ControlM {
+module CC1000ControlP {
   provides {
     interface CC1000Control;
   }

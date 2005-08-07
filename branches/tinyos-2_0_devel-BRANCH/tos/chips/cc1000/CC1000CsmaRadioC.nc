@@ -1,4 +1,4 @@
-/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.2 2005-07-13 03:56:08 idgay Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.3 2005-08-07 22:42:34 scipio Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -43,7 +43,7 @@
  *
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  */
 
 #include "CC1000Const.h"
@@ -65,8 +65,14 @@ configuration CC1000CsmaRadioC {
   }
 }
 implementation {
-  components Csma, SendReceive, CC1000RssiM, CC1000SquelchM, CC1000ControlM;
-  components HPLCC1000C, RandomC, TimerMilliC, ActiveMessageAddressC;
+  components CC1000CsmaP as Csma;
+  components CC1000SendReceiveP as SendReceive;
+  components CC1000RssiP as Rssi;
+  components CC1000SquelchP as Squelch;
+  components CC1000ControlP as Control;
+  components HPLCC1000C as HPL;
+
+  components RandomC, TimerMilliC, ActiveMessageAddressC;
 
   Init = Csma;
   Init = TimerMilliC;
@@ -76,35 +82,31 @@ implementation {
   Send = SendReceive;
   Receive = SendReceive;
   Packet = SendReceive;
-  //RadioControl = Csma;
-  //RadioPacket = Csma;
 
   CSMAControl = Csma;
   CSMABackoff = Csma;
   LowPowerListening = Csma;
   RadioTimeStamping = SendReceive;
 
-  Csma.CC1000Control -> CC1000ControlM;
+  Csma.CC1000Control -> Control;
   Csma.Random -> RandomC;
-  Csma.CC1000Squelch -> CC1000SquelchM;
+  Csma.CC1000Squelch -> Squelch;
   Csma.WakeupTimer -> TimerMilliC.TimerMilli[unique("TimerMilli")];
-
-  CC1000ControlM.CC -> HPLCC1000C;
-  //Csma.PowerManagement ->HPLPowerManagementM.PowerManagement;
-
   Csma.ByteRadio -> SendReceive;
   Csma.ByteRadioInit -> SendReceive;
   Csma.ByteRadioControl -> SendReceive;
 
-  SendReceive.CC1000Control -> CC1000ControlM;
-  SendReceive.HPLCC1000Spi -> HPLCC1000C;
+  SendReceive.CC1000Control -> Control;
+  SendReceive.HPLCC1000Spi -> HPL;
   SendReceive.amAddress -> ActiveMessageAddressC;
+  SendReceive.RssiRx -> Rssi.Rssi[unique("CC1000RSSI")];
   
-  SendReceive.RssiRx -> CC1000RssiM.Rssi[unique("CC1000RSSI")];
-  Csma.RssiNoiseFloor -> CC1000RssiM.Rssi[unique("CC1000RSSI")];
-  Csma.RssiCheckChannel -> CC1000RssiM.Rssi[unique("CC1000RSSI")];
-  Csma.RssiPulseCheck -> CC1000RssiM.Rssi[unique("CC1000RSSI")];
-  Csma.cancelRssi -> CC1000RssiM;
-  CC1000RssiM.ActualRssi -> HPLCC1000C;
-  Csma.RssiControl -> HPLCC1000C.RssiControl;
+  Csma.RssiNoiseFloor -> Rssi.Rssi[unique("CC1000RSSI")];
+  Csma.RssiCheckChannel -> Rssi.Rssi[unique("CC1000RSSI")];
+  Csma.RssiPulseCheck -> Rssi.Rssi[unique("CC1000RSSI")];
+  Csma.cancelRssi -> Rssi;
+  Csma.RssiControl -> HPL.RssiControl;
+
+  Rssi.ActualRssi -> HPL;
+  Control.CC -> HPL;
 }

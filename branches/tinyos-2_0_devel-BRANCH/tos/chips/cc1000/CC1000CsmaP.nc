@@ -1,4 +1,4 @@
-// $Id: Csma.nc,v 1.1.2.8 2005-07-13 03:56:10 idgay Exp $
+// $Id: CC1000CsmaP.nc,v 1.1.2.1 2005-08-07 22:42:34 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -49,7 +49,7 @@
 #include "CC1000Const.h"
 #include "Timer.h"
 
-module Csma {
+module CC1000CsmaP {
   provides {
     interface Init;
     interface SplitControl;

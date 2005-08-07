@@ -1,4 +1,4 @@
-// $Id: CC1000ActiveMessageC.nc,v 1.1.2.1 2005-06-19 23:28:22 scipio Exp $
+// $Id: CC1000ActiveMessageC.nc,v 1.1.2.2 2005-08-07 22:42:34 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: CC1000ActiveMessageC.nc,v 1.1.2.1 2005-06-19 23:28:22 scipio Exp $
+ * Date last modified:  $Id: CC1000ActiveMessageC.nc,v 1.1.2.2 2005-08-07 22:42:34 scipio Exp $
  *
  */
 
@@ -60,7 +60,7 @@ configuration CC1000ActiveMessageC {
 }
 implementation {
 
-  components CC1000ActiveMessageM as AM, CC1000CsmaRadioC as Radio;
+  components CC1000ActiveMessageP as AM, CC1000CsmaRadioC as Radio;
   components ActiveMessageAddressC as Address;
   
   Init         = Radio;

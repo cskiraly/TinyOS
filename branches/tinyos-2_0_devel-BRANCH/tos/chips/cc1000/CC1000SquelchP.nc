@@ -1,4 +1,4 @@
-/* $Id: CC1000SquelchM.nc,v 1.1.2.4 2005-05-24 23:09:08 idgay Exp $
+/* $Id: CC1000SquelchP.nc,v 1.1.2.1 2005-08-07 22:42:34 scipio Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -37,7 +37,7 @@
   
 #include "CC1000Const.h"
 
-module CC1000SquelchM
+module CC1000SquelchP
 {
   provides {
     interface Init;
