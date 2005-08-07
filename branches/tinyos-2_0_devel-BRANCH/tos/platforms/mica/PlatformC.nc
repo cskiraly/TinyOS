@@ -1,4 +1,4 @@
-/// $Id: Platform.nc,v 1.1.2.5 2005-07-22 08:33:32 mturon Exp $
+/// $Id: PlatformC.nc,v 1.1.2.1 2005-08-07 22:27:03 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -26,17 +26,17 @@
 
 includes hardware;
 
-configuration Platform
-{
+configuration PlatformC {
   provides interface Init;
+  uses interface Init as SubInit;
 }
 implementation
 {
-  components PlatformM, MotePlatformC, HPLUARTM;
+  components PlatformP, MotePlatformC;
 
   Init = PlatformM;
-  Init = HPLUARTM.UART0Init;
-
   PlatformM.MoteInit -> MotePlatformC;
+  MotePlatformM.SubInit = SubInit;
+
 }
 
