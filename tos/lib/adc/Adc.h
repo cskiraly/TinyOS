@@ -1,4 +1,4 @@
-/* $Id: ADC.h,v 1.1.2.1 2005-06-09 00:20:20 janhauer Exp $
+/* $Id: Adc.h,v 1.1.2.1 2005-08-07 21:19:15 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
