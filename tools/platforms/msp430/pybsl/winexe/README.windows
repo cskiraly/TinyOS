@@ -1,8 +1,9 @@
-$Id: README.windows,v 1.1.2.1 2005-08-08 22:18:32 idgay Exp $
+$Id: README.windows,v 1.1.2.2 2005-08-08 23:52:18 idgay Exp $
 @author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-Follow these directions if you want a standalone msp430-bsl.exe for Windows
-(i.e., which will run outside the cygwin environment).
+Follow these directions to recreate the standalone tos-bsl.exe. After doing
+this, you should recreate ../tos-bsl-win.tar.gz with the contents of the
+generated bin directory.
 
 --
 
@@ -15,8 +16,9 @@ Cygwin is insufficient.  Then install py2exe [3][4].
   [3] http://starship.python.net/crew/theller/py2exe/
   [4] http://prdownloads.sourceforge.net/py2exe/py2exe-0.5.3.win32-py2.3.exe?download
 
-To compile msp430-bsl, run make. When successful, that command creates a
-bin/ directory, which contains msp430-bsl.exe and its supporting files.
-You must install bin/ and bin/lib/ all together, or it won't work.  I
-installed it into c:/mspgcc/bin, directly over the version that came with
-MSPGCC.
+To compile msp430-bsl, make sure the Windows version of python is
+first in your path (i.e., before any cygwin version), then run
+make. When successful, that command creates a bin/ directory, which
+contains tos-bsl.exe and its supporting files.  You must install
+bin/ and bin/lib/ all together, or it won't work.  I installed it into
+c:/mspgcc/bin, directly over the version that came with MSPGCC.
