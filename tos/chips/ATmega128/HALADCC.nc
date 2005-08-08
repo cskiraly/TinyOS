@@ -1,4 +1,4 @@
-/// $Id: HALADCC.nc,v 1.1.2.4 2005-07-11 17:25:32 idgay Exp $
+/// $Id: HALADCC.nc,v 1.1.2.5 2005-08-08 04:24:55 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -48,8 +48,8 @@ configuration HALADCC
 }
 implementation
 {
-  components Main, HALADCM, HPLADCM,
-    new RoundRobinArbiter(ADC_RESOURCE) as ADCArbiter;
+  components HALADCM, HPLADCM,
+    new RoundRobinArbiterC(ADC_RESOURCE) as ADCArbiter;
 
   Init = HALADCM;
   Init = ADCArbiter;

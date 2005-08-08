@@ -8,7 +8,7 @@ configuration HPLCC1000C {
 }
 implementation {
   components HPLCC1000P, HPLCC1000SpiC;
-  components new ADCNowChannelC(CHANNEL_RSSI) as RssiChannel, AdcC;
+  components new AdcNowChannelC(CHANNEL_RSSI) as RssiChannel, AdcC;
 
   HPLCC1000 = HPLCC1000P;
   HPLCC1000Spi = HPLCC1000SpiC;

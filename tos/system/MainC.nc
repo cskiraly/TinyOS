@@ -1,4 +1,4 @@
-// $Id: MainC.nc,v 1.1.2.2 2005-08-07 21:12:50 scipio Exp $
+// $Id: MainC.nc,v 1.1.2.3 2005-08-08 04:24:55 scipio Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: MainC.nc,v 1.1.2.2 2005-08-07 21:12:50 scipio Exp $
+ * Date last modified:  $Id: MainC.nc,v 1.1.2.3 2005-08-08 04:24:55 scipio Exp $
  *
  */
 
@@ -42,6 +42,8 @@
  * @author Philip Levis
  * @date   August 6 2005
  */
+
+includes hardware;
 
 configuration MainC {
   provides interface Boot;

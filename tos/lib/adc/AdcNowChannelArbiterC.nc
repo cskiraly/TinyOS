@@ -1,4 +1,4 @@
-/* $Id: AdcNowChannelArbiterC.nc,v 1.1.2.1 2005-08-07 21:19:15 scipio Exp $
+/* $Id: AdcNowChannelArbiterC.nc,v 1.1.2.2 2005-08-08 04:24:55 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -20,6 +20,7 @@
  * 
  * @author David Gay
  */
+
 #include "Adc.h"
 
 configuration AdcNowChannelArbiterC {
@@ -32,11 +33,11 @@ configuration AdcNowChannelArbiterC {
   }
 }
 implementation {
-  components AdcC, new AcquireDataNowRoundRobinM() as Arbiter, Main;
+  components AdcC, new AcquireDataNowRoundRobinC() as Arbiter, MainC;
 
   AcquireDataNow = Arbiter;
   Service = Arbiter;
   Resource = Arbiter;
 
-  Main.SoftwareInit -> AdcC;
+  MainC.SoftwareInit -> AdcC;
 }

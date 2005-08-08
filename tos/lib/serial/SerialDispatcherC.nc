@@ -1,4 +1,4 @@
-//$Id: SerialDispatcherC.nc,v 1.1.2.5 2005-08-07 21:56:15 scipio Exp $
+//$Id: SerialDispatcherC.nc,v 1.1.2.6 2005-08-08 04:24:55 scipio Exp $
 
 /* "Copyright (c) 2005 The Regents of the University of California.  
  * All rights reserved.
@@ -51,14 +51,13 @@ implementation {
   
   Send = SerialDispatcherP;
   Receive = SerialDispatcherP;
-  SerialPacketInfo = SerialDispatcherM.PacketInfo;
+  SerialPacketInfo = SerialDispatcherP.PacketInfo;
   
   Init = SerialP;
   Init = HPLUARTM.UART0Init;
   Leds = SerialP;
   Leds = SerialDispatcherP;
   Leds = HdlcTranslateC;
-  Leds = HPLUARTM;
 
   SerialDispatcherP.ReceiveBytePacket -> SerialP;
   SerialDispatcherP.SendBytePacket -> SerialP;

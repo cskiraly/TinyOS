@@ -1,4 +1,3 @@
-
 #if !defined(__CYGWIN__)
 #if defined(__MSP430__)
 #include <sys/inttypes.h>
@@ -21,5 +20,4 @@ typedef uint8_t bool;
 enum { FALSE = 0, TRUE = 1 };
 
 typedef int8_t nx_bool __attribute__((nx_base(int8)));
-
 uint16_t TOS_LOCAL_ADDRESS = 1;

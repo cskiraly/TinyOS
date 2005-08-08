@@ -1,4 +1,4 @@
-/// $Id: VoltageC.nc,v 1.1.2.3 2005-08-07 22:10:38 scipio Exp $
+/// $Id: VoltageC.nc,v 1.1.2.4 2005-08-08 04:24:55 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -30,9 +30,9 @@ configuration VoltageC
 }
 implementation
 {
-  components VoltageP, new ADCChannelC(CHANNEL_BATTERY) as VoltageChannel, HPLGeneralIOC;
+  components VoltageP, new AdcChannelC(CHANNEL_BATTERY) as VoltageChannel, HPLGeneralIOC;
   
   StdControl  = VoltageP;  
   AcquireData = VoltageChannel;
-  VoltageM.BAT_MON -> HPLGeneralIO.PortA5;
+  VoltageP.BAT_MON -> HPLGeneralIOC.PortA5;
 }

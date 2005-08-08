@@ -1,4 +1,4 @@
-/* $Id: AdcChannelC.nc,v 1.1.2.1 2005-08-07 21:19:15 scipio Exp $
+/* $Id: AdcChannelC.nc,v 1.1.2.2 2005-08-08 04:24:55 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -13,6 +13,7 @@
  * 
  * @author David Gay
  */
+
 #include "Adc.h"
 
 generic configuration AdcChannelC(uint8_t port) {
