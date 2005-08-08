@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: telosb.target,v 1.1.2.1 2005-03-23 19:34:55 cssharp Exp $
+#$Id: telosb.target,v 1.1.2.2 2005-08-08 22:30:45 idgay Exp $
 
 PLATFORM ?= telosb
 
@@ -9,6 +9,7 @@ PLATFORM ?= telosb
 PFLAGS += -mdisable-hwmul
 OPTFLAGS += -O
 
+MSP_BSL ?= tos-bsl
 MSP_BSL_FLAGS = --telosb
 
 PFLAGS += \
