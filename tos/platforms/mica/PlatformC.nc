@@ -1,4 +1,4 @@
-/// $Id: PlatformC.nc,v 1.1.2.1 2005-08-07 22:27:03 scipio Exp $
+/// $Id: PlatformC.nc,v 1.1.2.2 2005-08-08 01:32:23 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -34,9 +34,9 @@ implementation
 {
   components PlatformP, MotePlatformC;
 
-  Init = PlatformM;
-  PlatformM.MoteInit -> MotePlatformC;
-  MotePlatformM.SubInit = SubInit;
+  Init = PlatformP;
+  PlatformP.MoteInit -> MotePlatformC;
+  MotePlatformC.SubInit = SubInit;
 
 }
 
