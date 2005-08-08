@@ -21,6 +21,11 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
 
+AC_PATH_PROG(pathperl, perl)
+if test -z "$pathperl" ; then
+  AC_MSG_ERROR(I can't find perl); 
+fi
+
 if test -z "$NESCC_PREFIX"; then
   AC_PATH_PROG(pathnescc, nescc)
   if test -z "$pathnescc"; then
@@ -68,6 +73,7 @@ case $host in
     JNIPREFIX=
     JNISUFFIX=dll
     INSTALLJNI="install --group=SYSTEM"
+    CYGWIN=yes
     ;;
   *)
     JNIPREFIX=lib
@@ -76,8 +82,10 @@ case $host in
     AC_MSG_RESULT(no)
 esac
 
+AM_CONDITIONAL([CYGWIN], [test "$CYGWIN"])
+
 AC_MSG_CHECKING(for JDK location)
-JAVAC_DIR=`tinyos/misc/locate-jre --javac`
+JAVAC_DIR=`tinyos/misc/tos-locate-jre --javac`
 if test $? -ne 0; then
   AC_ERROR(java not found)
 fi
@@ -102,11 +110,15 @@ AC_OUTPUT(
 	platforms/mica/Makefile
 	platforms/mica/cc1000-channelgen/Makefile
 	platforms/msp430/Makefile
+	platforms/msp430/motelist/Makefile
 	tinyos/Makefile
 	tinyos/java/Makefile
 	tinyos/java/env/Makefile
 	tinyos/java/serial/Makefile
-	tinyos/misc/tinyos-install-jni
+	tinyos/misc/tos-ident-flags
+	tinyos/misc/tos-install-jni
+	tinyos/misc/tos-set-symbols
+	tinyos/misc/tos-write-image
 	tinyos/misc/Makefile
 	tinyos/ncc/Makefile
 	tinyos/ncc/mig

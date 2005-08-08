@@ -1,5 +1,5 @@
-#!/usr/bin/perl -w
-#$Id: ident_flags,v 1.1.2.1 2005-07-26 17:15:26 idgay Exp $
+#!@pathperl@ -w
+#$Id: tos-ident-flags.in,v 1.1.2.1 2005-08-08 19:03:11 idgay Exp $
 #@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
 use strict;
@@ -7,7 +7,7 @@ use strict;
 my $MaxNameLength = 16;
 
 if( @ARGV == 0 ) {
-  print "usage: ident_flags [program_name] (cache_file)\n";
+  print "usage: tos-ident-flags [program_name] (cache_file)\n";
   exit 0;
 }
 

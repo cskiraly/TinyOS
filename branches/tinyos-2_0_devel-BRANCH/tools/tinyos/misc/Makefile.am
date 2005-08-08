@@ -1,12 +1,12 @@
 AUTOMAKE_OPTIONS = foreign
 
-bin_SCRIPTS = ident_flags \
-	      locate-jre \
-	      mote-key \
-	      set-mote-id \
-	      tinyos-serial-configure \
-	      toscheck \
-	      write_tos_image \
-	      tinyos-install-jni
+bin_SCRIPTS = tos-ident-flags \
+	      tos-install-jni \
+	      tos-locate-jre \
+	      tos-mote-key \
+	      tos-serial-configure \
+	      tos-set-symbols \
+	      tos-write-image \
+	      toscheck
 
-bin_PROGRAMS = raw_listen
+bin_PROGRAMS = tos-serial-debug
