@@ -1,0 +1,7 @@
+cd ..
+python winexe/setup.py py2exe
+mv dist/bsl/bsl.exe dist/msp430-bsl.exe
+mv dist/bsl/* dist/
+rmdir dist/bsl
+mv dist winexe/bin
+rm -r build
