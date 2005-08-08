@@ -1,4 +1,4 @@
-// $Id: HPLGeneralIOSlowPinM.nc,v 1.1.2.1 2005-05-23 21:04:36 idgay Exp $
+// $Id: HPLGeneralIOSlowPinC.nc,v 1.1.2.1 2005-08-08 01:38:48 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -30,7 +30,7 @@
  * sbi, cbi instructions cannot be used). This can be used for ports F-G.
  */
 
-generic module HPLGeneralIOSlowPinM (uint8_t port_addr, 
+generic module HPLGeneralIOSlowPinC (uint8_t port_addr, 
 				     uint8_t ddr_addr, 
 				     uint8_t pin_addr,
 				     uint8_t bit)
