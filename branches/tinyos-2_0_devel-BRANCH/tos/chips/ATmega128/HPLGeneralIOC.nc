@@ -1,4 +1,4 @@
-// $Id: HPLGeneralIOC.nc,v 1.1.2.3 2005-08-08 01:23:13 scipio Exp $
+// $Id: HPLGeneralIOC.nc,v 1.1.2.4 2005-08-08 01:51:22 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -93,12 +93,12 @@ configuration HPLGeneralIOC
 implementation
 {
   components 
-    new HPLGeneralIOPortC(uint8_t)&PORTA, (uint8_t)&DDRA, (uint8_t)&PINA) as PortA,
-    new HPLGeneralIOPortC(uint8_t)&PORTB, (uint8_t)&DDRB, (uint8_t)&PINB) as PortB,
-    new HPLGeneralIOPortC(uint8_t)&PORTC, (uint8_t)&DDRC, (uint8_t)&PINC) as PortC,
-    new HPLGeneralIOPortC(uint8_t)&PORTD, (uint8_t)&DDRD, (uint8_t)&PIND) as PortD,
-    new HPLGeneralIOPortC(uint8_t)&PORTE, (uint8_t)&DDRE, (uint8_t)&PINE) as PortE,
-    new HPLGeneralIOPortC(uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF) as PortF,
+    new HPLGeneralIOPortC((uint8_t)&PORTA, (uint8_t)&DDRA, (uint8_t)&PINA) as PortA,
+    new HPLGeneralIOPortC((uint8_t)&PORTB, (uint8_t)&DDRB, (uint8_t)&PINB) as PortB,
+    new HPLGeneralIOPortC((uint8_t)&PORTC, (uint8_t)&DDRC, (uint8_t)&PINC) as PortC,
+    new HPLGeneralIOPortC((uint8_t)&PORTD, (uint8_t)&DDRD, (uint8_t)&PIND) as PortD,
+    new HPLGeneralIOPortC((uint8_t)&PORTE, (uint8_t)&DDRE, (uint8_t)&PINE) as PortE,
+    new HPLGeneralIOPortC((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF) as PortF,
 
     // PortF cannot use sbi, cbi
     new HPLGeneralIOSlowPinC((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 0) as F0,
