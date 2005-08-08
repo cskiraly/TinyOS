@@ -1,4 +1,4 @@
-// $Id: TestBroadcastAppC.nc,v 1.1.2.1 2005-08-08 03:30:41 scipio Exp $
+// $Id: TestBroadcastAppC.nc,v 1.1.2.2 2005-08-08 03:58:15 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -43,7 +43,7 @@ implementation {
   components new BroadcastSenderC(5) as Sender;
   components new BroadcastReceiverC(5) as Receiver;
   components new BroadcastServiceC();
-  components new OSKITimerMsC();
+  components new OSKITimerMilliC();
   
   MainC.SoftwareInit -> LedsC;
   
@@ -53,7 +53,7 @@ implementation {
   App.Send -> Sender;
   App.Service -> BroadcastServiceC.Service;
   App.Leds -> LedsC;
-  App.MilliTimer -> OSKITimerMsC;
+  App.MilliTimer -> OSKITimerMilliC;
 }
 
 

@@ -1,4 +1,4 @@
-// $Id: TestBroadcastC.nc,v 1.1.2.3 2005-05-24 23:03:29 scipio Exp $
+// $Id: TestBroadcastC.nc,v 1.1.2.4 2005-08-08 03:58:15 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -20,7 +20,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2005 Intel Corporation
+ * Copyright (c) 2002-2003 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -30,30 +30,59 @@
  */
 
 /**
- * This application sends OSKI broadcasts at 1Hz and blinks LED 0 when
- * it receives a broadcast.
+ *  Implementation of the OSKI TestBroadcast application.
  *
- * @author Philip Levis
- * @date   May 16 2005
- */
+ *  @author Philip Levis
+ *  @date   May 16 2005
+ *
+ **/
 
-configuration TestBroadcastC {}
-implementation {
-  components Main, TestBroadcastM, LedsC;
-  components new BroadcastSenderC(5) as Sender;
-  components new BroadcastReceiverC(5) as Receiver;
-  components new BroadcastServiceC();
-  components new OSKITimerMsC();
-  
-  Main.SoftwareInit -> LedsC;
-  
-  TestBroadcastM.Boot -> Main.Boot;
+includes Timer;
 
-  TestBroadcastM.Receive -> Receiver;
-  TestBroadcastM.Send -> Sender;
-  TestBroadcastM.Service -> BroadcastServiceC.Service;
-  TestBroadcastM.Leds -> LedsC;
-  TestBroadcastM.MilliTimer -> OSKITimerMsC;
+module TestBroadcastC {
+  uses {
+    interface Leds;
+    interface Boot;
+    interface Receive;
+    interface Send;
+    interface Timer<TMilli> as MilliTimer;
+    interface Service;
+  }
 }
+implementation {
+
+  message_t packet;
+  bool locked;
+  
+  event void Boot.booted() {
+    call Service.start();
+    call MilliTimer.startPeriodicNow(1000);
+  }
+
+  event void MilliTimer.fired() {
+    if (locked) {
+      return;
+    }
+    else if (call Send.send(&packet, 6) == SUCCESS) {
+      call Leds.led0On();
+      locked = TRUE;
+    }
+  }
+  
+  event message_t* Receive.receive(message_t* bufPtr, 
+				   void* payload, uint8_t len) {
+     call Leds.led1Toggle();
+     return bufPtr;
+  }
+
+  event void Send.sendDone(message_t* bufPtr, error_t error) {
+    if (&packet == bufPtr) {
+      call Leds.led0Off();
+      locked = FALSE;
+    }
+  }
+}
+
+
 
 
