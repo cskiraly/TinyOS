@@ -1,4 +1,4 @@
-// $Id: BlinkAppC.nc,v 1.1.2.1 2005-08-07 22:58:56 scipio Exp $
+// $Id: BlinkAppC.nc,v 1.1.2.2 2005-08-08 22:58:24 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -43,9 +43,9 @@ configuration BlinkAppC
 implementation
 {
   components MainC, BlinkC, LedsC;
-  components new OSKITimerMsC() as Timer0;
-  components new OSKITimerMsC() as Timer1;
-  components new OSKITimerMsC() as Timer2;
+  components new OSKITimerMilliC() as Timer0;
+  components new OSKITimerMilliC() as Timer1;
+  components new OSKITimerMilliC() as Timer2;
 
 
   BlinkC -> MainC.Boot;
