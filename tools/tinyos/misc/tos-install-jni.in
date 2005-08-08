@@ -4,7 +4,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 tinyoslibdir=$libdir/tinyos
 
-jni=`locate-jre --jni`
+jni=`tos-locate-jre --jni`
 if [ $? -ne 0 ]; then
   echo "Java not found, not installing JNI code"
   exit 1

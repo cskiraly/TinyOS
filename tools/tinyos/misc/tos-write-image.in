@@ -1,10 +1,10 @@
-#!/usr/bin/perl -w
+#!@pathperl@ -w
 #
 # This script generates an ihex binary image and XML description
 # from an srec binary image. These are used by the Deluge binary
 # image dissemination service.
 #
-#$Id: write_tos_image,v 1.1.2.1 2005-07-26 17:15:26 idgay Exp $
+#$Id: tos-write-image.in,v 1.1.2.1 2005-08-08 19:03:11 idgay Exp $
 #@author Jonathan Hui <jwhui@cs.berkeley.edu>
 #
 use strict;
@@ -12,7 +12,7 @@ use strict;
 my $MaxNameLength = 10;
 
 if ( @ARGV == 0 ) {
-  print "usage: build_tosimage [ident_flags] [exe_file]\n";
+  print "usage: tos-write-image [ident_flags] [exe_file]\n";
   exit 0;
 }
 
