@@ -1,6 +1,5 @@
-COMPONENT=TestAMC
-CC1K_DEF_FREQ=434845229
-PFLAGS += -I$(TOSDIR)/oski/impls -I%T/lib/adc
+COMPONENT=TestAMAppC
+PFLAGS += -I$(TOSDIR)/oski/impls -I$(TOSDIR)/lib/adc
 
 include $(MAKERULES)
 
