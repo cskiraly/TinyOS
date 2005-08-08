@@ -1,4 +1,4 @@
-// $Id: SendQueueFIFOP.nc,v 1.1.2.1 2005-01-18 18:46:29 scipio Exp $
+// $Id: CollectionServiceImplP.nc,v 1.1.2.1 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,73 +30,20 @@
 
 
 /**
- * The OSKI send queue abstraction, following a FIFO policy.
+ * The OSKI implementation of the operating status of the Collection
+ * Routing subsystem.
  *
  * @author Philip Levis
  * @date   January 5 2005
  */ 
 
-generic module SendQueueFIFOP(uint8_t depth) {
-  provides {
-    interface Send;
-  }
-  uses {
-    interface Send as SubSend;
-  }
+configuration CollectionServiceImpl {
+  provides interface Service[uint8_t id];
 }
-
 implementation {
-
-  typedef struct SendQueueEntry {
-    TOSMsg* msg;
-    uint8_t len;
-    bool cancelled;
-  }
+  components CollectionImpl;
+  components new ServiceOrControllerC("OSKI.CollectionServiceImpl.Service");
   
-  TOSMsg* queue[depth];
-  uint8_t head = 0;
-  uint8_t tail = 0;
-  bool busy = FALSE;
-  
-  task void sendTask() {
-
-  }
-
-  command error_t Send.send(TOSMsg* msg, uint8_t len) {
-    // If there's no space (next free slot is in use), return EBUSY
-    if (((tail + 1) % depth) == head) {
-      return EBUSY;
-    }
-    // Otherwise, put the message in the queue.
-    else {
-      queue[tail].msg = msg;
-      queue[tail].len = len;
-      queue[tail].cancelled = FALSE;
-      if (!busy) {
-	post sendTask();
-      }
-      tail = ((tail + 1) % depth);
-    }
-  }
-
-  command error_t Send.cancel(TOSMsg* msg) {
-    uint8_t i;
-    // See if the message is still in the queue.
-    for (i = head; i != tail; i = ((i + 1) % depth)) {
-      if (queue[i].msg == msg) {
-	// If so, then cancel it and post a cancelling task
-	queue[i].cancelled = TRUE;
-	post cancelTask();
-	return SUCCESS;
-      }
-    }
-    else {
-      return FALSE;
-    }
-  }
-
-  event void SubSend.sendDone(TOSMsg* msg, error_t error) {
-
-  }
-
+  Service = ServiceOrControllerC;
+  ServiceOrControllerC.SplitControl -> CollectionImpl;  
 }

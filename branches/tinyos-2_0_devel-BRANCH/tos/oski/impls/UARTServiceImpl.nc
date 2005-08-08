@@ -1,4 +1,4 @@
-// $Id: UARTServiceImpl.nc,v 1.1.2.1 2005-01-11 03:33:04 scipio Exp $
+// $Id: UARTServiceImpl.nc,v 1.1.2.2 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -42,8 +42,8 @@ configuration UARTServiceImpl {
 }
 implementation {
   components UARTImpl;
-  components new ServiceOrControllerP("OSKI.UARTServiceImpl.Service");
+  components new ServiceOrControllerC("OSKI.UARTServiceImpl.Service");
   
-  Service = ServiceOrControllerP;
-  ServiceOrControllerP.SplitControl -> UARTImpl;  
+  Service = ServiceOrControllerC;
+  ServiceOrControllerC.SplitControl -> UARTImpl;  
 }

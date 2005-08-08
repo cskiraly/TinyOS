@@ -1,4 +1,4 @@
-// $Id: BroadcastReceiverC.nc,v 1.1.2.1 2005-05-17 21:25:19 scipio Exp $
+// $Id: BroadcastReceiverC.nc,v 1.1.2.2 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -46,8 +46,8 @@ generic configuration BroadcastReceiverC(bcast_id_t id) {
 }
 
 implementation {
-  components BroadcastImplC;
+  components BroadcastImplP;
 
-  Receive = BroadcastImplC.Receive[id];
-  Packet = BroadcastImplC;
+  Receive = BroadcastImplP.Receive[id];
+  Packet = BroadcastImplP;
 }

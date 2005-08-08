@@ -1,4 +1,4 @@
-// $Id: UARTSender.nc,v 1.1.2.1 2005-06-19 23:28:23 scipio Exp $
+// $Id: UartImplP.nc,v 1.1.2.1 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,24 +30,32 @@
 
 
 /**
- * The OSKI presentation of sending over a UART.
+ * The underlying configuration of OSKI UART dommunication. Wires the
+ * UART implementation (UARTPacketC) to the boot sequence, and
+ * exports the communication interfaces.
  *
  * @author Philip Levis
  * @date   January 5 2005
  */ 
 
-includes UART;
+includes Uart;
 
-generic configuration UARTSender(uart_id_t id) {
+configuration UartImplP {
   provides {
-    interface Send;
+    interface Send[uart_id_t id];
+    interface Receive[uart_id_t id];
+    /* Need to consider what this interfaces means. - pal*/
+    /* interface RawSend[uart_id_t id]; */
     interface Packet;
   }
 }
 
 implementation {
-  components UARTImpl;
+  components UartPacketC, MainC;
 
-  Send = UARTImpl.Send[id];
-  Packet = UARTImpl;
+  Main.SoftwareInit -> UartPacketC;
+
+  Send = UartPacketC;
+  Receive = UartPacketC;
+  Packet = UartPacketC;
 }

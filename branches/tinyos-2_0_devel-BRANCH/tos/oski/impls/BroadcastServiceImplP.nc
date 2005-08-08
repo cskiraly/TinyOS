@@ -1,4 +1,4 @@
-// $Id: SendQueueFIFO.nc,v 1.1.2.1 2005-01-18 18:46:29 scipio Exp $
+// $Id: BroadcastServiceImplP.nc,v 1.1.2.1 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,24 +30,20 @@
 
 
 /**
- * The OSKI send queue abstraction, following a FIFO policy.
+ * The OSKI implementation of the operating status of the Broadcast
+ * subsystem.
  *
  * @author Philip Levis
  * @date   January 5 2005
  */ 
 
-generic module SendQueueFIFO(uint8_t depth) {
-  provides {
-    interface Send;
-  }
-  uses {
-    interface Send;
-  }
+configuration BroadcastServiceImplP {
+  provides interface Service[uint8_t id];
 }
-
 implementation {
-  components UARTImpl;
-
-  Send = UARTImpl.Send[id];
-  Packet = UARTImpl;
+  components BroadcastP;
+  components new ServiceOrMuxC("OSKI.BroadcastServiceImpl.Service");
+  
+  Service = ServiceOrMuxC;
+  ServiceOrMuxC.SubService -> BroadcastP;
 }

@@ -1,4 +1,4 @@
-// $Id: CollectionServiceImpl.nc,v 1.1.2.2 2005-08-08 04:07:55 scipio Exp $
+// $Id: BroadcastP.nc,v 1.1.2.3 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,20 +30,39 @@
 
 
 /**
- * The OSKI implementation of the operating status of the Collection
- * Routing subsystem.
+ * Components should never wire directly to this component: use
+ * BroadcastSenderC and BroadcastReceiverC instead. This is the
+ * configuration for OSKI broadcasts, which wires the broadcast module
+ * to its underlying components.
  *
  * @author Philip Levis
- * @date   January 5 2005
+ * @date   May 16 2005
  */ 
 
-configuration CollectionServiceImpl {
-  provides interface Service[uint8_t id];
+includes Broadcast;
+
+configuration BroadcastP {
+  provides {
+    interface Service;
+    interface Send[uint8_t id];
+    interface Receive[uint8_t id];
+    interface Packet;
+  }
 }
+
 implementation {
-  components CollectionImpl;
-  components new ServiceOrControllerC("OSKI.CollectionServiceImpl.Service");
+  components BroadcastImplP, ActiveMessageImplP as AM;
+  components new AMSenderC(TOS_BCAST_AM_ID) as Sender;
+  components new AMReceiverC(TOS_BCAST_AM_ID) as Receiver;
+  components new AMServiceC();
   
-  Service = ServiceOrControllerC;
-  ServiceOrControllerC.SplitControl -> CollectionImpl;  
+  BroadcastImplP.AMSend -> Sender;
+  BroadcastImplP.SubReceive -> Receiver;
+  BroadcastImplP.SubPacket -> Sender;
+  BroadcastImplP.AMPacket -> Sender;
+
+  Send = BroadcastImplP;
+  Receive = BroadcastImplP;
+  Packet = BroadcastImplP;
+  Service = AMServiceC;
 }

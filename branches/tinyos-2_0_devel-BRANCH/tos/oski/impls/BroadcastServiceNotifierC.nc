@@ -1,4 +1,4 @@
-// $Id: BroadcastServiceNotifierC.nc,v 1.1.2.1 2005-05-17 21:25:23 scipio Exp $
+// $Id: BroadcastServiceNotifierC.nc,v 1.1.2.2 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -42,7 +42,7 @@ generic configuration BroadcastServiceNotifierC {
 }
 
 implementation {
-  components BroadcastServiceImpl;
+  components BroadcastServiceImplP;
 
-  Notify = BroadcastServiceImpl;
+  Notify = BroadcastServiceImplP;
 }

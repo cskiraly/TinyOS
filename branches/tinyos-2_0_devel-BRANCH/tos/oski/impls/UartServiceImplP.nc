@@ -1,4 +1,4 @@
-// $Id: CollectionServiceImpl.nc,v 1.1.2.2 2005-08-08 04:07:55 scipio Exp $
+// $Id: UartServiceImplP.nc,v 1.1.2.1 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,20 +30,20 @@
 
 
 /**
- * The OSKI implementation of the operating status of the Collection
- * Routing subsystem.
+ * The OSKI implementation of the operating status of the UART
+ * subsystem.
  *
  * @author Philip Levis
  * @date   January 5 2005
  */ 
 
-configuration CollectionServiceImpl {
+configuration UartServiceImplP {
   provides interface Service[uint8_t id];
 }
 implementation {
-  components CollectionImpl;
-  components new ServiceOrControllerC("OSKI.CollectionServiceImpl.Service");
+  components UartImplP;
+  components new ServiceOrControllerC("OSKI.UartServiceImplP.Service");
   
   Service = ServiceOrControllerC;
-  ServiceOrControllerC.SplitControl -> CollectionImpl;  
+  ServiceOrControllerC.SplitControl -> UartImplP;  
 }

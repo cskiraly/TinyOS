@@ -1,4 +1,4 @@
-// $Id: ServiceOrMuxM.nc,v 1.1.2.1 2005-05-20 00:26:30 scipio Exp $
+// $Id: ServiceOrControllerC.nc,v 1.1.2.1 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -68,14 +68,13 @@
  * @date   May 16 2005
  */ 
 
-generic module ServiceOrMuxM(char strID[]) {
+generic module ServiceOrControllerC(char strID[]) {
   provides {
     interface Service[uint8_t id];
     interface ServiceNotify;
   }
   uses {
-    interface Service as SubService;
-    interface ServiceNotify as SubNotify;
+    interface SplitControl;
   }
 }
 
@@ -89,7 +88,7 @@ implementation {
   
   typedef struct {
     uint8_t busy:1;
-    uint8_t subActive:1;
+    uint8_t active:1;
   } OrControllerService;
   
   // Bits are stored big-endian. Bit 0 is the 0th bit of the last
@@ -102,7 +101,7 @@ implementation {
   // (that's under our control).
   OrControllerService status = {
     FALSE,
-    FALSE,
+    FALSE
   };
   
   
@@ -134,11 +133,15 @@ implementation {
 
   void enactStateChange() {
     if (status.busy) {return;}
-    if (isClear() && status.subActive) {
-      call SubService.stop();
+    if (isClear() && status.active) {
+      if (call SplitControl.stop() == SUCCESS) {
+	status.busy = TRUE;
+      }
     }
-    if (!isClear() && !status.subActive) {
-      call SubService.start();
+    if (!isClear() && !status.active) {
+      if (call SplitControl.start() == SUCCESS) {
+	status.busy = TRUE;
+      }
     }
   }
 
@@ -152,8 +155,10 @@ implementation {
     return;
   }
 
-  event void SubNotify.started() {
-    status.subActive = TRUE;
+  event void SplitControl.startDone(error_t error) {
+    status.busy = FALSE;
+    status.active = TRUE;
+    signal ServiceNotify.started();
     /* Invoke enactStateChange() in case clients tried to stop the
      * service while it was being started. */
     enactStateChange();
@@ -164,8 +169,16 @@ implementation {
     enactStateChange();
   }
 
-  event void SubNotify.stopped() {
-    status.subActive = FALSE;
-    enactStateChange();
-  }  
+  event void SplitControl.stopDone(error_t error) {
+    status.busy = FALSE;
+    status.active = FALSE;
+    signal ServiceNotify.stopped();
+    /* Invoke enactStateChange() in case clients tried to start the
+     * service while it was being stopped. */
+    enactStateChange();            
+  }
+
+ default event void ServiceNotify.started() {}
+ default event void ServiceNotify.stopped() {}
+ 
 }

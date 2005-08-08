@@ -1,4 +1,4 @@
-// $Id: AMServiceNotifierC.nc,v 1.1.2.2 2005-06-20 01:09:28 scipio Exp $
+// $Id: AMServiceNotifierC.nc,v 1.1.2.3 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -42,7 +42,7 @@ generic configuration AMServiceNotifierC() {
 }
 
 implementation {
-  components AMServiceImplC as Impl;
+  components AMServiceImplP as Impl;
 
   Notify = Impl;
 }
