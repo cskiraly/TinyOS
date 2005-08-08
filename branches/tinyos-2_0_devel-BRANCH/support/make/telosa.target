@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: telosa.target,v 1.1.2.1 2005-03-23 19:34:55 cssharp Exp $
+#$Id: telosa.target,v 1.1.2.2 2005-08-08 22:30:45 idgay Exp $
 
 PLATFORM ?= telos
 
@@ -8,6 +8,8 @@ MSP_MCU = msp430x149
 # Disable MSP430 hardware multiply because it makes MSPGCC die
 PFLAGS += -mdisable-hwmul
 OPTFLAGS += -O
+
+MSP_BSL ?= tos-bsl
 
 PFLAGS += \
 -I$(TOSDIR)/lib/CC2420Radio \
