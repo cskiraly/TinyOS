@@ -1,4 +1,4 @@
-//$Id: SendBytePacket.nc,v 1.1.2.6 2005-08-07 21:56:15 scipio Exp $
+//$Id: SendBytePacket.nc,v 1.1.2.7 2005-08-08 02:52:22 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -20,8 +20,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-/**
- *
+ /**
  * This is an interface that a serial protocol (F) provides and a serial
  * dispatcher (D) uses.
  * Call sequence is this:
