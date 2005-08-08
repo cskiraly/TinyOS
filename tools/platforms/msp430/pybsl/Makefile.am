@@ -1,13 +1,12 @@
 AUTOMAKE_OPTIONS = foreign
 
+SUBDIRS = serial
+
 tinyoslibdir=$(libdir)/tinyos
-serialdir=$(tinyoslibdir)/serial
 
 bin_SCRIPTS = tos-bsl
 
 tinyoslib_DATA = elf.py
-serial_DATA = __init__.py 		\
-		serialjava.py		\
-		serialposix.py		\
-		serialutil.py		\
-		serialwin32.py
+
+tos-bsl: tos-bsl.in
+	sed -e 's,@tinyoslibdir\@,$(tinyoslibdir),g' tos-bsl.in >$@

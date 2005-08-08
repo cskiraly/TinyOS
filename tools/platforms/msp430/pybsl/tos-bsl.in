@@ -11,8 +11,7 @@
 # additional infos from slaa089a.pdf
 
 import sys, time, string, cStringIO, struct
-prefix = "@prefix@"
-sys.path.append("@libdir@/tinyos")
+sys.path.append("@tinyoslibdir@")
 import serial
 
 VERSION = string.split("Revision: 1.39-telos-8 ")[1] #freeze the mspgcc CVS version, and tag telos

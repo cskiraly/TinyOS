@@ -14,7 +14,7 @@ setup(
             'excludes': ['javax.comm'],
         }
     },
-    console = ["bsl.py"],
+    console = ["tos-bsl"],
     zipfile = "lib/shared-bsl.zip",
 )
 

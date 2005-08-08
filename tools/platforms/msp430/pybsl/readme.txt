@@ -1,9 +1,13 @@
-pyBSL
-----
+tos-bsl
+-------
 
 BootStrapLoader software for the flash devices MSP430F1xx 
 (maybe F4xx too, but its not tested).
 Based on the example provided by TI but with more features.
+
+This version is a modification of Chris Liechti's original
+pybsl, with support for the telos, telosb and tmote devices
+from Moteiv (www.moteiv.com).
 
 It is released under a free software license,
 see license.txt for more details.
