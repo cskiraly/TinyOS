@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
-bin_PROGRAMS=channelgen
+bin_PROGRAMS=tos-channelgen
 
 all: $(EXES)
 
-channelgen_SOURCES = channelgen.c
+tos_channelgen_SOURCES = tos-channelgen.c
