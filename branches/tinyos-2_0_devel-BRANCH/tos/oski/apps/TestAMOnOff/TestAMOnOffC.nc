@@ -1,4 +1,4 @@
-// $Id: TestAMOnOffC.nc,v 1.1.2.1 2005-06-20 01:09:28 scipio Exp $
+// $Id: TestAMOnOffC.nc,v 1.1.2.2 2005-08-08 03:30:41 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -20,7 +20,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2005 Intel Corporation
+ * Copyright (c) 2002-2003 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -30,46 +30,119 @@
  */
 
 /**
- *  This application has two versions: slave and master, which are set
- *  by a command line -D: SERVICE_SLAVE or SERVICE_MASTER. A master is
- *  always on, and transmits data packets at 1Hz. Every 5s, it
- *  transmits a power message. When a slave hears a data message, it
- *  toggles its red led; when it hears a power message, it turns off
- *  its radio, which it turns back on in a few seconds. This
- *  essentially tests whether the AMService is turning the radio off
- *  appropriately.
+ *  Implementation of the OSKI TestAMOnOff application. This
+ *  application has two versions: slave and master. A master is always
+ *  on, and transmits data packets at 1Hz. Every 5s, it transmits a power
+ *  message. When a slave hears a data message, it toggles its red led;
+ *  when it hears a power message, it turns off its radio, which it turns
+ *  back on in a few seconds. This essentially tests whether the AMService
+ *  is turning the radio off appropriately.
  *
- * @author Philip Levis
- * @date   June 19 2005
- */
+ *  @author Philip Levis
+ *  @date   June 19 2005
+ *
+ **/
 
-configuration TestAMOnOffC {}
-implementation {
-  components Main, TestAMOnOffM as App, LedsC;
-  components new AMSenderC(5) as PowerSend;
-  components new AMReceiverC(5) as PowerReceive;
-  components new AMSenderC(105) as DataSend;
-  components new AMReceiverC(105) as DataReceive;
-  components new OSKITimerMsC();
-  components new AMServiceNotifierC();
-  components new AMServiceC();
-  components new AMServiceC() as SecondServiceC;
-  
-  Main.SoftwareInit -> LedsC;
-  
-  App.Boot -> Main.Boot;
-  
-  App.PowerReceive -> PowerReceive;
-  App.PowerSend -> PowerSend;
-  App.DataReceive -> DataReceive;
-  App.DataSend -> DataSend;
+includes Timer;
 
-  App.Service -> AMServiceC;
-  App.SecondService -> SecondServiceC;
-  App.ServiceNotify -> AMServiceNotifierC;
-  App.Leds -> LedsC;
-  App.MilliTimer -> OSKITimerMsC;
-  
+module TestAMOnOffC {
+  uses {
+    interface Leds;
+    interface Boot;
+    interface Receive as PowerReceive;
+    interface AMSend as PowerSend;
+    interface Receive as DataReceive;
+    interface AMSend as DataSend;
+    interface Timer<TMilli> as MilliTimer;
+    interface Service;
+    interface ServiceNotify;
+    interface Service as SecondService;
+  }
 }
+implementation {
+
+  message_t packet;
+
+  bool locked;
+  uint8_t counter = 0;
+  
+  event void Boot.booted() {
+    call Service.start();
+    //call SecondService.start();
+    call MilliTimer.startPeriodicNow(1000);
+  }
+  
+  event void MilliTimer.fired() {
+    counter++;
+#ifdef SERVICE_SLAVE
+    if ((counter % 7) == 0) {
+      if (!call Service.isRunning()) {
+        call Service.start();
+      }
+    }
+#endif
+#ifdef SERVICE_MASTER
+    if (locked) {
+      return;
+    }
+    if (counter % 5) {
+      if (call DataSend.send(AM_BROADCAST_ADDR, &packet, 0) == SUCCESS) {
+        call Leds.led0Toggle();
+        locked = TRUE;
+      }
+    }
+    else {
+      if (call PowerSend.send(AM_BROADCAST_ADDR, &packet, 0) == SUCCESS) {
+        call Leds.led1Toggle();
+        locked = TRUE;
+      }
+    }
+#endif
+  }
+
+  event message_t* DataReceive.receive(message_t* bufPtr, 
+	   			       void* payload, uint8_t len) {
+#ifdef SERVICE_SLAVE 
+    call Leds.led0Toggle();
+#endif
+    return bufPtr;
+  }
+
+  event message_t* PowerReceive.receive(message_t* bufPtr, 
+	   			        void* payload, uint8_t len) {
+#ifdef SERVICE_SLAVE 
+    if (call Service.isRunning()) {
+      call Service.stop();
+    }
+#endif
+    return bufPtr;
+  }
+  
+  event void PowerSend.sendDone(message_t* bufPtr, error_t error) {
+    if (&packet == bufPtr) {
+      locked = FALSE;
+    }
+  }
+
+  event void DataSend.sendDone(message_t* bufPtr, error_t error) {
+    if (&packet == bufPtr) {
+      locked = FALSE;
+    }
+  }
+
+  event void ServiceNotify.started() {
+#ifdef SERVICE_SLAVE
+    call Leds.led1On();
+#endif
+  }
+
+  event void ServiceNotify.stopped() {
+#ifdef SERVICE_SLAVE
+    call Leds.led1Off();
+#endif
+  }
+}
+
+
 
 

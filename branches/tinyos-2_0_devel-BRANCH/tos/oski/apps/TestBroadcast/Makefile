@@ -1,5 +1,5 @@
-COMPONENT=TestBroadcastC
-PFLAGS += -I$(TOSDIR)/oski/impls
+COMPONENT=TestBroadcastAppC
+PFLAGS += -I$(TOSDIR)/oski/impls -I$(TOSDIR)/lib/adc
 
 include $(MAKERULES)
 

@@ -1,4 +1,4 @@
-// $Id: TestAMC.nc,v 1.1.2.2 2005-08-08 03:30:41 scipio Exp $
+// $Id: TestAMServiceAppC.nc,v 1.1.2.1 2005-08-08 03:30:41 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -20,7 +20,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2003 Intel Corporation
+ * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -30,69 +30,31 @@
  */
 
 /**
- *  Implementation of the OSKI TestBroadcast application.
+ * This application sends OSKI broadcasts at 1Hz and blinks LED 0 when
+ * it receives a broadcast.
  *
- *  @author Philip Levis
- *  @date   May 16 2005
- *
- **/
+ * @author Philip Levis
+ * @date   May 16 2005
+ */
 
-includes Timer;
-
-module TestAMC {
-  uses {
-    interface Leds;
-    interface Boot;
-    interface Receive;
-    interface AMSend;
-    interface Timer<TMilli> as MilliTimer;
-    interface SplitControl;
-  }
-}
+configuration TestAMServiceAppC {}
 implementation {
-
-  message_t packet;
-
-  bool locked;
-  uint8_t counter = 0;
+  components MainC, TestAMServiceC as App, LedsC;
+  components new AMSenderC(5);
+  components new AMReceiverC(5);
+  components new OSKITimerMsC();
+  components new AMServiceC();
   
-  event void Boot.booted() {
-    call SplitControl.start();
-  }
+  MainC.SoftwareInit -> LedsC;
   
-  event void MilliTimer.fired() {
-    counter++;
-    if (locked) {
-      return;
-     }
-    else if (call AMSend.send(AM_BROADCAST_ADDR, &packet, 0) == SUCCESS) {
-      call Leds.led0On();
-      locked = TRUE;
-    }
-  }
-
-  event message_t* Receive.receive(message_t* bufPtr, 
-				   void* payload, uint8_t len) {
-    call Leds.led1Toggle();
-    return bufPtr;
-  }
-
-  event void AMSend.sendDone(message_t* bufPtr, error_t error) {
-    if (&packet == bufPtr) {
-      locked = FALSE;
-      call Leds.led0Off();
-    }
-  }
-
-  event void SplitControl.startDone(error_t err) {
-    call MilliTimer.startPeriodicNow(1000);
-  }
-
-  event void SplitControl.stopDone(error_t err) {
-  }
-
+  App.Boot -> MainC.Boot;
+  
+  App.Receive -> AMReceiverC;
+  App.AMSend -> AMSenderC;
+  App.Service -> AMServiceC;
+  App.Leds -> LedsC;
+  App.MilliTimer -> OSKITimerMsC;
+  
 }
-
-
 
 

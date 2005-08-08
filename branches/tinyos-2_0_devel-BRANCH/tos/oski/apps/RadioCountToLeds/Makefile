@@ -1,5 +1,5 @@
-COMPONENT=RadioCountToLedsC
-PFLAGS += -I$(TOSDIR)/oski/impls -I$(TOSDIR)/lib/adc -DCC1K_MANUAL_FREQ=434845229
+COMPONENT=RadioCountToLedsAppC
+PFLAGS += -I$(TOSDIR)/oski/impls -I$(TOSDIR)/lib/adc 
 
 include $(MAKERULES)
 
