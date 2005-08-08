@@ -111,6 +111,8 @@ AC_OUTPUT(
 	platforms/mica/cc1000-channelgen/Makefile
 	platforms/msp430/Makefile
 	platforms/msp430/motelist/Makefile
+	platforms/msp430/pybsl/Makefile
+	platforms/msp430/pybsl/serial/Makefile
 	tinyos/Makefile
 	tinyos/java/Makefile
 	tinyos/java/env/Makefile

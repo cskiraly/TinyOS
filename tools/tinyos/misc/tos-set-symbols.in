@@ -28,7 +28,7 @@ if( @ARGV < ($G_opts{readdata} ? 1 : 3) ) {
     print "                       [--target=TARGETFILETYPE]\n";
     print "                       INFILE OUTFILE [SYMBOL=]VALUE...\n";
     print "       tos-set-symbols --exe [--objcopy=...] [--objdump=...]\n";
-    print "                       INFILE OUTFILE [SYMBOL]=VALUE...\n:";
+    print "                       INFILE OUTFILE [SYMBOL]=VALUE...\n";
     print "       tos-set-symbols --read [--objdump=...] INFILE SYMBOL...\n";
     print "\nNote: If omitted, SYMBOL defaults to TOS_LOCAL_ADDRESS.\n";
     exit 0;
