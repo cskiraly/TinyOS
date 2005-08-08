@@ -1,4 +1,4 @@
-// $Id: BroadcastM.nc,v 1.1.2.3 2005-05-24 23:01:05 scipio Exp $
+// $Id: BroadcastImplP.nc,v 1.1.2.1 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -45,7 +45,7 @@
 
 includes Broadcast;
 
-module BroadcastM {
+module BroadcastImplP {
   provides {
     interface Send[uint8_t id];
     interface Receive[uint8_t id];

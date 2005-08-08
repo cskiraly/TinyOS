@@ -1,4 +1,4 @@
-// $Id: CollectionServiceImpl.nc,v 1.1.2.2 2005-08-08 04:07:55 scipio Exp $
+// $Id: UartSenderC.nc,v 1.1.2.1 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,20 +30,24 @@
 
 
 /**
- * The OSKI implementation of the operating status of the Collection
- * Routing subsystem.
+ * The OSKI presentation of sending over a UART.
  *
  * @author Philip Levis
  * @date   January 5 2005
  */ 
 
-configuration CollectionServiceImpl {
-  provides interface Service[uint8_t id];
+includes Uart;
+
+generic configuration UartSender(uart_id_t id) {
+  provides {
+    interface Send;
+    interface Packet;
+  }
 }
+
 implementation {
-  components CollectionImpl;
-  components new ServiceOrControllerC("OSKI.CollectionServiceImpl.Service");
-  
-  Service = ServiceOrControllerC;
-  ServiceOrControllerC.SplitControl -> CollectionImpl;  
+  components UartImpl;
+
+  Send = UartImpl.Send[id];
+  Packet = UartImpl;
 }

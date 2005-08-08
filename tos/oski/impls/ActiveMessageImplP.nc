@@ -1,4 +1,4 @@
-// $Id: CollectionServiceImpl.nc,v 1.1.2.2 2005-08-08 04:07:55 scipio Exp $
+// $Id: ActiveMessageImplP.nc,v 1.1.2.1 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,20 +30,36 @@
 
 
 /**
- * The OSKI implementation of the operating status of the Collection
- * Routing subsystem.
+ * The underlying configuration of OSKI Active Messages. Wires the AM
+ * implementation (ActiveMessageC) to the boot sequence, and exports
+ * the AM interfaces.
  *
  * @author Philip Levis
  * @date   January 5 2005
  */ 
 
-configuration CollectionServiceImpl {
-  provides interface Service[uint8_t id];
+includes AM;
+
+configuration ActiveMessageImplP {
+  provides {
+    interface SplitControl;      
+    interface AMSend[am_id_t id];
+    interface Receive[am_id_t id];
+    interface Receive as Snoop[am_id_t id];
+    interface Packet;
+    interface AMPacket;
+  }
 }
+
 implementation {
-  components CollectionImpl;
-  components new ServiceOrControllerC("OSKI.CollectionServiceImpl.Service");
-  
-  Service = ServiceOrControllerC;
-  ServiceOrControllerC.SplitControl -> CollectionImpl;  
+  components ActiveMessageC, MainC;
+
+  MainC.SoftwareInit -> ActiveMessageC;
+
+  SplitControl = ActiveMessageC;
+  AMSend = ActiveMessageC;
+  Receive = ActiveMessageC.Receive;
+  Snoop = ActiveMessageC.Snoop;
+  Packet = ActiveMessageC;
+  AMPacket = ActiveMessageC;
 }

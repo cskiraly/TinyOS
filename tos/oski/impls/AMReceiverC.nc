@@ -1,4 +1,4 @@
-// $Id: AMReceiverC.nc,v 1.1.2.2 2005-05-24 23:01:05 scipio Exp $
+// $Id: AMReceiverC.nc,v 1.1.2.3 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -47,7 +47,7 @@ generic configuration AMReceiverC(am_id_t AMId) {
 }
 
 implementation {
-  components ActiveMessageImplC as Impl;
+  components ActiveMessageImplP as Impl;
 
   Receive = Impl.Receive[AMId];
   Packet = Impl;

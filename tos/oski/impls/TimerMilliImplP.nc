@@ -1,4 +1,4 @@
-// $Id: CollectionServiceImpl.nc,v 1.1.2.2 2005-08-08 04:07:55 scipio Exp $
+// $Id: TimerMilliImplP.nc,v 1.1.2.1 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,20 +30,24 @@
 
 
 /**
- * The OSKI implementation of the operating status of the Collection
- * Routing subsystem.
+ * Components should never wire to this component. This is the
+ * underlying configuration of the OSKI timers. Wires the timer
+ * implementation (TimerC) to the boot sequence and exports the
+ * various Timer interfaces.
  *
  * @author Philip Levis
- * @date   January 5 2005
+ * @author Cory Sharp
+ * @date   May 16 2005
  */ 
 
-configuration CollectionServiceImpl {
-  provides interface Service[uint8_t id];
+includes Timer;
+
+configuration TimerMilliImplP {
+  provides interface Timer<TMilli> as TimerMilli[uint8_t id];
 }
 implementation {
-  components CollectionImpl;
-  components new ServiceOrControllerC("OSKI.CollectionServiceImpl.Service");
-  
-  Service = ServiceOrControllerC;
-  ServiceOrControllerC.SplitControl -> CollectionImpl;  
+  components TimerMilliC, MainC;
+  MainC.SoftwareInit -> TimerMilliC;
+  TimerMilli = TimerMilliC;
 }
+

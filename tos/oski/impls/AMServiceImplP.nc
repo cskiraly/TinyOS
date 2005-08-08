@@ -1,4 +1,4 @@
-// $Id: UARTReceiver.nc,v 1.1.2.1 2005-06-19 23:28:23 scipio Exp $
+// $Id: AMServiceImplP.nc,v 1.1.2.1 2005-08-08 04:07:55 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,24 +30,22 @@
 
 
 /**
- * The OSKI presentation of receiving over the UART.
+ * The OSKI presentation of the operating status of the Active Message
+ * subsystem.
  *
  * @author Philip Levis
  * @date   January 5 2005
  */ 
 
-includes UART;
-
-generic configuration UARTReceiver(uart_id_t id) {  
-  provides {
-    interface Receive;
-    interface Packet;
-  }
+configuration AMServiceImplP {
+  provides interface Service[uint8_t id];
+  provides interface ServiceNotify;
 }
-
 implementation {
-  components UARTImpl;
-
-  Receive = UARTImpl.Receive[id];
-  Packet = UARTImpl;
+  components ActiveMessageImplP;
+  components new ServiceOrControllerC("OSKI.AMServiceImplP.Service");
+  
+  Service = ServiceOrControllerC;
+  ServiceOrControllerC.SplitControl -> ActiveMessageImplP;
+  ServiceNotify = ServiceOrControllerC;
 }
