@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-08-07 20:33:56 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-08-08 02:03:23 $ 
  * ======================================================================== 
  */
  
@@ -46,6 +46,7 @@
  * SchedulerBasic component written by Philip Levis and Cory Sharp
  * 
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
+ * @author Philip Levis
  */
  
 generic module FCFSArbiterC(char resourceName[]) {
@@ -59,7 +60,7 @@ implementation {
 
   uint8_t state;
   uint8_t resId;
-	uint8_t reqResId;
+  uint8_t reqResId;
   uint8_t resQ[uniqueCount(resourceName)];
   uint8_t qHead;
   uint8_t qTail;
@@ -201,32 +202,41 @@ implementation {
   
   //Queue the requests so that they can be granted
     //in FCFS order after release of the resource
-    bool QueueRequest(uint8_t id) {
-    if((resQ[id] == NO_RES) || (qTail != id)) {
-      if(qHead == NO_RES ) {
-        qHead = id;
-        qTail = id;
+  bool QueueRequest(uint8_t id) {
+    atomic {
+      if((resQ[id] == NO_RES) || (qTail != id)) {
+	if(qHead == NO_RES ) {
+	  qHead = id;
+	  qTail = id;
+	}
+	else {
+	  resQ[qTail] = id;
+	  qTail = id;
+	}
+	return SUCCESS;
       }
-      else {
-        resQ[qTail] = id;
-        qTail = id;
-      }
-      return SUCCESS;
+      return FAIL;
     }
-    return FAIL;
   }
   
   //Task for pulling the Resource.granted() signal
     //into synchronous context  
   task void GrantedTask() {
-	  atomic resId = reqResId;
-    signal Resource.granted[resId]();
+    uint8_t tmpId;
+    atomic {
+      tmpId = resId = reqResId;
+    }
+    signal Resource.granted[tmpId]();
   }
   
   //Task for pulling the Resource.requested() signal
     //into synchronous context   
   task void RequestedTask() {
-    signal Resource.requested[resId]();
+    uint8_t tmpId;
+    atomic {
+      tmpId = resId;
+    }
+    signal Resource.requested[tmpId]();
   } 
   
   //Default event handlers for all of the other
