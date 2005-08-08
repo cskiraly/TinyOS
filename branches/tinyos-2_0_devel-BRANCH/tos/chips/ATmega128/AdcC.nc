@@ -1,4 +1,4 @@
-/* $Id: ADCC.nc,v 1.1.2.2 2005-07-11 17:25:32 idgay Exp $
+/* $Id: AdcC.nc,v 1.1.2.1 2005-08-08 04:24:55 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -13,7 +13,7 @@
  *
  * @author David Gay
  */
-configuration ADCC {
+configuration AdcC {
   provides {
     interface Init;
     interface StdControl;

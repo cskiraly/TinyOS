@@ -1,4 +1,4 @@
-// $Id: SchedulerBasicP.nc,v 1.1.2.1 2005-08-07 20:33:57 scipio Exp $
+// $Id: SchedulerBasicP.nc,v 1.1.2.2 2005-08-08 04:24:55 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: SchedulerBasicP.nc,v 1.1.2.1 2005-08-07 20:33:57 scipio Exp $
+ * Date last modified:  $Id: SchedulerBasicP.nc,v 1.1.2.2 2005-08-08 04:24:55 scipio Exp $
  *
  */
 
@@ -54,7 +54,7 @@ implementation
 {
   enum
   {
-    NUM_TASKS = uniqueCount("TinyScheduler.TaskBasic"),
+    NUM_TASKS = uniqueCount("TinySchedulerC.TaskBasic"),
     NO_TASK = 255,
   };
 
