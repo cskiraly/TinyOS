@@ -1,4 +1,4 @@
-// $Id: NullC.nc,v 1.1.2.4 2005-08-08 22:58:24 scipio Exp $
+// $Id: NullAppC.nc,v 1.1.2.1 2005-08-08 22:58:24 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -20,7 +20,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2003 Intel Corporation
+ * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -31,14 +31,10 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-module NullC
-{
-  uses interface Boot;
-}
-implementation
-{
-  event void Boot.booted()
-  {
-  }
+configuration NullAppC{}
+implementation {
+  components MainC, NullC;
+
+  MainC.Boot <- NullC;
 }
 

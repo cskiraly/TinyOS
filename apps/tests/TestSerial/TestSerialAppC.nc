@@ -1,4 +1,4 @@
-// $Id: NullC.nc,v 1.1.2.4 2005-08-08 22:58:24 scipio Exp $
+// $Id: TestSerialAppC.nc,v 1.1.2.1 2005-08-08 22:58:25 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -20,7 +20,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2003 Intel Corporation
+ * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -29,16 +29,20 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
+configuration TestSerialAppC {}
+implementation {
+  components MainC, TestSerialC, SerialC, LedsC;
 
-module NullC
-{
-  uses interface Boot;
+  MainC.SoftwareInit -> LedsC;
+  MainC.SoftwareInit -> SerialC;
+
+  TestSerialC.Boot -> MainC.Boot;
+
+  TestSerialC.Receive -> SerialC.Receive;
+  TestSerialC.Send -> SerialC.Send;
+
+  TestSerialC.Leds -> LedsC;
+  SerialC.Leds -> LedsC;
 }
-implementation
-{
-  event void Boot.booted()
-  {
-  }
-}
+
 

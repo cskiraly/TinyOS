@@ -1,4 +1,4 @@
-// $Id: BaseStationP.nc,v 1.1.2.1 2005-05-24 18:23:24 idgay Exp $
+// $Id: BaseStationP.nc,v 1.1.2.2 2005-08-08 22:58:24 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: BaseStationP.nc,v 1.1.2.1 2005-05-24 18:23:24 idgay Exp $
+ * Revision:	$Id: BaseStationP.nc,v 1.1.2.2 2005-08-08 22:58:24 scipio Exp $
  */
   
 /* 
@@ -51,8 +51,8 @@ module BaseStationP {
     interface Send as UartSend;
     interface Receive as UartReceive;
     interface Packet as UartPacket;
-    interface Send as RadioSend;
-    interface Receive as RadioReceive;
+    interface AMSend as RadioSend[am_id_t id];
+    interface Receive as RadioReceive[am_id_t id];
     interface Packet as RadioPacket;
 
     interface Leds;
@@ -112,8 +112,9 @@ implementation
   event void IOControl.stopDone(error_t error) {
   }
 
-  event message_t *RadioReceive.receive(message_t *msg,
-					void *payload, uint8_t len) {
+  event message_t *RadioReceive.receive[am_id_t id](message_t *msg,
+						    void *payload,
+						    uint8_t len) {
     message_t *ret = msg;
 
 #if 0
@@ -214,7 +215,7 @@ implementation
 
   task void radioSendTask() {
     uint8_t len;
-
+    am_id_t id;
     atomic
       if (radioIn == radioOut && !radioFull)
 	{
@@ -223,9 +224,9 @@ implementation
 	}
 
     //radioQueue[radioOut]->group = TOS_AM_GROUP;
-    
+
     len = call UartPacket.payloadLength(radioQueue[radioOut]);
-    if (call RadioSend.send(radioQueue[radioOut], len) == SUCCESS)
+    if (call RadioSend.send[0](AM_BROADCAST_ADDR, radioQueue[radioOut], len) == SUCCESS)
       call Leds.led0Toggle();
     else
       {
@@ -234,7 +235,7 @@ implementation
       }
   }
 
-  event void RadioSend.sendDone(message_t* msg, error_t error) {
+  event void RadioSend.sendDone[am_id_t id](message_t* msg, error_t error) {
     if (error != SUCCESS)
       failBlink();
     else

@@ -1,4 +1,4 @@
-// $Id: NullC.nc,v 1.1.2.4 2005-08-08 22:58:24 scipio Exp $
+// $Id: TestSchedulerC.nc,v 1.1.2.1 2005-08-08 22:58:25 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -29,16 +29,73 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
+/**
+ * Implementation for Blink application.  Toggle the red LED when a
+ * Timer fires.
+ **/
 
-module NullC
-{
+includes Timer;
+
+module TestSchedulerC {
+  uses interface Leds;
   uses interface Boot;
+  uses interface TaskBasic as TaskRed;
+  uses interface TaskBasic as TaskGreen;
+  uses interface TaskBasic as TaskBlue;
 }
-implementation
-{
-  event void Boot.booted()
-  {
+implementation {
+
+  event void TaskRed.runTask() {
+    uint16_t i, j;
+    for (i= 0; i < 50; i++) {
+      for (j = 0; j < 10000; j++) {}
+    }
+    call Leds.led0Toggle();
+
+    if (call TaskRed.postTask() == FAIL) {
+      call Leds.led0Off();
+    }
+    else {
+      call TaskRed.postTask();
+    }
   }
+
+  event void TaskGreen.runTask() {
+    uint16_t i, j;
+    for (i= 0; i < 25; i++) {
+      for (j = 0; j < 10000; j++) {}
+    }
+    call Leds.led1Toggle();
+
+    if (call TaskGreen.postTask() == FAIL) {
+      call Leds.led1Off();
+    }
+  }
+
+  event void TaskBlue.runTask() {
+    uint16_t i, j;
+    for (i= 0; i < 5; i++) {
+      for (j = 0; j < 10000; j++) {}
+    }
+    call Leds.led2Toggle();
+
+    if (call TaskBlue.postTask() == FAIL) {
+      call Leds.led2Off();
+    }
+  }
+
+  
+  
+  /**
+   * Event from Main that TinyOS has booted: start the timer at 1Hz.
+   */
+  event void Boot.booted() {
+    call Leds.led2Toggle();
+    call TaskRed.postTask();
+    call TaskGreen.postTask();
+    call TaskBlue.postTask();
+  }
+
 }
+
 
