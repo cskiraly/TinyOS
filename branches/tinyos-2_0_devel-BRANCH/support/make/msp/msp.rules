@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: msp.rules,v 1.1.2.1 2005-03-23 19:34:58 cssharp Exp $
+#$Id: msp.rules,v 1.1.2.2 2005-08-08 19:09:30 idgay Exp $
 
 define MSP_HELP
 
@@ -29,7 +29,7 @@ HELP += $(MSP_HELP)
 
 OBJCOPY = msp430-objcopy
 OBJDUMP = msp430-objdump
-SET_ID = $(TINYOS_MAKE_PATH)/msp/set-mote-id
+SET_ID = tos-set-symbols
 NCC = ncc
 LIBS = -lm
 

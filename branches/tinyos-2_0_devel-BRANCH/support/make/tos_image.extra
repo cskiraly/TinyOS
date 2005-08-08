@@ -1,9 +1,9 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: tos_image.extra,v 1.1.2.2 2005-08-01 22:48:36 idgay Exp $
+#$Id: tos_image.extra,v 1.1.2.3 2005-08-08 19:09:29 idgay Exp $
 
-TOS_IMAGE_PL ?= $(TOSDIR)/../tools/tinyos/misc/write_tos_image
+TOS_IMAGE_PL ?= tos-write-image
 IDENT_PROGRAM_NAME ?= $(COMPONENT)
 
 build_tosimage: FORCE
 	@echo "    writing TOS image"
-	@perl $(TOS_IMAGE_PL) $(IDENT_FLAGS) --ihex="$(MAIN_IHEX)" --exe="$(MAIN_EXE)" --objdump="$(OBJDUMP)" > $(BUILDDIR)/tos_image.xml
+	@$(TOS_IMAGE_PL) $(IDENT_FLAGS) --ihex="$(MAIN_IHEX)" --exe="$(MAIN_EXE)" --objdump="$(OBJDUMP)" > $(BUILDDIR)/tos_image.xml
