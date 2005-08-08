@@ -1,4 +1,4 @@
-// $Id: channelgen.c,v 1.1.2.1 2005-07-26 17:15:23 idgay Exp $
+// $Id: tos-channelgen.c,v 1.1.2.1 2005-08-08 19:39:39 idgay Exp $
 
 /* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */
 /*									
@@ -37,7 +37,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author:	Phil Buonadonna
- * Revision:	$Id: channelgen.c,v 1.1.2.1 2005-07-26 17:15:23 idgay Exp $
+ * Revision:	$Id: tos-channelgen.c,v 1.1.2.1 2005-08-08 19:39:39 idgay Exp $
  * 
  */
 
