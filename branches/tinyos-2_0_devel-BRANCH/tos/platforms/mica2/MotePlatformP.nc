@@ -1,4 +1,4 @@
-/* $Id: MotePlatformP.nc,v 1.1.2.2 2005-08-07 22:27:40 scipio Exp $
+/* $Id: MotePlatformP.nc,v 1.1.2.3 2005-08-08 01:01:01 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -16,7 +16,7 @@ module MotePlatformP
 {
   provides interface Init as PlatformInit;
   uses interface GeneralIO as SerialIdPin;
-  uses interface as SubInit;
+  uses interface Init as SubInit;
 }
 implementation {
 
