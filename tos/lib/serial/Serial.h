@@ -1,4 +1,4 @@
-//$Id: Serial.h,v 1.1.2.5 2005-08-07 21:56:15 scipio Exp $
+//$Id: Serial.h,v 1.1.2.6 2005-08-10 21:31:29 scipio Exp $
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
  *
@@ -77,10 +77,10 @@ enum {
 // message_t type dispatch
 
 enum {
-  TOS_SERIAL_UNKNOWN_ID,
-  TOS_SERIAL_ACTIVE_MESSAGE_ID,
-  TOS_SERIAL_CC1000_ID,
-  TOS_SERIAL_802_15_4_ID,
+  TOS_SERIAL_ACTIVE_MESSAGE_ID = 0,
+  TOS_SERIAL_CC1000_ID = 1,
+  TOS_SERIAL_802_15_4_ID = 2,
+  TOS_SERIAL_UNKNOWN_ID = 255,
 };
 
 // Framer-level dispatch
@@ -105,5 +105,11 @@ typedef struct radio_stats {
   uint16_t serial_proto_drops;
 } radio_stats_t;
 
+typedef struct SerialAMHeader {
+  nx_am_addr_t addr;
+  nx_am_group_t group;
+  nx_am_id_t type;
+  nx_uint8_t length;
+} SerialAMHeader;
 
 #endif

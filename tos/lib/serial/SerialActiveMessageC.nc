@@ -1,4 +1,4 @@
-//$Id: SerialActiveMessageC.nc,v 1.1.2.2 2005-08-07 21:56:15 scipio Exp $
+//$Id: SerialActiveMessageC.nc,v 1.1.2.3 2005-08-10 21:31:29 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -35,6 +35,8 @@ configuration SerialActiveMessageC {
     interface Init;
     interface Send;
     interface Receive;
+    interface Packet;
+    interface AMPacket;
   }
   uses interface Leds;
 }
@@ -46,4 +48,6 @@ implementation {
   Send = SerialDispatcherC.Send[TOS_SERIAL_ACTIVE_MESSAGE_ID];
   Receive = SerialDispatcherC.Receive[TOS_SERIAL_ACTIVE_MESSAGE_ID];
   SerialDispatcherC.SerialPacketInfo[TOS_SERIAL_ACTIVE_MESSAGE_ID] -> Info;
+  Packet = Info;
+  AMPacket = Info;
 }
