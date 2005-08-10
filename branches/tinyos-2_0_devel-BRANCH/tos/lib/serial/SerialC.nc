@@ -1,4 +1,4 @@
-//$Id: SerialC.nc,v 1.1.2.5 2005-08-07 21:56:15 scipio Exp $
+//$Id: SerialC.nc,v 1.1.2.6 2005-08-10 21:31:29 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -37,6 +37,7 @@ configuration SerialC {
     interface Init;
     interface Receive;
     interface Send;
+    interface Packet;
   }
   uses {
     interface Leds;
@@ -47,7 +48,7 @@ implementation {
   
   Init = SerialActiveMessageC;
   Leds = SerialActiveMessageC;
-
+  Packet = SerialActiveMessageC;
   Receive = SerialActiveMessageC;
   Send = SerialActiveMessageC;
 }

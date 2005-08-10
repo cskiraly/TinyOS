@@ -1,4 +1,4 @@
-//$Id: SerialPacketInfoActiveMessageP.nc,v 1.1.2.1 2005-08-07 21:56:15 scipio Exp $
+//$Id: SerialPacketInfoActiveMessageP.nc,v 1.1.2.2 2005-08-10 21:31:29 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -32,8 +32,11 @@
 
 module SerialPacketInfoActiveMessageP {
   provides interface SerialPacketInfo as Info;
+  provides interface Packet;
+  provides interface AMPacket;
 }
 implementation {
+
   async command uint8_t Info.offset() {
     return sizeof(TOSRadioHeader) - sizeof(CC1KHeader);
   }
@@ -43,5 +46,50 @@ implementation {
   async command uint8_t Info.upperLength(message_t* msg, uint8_t dataLinkLen) {
     return dataLinkLen - (sizeof(CC1KHeader) + sizeof(CC1KFooter));
   }
+
+  command void Packet.clear(message_t* msg) {
+    return;
+  }
+
+  SerialAMHeader* getHeader(message_t* msg) {
+    return (SerialAMHeader*)(msg->data - sizeof(SerialAMHeader));
+  }
+  
+  command uint8_t Packet.payloadLength(message_t* msg) {
+    SerialAMHeader* header = getHeader(msg);    
+    return header->length;
+  }
+
+  command uint8_t Packet.maxPayloadLength() {
+    return TOSH_DATA_LENGTH;
+  }
+
+
+  command void* Packet.getPayload(message_t* msg, uint8_t* len) {
+    if (len != NULL) { 
+      *len = call Packet.payloadLength(msg);
+    }
+    return msg->data;
+  }
+
+  command am_addr_t AMPacket.address() {
+    return 0;
+  }
+
+  command am_addr_t AMPacket.destination(message_t* amsg) {
+    SerialAMHeader* header = getHeader(amsg);
+    return header->addr;
+  }
+
+  command bool AMPacket.isForMe(message_t* amsg) {
+    return TRUE;
+  }
+
+  command am_id_t AMPacket.type(message_t* amsg) {
+    SerialAMHeader* header = getHeader(amsg);
+    return header->type;
+  }
+  
+  
 }
 

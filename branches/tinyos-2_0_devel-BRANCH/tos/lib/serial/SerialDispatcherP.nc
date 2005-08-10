@@ -1,4 +1,4 @@
-//$Id: SerialDispatcherP.nc,v 1.1.2.1 2005-08-07 21:56:15 scipio Exp $
+//$Id: SerialDispatcherP.nc,v 1.1.2.2 2005-08-10 21:31:29 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -96,7 +96,7 @@ implementation {
   uint8_t receiveTaskWhich;
   message_t *receiveTaskBuf = NULL;
   uint8_t receiveTaskSize = 0;
-  
+
   command error_t Send.send[uint8_t id](message_t* msg, uint8_t len) {
     uint8_t myState;
     atomic {
