@@ -1,4 +1,4 @@
-//$Id: TimerMilliC.nc,v 1.1.2.2 2005-05-20 20:51:57 idgay Exp $
+//$Id: TimerMilliC.nc,v 1.1.2.3 2005-08-10 15:54:38 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -41,7 +41,7 @@ implementation
 {
   components TimerMilliAlarmC as AlarmMilliC
 	   , new AlarmToTimerC(TMilli)
-	   , new VirtualizeTimerC(TMilli,uniqueCount("TimerMilli"))
+	   , new VirtualizeTimerC(TMilli,uniqueCount("TimerMilliC.TimerMilli"))
 	   ;
 
   Init = AlarmMilliC;

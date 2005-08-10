@@ -1,7 +1,6 @@
-// $Id: BlinkAppC.nc,v 1.1.2.3 2005-08-10 15:54:39 scipio Exp $
-
+// $Id: AMServiceImplP.nc,v 1.1.2.1 2005-08-10 15:54:39 scipio Exp $
 /*									tab:4
- * "Copyright (c) 2000-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -20,7 +19,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2005 Intel Corporation
+ * Copyright (c) 2004 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -29,31 +28,24 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
+
 /**
- * Blink is a basic application that toggles the a mote LED periodically.
- * It does so by starting a Timer that fires every second. It uses the
- * OSKI TimerMilli service to achieve this goal.
+ * The OSKI presentation of the operating status of the Active Message
+ * subsystem.
  *
- * @author tinyos-help@millennium.berkeley.edu
- **/
+ * @author Philip Levis
+ * @date   January 5 2005
+ */ 
 
-configuration BlinkAppC
-{
+configuration AMServiceImplP {
+  provides interface Service[uint8_t id];
+  provides interface ServiceNotify;
 }
-implementation
-{
-  components MainC, BlinkC, LedsC;
-  components new OskiTimerMilliC() as Timer0;
-  components new OskiTimerMilliC() as Timer1;
-  components new OskiTimerMilliC() as Timer2;
-
-
-  BlinkC -> MainC.Boot;
-  MainC.SoftwareInit -> LedsC;
-
-  BlinkC.Timer0 -> Timer0;
-  BlinkC.Timer1 -> Timer1;
-  BlinkC.Timer2 -> Timer2;
-  BlinkC.Leds -> LedsC;
+implementation {
+  components ActiveMessageImplP;
+  components new ServiceOrControllerC("AMServiceImplP.Service");
+  
+  Service = ServiceOrControllerC;
+  ServiceOrControllerC.SplitControl -> ActiveMessageImplP;
+  ServiceNotify = ServiceOrControllerC;
 }
-

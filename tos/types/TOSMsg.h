@@ -16,10 +16,10 @@
 #endif
 
 typedef nx_struct message_t {
-  TOSRadioHeader header;
+  nx_uint8_t header[sizeof(TOSRadioHeader)];
   nx_uint8_t data[TOSH_DATA_LENGTH];
-  TOSRadioFooter footer;
-  TOSRadioMetadata metadata;
+  nx_uint8_t footer[sizeof(TOSRadioFooter)];
+  nx_uint8_t metadata[sizeof(TOSRadioMetadata)];
 } message_t;
 
 #endif

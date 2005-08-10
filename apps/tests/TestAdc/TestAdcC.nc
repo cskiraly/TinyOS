@@ -27,14 +27,18 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-08-08 22:58:24 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-08-10 15:54:39 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
 /**
- * Switches first two LEDs on if test is successful.
+ * The implementation of the TestAdc application. Switches first two
+ * LEDs on if test is successful.
+ *
+ * Author: Jan Hauer
+ * Date: August 8, 2005
  **/
 module TestAdcC
 {

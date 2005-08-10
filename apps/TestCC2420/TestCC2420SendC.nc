@@ -1,4 +1,4 @@
-// $Id: TestCC2420SendC.nc,v 1.1.2.1 2005-06-22 17:38:54 jpolastre Exp $
+// $Id: TestCC2420SendC.nc,v 1.1.2.2 2005-08-10 15:54:39 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@ implementation {
   components Main
     , TestCC2420SendM as Impl
     , LedsC
-    , new OSKITimerMsC() as TimerC
+    , new OskiTimerMsC() as TimerC
     , RadioC;
   
   Main.SoftwareInit -> LedsC;
