@@ -1,4 +1,4 @@
-// $Id: BaseStationC.nc,v 1.1.2.2 2005-08-08 22:58:24 scipio Exp $
+// $Id: BaseStationC.nc,v 1.1.2.3 2005-08-10 21:32:53 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -30,21 +30,26 @@
  */
 
 /**
+ * The TinyOS 2.x base station that forwards packets between the UART
+ * and radio.
+ *
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
+ * @author Philip Levis
+ * @date August 10 2005
  */
 
 configuration BaseStationC {
 }
 implementation {
-  components Main, BaseStationP, ActiveMessageC, SerialC, LedsC;
+  components MainC, BaseStationP, ActiveMessageC, SerialC, LedsC;
 
-  Main.Boot <- BaseStationP;
+  MainC.Boot <- BaseStationP;
 
-  Main.SoftwareInit -> ActiveMessageC;
-  Main.SoftwareInit -> LedsC;
-  Main.SoftwareInit -> SerialC;
+  MainC.SoftwareInit -> ActiveMessageC;
+  MainC.SoftwareInit -> LedsC;
+  MainC.SoftwareInit -> SerialC;
 
   BaseStationP.IOControl -> ActiveMessageC;
 
