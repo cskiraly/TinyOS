@@ -1,4 +1,4 @@
 COMPONENT=BlinkAppC
-CFLAGS += -I%T/oski/impls 
+CFLAGS += -I%T/lib/oski
 include $(MAKERULES)
 

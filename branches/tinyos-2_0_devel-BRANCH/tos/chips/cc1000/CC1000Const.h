@@ -1,4 +1,4 @@
-// $Id: CC1000Const.h,v 1.1.2.3 2005-06-07 00:40:24 idgay Exp $
+// $Id: CC1000Const.h,v 1.1.2.4 2005-08-10 15:54:38 scipio Exp $
 
 /* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */ 
 /*									tab:4
@@ -233,7 +233,7 @@ enum {
 #endif
 
 #ifndef CC1K_DEF_PRESET
-#define CC1K_DEF_PRESET	(CC1K_433_002_MHZ)
+#define CC1K_DEF_PRESET	(CC1K_434_845_MHZ)
 #endif 
 
 

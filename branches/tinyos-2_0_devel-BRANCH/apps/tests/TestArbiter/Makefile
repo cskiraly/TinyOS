@@ -1,4 +1,4 @@
 COMPONENT=TestArbiterC
-CFLAGS += -I%T/oski/services -I%T/oski/interfaces -I%T/oski/types -I%T/oski/impls
+CFLAGS += -I%T/oskiservices -I%T/oskiinterfaces -I%T/oskitypes -I%T/oski
 include $(MAKERULES)
 

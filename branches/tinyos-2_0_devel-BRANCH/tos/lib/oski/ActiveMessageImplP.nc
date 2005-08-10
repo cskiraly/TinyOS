@@ -1,7 +1,6 @@
-// $Id: BlinkAppC.nc,v 1.1.2.3 2005-08-10 15:54:39 scipio Exp $
-
+// $Id: ActiveMessageImplP.nc,v 1.1.2.1 2005-08-10 15:54:39 scipio Exp $
 /*									tab:4
- * "Copyright (c) 2000-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -20,7 +19,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2005 Intel Corporation
+ * Copyright (c) 2004 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -29,31 +28,38 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
+
 /**
- * Blink is a basic application that toggles the a mote LED periodically.
- * It does so by starting a Timer that fires every second. It uses the
- * OSKI TimerMilli service to achieve this goal.
+ * The underlying configuration of OSKI Active Messages. Wires the AM
+ * implementation (ActiveMessageC) to the boot sequence, and exports
+ * the AM interfaces.
  *
- * @author tinyos-help@millennium.berkeley.edu
- **/
+ * @author Philip Levis
+ * @date   January 5 2005
+ */ 
 
-configuration BlinkAppC
-{
-}
-implementation
-{
-  components MainC, BlinkC, LedsC;
-  components new OskiTimerMilliC() as Timer0;
-  components new OskiTimerMilliC() as Timer1;
-  components new OskiTimerMilliC() as Timer2;
+includes AM;
 
-
-  BlinkC -> MainC.Boot;
-  MainC.SoftwareInit -> LedsC;
-
-  BlinkC.Timer0 -> Timer0;
-  BlinkC.Timer1 -> Timer1;
-  BlinkC.Timer2 -> Timer2;
-  BlinkC.Leds -> LedsC;
+configuration ActiveMessageImplP {
+  provides {
+    interface SplitControl;      
+    interface AMSend[am_id_t id];
+    interface Receive[am_id_t id];
+    interface Receive as Snoop[am_id_t id];
+    interface Packet;
+    interface AMPacket;
+  }
 }
 
+implementation {
+  components ActiveMessageC, MainC;
+
+  MainC.SoftwareInit -> ActiveMessageC;
+
+  SplitControl = ActiveMessageC;
+  AMSend = ActiveMessageC;
+  Receive = ActiveMessageC.Receive;
+  Snoop = ActiveMessageC.Snoop;
+  Packet = ActiveMessageC;
+  AMPacket = ActiveMessageC;
+}

@@ -1,4 +1,4 @@
-// $Id: CC1000ActiveMessageP.nc,v 1.1.2.1 2005-08-07 22:42:34 scipio Exp $
+// $Id: CC1000ActiveMessageP.nc,v 1.1.2.2 2005-08-10 15:54:38 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: CC1000ActiveMessageP.nc,v 1.1.2.1 2005-08-07 22:42:34 scipio Exp $
+ * Date last modified:  $Id: CC1000ActiveMessageP.nc,v 1.1.2.2 2005-08-10 15:54:38 scipio Exp $
  *
  */
 
@@ -55,13 +55,18 @@ module CC1000ActiveMessageP {
 }
 implementation {
 
+  CC1KHeader* getHeader(message_t* amsg) {
+    return (CC1KHeader*)(amsg->data - sizeof(CC1KHeader));
+  }
+  
   command error_t AMSend.send[am_id_t id](am_addr_t addr,
-					  message_t* msg,
+					  message_t* amsg,
 					  uint8_t len) {
-    msg->header.type = id;
-    msg->header.addr = addr;
-    msg->header.group = TOS_AM_GROUP;
-    return call SubSend.send(msg, len);
+    CC1KHeader* header = getHeader(amsg);
+    header->type = id;
+    header->addr = addr;
+    header->group = TOS_AM_GROUP;
+    return call SubSend.send(amsg, len);
   }
 
   command error_t AMSend.cancel[am_id_t id](message_t* msg) {
@@ -88,7 +93,8 @@ implementation {
   }
  
   command am_addr_t AMPacket.destination(message_t* amsg) {
-    return amsg->header.addr;
+    CC1KHeader* header = getHeader(amsg);
+    return header->addr;
   }
 
   command bool AMPacket.isForMe(message_t* amsg) {
@@ -97,7 +103,8 @@ implementation {
   }
 
   command am_id_t AMPacket.type(message_t* amsg) {
-    return amsg->header.type;
+    CC1KHeader* header = getHeader(amsg);
+    return header->type;
   }
 
   //command am_group_t AMPacket.group(message_t* amsg) {
