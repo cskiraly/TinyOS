@@ -1,4 +1,4 @@
-// $Id: TestSerialAppC.nc,v 1.1.2.1 2005-08-08 22:58:25 scipio Exp $
+// $Id: TestSerialAppC.nc,v 1.1.2.2 2005-08-12 22:59:14 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -29,20 +29,43 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
+/**
+ * Application to test that the TinyOS java toolchain can communicate
+ * with motes over the serial port. The application sends packets to
+ * the serial port at 1Hz: the packet contains an incrementing
+ * counter. When the application receives a counter packet, it
+ * displays the bottom three bits on its LEDs. This application is
+ * very similar to RadioCountToLeds, except that it operates over the
+ * serial port. There is Java application for testing the mote
+ * application: run TestSerial to print out the received packets and
+ * send packets to the mote.
+ *
+ *  @author Gilman Tolle
+ *  @author Philip Levis
+ *  
+ *  @date   Aug 12 2005
+ *
+ **/
+
+includes TestSerial;
+
 configuration TestSerialAppC {}
 implementation {
-  components MainC, TestSerialC, SerialC, LedsC;
+  components TestSerialC as App, LedsC, MainC;
+  components SerialActiveMessageC as AM;
+  components new OskiTimerMilliC();
 
+  
   MainC.SoftwareInit -> LedsC;
-  MainC.SoftwareInit -> SerialC;
-
-  TestSerialC.Boot -> MainC.Boot;
-
-  TestSerialC.Receive -> SerialC.Receive;
-  TestSerialC.Send -> SerialC.Send;
-
-  TestSerialC.Leds -> LedsC;
-  SerialC.Leds -> LedsC;
+  MainC.SoftwareInit -> AM;
+  
+  App.Boot -> MainC.Boot;
+  
+  App.Receive -> AM.Receive[AM_TESTSERIALMSG];
+  App.AMSend -> AM.AMSend[AM_TESTSERIALMSG];
+  App.Leds -> LedsC;
+  App.MilliTimer -> OskiTimerMilliC;
+  App.Packet -> AM;
 }
 
 

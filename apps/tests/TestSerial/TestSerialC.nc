@@ -1,4 +1,4 @@
-// $Id: TestSerialC.nc,v 1.1.2.1 2005-08-08 22:58:25 scipio Exp $
+// $Id: TestSerialC.nc,v 1.1.2.2 2005-08-12 22:59:14 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -30,65 +30,100 @@
  */
 
 /**
- * Test application for the UART, strictly byte-level.
+ * Application to test that the TinyOS java toolchain can communicate
+ * with motes over the serial port. The application sends packets to
+ * the serial port at 1Hz: the packet contains an incrementing
+ * counter. When the application receives a counter packet, it
+ * displays the bottom three bits on its LEDs. This application is
+ * very similar to RadioCountToLeds, except that it operates over the
+ * serial port. There is Java application for testing the mote
+ * application: run TestSerial to print out the received packets and
+ * send packets to the mote.
  *
- * @author Gilman Tolle
+ *  @author Gilman Tolle
+ *  @author Philip Levis
+ *  
+ *  @date   Aug 12 2005
+ *
  **/
 
 includes Timer;
+includes TestSerial;
 
-module TestSerialC { 
+module TestSerialC {
   uses {
     interface Leds;
     interface Boot;
     interface Receive;
-    interface Send;
+    interface AMSend;
+    interface Timer<TMilli> as MilliTimer;
+    interface Packet;
   }
 }
 implementation {
 
-  message_t buf;
-  message_t *bufPtr = &buf;
-  bool locked = FALSE;
+  message_t packet;
 
+  bool locked;
+  uint16_t counter = 0;
+  
   event void Boot.booted() {
-    bufPtr = &buf;
+    call MilliTimer.startPeriodicNow(1000);
   }
-
-  event message_t* Receive.receive(message_t* msg, 
-                                   void* payload, uint8_t len) {
-    message_t *swap;
-    
-    // net.tinyos.tools.Send 5 4 2 1 3 6 7
-    if ((msg->header.addr == 0x0504) &&
-        msg->header.length == 0x02 &&
-        msg->header.group == 0x01 &&
-        msg->header.type == 0x03 &&
-        msg->data[0] == 6 &&
-        msg->data[1] == 7) call Leds.led0Toggle();
-
-    if (!locked) {
-      locked = TRUE;
-      swap = bufPtr;
-      bufPtr = msg;
-      if (call Send.send(bufPtr, len) == SUCCESS){
-        call Leds.led1Toggle();
-      }
-      return swap;
-    } 
+  
+  event void MilliTimer.fired() {
+    counter++;
+    if (locked) {
+      return;
+    }
     else {
-      return msg;
+      TestSerialMsg* rcm = (TestSerialMsg*)call Packet.getPayload(&packet, NULL);
+      if (call Packet.maxPayloadLength() < sizeof(TestSerialMsg)) {
+	return;
+      }
+
+      rcm->counter = counter;
+      if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(TestSerialMsg)) == SUCCESS) {
+	locked = TRUE;
+      }
     }
   }
-  
-  event void Send.sendDone(message_t* msg, error_t error) {
-    if (msg == bufPtr){
+
+  event message_t* Receive.receive(message_t* bufPtr, 
+				   void* payload, uint8_t len) {
+    if (len != sizeof(TestSerialMsg)) {return bufPtr;}
+    else {
+      TestSerialMsg* rcm = (TestSerialMsg*)payload;
+      if (rcm->counter & 0x1) {
+	call Leds.led0On();
+      }
+      else {
+	call Leds.led0Off();
+      }
+      if (rcm->counter & 0x2) {
+	call Leds.led1On();
+      }
+      else {
+	call Leds.led1Off();
+      }
+      if (rcm->counter & 0x4) {
+	call Leds.led2On();
+      }
+      else {
+	call Leds.led2Off();
+      }
+      return bufPtr;
+    }
+  }
+
+  event void AMSend.sendDone(message_t* bufPtr, error_t error) {
+    if (&packet == bufPtr) {
       locked = FALSE;
-      call Leds.led2Toggle();
     }
   }
-}  
-  
+
+}
+
 
 
 
