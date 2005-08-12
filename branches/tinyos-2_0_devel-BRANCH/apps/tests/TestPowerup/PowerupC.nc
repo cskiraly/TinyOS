@@ -1,4 +1,4 @@
-// $Id: TestSchedulerAppC.nc,v 1.1.2.2 2005-08-12 01:35:52 scipio Exp $
+// $Id: PowerupC.nc,v 1.1.2.1 2005-08-12 01:35:52 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -20,7 +20,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2005 Intel Corporation
+ * Copyright (c) 2002-2003 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -29,27 +29,17 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-/**
- * TestScheduler is a simple scheduler test that posts three CPU
- * intensive tasks of different durations. It is not intended to be
- * of great use to TinyOS programmers; rather, it is a sanity check
- * for schedulers.
- *
- * @author Philip Levis
- * @date Aug 10 2005
- */
+//@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-configuration TestSchedulerAppC {}
-implementation {
-  components MainC, TestSchedulerC, LedsC, TinySchedulerC;
-  
-  MainC.SoftwareInit -> LedsC;
-  TestSchedulerC -> MainC.Boot;
-
-  TestSchedulerC.Leds -> LedsC;
-
-  TestSchedulerC.TaskRed -> TinySchedulerC.TaskBasic[unique("TinySchedulerC.TaskBasic")];
-  TestSchedulerC.TaskGreen -> TinySchedulerC.TaskBasic[unique("TinySchedulerC.TaskBasic")];
-  TestSchedulerC.TaskBlue -> TinySchedulerC.TaskBasic[unique("TinySchedulerC.TaskBasic")];
+module PowerupC
+{
+  uses interface Boot;
+  uses interface Leds;
+}
+implementation
+{
+  event void Boot.booted()  {
+    call Leds.led0On();
+  }
 }
 
