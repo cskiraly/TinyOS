@@ -1,4 +1,4 @@
-// $Id: MessageFactory.java,v 1.1.2.1 2005-06-10 00:13:52 idgay Exp $
+// $Id: MessageFactory.java,v 1.1.2.2 2005-08-12 23:35:08 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -101,12 +101,12 @@ public class MessageFactory {
 	return m;
     }
 
-    public TOSMsg createTOSMsg(net.tinyos.message.Message msg, int base_offset) {
+/*    public TOSMsg createTOSMsg(net.tinyos.message.Message msg, int base_offset) {
 	TOSMsg m = instantiateTOSMsg();
 	m.init(msg, base_offset);
 	return m;
     }
-
+*/
     public TOSMsg createTOSMsg(net.tinyos.message.Message msg, int base_offset, int data_length) { 
 	TOSMsg m = instantiateTOSMsg();
 	m.init(msg, base_offset, data_length);
@@ -123,16 +123,18 @@ public class MessageFactory {
 	} catch (ClassNotFoundException e) {
 	    error = "Could not find a platform specific version of TOSMsg for " +
 		platformName;
-	} catch (NoSuchMethodException e) {
+	} 
+/* catch (NoSuchMethodException e) {
 	    error = "Could not locate the appropriate constructor; check the class " +
 		className;
-	} catch (InstantiationException e) {
+	}  */
+catch (InstantiationException e) {
 	    error = "Could not instantiate class: " + e;
 	} catch (IllegalAccessException e) {
 	    error = "Illegal access: " + e;
-	} catch (InvocationTargetException e) {
+	} /*catch (InvocationTargetException e) {
 	    error = "Reflection problems: " + e;
-	}
+	}*/
 	throw new RuntimeException(error);
     }
  }
