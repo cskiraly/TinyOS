@@ -1,4 +1,4 @@
-//$Id: SerialPacketInfoActiveMessageP.nc,v 1.1.2.2 2005-08-10 21:31:29 scipio Exp $
+//$Id: SerialPacketInfoActiveMessageP.nc,v 1.1.2.3 2005-08-12 00:29:09 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -30,6 +30,8 @@
  *
  */
 
+includes Serial;
+
 module SerialPacketInfoActiveMessageP {
   provides interface SerialPacketInfo as Info;
   provides interface Packet;
@@ -38,13 +40,13 @@ module SerialPacketInfoActiveMessageP {
 implementation {
 
   async command uint8_t Info.offset() {
-    return sizeof(TOSRadioHeader) - sizeof(CC1KHeader);
+    return sizeof(TOSRadioHeader) - sizeof(SerialAMHeader);
   }
   async command uint8_t Info.dataLinkLength(message_t* msg, uint8_t upperLen) {
-    return upperLen + sizeof(CC1KHeader) + sizeof(CC1KFooter);
+    return upperLen + sizeof(SerialAMHeader);
   }
   async command uint8_t Info.upperLength(message_t* msg, uint8_t dataLinkLen) {
-    return dataLinkLen - (sizeof(CC1KHeader) + sizeof(CC1KFooter));
+    return dataLinkLen - sizeof(SerialAMHeader);
   }
 
   command void Packet.clear(message_t* msg) {

@@ -1,4 +1,4 @@
-// $Id: BaseStationC.nc,v 1.1.2.3 2005-08-10 21:32:53 scipio Exp $
+// $Id: BaseStationC.nc,v 1.1.2.4 2005-08-12 00:29:07 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -56,9 +56,12 @@ implementation {
   BaseStationP.UartSend -> SerialC;
   BaseStationP.UartReceive -> SerialC;
   BaseStationP.UartPacket -> SerialC;
+  BaseStationP.UartAMPacket -> SerialC;
+  
   BaseStationP.RadioSend -> ActiveMessageC;
   BaseStationP.RadioReceive -> ActiveMessageC.Receive;
   BaseStationP.RadioPacket -> ActiveMessageC;
-
+  BaseStationP.RadioAMPacket -> ActiveMessageC;
+  
   BaseStationP.Leds -> LedsC;
 }
