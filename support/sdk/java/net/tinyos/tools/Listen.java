@@ -1,4 +1,4 @@
-// $Id: Listen.java,v 1.1.2.2 2005-05-23 23:16:58 idgay Exp $
+// $Id: Listen.java,v 1.1.2.3 2005-08-12 21:46:05 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -35,15 +35,25 @@ package net.tinyos.tools;
 import java.io.*;
 import net.tinyos.packet.*;
 import net.tinyos.util.*;
+import net.tinyos.message.*;
 
 public class Listen {
     public static void main(String args[]) throws IOException {
-	if (args.length > 0) {
+        String source = null;
+        PacketSource reader;
+        if (args[0].equals("-comm")) {
+          source = args[1];
+        }
+	else if (args.length > 0) {
 	    System.err.println("usage: java net.tinyos.tools.Listen");
 	    System.exit(2);
 	}
-	
-	PacketSource reader = BuildSource.makePacketSource();
+        if (source == null) {	
+  	  reader = BuildSource.makePacketSource();
+        }
+        else {
+  	  reader = BuildSource.makePacketSource(source);
+        }
 	if (reader == null) {
 	    System.err.println("Invalid packet source (check your MOTECOM environment variable)");
 	    System.exit(2);
