@@ -1,4 +1,4 @@
-//$Id: SerialActiveMessageP.nc,v 1.1.2.1 2005-08-12 00:35:41 scipio Exp $
+//$Id: SerialActiveMessageP.nc,v 1.1.2.2 2005-08-12 22:11:00 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -67,6 +67,13 @@ implementation {
     signal AMSend.sendDone[call AMPacket.type(msg)](msg, result);
   }
 
+ default event void AMSend.sendDone[uint8_t id](message_t* msg, error_t result) {
+   return;
+ }
+
+ default event message_t* Receive.receive[uint8_t id](message_t* msg, void* payload, uint8_t len) {
+   return msg;
+ }
   
   event message_t* SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
     return signal Receive.receive[call AMPacket.type(msg)](msg, payload, len);
