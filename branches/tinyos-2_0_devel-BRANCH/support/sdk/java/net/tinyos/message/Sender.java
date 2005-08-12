@@ -1,4 +1,4 @@
-// $Id: Sender.java,v 1.1.2.1 2005-06-10 00:13:52 idgay Exp $
+// $Id: Sender.java,v 1.1.2.2 2005-08-12 23:35:08 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -86,6 +86,7 @@ public class Sender {
 	}
 
 	TOSMsg packet = messageFactory.createTOSMsg(data.length);
+	packet = messageFactory.createTOSMsg(packet.offset_data(0) + data.length);
 	packet.set_addr(moteId);
 	packet.set_type((short)amType);
 	packet.set_length((short)data.length);

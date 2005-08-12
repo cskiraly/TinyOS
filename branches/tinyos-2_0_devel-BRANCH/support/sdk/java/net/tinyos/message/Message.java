@@ -1,4 +1,4 @@
-// $Id: Message.java,v 1.1.2.1 2005-06-10 00:13:52 idgay Exp $
+// $Id: Message.java,v 1.1.2.2 2005-08-12 23:35:08 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -287,7 +287,7 @@ public class Message implements Cloneable {
     // Check that length bits from offset are in bounds
     private void checkBounds(int offset, int length) {
 	if (offset < 0 || length <= 0 || offset + length > (data_length * 8))
-	    throw new ArrayIndexOutOfBoundsException("Message.checkBounds: bad offset ("+offset+") or length ("+length+"), for data_length "+data_length);
+	  throw new ArrayIndexOutOfBoundsException("Message.checkBounds: bad offset ("+offset+") or length ("+length+"), for data_length "+data_length+ " in class " + this.getClass());
     }
 
     // Check that value is valid for a bitfield of length length
