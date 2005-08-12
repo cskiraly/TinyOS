@@ -1,4 +1,4 @@
-// $Id: BaseStationP.nc,v 1.1.2.2 2005-08-08 22:58:24 scipio Exp $
+// $Id: BaseStationP.nc,v 1.1.2.3 2005-08-12 00:29:08 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,27 +33,33 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: BaseStationP.nc,v 1.1.2.2 2005-08-08 22:58:24 scipio Exp $
+ * Revision:	$Id: BaseStationP.nc,v 1.1.2.3 2005-08-12 00:29:08 scipio Exp $
  */
   
 /* 
- * TOSBaseM bridges packets between a serial channel and the radio.
+ * BaseStationP bridges packets between a serial channel and the radio.
  * Messages moving from serial to radio will be tagged with the group
  * ID compiled into the TOSBase, and messages moving from radio to
  * serial will be filtered by that same group id.
  */
+
+includes AM;
+includes Serial;
 
 module BaseStationP {
   uses {
     interface Boot;
     interface SplitControl as IOControl;
 
-    interface Send as UartSend;
-    interface Receive as UartReceive;
+    interface AMSend as UartSend[am_id_t id];
+    interface Receive as UartReceive[am_id_t id];
     interface Packet as UartPacket;
+    interface AMPacket as UartAMPacket;
+    
     interface AMSend as RadioSend[am_id_t id];
     interface Receive as RadioReceive[am_id_t id];
     interface Packet as RadioPacket;
+    interface AMPacket as RadioAMPacket;
 
     interface Leds;
   }
@@ -127,9 +133,8 @@ implementation
 	{
 	  ret = uartQueue[uartIn];
 	  uartQueue[uartIn] = msg;
-	
-	  if (++uartIn >= UART_QUEUE_LEN)
-	    uartIn = 0;
+
+	  uartIn = (uartIn + 1) % UART_QUEUE_LEN;
 	
 	  if (uartIn == uartOut)
 	    uartFull = TRUE;
@@ -148,7 +153,9 @@ implementation
   
   task void uartSendTask() {
     uint8_t len;
-
+    am_id_t id;
+    am_addr_t addr;
+    message_t* msg;
     atomic
       if (uartIn == uartOut && !uartFull)
 	{
@@ -156,8 +163,12 @@ implementation
 	  return;
 	}
 
-    len = call RadioPacket.payloadLength(uartQueue[uartOut]);
-    if (call UartSend.send(uartQueue[uartOut], len) == SUCCESS)
+    msg = uartQueue[uartOut];
+    len = call RadioPacket.payloadLength(msg);
+    id = call RadioAMPacket.type(msg);
+    addr = call RadioAMPacket.destination(msg);
+
+    if (call UartSend.send[id](addr, uartQueue[uartOut], len) == SUCCESS)
       call Leds.led1Toggle();
     else
       {
@@ -166,7 +177,7 @@ implementation
       }
   }
 
-  event void UartSend.sendDone(message_t* msg, error_t error) {
+  event void UartSend.sendDone[am_id_t id](message_t* msg, error_t error) {
     if (error != SUCCESS)
       failBlink();
     else
@@ -181,8 +192,9 @@ implementation
     post uartSendTask();
   }
 
-  event message_t *UartReceive.receive(message_t *msg,
-				       void *payload, uint8_t len) {
+  event message_t *UartReceive.receive[am_id_t id](message_t *msg,
+						   void *payload,
+						   uint8_t len) {
     message_t *ret = msg;
     bool reflectToken = FALSE;
 
@@ -216,6 +228,9 @@ implementation
   task void radioSendTask() {
     uint8_t len;
     am_id_t id;
+    am_addr_t addr;
+    message_t* msg;
+    
     atomic
       if (radioIn == radioOut && !radioFull)
 	{
@@ -223,10 +238,11 @@ implementation
 	  return;
 	}
 
-    //radioQueue[radioOut]->group = TOS_AM_GROUP;
-
-    len = call UartPacket.payloadLength(radioQueue[radioOut]);
-    if (call RadioSend.send[0](AM_BROADCAST_ADDR, radioQueue[radioOut], len) == SUCCESS)
+    msg = radioQueue[radioOut];
+    len = call UartPacket.payloadLength(msg);
+    addr = call UartAMPacket.destination(msg);
+    id = call UartAMPacket.type(msg);
+    if (call RadioSend.send[id](addr, msg, len) == SUCCESS)
       call Leds.led0Toggle();
     else
       {

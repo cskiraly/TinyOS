@@ -1,4 +1,4 @@
-//$Id: SerialC.nc,v 1.1.2.6 2005-08-10 21:31:29 scipio Exp $
+//$Id: SerialC.nc,v 1.1.2.7 2005-08-12 00:29:09 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -35,9 +35,10 @@ includes Serial;
 configuration SerialC {
   provides {
     interface Init;
-    interface Receive;
-    interface Send;
+    interface Receive[am_id_t];
+    interface AMSend[am_id_t];
     interface Packet;
+    interface AMPacket;
   }
   uses {
     interface Leds;
@@ -49,7 +50,9 @@ implementation {
   Init = SerialActiveMessageC;
   Leds = SerialActiveMessageC;
   Packet = SerialActiveMessageC;
+  AMPacket = SerialActiveMessageC;
   Receive = SerialActiveMessageC;
-  Send = SerialActiveMessageC;
+  AMSend = SerialActiveMessageC;
+  
 }
 

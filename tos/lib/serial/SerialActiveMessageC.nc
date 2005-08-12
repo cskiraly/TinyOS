@@ -1,4 +1,4 @@
-//$Id: SerialActiveMessageC.nc,v 1.1.2.3 2005-08-10 21:31:29 scipio Exp $
+//$Id: SerialActiveMessageC.nc,v 1.1.2.4 2005-08-12 00:29:09 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -33,21 +33,27 @@ includes Serial;
 configuration SerialActiveMessageC {
   provides {
     interface Init;
-    interface Send;
-    interface Receive;
+    interface AMSend[am_id_t id];
+    interface Receive[am_id_t id];
     interface Packet;
     interface AMPacket;
   }
   uses interface Leds;
 }
-implementation { 
-  components SerialPacketInfoActiveMessageP as Info, SerialDispatcherC;
+implementation {
+  components new SerialActiveMessageP() as AM, SerialDispatcherC;
+  components SerialPacketInfoActiveMessageP as Info;
 
   Init = SerialDispatcherC;
   Leds = SerialDispatcherC;
-  Send = SerialDispatcherC.Send[TOS_SERIAL_ACTIVE_MESSAGE_ID];
-  Receive = SerialDispatcherC.Receive[TOS_SERIAL_ACTIVE_MESSAGE_ID];
+
+  AMSend = AM;
+  Receive = AM;
+  Packet = AM;
+  AMPacket = AM;
+  
+  AM.SubSend -> SerialDispatcherC.Send[TOS_SERIAL_ACTIVE_MESSAGE_ID];
+  AM.SubReceive -> SerialDispatcherC.Receive[TOS_SERIAL_ACTIVE_MESSAGE_ID];
+  
   SerialDispatcherC.SerialPacketInfo[TOS_SERIAL_ACTIVE_MESSAGE_ID] -> Info;
-  Packet = Info;
-  AMPacket = Info;
 }
