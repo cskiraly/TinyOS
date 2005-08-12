@@ -1,4 +1,4 @@
-//$Id: Serial.h,v 1.1.2.8 2005-08-12 00:56:06 scipio Exp $
+//$Id: Serial.h,v 1.1.2.9 2005-08-12 21:49:37 scipio Exp $
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
  *
@@ -66,6 +66,7 @@
 
 #ifndef SERIAL_H
 #define SERIAL_H
+#include "AM.h"
 
 typedef uint8_t uart_id_t;
 
