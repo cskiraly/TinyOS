@@ -3,17 +3,17 @@ TOS = $(shell ncc -print-tosdir)
 PACKAGE = net.tinyos.message
 MIG = mig java
 
-TOSMsg=$(TOS)/types/TOSMsg.h
+TOSMsg=$(TOS)/lib/serial/Serial.h
 
-MSGS = message_t.java
+MSGS = SerialAMPacket.java
 INITIAL_TARGETS = $(MSGS)
 OTHER_CLEAN = cleanmig
 
 ROOT = ../../../..
 include $(ROOT)/Makefile.include
 
-message_t.java: $(TOSMsg)
-	$(MIG) -target=mica2 -java-classname=$(PACKAGE).avrmote.message_t  $(TOSMsg) message_t -o $@
+SerialAMPacket.java: $(TOSMsg)
+	$(MIG) -target=mica2 -java-classname=$(PACKAGE).avrmote.SerialAMPacket  $(TOSMsg) SerialAMPacket -o $@
 
 cleanmig:
 	rm -f $(MSGS)
