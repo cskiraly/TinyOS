@@ -1,4 +1,4 @@
-// $Id: BaseStationC.nc,v 1.1.2.4 2005-08-12 00:29:07 scipio Exp $
+// $Id: BaseStationC.nc,v 1.1.2.5 2005-08-13 21:43:10 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -43,25 +43,26 @@
 configuration BaseStationC {
 }
 implementation {
-  components MainC, BaseStationP, ActiveMessageC, SerialC, LedsC;
+  components MainC, BaseStationP, LedsC;
+  components ActiveMessageC as Radio, SerialActiveMessageC as Serial;
 
   MainC.Boot <- BaseStationP;
 
-  MainC.SoftwareInit -> ActiveMessageC;
+  MainC.SoftwareInit -> Radio;
   MainC.SoftwareInit -> LedsC;
-  MainC.SoftwareInit -> SerialC;
+  MainC.SoftwareInit -> Serial;
 
-  BaseStationP.IOControl -> ActiveMessageC;
+  BaseStationP.IOControl -> Radio;
 
-  BaseStationP.UartSend -> SerialC;
-  BaseStationP.UartReceive -> SerialC;
-  BaseStationP.UartPacket -> SerialC;
-  BaseStationP.UartAMPacket -> SerialC;
+  BaseStationP.UartSend -> Serial;
+  BaseStationP.UartReceive -> Serial;
+  BaseStationP.UartPacket -> Serial;
+  BaseStationP.UartAMPacket -> Serial;
   
-  BaseStationP.RadioSend -> ActiveMessageC;
-  BaseStationP.RadioReceive -> ActiveMessageC.Receive;
-  BaseStationP.RadioPacket -> ActiveMessageC;
-  BaseStationP.RadioAMPacket -> ActiveMessageC;
+  BaseStationP.RadioSend -> Radio;
+  BaseStationP.RadioReceive -> Radio.Receive;
+  BaseStationP.RadioPacket -> Radio;
+  BaseStationP.RadioAMPacket -> Radio;
   
   BaseStationP.Leds -> LedsC;
 }
