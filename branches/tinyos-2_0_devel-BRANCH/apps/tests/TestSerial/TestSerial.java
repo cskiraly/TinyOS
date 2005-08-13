@@ -47,13 +47,15 @@ public class TestSerial implements MessageListener {
 
   public void sendPackets() {
     int counter = 0;
-    TestSerialMsg msg = new TestSerialMsg();
+    TestSerialMsg payload = new TestSerialMsg();
+    
     try {
       while (true) {
-	msg.set_counter(counter);
-	moteIF.send(0, msg);
+	System.out.println("Sending packet " + counter);
+	payload.set_counter(counter);
+	moteIF.send(0, payload);
 	counter++;
-	try {Thread.sleep(1);}
+	try {Thread.sleep(1000);}
 	catch (InterruptedException exception) {}
       }
     }
