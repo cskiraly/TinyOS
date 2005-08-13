@@ -1,3 +1,3 @@
-COMPONENT=PowerupC
+COMPONENT=PowerupAppC
 include $(MAKERULES)
 
