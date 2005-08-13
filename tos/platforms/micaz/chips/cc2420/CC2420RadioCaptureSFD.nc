@@ -1,4 +1,4 @@
-// $Id: CC2420RadioCaptureSFD.nc,v 1.1.2.2 2005-07-30 23:09:03 mturon Exp $
+// $Id: CC2420RadioCaptureSFD.nc,v 1.1.2.3 2005-08-13 01:17:37 idgay Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -31,7 +31,7 @@ implementation
 {
     components HPLTimerM, new HALCaptureM() as CaptureSFD;
 
-    // Timer1 capture is tied to ATm128 pin D4, a.k.a. CC2420 pin SFD
+    // Timer1 capture is tied to Atm128 pin D4, a.k.a. CC2420 pin SFD
     Capture = CaptureSFD;  
     //CaptureSFD.Timer -> HPLTimerM.Timer1;
     CaptureSFD.HPLCapture -> HPLTimerM.Capture1;
