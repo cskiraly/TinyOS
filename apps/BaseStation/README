@@ -1,21 +1,25 @@
-README for TOSBase
+README for BaseStation
 Author/Contact: tinyos-help@millennium.berkeley.edu
 
 Description:
 
-TOSBase is an application that acts as a simple bridge between the
-serial and radio links.
+BaseStation is an application that acts as a simple Active Message
+bridge between the serial and radio links. It replaces the GenericBase
+of TinyOS 1.0 and the TOSBase of TinyOS 1.1.
 
-TOSBase will copy its compiled-in group ID to messages moving from the
-serial link to the radio, and will filter out incoming radio messages
-that do not contain that group ID.
+On the serial link, BaseStation sends and receives simple active
+messages (not particular radio packets): on the radio link, it sends
+radio active messages, whose format depends on the network stack being
+used. BaseStation will copy its compiled-in group ID to messages
+moving from the serial link to the radio, and will filter out incoming
+radio messages that do not contain that group ID.
 
-TOSBase includes queues in both directions, with a guarantee that once
-a message enters a queue, it will eventually leave on the other
-interface. The queues allow the TOSBase to handle load spikes more
+BaseStation includes queues in both directions, with a guarantee that
+once a message enters a queue, it will eventually leave on the other
+interface. The queues allow the BaseStation to handle load spikes more
 gracefully.
 
-TOSBase acknowledges a message arriving over the serial link only if
+BaseStation acknowledges a message arriving over the serial link only if
 that message was successfully enqueued for delivery to the radio link.
 
 The LEDS are programmed to toggle as follows:
@@ -33,10 +37,4 @@ See doc/serialcomm/index.html for more information using these tools.
 
 Known bugs/limitations:
 
-As always, a task post failure somewhere in the serial or radio stacks
-may cause the TOSBase to hang.
-
-Under heavy load, 0-length packets, or packets with the wrong length
-may be sent on the serial link. This is known, and most likely resides
-in the radio stack, but has not yet been debugged.
-
+None. 
