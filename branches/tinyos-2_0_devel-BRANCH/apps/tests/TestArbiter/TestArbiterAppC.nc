@@ -27,7 +27,7 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-08-08 22:58:25 $ 
+ * $Date: 2005-08-13 02:52:56 $ 
  * ======================================================================== 
  */
  
@@ -38,62 +38,24 @@
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
-
-module TestArbiterM {
-  uses {
-    interface Boot;  
-    interface Leds;  
-    interface ResourceUser;
-    interface Resource as Resource0;
-    interface Resource as Resource1;
-    interface Resource as Resource2;   
-  }
+ 
+#define TEST_ARBITER_RESOURCE   "Test.Arbiter.Resource"
+configuration TestArbiterAppC{
 }
 implementation {
+  components MainC, TestArbiterC,
+     // new RoundRobinArbiterC(TEST_ARBITER_RESOURCE) as Arbiter, 
+     new FcfsArbiterC(TEST_ARBITER_RESOURCE) as Arbiter, LedsC;
 
-  //Function for inserting delay so that you can see
-  //  Leds as they flash
-  void delay() {
-    uint16_t i, j;
-    for (i= 0; i < 5; i++) {
-      for (j = 0; j < 30000; j++) {}
-    }
-  }
+  TestArbiterC -> MainC.Boot;
+  MainC.SoftwareInit -> LedsC;
+  MainC.SoftwareInit -> Arbiter;
+ 
+  TestArbiterC.ResourceUser -> Arbiter.ResourceUser;  
+  TestArbiterC.Resource0 -> Arbiter.Resource[unique(TEST_ARBITER_RESOURCE)];
+  TestArbiterC.Resource1 -> Arbiter.Resource[unique(TEST_ARBITER_RESOURCE)];
+  TestArbiterC.Resource2 -> Arbiter.Resource[unique(TEST_ARBITER_RESOURCE)];
   
-  //All resources try to gain access
-  event void Boot.booted() {
-    call Resource0.request();
-    call Resource2.request();
-    call Resource1.request();
-  }
-  
-  //If granted the resource, turn on an LED  
-  event void Resource0.granted() {
-    call Leds.led0Toggle();      
-  }  
-  event void Resource1.granted() {
-    call Leds.led1Toggle();     
-  }  
-  event void Resource2.granted() {
-    call Leds.led2Toggle();  
-  }  
-  
-  //If detect that someone else wants the resource,
-  //  release it
-  event void Resource0.requested() {
-    call Resource0.release();
-    delay();
-    call Resource0.request();
-  }
-  event void Resource1.requested() {
-    call Resource1.release();  
-    delay();
-    call Resource1.request();     
-  }  
-  event void Resource2.requested() {
-    call Resource2.release();  
-    delay();
-    call Resource2.request();      
-  }
+  TestArbiterC.Leds -> LedsC;
 }
 
