@@ -1,4 +1,4 @@
-// $Id: MessageFactory.java,v 1.1.2.2 2005-08-12 23:35:08 scipio Exp $
+// $Id: MessageFactory.java,v 1.1.2.3 2005-08-13 00:45:58 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -101,12 +101,6 @@ public class MessageFactory {
 	return m;
     }
 
-/*    public TOSMsg createTOSMsg(net.tinyos.message.Message msg, int base_offset) {
-	TOSMsg m = instantiateTOSMsg();
-	m.init(msg, base_offset);
-	return m;
-    }
-*/
     public TOSMsg createTOSMsg(net.tinyos.message.Message msg, int base_offset, int data_length) { 
 	TOSMsg m = instantiateTOSMsg();
 	m.init(msg, base_offset, data_length);
