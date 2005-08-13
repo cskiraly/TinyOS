@@ -1,4 +1,4 @@
-// $Id: Packetizer.java,v 1.1.2.4 2005-08-13 00:23:53 bengreenstein Exp $
+// $Id: Packetizer.java,v 1.1.2.5 2005-08-13 00:35:36 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -165,40 +165,31 @@ public class Packetizer extends AbstractSource implements Runnable {
 	}
     }
 
-  protected byte[] readSourcePacket() throws IOException {
-	// Packetizer packet format is identical to PacketSource's
-      byte[] p = readProtocolPacket(P_PACKET_NO_ACK,0);
-      ByteBuffer buf = ByteBuffer.wrap(p);
-      int sz = p.length - 1;
-      byte type = p[0];
-      if (type == (byte)0){
-        p = new byte[sz];
-        buf.get(p,1,sz);
-        if (DEBUG) {
-          message(name + "type: " + type + "pkt: " + p);
-        }
-        return p;
+    protected byte[] readSourcePacket() throws IOException {
+     // Packetizer packet format is identical to PacketSource's
+      byte[] packet = readProtocolPacket(P_PACKET_NO_ACK,0);
+      if (packet.length >= 1 && packet[0] == (byte)0) {
+	byte[] realPacket = new byte[packet.length - 1];
+	System.arraycopy(packet, 1, realPacket, 0, realPacket.length);
+	return realPacket;     
       }
       else {
-		if (DEBUG) { 
-          message(name + ": invalid tos-serial type: " + type);
-		}
-        return p;
-      } 
-      //return readProtocolPacket(P_PACKET_NO_ACK, 0);
-  }
+	message("invalid tos-serial type: " + packet[0]);
+	return readSourcePacket();
+      }
+    }
 
   // Write an ack-ed packet
   protected boolean writeSourcePacket(byte[] packet) throws IOException {
-	seqNo++;
     byte type = 0; // AM-SERIAL
     int sz = packet.length + 1;
-    ByteBuffer buf = ByteBuffer.allocate(sz);
-    buf.put(type);
-    buf.put(packet);
-    buf.get(packet,0,sz);
 
-    writeFramedPacket(P_PACKET_ACK, seqNo, packet, packet.length);
+    byte[] realPacket = new byte[packet.length + 1];
+    realPacket[0] = 0; // AM serial packet
+    System.arraycopy(packet, 0, realPacket, 1, packet.length);
+    seqNo++;
+
+    writeFramedPacket(P_PACKET_ACK, seqNo, realPacket, realPacket.length);
     long deadline = System.currentTimeMillis() + ACK_TIMEOUT;
     for (;;) {
       byte[] ack = readProtocolPacket(P_ACK, deadline);
