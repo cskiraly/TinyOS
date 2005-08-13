@@ -1,4 +1,4 @@
-// $Id: TestSerialC.nc,v 1.1.2.4 2005-08-12 00:29:09 scipio Exp $
+// $Id: TestSerialC.nc,v 1.1.2.5 2005-08-13 00:52:04 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -37,58 +37,18 @@
 
 includes Timer;
 
-module TestSerialM { 
-  uses {
-    interface Leds;
-    interface Boot;
-    interface Receive;
-    interface Send;
-  }
-}
+configuration TestSerialC {}
 implementation {
+  components MainC, TestSerialM, SerialC, LedsC;
 
-  message_t buf;
-  message_t *bufPtr = &buf;
-  bool locked = FALSE;
+  MainC.SoftwareInit -> LedsC;
+  MainC.SoftwareInit -> SerialC;
 
-  event void Boot.booted() {
-    bufPtr = &buf;
-  }
+  TestSerialM.Boot -> MainC.Boot;
 
-  event message_t* Receive.receive(message_t* msg, 
-                                   void* payload, uint8_t len) {
-    message_t *swap;
-    
-    // net.tinyos.tools.Send 5 4 2 1 3 6 7
-    if ((msg->header.addr == 0x0504) &&
-        msg->header.length == 0x02 &&
-        msg->header.group == 0x01 &&
-        msg->header.type == 0x03 &&
-        msg->data[0] == 6 &&
-        msg->data[1] == 7) call Leds.led0Toggle();
+  TestSerialM.Receive -> SerialC.Receive[0];
+  TestSerialM.Send -> SerialC.AMSend[0];
 
-    if (!locked) {
-      locked = TRUE;
-      swap = bufPtr;
-      bufPtr = msg;
-      if (call Send.send(bufPtr, len) == SUCCESS){
-        call Leds.led1Toggle();
-      }
-      return swap;
-    } 
-    else {
-      return msg;
-    }
-  }
-  
-  event void Send.sendDone(message_t* msg, error_t error) {
-    if (msg == bufPtr){
-      locked = FALSE;
-      call Leds.led2Toggle();
-    }
-  }
-}  
-  
-
-
+  TestSerialM.Leds -> LedsC;
+}
 
