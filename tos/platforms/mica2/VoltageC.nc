@@ -1,4 +1,4 @@
-/// $Id: VoltageC.nc,v 1.1.2.5 2005-08-13 01:17:37 idgay Exp $
+/// $Id: VoltageC.nc,v 1.1.2.6 2005-08-13 02:46:49 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -34,5 +34,5 @@ implementation
   
   StdControl  = VoltageP;  
   AcquireData = VoltageChannel;
-  VoltageP.BAT_MON -> HPLGeneralIOC.PortA5;
+  VoltageP.BAT_MON -> HplGeneralIOC.PortA5;
 }
