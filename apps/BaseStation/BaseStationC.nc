@@ -1,4 +1,4 @@
-// $Id: BaseStationC.nc,v 1.1.2.5 2005-08-13 21:43:10 scipio Exp $
+// $Id: BaseStationC.nc,v 1.1.2.6 2005-08-13 21:52:21 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,31 @@
 
 /**
  * The TinyOS 2.x base station that forwards packets between the UART
- * and radio.
+ * and radio.It replaces the GenericBase of TinyOS 1.0 and the
+ * TOSBase of TinyOS 1.1.
+ *
+ * <p>On the serial link, BaseStation sends and receives simple active
+ * messages (not particular radio packets): on the radio link, it
+ * sends radio active messages, whose format depends on the network
+ * stack being used. BaseStation will copy its compiled-in group ID to
+ * messages moving from the serial link to the radio, and will filter
+ * out incoming radio messages that do not contain that group ID.</p>
+ *
+ * <p>BaseStation includes queues in both directions, with a guarantee
+ * that once a message enters a queue, it will eventually leave on the
+ * other interface. The queues allow the BaseStation to handle load
+ * spikes.</p>
+ *
+ * <p>BaseStation acknowledges a message arriving over the serial link
+ * only if that message was successfully enqueued for delivery to the
+ * radio link.</p>
+ *
+ * <p>The LEDS are programmed to toggle as follows:</p>
+ * <ul>
+ * <li><b>RED Toggle:</b>: Message bridged from serial to radio</li>
+ * <li><b>GREEN Toggle:</b> Message bridged from radio to serial</li>
+ * <li><b>YELLOW/BLUE Toggle:</b> Dropped message due to queue overflow in either direction</li>
+ * </ul>
  *
  * @author Phil Buonadonna
  * @author Gilman Tolle
