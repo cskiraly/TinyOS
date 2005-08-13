@@ -1,4 +1,4 @@
-// $Id: PlatformLedsC.nc,v 1.1.2.2 2005-08-08 04:24:55 scipio Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.3 2005-08-13 01:17:37 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -28,17 +28,15 @@ includes hardware;
 
 configuration PlatformLedsC
 {
-    provides interface GeneralIO as Led0;
-    provides interface GeneralIO as Led1;
-    provides interface GeneralIO as Led2;
+  provides interface GeneralIO as Led0;
+  provides interface GeneralIO as Led1;
+  provides interface GeneralIO as Led2;
 }
 implementation
 {
-    components HPLGeneralIOC;
+  components HplGeneralIOC;
     
-    Led0 = HPLGeneralIOC.PortA2;  // Pin A2 = Red LED
-    Led1 = HPLGeneralIOC.PortA1;  // Pin A1 = Green LED
-    Led2 = HPLGeneralIOC.PortA0;  // Pin A0 = Yellow LED
-
+  Led0 = HplGeneralIOC.PortA2;  // Pin A2 = Red LED
+  Led1 = HplGeneralIOC.PortA1;  // Pin A1 = Green LED
+  Led2 = HplGeneralIOC.PortA0;  // Pin A0 = Yellow LED
 }
-

@@ -35,14 +35,14 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.4 2005-07-13 03:55:06 idgay Exp $
+ *  $Id: hardware.h,v 1.1.2.5 2005-08-13 01:17:37 idgay Exp $
  */
 
 #ifndef HARDWARE_H
 #define HARDWARE_H
 
-#include <atmega128hardware.h>
-#include <ATm128ADC.h>
+#include <atm128hardware.h>
+#include <Atm128Adc.h>
 
 // A/D constants (channels, etc)
 enum {
