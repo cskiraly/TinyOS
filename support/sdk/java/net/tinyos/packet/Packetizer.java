@@ -1,4 +1,4 @@
-// $Id: Packetizer.java,v 1.1.2.3 2005-08-13 00:08:57 scipio Exp $
+// $Id: Packetizer.java,v 1.1.2.4 2005-08-13 00:23:53 bengreenstein Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -33,6 +33,7 @@ package net.tinyos.packet;
 import net.tinyos.util.*;
 import java.io.*;
 import java.util.*;
+import java.nio.*;
 
 /**
  * The Packetizer class implements the new mote-PC protocol, using
@@ -70,7 +71,7 @@ public class Packetizer extends AbstractSource implements Runnable {
      *     the first byte must be the unknown packet type.
      * - Packets that are greater than a (private) MTU are silently dropped.
      */
-    final static boolean DEBUG = false;
+    final static boolean DEBUG = true;
 
     final static int SYNC_BYTE = 0x7e;
     final static int ESCAPE_BYTE = 0x7d;
@@ -164,48 +165,58 @@ public class Packetizer extends AbstractSource implements Runnable {
 	}
     }
 
-    protected byte[] readSourcePacket() throws IOException {
-     // Packetizer packet format is identical to PacketSource's
-      byte[] packet = readProtocolPacket(P_PACKET_NO_ACK,0);
-      if (packet.length >= 1 && packet[0] == (byte)0) {
-	byte[] realPacket = new byte[packet.length - 1];
-	System.arraycopy(packet, 1, realPacket, 0, realPacket.length);
-	{
-	  String ptext = "";
-	  for (int i = 0; i < realPacket.length; i++) {
-	    ptext = ptext += ("[" + realPacket[i] + "] ");
-	  }
-	  //message("received packet " + ptext);
-	}
-	return realPacket;     
+  protected byte[] readSourcePacket() throws IOException {
+	// Packetizer packet format is identical to PacketSource's
+      byte[] p = readProtocolPacket(P_PACKET_NO_ACK,0);
+      ByteBuffer buf = ByteBuffer.wrap(p);
+      int sz = p.length - 1;
+      byte type = p[0];
+      if (type == (byte)0){
+        p = new byte[sz];
+        buf.get(p,1,sz);
+        if (DEBUG) {
+          message(name + "type: " + type + "pkt: " + p);
+        }
+        return p;
       }
       else {
-	//message("invalid tos-serial type: " + packet[0]);
-	return readSourcePacket();
+		if (DEBUG) { 
+          message(name + ": invalid tos-serial type: " + type);
+		}
+        return p;
+      } 
+      //return readProtocolPacket(P_PACKET_NO_ACK, 0);
+  }
+
+  // Write an ack-ed packet
+  protected boolean writeSourcePacket(byte[] packet) throws IOException {
+	seqNo++;
+    byte type = 0; // AM-SERIAL
+    int sz = packet.length + 1;
+    ByteBuffer buf = ByteBuffer.allocate(sz);
+    buf.put(type);
+    buf.put(packet);
+    buf.get(packet,0,sz);
+
+    writeFramedPacket(P_PACKET_ACK, seqNo, packet, packet.length);
+    long deadline = System.currentTimeMillis() + ACK_TIMEOUT;
+    for (;;) {
+      byte[] ack = readProtocolPacket(P_ACK, deadline);
+      if (ack == null) {
+        if (DEBUG) {
+          message(name + ": ACK timed out");
+        }
+        return false;
+      }
+      if (ack[0] == (byte)seqNo) {
+        if (DEBUG) {
+          message(name + ": Rcvd ACK");
+        }
+        return true;
       }
     }
-
-    // Write an ack-ed packet
-    protected boolean writeSourcePacket(byte[] packet) throws IOException {
-	seqNo++;
-	writeFramedPacket(P_PACKET_ACK, seqNo, packet, packet.length);
-	long deadline = System.currentTimeMillis() + ACK_TIMEOUT;
-	for (;;) {
-	    byte[] ack = readProtocolPacket(P_ACK, deadline);
-	    if (ack == null) {
-		if (DEBUG) {
-		    message(name + ": ACK timed out");
-		}
-		return false;
-	    }
-	    if (ack[0] == (byte)seqNo) {
-		if (DEBUG) {
-		    message(name + ": Rcvd ACK");
-		}
-		return true;
-	    }
-	}
-    }
+    
+  }
 
     static private byte ackPacket[] = new byte[0];
 
