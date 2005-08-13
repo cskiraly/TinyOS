@@ -1,4 +1,4 @@
-/* $Id: CC1000ControlP.nc,v 1.1.2.1 2005-08-07 22:42:34 scipio Exp $
+/* $Id: CC1000ControlP.nc,v 1.1.2.2 2005-08-13 01:16:31 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * @author Philip Buonadonna
  * @author Jaein Jeong
  * @author David Gay
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  */
 
 /**
@@ -45,7 +45,7 @@ module CC1000ControlP {
     interface CC1000Control;
   }
   uses {
-    interface HPLCC1000 as CC;
+    interface HplCC1000 as CC;
   }
 }
 implementation

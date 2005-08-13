@@ -1,4 +1,4 @@
-/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.3 2005-08-07 22:42:34 scipio Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.4 2005-08-13 01:16:32 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -43,7 +43,7 @@
  *
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.3 $
+ * Revision:  $Revision: 1.1.2.4 $
  */
 
 #include "CC1000Const.h"
@@ -70,7 +70,7 @@ implementation {
   components CC1000RssiP as Rssi;
   components CC1000SquelchP as Squelch;
   components CC1000ControlP as Control;
-  components HPLCC1000C as HPL;
+  components HplCC1000C as Hpl;
 
   components RandomC, TimerMilliC, ActiveMessageAddressC;
 
@@ -97,7 +97,7 @@ implementation {
   Csma.ByteRadioControl -> SendReceive;
 
   SendReceive.CC1000Control -> Control;
-  SendReceive.HPLCC1000Spi -> HPL;
+  SendReceive.HplCC1000Spi -> Hpl;
   SendReceive.amAddress -> ActiveMessageAddressC;
   SendReceive.RssiRx -> Rssi.Rssi[unique("CC1000RSSI")];
   
@@ -105,8 +105,8 @@ implementation {
   Csma.RssiCheckChannel -> Rssi.Rssi[unique("CC1000RSSI")];
   Csma.RssiPulseCheck -> Rssi.Rssi[unique("CC1000RSSI")];
   Csma.cancelRssi -> Rssi;
-  Csma.RssiControl -> HPL.RssiControl;
+  Csma.RssiControl -> Hpl.RssiControl;
 
-  Rssi.ActualRssi -> HPL;
-  Control.CC -> HPL;
+  Rssi.ActualRssi -> Hpl;
+  Control.CC -> Hpl;
 }

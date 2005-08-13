@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.2 2005-08-10 15:54:39 scipio Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.3 2005-08-13 01:16:32 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -65,7 +65,7 @@ module CC1000SendReceiveP {
   uses {
     //interface PowerManagement;
     interface CC1000Control;
-    interface HPLCC1000Spi;
+    interface HplCC1000Spi;
 
     interface AcquireDataNow as RssiRx;
     async command am_addr_t amAddress();
@@ -218,7 +218,7 @@ implementation
   }
 
   command error_t Init.init() {
-    call HPLCC1000Spi.initSlave();
+    call HplCC1000Spi.initSlave();
     return SUCCESS;
   }
 
@@ -259,9 +259,9 @@ implementation
   async command void ByteRadio.cts() {
     /* We're set to go! Start with our exciting preamble... */
     enterTxPreambleState();
-    call HPLCC1000Spi.writeByte(0xaa);
+    call HplCC1000Spi.writeByte(0xaa);
     call CC1000Control.txMode();
-    call HPLCC1000Spi.txMode();
+    call HplCC1000Spi.txMode();
   }
 
   command error_t Send.cancel(message_t *msg) {
@@ -270,7 +270,7 @@ implementation
   }
 
   void sendNextByte() {
-    call HPLCC1000Spi.writeByte(nextTxByte);
+    call HplCC1000Spi.writeByte(nextTxByte);
     count++;
   }
 
@@ -319,7 +319,7 @@ implementation
 	enterTxWaitForAckState();
       else
 	{
-	  call HPLCC1000Spi.rxMode();
+	  call HplCC1000Spi.rxMode();
 	  call CC1000Control.rxMode();
 	  enterTxDoneState();
 	}
@@ -329,7 +329,7 @@ implementation
     sendNextByte();
     if (count == 1)
       {
-	call HPLCC1000Spi.rxMode();
+	call HplCC1000Spi.rxMode();
 	call CC1000Control.rxMode();
       }
     else if (count > 3)
@@ -390,13 +390,13 @@ implementation
   async command void ByteRadio.listen() {
     enterListenState();
     call CC1000Control.rxMode();
-    call HPLCC1000Spi.rxMode();
-    call HPLCC1000Spi.enableIntr();
+    call HplCC1000Spi.rxMode();
+    call HplCC1000Spi.enableIntr();
   }
 
   async command void ByteRadio.off() {
     enterInactiveState();
-    call HPLCC1000Spi.disableIntr();
+    call HplCC1000Spi.disableIntr();
   }
 
   void listenData(uint8_t in) {
@@ -520,8 +520,8 @@ implementation
       {
 	enterAckState();
 	call CC1000Control.txMode();
-	call HPLCC1000Spi.txMode();
-	call HPLCC1000Spi.writeByte(0xaa);
+	call HplCC1000Spi.txMode();
+	call HplCC1000Spi.writeByte(0xaa);
       }
     else
       packetReceiveDone();
@@ -531,11 +531,11 @@ implementation
     if (++count >= ACK_LENGTH)
       { 
 	call CC1000Control.rxMode();
-	call HPLCC1000Spi.rxMode();
+	call HplCC1000Spi.rxMode();
 	packetReceiveDone();
       }
     else if (count >= ACK_LENGTH - sizeof ackCode)
-      call HPLCC1000Spi.writeByte(read_uint8_t(&ackCode[count + sizeof ackCode - ACK_LENGTH]));
+      call HplCC1000Spi.writeByte(read_uint8_t(&ackCode[count + sizeof ackCode - ACK_LENGTH]));
   }
 
   task void signalPacketReceived() {
@@ -564,7 +564,7 @@ implementation
     enterReceivedState();
   }
 
-  async event void HPLCC1000Spi.dataReady(uint8_t data) {
+  async event void HplCC1000Spi.dataReady(uint8_t data) {
     if (f.invert)
       data = ~data;
 
