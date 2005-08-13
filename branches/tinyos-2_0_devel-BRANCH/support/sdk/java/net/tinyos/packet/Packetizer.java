@@ -1,4 +1,4 @@
-// $Id: Packetizer.java,v 1.1.2.2 2005-05-23 23:14:10 idgay Exp $
+// $Id: Packetizer.java,v 1.1.2.3 2005-08-13 00:08:57 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -165,8 +165,24 @@ public class Packetizer extends AbstractSource implements Runnable {
     }
 
     protected byte[] readSourcePacket() throws IOException {
-	// Packetizer packet format is identical to PacketSource's
-	return readProtocolPacket(P_PACKET_NO_ACK, 0);
+     // Packetizer packet format is identical to PacketSource's
+      byte[] packet = readProtocolPacket(P_PACKET_NO_ACK,0);
+      if (packet.length >= 1 && packet[0] == (byte)0) {
+	byte[] realPacket = new byte[packet.length - 1];
+	System.arraycopy(packet, 1, realPacket, 0, realPacket.length);
+	{
+	  String ptext = "";
+	  for (int i = 0; i < realPacket.length; i++) {
+	    ptext = ptext += ("[" + realPacket[i] + "] ");
+	  }
+	  //message("received packet " + ptext);
+	}
+	return realPacket;     
+      }
+      else {
+	//message("invalid tos-serial type: " + packet[0]);
+	return readSourcePacket();
+      }
     }
 
     // Write an ack-ed packet
