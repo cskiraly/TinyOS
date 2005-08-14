@@ -170,6 +170,11 @@ communication medium. For example, a mica2 defines the CC1000 active
 message layer as ActiveMessageC, while the TMote defines the CC2420
 active message layer as ActiveMessageC.
 
+There is no longer a TOS_UART_ADDRESS for active message
+communication.  Instead, a component should wire to
+SerialActiveMessageC, which provides active message communication over
+the serial port.
+
 Further information on message_t can be found in TEP 111:
 message_t[TEP111_].
 

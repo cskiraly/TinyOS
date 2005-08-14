@@ -12,8 +12,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2005-08-14 00:45:35 $
-:version: $Revision: 1.1.2.1 $
+:date: $Date: 2005-08-14 01:08:49 $
+:version: $Revision: 1.1.2.2 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -440,6 +440,10 @@ component defines which network interface is the standard
 communication medium. For example, a mica2 defines the CC1000 active
 message layer as ActiveMessageC, while the TMote defines the CC2420
 active message layer as ActiveMessageC.</p>
+<p>There is no longer a TOS_UART_ADDRESS for active message
+communication.  Instead, a component should wire to
+SerialActiveMessageC, which provides active message communication over
+the serial port.</p>
 <p>Further information on message_t can be found in TEP 111:
 message_t[<a class="reference" href="#tep111">TEP111</a>].</p>
 </div>
