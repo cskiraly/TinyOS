@@ -1,4 +1,4 @@
-//$Id: SerialActiveMessageP.nc,v 1.1.2.2 2005-08-12 22:11:00 scipio Exp $
+//$Id: SerialActiveMessageP.nc,v 1.1.2.3 2005-08-14 23:36:46 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -76,7 +76,7 @@ implementation {
  }
   
   event message_t* SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
-    return signal Receive.receive[call AMPacket.type(msg)](msg, payload, len);
+    return signal Receive.receive[call AMPacket.type(msg)](msg, msg->data, len);
   }
 
   command void Packet.clear(message_t* msg) {
