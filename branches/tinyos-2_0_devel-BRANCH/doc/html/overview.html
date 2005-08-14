@@ -1,0 +1,563 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.6: http://docutils.sourceforge.net/" />
+<title>TinyOS 2.0 Overview</title>
+<meta name="author" content="Philip Levis" />
+<meta name="date" content="Aug 13 2005" />
+<style type="text/css">
+
+/*
+:Author: David Goodger
+:Contact: goodger@users.sourceforge.net
+:date: $Date: 2005-08-14 00:45:35 $
+:version: $Revision: 1.1.2.1 $
+:copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+*/
+body {
+  font-family: Times;
+  font-size: 16px;
+}
+
+.first {
+  margin-top: 0 ! important }
+
+.last {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (& remove this text!) to get bold-faced definition list terms
+dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.attention, div.caution, div.danger, div.error, div.hint,
+div.important, div.note, div.tip, div.warning, div.admonition {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.hint p.admonition-title, div.important p.admonition-title,
+div.note p.admonition-title, div.tip p.admonition-title,
+div.admonition p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em }
+
+div.footer, div.header {
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin-left: 1em ;
+  border: medium outset ;
+  padding: 0em 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1 {
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+}
+
+h1.title {
+ text-align: center;
+ font-size: 32px;
+}
+
+h2 {
+ font-size: 16px;
+ font-family: Arial, sans-serif;
+}
+
+h2.subtitle {
+  text-align: center }
+
+h3 {
+ font-size: 12px;
+ font-family: Arial, sans-serif;
+}
+
+hr {
+  width: 75% }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font-family: serif ;
+  font-size: 100% }
+
+pre.line-block {
+  font-family: serif ;
+  font-size: 100% }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em ;
+  background-color: #eeeeee }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.option-argument {
+  font-style: italic }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+table {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.citation {
+  border-left: solid thin gray ;
+  padding-left: 0.5ex }
+
+table.docinfo {
+  margin: 2em 4em;
+}
+
+table.footnote {
+  border-left: solid thin black ;
+  padding-left: 0.5ex }
+
+td, th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+th.docinfo-name, th.field-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap;
+  }
+
+h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
+  font-size: 100% }
+
+tt {
+  font: Courier,monospaced;
+  font-size: 12px;
+  background-color: #eeeeee }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<h1 class="title">TinyOS 2.0 Overview</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr><th class="docinfo-name">Author:</th>
+<td>Philip Levis</td></tr>
+<tr><th class="docinfo-name">Date:</th>
+<td>Aug 13 2005</td></tr>
+</tbody>
+</table>
+<div class="document" id="tinyos-2-0-overview">
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">This document gives a brief overview of TinyOS 2.0, highlighting how
+and where it departs from 1.1 and 1.0. Further detail on these changes
+is detailed in TEP (TinyOS Enhancement Proposal) documents.</p>
+</div>
+<div class="section" id="introduction">
+<h1><a name="introduction">1. Introduction</a></h1>
+<p>TinyOS 2.0 is a clear slate redesign and re-implementation of TinyOS.
+Its development was motivated by our belief that many aspects of 1.x
+are straining to meet requirements and uses that were not foreseen
+when it was designed and implemented. The structure and interfaces 1.x
+defines have several fundamental limitations. While these limitations
+can be worked around, this practice has led to tightly coupled
+components, hard to find interactions, and a very steep learning curve
+for a newcomer to sensor network programming.</p>
+<p>TinyOS 2.0 is not backwards compatible with 1.x: code written for the
+latter will not compile for the former. However, one important aspect
+of 2.0's design is to minimize the difficulty of upgrading
+code. Therefore, while moving a 1.x application to 2.0 will require
+some work, it should not be very much.</p>
+<p>This document provides a high-level overview of 2.0 and describes some
+of the ways in which it departs from 1.x. It covers the basic TinyOS
+abstractions, such as hardware abstractions, communication, timers,
+the scheduler, booting and initialization. Further detail on each of
+these can be found in TEPs (TinyOS Enhancement Proposals), which
+document and describe these abstractions.</p>
+</div>
+<div class="section" id="platforms-hardware-abstraction">
+<h1><a name="platforms-hardware-abstraction">2. Platforms/Hardware Abstraction</a></h1>
+<p>Platforms exist in the <tt class="docutils literal"><span class="pre">tos/platforms</span></tt> subdirectory. In TinyOS 2.0, a
+<em>platform</em> is a collection of <em>chips</em> and some glue code that connects
+them together. For example, the mica2 platform is the CC1000 radio
+chip and the ATmega128 microcontroller, while the micaZ platform is
+the CC2420 radio and the ATmega128 microcontroller, and the Teloi
+platforms are the CC2420 radio and the MSP430 microcontroller. Chip
+code exists in <tt class="docutils literal"><span class="pre">tos/chips</span></tt>. A platform directory generally has a
+<tt class="docutils literal"><span class="pre">.platform</span></tt> file, which has options to pass to the nesC compiler. For
+example, the mica2 .platform file tells ncc to look in <tt class="docutils literal"><span class="pre">chips/cc1000</span></tt>
+and <tt class="docutils literal"><span class="pre">chips/atm128</span></tt> directories, as well as to use avr-gcc to compile a
+mote binary (Teloi platforms tell it to use msp430-gcc).</p>
+<p>Hardware abstractions in TinyOS 2.0 generally follow a three-level
+abstaction heirarchy, called the HAA (Hardware Abstraction
+Architecture).</p>
+<p>At the bottom of the HAA is the HPL (Hardware Presentation Layer). The
+HPL is a thin software layer on top of the raw hardware, presenting
+hardare such as IO pins or registers as nesC interfaces. The HPL
+generally has no state besides the hardware itself (it has no
+variables). HPL components usually have the prefix <tt class="docutils literal"><span class="pre">Hpl</span></tt>, followed by
+the name of the chip. For example, the HPL components of the CC1000
+begin with <tt class="docutils literal"><span class="pre">HplCC1000</span></tt>.</p>
+<p>The middle of the HAA is the HAL (Hardware Abstraction Layer). The HAL
+builds on top of the HPL and provides higher-level abstractions that
+are easier to use than the HPL but still provide the full
+functionality of the underlying hardware. The HAL components usually have
+a prefix of the chip name. For example, the HAL components of the CC1000
+begin with <tt class="docutils literal"><span class="pre">CC1000</span></tt>.</p>
+<p>The top of the HAA is the HIL (Hardware Independent Layer). The HIL
+builds on top of the HAL and provides abstractions that are hardware
+independent. This generalization means that the HIL usually does not
+provide all of the functionality that the HAL can. HIL components have
+no naming prefix, as they represent abstractions that applications can
+use and safely compile on multiple platforms. For example, the HIL
+component of the CC1000 on the mica2 is <tt class="docutils literal"><span class="pre">ActiveMessageC</span></tt>, representing
+a full active message communication layer.</p>
+<p>The HAA is described in TEP 2: Hardware Abstraction Architecture[<a class="reference" href="#tep2">TEP2</a>].</p>
+</div>
+<div class="section" id="scheduler">
+<h1><a name="scheduler">3. Scheduler</a></h1>
+<p>As with TinyOS 1.x, TinyOS 2.0 scheduler has a non-preemptive FIFO
+policy. However, tasks in 2.0 operate slightly differently than in
+1.x.</p>
+<p>In TinyOS 1.x, there is a shared task queue for all tasks, and a
+component can post a task multiple times. If the task queue is full,
+the post operation fails. Experience with networking stacks showed
+this to be problematic, as the task might signal completion of a
+split-phase operation: if the post fails, the component above might
+block forever, waiting for the completion event.</p>
+<p>In TinyOS 2.x, every task has its own reserved slot in the task queue,
+and a task can only be posted once. A post fails if and only if the
+task has already been posted. If a component needs to post a task
+multiple times, it can set an internal state variable so that when
+the task executes, it reposts itself.</p>
+<p>This slight change in semantics greatly simplifies a lot of component
+code. Rather than test to see if a task is posted already before
+posting it, a component can just post the task. Components do not have
+to try to recover from failed posts and retry. The cost is one byte of
+state per task. Even in large systems such as TinyDB, this cost is
+under one hundred bytes (in TinyDB is is approximately 50).</p>
+<p>Applications can also replace the scheduler, if they wish. This allows
+programmers to try new scheduling policies, such as priority- or
+deadline-based. It is important to maintain non-preemptiveness,
+however, or the scheduler will break all nesC's static concurrency
+analysis. Details on the new scheduler and how to extend it can be found
+in TEP 106: Schedulers and Tasks[<a class="reference" href="#tep106">TEP106</a>].</p>
+</div>
+<div class="section" id="booting-initialization">
+<h1><a name="booting-initialization">4. Booting/Initialization</a></h1>
+<p>TinyOS 2.0 has a different boot sequence than 1.x. The 1.x interface
+<tt class="docutils literal"><span class="pre">StdControl</span></tt> has been split into two interfaces: <tt class="docutils literal"><span class="pre">Init</span></tt> and
+<tt class="docutils literal"><span class="pre">StdControl</span></tt>. The latter only has two commands: <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">stop</span></tt>.
+In TinyOS 1.x, wiring components to the boot sequence would cause them
+to be powered up and started at boot. That is no longer the case: the
+boot sequence only initializes components. When it has completed
+initializing the scheduler, hardware, and software, the boot sequence
+signals the <tt class="docutils literal"><span class="pre">Boot.booted</span></tt> event. The top-level application component
+should handle this event and start services accordingly. Details on
+the new boot sequence can be found in TEP 107: TinyOS 2.x Boot
+Sequence[<a class="reference" href="#tep107">TEP107</a>].</p>
+</div>
+<div class="section" id="timers">
+<h1><a name="timers">5. Timers</a></h1>
+<p>TinyOS 2.0 provides a much richer set of timer interfaces than
+1.x. Experience has shown that timers are one of the most critical
+abstractions a mote OS can provide, and so 2.0 expands the fidelity
+and form that timers take. Depending on the hardware resources of a
+platform, a component can use 32KHz as well as millisecond granularity
+timers, and the timer system may provide one or two high-precision
+timers that fire asynchronously (they have the async
+keyword). Components can query their timers for how much time
+remainins before they fire, and can start timers in the future (e.g.,
+'start firing a timer at 1Hz starting 31ms from now). The HIL of the
+timer subsystem can now be found in <tt class="docutils literal"><span class="pre">tos/lib/timer</span></tt>. A platform's
+microcontoller implementation defines components such as <tt class="docutils literal"><span class="pre">TimerMilliC</span></tt>
+and <tt class="docutils literal"><span class="pre">Timer32KHzC</span></tt> for higherMore information on the timer system can be
+found in TEP 102: Timers[<a class="reference" href="#tep102">TEP102</a>].</p>
+</div>
+<div class="section" id="communication">
+<h1><a name="communication">6. Communication</a></h1>
+<p>In TinyOS 2.0, the message buffer type is <tt class="docutils literal"><span class="pre">message_t</span></tt>, and it is a
+buffer that is large enough to hold a packet from any of a node's
+communication interfaces. The structure itself is completely opaque:
+components cannot reference its fields. Instead, all buffer accesses
+go through interfaces. For example, to get the destination address of
+an AM packet named <tt class="docutils literal"><span class="pre">msg</span></tt>, a component calls <tt class="docutils literal"><span class="pre">AMPacket.destination(msg)</span></tt>.</p>
+<p>Send interfaces distinguish the addressing mode of communication
+abstractions. For example, active message communication has the
+<tt class="docutils literal"><span class="pre">AMSend</span></tt> interface, as sending a packet require an AM destination
+address. In contrast, broadcasting and collection tree abstractions
+have the address-free <tt class="docutils literal"><span class="pre">Send</span></tt> interface.</p>
+<p>Active messages are the network HIL. A platform's <tt class="docutils literal"><span class="pre">ActiveMessageC</span></tt>
+component defines which network interface is the standard
+communication medium. For example, a mica2 defines the CC1000 active
+message layer as ActiveMessageC, while the TMote defines the CC2420
+active message layer as ActiveMessageC.</p>
+<p>Further information on message_t can be found in TEP 111:
+message_t[<a class="reference" href="#tep111">TEP111</a>].</p>
+</div>
+<div class="section" id="sensors">
+<h1><a name="sensors">7. Sensors</a></h1>
+<p>In TinyOS 2.0, named sensor components comprise the HIL of a
+platform's sensors. Sensor HIL components provide the <tt class="docutils literal"><span class="pre">AcquireData</span></tt>
+interface, which does not have async events. If a component needs
+high-frequency or very accurate sampling, it must use the HAL, which
+gives it the full power of the underlying platform (highly accurate
+platform-independent sampling is not really feasible, due to the
+particulars of individual platforms). <tt class="docutils literal"><span class="pre">AcquireData</span></tt> assumes that the
+request can tolerate some latencies (for example, it might schedule
+requests using a FIFO policy). There is also a <tt class="docutils literal"><span class="pre">AcquireDataNow</span></tt>
+interface, which represents a more urgent request: if the underlying
+system cannot service the request very soon, <tt class="docutils literal"><span class="pre">getData</span></tt> returns an
+error. Both data acquisition interfaces have an <tt class="docutils literal"><span class="pre">error</span></tt> event, to
+inform the calling component that something went wrong.</p>
+<p>Details on the ADC subsystem and sensor abstractions can be found in
+TEP 101: Analog-to-Digital Converters[<a class="reference" href="#tep101">TEP101</a>] and TEP 109:
+Sensorboards[<a class="reference" href="#tep109">TEP109</a>].</p>
+</div>
+<div class="section" id="service-distributions">
+<h1><a name="service-distributions">8. Service Distributions</a></h1>
+<p>TinyOS 2.0 introduces the notion of 'service distributions,' or
+collections of system services that are designed to work together. A
+service distribution represents a coherent API for an application
+programmer to use, and deals with all of the underlying
+initialization, coordination, and composition.</p>
+<p>TinyOS 2.0 includes an example service distribution, OSKI (Operating
+System Key Interfaces). Service distributions and OSKI are described
+in TEP 110: Service Distributions[<a class="reference" href="#tep110">TEP110</a>].</p>
+</div>
+<div class="section" id="error-codes">
+<h1><a name="error-codes">9. Error Codes</a></h1>
+<p>The standard TinyOS 1.x return code is <tt class="docutils literal"><span class="pre">result_t</span></tt>, whose value is
+either SUCCESS (a non-zero value) or FAIL (a zero value). While this
+makes conditionals on calls very easy to write (e.g., <tt class="docutils literal"><span class="pre">if</span> <span class="pre">(call</span>
+<span class="pre">A.b())</span></tt>), it does not allow the callee to distinguish causes of error
+to the caller. In TinyOS 2.0, <tt class="docutils literal"><span class="pre">result_t</span></tt> is replaced by <tt class="docutils literal"><span class="pre">error_t</span></tt>,
+whose values include SUCCESS, FAIL, EBUSY, and ECANCEL. Interface
+commands and events define which error codes they may return and why.</p>
+</div>
+<div class="section" id="conclusion">
+<h1><a name="conclusion">9. Conclusion</a></h1>
+<p>TinyOS 2.0 represents the next step of TinyOS development. Building on
+user experiences over the past few years, it has taken the basic
+TinyOS architecture and pushed it forward in several directions,
+hopefully leading to simpler and easier application development. It is
+still under active development: future prereleases will include
+non-volatile storage, basic multihop protocols (collection routing,
+dissemination), and power management policies.</p>
+</div>
+<div class="section" id="author-s-address">
+<h1><a name="author-s-address">10. Author's Address</a></h1>
+<div class="line-block">
+<div class="line">Philip Levis</div>
+<div class="line">358 Gates</div>
+<div class="line">Computer Systems Laboratory</div>
+<div class="line">Stanford University</div>
+<div class="line">Stanford, CA 94305</div>
+<div class="line"><br /></div>
+<div class="line">phone - +1 650 725 9046</div>
+<div class="line"><br /></div>
+<div class="line">email - <a class="reference" href="mailto:pal&#64;cs.stanford.edu">pal&#64;cs.stanford.edu</a></div>
+</div>
+</div>
+<div class="section" id="citations">
+<h1><a name="citations">11. Citations</a></h1>
+<table class="docutils citation" frame="void" id="tep2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep2">[TEP2]</a></td><td>TEP 2: Hardware Abstraction Architecture. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep2.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep2.txt?view=markup</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="tep101" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep101">[TEP101]</a></td><td>TEP 101: Analog-to-Digital Converters. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep101.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep101.txt?view=markup</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="tep102" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep102">[TEP102]</a></td><td>TEP 102: Timers. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep102.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep102.txt?view=markup</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="tep106" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep106">[TEP106]</a></td><td>TEP 106: Schedulers and Tasks. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep106.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep106.txt?view=markup</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="tep107" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep107">[TEP107]</a></td><td>TEP 107: Boot Sequence. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep107.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep107.txt?view=markup</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="tep109" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep109">[TEP109]</a></td><td>TEP 109: Sensorboards. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep109.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep109.txt?view=markup</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="tep110" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep110">[TEP110]</a></td><td>TEP 110: Service Distributions. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep110.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep110.txt?view=markup</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="tep111" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep111">[TEP111]</a></td><td>TEP 111: message_t. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep111.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep111.txt?view=markup</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>
