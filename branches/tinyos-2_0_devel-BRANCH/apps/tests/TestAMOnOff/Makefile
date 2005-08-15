@@ -1,5 +1,5 @@
 COMPONENT=TestAMOnOffAppC
-PFLAGS += -I$(TOSDIR)/lib/oski -I$(TOSDIR)/lib/adc -DSERVICE_SLAVE
+PFLAGS += -I%T/lib/oski -DSERVICE_SLAVE
 
 
 include $(MAKERULES)

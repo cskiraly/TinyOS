@@ -1,5 +1,5 @@
 COMPONENT=TestAMAppC
-PFLAGS += -I$(TOSDIR)/lib/oski -I$(TOSDIR)/lib/adc
+PFLAGS += -I%T/lib/oski
 
 include $(MAKERULES)
 
