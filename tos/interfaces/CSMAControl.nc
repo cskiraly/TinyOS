@@ -22,7 +22,7 @@
 /*
  *
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.4 $
+ * Date last modified:  $Revision: 1.1.2.5 $
  *
  * MacControl interface for tuning the parameters of the MAC protocol
  */
@@ -61,5 +61,5 @@ interface CSMAControl
    * @return NULL if nothing was being sent or the command failed,
    *         otherwise a message_t* pointer to the message being sent
    */
-  async command message_t* HaltTx();
+  async command message_t* haltTx();
 }
