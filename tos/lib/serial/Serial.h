@@ -1,4 +1,4 @@
-//$Id: Serial.h,v 1.1.2.9 2005-08-12 21:49:37 scipio Exp $
+//$Id: Serial.h,v 1.1.2.10 2005-08-15 01:37:14 scipio Exp $
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
  *
@@ -61,6 +61,7 @@
  * @author Phil Buonadonna
  * @author Lewis Girod
  * @author Ben Greenstein
+ * @author Philip Levis
  * @date   August 7 2005
  */
 

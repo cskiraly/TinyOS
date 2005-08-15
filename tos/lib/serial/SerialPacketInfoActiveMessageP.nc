@@ -1,4 +1,4 @@
-//$Id: SerialPacketInfoActiveMessageP.nc,v 1.1.2.3 2005-08-12 00:29:09 scipio Exp $
+//$Id: SerialPacketInfoActiveMessageP.nc,v 1.1.2.4 2005-08-15 01:37:14 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -40,7 +40,7 @@ module SerialPacketInfoActiveMessageP {
 implementation {
 
   async command uint8_t Info.offset() {
-    return sizeof(TOSRadioHeader) - sizeof(SerialAMHeader);
+    return (uint8_t)(sizeof(TOSRadioHeader) - sizeof(SerialAMHeader));
   }
   async command uint8_t Info.dataLinkLength(message_t* msg, uint8_t upperLen) {
     return upperLen + sizeof(SerialAMHeader);
