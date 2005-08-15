@@ -1,4 +1,4 @@
-// $Id: SerialP.nc,v 1.1.2.1 2005-08-07 21:56:15 scipio Exp $
+// $Id: SerialP.nc,v 1.1.2.2 2005-08-15 01:37:14 scipio Exp $
 /*									
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
@@ -35,7 +35,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.1 $
+ * Revision: $Revision: 1.1.2.2 $
  * 
  */
 
@@ -477,9 +477,6 @@ implementation {
         if (signal ReceiveBytePacket.startPacket() != SUCCESS){
           goto nosync;
         }
-        //signal ReceiveBytePacket.byteReceived(RxProto);
-        //TODO: SerialForwarder should be sending this:
-        signal ReceiveBytePacket.byteReceived(TOS_SERIAL_ACTIVE_MESSAGE_ID);
       }      
       break;
       
@@ -513,13 +510,13 @@ implementation {
             stats.serial_short_packets++;
             goto nosync;
           }
-       }
+	}
         else { /* handle new bytes to save */
           if (RxByteCnt >= 2){ 
             signal ReceiveBytePacket.byteReceived(rx_buffer_top());
             RxCRC = crcByte(RxCRC,rx_buffer_pop());
           }
-          rx_buffer_push(data);
+	  rx_buffer_push(data);
           RxByteCnt++;
         }
       }
