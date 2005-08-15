@@ -1,3 +1,3 @@
 COMPONENT=TestAdcAppC
-CFLAGS += -I%T/lib/adc -I%T/oski
+CFLAGS += -I%T/oski
 include $(MAKERULES)

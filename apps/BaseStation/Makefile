@@ -1,4 +1,4 @@
 COMPONENT=BaseStationC
-CFLAGS += -I%T/oski -I%T/lib/serial -I%T/lib/adc
+CFLAGS += -I%T/oski
 include $(MAKERULES)
 

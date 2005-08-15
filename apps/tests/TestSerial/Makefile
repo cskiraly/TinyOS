@@ -1,5 +1,5 @@
 COMPONENT=TestSerialAppC
-CFLAGS += -I$(TOSDIR)/lib/serial -I$(TOSDIR)/lib/oski
+CFLAGS += -I%T/lib/oski
 BUILD_EXTRA_DEPS += TestSerialMsg.class TestSerial.class
 
 %.class: %.java
