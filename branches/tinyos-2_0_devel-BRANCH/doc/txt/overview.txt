@@ -9,7 +9,7 @@ TinyOS 2.0 Overview
  
    This document gives a brief overview of TinyOS 2.0, highlighting how
    and where it departs from 1.1 and 1.0. Further detail on these changes
-   is detailed in TEP (TinyOS Enhancement Proposal) documents.
+   is detailed in TEP (TinyOS Enhancement Proposal) documents. 
 
 1. Introduction
 ====================================================================
@@ -223,7 +223,7 @@ to the caller. In TinyOS 2.0, ``result_t`` is replaced by ``error_t``,
 whose values include SUCCESS, FAIL, EBUSY, and ECANCEL. Interface
 commands and events define which error codes they may return and why.
 
-9. Conclusion
+10. Conclusion
 ====================================================================
 
 TinyOS 2.0 represents the next step of TinyOS development. Building on
@@ -234,8 +234,17 @@ still under active development: future prereleases will include
 non-volatile storage, basic multihop protocols (collection routing,
 dissemination), and power management policies.
 
+11. Acknowledgments
+====================================================================
 
-10. Author's Address
+TinyOS 2.0 is the result of a lot of hard work from a lot of people,
+including (but not limited to) David Gay, Cory Sharp, Vlado Handziski,
+Jan Hauer, Kevin Klues, Joe Polastre, Jonathan Hui, Gilman Tolle, 
+Martin Turon, Phil Buonodonna, Ben Greenstein, Adam Wolisz, David Culler, 
+Kristin Wright, Ion Yannopoulos, and Phil Levis. 
+
+
+12. Author's Address
 ====================================================================
 
 | Philip Levis
@@ -248,7 +257,7 @@ dissemination), and power management policies.
 |
 | email - pal@cs.stanford.edu
 
-11. Citations
+13. Citations
 ====================================================================
 
 .. [TEP2] TEP 2: Hardware Abstraction Architecture. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep2.txt?view=markup
