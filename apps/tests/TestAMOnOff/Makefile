@@ -1,6 +1,0 @@
-COMPONENT=TestAMOnOffAppC
-PFLAGS += -I%T/lib/oski -DSERVICE_SLAVE
-
-
-include $(MAKERULES)
-
