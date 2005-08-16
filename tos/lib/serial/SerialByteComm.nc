@@ -1,4 +1,4 @@
-//$Id: SerialByteComm.nc,v 1.1.2.2 2005-08-07 21:56:15 scipio Exp $
+//$Id: SerialByteComm.nc,v 1.1.2.3 2005-08-16 21:27:04 bengreenstein Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -31,7 +31,20 @@
  */
 
 interface SerialByteComm {
+
+  /** 
+   * Put a single byte to the serial port.
+   */
   async command error_t put(uint8_t data);
+
+  /** 
+   * Receive a single byte from the serial port.
+   */
   async event void get(uint8_t data);
+
+  /** 
+   * Split phase event to indicate that the last put request
+   * has completed.
+   */
   async event void putDone();
 }

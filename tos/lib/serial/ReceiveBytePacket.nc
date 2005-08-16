@@ -1,4 +1,4 @@
-//$Id: ReceiveBytePacket.nc,v 1.1.2.4 2005-08-07 21:56:15 scipio Exp $
+//$Id: ReceiveBytePacket.nc,v 1.1.2.5 2005-08-16 21:27:04 bengreenstein Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -21,16 +21,12 @@
  */
 
 /**
- * This is the data interface that a serial protocol (F) provides and
- * a serial dispatcher (D) uses. D assumes this pattern of calls: (
- * start+ data* end+)*
- *
- * It ignores any signals that do not fit this pattern. If it receives
- * the following sequence
- *
- *   start data data start data data end
-
- * it ignores the second start and reads in a four byte packet. 
+ * This is the data interface that a serial protocol provides and
+ * a serial dispatcher uses. The dispatcher expects the following pattern
+ * of calls: ((startPacket)+ (byteReceived)* (endPacket)+)*
+ * It should ignore any signals that do not follow this pattern.
+ * The interface is used to separate the state machine of the wire protocol
+ * from the complexities of dispatch.
  *
  * @author Philip Levis
  * @author Ben Greenstein
@@ -41,12 +37,28 @@
 interface ReceiveBytePacket {
 
   
+  /**
+   * Signals the upper layer to indicate that reception of a frame has begun.
+   * Used by the upper layer to prepare for packet reception. If the upper
+   * layer does not want to receive a packet (or isn't ready) it may
+   * return a non-SUCCESS code  such as EBUSY to the lower layer to discard
+   * the frame. The underlying layer may signal endPacket in response to
+   * such a discard request.
+   */
   async event error_t startPacket();
 
-  /* This implementation must be able to handle nested interrupts. As
-   * the data sharing is one way, that's not a big deal (atomically
-   * put it in). */
+  /**
+   * Signals the upper layer that a byte of the encapsulated packet has been
+   * received. Passes this byte as a parameter to the function.
+   */
   async event void byteReceived(uint8_t b);
+  /**
+   * Signalled to indicate that a packet encapsulated withing a serial
+   * frame has been received. SUCCESS should be passed by the lower layer
+   * following verification that the packet has been received correctly.
+   * A value of error_t indicating an error should be passed when the lower
+   * layer's verification test fails or when the lower layer loses sync.
+   */
   async event void endPacket(error_t result);
 }
 
