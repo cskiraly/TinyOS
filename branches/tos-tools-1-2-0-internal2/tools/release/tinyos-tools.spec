@@ -14,7 +14,7 @@
 
 Summary: TinyOS tools 
 Name: tinyos-tools
-Version: 1.2.0internal1
+Version: 1.2.0internal2
 Release: 1
 License: Please see source
 Group: Development/System
@@ -35,31 +35,28 @@ repository under tinyos-2.x/tools.
 %build
 cd tools
 ./Bootstrap
-cd platforms/mica/uisp
-./bootstrap
-cd ../../..
-./configure
+./configure --prefix=/usr
 make
 
 %install
 rm -rf %{buildroot}
 cd tools
-make install prefix=%{buildroot}/usr/local
+make install prefix=%{buildroot}/usr
 
 %files
 %defattr(-,root,root,-)
-/usr/local/
-%attr(4755, root, root) /usr/local/bin/uisp*
+/usr/
+%attr(4755, root, root) /usr/bin/uisp*
 
 %post
-if [ -f /usr/local/lib/tinyos/giveio-install ]; then
-  (cd /usr/local/lib/tinyos; ./giveio-install --install)
+if [ -f /usr/lib/tinyos/giveio-install ]; then
+  (cd /usr/lib/tinyos; ./giveio-install --install)
 fi
 # Install the JNI;  we can't call tos-install-jni 
 # directly because it isn't in the path yet. Stick
 # a temporary script in /etc/profile.d and then delete.
 if [ -z "$RPM_INSTALL_PREFIX" ]; then
-  RPM_INSTALL_PREFIX=/usr/local
+  RPM_INSTALL_PREFIX=/usr
 fi
 sed -e "s#@prefix@#$RPM_INSTALL_PREFIX#" <<'EOF' >/etc/profile.d/tinyos-temp.sh
 jni=`@prefix@/bin/tos-locate-jre --jni`
@@ -80,6 +77,8 @@ rm /etc/profile.d/tinyos-temp.sh
 # Remove JNI code on uninstall
 
 %changelog
+* Wed Aug 17 2005 <kwright@cs.berkeley.edu> 1.2.0-internal2.1
+- include fixes/improvements to tos-locate-jre and switch prefix to /usr
 * Fri Aug 12 2005  <kwright@cs.berkeley.edu> 1.2.0-internal1.1
 - 1.2
 * Wed Sep  3 2003  <dgay@barnowl.research.intel-research.net> 1.1.0-internal2.1
