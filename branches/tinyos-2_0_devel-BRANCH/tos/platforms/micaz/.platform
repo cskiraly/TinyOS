@@ -7,7 +7,7 @@
 # by ncc.  And because of that, the current platform's include directory
 # must be specified, otherwise its search order is last instead of first.
 #
-# $Id: .platform,v 1.1.2.8 2005-07-30 00:35:00 mturon Exp $
+# $Id: .platform,v 1.1.2.9 2005-08-17 04:32:14 mturon Exp $
 #
 push( @includes, qw(
 
@@ -15,10 +15,12 @@ push( @includes, qw(
   %T/platforms/mica
   %T/platforms/micaz/chips/cc2420
   %T/chips/cc2420
-  %T/chips/ATmega128
-  %T/chips/ATmega128/timer
-  %T/chips/ATmega128/spi
-  %T/lib/gpio
+  %T/chips/atm128
+  %T/chips/atm128/adc
+  %T/chips/atm128/pins
+  %T/chips/atm128/spi
+  %T/chips/atm128/timer
+  %T/lib/adc
   %T/lib/timer
   %T/lib/serial
 
@@ -30,7 +32,7 @@ push( @includes, qw(
   -mmcu=atmega128
   -fnesc-target=avr
   -fnesc-no-debug
-  -fnesc-scheduler=TinyScheduler,TinyScheduler.TaskBasic,TaskBasic,TaskBasic,runTask,postTask
+  -fnesc-scheduler=TinySchedulerC,TinySchedulerC.TaskBasic,TaskBasic,TaskBasic,runTask,postTask
 
 );
 
