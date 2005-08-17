@@ -29,6 +29,10 @@ rpmlocate () {
 
 pathlocate () {
     javapath=`which $1 2>/dev/null`
+    while [ -n "$javapath" -a -h "$javapath" ]; do
+	javapath=`readlink -q $javapath`
+    done
+    test -n "$javapath"
 }
 
 case `uname` in
