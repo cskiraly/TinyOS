@@ -22,13 +22,17 @@ else
     exit 2
 fi
 
-function rpmlocate () {
+rpmlocate () {
     javarpm=$1
     javapath=`rpm -ql $1 2>/dev/null | grep "bin/$2$"`
 }
 
-function pathlocate () {
+pathlocate () {
     javapath=`which $1 2>/dev/null`
+    while [ -n "$javapath" -a -h "$javapath" ]; do
+	javapath=`readlink -q $javapath`
+    done
+    test -n "$javapath"
 }
 
 case `uname` in
@@ -92,7 +96,7 @@ esac
 
 # These are correct for Sun and IBM's x86 Java versions
 if [ "$jni" = "yes" ]; then
-    function jnilocate () {
+    jnilocate () {
 	dir=$1
 	test -d $1
     }
