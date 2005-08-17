@@ -35,169 +35,23 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.5 2005-07-06 16:13:17 mturon Exp $
+ *  $Id: hardware.h,v 1.1.2.6 2005-08-17 04:32:14 mturon Exp $
  */
 
-#ifndef TOSH_HARDWARE_H
-#define TOSH_HARDWARE_H
+#ifndef HARDWARE_H
+#define HARDWARE_H
 
-#ifndef TOSH_HARDWARE_MICAZ
-#define TOSH_HARDWARE_MICAZ
-#endif // tosh hardware
+#include <atm128hardware.h>
+#include <Atm128Adc.h>
 
-#define TOSH_NEW_AVRLIBC // mica128 requires avrlibc v. 20021209 or greater
-#include <atmega128hardware.h>
-
-// LED assignments
-/*
-TOSH_ASSIGN_PIN(RED_LED, A, 2);
-TOSH_ASSIGN_PIN(GREEN_LED, A, 1);
-TOSH_ASSIGN_PIN(YELLOW_LED, A, 0);
-
-TOSH_ASSIGN_PIN(SERIAL_ID, A, 4);
-TOSH_ASSIGN_PIN(BAT_MON, A, 5);
-TOSH_ASSIGN_PIN(THERM_PWR, A, 7);
-
-// ChipCon control assignments
-
-#define TOSH_CC_FIFOP_INT SIG_INTERRUPT6
-// CC2420 Interrupt definition
-#define CC2420_FIFOP_INT_ENABLE()  sbi(EIMSK , INT6)
-#define CC2420_FIFOP_INT_DISABLE() cbi(EIMSK , INT6)
-#define CC2420_FIFOP_INT_CLEAR()   sbi(EIFR, INTF6)
-void inline CC2420_FIFOP_INT_MODE(bool LowToHigh) {
-    SET_FLAG(EICRB,ISC61);		// edge mode
-    if( LowToHigh)
-	SET_FLAG(EICRB,ISC60);       // trigger on rising level
-    else
-	CLR_FLAG(EICRB,ISC60);       // trigger on falling level
-}
-
-
-
-TOSH_ASSIGN_PIN(CC_RSTN, A, 6);      // chipcon reset
-TOSH_ASSIGN_PIN(CC_VREN, A, 5);      // chipcon power enable
-//TOSH_ASSIGN_PIN(CC_FIFOP1, D, 7);  // fifo interrupt
-TOSH_ASSIGN_PIN(CC_FIFOP, E, 6);     // fifo interrupt
-TOSH_ASSIGN_PIN(CC_FIFOP1, E, 6);    // fifo interrupt
-
-TOSH_ASSIGN_PIN(CC_CCA, D, 6);	     // 
-TOSH_ASSIGN_PIN(CC_SFD, D, 4);	     // chipcon packet arrival
-TOSH_ASSIGN_PIN(CC_CS, B, 0);	     // chipcon enable
-TOSH_ASSIGN_PIN(CC_FIFO, B, 7);	     // chipcon fifo
-
-TOSH_ASSIGN_PIN(RADIO_CCA, D, 6);    //  
-
-// Flash assignments
-TOSH_ASSIGN_PIN(FLASH_SELECT, A, 3);
-TOSH_ASSIGN_PIN(FLASH_CLK,  D, 5);
-TOSH_ASSIGN_PIN(FLASH_OUT,  D, 3);
-TOSH_ASSIGN_PIN(FLASH_IN,  D, 2);
-
-// interrupt assignments
-TOSH_ASSIGN_PIN(INT0, E, 4);
-TOSH_ASSIGN_PIN(INT1, E, 5);
-TOSH_ASSIGN_PIN(INT2, E, 6);
-TOSH_ASSIGN_PIN(INT3, E, 7);
-
-// spibus assignments 
-TOSH_ASSIGN_PIN(MOSI,  B, 2);
-TOSH_ASSIGN_PIN(MISO,  B, 3);
-//TOSH_ASSIGN_PIN(SPI_OC1C, B, 7);
-TOSH_ASSIGN_PIN(SPI_SCK,  B, 1);
-
-// power control assignments
-TOSH_ASSIGN_PIN(PW0, C, 0);
-TOSH_ASSIGN_PIN(PW1, C, 1);
-TOSH_ASSIGN_PIN(PW2, C, 2);
-TOSH_ASSIGN_PIN(PW3, C, 3);
-TOSH_ASSIGN_PIN(PW4, C, 4);
-TOSH_ASSIGN_PIN(PW5, C, 5);
-TOSH_ASSIGN_PIN(PW6, C, 6);
-TOSH_ASSIGN_PIN(PW7, C, 7);
-
-// i2c bus assignments
-TOSH_ASSIGN_PIN(I2C_BUS1_SCL, D, 0);
-TOSH_ASSIGN_PIN(I2C_BUS1_SDA, D, 1);
-
-// uart assignments
-TOSH_ASSIGN_PIN(UART_RXD0, E, 0);
-TOSH_ASSIGN_PIN(UART_TXD0, E, 1);
-TOSH_ASSIGN_PIN(UART_XCK0, E, 2);
-TOSH_ASSIGN_PIN(AC_NEG, E, 3);        // RFID Reader Red LED
-
-TOSH_ASSIGN_PIN(UART_RXD1, D, 2);
-TOSH_ASSIGN_PIN(UART_TXD1, D, 3);
-TOSH_ASSIGN_PIN(UART_XCK1, D, 5);
-*/
-
-/*
-void TOSH_SET_PIN_DIRECTIONS(void)
-{
-// LED pins
-    TOSH_MAKE_RED_LED_OUTPUT();
-    TOSH_MAKE_YELLOW_LED_OUTPUT();
-    TOSH_MAKE_GREEN_LED_OUTPUT();
-    
-    TOSH_MAKE_PW7_OUTPUT();
-    TOSH_MAKE_PW6_OUTPUT();
-    TOSH_MAKE_PW5_OUTPUT();
-    TOSH_MAKE_PW4_OUTPUT();
-    TOSH_MAKE_PW3_OUTPUT(); 
-    TOSH_MAKE_PW2_OUTPUT();
-    TOSH_MAKE_PW1_OUTPUT();
-    TOSH_MAKE_PW0_OUTPUT();
-
-// CC2420 pins  
-    TOSH_MAKE_MISO_INPUT();
-    TOSH_MAKE_MOSI_OUTPUT();
-    TOSH_MAKE_SPI_SCK_OUTPUT();
-    TOSH_MAKE_CC_RSTN_OUTPUT();    
-    TOSH_MAKE_CC_VREN_OUTPUT();
-    TOSH_MAKE_CC_CS_INPUT(); 
-    TOSH_MAKE_CC_FIFOP1_INPUT();    
-    TOSH_MAKE_CC_CCA_INPUT();
-    TOSH_MAKE_CC_SFD_INPUT();
-    TOSH_MAKE_CC_FIFO_INPUT(); 
-
-    TOSH_MAKE_RADIO_CCA_INPUT();
-    
-
-    TOSH_MAKE_SERIAL_ID_INPUT();
-    TOSH_CLR_SERIAL_ID_PIN();         // Prevent sourcing current
-    
-    TOSH_MAKE_FLASH_SELECT_OUTPUT();
-    TOSH_MAKE_FLASH_OUT_OUTPUT();
-    TOSH_MAKE_FLASH_CLK_OUTPUT();
-    TOSH_SET_FLASH_SELECT_PIN();
-    
-    TOSH_SET_RED_LED_PIN();
-    TOSH_SET_YELLOW_LED_PIN();
-    TOSH_SET_GREEN_LED_PIN();
-}
-
-
-enum 
-{
-    TOSH_ACTUAL_VOLTAGE_PORT = 30,    // map to internal BG ref
-    TOSH_ACTUAL_BANDGAP_PORT = 30,    // 1.23 Fixed bandgap reference
-    TOSH_ACTUAL_GND_PORT     = 31     // GND 
-};
-
-enum 
-{
-    TOS_ADC_VOLTAGE_PORT = 7,
-    TOS_ADC_BANDGAP_PORT = 10,
-    TOS_ADC_GND_PORT     = 11
-};
-*/
-
-// A/D channels
+// A/D constants (channels, etc)
 enum {
-  CHANNEL_THERMISTOR = 1,    // normally unpopulated
-  CHANNEL_BATTERY    = 7,
-  CHANNEL_BANDGAP    = 30,   // 1.23V Fixed bandgap reference
-  CHANNEL_GND        = 31
+  CHANNEL_RSSI       = ATM128_ADC_SNGL_ADC0,
+  CHANNEL_THERMISTOR = ATM128_ADC_SNGL_ADC1,    // normally unpopulated
+  CHANNEL_BATTERY    = ATM128_ADC_SNGL_ADC7,
+  CHANNEL_BANDGAP    = 30,
+  CHANNEL_GND        = 31,
+  ATM128_ADC_PRESCALE = ATM128_ADC_PRESCALE_64  // normal mica2 prescaler value
 };
 
 void inline uwait(int u_sec) {
@@ -214,19 +68,4 @@ void inline uwait(int u_sec) {
     }
 }
 
-#define TOSH_uwait(x) uwait(x)
-
-// What is the desired timing for this routine used by cc2420??!?
-inline void TOSH_wait(void)
-{
-    asm volatile  ("nop" ::);
-    asm volatile  ("nop" ::);
-    asm volatile  ("nop" ::);
-    asm volatile  ("nop" ::);
-}
-
-#endif //TOSH_HARDWARE_H
-
-
-
-
+#endif //HARDWARE_H
