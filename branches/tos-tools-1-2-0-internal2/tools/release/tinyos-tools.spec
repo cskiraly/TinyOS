@@ -43,6 +43,10 @@ rm -rf %{buildroot}
 cd tools
 make install prefix=%{buildroot}/usr
 
+%clean
+rm -rf $RPM_BUILD_DIR/%{name}-%{version}
+rm -rf $RPM_SOURCE_DIR/%{name}-%{version}
+
 %files
 %defattr(-,root,root,-)
 /usr/

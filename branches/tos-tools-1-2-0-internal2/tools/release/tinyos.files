@@ -5,6 +5,7 @@ cd ../..
 rm -rf $NAME-$VERSION
 tools/release/extractor $NAME-$VERSION <<'EOF' | gzip >../$NAME-$VERSION.tar.gz
 !^./tools
+!^./apps/Tests
 !/.cvsignore
 !/CVS/
 !/CVS$

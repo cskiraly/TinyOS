@@ -20,12 +20,14 @@ intensive operations required by networked sensors while requiring minimal
 hardware resources. For a full analysis and description of the
 TinyOS system, its component model, and its implications for Networked
 Sensor Architectures please see: "Architectural Directions for Networked
-Sensors" which can be found off of http://www.tinyos.net
+Sensors" which can be found off of http://www.tinyos.net . 
 
 %prep
 %setup -q
 
 %install
+cd tools/java
+make tinyos.jar
 rm -rf %{buildroot}/opt/tinyos-2.x
 mkdir -p %{buildroot}/opt
 cp -a $RPM_BUILD_DIR/%{name}-%{version} %{buildroot}/opt/tinyos-2.x
