@@ -1,4 +1,4 @@
-/// $Id: Atm128AlarmP.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: Atm128AlarmP.nc,v 1.1.2.2 2005-08-23 00:08:11 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -43,7 +43,6 @@ implementation
       call HplTimer.setScale(AVR_CLOCK_OFF);
       call HplTimer.set(0);
       call HplTimer.start();
-      //call HplTimer.setScale(ATM128_CLK8_DIVIDE_32);
       call HplTimer.setScale(ATM128_CLK8_NORMAL);
     }
     return SUCCESS;
@@ -71,23 +70,58 @@ implementation
   }
 
   async command void Alarm.start( timer_size t0, timer_size dt ) {
-    timer_size now = call HplTimer.get();
-    timer_size elapsed = now - t0;
-    if( elapsed >= dt )
+    timer_size now;
+    timer_size expires, guardedExpires;
+
+    /* Setting the compare register while the timer is = 0 seems
+       to be a bad idea... (lost overflow interrupts) */
+    while (!(now = call HplTimer.get()))
+      ;
+
+    /* We require dt >= 2 to avoid horrible complexity in the guarded
+       expiry case and because the hardware doesn't support interrupts in the
+       next timer-clock cycle */
+    if (dt < 2)
+      dt = 2;
+
+    expires = t0 + dt;
+    /* Re the comment above: it's a bad idea to wake up at time 0, as we'll
+       just spin when setting the next deadline. Try and reduce the
+       likelihood by delaying the interrupt...
+    */
+    if (expires == 0 || expires == (timer_size)-1)
+      expires = 1;
+    guardedExpires = expires - 2;
+
+    /* t0 is assumed to be in the past. If it's numerically greater than
+       now, that just represents a time one wrap-around ago. This requires
+       handling the t0 <= now and t0 > now cases separately. 
+
+       Note also that casting compared quantities to timer_size produces
+       predictable comparisons (the C integer promotion rules would make it
+       hard to write correct code for the possible timer_size size's) */
+    if (t0 <= now)
       {
-	atomic { call HplCompare.set( call HplTimer.get() + 2 ); }
+	/* if it's in the past or the near future, fire now (i.e., test
+	   guardedExpires <= now in wrap-around arithmetic). */
+	if (guardedExpires >= t0 && // if it wraps, it's > now
+	    guardedExpires <= now) 
+	  call HplCompare.set(call HplTimer.get() + 2);
+	else
+	  call HplCompare.set(expires);
       }
     else
       {
-	timer_size remaining = dt - elapsed;
-	if( remaining <= 2 )
-	  atomic { call HplCompare.set( call HplTimer.get() + 2 ); }
+	/* again, guardedExpires <= now in wrap-around arithmetic */
+	if (guardedExpires >= t0 || // didn't wrap so < now
+	    guardedExpires <= now)
+	  call HplCompare.set(call HplTimer.get() + 2);
 	else
-	  call HplCompare.set( now + remaining );
+	  call HplCompare.set(expires);
       }
     call HplCompare.start();
   }
-  
+
   async event void HplCompare.fired() {
     call HplCompare.stop();
     signal Alarm.fired();
