@@ -1,4 +1,4 @@
-//$Id: TransformAlarmC.nc,v 1.1.2.5 2005-07-13 03:54:14 idgay Exp $
+//$Id: TransformAlarmC.nc,v 1.1.2.6 2005-08-23 00:05:51 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -69,32 +69,42 @@ implementation
 
   void set_alarm()
   {
-    to_size_type now = call Counter.get();
-    from_size_type now_from = now << bit_shift_right;
-    to_size_type elapsed = now - m_t0;
-    if( elapsed >= m_dt )
-    {
-      m_t0 += m_dt;
-      m_dt = 0;
-      call AlarmFrom.start( now_from, 0 );
-    }
+    to_size_type now = call Counter.get(), expires, remaining;
+
+    /* m_t0 is assumed to be in the past. If it's > now, we assume
+       that time has wrapped around */
+
+    expires = m_t0 + m_dt;
+
+    /* The cast is necessary to get correct wrap-around arithmetic */
+    remaining = (to_size_type)(expires - now);
+
+    /* if (expires <= now) remaining = 0; in wrap-around arithmetic */
+    if (m_t0 <= now)
+      {
+	if (expires >= m_t0 && // if it wraps, it's > now
+	    expires <= now)
+	  remaining = 0;
+      }
     else
-    {
-      to_size_type remaining = m_dt - elapsed;
-      from_size_type remaining_from = remaining;
-      if( remaining > MAX_DELAY )
+      {
+	if (expires >= m_t0 || // didn't wrap so < now
+	    expires <= now)
+	  remaining = 0;
+      }
+    if (remaining > MAX_DELAY)
       {
 	m_t0 = now + MAX_DELAY;
 	m_dt = remaining - MAX_DELAY;
-	call AlarmFrom.start( now_from, ((from_size_type)MAX_DELAY) << bit_shift_right );
+	remaining = MAX_DELAY;
       }
-      else
+    else
       {
 	m_t0 += m_dt;
 	m_dt = 0;
-	call AlarmFrom.start( now_from, remaining_from << bit_shift_right );
       }
-    }
+    call AlarmFrom.start((from_size_type)now << bit_shift_right,
+			 (from_size_type)remaining << bit_shift_right);
   }
 
   async command void Alarm.start( to_size_type t0, to_size_type dt )
