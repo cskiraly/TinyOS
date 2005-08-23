@@ -1,4 +1,4 @@
-/// $Id: Timer32khzAlarmC.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: Timer32khzAlarmC.nc,v 1.1.2.2 2005-08-23 00:07:45 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -34,7 +34,7 @@ configuration Timer32khzAlarmC
 implementation
 {
   components HplTimerC,
-      new Atm128AlarmP(T32khz,uint8_t) as HALAlarm,
+      new Atm128AlarmP(T32khz,uint8_t) as HalAlarm,
       new TransformAlarmC(T32khz,uint16_t,T32khz,uint8_t,0) as Transform16,
       new TransformAlarmC(T32khz,uint32_t,T32khz,uint16_t,0) as Transform32,
       Timer32khzCounterC as Counter
@@ -45,12 +45,12 @@ implementation
   Alarm32khz32 = Transform32;
 
   // Strap in low-level hardware timer (Timer0)
-  Init = HALAlarm;
-  HALAlarm.HplTimer -> HplTimerC.Timer0;      // assign HW resource : TIMER0
-  HALAlarm.HplCompare -> HplTimerC.Compare0;  // assign HW resource : COMPARE0
+  Init = HalAlarm;
+  HalAlarm.HplTimer -> HplTimerC.Timer0;      // assign HW resource : TIMER0
+  HalAlarm.HplCompare -> HplTimerC.Compare0;  // assign HW resource : COMPARE0
 
   // Alarm Transform Wiring
-  Transform16.AlarmFrom -> HALAlarm;      // start with 8-bit hardware alarm
+  Transform16.AlarmFrom -> HalAlarm;      // start with 8-bit hardware alarm
   Transform16.Counter -> Counter;         // uses 16-bit virtualized counter
   Transform32.AlarmFrom -> Transform16;   // then feed that into 32-bit xform
   Transform32.Counter -> Counter;         // uses 32-bit virtualized counter
