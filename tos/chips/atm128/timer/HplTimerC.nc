@@ -1,4 +1,4 @@
-/// $Id: HplTimerC.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: HplTimerC.nc,v 1.1.2.2 2005-08-23 00:07:10 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -223,7 +223,7 @@ implementation
   }
 
   //=== Timer 8-bit implementation. ====================================
-  async command void Timer0.reset() { SET_BIT(TIFR, TOV0); }
+  async command void Timer0.reset() { TIFR = 1 << TOV0; }
   async command void Timer0.start() { SET_BIT(TIMSK, TOIE0); }
   async command void Timer0.stop()  { CLR_BIT(TIMSK, TOIE0); }
   async command bool Timer0.test()  { 
@@ -232,7 +232,7 @@ implementation
   async command bool Timer0.isOn()  { 
     return (call Timer0Ctrl.getInterruptMask()).bits.toie0; 
   }
-  async command void Compare0.reset() { SET_BIT(TIFR, OCF0); }
+  async command void Compare0.reset() { TIFR = 1 << OCF0; }
   async command void Compare0.start() { SET_BIT(TIMSK,OCIE0); }
   async command void Compare0.stop()  { CLR_BIT(TIMSK,OCIE0); }
   async command bool Compare0.test()  { 
@@ -242,7 +242,7 @@ implementation
     return (call Timer0Ctrl.getInterruptMask()).bits.ocie0; 
   }
 
-  async command void Timer2.reset() { SET_BIT(TIFR,TOV2); }
+  async command void Timer2.reset() { TIFR = 1 << TOV2; }
   async command void Timer2.start() { SET_BIT(TIMSK,TOIE2); }
   async command void Timer2.stop()  { CLR_BIT(TIMSK,TOIE2); }
   async command bool Timer2.test()  { 
@@ -251,7 +251,7 @@ implementation
   async command bool Timer2.isOn()  { 
     return (call Timer2Ctrl.getInterruptMask()).bits.toie2; 
   }
-  async command void Compare2.reset() { SET_BIT(TIFR,OCF2); }
+  async command void Compare2.reset() { TIFR = 1 << OCF2; }
   async command void Compare2.start() { SET_BIT(TIMSK,OCIE2); }
   async command void Compare2.stop()  { CLR_BIT(TIMSK,OCIE2); }
   async command bool Compare2.test()  { 
@@ -266,11 +266,11 @@ implementation
   async command void Capture3.setEdge(bool up) { WRITE_BIT(TCCR3B,ICES3, up); }
 
   //=== Timer 16-bit implementation. ===================================
-  async command void Timer1.reset()    { SET_BIT(TIFR,TOV1); }
-  async command void Capture1.reset()  { SET_BIT(TIFR,ICF1); }
-  async command void Compare1A.reset() { SET_BIT(TIFR,OCF1A); }
-  async command void Compare1B.reset() { SET_BIT(TIFR,OCF1B); }
-  async command void Compare1C.reset() { SET_BIT(ETIFR,OCF1C); }
+  async command void Timer1.reset()    { TIFR = 1 << TOV1; }
+  async command void Capture1.reset()  { TIFR = 1 << ICF1; }
+  async command void Compare1A.reset() { TIFR = 1 << OCF1A; }
+  async command void Compare1B.reset() { TIFR = 1 << OCF1B; }
+  async command void Compare1C.reset() { ETIFR = 1 << OCF1C; }
 
   async command void Timer1.start()    { SET_BIT(TIMSK,TOIE1); }
   async command void Capture1.start()  { SET_BIT(TIMSK,TICIE1); }
@@ -318,11 +318,11 @@ implementation
     return (call Timer1Ctrl.getInterruptMask()).bits.ocie1c;
   }
 
-  async command void Timer3.reset()    { SET_BIT(ETIFR,TOV3); }
-  async command void Capture3.reset()  { SET_BIT(ETIFR,ICF3); }
-  async command void Compare3A.reset() { SET_BIT(ETIFR,OCF3A); }
-  async command void Compare3B.reset() { SET_BIT(ETIFR,OCF3B); }
-  async command void Compare3C.reset() { SET_BIT(ETIFR,OCF3C); }
+  async command void Timer3.reset()    { ETIFR = 1 << TOV3; }
+  async command void Capture3.reset()  { ETIFR = 1 << ICF3; }
+  async command void Compare3A.reset() { ETIFR = 1 << OCF3A; }
+  async command void Compare3B.reset() { ETIFR = 1 << OCF3B; }
+  async command void Compare3C.reset() { ETIFR = 1 << OCF3C; }
 
   async command void Timer3.start()    { SET_BIT(ETIMSK,TOIE3); }
   async command void Capture3.start()  { SET_BIT(ETIMSK,TICIE3); }
@@ -401,6 +401,7 @@ implementation
   AVR_NONATOMIC_HANDLER(SIG_OUTPUT_COMPARE0) {
     signal Compare0.fired();
   }
+
   default async event void Timer0.overflow() { }
   AVR_NONATOMIC_HANDLER(SIG_OVERFLOW0) {
     signal Timer0.overflow();
