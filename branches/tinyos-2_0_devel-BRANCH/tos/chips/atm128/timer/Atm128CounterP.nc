@@ -1,4 +1,4 @@
-//$Id: Atm128CounterP.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+//$Id: Atm128CounterP.nc,v 1.1.2.2 2005-08-23 00:08:11 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -25,7 +25,7 @@
 /// @author Martin Turon <mturon@xbow.com>
 
 // Convert ATmega128 hardware timer to TinyOS CounterBase.
-generic module Atm128CounterP( typedef frequency_tag, typedef timer_size )
+generic module Atm128CounterP( typedef frequency_tag, typedef timer_size @integer())
 {
   provides interface Counter<frequency_tag,timer_size> as Counter;
   uses interface HplTimer<timer_size> as Timer;
@@ -39,7 +39,27 @@ implementation
 
   async command bool Counter.isOverflowPending()
   {
-    return call Timer.test();
+    atomic
+      {
+	/* From the atmel manual:
+
+	    During asynchronous operation, the synchronization of the
+            interrupt flags for the asynchronous timer takes three
+            processor cycles plus one timer cycle.  The timer is therefore
+            advanced by at least one before the processor can read the
+            timer value causing the setting of the interrupt flag. The
+            output compare pin is changed on the timer clock and is not
+            synchronized to the processor clock.
+
+	   So: if the timer is = 0, wait till it's = 1
+	*/
+
+	if (call Timer.get() == 0 && !call Timer.test())
+	  while (!(call Timer.get()))
+	    ;
+
+	return call Timer.test();
+      }
   }
 
   async command void Counter.clearOverflow()
