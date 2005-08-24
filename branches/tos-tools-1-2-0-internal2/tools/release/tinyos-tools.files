@@ -1,5 +1,5 @@
 NAME=tinyos-tools
-VERSION=1.2.0internal2
+VERSION=1.2.0beta1
 
 cd ../..
 rm -rf $NAME-$VERSION

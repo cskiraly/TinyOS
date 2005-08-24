@@ -4,7 +4,7 @@
 # For my cygwin: /cygdrive/c/rpmsrc
 RPMS=/cygdrive/c/rpmsrc
 TINYOS_VERSION=2.0.0pre1
-TINYOS_TOOLS_VERSION=1.2.0internal2
+TINYOS_TOOLS_VERSION=1.2.0beta1
 VM_VERSION=1.1.1Mar2004cvs
 TINYDB_VERSION=1.1.3July2004cvs
 CONTRIB_VERSION=1.1.4Apr2005cvs
