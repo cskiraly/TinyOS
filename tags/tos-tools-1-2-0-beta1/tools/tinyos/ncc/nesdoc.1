@@ -1,0 +1,27 @@
+.TH nesdoc 1 "April 27, 2004"
+.LO 1
+.SH NAME
+
+nesdoc - generate TinyOS documentation
+.SH SYNOPSIS
+
+\fBnesdoc\fR [\fIdocumentation directory\fR] [\fIncc options\fR] \fIfiles...\fR
+.SH DESCRIPTION
+
+\fBnesdoc\fR is a tool to automatically extract documentation from nesC
+files and applications. The basic structure of the generated documentation
+is taken from the source code, with one HTML file produced from each nesC
+source file.  Documentation is not produced for items in included C files,
+or header files.
+
+When invoked, \fBnesdoc\fR generates documentation for the program that
+would be compiled with
+    \fBncc\fR \fIncc options\fR \fIfiles...\fR
+.br
+and places the generated HTML files in \fIdocumentation directory\fR.
+
+For more details, see the separate \fBnesdoc\fR documentation.
+
+.SH SEE ALSO
+
+.IR ncc (1)
