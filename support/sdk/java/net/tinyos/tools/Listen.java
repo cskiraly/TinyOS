@@ -1,4 +1,4 @@
-// $Id: Listen.java,v 1.1.2.3 2005-08-12 21:46:05 scipio Exp $
+// $Id: Listen.java,v 1.1.2.4 2005-08-26 17:00:18 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -41,11 +41,12 @@ public class Listen {
     public static void main(String args[]) throws IOException {
         String source = null;
         PacketSource reader;
-        if (args[0].equals("-comm")) {
+        if (args.length == 2 && args[0].equals("-comm")) {
           source = args[1];
         }
 	else if (args.length > 0) {
-	    System.err.println("usage: java net.tinyos.tools.Listen");
+	    System.err.println("usage: java net.tinyos.tools.Listen [-comm PACKETSOURCE]");
+	    System.err.println("       (default packet source from MOTECOM environment variable)");
 	    System.exit(2);
 	}
         if (source == null) {	
