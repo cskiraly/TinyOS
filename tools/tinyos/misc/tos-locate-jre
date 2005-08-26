@@ -97,8 +97,8 @@ esac
 # These are correct for Sun and IBM's x86 Java versions
 if [ "$jni" = "yes" ]; then
     jnilocate () {
-	dir=$1
-	test -d $1
+	dir="$1"
+	test -d "$1"
     }
 
     # Look for a likely JNI directory
