@@ -1,4 +1,4 @@
-//$Id: NativeSerial_linux.cpp,v 1.1.2.2 2005-07-26 20:54:02 idgay Exp $
+//$Id: NativeSerial_linux.cpp,v 1.1.2.3 2005-08-26 17:09:10 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -504,7 +504,7 @@ note( "close end" );
   static std::string getTOSCommMap()
   {
     const char* env = getenv( "TOSCOMMMAP" );
-    return (env == NULL) ? "com0=/dev/ttyS0:usb0=/dev/usb/tts/0" : env;
+    return (env == NULL) ? "com1=/dev/ttyS0:usb1=/dev/ttyUSB0" : env;
   }
 };
 
