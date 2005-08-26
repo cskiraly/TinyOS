@@ -52,15 +52,17 @@ make install prefix=%{buildroot}/usr/local
 %attr(4755, root, root) /usr/local/bin/uisp*
 
 %post
-if [ -f /usr/local/lib/tinyos/giveio-install ]; then
-  (cd /usr/local/lib/tinyos; ./giveio-install --install)
+if [ -z "$RPM_INSTALL_PREFIX" ]; then
+  RPM_INSTALL_PREFIX=/usr/local
+fi
+
+# Install giveio (windows only)
+if [ -f $RPM_INSTALL_PREFIX/lib/tinyos/giveio-install ]; then
+  (cd $RPM_INSTALL_PREFIX/lib/tinyos; ./giveio-install --install)
 fi
 # Install the JNI;  we can't call tos-install-jni 
 # directly because it isn't in the path yet. Stick
 # a temporary script in /etc/profile.d and then delete.
-if [ -z "$RPM_INSTALL_PREFIX" ]; then
-  RPM_INSTALL_PREFIX=/usr/local
-fi
 jni=`$RPM_INSTALL_PREFIX/bin/tos-locate-jre --jni`
 if [ $? -ne 0 ]; then
   echo "Java not found, not installing JNI code"
