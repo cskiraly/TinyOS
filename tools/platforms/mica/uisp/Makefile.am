@@ -1,5 +1,5 @@
 #
-# $Id: Makefile.am,v 1.1.2.1 2005-07-26 17:11:15 idgay Exp $
+# $Id: Makefile.am,v 1.1.2.2 2005-08-26 18:50:40 idgay Exp $
 #
 # uisp - The Micro In-System Programmer for Atmel AVR microcontrollers.
 # Copyright (C) 2002  Theodore A. Roth
@@ -39,8 +39,12 @@ EXTRA_DIST           = bootstrap config acconfig.h \
 
 AUTOMAKE_OPTIONS     = foreign
 
+if CYGWIN
+SUBDIRS              = src kernel
+else
 SUBDIRS              = src
-DIST_SUBDIRS         = src
+endif
+DIST_SUBDIRS         = $(SUBDIRS)
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure src/config-h.in \
                        src/stamp-h.in $(AUX_DIST)

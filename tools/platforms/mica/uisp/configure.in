@@ -1,5 +1,5 @@
 #
-# $Id: configure.in,v 1.1.2.1 2005-07-26 17:11:15 idgay Exp $
+# $Id: configure.in,v 1.1.2.2 2005-08-26 18:50:40 idgay Exp $
 #
 # uisp - The Micro In-System Programmer for Atmel AVR microcontrollers.
 # Copyright (C) 2002, 2003  Theodore A. Roth
@@ -19,13 +19,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 dnl Make sure we're using the correct version of autoconf
-AC_PREREQ(2.13)
+AC_PREREQ(2.50)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/Main.C)
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(src/config.h:src/config-h.in)
 AM_INIT_AUTOMAKE(uisp, 20050519tinyos)
+AC_CANONICAL_HOST
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -56,8 +57,22 @@ DATE=`date "+%B, %Y"`
 
 AC_SUBST(DATE)
 
+AC_MSG_CHECKING(for cygwin)
+case $host in
+  *-*-cygwin*)
+    AC_MSG_RESULT(yes)
+    CYGWIN=yes
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+esac
+
+AM_CONDITIONAL([CYGWIN], [test "$CYGWIN"])
+
 AC_OUTPUT( \
 	src/Makefile \
+	kernel/Makefile \
+	kernel/win32/Makefile \
 	uisp.1 \
 	uisp.spec \
 	Makefile)
