@@ -61,20 +61,16 @@ fi
 if [ -z "$RPM_INSTALL_PREFIX" ]; then
   RPM_INSTALL_PREFIX=/usr/local
 fi
-sed -e "s#@prefix@#$RPM_INSTALL_PREFIX#" <<'EOF' >/etc/profile.d/tinyos-temp.sh
-jni=`@prefix@/bin/tos-locate-jre --jni`
+jni=`$RPM_INSTALL_PREFIX/bin/tos-locate-jre --jni`
 if [ $? -ne 0 ]; then
   echo "Java not found, not installing JNI code"
-  exit 1
+  exit 0
 fi
 echo "Installing Java JNI code in $jni ... "
 for lib in @prefix@/lib/tinyos/*.%{JNISUFFIX}; do 
-  %{INSTALLJNI} $lib "$jni" || exit 1
+  %{INSTALLJNI} $lib "$jni" || exit 0
 done
 echo "done."
-EOF
-. /etc/profile.d/tinyos-temp.sh
-rm /etc/profile.d/tinyos-temp.sh
 
 %preun
 # Remove JNI code on uninstall
