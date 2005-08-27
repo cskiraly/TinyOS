@@ -14,7 +14,7 @@
 
 Summary: TinyOS tools 
 Name: tinyos-tools
-Version: 1.2.0beta1
+Version: 1.2.0
 Release: 1
 License: Please see source
 Group: Development/System
@@ -54,7 +54,7 @@ rm -rf $RPM_SOURCE_DIR/%{name}-%{version}
 
 %post
 if [ -z "$RPM_INSTALL_PREFIX" ]; then
-  RPM_INSTALL_PREFIX=/usr/local
+  RPM_INSTALL_PREFIX=/usr
 fi
 
 # Install giveio (windows only)
@@ -70,7 +70,7 @@ if [ $? -ne 0 ]; then
   exit 0
 fi
 echo "Installing Java JNI code in $jni ... "
-for lib in @prefix@/lib/tinyos/*.%{JNISUFFIX}; do 
+for lib in $RPM_INSTALL_PREFIX/lib/tinyos/*.%{JNISUFFIX}; do 
   %{INSTALLJNI} $lib "$jni" || exit 0
 done
 echo "done."
