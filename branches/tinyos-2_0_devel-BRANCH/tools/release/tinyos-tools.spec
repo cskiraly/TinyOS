@@ -14,7 +14,7 @@
 
 Summary: TinyOS tools 
 Name: tinyos-tools
-Version: 1.2.0internal1
+Version: 1.2.0beta1
 Release: 1
 License: Please see source
 Group: Development/System
@@ -35,21 +35,22 @@ repository under tinyos-2.x/tools.
 %build
 cd tools
 ./Bootstrap
-cd platforms/mica/uisp
-./bootstrap
-cd ../../..
-./configure
+./configure --prefix=/usr
 make
 
 %install
 rm -rf %{buildroot}
 cd tools
-make install prefix=%{buildroot}/usr/local
+make install prefix=%{buildroot}/usr
+
+%clean
+rm -rf $RPM_BUILD_DIR/%{name}-%{version}
+rm -rf $RPM_SOURCE_DIR/%{name}-%{version}
 
 %files
 %defattr(-,root,root,-)
-/usr/local/
-%attr(4755, root, root) /usr/local/bin/uisp*
+/usr/
+%attr(4755, root, root) /usr/bin/uisp*
 
 %post
 if [ -z "$RPM_INSTALL_PREFIX" ]; then
@@ -78,6 +79,10 @@ echo "done."
 # Remove JNI code on uninstall
 
 %changelog
+* Wed Aug 26 2005 <kwright@cs.berkeley.edu> 1.2.0-beta2.1
+- includes dgay fixes for uisp and calling tos-locate-jre from post script
+* Wed Aug 17 2005 <kwright@cs.berkeley.edu> 1.2.0-internal2.1
+- include fixes/improvements to tos-locate-jre and switch prefix to /usr
 * Fri Aug 12 2005  <kwright@cs.berkeley.edu> 1.2.0-internal1.1
 - 1.2
 * Wed Sep  3 2003  <dgay@barnowl.research.intel-research.net> 1.1.0-internal2.1
