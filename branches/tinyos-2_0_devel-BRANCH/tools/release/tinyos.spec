@@ -2,7 +2,7 @@ Summary: An event-based operating environment designed for use with embedded net
 Name: tinyos
 BuildArchitectures: noarch
 Version: 2.0.0pre1
-Release: 2
+Release: 3
 License: Please see source
 Packager: TinyOS Group, UC Berkeley
 Group: Development/System
@@ -44,12 +44,4 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root, root,-)
 /opt/tinyos-2.x/
-
-%preun
-# Remove tinyos.sh script and generated java stuff if this was the last install
-if [ $1 = 0 ]; then
-  . /etc/profile.d/tinyos.sh
-  rm -f /etc/profile.d/tinyos.sh
-  cd $TOSROOT/tools/java/net && make clean
-fi
 
