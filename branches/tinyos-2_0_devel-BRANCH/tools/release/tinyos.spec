@@ -10,7 +10,6 @@ URL: www.tinyos.net
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 Prefix: /opt
-#Requires: tinyos-tools >= 1.1.0, nesc >= 1.1.1, avr-binutils >= 2.13.2.1, avr-gcc >= 3.3, avr-libc
 Requires: tinyos-tools >= 1.2.0, nesc >= 1.2, avr-binutils >= 2.15, avr-gcc >= 3.4, avr-libc
 
 %description
