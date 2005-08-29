@@ -1,7 +1,7 @@
-// $Id: HPLCC2420M.nc,v 1.1.2.2 2005-07-31 03:17:54 mturon Exp $
+// $Id: HPLCC2420M.nc,v 1.1.2.3 2005-08-29 00:54:23 scipio Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,303 +19,294 @@
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
+ *
+ * Copyright (c) 2002-2003 Intel Corporation
+ * All rights reserved.
+ *
+ * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * file. If you do not find these files, copies can be found by writing to
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * 94704.  Attention:  Intel License Inquiry.
  */
 /*
  *
- * Authors: Joe Polastre
- * Date last modified:  $Revision: 1.1.2.2 $
+ * Authors: Alan Broad, Crossbow
+ * Date last modified:  $Revision: 1.1.2.3 $
  *
  */
 
 /**
- * @author Joe Polastre
+ *
+ * Register/RAM access to the CC2420 over the SPI bus. This component
+ * assumes that it is not called in a re-entrant fashion: calling
+ * components must make sure that there is only one outstanding
+ * operation at a time.
+ *
+ * @author Philip Levis
+ * @author Alan Broad
  */
+
+includes CC2420Const;
 
 module HPLCC2420M {
   provides {
     interface Init;
-    interface HPLCC2420;
+    interface StdControl;
+    interface CC2420StrobeRegister as Strobe[uint8_t addr];
+    interface CC2420RWRegister as ReadWrite[uint8_t addr];
     interface HPLCC2420RAM;
-    interface HPLCC2420FIFO;
   }
   uses {
-    interface SPIByte;
-    interface SPIPacketAdvanced;
-    interface BusArbitration;
-    interface GeneralIO as RadioCSN;
+    interface Leds;
+    interface GeneralIO as CC_CCA;
+    interface GeneralIO as CC_CS;
+    interface GeneralIO as CC_FIFO;
+    interface GeneralIO as CC_FIFOP1;
+    interface GeneralIO as CC_RSTN;
+    interface GeneralIO as CC_SFD;
+    interface GeneralIO as CC_VREN;
+    interface GeneralIO as MISO;
+    interface GeneralIO as MOSI;
+    interface GeneralIO as SPI_SCK;
   }
 }
-implementation
-{
+implementation {
+  norace bool bSpiAvail;                    //true if Spi bus available
+  norace uint8_t* rambuf;
+  norace uint8_t ramlen;
+  norace uint16_t ramaddr;
 
-  enum {
-    IDLE = 0,
-    CMD,
-    WRITE,
-    READ,
-    WRITE_RAM,
-    READ_RAM,
-    WRITE_FIFO,
-    READ_FIFO,
-    WRITE_RAM_2,
-    READ_RAM_2,
-    WRITE_FIFO_2,
-    READ_FIFO_2,
-  };
-
-  uint8_t state;
-  uint8_t val[3];
-
-  uint8_t status;
-  uint8_t* buf;
-  uint8_t len;
-
-  /** 
-   * Zero out the reserved bits since they can be either 0 or 1.
-   * This allows the use of "if !cmd(x)" in the radio stack
-   */
-  uint8_t adjustStatusByte(uint8_t _status) {
-    return _status & 0x7E;
-  }
-
+/*********************************************************
+ * function: init
+ *  set Atmega pin directions for cc2420
+ *  enable SPI master bus
+ ********************************************************/
   command error_t Init.init() {
-    atomic state = IDLE;
-    call RadioCSN.makeOutput();
-    call RadioCSN.set();
+    bSpiAvail = TRUE;
+    call MISO.makeInput();
+    call MOSI.makeOutput();
+    call SPI_SCK.makeOutput();
+    call CC_RSTN.makeOutput();    
+    call CC_VREN.makeOutput();
+    call CC_CS.makeOutput(); 
+    call CC_FIFOP1.makeInput();    
+    call CC_CCA.makeInput();
+    call CC_SFD.makeInput();
+    call CC_FIFO.makeInput(); 
+    atomic {
+      call SPI_SCK.makeOutput();
+      call MISO.makeInput();	   // miso
+      call MOSI.makeOutput();	   // mosi
+      SPSR |=  (1 << SPI2X);           // Double speed spi clock
+      SPCR |=  (1 << MSTR);             // Set master mode
+      SPCR &= ~(1 << CPOL);      // Set proper polarity...
+      SPCR &= ~(1 << CPHA);		       // ...and phase
+      SPCR &= ~(1 << SPR1);             // set clock, fosc/2 (~3.6 Mhz)
+      SPCR &= ~(1 << SPR0);
+//    sbi(SPCR, SPIE);	           // enable spi port interrupt
+      SPCR |= (1 << SPE);              // enable spie port
+ }
     return SUCCESS;
-  } 
-
-  void opDone() {
-    call RadioCSN.set();
-    call BusArbitration.releaseBus();
-  }
-
-  error_t tryOp(uint8_t newstate, uint8_t* txbuffer, uint8_t txstart, uint8_t txend, uint8_t* rxbuffer, uint8_t rxstart, uint8_t rxend, uint8_t length) {
-    if (state == IDLE) {
-      state = newstate;
-      if (call BusArbitration.getBus() == SUCCESS) {
-	call RadioCSN.clr(); 
-	if (call SPIPacketAdvanced.send(txbuffer, txstart, txend, rxbuffer, rxstart, rxend, length)) {
-	  return SUCCESS;
-	}
-	else {
-	  call BusArbitration.releaseBus();
-	  call RadioCSN.set();
-	  state = IDLE;
-	}
-      }
-    }
-    return FAIL;
-  }
-
-  event void SPIPacketAdvanced.sendDone(uint8_t* txbuffer, uint8_t txstart, uint8_t txend, uint8_t* rxbuffer, uint8_t rxstart, uint8_t rxend, uint8_t length, error_t success) {
-    uint8_t _state;
-    uint8_t* _buf;
-  
-    atomic {
-      _state = state;
-      _buf = buf;
-      state = IDLE;
-    }
-
-    switch(_state) {
-    case WRITE_RAM:
-      if (!tryOp(WRITE_RAM_2, buf, 0, val[2], NULL, 0, 0, val[2])) {
-	opDone();
-	signal HPLCC2420RAM.writeDone(val[0] | (val[1] << 8), val[2], _buf);
-      }
-      break;
-    case WRITE_RAM_2:
-      opDone();
-      signal HPLCC2420RAM.writeDone(val[0] | (val[1] << 8), val[2], _buf);
-      break;
-    case READ_RAM:
-      if (!tryOp(READ_RAM_2, NULL, 0, 0, buf, 0, val[2], val[2])) {
-	opDone();
-	signal HPLCC2420RAM.readDone(val[0] | (val[1] << 8), val[2], _buf);
-      }
-      break;
-    case READ_RAM_2:
-      opDone();
-      signal HPLCC2420RAM.readDone(val[0] | (val[1] << 8), val[2], _buf);
-      break;
-    case WRITE_FIFO:
-      if (!tryOp(WRITE_FIFO_2, buf, 0, val[2], NULL, 0, 0, val[2])) {
-	opDone();
-	signal HPLCC2420FIFO.TXFIFODone(val[2], _buf);
-      }
-      break;
-    case WRITE_FIFO_2:
-      opDone();
-      signal HPLCC2420FIFO.TXFIFODone(val[2], _buf);
-      break;
-    case READ_FIFO:
-      if (val[1] > 0) {
-        buf[0] = val[1];
-        // protect against writing more bytes to the buffer than we have
-        if (val[1] > val[2]) val[1] = val[2];
-        // total length including the length byte
-	if (!tryOp(READ_FIFO_2, NULL, 0, 0, &buf[1], 0, val[1]-1, val[1]-1)) {
-	  opDone();
-	  signal HPLCC2420FIFO.RXFIFODone(val[1], _buf);
-	}
-      }
-      else {
-	opDone();
-	signal HPLCC2420FIFO.RXFIFODone(val[1], _buf);
-      }
-      break;
-    case READ_FIFO_2:
-      opDone();
-      signal HPLCC2420FIFO.RXFIFODone(val[1], _buf);      
-      break;
-    }
-
-  }
-
-  /**
-   * Send a command strobe
-   * 
-   * @return status byte from the chipcon
-   */ 
-  async command uint8_t HPLCC2420.cmd(uint8_t _addr) {
-    uint8_t temp;
-    uint8_t _state;
-    atomic {
-      _state = state;
-      if (_state == IDLE) {
-	state = CMD;
-      }
-    }
-    if (state == IDLE) {
-      if (call BusArbitration.getBus() == SUCCESS) {
-	call RadioCSN.clr();
-	temp = call SPIByte.tx(_addr);
-	call RadioCSN.set();
-	call BusArbitration.releaseBus();
-	atomic state = IDLE;
-	return adjustStatusByte(temp);
-      }
-      atomic state = IDLE;
-    }
-    return 0;
-  }
-
-
-  /**
-   * Transmit 16-bit data
-   *
-   * @return SUCCESS if the operation is possible
-   */
-  async command uint8_t HPLCC2420.write(uint8_t _addr, uint16_t _data) {
-    uint8_t temp;
-    uint8_t _state;
-    atomic {
-      _state = state;
-      if (_state == IDLE) {
-	state = WRITE;
-      }
-    }
-    if (state == IDLE) {
-      if (call BusArbitration.getBus() == SUCCESS) {
-	call RadioCSN.clr();
-	temp = call SPIByte.tx(_addr);
-	call SPIByte.tx(_data & 0xFF);
-	call SPIByte.tx(_data >> 8);
-	call RadioCSN.set();
-	call BusArbitration.releaseBus();
-	atomic state = IDLE;
-	return adjustStatusByte(temp);
-      }
-      atomic state = IDLE;
-    }
-    return 0;
   }
   
-  /**
-   * Read 16-bit data
-   *
-   * @return SUCCESS if operation is possible
-   */
-  async command uint16_t HPLCC2420.read(uint8_t _addr) {
-    uint8_t _state;
-    uint16_t temp;
+  command error_t StdControl.start() { return SUCCESS; }
+  command error_t StdControl.stop() { return SUCCESS; }
+  
+
+   /**
+    * Send a command to the strobe register specified by
+    * <tt>addr</tt>. If <tt>addr</tt> is an invalid register,
+    * <tt>cmd</tt> will do nothing and the return value will be 0.
+    * Follows the protocol described on page 25 of the CC2420
+    * data sheet (v1.2):
+    * <ol>
+    *   <li> set the chip-select pin low</li>
+    *   <li> send the address byte over the SPI bus: bit 0 is 0 to
+    *   denote register access, bit 0 is 0 to denote a write.</li>
+    *   <li> set the chip-select pin high</li>
+    * </ol>
+    */
+  
+  async command cc2420_so_status_t Strobe.cmd[uint8_t addr]() {
+    uint8_t status;
+    // Check that this is a strobe register
+    if (!(addr < CC2420_NOTUSED)) {return 0;}
+    
     atomic {
-      _state = state;
-      if (_state == IDLE) {
-	state = READ;
+      call CC_CS.clr();                   //enable chip select
+      SPDR = addr;
+      while (!(SPSR & 0x80)){};          //wait for spi xfr to complete
+      status = SPDR;
+    }
+    call CC_CS.set();                       //disable chip select
+    return status;
+  }
+
+
+   /**
+    * Write a 16-bit data word to the read-write register specified by
+    * <tt>addr</tt>. If <tt>addr</tt> is an invalid register,
+    * <tt>write</tt> will do nothing and the return value will be 0.
+    * Follows the protocol described on page 25 of the CC2420 data
+    * sheet (v1.2):
+    *
+    * <ol>
+    *   <li> set the chip-select pin low</li>
+    *   <li> send the address byte over the SPI bus: bit 0 is 0
+    *        to denote register access, bit 1 is 0 to denote a write.</li>
+    *   <li> send the high order byte </li>
+    *   <li> send the low order byte  </li>
+    *   <li> set the chip-select pin high</li>
+    * </ol>
+    *
+    *
+    */
+
+  async command cc2420_so_status_t ReadWrite.write[uint8_t addr](uint16_t data) {
+    cc2420_so_status_t status;
+     
+    // Check if this is not a valid RW register
+    if (  (addr < CC2420_MAIN) ||
+	  ((addr >= CC2420_RESERVED) && (addr < CC2420_TXFIFO)) ||
+	  (addr > CC2420_RXFIFO) ) {
+      return 0;
+    }
+   
+    atomic {
+      call CC_CS.clr();                   //enable chip select
+      SPDR = addr;
+      while (!(SPSR & 0x80)){};          //wait for spi xfr to complete
+      status = SPDR;
+      SPDR = (data >> 8);
+      while (!(SPSR & 0x80)){};          //wait for spi xfr to complete
+      SPDR = data & 0xff;
+      while (!(SPSR & 0x80)){};          //wait for spi xfr to complete
+    }
+    call CC_CS.set();                       //disable chip select
+    return status;
+  }
+  
+   /**
+    * Read a 16-bit data word from the read-write register specified by
+    * <tt>addr</tt>. If <tt>addr</tt> is an invalid register,
+    * <tt>write</tt> will do nothing and the return value will be 0.
+    * Follows the protocol described on page 25 of the CC2420 data
+    * sheet (v1.2):
+    *
+    * <ol>
+    *   <li> set the chip-select pin low</li>
+    *   <li> send the address byte over the SPI bus: bit 0 is 0
+    *        to denote register access, bit 1 is 1 to denote a read.</li>
+    *   <li> Read high order byte </li>
+    *   <li> Read low order byte  </li>
+    *   <li> set the chip-select pin high</li>
+    * </ol>
+    *
+    *
+    */
+   
+  async command cc2420_so_status_t ReadWrite.read[uint8_t addr](uint16_t* data) {
+    
+    uint16_t tmpData = 0;
+    uint8_t status;
+
+    // Check if this is not a valid RW register
+    if (  (addr < CC2420_MAIN) ||
+	  ((addr >= CC2420_RESERVED) && (addr < CC2420_TXFIFO)) ||
+	  (addr > CC2420_RXFIFO) ) {
+      return 0;
+    }
+
+    atomic{
+      call CC_CS.clr();                   //enable chip select
+      SPDR = addr | 0x40;                // Set the read bit
+      while (!(SPSR & 0x80)){};          //wait for spi xfr to complete
+      status = SPDR;
+      SPDR = 0; 
+      while (!(SPSR & 0x80)){};          //wait for spi xfr to complete
+      tmpData = SPDR;                       // Read high order byte
+      SPDR = 0;
+      while (!(SPSR & 0x80)){};          //wait for spi xfr to complete
+      tmpData = (tmpData << 8) | SPDR;         // Read low order byte
+      call CC_CS.set();                       //disable chip select
+      *data = tmpData;
+    }
+    return status;
+  }
+
+  task void signalRAMRd() {
+    signal HPLCC2420RAM.readDone(ramaddr, ramlen, rambuf);
+  }
+
+  /**
+   * Read data from CC2420 RAM
+   *
+   * @return SUCCESS if the request was accepted
+   */
+
+  async command error_t HPLCC2420RAM.read(uint16_t addr, uint8_t length, uint8_t* buffer) {
+    // not yet implemented
+    return FAIL;
+  }
+
+  task void signalRAMWr() {
+    signal HPLCC2420RAM.writeDone(ramaddr, ramlen, rambuf);
+  }
+  /**
+   * Write databuffer to CC2420 RAM.
+   * @param addr RAM Address (9 bits)
+   * @param length Nof bytes to write
+   * @param buffer Pointer to data buffer
+   * @return SUCCESS if the request was accepted
+   */
+
+  async command error_t HPLCC2420RAM.write(uint16_t addr, uint8_t length, uint8_t* buffer) {
+    uint8_t i = 0;
+    uint8_t status;
+
+    if( !bSpiAvail )
+      return FAIL;
+    
+    atomic {
+      bSpiAvail = FALSE;
+      ramaddr = addr;
+      ramlen = length;
+      rambuf = buffer;
+      call CC_CS.clr();                   //enable chip select
+      
+      /* Writing data out to RAM. Refer to page 26 of the CC2420
+	 Preliminary Datasheet. First you send the destination address
+	 and a control bit (RAM), then the data. Note that this code
+	 does it using spin loops. Ew. -pal*/
+      
+      SPDR = ((ramaddr & 0x7F) | 0x80); 
+      while (!(SPSR & 0x80)) {/* Oh Joy We Spin! */}
+      status = SPDR;
+      
+      SPDR = (ramaddr >> 1) & 0xC0;
+      while (!(SPSR & 0x80)) {/* Oh Joy We Spin! */}
+      status = SPDR;
+      
+      for (i = 0; i < ramlen; i++) {
+	SPDR = rambuf[i];
+	while (!(SPSR & 0x80)) {/* Oh Joy We Spin! */}
       }
-    }
-    if (_state == IDLE) {
-      if (call BusArbitration.getBus() == SUCCESS) {
-	call RadioCSN.clr();
-	call SPIByte.tx(_addr);
-	temp = call SPIByte.tx(0);
-	temp |= (call SPIByte.tx(0) << 8);
-	call RadioCSN.set();
-	call BusArbitration.releaseBus();
-	atomic state = IDLE;
-	return temp;
-      }
-      atomic state = IDLE;
-    }
-    return FAIL;
-  }
-
-  command error_t HPLCC2420RAM.read(uint16_t _addr, uint8_t _length, uint8_t* _buf) {
-    if (state == IDLE) {
-      val[0] = (_addr & 0x7F) | 0x80;
-      val[1] = ((_addr >> 1) & 0xC0) | 0x20;
-      val[2] = _length;
-      buf = _buf;
-      return tryOp(READ_RAM, &val[0], 0, 2, _buf, 2, _length+2, _length+2);
-    }
-    return FAIL;
-  }
-
-  command error_t HPLCC2420RAM.write(uint16_t _addr, uint8_t _length, uint8_t* _buf) {
-    if (state == IDLE) {
-      val[0] = (_addr & 0x7F) | 0x80;
-      val[1] = ((_addr >> 1) & 0xC0);
-      val[2] = _length;
-      buf = _buf;
-      return tryOp(WRITE_RAM, &val[0], 0, 2, &status, 0, 1, 2);
-    }
-    return FAIL;
-  }
-
-  command error_t HPLCC2420FIFO.readRXFIFO(uint8_t _length, uint8_t *_buf) {
-    if (state == IDLE) {
-      val[0] = (CC2420_RXFIFO | 0x40);
-      val[2] = _length;
-      buf = _buf;
-      // get the length byte from the rxfifo
-      return tryOp(READ_FIFO, &val[0], 0, 1, &val[1], 1, 2, 2);
-    }
-    return FAIL;
-  }
-
-  command error_t HPLCC2420FIFO.writeTXFIFO(uint8_t _length, uint8_t *_buf) {
-    if (state == IDLE) {
-      val[0] = CC2420_TXFIFO;
-      val[2] = _length;
-      buf = _buf;
-      // start writing to the txfifo
-      return tryOp(WRITE_FIFO, &val[0], 0, 1, &status, 0, 1, 1);
-    }
-    return FAIL;
-  }
-
-  event error_t BusArbitration.busFree() {
+    }		
+    bSpiAvail = TRUE;
+    post signalRAMWr();
+    
     return SUCCESS;
   }
 
-  default event error_t HPLCC2420FIFO.RXFIFODone(uint8_t _length, uint8_t *data) { return SUCCESS; }
+ default async event error_t HPLCC2420RAM.readDone(uint16_t addr, uint8_t len, uint8_t* buf) {
+   return FAIL;
+ }
 
-  default event error_t HPLCC2420FIFO.TXFIFODone(uint8_t _length, uint8_t *data) { return SUCCESS; }
+ default async event error_t HPLCC2420RAM.writeDone(uint16_t addr, uint8_t len, uint8_t* buf) {
+   return FAIL;
+ }
 
-  default event error_t HPLCC2420RAM.readDone(uint16_t addr, uint8_t _length, uint8_t *data) { return SUCCESS; }
+ 
+  
+}//HPLCC2420M.nc
 
-  default event error_t HPLCC2420RAM.writeDone(uint16_t addr, uint8_t _length, uint8_t *data) { return SUCCESS; }
-
-}
