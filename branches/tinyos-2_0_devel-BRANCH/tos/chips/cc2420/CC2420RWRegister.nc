@@ -1,4 +1,4 @@
-// $Id: HPLCC2420RAM.nc,v 1.1.2.4 2005-08-29 00:46:56 scipio Exp $
+// $Id: CC2420RWRegister.nc,v 1.1.2.1 2005-08-29 00:46:56 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -28,34 +28,36 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
-/*
- * Authors:		Joe Polastre
- */
 
 /**
- * @author Joe Polastre
+ * Interface representing one of the Read/Write registers on the
+ * CC2420 radio. The return values (when appropriate) refer to the
+ * status byte returned on the CC2420 SO pin. A full list of RW
+ * registers can be found on page 61 of the CC2420 datasheet (rev
+ * 1.2). Page 25 of the same document describes the protocol for
+ * interacting with these registers over the CC2420 SPI bus.
+ *
+ * @author Philip Levis
+ * @date   August 28 2005
  */
 
+includes CC2420Const;
 
-interface HPLCC2420RAM {
 
-  /**
-   * Transmit data to RAM
-   *
-   * @return SUCCESS if the request was accepted
-   */
-  async command error_t write(uint16_t addr, uint8_t length, uint8_t* buffer);
-
-  async event error_t writeDone(uint16_t addr, uint8_t length, uint8_t* buffer);
+interface CC2420RWRegister {
 
   /**
-   * Read data from RAM
-   *
-   * @return SUCCESS if the request was accepted
+   * Write a 16-bit data word to the register.
+   * 
+   * @return status byte from the write.
    */
-  async command error_t read(uint16_t addr, uint8_t length, uint8_t* buffer);
+  async command cc2420_so_status_t write(uint16_t data);
 
-  async event error_t readDone(uint16_t addr, uint8_t length, uint8_t* buffer);
+  /**
+   * Read a 16-bit data word from the register.
+   *
+   * @return status byte from the read.
+   */
   
-
+  async command cc2420_so_status_t read(uint16_t* data);
 }
