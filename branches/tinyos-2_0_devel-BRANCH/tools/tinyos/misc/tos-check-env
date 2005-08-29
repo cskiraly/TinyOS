@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: tos-check-env,v 1.1.2.1 2005-08-28 13:53:50 kristinwright Exp $ 
+# $Id: tos-check-env,v 1.1.2.2 2005-08-29 20:10:49 kristinwright Exp $ 
 #
 
 
@@ -537,27 +537,45 @@ $program = "tos-check-env";
 
 chdir "/tmp";
 
+for ($i = 0; $i <= $#ARGV; $i++) {
+    $_ = $ARGV[$i];
+    if (/^-/) {
+	if (/^-avr$/) {
+	    $avr = 1;
+	}
+	elsif (/^-msp$/) {
+	    $msp = 1;
+	}
+        else {
+	    print "Usage: tos-check-env [-avr][-msp]\n";
+	    exit 0;
+	}
+    }
+}
+$avr = 0 if !defined($avr);
+$msp = 0 if !defined($msp);
+
 chk_path();
 chk_classpath();
 chk_rpms();
 chk_nesc();
-chk_avrgcc();
 chk_perl();
 chk_lex();
 chk_yacc();
 chk_java();
 chk_cygwin();
-chk_uisp();
 chk_graphviz();
-chk_avras();
-chk_avarice();
-if (!is_windows()) {
-    # don't have 6.3 insight for windows yet
-   chk_avrgdb();
+if ($avr) {
+    chk_avras();
+    chk_avarice();
+    chk_avrgcc();
+    chk_avrgdb();
+    chk_uisp();
 }
-chk_mspgcc();
-chk_mspas();
-
+if ($msp) {
+    chk_mspgcc();
+    chk_mspas();
+}
 if ($errors) {
     print "\n$program completed with errors:\n\n$errorstr\n";
 } else {
