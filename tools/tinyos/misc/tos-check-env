@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: toscheck,v 1.1.2.1 2005-07-26 17:15:26 idgay Exp $ 
+# $Id: tos-check-env,v 1.1.4.2 2005-08-30 02:47:56 kristinwright Exp $ 
 #
 
 
@@ -34,6 +34,7 @@ sub is_windows() {
 
 sub chk_uisp() {
     my $found;
+    my $version = "20050519tinyos";
     my $versionok = 0;
     print "uisp:\n";
     $found = which("uisp", 1);
@@ -42,22 +43,22 @@ sub chk_uisp() {
 	while (<UISP>) {
 	    if (/version/) {
 		print "\t$_";
-		$versionok = 1 if /20030820tinyos/;
+		$versionok = 1 if /20050519tinyos/;
 	    }
 	}
 	close UISP;
 	if (!$versionok) {
-	    $warning = "--> WARNING: The uisp version found by toscheck is not '20030820tinyos'. " .
-		"Please update your uisp version. The source for uisp version 20030820tinyos " .
-		"can be found in the TinyOS 1.1.0 distribution.\n";
+	    $warning = "--> WARNING: The uisp version found by $program is not $version. " .
+		"Please update your uisp version. The source for uisp version $version " .
+		"can be found in the tinyos-tools 1.2 rpm.\n";
 	    print "\n$warning";
 	    $errorstr .= $warning;
 	    $errors = 1;
 	}
     } else {
-	$warning = "--> WARNING: toscheck couldn't find the uisp program. Uisp is used to " . 
-	    "program the motes. Please install uisp version 20030820tinyos which can be found " .
-	    " in the TinyOS 1.1.0 distribution.\n";
+	$warning = "--> WARNING: $program couldn't find the uisp program. Uisp is used to " . 
+	    "program the motes. Please install uisp version $version which can be found " .
+	    " in the tinyos-tools 1.2 rpm.\n";
 	
 	print "\n$warning";
 	$errorstr .= $warning;
@@ -95,7 +96,7 @@ sub chk_java() {
 	}
 	close JAVA;
 	if (!$versionok) {
-	    $warning = "--> WARNING: The JAVA version found first by toscheck may not be version 1.4 " .
+	    $warning = "--> WARNING: The JAVA version found first by $program may not be version 1.4 " .
 		"which is required by TOS. Please " .
 		"ensure that the located Java version is 1.4\n";
 	    if (is_windows()) {
@@ -148,19 +149,20 @@ sub chk_yacc {
 
 sub chk_nesc {
     my $found;
+    my $nescversion = ">=1.2";
     print "nesc:\n";
-    $found = which("ncc", 1);
+    $found = which("nescc", 1);
     if ($found) {
 	print "\tVersion: ";
-	open NESC, "ncc --version 2>&1 |" or die "can't fork ncc --version";
+	open NESC, "nescc --version 2>&1 |" or die "can't fork nescc --version";
 	while (<NESC>) {
-	    if (/ncc:/) {
+	    if (/nescc:/) {
 		print $_;
-		$versionok = 1 if /1\.1/;
-	    } elsif (/Unknown target mica/) {
-		$warning = "--> WARNING: ncc (nesc) was found, but the version could " .
-		    "not be verified. Verify that the ncc version that you have is 1.1 " .
-		    "by running ncc --version. If you get an error regarding platforms, " .
+		$versionok = 1 if /1\.2/;
+	    } elsif (/Unknown target /) {
+		$warning = "--> WARNING: nescc (nesc) was found, but the version could " .
+		    "not be verified. Verify that the ncc version that you have is $nescversion " .
+		    "by running nescc --version. If you get an error regarding platforms, " .
 		    "please see the TinyOS FAQ for help: www.tinyos.net/faq.html\n";
 		print "\n$warning";
 		$errorstr .= $warning;
@@ -169,14 +171,14 @@ sub chk_nesc {
 	}
 	close NESC;
 	if (!$versionok) {
-	    $warning = "--> WARNING: The ncc found by toscheck is not version 1.1. " .
-		"Please update your nesc version to 1.1 tinyos.\n";
+	    $warning = "--> WARNING: The nescc found by $program is not $nescversion. " .
+		"Please update your nesc version to $nescversion.\n";
 	    print "\n$warning";
 	    $errorstr .= $warning;
 	    $errors = 1;
 	}
     } else {
-	my $warning = "--> WARNING: ncc not found. Please install nesc 1.1.\n";
+	my $warning = "--> WARNING: nescc not found. Please install nesc $nescversion.\n";
 	print "\n$warning";
 	$errorstr .= $warning;
 	$errors = 1;
@@ -186,6 +188,7 @@ sub chk_nesc {
 
 sub chk_avrgcc {
     my $found;
+    my $version = "3.4.3";
     print "avr-gcc:\n";
     $found = which("avr-gcc", 1);
     if ($found) {
@@ -194,13 +197,13 @@ sub chk_avrgcc {
 	while (<AVRGCC>) {
 	    if (/avr-gcc/) {
 		print "$_";
-		$versionok = 1 if /3\.3-tinyos/;
+		$versionok = 1 if /3\.4\.3/;
 	    }
 	}
 	close AVRGCC;
 	if (!$versionok) {
-	    $warning = "--> WARNING: The avr-gcc found by toscheck is not 3.3-tinyos. " .
-		"Please update your avr-gcc compiler to 3.3-tinyos.\n";
+	    $warning = "--> WARNING: The avr-gcc found by $program is not $version. " .
+		"Please update your avr-gcc compiler to $version.\n";
 	    print "\n$warning";
 	    $errorstr .= $warning;
 	    $errors = 1;
@@ -230,8 +233,8 @@ sub chk_mspgcc {
 	}
 	close MSPGCC;
 	if (!$versionok) {
-	    $warning = "--> WARNING: The msp430-gcc found by toscheck is not 3.2.3. " .
-		"If you intend to use any msp430 platforms (such as telos), " .
+	    $warning = "--> WARNING: The msp430-gcc found by $program is not 3.2.3. " .
+		"If you intend to use any msp430 platforms (such as tmote), " .
 		"please update your msp430-gcc compiler to 3.2.3.\n";
 	    print "\n$warning";
 	    $errorstr .= $warning;
@@ -240,7 +243,41 @@ sub chk_mspgcc {
 
     } else {
 	my $warning = "--> WARNING: msp430-gcc not found. Won't be able to " .
-	    "compile to any msp430 platforms (telos).\n";
+	    "compile to any msp430 platforms (tmote).\n";
+	print "\n$warning";
+	$errorstr .= $warning;
+	$errors = 1;
+    }
+    print "\n\n";
+}
+
+sub chk_mspas {
+    my $found;
+    my $version = "2.16";
+    print "msp430-as:\n";
+    $found = which("msp430-as", 1);
+    if ($found) {
+	print "\tVersion: ";
+	open MSPAS, "msp430-as --version 2>&1 |" or die "can't fork msp430-as --version";
+	while (<MSPAS>) {
+	    if (/GNU assembler/) {
+		print "$_";
+		$versionok = 1 if /2\.16/;
+	    }
+	}
+	close MSPAS;
+	if (!$versionok) {
+	    $warning = "--> WARNING: The msp430-as found by $program is not $version. " .
+		"If you intend to use any msp430 platforms (such as tmote), " .
+		"please update your msp430 binutils to $version.\n";
+	    print "\n$warning";
+	    $errorstr .= $warning;
+	    $errors = 1;
+	}    
+
+    } else {
+	my $warning = "--> WARNING: msp430-as not found. Won't be able to " .
+	    "compile to any msp430 platforms (tmote).\n";
 	print "\n$warning";
 	$errorstr .= $warning;
 	$errors = 1;
@@ -267,18 +304,25 @@ sub chk_path {
 }
 
 #
-# - should include tinyos-1.x/tools/java
+# - should include $TOSROOT/support/sdk/java/tinyos.jar
+#   (we look for just support/sdk/java/tinyos.jar)
 # - '.' is recommended
 # 
 sub chk_classpath {
     my @dirs;
     my $warning; 
-    my $toolsfound = 0;
-    my $commfound = 0;
+    my $tosjarfound = 0;
     my $dotfound = 0;
+    my $tosjarpath = "";
     print "Classpath:\n";
     if (exists $ENV{CLASSPATH}) {
+	$tosjarpath="$ENV{TOSROOT}/support/sdk/java/tinyos.jar";
 	if (is_windows()) {
+	    open CYGPATH, "cygpath -w $tosjarpath 2>&1 |" or die "can't fork cygpath";
+	    while (<CYGPATH>) {
+		$tosjarpath = $_;
+	    }
+	    close CYGPATH;
 	    $separator = ';';
 	} else {
 	    $separator = ':';
@@ -286,37 +330,36 @@ sub chk_classpath {
 	@dirs = split /$separator/, $ENV{CLASSPATH};
 	foreach $dir (@dirs) {
 	    print "\t$dir\n";
-	    if ($dir =~ /tinyos-1\.x[\\\/]tools[\\\/]java/) {
-		$toolsfound = 1;
+	    if ($dir =~ /[\\\/]support[\\\/]sdk[\\\/]java[\\\/]tinyos\.jar/) {
+		$tosjarfound = 1;
 	    }
 	    if ($dir =~ /^\.$/) {
 		$dotfound = 1;
 	    }
-
 	}
 	print "\n";
-	if ($toolsfound == 0) {
-	    $warning = "--> WARNING: CLASSPATH may not include {TOSROOT}/tinyos-1.x/tools/java. Please add " .
-		          "the {TOSROOT}/tinyos-1.x/tools/java directory to your CLASSPATH or you may " .
+	if ($tosjarfound == 0) {
+	    $warning = "--> WARNING: CLASSPATH may not include $tosjarpath. " . 
+		          "Please ensure that $tosjarpath is in your CLASSPATH or you may " .
 			      "experience configuration problems\n";
 	    print "$warning";
 	    $errorstr .= $warning;
 	    $errors = 1;
 	}
 	if ($dotfound == 0) {
-	    # dot in classpath now looks like .\ so this warning is printing
-	    # spuriously; I need to look further into it, but am removing 
-	    # this warning for now.
-#	    $warning = "--> WARNING: CLASSPATH may not include '.' (that is, " .
-#		          " the symbol for the current working directory). Please add " .
-#		              "'.' to your CLASSPATH or you may " .
-#			          "experience configuration problems.\n";
-#	    print "$warning";
-#	    $errorstr .= $warning;
-#	    $errors = 1;
+	    $warning = "--> WARNING: CLASSPATH may not include '.' (that is, " .
+		          " the symbol for the current working directory). Please add " .
+		              "'.' to your CLASSPATH or you may " .
+			          "experience configuration problems.\n";
+	    print "$warning";
+	    $errorstr .= $warning;
+	    $errors = 1;
 	}
     } else {
-	my $warning = "--> WARNING: CLASSPATH environment variable doesn't exist.\n";
+	my $warning = "--> WARNING: CLASSPATH environment variable doesn't exist.\n" .
+	                 "Your classpath should contain $tosjarpath and a pointer \n" .
+			 "to the cwd (a dot)\n";
+ 
 	print "$warning";
 	$errorstr .= $warning;
 	$errors = 1;
@@ -332,7 +375,7 @@ sub chk_rpms {
     if ($found) {
 	open RPM, "rpm -qa 2>&1 |" or die "can't fork rpm";
 	while (<RPM>) {
-	    if (/avr/ || /tinyos/ || /nesc/ || /avarice/) {
+	    if (/avr/ || /tinyos/ || /nesc/ || /avarice/ || /msp430/ || /make/ || /xscale/ ) {
 		print "\t$_";
 	    }
 	}
@@ -355,7 +398,7 @@ sub chk_graphviz {
 	}
 	close GRAPHVIZ;
 	if (!$versionok) {
-	    $warning = "--> WARNING: The graphviz (dot) version found by toscheck is not 1.10. " .
+	    $warning = "--> WARNING: The graphviz (dot) version found by $program is not 1.10. " .
 		"Please update your graphviz version if you'd like to use the nescdoc " .
 		"documentation generator.\n";
 	    print "\n$warning";
@@ -363,7 +406,7 @@ sub chk_graphviz {
 	    $errors = 1;
 	}
     } else {
-	$warning = "--> WARNING: toscheck could not find the 'dot' executable which is part " .
+	$warning = "--> WARNING: $program could not find the 'dot' executable which is part " .
 	    "of the AT&T Graphviz package. Please install version 1.1.0 of Graphviz if you'd " .
 	    " like to use the nescdoc documentation generator.\n";
 	print "\n$warning";
@@ -375,6 +418,7 @@ sub chk_graphviz {
 
 sub chk_avarice {
     my $found;
+    my $version="2.3.20041206";
     my $versionok = 0;
     print "avarice:\n";
     $found = which("avarice", 0);
@@ -383,12 +427,12 @@ sub chk_avarice {
 	while (<AVARICE>) {
 	    if (/version/) {
 		print "\t$_";
-		$versionok = 1 if /2\.0\.20030825cvs/;
+		$versionok = 1 if /2\.3\.20041206/;
 	    }
 	}
 	close AVARICE;
 	if (!$versionok) {
-	    $warning = "--> WARNING: The avarice version found by toscheck is not 2.0.20030806cvs " .
+	    $warning = "--> WARNING: The avarice version found by $program is not $version. " .
 		"Please update your avarice version.";
 	print "\n$warning";
 	$errorstr .= $warning;
@@ -400,6 +444,7 @@ sub chk_avarice {
 
 sub chk_avras {
     my $found = 0;
+    my $version = "2.15";
     my $versionok = 0;
     print "avr-as:\n";
     $found = which("avr-as", 1);
@@ -408,12 +453,12 @@ sub chk_avras {
 	while (<AVRAS>) {
 	    if (/GNU assembler/) {
 		print "\t$_";
-		$versionok = 1 if /2\.13\.2\.1/;
+		$versionok = 1 if /2\.15/;
 	    }
 	}
 	close AVRAS;
 	if (!$versionok) {
-	    $warning = "--> WARNING: The avr-as version found by toscheck is not 2.13.2.1 " .
+	    $warning = "--> WARNING: The avr-as version found by $program is not $version " .
 		"Please update your avr-as version by updating your avr-binutils package.";
 	print "\n$warning";
 	$errorstr .= $warning;
@@ -421,7 +466,7 @@ sub chk_avras {
 	}
     } else {
 	my $warning = "--> WARNING: Couldn't find avr-as. Please install avr-binutils " .
-	    "version 2.13.2.1 \n";
+	    "version $version \n";
 	print "$warning";
 	$errorstr .= $warning;
 	$errors = 1;
@@ -439,12 +484,12 @@ sub chk_avrgdb {
 	while (<AVRGDB>) {
 	    if (/GNU gdb/) {
 		print "\t$_";
-		$versionok = 1 if /cvs-pre6\.0-tinyos/;
+		$versionok = 1 if /6\.3/;
 	    }
 	}
 	close AVRGDB;
 	if (!$versionok) {
-	    $warning = "--> WARNING: The avr-gdb version found by toscheck is not cvs-pre6.0-tinyos. " .
+	    $warning = "--> WARNING: The avr-gdb version found by $program is not 6.3. " .
 		"Please update your avr-gdb version.";
 	print "\n$warning";
 	$errorstr .= $warning;
@@ -454,6 +499,7 @@ sub chk_avrgdb {
     print "\n";
 }
 
+# as of 1.2, no longer used
 sub chk_javacomm {
     print "javax.comm:\n";
     $ok = open TMP, ">testcomm.java";
@@ -487,31 +533,53 @@ sub chk_javacomm {
 
 $errorstr = "";
 $errors = 0;    # binary, not a counting var #
+$program = "tos-check-env";
 
 chdir "/tmp";
+
+for ($i = 0; $i <= $#ARGV; $i++) {
+    $_ = $ARGV[$i];
+    if (/^-/) {
+	if (/^-avr$/) {
+	    $avr = 1;
+	}
+	elsif (/^-msp$/) {
+	    $msp = 1;
+	}
+        else {
+	    print "Usage: tos-check-env [-avr][-msp]\n";
+	    exit 0;
+	}
+    }
+}
+$avr = 0 if !defined($avr);
+$msp = 0 if !defined($msp);
 
 chk_path();
 chk_classpath();
 chk_rpms();
 chk_nesc();
-chk_avrgcc();
 chk_perl();
 chk_lex();
 chk_yacc();
 chk_java();
-chk_javacomm();
 chk_cygwin();
-chk_uisp();
 chk_graphviz();
-chk_avras();
-chk_avarice();
-chk_avrgdb();
-chk_mspgcc();
-
+if ($avr) {
+    chk_avras();
+    chk_avarice();
+    chk_avrgcc();
+    chk_avrgdb();
+    chk_uisp();
+}
+if ($msp) {
+    chk_mspgcc();
+    chk_mspas();
+}
 if ($errors) {
-    print "\ntoscheck completed with errors:\n\n$errorstr\n";
+    print "\n$program completed with errors:\n\n$errorstr\n";
 } else {
-    print "\ntoscheck completed without error.\n\n";
+    print "\n$program completed without error.\n\n";
 }
 
 __END__
