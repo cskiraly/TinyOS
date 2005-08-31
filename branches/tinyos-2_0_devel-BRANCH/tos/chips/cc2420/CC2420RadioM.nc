@@ -1,4 +1,4 @@
-// $Id: CC2420RadioM.nc,v 1.1.2.10 2005-08-29 00:46:56 scipio Exp $
+// $Id: CC2420RadioM.nc,v 1.1.2.11 2005-08-31 23:52:26 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -29,18 +29,16 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-/*  
-
- */
-
 /**
  *
  * This module is a platform-independent CSMA/CA packet implementation
- * for the ChipCon 2420 radiox. To interact with the CC2420, it calls to
- * platform-specific implementations of its interconnect primitives.
+ * for the ChipCon 2420 radio. To interact with the CC2420, it calls to
+ * platform-specific implementations of its interconnect primitives. Note
+ * that the FIFOP pin is inverted from the datasheet (CC2420ControlM
+ * configures register IOCGF0 accordingly).
  * 
  * <pre>
- *   $Id: CC2420RadioM.nc,v 1.1.2.10 2005-08-29 00:46:56 scipio Exp $
+ *   $Id: CC2420RadioM.nc,v 1.1.2.11 2005-08-31 23:52:26 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -58,8 +56,8 @@ module CC2420RadioM {
     interface Receive;
     interface RadioCoordinator as RadioSendCoordinator;
     interface RadioCoordinator as RadioReceiveCoordinator;
-    interface MacControl;
-    interface MacBackoff;
+    interface AckControl;
+    interface CSMABackoff;
   }
   uses {
     interface Init as CC2420Init;
@@ -106,17 +104,18 @@ implementation {
 
 #define MAX_SEND_TRIES 8
 
-  norace uint8_t countRetry;
+  uint8_t countRetry;
   uint8_t stateRadio;
-  norace uint8_t stateTimer;
-  norace uint8_t currentDSN;
-  norace bool bAckEnable;
+  uint8_t stateTimer;
+  uint8_t currentDSN;
+  bool bAckEnable;
   bool bPacketReceiving;
   uint8_t txlength;
-  norace message_t* txbufptr;  // pointer to transmit buffer
-  norace message_t* rxbufptr;  // pointer to receive buffer
+  message_t* txbufptr;  // pointer to transmit buffer
+  message_t* rxbufptr;  // pointer to receive buffer
   message_t RxBuf;	// save received messages
-
+  error_t sendSuccess;
+  
   volatile uint16_t LocalAddr;
 
   uint8_t packet[] = {0x05, 0x21, 0x00, 0x01};
@@ -135,11 +134,22 @@ implementation {
     return (CC2420Footer*)(amsg->footer);
   }
 
+  task void sendDoneTask() {
+    message_t* pBuf; //store buf on stack 
+    error_t err;
+    atomic {
+      stateRadio = IDLE_STATE;
+      pBuf = txbufptr;
+      err = sendSuccess;
+    }
+    signal Send.sendDone(pBuf, err);
+  }
 
-   void sendFailed() {
-     atomic stateRadio = IDLE_STATE;
-     signal Send.sendDone(txbufptr, FAIL);
-   }
+  void sendCompleted(error_t err) {
+    if (post sendDoneTask() == SUCCESS) {
+      atomic sendSuccess = err;
+    }
+  }
 
    void flushRXFIFO() {
      uint16_t ignore;
@@ -154,19 +164,19 @@ implementation {
    }
 
    inline error_t setInitialTimer( uint16_t jiffy ) {
-     stateTimer = TIMER_INITIAL;
+     atomic stateTimer = TIMER_INITIAL;
      call BackoffTimerJiffy.startNow(jiffy);
      return SUCCESS;
    }
 
    inline error_t setBackoffTimer( uint16_t jiffy ) {
-     stateTimer = TIMER_BACKOFF;
+     atomic stateTimer = TIMER_BACKOFF;
      call BackoffTimerJiffy.startNow(jiffy);
      return SUCCESS;
    }
 
    inline error_t setAckTimer( uint16_t jiffy ) {
-     stateTimer = TIMER_ACK;
+     atomic stateTimer = TIMER_ACK;
      call BackoffTimerJiffy.startNow(jiffy);
      return SUCCESS;
    }
@@ -193,18 +203,6 @@ implementation {
    }
 
   
-  task void PacketSent() {
-    message_t* pBuf; //store buf on stack 
-    CC2420Header* header;
-    atomic {
-      stateRadio = IDLE_STATE;
-      pBuf = txbufptr;
-      header = getHeader(pBuf);
-      //header->length -= (MAC_HEADER_SIZE + MAC_FOOTER_SIZE);
-    }
-
-    signal Send.sendDone(pBuf, SUCCESS);
-  }
 
   //**********************************************************
   //* Exported interface functions for Std/SplitControl
@@ -300,8 +298,8 @@ implementation {
     else {
       // try again to send the packet
       atomic stateRadio = PRE_TX_STATE;
-      if (setBackoffTimer(signal MacBackoff.congestionBackoff(txbufptr) * CC2420_SYMBOL_UNIT) != SUCCESS) {
-        sendFailed();
+      if (setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) != SUCCESS) {
+        sendCompleted(FAIL);
       }
     }
   }
@@ -312,8 +310,18 @@ implementation {
    * when a packet has finished transmission
    */
   async event error_t SFD.captured(uint16_t time) {
+    uint8_t myStateRadio;
+    message_t* myTxPtr;
+    message_t* myRxPtr;
+    
+    atomic {
+      myStateRadio = stateRadio;
+      myTxPtr = txbufptr;
+      myRxPtr = rxbufptr;
+    }
+    
     //call Leds.led0Toggle();
-    switch (stateRadio) {
+    switch (myStateRadio) {
     case TX_STATE:
 
       // wait for SFD to fall--indicates end of packet
@@ -324,37 +332,43 @@ implementation {
 	call SFD.disable();
       }
       else {
-	stateRadio = TX_WAIT;
+	atomic stateRadio = TX_WAIT;
       }
       // fire TX SFD event
-      getMetadata(txbufptr)->time = time;
-      signal RadioSendCoordinator.startSymbol(8,0,txbufptr);
+      getMetadata(myTxPtr)->time = time;
+      signal RadioSendCoordinator.startSymbol(8,0,myTxPtr);
+
       // if the pin hasn't fallen, break out and wait for the interrupt
       // if it fell, continue on the to the TX_WAIT state
-      if (stateRadio == TX_WAIT) {
-	break;
+      {
+	bool doBreak;
+	atomic doBreak = (stateRadio == TX_WAIT);
+	if (doBreak) {
+	  break;
+	}
       }
+
     case TX_WAIT:
       // end of packet reached
-      stateRadio = POST_TX_STATE;
+      atomic stateRadio = POST_TX_STATE;
       call SFD.disable();
       // revert to receive SFD capture
       call SFD.enableCapture(TRUE);
       // if acks are enabled and it is a unicast packet, wait for the ack
-      if ((bAckEnable) && (getHeader(txbufptr)->addr != TOS_BCAST_ADDR)) {
-        if (setAckTimer(CC2420_ACK_DELAY) != SUCCESS)
-          sendFailed();
+      if ((bAckEnable) && (getHeader(myTxPtr)->addr != TOS_BCAST_ADDR)) {
+        if (setAckTimer(CC2420_ACK_DELAY) != SUCCESS) {
+	  sendCompleted(FAIL);
+	}
       }
       // if no acks or broadcast, post packet send done event
       else {
-        if (post PacketSent() != SUCCESS)
-          sendFailed();
+	sendCompleted(SUCCESS);
       }
       break;
     default:
       // fire RX SFD handler
-      getMetadata(rxbufptr)->time = time;
-      signal RadioReceiveCoordinator.startSymbol(8,0,rxbufptr);
+      getMetadata(myRxPtr)->time = time;
+      signal RadioReceiveCoordinator.startSymbol(8,0,myRxPtr);
     }
     return SUCCESS;
   }
@@ -367,7 +381,7 @@ implementation {
     // flush the tx fifo of stale data
     status = call SFLUSHTX.cmd();
     if (status == 0) {
-      sendFailed();
+      sendCompleted(EOFF);
       return;
     }
     // write the txbuf data to the TXFIFO
@@ -377,15 +391,12 @@ implementation {
        * MAC length of the packet -1: +1 for the inclusion of the PHY
        * length field, and -2 because the FCS field is generated, appended,
        * and sent by hardware .*/
-      CC2420Header* header = getHeader(txbufptr);
-      uint8_t spiLen = header->length - 1; // +1 for Length, -2 for FCS
-      //header->length = 10;
-      //header->fcf = CC2420_DEF_FCF_ACK;
-      //header->dsn = 0xa0;
-      //header->destpan = 0x0101;
-      //header->addr    = 0xffff;
-      if (call HPLChipconFIFO.writeTXFIFO(spiLen, (uint8_t*)getHeader(txbufptr)) != SUCCESS) {
-	sendFailed();
+      CC2420Header* header;
+      uint8_t spiLen;
+      atomic header = getHeader(txbufptr);
+      spiLen = header->length - 1; // +1 for Length, -2 for FCS
+      if (call HPLChipconFIFO.writeTXFIFO(spiLen, (uint8_t*)header) != SUCCESS) {
+	sendCompleted(EBUSY);
 	return;
       }
     }
@@ -413,21 +424,20 @@ implementation {
          sendPacket();
        }
        else {
+	 uint8_t retryVal;
 	 // if we tried a bunch of times, the radio may be in a bad state
 	 // flushing the RXFIFO returns the radio to a non-overflow state
 	 // and it continue normal operation (and thus send our packet)
-         if (countRetry-- <= 0) {
+	 atomic retryVal = countRetry--;
+         if (retryVal <= 0) {
 	   flushRXFIFO();
-	   countRetry = MAX_SEND_TRIES;
-	   if (post startSend() != SUCCESS) {
-	     sendFailed();
-	     //call Leds.led1On();
-	   }
+	   atomic countRetry = MAX_SEND_TRIES;
+	   post startSend();
            return;
          }
-         if ((setBackoffTimer(signal MacBackoff.congestionBackoff(txbufptr) * CC2420_SYMBOL_UNIT)) != SUCCESS) {
+         if ((setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT)) != SUCCESS) {
 	   //call Leds.led2On();
-           sendFailed();
+           sendCompleted(FAIL);
          }
        }
      }
@@ -438,23 +448,23 @@ implementation {
    * congestion backoff, and delay while waiting for an ACK
    */
   async event void BackoffTimerJiffy.fired() {
-    uint8_t currentstate;
-    atomic currentstate = stateRadio;
-
-    switch (stateTimer) {
+    uint8_t currentstate, timerState;
+    atomic {
+      currentstate = stateRadio;
+      timerState = stateTimer;
+    }
+    
+    switch (timerState) {
     case TIMER_INITIAL:
-      if ((post startSend()) != SUCCESS) {
-        sendFailed();
-      }
+      post startSend();
       break;
     case TIMER_BACKOFF:
       tryToSend();
       break;
     case TIMER_ACK:
       if (currentstate == POST_TX_STATE) {
-        getMetadata(txbufptr)->ack = 0;
-        if (post PacketSent() != SUCCESS)
-	  sendFailed();
+        atomic getMetadata(txbufptr)->ack = 0;
+        sendCompleted(SUCCESS);
       }
       break;
     }
@@ -478,7 +488,7 @@ implementation {
     atomic currentstate = stateRadio;
 
     if (currentstate == IDLE_STATE) {
-      txbufptr = pMsg;
+      atomic txbufptr = pMsg;
 
       // put default FCF values in to get address checking to pass
       if (bAckEnable) 
@@ -491,14 +501,14 @@ implementation {
       // including MAC headers and footers.
       header->length = len;
       // keep the DSN increasing for ACK recognition
-      header->dsn = ++currentDSN;
+      atomic header->dsn = ++currentDSN;
       // reset the time field
       metadata->time = 0;
       // FCS bytes generated by CC2420
 
-      countRetry = MAX_SEND_TRIES;
+      atomic countRetry = MAX_SEND_TRIES;
 
-      if (setInitialTimer(signal MacBackoff.initialBackoff(txbufptr) * CC2420_SYMBOL_UNIT) == SUCCESS) {
+      if (setInitialTimer(signal CSMABackoff.initial(txbufptr) * CC2420_SYMBOL_UNIT) == SUCCESS) {
         atomic stateRadio = PRE_TX_STATE;
         return SUCCESS;
       }
@@ -524,8 +534,9 @@ implementation {
   void delayedRXFIFO() {
     uint8_t len = MAC_DATA_SIZE;  
     uint8_t _bPacketReceiving;
-    //call Leds.led2Toggle();
-    if ((! call CC_FIFO.get()) && (!call CC_FIFOP.get())) {
+
+    // If there's no data and FIFOP is low (there's a packet)
+    if ((!call CC_FIFO.get()) && (!call CC_FIFOP.get())) {
         flushRXFIFO();
 	return;
     }
@@ -546,12 +557,11 @@ implementation {
     // interrupts being processed.  There is a race condition
     // that has not yet been diagnosed when RXFIFO may be interrupted.
     if (!_bPacketReceiving) {
-      if (call HPLChipconFIFO.readRXFIFO(len,(uint8_t*)rxbufptr) != SUCCESS) {
+      uint8_t* ptr;
+      atomic ptr = (uint8_t*)getHeader(rxbufptr);
+      if (call HPLChipconFIFO.readRXFIFO(len, ptr) != SUCCESS) {
 	atomic bPacketReceiving = FALSE;
-	if (post delayedRXFIFOtask() != SUCCESS) {
-	  flushRXFIFO();
-	}
-	return;
+	post delayedRXFIFOtask();
       }      
     }
     flushRXFIFO();
@@ -573,13 +583,14 @@ implementation {
    *  rxbufptr->strength is RSSI
    **********************************************************/
    async event error_t FIFOP.fired() {
-     // if we're trying to send a message and a FIFOP interrupt occurs
-     // and acks are enabled, we need to backoff longer so that we don't
-     // interfere with the ACK
-     if (bAckEnable && (stateRadio == PRE_TX_STATE)) {
+     // if we're trying to send a message and a FIFOP interrupt
+     // occurs, we need to backoff longer so that we don't interfere
+     // with a possible ACK. We could inspect the packet to see if
+     // it has requested an ACK, 
+     if (stateRadio == PRE_TX_STATE) {
        if (call BackoffTimerJiffy.isRunning()) {
          call BackoffTimerJiffy.stop();
-         call BackoffTimerJiffy.startNow((signal MacBackoff.congestionBackoff(txbufptr) * CC2420_SYMBOL_UNIT) + CC2420_ACK_DELAY);
+         call BackoffTimerJiffy.startNow((signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) + CC2420_ACK_DELAY);
        }
      }
      //     call Leds.led1Toggle();
@@ -625,8 +636,15 @@ implementation {
       atomic bPacketReceiving = FALSE;
       return SUCCESS;
     }
-
-    rxbufptr = (message_t*)data;
+    atomic {
+      if (getHeader(rxbufptr) != (CC2420Header*)data) {
+	// this would mean that the buffer RXFIFODone gives
+	// back isn't the same we passed in: a real problem.
+	// This code is here merely as a useful sanity check
+	// hook for when debugging: nesC will elide an
+	// empty statement.
+      }
+    }
 
     // check for an acknowledgement that passes the CRC check
     if (bAckEnable &&
@@ -641,8 +659,7 @@ implementation {
         currentstate = POST_TX_ACK_STATE;
         bPacketReceiving = FALSE;
       }
-      if (post PacketSent() != SUCCESS)
-	sendFailed();
+      sendCompleted(SUCCESS);
       return SUCCESS;
     }
 
@@ -706,31 +723,33 @@ implementation {
   }
 
   /** Enable link layer hardware acknowledgements **/
-  async command void MacControl.enableAck() {
+  async command error_t AckControl.enable() {
     atomic bAckEnable = TRUE;
     call CC2420Control.enableAddrDecode();
     call CC2420Control.enableAutoAck();
+    return SUCCESS;
   }
 
   /** Disable link layer hardware acknowledgements **/
-  async command void MacControl.disableAck() {
+  async command error_t AckControl.disable() {
     atomic bAckEnable = FALSE;
     call CC2420Control.disableAddrDecode();
     call CC2420Control.disableAutoAck();
+    return SUCCESS;
   }
 
   /**
    * How many basic time periods to back off.
    * Each basic time period consists of 20 symbols (16uS per symbol)
    */
- default async event int16_t MacBackoff.initialBackoff(message_t* m) {
+ default async event uint16_t CSMABackoff.initial(message_t* m) {
     return (call Random.rand16() & 0xF) + 1;
   }
   /**
    * How many symbols to back off when there is congestion 
    * (16uS per symbol * 20 symbols/block)
    */
-  default async event int16_t MacBackoff.congestionBackoff(message_t* m) {
+  default async event uint16_t CSMABackoff.congestion(message_t* m) {
     return (call Random.rand16() & 0x3F) + 1;
   }
 
