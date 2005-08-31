@@ -75,9 +75,6 @@ for lib in $RPM_INSTALL_PREFIX/lib/tinyos/*.%{JNISUFFIX}; do
 done
 echo "done."
 
-%preun
-# Remove JNI code on uninstall
-
 %changelog
 * Wed Aug 26 2005 <kwright@cs.berkeley.edu> 1.2.0-beta2.1
 - includes dgay fixes for uisp and calling tos-locate-jre from post script
