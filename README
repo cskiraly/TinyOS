@@ -1,2 +1,93 @@
-Development for TinyOS 2.0 occurs here.  If you can read this, you are 
-on the branch.  If you are in the working group, you can edit the branch.
+
+Welcome to TinyOS 2.0
+
+TinyOS 2.0 has been designed by a working group comprised of companies
+and institutions hailing from three continents
+(http://www.tinyos.net/scoop/special/working_group_tinyos_2-0).  A
+primary 2.0 design goal was to maximize TinyOS' platform portability,
+a goal that led to the adaption of the 2.0 Hardware Abstraction
+Architecture (HAA). All of the TinyOS 2.0 design is described in the
+TinyOS Extension Protocol (TEP) documents linked from the 
+TinyOS Working Group page (see link above).
+
+TEP   2: Hardware Abstraction Architecture
+TEP 101: ADC
+TEP 102: Timers
+TEP 103: Permanent Data 
+TEP 104: Radio Physical Layer
+TEP 105: Radio Link Layer
+TEP 106: Schedulers and Tasks 
+TEP 107: Boot Sequence
+TEP 108: Resource Arbitration
+TEP 109: Sensorboards
+
+In addition to the design changes described in the above TEPs, 2.0 also
+includes infrastructure changes. The directory structure has been modified
+to enhance platform portability and ease of use, and TinyOS 2.0 
+requires Tinyos-Tools 1.2 as well as NesC 1.2. 
+
+PreRelease1
+------------------------------------------------------------------------------
+PreRelease1 is a subset of what will become the full 2.0 release. PreRelease1
+includes platform support for mica2 and sample applications built using
+a new TinyOS component architecture (OSKI). 
+
+Installation:
+Please see doc/html/upgrade-tools.html for how to upgrade from a 1.x 
+environment to a 2.x environment. upgrade-tools.html also explains how
+to maintain  1.x and  2.x trees simultaneously.
+
+Known problems:
+You might need to use the '--noscripts' option to uninstall 
+tinyos-tools. We have seen at least one case of the tinyos-tools 
+rpm hanging on uninstall. If rpm hangs after installing tinyos-tools, 
+you can kill it with the task manager. 
+
+The CC1000 radio stack currently has some reliability problems; we
+expect to address these in an upcoming 2.0 prerelease. 
+
+TinyOS 2.0 has been designed by a working group comprised of companies
+and institutions hailing from three continents
+(http://www.tinyos.net/scoop/special/working_group_tinyos_2-0).  A
+primary 2.0 design goal was to maximize TinyOS' platform portability,
+a goal that led to the adaption of the 2.0 Hardware Abstraction
+Architecture (HAA). All of the TinyOS 2.0 design is described in the
+TinyOS Extension Protocol (TEP) documents linked from the 
+TinyOS Working Group page (see link above).
+
+TEP   2: Hardware Abstraction Architecture
+TEP 101: ADC
+TEP 102: Timers
+TEP 103: Permanent Data 
+TEP 104: Radio Physical Layer
+TEP 105: Radio Link Layer
+TEP 106: Schedulers and Tasks 
+TEP 107: Boot Sequence
+TEP 108: Resource Arbitration
+TEP 109: Sensorboards
+
+In addition to the design changes described in the above TEPs, 2.0 also
+includes infrastructure changes. The directory structure has been modified
+to enhance platform portability and ease of use, and TinyOS 2.0 
+requires Tinyos-Tools 1.2 as well as NesC 1.2. 
+
+PreRelease1
+------------------------------------------------------------------------------
+PreRelease1 is a subset of what will become the full 2.0 release. PreRelease1
+includes platform support for mica2 and sample applications built using
+a new TinyOS component architecture (OSKI). 
+
+Installation:
+Please see doc/html/upgrade-tools.html for how to upgrade from a 1.x 
+environment to a 2.x environment. upgrade-tools.html also explains how
+to maintain  1.x and  2.x trees simultaneously.
+
+Known problems:
+You might need to use the '--noscripts' option to uninstall 
+tinyos-tools. We have seen at least one case of the tinyos-tools 
+rpm hanging on uninstall. If rpm hangs after installing tinyos-tools, 
+you can kill it with the task manager. 
+
+The CC1000 radio stack currently has some reliability problems; we
+expect to address these in an upcoming 2.0 prerelease. 
+
