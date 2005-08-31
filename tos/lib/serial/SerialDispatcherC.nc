@@ -1,4 +1,4 @@
-//$Id: SerialDispatcherC.nc,v 1.1.2.8 2005-08-18 16:31:57 idgay Exp $
+//$Id: SerialDispatcherC.nc,v 1.1.2.7 2005-08-13 01:17:37 idgay Exp $
 
 /* "Copyright (c) 2005 The Regents of the University of California.  
  * All rights reserved.
@@ -47,14 +47,14 @@ configuration SerialDispatcherC {
 implementation {
   components SerialP, new SerialDispatcherP(), 
     HdlcTranslateC, 
-    PlatformSerialC;
+    HplUartC;
   
   Send = SerialDispatcherP;
   Receive = SerialDispatcherP;
   SerialPacketInfo = SerialDispatcherP.PacketInfo;
   
   Init = SerialP;
-  Init = PlatformSerialC;
+  Init = HplUartC.Uart0Init;
   Leds = SerialP;
   Leds = SerialDispatcherP;
   Leds = HdlcTranslateC;
@@ -63,6 +63,6 @@ implementation {
   SerialDispatcherP.SendBytePacket -> SerialP;
 
   SerialP.SerialFrameComm -> HdlcTranslateC;
-  HdlcTranslateC.SerialByteComm -> PlatformSerialC;
+  HdlcTranslateC.SerialByteComm -> HplUartC.Uart0;
   
 }

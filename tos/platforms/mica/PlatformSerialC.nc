@@ -1,4 +1,4 @@
-/// $Id: PlatformSerialC.nc,v 1.1.2.2 2005-08-18 16:31:23 idgay Exp $
+/// $Id: PlatformSerialC.nc,v 1.1.2.1 2005-08-07 22:27:03 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -32,12 +32,11 @@
  */
 
 configuration PlatformSerialC {
-  provides interface Init;
   provides interface SerialByteComm;
 }
 implementation {
-  components HplUartC, PlatformC;
+  components HPLUARTM, PlatformC;
 
-  SerialByteComm = HplUartC.Uart0;
-  Init = HplUartC.Uart0Init;
+  SerialByteComm = HPLUARTM.UART0;
+  PlatformC.SubInit -> HPLUARTM;
 }
