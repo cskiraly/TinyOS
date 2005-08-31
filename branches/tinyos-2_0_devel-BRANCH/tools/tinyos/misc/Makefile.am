@@ -7,6 +7,6 @@ bin_SCRIPTS = tos-ident-flags \
 	      tos-serial-configure \
 	      tos-set-symbols \
 	      tos-write-image \
-	      toscheck
+	      tos-check-env
 
 bin_PROGRAMS = tos-serial-debug
