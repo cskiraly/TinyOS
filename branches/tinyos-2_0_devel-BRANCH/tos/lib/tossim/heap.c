@@ -1,4 +1,4 @@
-// $Id: heap_array.c,v 1.1.2.1 2005-08-19 01:06:58 scipio Exp $
+// $Id: heap.c,v 1.1.2.1 2005-09-02 01:52:22 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -39,7 +39,7 @@
  *   DESC: Simple array-based priority heap for discrete event simulation.
  */
 
-#include <heap_array.h>
+#include <heap.h>
 #include <string.h> // For memcpy(3)
 #include <stdlib.h> // for rand(3)
 #include <stdio.h>  // For printf(3)
@@ -51,7 +51,7 @@ const int STARTING_SIZE = 511;
 
 typedef struct node {
   void* data;
-  long long key;
+  long long int key;
 } node_t;
 
 void down_heap(heap_t* heap, int findex);
@@ -83,7 +83,7 @@ int heap_is_empty(heap_t* heap) {
   return is_empty(heap);
 }
 
-long long heap_get_min_key(heap_t* heap) {
+long long int heap_get_min_key(heap_t* heap) {
   if (is_empty(heap)) {
     return -1;
   }
@@ -101,7 +101,7 @@ void* heap_peek_min_data(heap_t* heap) {
   }
 }
 
-void* heap_pop_min_data(heap_t* heap, long long* key) {
+void* heap_pop_min_data(heap_t* heap, long long int* key) {
   int last_index = heap->size - 1;
   void* data = HEAP_NODE(heap, 0).data;
   if (key != NULL) {
@@ -121,7 +121,7 @@ void expand_heap(heap_t* heap) {
   int new_size = (heap->private_size * 2) + 1;
   void* new_data = malloc(sizeof(node_t) * new_size);
 
-  dbg(DBG_SIM, "Resized heap from %i to %i.\n", heap->private_size, new_size);
+  //dbg(DBG_SIM, "Resized heap from %i to %i.\n", heap->private_size, new_size);
   
   memcpy(new_data, heap->data, (sizeof(node_t) * heap->private_size));
   free(heap->data);
@@ -131,7 +131,7 @@ void expand_heap(heap_t* heap) {
   
 }
 
-void heap_insert(heap_t* heap, void* data, long long key) {
+void heap_insert(heap_t* heap, void* data, long long int key) {
   int findex = heap->size;
   if (findex == heap->private_size) {
     expand_heap(heap);
@@ -146,7 +146,7 @@ void heap_insert(heap_t* heap, void* data, long long key) {
 }
 
 void swap(node_t* first, node_t* second) {
-  long long key;
+  long long int key;
   void* data;
 
   key = first->key;
@@ -163,8 +163,8 @@ void down_heap(heap_t* heap, int findex) {
   int left_index = (findex * 2) + 1;
 
   if (right_index < heap->size) { // Two children
-    long long left_key = HEAP_NODE(heap, left_index).key;
-    long long right_key = HEAP_NODE(heap, right_index).key;
+    long long int left_key = HEAP_NODE(heap, left_index).key;
+    long long int right_key = HEAP_NODE(heap, right_index).key;
     int min_key_index = (left_key < right_key)? left_index : right_index;
 
     if (HEAP_NODE(heap, min_key_index).key < HEAP_NODE(heap, findex).key) {
@@ -176,7 +176,7 @@ void down_heap(heap_t* heap, int findex) {
     return;
   }
   else { // Only left child
-    long long left_key = HEAP_NODE(heap, left_index).key;
+    long long int left_key = HEAP_NODE(heap, left_index).key;
     if (left_key < HEAP_NODE(heap, findex).key) {
       swap(&(HEAP_NODE(heap, findex)), &(HEAP_NODE(heap, left_index)));
       return;

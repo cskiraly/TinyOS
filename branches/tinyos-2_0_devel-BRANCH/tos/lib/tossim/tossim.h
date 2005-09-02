@@ -1,5 +1,5 @@
 
-// $Id: tossim.h,v 1.1.2.1 2005-08-19 01:06:58 scipio Exp $
+// $Id: tossim.h,v 1.1.2.2 2005-09-02 01:52:22 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
@@ -41,14 +41,55 @@
 #ifndef TOSSIM_H_INCLUDED
 #define TOSSIM_H_INCLUDED
 
-void sim_init();
+#ifndef TOSSIM_MAX_NODES
+#define TOSSIM_MAX_NODES 10000
+#endif
 
-long long sim_time();
-void sim_set_time(long long time);
+#include <memory.h>
+#include <stdint.h>
 
-int sim_node();
-void sim_set_node(int node);
+class Mote {
+ public:
+  Mote();
+  ~Mote();
 
-bool sim_run_next_event();
+  unsigned long id();
+  
+  long long int euid();
+  void setEuid(long long int id);
+
+  long long int bootTime();
+  void bootAtTime(long long int time);
+
+  bool isOn();
+  void turnOff();
+  void turnOn();
+  void setID(unsigned long id);  
+
+ private:
+  unsigned long nodeID;
+};
+
+class Tossim {
+ public:
+  Tossim();
+  ~Tossim();
+  
+  void init();
+  
+  long long int time();
+  char* timeStr();
+  void setTime(long long int time);
+  
+  Mote* currentNode();
+  Mote* getNode(unsigned long nodeID);
+  void setCurrentNode(unsigned long nodeID);
+  
+  bool runNextEvent();
+ private:
+  char timeBuf[256];
+};
+
+
 
 #endif // TOSSIM_H_INCLUDED

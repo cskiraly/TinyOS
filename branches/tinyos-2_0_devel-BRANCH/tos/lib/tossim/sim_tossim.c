@@ -1,5 +1,5 @@
 
-// $Id: tossim.c,v 1.1.2.2 2005-09-02 01:52:22 scipio Exp $
+// $Id: sim_tossim.c,v 1.1.2.1 2005-09-02 01:52:22 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
@@ -37,101 +37,73 @@
  * @date   August 19 2005
  */
 
-#include <stdint.h>
-#include <tossim.h>
+
 #include <sim_tossim.h>
+#include <sim_event_queue.h>
 #include <sim_mote.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
-static Mote motes[TOSSIM_MAX_NODES + 1];
+static long long int time;
+static unsigned long current_node;
 
-Mote::Mote() {}
-Mote::~Mote(){}
-
-unsigned long Mote::id() {
-  return nodeID;
+void sim_init() __attribute__ ((C, spontaneous)) {
+  sim_queue_init();  
 }
 
-long long int Mote::euid() {
-  return sim_mote_euid(nodeID);
+void sim_end() __attribute__ ((C, spontaneous)) {
+  sim_queue_init();
 }
 
-void Mote::setEuid(long long int val) {
-  sim_mote_set_euid(nodeID, val);
+
+long long int sim_time() __attribute__ ((C, spontaneous)) {
+  return time;
+}
+void sim_set_time(long long int t) __attribute__ ((C, spontaneous)) {
+  time = t;
 }
 
-long long int Mote::bootTime() {
-  return sim_mote_start_time(nodeID);
+unsigned long sim_node() __attribute__ ((C, spontaneous)) {
+  return current_node;
+}
+void sim_set_node(unsigned long node) __attribute__ ((C, spontaneous)) {
+  current_node = node;
 }
 
-void Mote::bootAtTime(long long int time) {
-  sim_mote_set_start_time(nodeID, time);
-  sim_mote_enqueue_boot_event(nodeID);
-}
-
-bool Mote::isOn() {
-  return sim_mote_is_on(nodeID);
-}
-
-void Mote::turnOff() {
-  sim_mote_turn_off(nodeID);
-}
-
-void Mote::turnOn() {
-  sim_mote_turn_on(nodeID);
-}
-
-void Mote::setID(unsigned long val) {
-  nodeID = val;
-}
-
-Tossim::Tossim() {}
-
-Tossim::~Tossim() {
-  sim_end();
-}
-
-void Tossim::init() {
-  sim_init();
-  for (int i = 0; i <= TOSSIM_MAX_NODES; i++) {
-    motes[i].setID(i);
+bool sim_run_next_event() __attribute__ ((C, spontaneous)) {
+  bool result = FALSE;
+  if (!sim_queue_is_empty()) {
+    sim_event_t* event = sim_queue_pop();
+    sim_set_time(event->time);
+    sim_set_node(event->mote);
+    
+    if (sim_mote_is_on(event->mote) || event->force) {
+      result = TRUE;
+      event->handle(event);
+    }
+    
+    event->cleanup(event);
   }
+
+  return result;
 }
 
-long long int Tossim::time() {
-  return sim_time();
+int sim_print_time(char* buf, int len, long long int ftime) __attribute__ ((C, spontaneous)) {
+  int hours;
+  int minutes;
+  int seconds;
+  int secondBillionths;
+
+  secondBillionths = (int)(ftime % (long long) 4000000);
+  seconds = (int)(ftime / (long long) 4000000);
+  minutes = seconds / 60;
+  hours = minutes / 60;
+  secondBillionths *= (long long) 25;
+  seconds %= 60;
+  minutes %= 60;
+
+  return snprintf(buf, len, "%i:%i:%i.%08i", hours, minutes, seconds, secondBillionths);
 }
 
-char* Tossim::timeStr() {
-  sim_print_now(timeBuf, 256);
-  return timeBuf;
+int sim_print_now(char* buf, int len) __attribute__ ((C, spontaneous)) {
+  return sim_print_time(buf, len, sim_time());
 }
-
-void Tossim::setTime(long long int val) {
-  sim_set_time(val);
-}
-
-Mote* Tossim::currentNode() {
-  return getNode(sim_node());
-}
-
-Mote* Tossim::getNode(unsigned long nodeID) {
-  if (nodeID > TOSSIM_MAX_NODES) {
-    // log an error, asked for an invalid node
-    return motes + TOSSIM_MAX_NODES;
-  }
-  else {
-    return motes + nodeID;
-  }
-}
-
-void Tossim::setCurrentNode(unsigned long nodeID) {
-  sim_set_node(nodeID);
-}
-
-bool Tossim::runNextEvent() {
-  return sim_run_next_event();
-}
-

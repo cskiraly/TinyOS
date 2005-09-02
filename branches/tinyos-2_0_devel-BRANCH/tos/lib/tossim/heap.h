@@ -1,4 +1,4 @@
-// $Id: heap_array.h,v 1.1.2.1 2005-08-19 01:06:58 scipio Exp $
+// $Id: heap.h,v 1.1.2.1 2005-09-02 01:52:22 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -58,10 +58,10 @@ void init_heap(heap_t* heap);
 int heap_size(heap_t* heap);
 int heap_is_empty(heap_t* heap);
 
-long long heap_get_min_key(heap_t* heap);
+long long int heap_get_min_key(heap_t* heap);
 void* heap_peek_min_data(heap_t* heap);
-void* heap_pop_min_data(heap_t* heap, long long* key);
-void heap_insert(heap_t * heap, void* data, long long key);
+void* heap_pop_min_data(heap_t* heap, long long int* key);
+void heap_insert(heap_t * heap, void* data, long long int key);
 
 
 #endif // HEAP_H_INCLUDED

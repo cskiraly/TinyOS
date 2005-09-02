@@ -1,4 +1,4 @@
-// $Id: SimMoteP.nc,v 1.1.2.1 2005-08-19 01:06:58 scipio Exp $
+// $Id: SimMoteP.nc,v 1.1.2.2 2005-09-02 01:52:22 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
@@ -42,17 +42,18 @@ module SimMoteP {
 }
 
 implementation {
-  long long euid;
-  long long startTime;
+  long long int euid;
+  long long int startTime;
   bool isOn;
-
-  command long long SimMote.euid() {
+  sim_event_t* bootEvent;
+  
+  command long long int SimMote.getEuid() {
     return euid;
   }
-  command void SimMote.setEuid(long long e) {
+  command void SimMote.setEuid(long long int e) {
     euid = e;
   }
-  command long long SimMote.startTime() {
+  command long long int SimMote.getStartTime() {
     return startTime;
   }
   command bool SimMote.isOn() {
@@ -60,6 +61,9 @@ implementation {
   }
   command void SimMote.turnOn() {
     if (!isOn) {
+      if (bootEvent != NULL) {
+	bootEvent->cancelled = TRUE;
+      }
       startTime = sim_time();
       isOn = TRUE;
       sim_main_start_mote();
@@ -70,28 +74,37 @@ implementation {
   }
 
   
-  long long sim_mote_euid(int mote) __attribute__ ((C, spontaneous)) {
-    long long result;
+  long long int sim_mote_euid(int mote) __attribute__ ((C, spontaneous)) {
+    long long int result;
     int tmp = sim_node();
     sim_set_node(mote);
-    result = call SimMote.euid();
+    result = call SimMote.getEuid();
     sim_set_node(tmp);
     return result;
   }
-  void sim_mote_set_euid(int mote, long long euid)  __attribute__ ((C, spontaneous)) {
+
+  void sim_mote_set_euid(int mote, long long int id)  __attribute__ ((C, spontaneous)) {
     int tmp = sim_node();
     sim_set_node(mote);
-    call SimMote.seEuid(euid);
+    call SimMote.setEuid(id);
     sim_set_node(tmp);
   }
   
-  long long sim_mote_start_time(int mote) __attribute__ ((C, spontaneous)) {
-    long long result;
+  long long int sim_mote_start_time(int mote) __attribute__ ((C, spontaneous)) {
+    long long int result;
     int tmp = sim_node();
     sim_set_node(mote);
-    result = call SimMote.startTime();
+    result = call SimMote.getStartTime();
     sim_set_node(tmp);
     return result;
+  }
+
+  void sim_mote_set_start_time(int mote, long long int t) __attribute__ ((C, spontaneous)) {
+    int tmpID = sim_node();
+    sim_set_node(mote);
+    startTime = t;
+    sim_set_node(tmpID);
+    return;
   }
   
   bool sim_mote_is_on(int mote) __attribute__ ((C, spontaneous)) {
@@ -104,18 +117,48 @@ implementation {
   }
   
   void sim_mote_turn_on(int mote) __attribute__ ((C, spontaneous)) {
-    bool result;
     int tmp = sim_node();
     sim_set_node(mote);
-    result = call SimMote.turnOn();
+    call SimMote.turnOn();
     sim_set_node(tmp);
   }
   
   void sim_mote_turn_off(int mote) __attribute__ ((C, spontaneous)) {
-    bool result;
     int tmp = sim_node();
     sim_set_node(mote);
-    result = call SimMote.turnOff();
+    call SimMote.turnOff();
+    sim_set_node(tmp);
+  }
+
+  void sim_mote_boot_handle(sim_event_t* e) {
+    bootEvent = NULL;
+    call SimMote.turnOn();
+  }
+  
+  void sim_mote_enqueue_boot_event(int mote) __attribute__ ((C, spontaneous)) {
+    int tmp = sim_node();
+    sim_set_node(mote);
+
+    if (bootEvent != NULL)  {
+      if (bootEvent->time == startTime) {
+	// In case we have a cancelled boot event.
+	bootEvent->cancelled = FALSE;
+	return;
+      }
+      else {
+	bootEvent->cancelled = TRUE;
+      }
+    }
+    
+    bootEvent = (sim_event_t*) malloc(sizeof(sim_event_t));
+    bootEvent->time = startTime;
+    bootEvent->mote = mote;
+    bootEvent->force = TRUE;
+    bootEvent->data = NULL;
+    bootEvent->handle = sim_mote_boot_handle;
+    bootEvent->cleanup = sim_queue_cleanup_event;
+    sim_queue_insert(bootEvent);
+    
     sim_set_node(tmp);
   }
 
