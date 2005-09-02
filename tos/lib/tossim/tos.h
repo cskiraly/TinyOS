@@ -23,6 +23,10 @@ typedef int8_t nx_bool __attribute__((nx_base(int8)));
 uint16_t TOS_LOCAL_ADDRESS = 1;
 
 #include <sim_event_queue.h>
-#include <tossim.h>
+#include <sim_tossim.h>
 #include <sim_mote.h>
 #include <stdio.h>
+
+#include <heap.c>
+#include <sim_event_queue.c>
+#include <sim_tossim.c>

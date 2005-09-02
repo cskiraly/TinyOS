@@ -1,4 +1,4 @@
-// $Id: sim_event_queue.c,v 1.1.2.1 2005-08-19 01:06:58 scipio Exp $
+// $Id: sim_event_queue.c,v 1.1.2.2 2005-09-02 01:52:22 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -37,53 +37,53 @@
  */
 
 
-#include <heap_array.h>
+#include <heap.h>
 #include <sim_event_queue.h>
 
-static heap_t heap;
+static heap_t eventHeap;
 
-void sim_queue_init() {
-  init_heap(&heap);
+void sim_queue_init() __attribute__ ((C, spontaneous)) {
+  init_heap(&eventHeap);
 }
 
-void sim_queue_insert(sim_event_t* event) {
-  heap_insert(&heap, event, event->time);
+void sim_queue_insert(sim_event_t* event) __attribute__ ((C, spontaneous)) {
+  heap_insert(&eventHeap, event, event->time);
 }
 
-sim_event_t* sim_queue_pop() {
-  long long key;
-  return (sim_event_t*)(heap_pop_min_data(&heap, &key));
+sim_event_t* sim_queue_pop() __attribute__ ((C, spontaneous)) {
+  long long int key;
+  return (sim_event_t*)(heap_pop_min_data(&eventHeap, &key));
 }
 
-bool sim_queue_is_empty() {
-  return heap_is_empty(&heap);
+bool sim_queue_is_empty() __attribute__ ((C, spontaneous)) {
+  return heap_is_empty(&eventHeap);
 }
 
-long long sim_queue_peek_time() {
-  if (heap_is_empty(&heap)) {
+long long int sim_queue_peek_time() __attribute__ ((C, spontaneous)) {
+  if (heap_is_empty(&eventHeap)) {
     return -1;
   }
   else {
-    return heap_get_min_key(&heap);
+    return heap_get_min_key(&eventHeap);
   }
 }
 
 
-void sim_queue_cleanup_none(sim_event_t* event) {
+void sim_queue_cleanup_none(sim_event_t* event) __attribute__ ((C, spontaneous)) {
   // Do nothing. Useful for statically allocated events.
 }
 
-void sim_queue_cleanup_event(sim_event_t* event) {
+void sim_queue_cleanup_event(sim_event_t* event) __attribute__ ((C, spontaneous)) {
   free(event);
 }
 
-void sim_queue_cleanup_data(sim_event_t* event) {
-  free(event->data);
+void sim_queue_cleanup_data(sim_event_t* event) __attribute__ ((C, spontaneous)) {
+  free (event->data);
   event->data = NULL;
 }
     
-void sim_queue_cleanup_total(sim_event_t* event) {
-  free(event->data);
+void sim_queue_cleanup_total(sim_event_t* event) __attribute__ ((C, spontaneous)) {
+  free (event->data);
   event->data = NULL;
-  free(event);
+  free (event);
 }

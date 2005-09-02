@@ -1,4 +1,4 @@
-// $Id: sim_mote.h,v 1.1.2.1 2005-08-19 01:06:58 scipio Exp $
+// $Id: sim_mote.h,v 1.1.2.2 2005-09-02 01:52:22 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
@@ -37,17 +37,28 @@
  */
 
 
-#ifndef MOTE_H_INCLUDED
-#define MOTE_H_INCLUDED
+#ifndef SIM_MOTE_H_INCLUDED
+#define SIM_MOTE_H_INCLUDED
 
-long long sim_mote_euid(int mote);
-void sim_mote_set_euid(int mote, long long euid);
 
-long long sim_mote_start_time(int mote);
-void sim_mote_set_start_time(int mote, long long euid);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+long long int sim_mote_euid(int mote);
+void sim_mote_set_euid(int mote, long long int euid);
+
+long long int sim_mote_start_time(int mote);
+void sim_mote_set_start_time(int mote, long long int t);
 
 bool sim_mote_is_on(int mote);
 void sim_mote_turn_on(int mote);
 void sim_mote_turn_off(int mote);
 
-#endif // TOSSIM_H_INCLUDED
+void sim_mote_enqueue_boot_event(int mote);
+
+#ifdef __cplusplus
+}
+#endif
+  
+#endif // SIM_MOTE_H_INCLUDED

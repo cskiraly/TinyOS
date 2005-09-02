@@ -1,4 +1,4 @@
-// $Id: sim_event_queue.h,v 1.1.2.1 2005-08-19 01:06:58 scipio Exp $
+// $Id: sim_event_queue.h,v 1.1.2.2 2005-09-02 01:52:22 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
@@ -44,10 +44,11 @@
 #define SIM_EVENT_QUEUE_H_INCLUDED
 
 typedef struct sim_event {
-  long long time;
-  int mote;
-  int force; // Whether this event type should always be executed
-             // even if a mote is "turned off"
+  long long int time;
+  int  mote;
+  bool force; // Whether this event type should always be executed
+            // even if a mote is "turned off"
+  bool cancelled; // Whether this event has been cancelled
   void* data;
   
   void (*handle)(struct sim_event* e);
@@ -58,7 +59,7 @@ typedef struct sim_event {
 void sim_queue_init();
 void sim_queue_insert(sim_event_t* event);
 bool sim_queue_is_empty();
-long long sim_queue_peek_time();
+long long int sim_queue_peek_time();
 sim_event_t* sim_queue_pop();
 
 void sim_queue_cleanup_none(sim_event_t* e);

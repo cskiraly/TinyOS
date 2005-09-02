@@ -1,4 +1,4 @@
-// $Id: MainC.nc,v 1.1.2.1 2005-08-19 01:06:58 scipio Exp $
+// $Id: MainC.nc,v 1.1.2.2 2005-09-02 01:52:22 scipio Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: MainC.nc,v 1.1.2.1 2005-08-19 01:06:58 scipio Exp $
+ * Date last modified:  $Id: MainC.nc,v 1.1.2.2 2005-09-02 01:52:22 scipio Exp $
  *
  */
 
@@ -55,6 +55,11 @@ configuration MainC {
 implementation {
   components PlatformC, SimMainP, TinySchedulerC;
 
+  // SimMoteP is not referred to by any component here.
+  // It is included to make sure nesC loads it, as it
+  // includes functionality many other systems depend on.
+  components SimMoteP;
+  
   SimMainP.Scheduler -> TinySchedulerC;
   SimMainP.PlatformInit -> PlatformC;
 
