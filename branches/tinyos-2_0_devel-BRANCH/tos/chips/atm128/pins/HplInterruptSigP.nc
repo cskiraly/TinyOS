@@ -1,4 +1,4 @@
-// $Id: HplInterruptSigP.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+// $Id: HplInterruptSigP.nc,v 1.1.2.2 2005-09-07 18:05:59 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -73,7 +73,7 @@ implementation
   }
 
   default async event void IntSig6.fired() { }
-  AVR_NONATOMIC_HANDLER( SIG_INTERRUPT6 ) {
+  AVR_ATOMIC_HANDLER( SIG_INTERRUPT6 ) {
     signal IntSig6.fired();
   }
 
