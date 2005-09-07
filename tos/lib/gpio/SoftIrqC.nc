@@ -24,7 +24,7 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: SoftIrqC.nc,v 1.1.2.4 2005-08-07 21:01:52 scipio Exp $
+ *  $Id: SoftIrqC.nc,v 1.1.2.5 2005-09-07 17:20:51 scipio Exp $
  */
 
 /**
@@ -42,7 +42,7 @@ implementation
 {
     components
 	new SoftIrqP(interval), 
-	new OSKITimerMsC() as IrqTimer;
+	new OskiTimerMilliC() as IrqTimer;
 
     Interrupt = SoftIrqP;
     GeneralIO = SoftIrqP;
