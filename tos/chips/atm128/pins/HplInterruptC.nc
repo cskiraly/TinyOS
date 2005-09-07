@@ -1,4 +1,4 @@
-// $Id: HplInterruptC.nc,v 1.1.2.2 2005-09-07 16:47:51 scipio Exp $
+// $Id: HplInterruptC.nc,v 1.1.2.3 2005-09-07 16:48:51 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -46,7 +46,7 @@ implementation
 #define IRQ_PORT_E_PIN(bit) (uint8_t)&EICRB, ISC##bit##0, ISC##bit##1, bit
 
   components 
-    HplInterruptSigP as IrqVector, LedsC,
+    HplInterruptSigP as IrqVector,
     new HplInterruptPinP(IRQ_PORT_D_PIN(0)) as IntPin0,
     new HplInterruptPinP(IRQ_PORT_D_PIN(1)) as IntPin1,
     new HplInterruptPinP(IRQ_PORT_D_PIN(2)) as IntPin2,
@@ -74,6 +74,5 @@ implementation
   IntPin6.IrqSignal -> IrqVector.IntSig6;
   IntPin7.IrqSignal -> IrqVector.IntSig7;
 
-  IrqVector.Leds -> LedsC;
 }
 
