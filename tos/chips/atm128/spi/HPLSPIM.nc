@@ -1,6 +1,25 @@
-/// $Id: HPLSPIM.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
-
-/**
+/*
+ * "Copyright (c) 2005 Stanford University. All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation for any purpose, without fee, and without written
+ * agreement is hereby granted, provided that the above copyright
+ * notice, the following two paragraphs and the author appear in all
+ * copies of this software.
+ * 
+ * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+ * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
+ * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ * ENHANCEMENTS, OR MODIFICATIONS."
+ *
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,191 +41,165 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+/**
+ * Implementation of the SPI bus abstraction for the atm128
+ * microcontroller.
+ *
+ * @author Philip Levis
+ * @author Martin Turon
+ */
 
-#include <ATm128SPI.h>
+#include <Atm128Spi.h>
 
-module HPLSPIM
-{
-    provides interface Init;
-    provides interface HPLSPI as SPI;
-
-    uses {
-	interface GeneralIO as Ss;   // Slave set line
-	interface GeneralIO as Sck;  // SPI clock line
-	interface GeneralIO as Mosi; // Master out, slave in
-	interface GeneralIO as Miso; // Master in, slave out
-    }
-}
-implementation
-{
-  //=== SPI Bus initialization. =========================================
-  command error_t Init.init() {
-      // Default to slave rx pin settings
-      call SPI.slaveInit();
+module HPLSPIM {
+  provides interface HPLSPI as SPI;
+  
+  uses {
+    interface GeneralIO as SS;   // Slave set line
+    interface GeneralIO as SCK;  // SPI clock line
+    interface GeneralIO as MOSI; // Master out, slave in
+    interface GeneralIO as MISO; // Master in, slave out
   }
+}
+implementation {
 
-  //=== Read/Write the data register. ===================================
+  async command void SPI.initMaster() {
+    call MOSI.makeOutput();
+    call MISO.makeInput();
+    call SCK.makeOutput();
+    call SS.makeOutput();
+    call SPI.setMasterBit(TRUE);
+    call SS.clr();
+  }
+  async command void SPI.initSlave() {
+    call MISO.makeOutput();
+    call MOSI.makeInput();
+    call SCK.makeInput();
+    call SS.makeInput();
+    call SPI.setMasterBit(FALSE);
+  }
+  
+  async command void SPI.sleep() {
+    call SS.set();
+  }
+  
   async command uint8_t SPI.read()        { return SPDR; }
   async command void SPI.write(uint8_t d) { SPDR = d; }
     
   default async event void SPI.dataReady(uint8_t d) {}
-  AVR_NONATOMIC_HANDLER(SIG_SPI) {
+  AVR_ATOMIC_HANDLER(SIG_SPI) {
       signal SPI.dataReady(call SPI.read());
   }
 
-  //=== Read the control registers. =====================================
-  async command ATm128SPIControl_t SPI.getControl() {
-      return *(ATm128SPIControl_t*)&SPCR;    
+  //=== SPI Bus utility routines. ====================================
+  async command bool SPI.isInterruptPending() {
+    return READ_BIT(SPSR, SPIF);
   }
 
-  async command ATm128SPIStatus_t SPI.getStatus() {
-      return *(ATm128SPIStatus_t*)&SPSR; 
+  async command bool SPI.isInterruptEnabled () {                
+    return READ_BIT(SPCR, SPIE);
   }
 
-  //=== Write the control registers. ====================================
-  async command void SPI.setControl(ATm128SPIControl_t ctrl) {
-      SPCR = ctrl.flat; 
-  }
-  
-  async command void SPI.setStatus(ATm128SPIStatus_t stts) {
-      SPSR = stts.flat; 
-  }
-
-  
-  //=== SPI Bus utility rouotines. ====================================
-  async command bool SPI.isBusy() {
-      return !(call SPI.getStatus()).bits.spif;
-  }
-
-  async command bool SPI.getEnable () {                
-      return (call SPI.getControl()).bits.spe;       
-  }                                                      
-  async command error_t SPI.setEnable (bool v) {       
-      ATm128SPIControl_t ctrl = call SPI.getControl();   
-      ctrl.bits.spe = v;                               
-      call SPI.setControl(ctrl);                         
-      return SUCCESS;                                    
-  }
-
-  async command bool SPI.getInterrupt () {                
-      return (call SPI.getControl()).bits.spie;       
-  }                                                      
-  async command error_t SPI.setInterrupt (bool v) {       
-      ATm128SPIControl_t ctrl = call SPI.getControl();   
-      ctrl.bits.spie = v;                               
-      call SPI.setControl(ctrl);                         
-      return SUCCESS;                                    
-  }
-
-  async command uint8_t SPI.getSpeed () {                
-      return (call SPI.getControl()).bits.spr;       
-  }                                                      
-  async command error_t SPI.setSpeed (uint8_t v) {       
-      ATm128SPIControl_t ctrl = call SPI.getControl();   
-      ctrl.bits.spr = v;                               
-      call SPI.setControl(ctrl);                         
-      return SUCCESS;                                    
-  }
-
-  /** Puts the bus to sleep. */
-  async command error_t SPI.sleep() {
-      //call SPI.setStatus(0);
-      //call SPI.setControl(0);
+  async command void SPI.enableInterrupt(bool enabled) {
+    if (enabled) {
+      SET_BIT(SPCR, SPIE);
+    }
+    else {
       CLR_BIT(SPCR, SPIE);
-      call Ss.makeOutput();
-      call Ss.set();     // Sleep bus
-      //call Ss.clr();     // Allow slave transfers
-      return SUCCESS;
+    }
+  }
+
+  async command bool SPI.isSpiEnabled() {
+    return READ_BIT(SPCR, SPE);
   }
   
-  //=== Slave initialization and control. ==============================
-
-  /** 
-   * Initialize the SPI bus to act as a slave device.  
-   * The default timing in this routine may be directed for 
-   * connection to a CC1000 radio as used on the mica2 platform.
-   */
-  async command error_t SPI.slaveInit() {  
-      ATm128SPIControl_t ctrl;
-      ATm128SPIStatus_t  stts;
-
-      stts.bits = (ATm128SPIStatus_s) { spi2x : 0 };
-      ctrl.bits = (ATm128SPIControl_s) {
-	  spr  : ATM128_SPI_CLK_DIVIDE_4,
-	  spie : 1,                       //!< Enable SPI Interrupt
-	  spe  : 1,                       //!< Enable SPI 
-      };
-
-      call Ss.makeInput();     //!< Default for slave mode
-      call Sck.makeInput();    //!< Default for slave mode
-      call Mosi.makeInput();   //!< Default for slave mode
-
-      call Miso.makeInput();   //!< user defined -- default to rx
-
-      call SPI.setStatus(stts);
-      call SPI.setControl(ctrl);
-      return SUCCESS;
+  async command void SPI.enableSpi(bool enabled) {
+    if (enabled) {
+      SET_BIT(SPCR, SPE);
+    }
+    else {
+      CLR_BIT(SPCR, SPE);
+    }
   }
 
-  async command error_t SPI.slaveTx() {
-      call Miso.makeOutput(); //!< Make slave output
-      return SUCCESS;
+  /* DORD bit */
+  async command void SPI.setDataOrder(bool lsbFirst) {
+    if (lsbFirst) {
+      SET_BIT(SPCR, DORD);
+    }
+    else {
+      CLR_BIT(SPCR, DORD);
+    }
   }
   
-  async command error_t SPI.slaveRx() {
-      call Miso.makeInput();   //!< Make slave input
-      return SUCCESS;
+  async command bool SPI.isOrderLsbFirst() {
+    return READ_BIT(SPCR, DORD);
+  }
+  
+  /* MSTR bit */
+  async command void SPI.setMasterBit(bool isMaster) {
+    if (isMaster) {
+      SET_BIT(SPCR, MSTR);
+    }
+    else {
+      CLR_BIT(SPCR, MSTR);
+    }
+  }
+  async command bool SPI.isMasterBitSet() {
+    return READ_BIT(SPCR, MSTR);
+  }
+  
+  /* CPOL bit */
+  async command void SPI.setClockPolarity(bool highWhenIdle) {
+    if (highWhenIdle) {
+      SET_BIT(SPCR, CPOL);
+    }
+    else {
+      CLR_BIT(SPCR, CPOL);
+    }
+  }
+  
+  async command bool SPI.getClockPolarity() {
+    return READ_BIT(SPCR, CPOL);
+  }
+  
+  /* CPHA bit */
+  async command void SPI.setClockPhase(bool sampleOnTrailing) {
+    if (sampleOnTrailing) {
+      SET_BIT(SPCR, CPHA);
+    }
+    else {
+      CLR_BIT(SPCR, CPHA);
+    }
+  }
+  async command bool SPI.getClockPhase() {
+    return READ_BIT(SPCR, CPHA);
   }
 
-  //=== Master initialization and control. ==============================
-
-  /** 
-   * Initialize the SPI bus to act as a master device.  
-   * The default timing in this routine may be directed for 
-   * connection to a CC2420 radio as used on the micaz platform.
-   */
-  async command error_t SPI.masterInit() {
-      ATm128SPIControl_t ctrl;
-      ATm128SPIStatus_t  stts;
-
-      stts.bits = (ATm128SPIStatus_s) { spi2x : 1 };
-      ctrl.bits = (ATm128SPIControl_s) {
-	  spr  : ATM128_SPI_CLK_DIVIDE_4,
-	  mstr : 1,                       //<! Master mode 
-	  spie : 1,                       //!< Enable SPI Interrupt
-	  spe  : 1,                       //!< Enable SPI
-      };
-
-      call Miso.makeInput();    //!< Default for master mode
-
-      call Mosi.makeOutput();   //!< user defined
-      call Sck.makeOutput();    //!< user defined
-      call Ss.makeOutput();     //!< user defined
-
-      call SPI.setStatus(stts);
-      call SPI.setControl(ctrl);
-      return SUCCESS;
+  
+  async command uint8_t SPI.getClock () {                
+    return READ_FLAG(SPCR, ((1 << SPR1) | (1 <<SPR0)));
+  }
+  
+  async command void SPI.setClock (uint8_t v) {
+    v &= (SPR1) | (SPR0);
+    SET_FLAG(SPCR, v);
   }
 
-  async command error_t SPI.masterTx() {
-      call Mosi.makeOutput(); //!< Make master output
-      return SUCCESS;
+  async command bool SPI.hasWriteCollided() {
+    return READ_BIT(SPSR, WCOL);
   }
 
-  async command error_t SPI.masterRx() {
-      call Mosi.makeInput(); //!< Make master input
-      return SUCCESS;
+  async command bool SPI.isMasterDoubleSpeed() {
+    return READ_BIT(SPSR, SPI2X);
   }
 
-  async command error_t SPI.masterStart() {
-      call Ss.clr();         //!< Start bus transfer
-      return SUCCESS;
+  async command void SPI.setMasterDoubleSpeed(bool on) {
+   if (on) {
+      SET_BIT(SPSR, SPI2X);
+    }
+    else {
+      CLR_BIT(SPSR, SPI2X);
+    }
   }
-
-  async command error_t SPI.masterStop() {
-      call Ss.set();         //!< Stop bus transfer
-      return SUCCESS;
-  }
-
 }

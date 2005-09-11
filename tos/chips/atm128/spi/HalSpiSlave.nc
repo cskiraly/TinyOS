@@ -1,4 +1,5 @@
 /**
+ *
  *  Copyright (c) 2004-2005 Crossbow Technology, Inc.
  *  Copyright (c) 2002-2003 Intel Corporation
  *  Copyright (c) 2000-2003 The Regents of the University  of California.
@@ -28,7 +29,7 @@
  *  @author Jaein Jeong, Philip Buonadonna
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: HalSpiSlave.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+ *  $Id: HalSpiSlave.nc,v 1.1.2.2 2005-09-11 20:21:54 scipio Exp $
  */
 
 /** 

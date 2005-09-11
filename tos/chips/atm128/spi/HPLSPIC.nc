@@ -1,6 +1,25 @@
-/// $Id: HPLSPIC.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
-
-/**
+/*
+ * "Copyright (c) 2005 Stanford University. All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation for any purpose, without fee, and without written
+ * agreement is hereby granted, provided that the above copyright
+ * notice, the following two paragraphs and the author appear in all
+ * copies of this software.
+ * 
+ * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+ * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
+ * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ * ENHANCEMENTS, OR MODIFICATIONS."
+ *
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,7 +41,17 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+/**
+ * Configuration encapsulating the basic SPI HPL for the atm128.
+ *
+ * <pre>
+ * $Id: HPLSPIC.nc,v 1.1.2.2 2005-09-11 20:21:54 scipio Exp $
+ * </pre>
+ *
+ * @author Philip Levis
+ * @author Martin Turon <mturon@xbow.com>
+ */
+
 
 configuration HPLSPIC
 {
@@ -30,12 +59,12 @@ configuration HPLSPIC
 }
 implementation
 {
-    components HPLGeneralIO, HPLSPIM;
+    components HplGeneralIOC as IO, HPLSPIM as HplSpiP;
     
-    SpiBus = HPLSPIM;
+    SpiBus = HplSpiP;
 
-    HPLSPIM.Ss   -> HPLGeneralIO.PortB0;  // Slave set line
-    HPLSPIM.Sck  -> HPLGeneralIO.PortB1;  // SPI clock line
-    HPLSPIM.Mosi -> HPLGeneralIO.PortB2;  // Master out, slave in
-    HPLSPIM.Miso -> HPLGeneralIO.PortB3;  // Master in, slave out
+    HplSpiP.SS   -> IO.PortB0;  // Slave set line
+    HplSpiP.SCK  -> IO.PortB1;  // SPI clock line
+    HplSpiP.MOSI -> IO.PortB2;  // Master out, slave in
+    HplSpiP.MISO -> IO.PortB3;  // Master in, slave out
 }

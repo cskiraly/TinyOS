@@ -1,4 +1,4 @@
-/// $Id: Atm128Spi.h,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: Atm128Spi.h,v 1.1.2.2 2005-09-11 20:21:54 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -38,13 +38,14 @@ enum {
 
 /** SPI Control Register */
 typedef struct {
-  uint8_t spr   : 2;  //!< SPI Clock Rate
-  uint8_t cpha  : 1;  //!< SPI Clock Phase
-  uint8_t cpol  : 1;  //!< SPI Clock Polarity
-  uint8_t mstr  : 1;  //!< SPI Master/Slave Select
-  uint8_t dord  : 1;  //!< SPI Data Order
-  uint8_t spe   : 1;  //!< SPI Enable
   uint8_t spie  : 1;  //!< SPI Interrupt Enable
+  uint8_t spe   : 1;  //!< SPI Enable
+  uint8_t dord  : 1;  //!< SPI Data Order
+  uint8_t mstr  : 1;  //!< SPI Master/Slave Select
+  uint8_t cpol  : 1;  //!< SPI Clock Polarity
+  uint8_t cpha  : 1;  //!< SPI Clock Phase
+  uint8_t spr   : 2;  //!< SPI Clock Rate
+
 } Atm128SPIControl_s;
 typedef union {
   uint8_t flat;
@@ -55,10 +56,11 @@ typedef Atm128SPIControl_t Atm128_SPCR_t;  //!< SPI Control Register
 
 /** SPI Status Register */
 typedef struct {
-  uint8_t spi2x : 1;  //!< SPI Parity Error
-  uint8_t rsvd  : 5;  //!< Reserved
-  uint8_t wcol  : 1;  //!< SPI Write COLision flag
   uint8_t spif  : 1;  //!< SPI Interrupt Flag
+  uint8_t wcol  : 1;  //!< SPI Write COLision flag
+  uint8_t rsvd  : 5;  //!< Reserved
+  uint8_t spi2x : 1;  //!< Whether we are in double speed
+
 } Atm128SPIStatus_s;
 typedef union {
   uint8_t flat;
