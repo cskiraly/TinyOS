@@ -1,7 +1,24 @@
-// $Id: CC2420RadioC.nc,v 1.1.2.2 2005-08-31 23:52:26 scipio Exp $
-
 /*									tab:4
+ * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation for any purpose, without fee, and without written
+ * agreement is hereby granted, provided that the above copyright
+ * notice, the following two paragraphs and the author appear in all
+ * copies of this software.
+ * 
+ * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+ * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
+ * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ * ENHANCEMENTS, OR MODIFICATIONS."
  *
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -22,43 +39,13 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- */
-/*									tab:4
- *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
- *  downloading, copying, installing or using the software you agree to
- *  this license.  If you do not agree to this license, do not download,
- *  install, copy or use the software.
+ * Copyright (c) 2005 Intel Corporation
+ * All rights reserved.
  *
- *  Intel Open Source License 
- *
- *  Copyright (c) 2005 Intel Corporation 
- *  All rights reserved. 
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions are
- *  met:
- * 
- *	Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
- *	Redistributions in binary form must reproduce the above copyright
- *  notice, this list of conditions and the following disclaimer in the
- *  documentation and/or other materials provided with the distribution.
- *      Neither the name of the Intel Corporation nor the names of its
- *  contributors may be used to endorse or promote products derived from
- *  this software without specific prior written permission.
- *  
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
- *  PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE INTEL OR ITS
- *  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- *  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * 
+ * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * file. If you do not find these files, copies can be found by writing to
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * 94704.  Attention:  Intel License Inquiry.
  */
 
 /**
@@ -67,7 +54,7 @@
  * platform-specific abstractions (such as SPI access and pins).
  * 
  * <pre>
- *   $Id: CC2420RadioC.nc,v 1.1.2.2 2005-08-31 23:52:26 scipio Exp $
+ *   $Id: CC2420RadioC.nc,v 1.1.2.3 2005-09-11 19:31:59 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -83,82 +70,74 @@ configuration CC2420RadioC
     interface Send as Send;
     interface Receive as Receive;
     interface CC2420Control;
-    interface AckControl;
+    interface PacketAcknowledgements as Acks;
     interface CSMABackoff;
-    interface RadioCoordinator as RadioReceiveCoordinator;
-    interface RadioCoordinator as RadioSendCoordinator;
+    interface RadioTimeStamping;
   }
 }
 implementation
 {
-  components CC2420RadioM, CC2420ControlM, HPLCC2420C, HPLCC2420M;
+  components CC2420RadioP as Radio, CC2420ControlP as Control;
+  components CC2420C as CC2420Platform, CC2420PlatformAlarmC;
   components HplCC2420PinsC;
-  
-  components CC2420PlatformAlarmC as HALAlarm;
-  components HplTimerC;
   
   components RandomC, LedsC;
 
-  Init = HALAlarm;
-  
-  Init = CC2420RadioM;
-  SplitControl = CC2420RadioM;
-  Send = CC2420RadioM;
-  Receive = CC2420RadioM;
-  CSMABackoff = CC2420RadioM;
-  AckControl = CC2420RadioM.AckControl;
-  CC2420Control = CC2420ControlM;
-  RadioReceiveCoordinator = CC2420RadioM.RadioReceiveCoordinator;
-  RadioSendCoordinator = CC2420RadioM.RadioSendCoordinator;
+  Init = CC2420PlatformAlarmC;
+  Init = Radio;
 
-  CC2420RadioM.CC2420Init -> CC2420ControlM;
-  CC2420RadioM.CC2420SplitControl -> CC2420ControlM;
-  CC2420RadioM.CC2420Control -> CC2420ControlM;
-  CC2420RadioM.Random -> RandomC;
-  CC2420RadioM.BackoffTimerJiffy -> HALAlarm;
-  CC2420RadioM.HPLChipconFIFO -> HPLCC2420C.HPLCC2420FIFO;
-  CC2420RadioM.FIFOP -> HPLCC2420C.InterruptFIFOP;
-  CC2420RadioM.SFD -> HPLCC2420C.CaptureSFD;
-  CC2420RadioM.CC_SFD -> HplCC2420PinsC.CC_SFD;
-  CC2420RadioM.CC_FIFO -> HplCC2420PinsC.CC_FIFO;
-  CC2420RadioM.CC_CCA -> HplCC2420PinsC.CC_CCA;
-  CC2420RadioM.CC_FIFOP -> HplCC2420PinsC.CC_FIFOP;
-  CC2420RadioM.RXFIFO ->   HPLCC2420C.RXFIFO;
-  CC2420RadioM.SFLUSHRX -> HPLCC2420C.SFLUSHRX;
-  CC2420RadioM.SFLUSHTX -> HPLCC2420C.SFLUSHTX;
-  CC2420RadioM.SNOP ->     HPLCC2420C.SNOP;
-  CC2420RadioM.STXONCCA ->     HPLCC2420C.STXONCCA;
-  
-  CC2420ControlM.HPLChipconInit -> HPLCC2420C.Init;
-  CC2420ControlM.HPLChipconControl -> HPLCC2420C.StdControl;
-  CC2420ControlM.HPLChipconRAM -> HPLCC2420C.HPLCC2420RAM;
-  CC2420ControlM.MAIN ->  HPLCC2420C.MAIN;
-  CC2420ControlM.MDMCTRL0 -> HPLCC2420C.MDMCTRL0;
-  CC2420ControlM.MDMCTRL1 -> HPLCC2420C.MDMCTRL1;
-  CC2420ControlM.RSSI -> HPLCC2420C.RSSI;
-  CC2420ControlM.SYNCWORD -> HPLCC2420C.SYNCWORD;
-  CC2420ControlM.TXCTRL -> HPLCC2420C.TXCTRL;
-  CC2420ControlM.RXCTRL0 -> HPLCC2420C.RXCTRL0;
-  CC2420ControlM.RXCTRL1 -> HPLCC2420C.RXCTRL1;
-  CC2420ControlM.FSCTRL -> HPLCC2420C.FSCTRL;
-  CC2420ControlM.SECCTRL0 -> HPLCC2420C.SECCTRL0;
-  CC2420ControlM.SECCTRL1 -> HPLCC2420C.SECCTRL1;
-  CC2420ControlM.IOCFG0 -> HPLCC2420C.IOCFG0;
-  CC2420ControlM.IOCFG1 -> HPLCC2420C.IOCFG1;
+  SplitControl      = Radio;
+  Send              = Radio;
+  Receive           = Radio;
+  CSMABackoff       = Radio;
+  Acks              = Radio;
+  RadioTimeStamping = Radio;
+  CC2420Control     = Control;
 
-  CC2420ControlM.SFLUSHTX -> HPLCC2420C.SFLUSHTX;
-  CC2420ControlM.SFLUSHRX -> HPLCC2420C.SFLUSHRX;
-  CC2420ControlM.SXOSCOFF -> HPLCC2420C.SXOSCOFF;
-  CC2420ControlM.SXOSCON -> HPLCC2420C.SXOSCON;
-  CC2420ControlM.SRXON -> HPLCC2420C.SRXON;
-  CC2420ControlM.STXON -> HPLCC2420C.STXON;
-  CC2420ControlM.STXONCCA -> HPLCC2420C.STXONCCA;
-  
-  CC2420ControlM.CCA -> HPLCC2420C.InterruptCCA;
-  CC2420ControlM.CC_RSTN -> HplCC2420PinsC.CC_RSTN;
-  CC2420ControlM.CC_VREN -> HplCC2420PinsC.CC_VREN;
 
-  CC2420RadioM.Leds -> LedsC;
-  HPLCC2420M.Leds -> LedsC;
-  CC2420ControlM.Leds -> LedsC;
+  Radio.Random             -> RandomC;
+  Radio.CC2420Init         -> Control;
+  Radio.CC2420SplitControl -> Control;
+  Radio.CC2420Control      -> Control;
+  Radio.CC2420Fifo         -> CC2420Platform;
+  Radio.FIFOP              -> CC2420Platform.InterruptFIFOP;
+  Radio.SFD                -> CC2420Platform.CaptureSFD;
+  Radio.RXFIFO             -> CC2420Platform.RXFIFO;
+  Radio.SFLUSHRX           -> CC2420Platform.SFLUSHRX;
+  Radio.SFLUSHTX           -> CC2420Platform.SFLUSHTX;
+  Radio.SNOP               -> CC2420Platform.SNOP;
+  Radio.STXONCCA           -> CC2420Platform.STXONCCA;
+  Radio.BackoffTimer       -> CC2420PlatformAlarmC;
+  Radio.CC_SFD             -> HplCC2420PinsC.CC_SFD;
+  Radio.CC_FIFO            -> HplCC2420PinsC.CC_FIFO;
+  Radio.CC_CCA             -> HplCC2420PinsC.CC_CCA;
+  Radio.CC_FIFOP           -> HplCC2420PinsC.CC_FIFOP;
+
+  Control.HPLChipconInit    -> CC2420Platform;
+  Control.HPLChipconControl -> CC2420Platform;
+  Control.Ram               -> CC2420Platform;
+  Control.MAIN              -> CC2420Platform.MAIN;
+  Control.MDMCTRL0          -> CC2420Platform.MDMCTRL0;
+  Control.MDMCTRL1          -> CC2420Platform.MDMCTRL1;
+  Control.RSSI              -> CC2420Platform.RSSI;
+  Control.SYNCWORD          -> CC2420Platform.SYNCWORD;
+  Control.TXCTRL            -> CC2420Platform.TXCTRL;
+  Control.RXCTRL0           -> CC2420Platform.RXCTRL0;
+  Control.RXCTRL1           -> CC2420Platform.RXCTRL1;
+  Control.FSCTRL            -> CC2420Platform.FSCTRL;
+  Control.SECCTRL0          -> CC2420Platform.SECCTRL0;
+  Control.SECCTRL1          -> CC2420Platform.SECCTRL1;
+  Control.IOCFG0            -> CC2420Platform.IOCFG0;
+  Control.IOCFG1            -> CC2420Platform.IOCFG1;
+  Control.SFLUSHTX          -> CC2420Platform.SFLUSHTX;
+  Control.SFLUSHRX          -> CC2420Platform.SFLUSHRX;
+  Control.SXOSCOFF          -> CC2420Platform.SXOSCOFF;
+  Control.SXOSCON           -> CC2420Platform.SXOSCON;
+  Control.SRXON             -> CC2420Platform.SRXON;
+  Control.STXON             -> CC2420Platform.STXON;
+  Control.STXONCCA          -> CC2420Platform.STXONCCA;
+  Control.CCA               -> CC2420Platform.InterruptCCA;
+  Control.CC_RSTN           -> HplCC2420PinsC.CC_RSTN;
+  Control.CC_VREN           -> HplCC2420PinsC.CC_VREN;
+
 }

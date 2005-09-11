@@ -1,32 +1,25 @@
-// $Id: CC2420RWRegister.nc,v 1.1.2.1 2005-08-29 00:46:56 scipio Exp $
-
 /*									tab:4
- * "Copyright (c) 2000-2003 The Regents of the University  of California.  
- * All rights reserved.
+ * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
- * Permission to use, copy, modify, and distribute this software and its
- * documentation for any purpose, without fee, and without written agreement is
- * hereby granted, provided that the above copyright notice, the following
- * two paragraphs and the author appear in all copies of this software.
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation for any purpose, without fee, and without written
+ * agreement is hereby granted, provided that the above copyright
+ * notice, the following two paragraphs and the author appear in all
+ * copies of this software.
  * 
- * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
- * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
- * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
- * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
  * 
- * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
- * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
- * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
+ * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+ * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
+ * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ * ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2003 Intel Corporation
- * All rights reserved.
- *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
- * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
- * 94704.  Attention:  Intel License Inquiry.
  */
 
 /**
@@ -43,7 +36,6 @@
 
 includes CC2420Const;
 
-
 interface CC2420RWRegister {
 
   /**
@@ -54,10 +46,41 @@ interface CC2420RWRegister {
   async command cc2420_so_status_t write(uint16_t data);
 
   /**
+   * Put a write command sequence into a buffer, for later
+   * transmission over the SPI.
+   *
+   * @return Number of bytes written to the buffer (always 3 for write
+   * operations, 1 byte address, 2 byte data). If for some reason a
+   * write cannot be put (e.g., this is not a valid RW register)
+   * 0 is returned.
+   */
+  async command uint8_t putWrite(uint8_t* buffer, uint16_t data);
+
+  
+  /**
    * Read a 16-bit data word from the register.
    *
    * @return status byte from the read.
    */
   
   async command cc2420_so_status_t read(uint16_t* data);
+
+  /**
+   * Put a read command sequence into a buffer, for later
+   * transmission over the SPI.
+   *
+   * @return Number of bytes written to the buffer (always 3 for read
+   * operations, 1 byte address, 2 byte dummy data). If for some
+   * reason a read cannot be put (e.g., this is not a valid RW
+   * register) 0 is returned.
+   */  
+  async command uint8_t putRead(uint8_t* buffer);
+
+  /**
+   * The length of a command sequence (in bytes).
+   *
+   * @return 3 bytes for valid RW registers, 0 for invalid.
+   */
+  async command uint8_t opLen();
+
 }

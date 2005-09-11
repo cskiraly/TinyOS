@@ -1,6 +1,25 @@
-// $Id: CC2420ControlM.nc,v 1.1.2.8 2005-08-29 00:46:56 scipio Exp $
-
 /*									tab:4
+ * "Copyright (c) 2005 Stanford University. All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation for any purpose, without fee, and without written
+ * agreement is hereby granted, provided that the above copyright
+ * notice, the following two paragraphs and the author appear in all
+ * copies of this software.
+ * 
+ * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+ * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
+ * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ * ENHANCEMENTS, OR MODIFICATIONS."
+ *
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -28,24 +47,21 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
-/*
- *
- *
-
 
 /**
  * Control operations for the ChipCon CC2420 radio. This component
  * is platform independent.
  *
  * <pre>
- *  $Id: CC2420ControlM.nc,v 1.1.2.8 2005-08-29 00:46:56 scipio Exp $
- * </per>
+ *  $Id: CC2420ControlP.nc,v 1.1.2.1 2005-09-11 19:31:59 scipio Exp $
+ * </pre>
+ *
  * @author Philip Levis
  * @author Alan Broad, Crossbow
  * @author Joe Polastre
  */
 
-module CC2420ControlM {
+module CC2420ControlP {
 
   provides {
     interface Init;
@@ -55,8 +71,8 @@ module CC2420ControlM {
   uses {
     interface Init as HPLChipconInit;
     interface StdControl as HPLChipconControl;
-    interface HPLCC2420RAM as HPLChipconRAM;
-    interface HPLCC2420Interrupt as CCA;
+    interface CC2420Ram as Ram;
+    interface Interrupt as CCA;
 
     interface CC2420RWRegister as MAIN;
     interface CC2420RWRegister as MDMCTRL0;
@@ -458,22 +474,18 @@ implementation
   command error_t CC2420Control.setShortAddress(uint16_t addr) {
     nx_uint16_t realAddr;
     realAddr = addr;
-    return call HPLChipconRAM.write(CC2420_RAM_SHORTADR, 2, (uint8_t*)&realAddr);
+    return call Ram.write(CC2420_RAM_SHORTADR, (uint8_t*)&realAddr, 2);
   }
 
-  async event error_t HPLChipconRAM.readDone(uint16_t addr, uint8_t length, uint8_t* buffer) {
-     return SUCCESS;
-  }
+  async event void Ram.readDone(uint16_t addr, uint8_t* buf, uint8_t length, error_t err) {}
 
-  async event error_t HPLChipconRAM.writeDone(uint16_t addr, uint8_t length, uint8_t* buffer) {
-     return SUCCESS;
-  }
+  async event void Ram.writeDone(uint16_t addr, uint8_t* buf, uint8_t length, error_t err) {}
 
-  async event error_t CCA.fired() {
+  async event void CCA.fired() {
     // reset the CCA pin back to the CCA function
     call IOCFG1.write(0);
     post PostOscillatorOn();
-    return FAIL;
+    return;
   }
 	
 }
