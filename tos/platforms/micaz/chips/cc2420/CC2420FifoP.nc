@@ -1,7 +1,25 @@
-
-// $Id: HPLCC2420FIFOM.nc,v 1.1.2.1 2005-08-29 00:54:23 scipio Exp $
-
 /*									tab:4
+ * "Copyright (c) 2005 Stanford University. All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation for any purpose, without fee, and without written
+ * agreement is hereby granted, provided that the above copyright
+ * notice, the following two paragraphs and the author appear in all
+ * copies of this software.
+ * 
+ * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+ * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
+ * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ * ENHANCEMENTS, OR MODIFICATIONS."
+ *
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -29,27 +47,21 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
-/*
- *
- * Authors: Alan Broad, Crossbow
- * Date last modified:  $Revision: 1.1.2.1 $
- *
- */
 
 /**
- * Low level hardware access to the CC2420 Rx,Tx fifos
+ * Access to the CC2420 RXFIFO and TXFIFO memories.
  * @author Alan Broad
  */
 
 includes CC2420Const;
 
-module HPLCC2420FIFOM {
+module CC2420FifoP {
   provides {
-    interface HPLCC2420FIFO;
+    interface CC2420Fifo;
   }
   uses {
     interface GeneralIO as CC_CS;
-    interface Leds;
+    interface SPIPacket as Packet;
   }
 }
 implementation
@@ -61,33 +73,29 @@ implementation
 
 
   task void signalTXdone() {
-    uint8_t _txlen;
-    uint8_t* _txbuf;
+    uint8_t tmpLen;
+    uint8_t* tmpBuf;
 
     atomic {
-      _txlen = txlength;
-      _txbuf = txbuf;
+      tmpLen = txlength;
+      tmpBuf = txbuf;
       txbufBusy = FALSE;
     }
 
-    signal HPLCC2420FIFO.TXFIFODone(_txlen, _txbuf);
+    signal CC2420Fifo.writeTxFifoDone(tmpBuf, tmpLen, SUCCESS);
   }
-/**
-Returns data buffer from RXFIFO and number of bytes read.
-@param rxlength Nofbytes read from RXFIFO (including 1st byte which is usually length
-@param rxbuf pointer to buffer
-**********************************************************************************/
+
   task void signalRXdone() {
-    uint8_t _rxlen;
-    uint8_t* _rxbuf;
+    uint8_t tmpLen;
+    uint8_t* tmpBuf;
 
     atomic {
-      _rxlen = rxlength;
-      _rxbuf = rxbuf;
+      tmpLen = rxlength;
+      tmpBuf = rxbuf;
       rxbufBusy = FALSE;
     }
 
-    signal HPLCC2420FIFO.RXFIFODone(_rxlen, _rxbuf);
+    signal CC2420Fifo.readRxFifoDone(tmpBuf, tmpLen, SUCCESS);
   }
 
   /**
@@ -98,7 +106,7 @@ Returns data buffer from RXFIFO and number of bytes read.
    *
    * @return SUCCESS if the bus is free to write to the FIFO
    */
-  async command error_t HPLCC2420FIFO.writeTXFIFO(uint8_t len, uint8_t *msg) {
+  async command error_t CC2420Fifo.writeTxFifo(uint8_t* buf, uint8_t len) {
      uint8_t i = 0;
      uint8_t status;
      bool returnFail = FALSE;
@@ -119,7 +127,7 @@ Returns data buffer from RXFIFO and number of bytes read.
      atomic {
        bSpiAvail = FALSE;
        txlength = len;
-       txbuf = msg;
+       txbuf = buf;
        call CC_CS.clr();                   //enable chip select
        SPDR = CC2420_TXFIFO;
        while (!(SPSR & 0x80)){};          //wait for spi xfr to complete
@@ -155,7 +163,7 @@ Returns data buffer from RXFIFO and number of bytes read.
    *
    * @return SUCCESS if the bus is free to read from the FIFO
    */
-  async command error_t HPLCC2420FIFO.readRXFIFO(uint8_t len, uint8_t *msg) {
+  async command error_t CC2420Fifo.readRxFifo(uint8_t *buf, uint8_t len) {
      uint8_t status,i;
      bool returnFail = FALSE;
      atomic {
@@ -172,7 +180,7 @@ Returns data buffer from RXFIFO and number of bytes read.
 
      atomic {
        bSpiAvail = FALSE;
-       atomic rxbuf = msg;
+       atomic rxbuf = buf;
        call CC_CS.clr();                   //enable chip select
        SPDR = CC2420_RXFIFO | 0x40;       //output Rxfifo address
        while (!(SPSR & 0x80)){};          //wait for spi xfr to complete
@@ -204,14 +212,13 @@ Returns data buffer from RXFIFO and number of bytes read.
      return SUCCESS;	  //return also indicates completion...
   }// readRXFIFO
 
+   async event void Packet.sendDone(uint8_t* data, uint8_t* rxBuf, uint8_t len, error_t err) {
+    
+  }
 
- default async error_t event HPLCC2420FIFO.TXFIFODone(uint8_t length, uint8_t *data) {
-   return FAIL;
- }
+ default async void event CC2420Fifo.writeTxFifoDone(uint8_t* data, uint8_t len, error_t err) {}
 
- default async error_t event HPLCC2420FIFO.RXFIFODone(uint8_t length, uint8_t *data) {
-   return FAIL;
- }
+ default async void event CC2420Fifo.readRxFifoDone(uint8_t* data, uint8_t len, error_t err) {}
 } //module
 
 
