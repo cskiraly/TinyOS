@@ -1,6 +1,25 @@
-// $Id: CC2420RadioM.nc,v 1.1.2.11 2005-08-31 23:52:26 scipio Exp $
-
 /*									tab:4
+ * "Copyright (c) 2005 Stanford University. All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation for any purpose, without fee, and without written
+ * agreement is hereby granted, provided that the above copyright
+ * notice, the following two paragraphs and the author appear in all
+ * copies of this software.
+ * 
+ * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+ * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
+ * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ * ENHANCEMENTS, OR MODIFICATIONS."
+ *
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -38,7 +57,7 @@
  * configures register IOCGF0 accordingly).
  * 
  * <pre>
- *   $Id: CC2420RadioM.nc,v 1.1.2.11 2005-08-31 23:52:26 scipio Exp $
+ *   $Id: CC2420RadioP.nc,v 1.1.2.1 2005-09-11 19:31:59 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -48,25 +67,24 @@
  * @date August 28 2005
  */
 
-module CC2420RadioM {
+module CC2420RadioP {
   provides {
     interface Init;
     interface SplitControl;
     interface Send;
     interface Receive;
-    interface RadioCoordinator as RadioSendCoordinator;
-    interface RadioCoordinator as RadioReceiveCoordinator;
-    interface AckControl;
+    interface RadioTimeStamping as TimeStamp;
+    interface PacketAcknowledgements as Acks;
     interface CSMABackoff;
   }
   uses {
     interface Init as CC2420Init;
     interface SplitControl as CC2420SplitControl;
     interface CC2420Control;
-    interface HPLCC2420FIFO as HPLChipconFIFO; 
-    interface HPLCC2420Interrupt as FIFOP;
-    interface HPLCC2420Capture as SFD;
-    interface Alarm<T32khz,uint16_t> as BackoffTimerJiffy;
+    interface CC2420Fifo; 
+    interface Interrupt as FIFOP;
+    interface Capture as SFD;
+    interface Alarm<T32khz,uint16_t> as BackoffTimer;
     interface Random;
     interface Leds;
 
@@ -99,7 +117,13 @@ implementation {
 
     TIMER_INITIAL = 0,
     TIMER_BACKOFF,
-    TIMER_ACK
+    TIMER_ACK,
+    TIMER_ABORT,
+    TIMER_NONE
+  };
+
+  enum {
+    CC2420_SEND_ABORT = 1500,
   };
 
 #define MAX_SEND_TRIES 8
@@ -165,22 +189,31 @@ implementation {
 
    inline error_t setInitialTimer( uint16_t jiffy ) {
      atomic stateTimer = TIMER_INITIAL;
-     call BackoffTimerJiffy.startNow(jiffy);
+     call BackoffTimer.startNow(jiffy);
      return SUCCESS;
    }
 
    inline error_t setBackoffTimer( uint16_t jiffy ) {
      atomic stateTimer = TIMER_BACKOFF;
-     call BackoffTimerJiffy.startNow(jiffy);
+     call BackoffTimer.startNow(jiffy);
      return SUCCESS;
    }
 
    inline error_t setAckTimer( uint16_t jiffy ) {
      atomic stateTimer = TIMER_ACK;
-     call BackoffTimerJiffy.startNow(jiffy);
+     call BackoffTimer.startNow(jiffy);
      return SUCCESS;
    }
 
+   inline error_t setAbortTimer(uint16_t jiffy) {
+     atomic stateTimer = TIMER_ABORT;
+     call BackoffTimer.startNow(jiffy);
+     return SUCCESS;
+   }
+
+   inline void stopTimer() {
+     atomic stateTimer = TIMER_NONE;
+   }
   /***************************************************************************
    * PacketRcvd
    * - Radio packet rcvd, signal 
@@ -211,7 +244,7 @@ implementation {
   
   // Split-phase initialization of the radio
   command error_t Init.init() {
-
+    
     atomic {
       stateRadio = DISABLED_STATE;
       currentDSN = 0;
@@ -225,15 +258,20 @@ implementation {
     //call Random.init();
     LocalAddr = TOS_LOCAL_ADDRESS;
     return call CC2420Init.init();
+    
+    return SUCCESS;
   }
 
   // split phase stop of the radio stack
   command error_t SplitControl.stop() {
+    /*
     atomic stateRadio = DISABLED_STATE;
 
     call SFD.disable();
     call FIFOP.disable();
     return call CC2420SplitControl.stop();
+    */
+    return SUCCESS;
   }
 
   event void CC2420SplitControl.stopDone(error_t err) {
@@ -273,11 +311,13 @@ implementation {
       
       atomic stateRadio  = IDLE_STATE;
     }
+    //call Acks.enable();
+    
     signal SplitControl.startDone(err);
     return;
   }
 
-  default event void SplitControl.startDone(error_t err) {
+ default event void SplitControl.startDone(error_t err) {
     return;
   }
 
@@ -286,21 +326,33 @@ implementation {
   /**
    * Try to send a packet.  If unsuccessful, backoff again
    **/
+  uint8_t sendStatus;
+  
   void sendPacket() {
     uint8_t status;
-
-    call STXONCCA.cmd();
-    status = call SNOP.cmd();
-    if (status & CC2420_TX_ACTIVE) {
-      // wait for the SFD to go high for the transmit SFD
+    atomic {
       call SFD.enableCapture(TRUE);
+      call STXONCCA.cmd();
+      sendStatus = status = call SNOP.cmd();
+      if (status & CC2420_TX_ACTIVE) {
+	stateRadio = TX_STATE;
+	setAbortTimer(CC2420_SEND_ABORT);
+      }
+      else {
+	//call SFD.disable();
+	stateRadio = PRE_TX_STATE;
+      }
+    }
+    if (!(status & CC2420_TX_ACTIVE)) {
+      if (status & CC2420_TX_UNDERFLOW) {
+	sendCompleted(FAIL);
+      }
+      else if (setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) != SUCCESS) {
+	sendCompleted(FAIL);
+      }
     }
     else {
-      // try again to send the packet
-      atomic stateRadio = PRE_TX_STATE;
-      if (setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) != SUCCESS) {
-        sendCompleted(FAIL);
-      }
+      //setAbortTimer(CC2420_SEND_ABORT);
     }
   }
 
@@ -309,8 +361,9 @@ implementation {
    * Useful for time synchronization as well as determining
    * when a packet has finished transmission
    */
-  async event error_t SFD.captured(uint16_t time) {
+  async event void SFD.captured(uint16_t time) {
     uint8_t myStateRadio;
+    bool acksEnabled;
     message_t* myTxPtr;
     message_t* myRxPtr;
     
@@ -318,35 +371,37 @@ implementation {
       myStateRadio = stateRadio;
       myTxPtr = txbufptr;
       myRxPtr = rxbufptr;
+      acksEnabled = bAckEnable;
     }
     
     //call Leds.led0Toggle();
     switch (myStateRadio) {
-    case TX_STATE:
-
+    case TX_STATE: {
+      bool doBreak = FALSE;
+      
       // wait for SFD to fall--indicates end of packet
-      call SFD.enableCapture(FALSE);
-      // if the pin already fell, disable the capture and let the next
-      // state enable the cpature (bug fix from Phil Buonadonna)
-      if (!call CC_SFD.get()) {
-	call SFD.disable();
+      atomic {
+	call SFD.enableCapture(FALSE);
+	// if the pin already fell, disable the capture and let the next
+	// state enable the cpature (bug fix from Phil Buonadonna)
+	if (!call CC_SFD.get()) {
+	  call SFD.disable();
+	}
+	else {
+	  stateRadio = TX_WAIT;
+	  doBreak = TRUE;
+	}
+	// fire TX SFD event
       }
-      else {
-	atomic stateRadio = TX_WAIT;
-      }
-      // fire TX SFD event
       getMetadata(myTxPtr)->time = time;
-      signal RadioSendCoordinator.startSymbol(8,0,myTxPtr);
-
+      signal TimeStamp.transmittedSFD(time, myTxPtr);
+      stopTimer();
       // if the pin hasn't fallen, break out and wait for the interrupt
       // if it fell, continue on the to the TX_WAIT state
-      {
-	bool doBreak;
-	atomic doBreak = (stateRadio == TX_WAIT);
-	if (doBreak) {
-	  break;
-	}
+      if (doBreak) {
+	break;
       }
+    }
 
     case TX_WAIT:
       // end of packet reached
@@ -355,22 +410,24 @@ implementation {
       // revert to receive SFD capture
       call SFD.enableCapture(TRUE);
       // if acks are enabled and it is a unicast packet, wait for the ack
-      if ((bAckEnable) && (getHeader(myTxPtr)->addr != TOS_BCAST_ADDR)) {
+      if ((acksEnabled) && (getHeader(myTxPtr)->addr != TOS_BCAST_ADDR)) {
         if (setAckTimer(CC2420_ACK_DELAY) != SUCCESS) {
 	  sendCompleted(FAIL);
+	  stopTimer();
 	}
       }
       // if no acks or broadcast, post packet send done event
       else {
+	stopTimer();
 	sendCompleted(SUCCESS);
       }
       break;
     default:
       // fire RX SFD handler
       getMetadata(myRxPtr)->time = time;
-      signal RadioReceiveCoordinator.startSymbol(8,0,myRxPtr);
+      signal TimeStamp.receivedSFD(time, myRxPtr);
     }
-    return SUCCESS;
+    return;
   }
 
   /**
@@ -395,7 +452,7 @@ implementation {
       uint8_t spiLen;
       atomic header = getHeader(txbufptr);
       spiLen = header->length - 1; // +1 for Length, -2 for FCS
-      if (call HPLChipconFIFO.writeTXFIFO(spiLen, (uint8_t*)header) != SUCCESS) {
+      if (call CC2420Fifo.writeTxFifo((uint8_t*)header, spiLen) != SUCCESS) {
 	sendCompleted(EBUSY);
 	return;
       }
@@ -407,47 +464,46 @@ implementation {
    * channel exists using the sendPacket() function
    */
   void tryToSend() {
-     uint8_t currentstate;
-     atomic currentstate = stateRadio;
-
-     // and the CCA check is good
-     if (currentstate == PRE_TX_STATE) {
-
-       // if a FIFO overflow occurs or if the data length is invalid, flush
-       // the RXFIFO to get back to a normal state.
-       if ((!call CC_FIFO.get() && !call CC_FIFOP.get())) {
-         flushRXFIFO();
-       }
-
-       if (call CC_CCA.get()) {
-         atomic stateRadio = TX_STATE;
-         sendPacket();
-       }
-       else {
-	 uint8_t retryVal;
-	 // if we tried a bunch of times, the radio may be in a bad state
-	 // flushing the RXFIFO returns the radio to a non-overflow state
-	 // and it continue normal operation (and thus send our packet)
-	 atomic retryVal = countRetry--;
-         if (retryVal <= 0) {
-	   flushRXFIFO();
-	   atomic countRetry = MAX_SEND_TRIES;
-	   post startSend();
-           return;
-         }
-         if ((setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT)) != SUCCESS) {
-	   //call Leds.led2On();
-           sendCompleted(FAIL);
-         }
-       }
-     }
+    uint8_t currentstate;
+    atomic currentstate = stateRadio;
+    
+    // and the CCA check is good
+    if (currentstate == PRE_TX_STATE) {
+      
+      // if a FIFO overflow occurs or if the data length is invalid, flush
+      // the RXFIFO to get back to a normal state.
+      if ((!call CC_FIFO.get() && !call CC_FIFOP.get())) {
+	flushRXFIFO();
+      }
+      
+      if (call CC_CCA.get()) {
+	sendPacket();
+      }
+      else {
+	uint8_t retryVal;
+	// if we tried a bunch of times, the radio may be in a bad state
+	// flushing the RXFIFO returns the radio to a non-overflow state
+	// and it continue normal operation (and thus send our packet)
+	atomic retryVal = countRetry--;
+	if (retryVal <= 0) {
+	  atomic countRetry = MAX_SEND_TRIES;
+	  flushRXFIFO();
+	  post startSend();
+	  return;
+	}
+	if ((setBackoffTimer(signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT)) != SUCCESS) {
+	  //call Leds.led2On();
+	  sendCompleted(FAIL);
+	}
+      }
+    }
   }
 
   /**
    * Multiplexed timer to control initial backoff, 
    * congestion backoff, and delay while waiting for an ACK
    */
-  async event void BackoffTimerJiffy.fired() {
+  async event void BackoffTimer.fired() {
     uint8_t currentstate, timerState;
     atomic {
       currentstate = stateRadio;
@@ -467,6 +523,13 @@ implementation {
         sendCompleted(SUCCESS);
       }
       break;
+    case TIMER_ABORT:
+      //call SFLUSHTX.cmd();
+      atomic stateRadio = IDLE_STATE;
+      call SFD.disable();
+      call SFD.enableCapture(TRUE);
+      sendCompleted(FAIL);
+      break;
     }
     return;
   }
@@ -485,13 +548,17 @@ implementation {
     CC2420Header* header = getHeader(pMsg);
     CC2420Metadata* metadata = getMetadata(pMsg);
     uint8_t currentstate;
-    atomic currentstate = stateRadio;
-
+    bool acksEnabled;
+    
+    atomic {
+      currentstate = stateRadio;
+      acksEnabled = bAckEnable;
+    }
     if (currentstate == IDLE_STATE) {
       atomic txbufptr = pMsg;
-
+      
       // put default FCF values in to get address checking to pass
-      if (bAckEnable) 
+      if (acksEnabled) 
         header->fcf = CC2420_DEF_FCF_ACK;
       else 
         header->fcf = CC2420_DEF_FCF;
@@ -559,7 +626,7 @@ implementation {
     if (!_bPacketReceiving) {
       uint8_t* ptr;
       atomic ptr = (uint8_t*)getHeader(rxbufptr);
-      if (call HPLChipconFIFO.readRXFIFO(len, ptr) != SUCCESS) {
+      if (call CC2420Fifo.readRxFifo(ptr, len) != SUCCESS) {
 	atomic bPacketReceiving = FALSE;
 	post delayedRXFIFOtask();
       }      
@@ -582,22 +649,22 @@ implementation {
    *  rxbufptr->rssi is CRC + Correlation value
    *  rxbufptr->strength is RSSI
    **********************************************************/
-   async event error_t FIFOP.fired() {
+   async event void FIFOP.fired() {
      // if we're trying to send a message and a FIFOP interrupt
      // occurs, we need to backoff longer so that we don't interfere
      // with a possible ACK. We could inspect the packet to see if
      // it has requested an ACK, 
      if (stateRadio == PRE_TX_STATE) {
-       if (call BackoffTimerJiffy.isRunning()) {
-         call BackoffTimerJiffy.stop();
-         call BackoffTimerJiffy.startNow((signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) + CC2420_ACK_DELAY);
+       if (call BackoffTimer.isRunning()) {
+         call BackoffTimer.stop();
+         call BackoffTimer.startNow((signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) + CC2420_ACK_DELAY);
        }
      }
      //     call Leds.led1Toggle();
      /** Check for RXFIFO overflow **/     
      if (!call CC_FIFO.get()){
        flushRXFIFO();
-       return SUCCESS;
+       return;
      }
      atomic {
        //call Leds.led2Toggle();
@@ -609,32 +676,33 @@ implementation {
        }
      }
      
-     // return SUCCESS to keep FIFOP events occurring
-     return SUCCESS;
-  }
+     return;
+   }
 
   /**
    * After the buffer is received from the RXFIFO,
    * process it, then post a task to signal it to the higher layers
    */
-  async event error_t HPLChipconFIFO.RXFIFODone(uint8_t length, uint8_t *data) {
+   async event void CC2420Fifo.readRxFifoDone(uint8_t *data, uint8_t len, error_t err) {
     // JP NOTE: rare known bug in high contention:
     // radio stack will receive a valid packet, but for some reason the
     // length field will be longer than normal.  The packet data will
     // be valid up to the correct length, and then will contain garbage
     // after the correct length.  There is no currently known fix.
     uint8_t currentstate;
+    bool acksEnabled;
     atomic { 
       currentstate = stateRadio;
+      acksEnabled = bAckEnable;
     }
 
     // if a FIFO overflow occurs or if the data length is invalid, flush
     // the RXFIFO to get back to a normal state.
     if ((!call CC_FIFO.get() && !call CC_FIFOP.get()) 
-        || (length == 0) || (length > MAC_DATA_SIZE)) {
+        || (len == 0) || (len > MAC_DATA_SIZE)) {
       flushRXFIFO();
       atomic bPacketReceiving = FALSE;
-      return SUCCESS;
+      return;
     }
     atomic {
       if (getHeader(rxbufptr) != (CC2420Header*)data) {
@@ -647,20 +715,20 @@ implementation {
     }
 
     // check for an acknowledgement that passes the CRC check
-    if (bAckEnable &&
+    if (acksEnabled &&
 	(currentstate == POST_TX_STATE) &&
 	(((getHeader(rxbufptr)->fcf) & CC2420_DEF_FCF_TYPE_MASK) == CC2420_DEF_FCF_TYPE_ACK) &&
 	(getHeader(rxbufptr)->dsn == currentDSN) &&
-	((data[length-1] >> 7) == 1)) {
+	((data[len-1] >> 7) == 1)) {
       atomic {
         getMetadata(txbufptr)->ack = 1;
-        getMetadata(txbufptr)->strength = data[length-2];
-        getMetadata(txbufptr)->lqi = data[length-1] & 0x7F;
+        getMetadata(txbufptr)->strength = data[len-2];
+        getMetadata(txbufptr)->lqi = data[len-1] & 0x7F;
         currentstate = POST_TX_ACK_STATE;
         bPacketReceiving = FALSE;
       }
       sendCompleted(SUCCESS);
-      return SUCCESS;
+      return;
     }
 
     // check for invalid packets
@@ -671,7 +739,7 @@ implementation {
     if ((getHeader(rxbufptr)->fcf & 0x1ff) != CC2420_DEF_FCF) {
       flushRXFIFO();
       atomic bPacketReceiving = FALSE;
-      return SUCCESS;
+      return;
     }
 
     //getHeader(rxbufptr)->length -= MAC_HEADER_SIZE + MAC_FOOTER_SIZE;
@@ -679,18 +747,18 @@ implementation {
     if (getHeader(rxbufptr)->length > TOSH_DATA_LENGTH + MAC_HEADER_SIZE + MAC_FOOTER_SIZE) {
       flushRXFIFO();
       atomic bPacketReceiving = FALSE;
-      return SUCCESS;
+      return;
     }
 
     // adjust destination to the right byte order
     //getHeaderrxbufptr->addr = fromLSB16(rxbufptr->addr);
  
     // if the length is shorter, we have to move the CRC bytes
-    getMetadata(rxbufptr)->crc = data[length-1] >> 7;
+    getMetadata(rxbufptr)->crc = data[len-1] >> 7;
     // put in RSSI
-    getMetadata(rxbufptr)->strength = data[length-2];
+    getMetadata(rxbufptr)->strength = data[len-2];
     // put in LQI
-    getMetadata(rxbufptr)->lqi = data[length-1] & 0x7F;
+    getMetadata(rxbufptr)->lqi = data[len-1] & 0x7F;
 
     atomic {
       if (post PacketRcvd() != SUCCESS) {
@@ -700,30 +768,30 @@ implementation {
 
     if ((!call CC_FIFO.get()) && (!call CC_FIFOP.get())) {
         flushRXFIFO();
-	return SUCCESS;
+	return;
     }
 
     if (!(call CC_FIFOP.get())) {
       if (post delayedRXFIFOtask() == SUCCESS)
-	return SUCCESS;
+	return;
     }
     flushRXFIFO();
     //    call FIFOP.startWait(FALSE);
 
-    return SUCCESS;
+    return;
   }
 
   /**
    * Notification that the TXFIFO has been filled with the data from the packet
    * Next step is to try to send the packet
    */
-  async event error_t HPLChipconFIFO.TXFIFODone(uint8_t length, uint8_t *data) { 
+   async event void CC2420Fifo.writeTxFifoDone(uint8_t *data, uint8_t len, error_t err) { 
      tryToSend();
-     return SUCCESS;
+     return;
   }
 
   /** Enable link layer hardware acknowledgements **/
-  async command error_t AckControl.enable() {
+  async command error_t Acks.enable() {
     atomic bAckEnable = TRUE;
     call CC2420Control.enableAddrDecode();
     call CC2420Control.enableAutoAck();
@@ -731,36 +799,39 @@ implementation {
   }
 
   /** Disable link layer hardware acknowledgements **/
-  async command error_t AckControl.disable() {
+  async command error_t Acks.disable() {
     atomic bAckEnable = FALSE;
     call CC2420Control.disableAddrDecode();
     call CC2420Control.disableAutoAck();
     return SUCCESS;
   }
 
+  async command bool Acks.wasAcked(message_t* msg) {
+    CC2420Metadata* md = getMetadata(msg);
+    return md->ack;
+  }
+  
   /**
    * How many basic time periods to back off.
    * Each basic time period consists of 20 symbols (16uS per symbol)
    */
  default async event uint16_t CSMABackoff.initial(message_t* m) {
-    return (call Random.rand16() & 0xF) + 1;
+    return (call Random.rand16() & 0x1F) + 1;
   }
   /**
    * How many symbols to back off when there is congestion 
    * (16uS per symbol * 20 symbols/block)
    */
   default async event uint16_t CSMABackoff.congestion(message_t* m) {
-    return (call Random.rand16() & 0x3F) + 1;
+    return (call Random.rand16() & 0x7) + 1;
   }
 
 // Default events for radio send/receive coordinators do nothing.
 // Be very careful using these, you'll break the stack.
 // The "byte()" event is never signalled because the CC2420 is a packet
 // based radio.
-default async event void RadioSendCoordinator.startSymbol(uint8_t bitsPerBlock, uint8_t offset, message_t* msgBuff) { }
-default async event void RadioSendCoordinator.byte(message_t* msg, uint8_t byteCount) { }
-default async event void RadioReceiveCoordinator.startSymbol(uint8_t bitsPerBlock, uint8_t offset, message_t* msgBuff) { }
-default async event void RadioReceiveCoordinator.byte(message_t* msg, uint8_t byteCount) { }
+ default async event void TimeStamp.receivedSFD(uint16_t time, message_t* buf) {}
+ default async event void TimeStamp.transmittedSFD(uint16_t time, message_t* buf) {}
 
  command error_t Send.cancel(message_t* msg) {
    return FAIL;

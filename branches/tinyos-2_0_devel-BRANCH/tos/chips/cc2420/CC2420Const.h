@@ -1,5 +1,25 @@
-// $Id: CC2420Const.h,v 1.1.2.5 2005-08-29 00:46:56 scipio Exp $
 /*
+ * "Copyright (c) 2005 Stanford University. All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation for any purpose, without fee, and without written
+ * agreement is hereby granted, provided that the above copyright
+ * notice, the following two paragraphs and the author appear in all
+ * copies of this software.
+ * 
+ * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+ * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
+ * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ * ENHANCEMENTS, OR MODIFICATIONS."
+ *
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
  *
@@ -21,13 +41,13 @@
  */
 
 /**
- * ChipCon 2420 radio constants.
+ * ChipCon 2420 radio constants and structures.
  *
  * <pre>
- *  $Id: CC2420Const.h,v 1.1.2.5 2005-08-29 00:46:56 scipio Exp $
+ *  $Id: CC2420Const.h,v 1.1.2.6 2005-09-11 19:31:59 scipio Exp $
  * </pre>
  *
- * @author Phil Levis
+ * @author Philip Levis
  * @author Joe Polastre
  * @date   August 28 2005
  */
@@ -309,11 +329,19 @@ typedef uint8_t cc2420_so_status_t;
 // STATUS Bit Posititions
 enum {
   CC2420_XOSC16M_STABLE	= 6,
-  //CC2420_TX_UNDERFLOW   = 5,
+  CC2420_TX_UNDERFLOW   = 1 << 5,
   //CC2420_ENC_BUSY       = 1 << 4,
   CC2420_TX_ACTIVE      = 1 << 3,
   //CC2420_LOCK           = 2,
   //CC2420_RSSI_VALID     = 1,
 };
+
+enum {
+  CC2420_RAM_OP           = 0x80,
+  CC2420_REG_READ_OP      = 0x40,
+  CC2420_RAM_READ_OP      = 0x1,
+  CC2420_RAM_WRITE_OP      = 0x0,
+};
+
 
 #endif /* _CC2420CONST_H */
