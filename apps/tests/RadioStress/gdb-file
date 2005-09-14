@@ -1,0 +1,8 @@
+define printTxPps 
+  print RadioStressC$txCounter / RadioStressC$timerCounter 
+  end
+
+define printRxPps 
+  print RadioStressC$rxCounter / RadioStressC$timerCounter
+  end
+
