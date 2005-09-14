@@ -54,7 +54,7 @@
  * platform-specific abstractions (such as SPI access and pins).
  * 
  * <pre>
- *   $Id: CC2420RadioC.nc,v 1.1.2.3 2005-09-11 19:31:59 scipio Exp $
+ *   $Id: CC2420RadioC.nc,v 1.1.2.4 2005-09-14 01:09:40 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -100,6 +100,7 @@ implementation
   Radio.CC2420SplitControl -> Control;
   Radio.CC2420Control      -> Control;
   Radio.CC2420Fifo         -> CC2420Platform;
+  Radio.SpiBus             -> CC2420Platform;
   Radio.FIFOP              -> CC2420Platform.InterruptFIFOP;
   Radio.SFD                -> CC2420Platform.CaptureSFD;
   Radio.RXFIFO             -> CC2420Platform.RXFIFO;
