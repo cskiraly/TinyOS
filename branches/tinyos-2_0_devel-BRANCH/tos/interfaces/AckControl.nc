@@ -28,7 +28,7 @@
  * @author Joe Polastre
  * @date   August 31 2005
  */
-interface AckControl {
+interface PacketAcks {
 
   /**
    * Enable acknowledgments.
@@ -48,4 +48,15 @@ interface AckControl {
 
   async command error_t disable();
 
+  /**
+   * Whether or not a given packet was acknowledged. If a packet
+   * layer does not support acknowledgements, this must return always
+   * return FALSE.
+   *
+   * @return bool Whether the packet was acknowledged.
+   *
+   */
+  
+  async command bool wasAcked(message_t* msg);
+  
 }

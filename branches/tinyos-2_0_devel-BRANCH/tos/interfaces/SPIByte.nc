@@ -1,4 +1,4 @@
-// $Id: SPIByte.nc,v 1.1.2.2 2005-05-20 20:45:45 jpolastre Exp $
+// $Id: SPIByte.nc,v 1.1.2.3 2005-09-14 01:07:04 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -28,5 +28,5 @@ interface SPIByte
   /**
    * Synchronous transmit and receive (can be in interrupt context)
    */
-  async command uint8_t tx(uint8_t val);
+  async command uint8_t write(uint8_t val);
 }
