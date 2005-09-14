@@ -1,4 +1,4 @@
-// $Id: Capture.nc,v 1.1.2.2 2005-04-21 22:10:13 jpolastre Exp $
+// $Id: Capture.nc,v 1.1.2.3 2005-09-14 01:07:04 scipio Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -21,11 +21,12 @@
  */
 
 /**
+ * Interface for microcontroller-independent 32kHz timer capture events.
+ * 
+ * @author Philip Levis
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.2 $
+ * @date   September 9 2005
  *
- * Interface for providing Timing and Capture events in a microcontroller
- * independent manner.
  */
 
 includes TinyError;
@@ -33,29 +34,25 @@ includes TinyError;
 interface Capture {
 
   /** 
-   * Enable an edge based timer capture
+   * Enable an edge based timer capture event.
    *
    * @param low_to_high TRUE if the edge capture should occur on
    *        a low to high transition, FALSE for high to low.
    *
-   * @return SUCCESS if the timer capture has been enabled
+   * @return Whether the timer capture has been enabled.
    */
   async command error_t enableCapture(bool low_to_high);
 
   /**
    * Fired when an edge interrupt occurs.
    *
-   * @param val the raw value of the timer captured at 32kHz resolution
+   * @param val The value of the 32kHz timer.
    *
-   * @return SUCCESS to keep the interrupt enabled, FAIL to disable
-   *         the interrupt
    */
-  async event error_t captured(uint32_t time);
+  async event void captured(uint16_t time);
 
   /**
-   * Diables a capture interrupt
-   * 
-   * @return SUCCESS if the interrupt has been disabled
+   * Disable further captures.
    */ 
-  async command error_t disable();
+  async command void disable();
 }

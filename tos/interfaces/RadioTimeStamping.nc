@@ -19,31 +19,34 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
  */
-/*
- *
- * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.4 $
+/**
  *
  * Interface for receiving time stamp information from the radio.
+ * This information is generally embedded in packet metadata, so it's
+ * not clear if it's needed.
+ *
+ * @author Philip Levis
+ * @author Joe Polastre
+ * @date   September 11 2005
+ *
  */
 
-/**
- * Radio time stamping interface for start-of-frame delimiter information
- */
 interface RadioTimeStamping
 {
   /** 
-   * Receive an event that the SFD has been transmitted
+   * Provides the time at which start of frame delimiter has been
+   * transmitted: units are in terms of a 32kHz clock.
    */
-  async event void txSFD(uint32_t time, message_t* msgBuff);
-
+  async event void transmittedSFD(uint16_t time, message_t* msgBuff);
+  
   /** 
-   * Receive an event that the SFD has been received.
-   * NOTE: receiving an rxSFD() event does NOT mean that a packet
-   * will be fully received; the transmission may stop, become
-   * corrupted, or be filtered by the physical or link layers.
-   * The number of rxSFD events will always be great than or equal
-   * to the number of Receive message events.
+   * Provides the time at which start of frame delimiter was received:
+   * units are in terms of a 32kHz clock.  <b>NOTE</b> that receiving
+   * a receivedSFD() event does NOT mean that a packet will be
+   * received; the transmission may stop, become corrupted, or be
+   * filtered by the physical or link layers.  The number of rxSFD
+   * events will always be great than or equal to the number of
+   * Receive message events.
    */
-  async event void rxSFD(uint32_t time, message_t* msgBuff);
+  async event void receivedSFD(uint16_t time, message_t* msgBuff);
 }
