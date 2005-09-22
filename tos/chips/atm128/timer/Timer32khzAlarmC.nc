@@ -1,4 +1,4 @@
-/// $Id: Timer32khzAlarmC.nc,v 1.1.2.2 2005-08-23 00:07:45 idgay Exp $
+/// $Id: Timer32khzAlarmC.nc,v 1.1.2.3 2005-09-22 00:46:26 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -34,11 +34,11 @@ configuration Timer32khzAlarmC
 implementation
 {
   components HplTimerC,
-      new Atm128AlarmP(T32khz,uint8_t) as HalAlarm,
-      new TransformAlarmC(T32khz,uint16_t,T32khz,uint8_t,0) as Transform16,
-      new TransformAlarmC(T32khz,uint32_t,T32khz,uint16_t,0) as Transform32,
-      Timer32khzCounterC as Counter
-      ;
+    new Atm128AlarmP(T32khz, uint8_t, ATM128_CLK8_NORMAL) as HalAlarm,
+    new TransformAlarmC(T32khz,uint16_t,T32khz,uint8_t,0) as Transform16,
+    new TransformAlarmC(T32khz,uint32_t,T32khz,uint16_t,0) as Transform32,
+    Timer32khzCounterC as Counter
+    ;
 
   // Top-level interface wiring
   Alarm32khz16 = Transform16;
