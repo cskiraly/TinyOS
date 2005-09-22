@@ -53,7 +53,7 @@
  * is platform independent.
  *
  * <pre>
- *  $Id: CC2420ControlP.nc,v 1.1.2.1 2005-09-11 19:31:59 scipio Exp $
+ *  $Id: CC2420ControlP.nc,v 1.1.2.2 2005-09-22 00:45:01 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -482,9 +482,13 @@ implementation
   async event void Ram.writeDone(uint16_t addr, uint8_t* buf, uint8_t length, error_t err) {}
 
   async event void CCA.fired() {
+    uint8_t oldState;
     // reset the CCA pin back to the CCA function
     call IOCFG1.write(0);
-    post PostOscillatorOn();
+    atomic oldState = state;
+    if (oldState == START_STATE) {
+      post PostOscillatorOn();
+    }
     return;
   }
 	

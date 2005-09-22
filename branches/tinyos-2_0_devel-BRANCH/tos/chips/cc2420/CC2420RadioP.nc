@@ -57,7 +57,7 @@
  * configures register IOCGF0 accordingly).
  * 
  * <pre>
- *   $Id: CC2420RadioP.nc,v 1.1.2.2 2005-09-14 01:09:40 scipio Exp $
+ *   $Id: CC2420RadioP.nc,v 1.1.2.3 2005-09-22 00:45:01 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -66,6 +66,8 @@
  *
  * @date August 28 2005
  */
+
+includes Timer;
 
 module CC2420RadioP {
   provides {
@@ -117,17 +119,17 @@ implementation {
     WARMUP_STATE,
 
     TIMER_INITIAL = 0,
-    TIMER_BACKOFF,
-    TIMER_ACK,
-    TIMER_ABORT,
-    TIMER_NONE
+    TIMER_BACKOFF = 1,
+    TIMER_ACK = 2,
+    TIMER_ABORT = 3,
+    TIMER_NONE = 4
   };
 
   enum {
-    CC2420_SEND_ABORT = 1500,
+    CC2420_SEND_ABORT = 32,
   };
 
-#define MAX_SEND_TRIES 8
+#define MAX_SEND_TRIES 2
 
   uint8_t countRetry;
   uint8_t stateRadio;
@@ -249,24 +251,28 @@ implementation {
   }
   
    inline error_t setInitialTimer( uint16_t jiffy ) {
+     call BackoffTimer.stop();
      atomic stateTimer = TIMER_INITIAL;
      call BackoffTimer.startNow(jiffy);
      return SUCCESS;
    }
 
    inline error_t setBackoffTimer( uint16_t jiffy ) {
+     call BackoffTimer.stop();
      atomic stateTimer = TIMER_BACKOFF;
      call BackoffTimer.startNow(jiffy);
      return SUCCESS;
    }
 
    inline error_t setAckTimer( uint16_t jiffy ) {
+     call BackoffTimer.stop();
      atomic stateTimer = TIMER_ACK;
      call BackoffTimer.startNow(jiffy);
      return SUCCESS;
    }
 
    inline error_t setAbortTimer(uint16_t jiffy) {
+     call BackoffTimer.stop();
      atomic stateTimer = TIMER_ABORT;
      call BackoffTimer.startNow(jiffy);
      return SUCCESS;
@@ -400,6 +406,8 @@ implementation {
       call SFD.enableCapture(TRUE);
       call STXONCCA.cmd();
       sendStatus = status = call SNOP.cmd();
+    }
+    atomic {
       if (status & CC2420_TX_ACTIVE) {
 	stateRadio = TX_STATE;
 	setAbortTimer(CC2420_SEND_ABORT);
@@ -476,7 +484,7 @@ implementation {
       // revert to receive SFD capture
       call SFD.enableCapture(TRUE);
       // if acks are enabled and it is a unicast packet, wait for the ack
-      if ((acksEnabled) && (getHeader(myTxPtr)->addr != TOS_BCAST_ADDR)) {
+      if ((acksEnabled)) {// && (getHeader(myTxPtr)->addr != TOS_BCAST_ADDR)) {
         if (setAckTimer(CC2420_ACK_DELAY) != SUCCESS) {
 	  sendCompleted(FAIL);
 	  stopTimer();
@@ -585,7 +593,10 @@ implementation {
       break;
     case TIMER_ACK:
       if (currentstate == POST_TX_STATE) {
-        atomic getMetadata(txbufptr)->ack = 0;
+        atomic {
+	  getMetadata(txbufptr)->ack = 0;
+	  stateRadio = POST_TX_ACK_STATE;
+	}
         sendCompleted(SUCCESS);
       }
       break;
@@ -760,7 +771,7 @@ implementation {
    * process it, then post a task to signal it to the higher layers
    */
    async event void CC2420Fifo.readRxFifoDone(uint8_t *data, uint8_t len, error_t err) {
-    // JP NOTE: rare known bug in high contention:
+     // JP NOTE: rare known bug in high contention:
     // radio stack will receive a valid packet, but for some reason the
     // length field will be longer than normal.  The packet data will
     // be valid up to the correct length, and then will contain garbage
@@ -793,23 +804,27 @@ implementation {
 	// empty statement.
       }
     }
-
+    
     // check for an acknowledgement that passes the CRC check
-    if (acksEnabled &&
-	(currentstate == POST_TX_STATE) &&
-	(((getHeader(rxbufptr)->fcf) & CC2420_DEF_FCF_TYPE_MASK) == CC2420_DEF_FCF_TYPE_ACK) &&
-	(getHeader(rxbufptr)->dsn == currentDSN) &&
-	((data[len-1] >> 7) == 1)) {
-      atomic {
-        getMetadata(txbufptr)->ack = 1;
-        getMetadata(txbufptr)->strength = data[len-2];
-        getMetadata(txbufptr)->lqi = data[len-1] & 0x7F;
-        currentstate = POST_TX_ACK_STATE;
-        bPacketReceiving = FALSE;
+    if (acksEnabled) {
+      if (currentstate == POST_TX_STATE) {
+	if (((getHeader(rxbufptr)->fcf) & CC2420_DEF_FCF_TYPE_MASK) == CC2420_DEF_FCF_TYPE_ACK) {
+	  if (getHeader(rxbufptr)->dsn == currentDSN) {
+	    if ((data[len-1] >> 7) == 1) {
+	      atomic {
+		getMetadata(txbufptr)->ack = 1;
+		getMetadata(txbufptr)->strength = data[len-2];
+		getMetadata(txbufptr)->lqi = data[len-1] & 0x7F;
+		currentstate = POST_TX_ACK_STATE;
+		bPacketReceiving = FALSE;
+	      }
+	      releaseBus();
+	      sendCompleted(SUCCESS);
+	      return;
+	    }
+	  }
+	}
       }
-      releaseBus();
-      sendCompleted(SUCCESS);
-      return;
     }
 
     // check for invalid packets
