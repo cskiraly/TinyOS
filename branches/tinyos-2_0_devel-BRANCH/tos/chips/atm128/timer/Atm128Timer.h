@@ -1,4 +1,4 @@
-/// $Id: Atm128Timer.h,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: Atm128Timer.h,v 1.1.2.2 2005-09-22 00:46:26 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,7 +22,14 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+/**
+ * This file contains the configuration constants for the Atmega128
+ * clocks and timers.
+ *
+ * @author Philip Levis
+ * @author Martin Turon
+ * @date   September 21 2005
+ */
 
 #ifndef _H_Atm128Timer_h
 #define _H_Atm128Timer_h
@@ -31,16 +38,28 @@
 
 // Timer0 and Timer2 are 8-bit timers.
 
-/** 8-bit Timer Clock Source Select Options */
+/* 8-bit Timer0 clock source select bits CS02, CS01, CS0 (page 103,
+   ATmega128L data sheet Rev. 2467M-AVR-11/04 */
 enum {
-    ATM128_CLK8_OFF = 0,
-    ATM128_CLK8_NORMAL = 1,
-    ATM128_CLK8_DIVIDE_8,
-    ATM128_CLK8_DIVIDE_32,
-    ATM128_CLK8_DIVIDE_64,
-    ATM128_CLK8_DIVIDE_128,
-    ATM128_CLK8_DIVIDE_256,
-    ATM128_CLK8_DIVIDE_1024,
+  ATM128_CLK8_OFF         = 0x0,
+  ATM128_CLK8_NORMAL      = 0x1,
+  ATM128_CLK8_DIVIDE_8    = 0x2,
+  ATM128_CLK8_DIVIDE_32   = 0x3,
+  ATM128_CLK8_DIVIDE_64   = 0x4,
+  ATM128_CLK8_DIVIDE_128  = 0x5,
+  ATM128_CLK8_DIVIDE_256  = 0x6,
+  ATM128_CLK8_DIVIDE_1024 = 0x7,
+};
+
+enum {
+  ATM128_CLK16_OFF           = 0x0,
+  ATM128_CLK16_NORMAL        = 0x1,
+  ATM128_CLK16_DIVIDE_8      = 0x2,
+  ATM128_CLK16_DIVIDE_64     = 0x3,
+  ATM128_CLK16_DIVIDE_256    = 0x4,
+  ATM128_CLK16_DIVIDE_1024   = 0x5,
+  ATM128_CLK16_EXTERNAL_FALL = 0x6,
+  ATM128_CLK16_EXTERNAL_RISE = 0x7,
 };
 
 /** Common scales across both 8-bit and 16-bit clocks. */
@@ -178,16 +197,6 @@ typedef Atm128TimerCtrlCompare_t Atm128_TCCR1A_t;
 
 /** Timer3 Compare Control Register A */
 typedef Atm128TimerCtrlCompare_t Atm128_TCCR3A_t;
-
-enum {
-    ATM128_CLK16_OFF = 0,
-    ATM128_CLK16_NORMAL = 1,
-    ATM128_CLK16_DIVIDE_8,
-    ATM128_CLK16_DIVIDE_64,
-    ATM128_CLK16_DIVIDE_256,
-    ATM128_CLK16_EXT_FALLING,
-    ATM128_CLK16_EXT_RISING
-};
 
 /** 16-bit Waveform Generation Modes */
 enum {

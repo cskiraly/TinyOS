@@ -1,4 +1,4 @@
-/// $Id: HplTimerC.nc,v 1.1.2.2 2005-08-23 00:07:10 idgay Exp $
+/// $Id: HplTimerC.nc,v 1.1.2.3 2005-09-22 00:46:26 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -29,6 +29,8 @@
 module HplTimerC
 {
   provides {
+    interface Init;
+    
     // 8-bit Timers
     interface HplTimer<uint8_t>   as Timer0;
     interface HplTimerCtrl8       as Timer0Ctrl;
@@ -56,6 +58,16 @@ module HplTimerC
 }
 implementation
 {
+
+  command error_t Init.init() {
+    SET_BIT(ASSR, AS0);  // set Timer/Counter0 to use 32,768khz crystal
+    call Timer0.setScale(ATM128_CLK8_OFF);
+    call Timer1.setScale(ATM128_CLK16_OFF);
+    call Timer2.setScale(ATM128_CLK8_OFF);
+    call Timer3.setScale(ATM128_CLK16_OFF);
+    return SUCCESS;
+  }
+  
   //=== Read the current timer value. ===================================
   async command uint8_t  Timer0.get() { return TCNT0; }
   async command uint8_t  Timer2.get() { return TCNT2; }
