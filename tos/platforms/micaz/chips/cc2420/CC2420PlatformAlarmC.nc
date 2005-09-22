@@ -66,7 +66,7 @@ configuration CC2420PlatformAlarmC {
   provides interface Alarm<T32khz, uint16_t>;
 }
 implementation {
-  components new Atm128AlarmP(T32khz, uint16_t);
+  components new Atm128AlarmP(T32khz, uint16_t, ATM128_CLK16_DIVIDE_256);
   components HplTimerC;
 
   Init = Atm128AlarmP;
