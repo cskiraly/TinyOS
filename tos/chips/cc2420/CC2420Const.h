@@ -44,7 +44,7 @@
  * ChipCon 2420 radio constants and structures.
  *
  * <pre>
- *  $Id: CC2420Const.h,v 1.1.2.6 2005-09-11 19:31:59 scipio Exp $
+ *  $Id: CC2420Const.h,v 1.1.2.7 2005-09-22 00:45:01 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -142,7 +142,7 @@ enum {
  
 // delay when waiting for the ack
 #ifndef CC2420_ACK_DELAY
-  CC2420_ACK_DELAY =           75,
+  CC2420_ACK_DELAY =           24,
 #endif
 
 #ifndef CC2420_XOSC_TIMEOUT
