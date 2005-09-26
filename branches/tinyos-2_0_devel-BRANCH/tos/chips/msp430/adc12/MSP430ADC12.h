@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2005-06-08 08:08:16 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2005-09-26 17:51:20 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -36,7 +36,6 @@
 #ifndef MSP430ADC12_H
 #define MSP430ADC12_H
 #include "RefVoltGenerator.h"
-#include "ADC.h"
 
 typedef enum
 {
