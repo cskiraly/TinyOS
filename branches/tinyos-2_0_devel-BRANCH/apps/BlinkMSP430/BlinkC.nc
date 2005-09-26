@@ -1,11 +1,11 @@
-// $Id: BlinkC.nc,v 1.1.2.1 2005-02-09 00:33:12 cssharp Exp $
+// $Id: BlinkC.nc,v 1.1.2.2 2005-09-26 18:09:46 scipio Exp $
 
 configuration BlinkC
 {
 }
 implementation
 {
-  components Main, BlinkM, LedsC, MSP430TimerC;
+  components MainC as Main, BlinkM, LedsC, MSP430TimerC;
   BlinkM.Boot -> Main;
   Main.SoftwareInit -> LedsC;
   BlinkM.Leds -> LedsC;
