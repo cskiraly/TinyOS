@@ -29,8 +29,8 @@
  * - Description ----------------------------------------------------------
  * Implementation of UART0 lowlevel functionality - stateless.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-04-12 04:14:13 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-09-29 04:53:08 $
  * @author Jan Hauer 
  * @author Vlado Handziski
  * @author Joe Polastre
@@ -40,14 +40,15 @@
 includes msp430baudrates;
 
 module HPLUARTM {
-  provides interface HPLUART as UART;
+  provides interface Init;
+  provides interface SerialByteComm;
   uses interface HPLUSARTControl as USARTControl;
   uses interface HPLUSARTFeedback as USARTData;
 }
 implementation
 {
 
-  async command error_t UART.init() {
+  command error_t Init.init() {
     // set up the USART to be a UART
     call USARTControl.setModeUART();
     // use SMCLK
@@ -61,6 +62,7 @@ implementation
     return SUCCESS;
   }
 
+#if 0
   async command error_t UART.stop() {
     call USARTControl.disableRxIntr();
     call USARTControl.disableTxIntr();
@@ -68,22 +70,23 @@ implementation
     call USARTControl.disableUART();
     return SUCCESS;
   }
+#endif
 
-  async event void USARTData.rxDone(uint8_t b) {
-    signal UART.get(b);
+  async command error_t SerialByteComm.put(uint8_t data){
+    return call USARTControl.tx(data);
   }
 
   async event void USARTData.txDone() {
-    signal UART.putDone();
+    signal SerialByteComm.putDone();
   }
 
-  async command error_t UART.put(uint8_t data){
-    return call USARTControl.tx(data);
+  async event void USARTData.rxDone(uint8_t b) {
+    signal SerialByteComm.get(b);
   }
 
   async event void USARTData.rxOverflow() { }
 
-  default async event error_t UART.get(uint8_t data) { return SUCCESS; }
+  default async event void SerialByteComm.get(uint8_t data) { }
   
-  default async event error_t UART.putDone() { return SUCCESS; }
+  default async event void SerialByteComm.putDone() { }
 }
