@@ -23,25 +23,27 @@
  *
  * Authors:		Joe Polastre
  *
- * $Id: HPLUSART1C.nc,v 1.1.2.2 2005-05-20 20:45:14 jpolastre Exp $
+ * $Id: HPLUSART1C.nc,v 1.1.2.3 2005-09-29 04:53:08 gtolle Exp $
  */
 
 configuration HPLUSART1C
 {
   provides {
-    interface Init;
+//    interface Init;
     interface HPLUSARTControl;
     interface HPLUSARTFeedback;
-    interface BusArbitration[uint8_t id];
+//    interface BusArbitration[uint8_t id];
   }
 }
 implementation
 {
-  components HPLUSART1M, new BusArbitrationC("Bus.HPLUSART1") as BA, MSP430GeneralIOC as IO;
+  components HPLUSART1M;
+//  components new BusArbitrationC("Bus.HPLUSART1") as BA;
+  components MSP430GeneralIOC as IO;
 
-  Init = BA;
+//  Init = BA;
 
-  BusArbitration = BA;
+//  BusArbitration = BA;
 
   HPLUSARTControl = HPLUSART1M;
   HPLUSARTFeedback = HPLUSART1M;
