@@ -6,7 +6,7 @@ module PlatformP{
 }
 implementation {
   command error_t Init.init() {
-    TOSH_SET_PIN_DIRECTIONS();
+//    TOSH_SET_PIN_DIRECTIONS();
     call MSP430ClockInit.init();
     return SUCCESS;
   }
