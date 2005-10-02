@@ -1,4 +1,4 @@
-// $Id: SerialP.nc,v 1.1.2.2 2005-08-15 01:37:14 scipio Exp $
+// $Id: SerialP.nc,v 1.1.2.3 2005-10-02 22:08:02 scipio Exp $
 /*									
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
@@ -35,7 +35,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.2 $
+ * Revision: $Revision: 1.1.2.3 $
  * 
  */
 
@@ -63,6 +63,7 @@ module SerialP {
 
   provides {
     interface Init;
+    interface SplitControl;
     interface SendBytePacket;
     interface ReceiveBytePacket;
   }
@@ -70,6 +71,7 @@ module SerialP {
   uses {
     interface SerialFrameComm;
     interface Leds;
+    interface StdControl as SerialControl;
   }
 }
 implementation {
@@ -87,7 +89,8 @@ implementation {
     RXSTATE_NOSYNC,
     RXSTATE_PROTO,
     RXSTATE_TOKEN,
-    RXSTATE_INFO
+    RXSTATE_INFO,
+    RXSTATE_INACTIVE
   };
 
   enum {
@@ -101,6 +104,7 @@ implementation {
     TXSTATE_ENDWAIT,
     TXSTATE_FINISH,
     TXSTATE_ERROR,
+    TXSTATE_INACTIVE
   };
 
   typedef enum {
@@ -165,6 +169,7 @@ implementation {
   /* stats */
   radio_stats_t stats;
 
+  bool offPending = FALSE;
 
 #ifdef REENTRANT_SERIALM
   uint8_t RxReentered = 0;
@@ -407,6 +412,52 @@ implementation {
     }
   }
 
+  task void startDoneTask() {
+    call SerialControl.start();
+    signal SplitControl.startDone(SUCCESS);
+  }
+
+  task void stopDoneTask() {
+    call SerialControl.stop();
+    signal SplitControl.stopDone(SUCCESS);
+  }
+  
+  command error_t SplitControl.start() {
+    post startDoneTask();
+    return SUCCESS;
+  }
+
+  void testOff() {
+    bool turnOff = FALSE;
+    atomic {
+      if (TxState == TXSTATE_INACTIVE &&
+	  RxState == RXSTATE_INACTIVE) {
+	turnOff = TRUE;
+      }
+    }
+    if (turnOff) {
+      post stopDoneTask();
+      atomic offPending = FALSE;
+    }
+    else {
+      atomic offPending = TRUE;
+    }
+  }
+    
+  command error_t SplitControl.stop() {
+    atomic {
+      if (RxState == RXSTATE_NOSYNC) {
+	RxState = RXSTATE_INACTIVE;
+      }
+    }
+    atomic {
+      if (TxState == TXSTATE_IDLE) {
+	TxState = TXSTATE_INACTIVE;
+      }
+    }
+    testOff();
+    return SUCCESS;
+  }
 
   /*
    *  Receive Path
@@ -538,9 +589,12 @@ implementation {
     rxInit();
     call SerialFrameComm.resetReceive();
     signal ReceiveBytePacket.endPacket(FAIL);
-    
+    if (offPending) {
+      RxState = RXSTATE_INACTIVE;
+      testOff();
+    }
     /* if this was a flag, start in proto state.. */
-    if (isDelimeter) {
+    else if (isDelimeter) {
       RxState = RXSTATE_PROTO;
     }
     
@@ -652,37 +706,49 @@ implementation {
 
     /* if idle, set up next packet to TX */ 
     if (idle) {
-      /* acks are top priority */
-      uint8_t myAckState;
-      uint8_t myDataState;
-      atomic {
-        myAckState = TxBuf[TX_ACK_INDEX].state;
-        myDataState = TxBuf[TX_DATA_INDEX].state;
-      }
-      if (!ack_queue_is_empty() && myAckState == BUFFER_AVAILABLE) {
-        tx_buffer_push(TX_ACK_INDEX,ack_queue_top());
-        atomic TxBuf[TX_ACK_INDEX].state = BUFFER_COMPLETE;
-        TxProto = SERIAL_PROTO_ACK;
-        TxIndex = TX_ACK_INDEX;
-        start_it = TRUE;
-      }
-      else if (myDataState == BUFFER_FILLING || myDataState == BUFFER_COMPLETE){
-        TxProto = SERIAL_PROTO_PACKET_NOACK;
-        TxIndex = TX_DATA_INDEX;
-        start_it = TRUE;
+      bool goInactive;
+      atomic goInactive = offPending;
+      if (goInactive) {
+	atomic TxState = TXSTATE_INACTIVE;
       }
       else {
-        /* nothing to send now.. */
+	/* acks are top priority */
+	uint8_t myAckState;
+	uint8_t myDataState;
+	atomic {
+	  myAckState = TxBuf[TX_ACK_INDEX].state;
+	  myDataState = TxBuf[TX_DATA_INDEX].state;
+	}
+	if (!ack_queue_is_empty() && myAckState == BUFFER_AVAILABLE) {
+	  tx_buffer_push(TX_ACK_INDEX,ack_queue_top());
+	  atomic TxBuf[TX_ACK_INDEX].state = BUFFER_COMPLETE;
+	  TxProto = SERIAL_PROTO_ACK;
+	  TxIndex = TX_ACK_INDEX;
+	  start_it = TRUE;
+	}
+	else if (myDataState == BUFFER_FILLING || myDataState == BUFFER_COMPLETE){
+	  TxProto = SERIAL_PROTO_PACKET_NOACK;
+	  TxIndex = TX_DATA_INDEX;
+	  start_it = TRUE;
+	}
+	else {
+	  /* nothing to send now.. */
+	}
       }
     }
     else {
       /* we're in the middle of transmitting */
     }
-
+    
     if (send_completed){
       signal SendBytePacket.sendCompleted(result);
     }
 
+    if (TxState == TXSTATE_INACTIVE) {
+      testOff();
+      return;
+    }
+    
     if (start_it){
       /* OK, start transmitting ! */
       atomic { 
@@ -799,4 +865,7 @@ implementation {
     }
   }
 
+  
+ default event void SplitControl.startDone(error_t err) {}
+ default event void SplitControl.stopDone(error_t err) {}
 }

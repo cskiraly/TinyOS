@@ -1,4 +1,4 @@
-//$Id: SerialActiveMessageC.nc,v 1.1.2.4 2005-08-12 00:29:09 scipio Exp $
+//$Id: SerialActiveMessageC.nc,v 1.1.2.5 2005-10-02 22:08:02 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -33,6 +33,7 @@ includes Serial;
 configuration SerialActiveMessageC {
   provides {
     interface Init;
+    interface SplitControl;
     interface AMSend[am_id_t id];
     interface Receive[am_id_t id];
     interface Packet;
@@ -46,7 +47,8 @@ implementation {
 
   Init = SerialDispatcherC;
   Leds = SerialDispatcherC;
-
+  SplitControl = SerialDispatcherC;
+  
   AMSend = AM;
   Receive = AM;
   Packet = AM;

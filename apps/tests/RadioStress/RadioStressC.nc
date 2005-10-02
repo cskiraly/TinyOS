@@ -1,4 +1,4 @@
-// $Id: RadioStressC.nc,v 1.1.2.1 2005-09-14 15:13:57 scipio Exp $
+// $Id: RadioStressC.nc,v 1.1.2.2 2005-10-02 22:08:02 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -62,12 +62,14 @@ implementation {
   bool locked;
   bool resourceHeld;
   uint32_t txCounter = 0;
+  uint32_t ackCounter = 0;
   uint32_t rxCounter = 0;
   uint16_t timerCounter = 0;
+  uint16_t taskCounter = 0;
+  uint16_t errorCounter = 0;
   
   event void Boot.booted() {
     call Service.start();
-    call Timer.startPeriodicNow(1000);
   }
 
   task void sendTask();
@@ -76,7 +78,7 @@ implementation {
     RadioCountMsg* rcm = (RadioCountMsg*)call Packet.getPayload(&packet, NULL);
     if (locked) {return;}
     rcm->counter = txCounter;
-    if (call AMSend.send(AM_BROADCAST_ADDR, &packet, 28) == SUCCESS) {
+    if (call AMSend.send(AM_BROADCAST_ADDR, &packet, 3) == SUCCESS) {
       locked = TRUE;
     }
     else {
@@ -85,11 +87,13 @@ implementation {
   }
 
   task void sendTask() {
+    taskCounter++;
     sendPacket();
   }
   
   event void ServiceNotify.started() {
-    sendPacket();
+    call Timer.startPeriodicNow(1000);
+    call Acks.enable();
   }
 
   event void ServiceNotify.stopped() {
@@ -107,10 +111,17 @@ implementation {
   }
 
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {
-    if (call Acks.wasAcked(bufPtr) || 1) {
-      txCounter++;
-      if (txCounter % 32 == 0) {
-	call Leds.led1Toggle();
+    if (error != SUCCESS) {
+      errorCounter++;
+    }
+    txCounter++;
+    if (txCounter % 32 == 0) {
+      call Leds.led1Toggle();
+    }
+    if (call Acks.wasAcked(bufPtr)) {
+      ackCounter++;
+      if (ackCounter % 32 == 0) {
+	call Leds.led2Toggle();
       }
     }
     locked = FALSE;
@@ -119,7 +130,10 @@ implementation {
 
   event void Timer.fired() {
     timerCounter++;
-    call Leds.led2Toggle();
+    if (!locked) {
+      sendPacket();
+    }
+	
   }
 
 }
