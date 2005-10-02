@@ -1,4 +1,4 @@
-// $Id: AMSenderC.nc,v 1.1.2.1 2005-08-10 15:54:39 scipio Exp $
+// $Id: AMSenderC.nc,v 1.1.2.2 2005-10-02 22:08:02 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -43,6 +43,7 @@ generic configuration AMSenderC(am_id_t AMId) {
     interface AMSend;
     interface Packet;
     interface AMPacket;
+    interface PacketAcknowledgements as Acks;
   }
 }
 
@@ -52,4 +53,5 @@ implementation {
   AMSend = Impl.AMSend[AMId];
   Packet = Impl;
   AMPacket = Impl;
+  Acks = Impl;
 }

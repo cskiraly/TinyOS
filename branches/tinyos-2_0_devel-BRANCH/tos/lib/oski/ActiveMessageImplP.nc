@@ -1,4 +1,4 @@
-// $Id: ActiveMessageImplP.nc,v 1.1.2.1 2005-08-10 15:54:39 scipio Exp $
+// $Id: ActiveMessageImplP.nc,v 1.1.2.2 2005-10-02 22:08:02 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -48,6 +48,7 @@ configuration ActiveMessageImplP {
     interface Receive as Snoop[am_id_t id];
     interface Packet;
     interface AMPacket;
+    interface PacketAcknowledgements;
   }
 }
 
@@ -62,4 +63,5 @@ implementation {
   Snoop = ActiveMessageC.Snoop;
   Packet = ActiveMessageC;
   AMPacket = ActiveMessageC;
+  PacketAcknowledgements = ActiveMessageC;
 }
