@@ -34,7 +34,7 @@
  * @date August 28 2005
 
  * <pre>
- *  $Id: CC2420ActiveMessageC.nc,v 1.1.2.2 2005-09-11 19:31:59 scipio Exp $
+ *  $Id: CC2420ActiveMessageC.nc,v 1.1.2.3 2005-10-03 19:00:28 scipio Exp $
  * </pre>
  */
 
@@ -47,6 +47,7 @@ configuration CC2420ActiveMessageC {
     interface Receive as Snoop[am_id_t id];
     interface AMPacket;
     interface Packet;
+    interface CSMABackoff;
     interface PacketAcknowledgements;
   }
 }
@@ -64,6 +65,7 @@ implementation {
   Snoop    = AM.Snoop;
   AMPacket = AM;
   PacketAcknowledgements = Radio;
+  CSMABackoff = Radio;
   
   AM.SubSend    -> Radio.Send;
   AM.SubReceive -> Radio.Receive;
