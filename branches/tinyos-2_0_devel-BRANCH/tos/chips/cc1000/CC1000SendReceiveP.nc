@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.4 2005-10-02 22:08:02 scipio Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.5 2005-10-05 22:28:28 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -155,6 +155,7 @@ implementation
   void enterSyncState() {
     radioState = SYNC_STATE;
     count = 0;
+    rxShiftBuf = 0;
   }
 
   void enterRxState() {
