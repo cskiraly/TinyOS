@@ -1,4 +1,4 @@
-// $Id: PlatformLedsC.nc,v 1.1.2.1 2005-10-09 02:57:37 vlahan Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.2 2005-10-09 03:05:57 vlahan Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -26,7 +26,7 @@
  */
 includes hardware;
 
-configuration PlatformLeds
+configuration PlatformLedsC
 {
   provides interface GeneralIO as Led0;
   provides interface GeneralIO as Led1;
@@ -41,24 +41,20 @@ implementation
     , new GeneralIOM() as Led1Impl
     , new GeneralIOM() as Led2Impl
     , new GeneralIOM() as Led3Impl
-    , PlatformLedsM
     ;
 
   
-  Led0 = PlatformLedsM.Led0;
-  PlatformLedsM.Led0Impl -> Led0Impl.GeneralIO;
-  Led0Impl.MSP430GeneralIO -> MSP430GeneralIOC.Port50;
+  Led0 = Led0Impl;
+  Led0Impl -> MSP430GeneralIOC.Port50;
 
-  Led1 = PlatformLedsM.Led1;
-  PlatformLedsM.Led1Impl -> Led1Impl.GeneralIO;
-  Led1Impl.MSP430GeneralIO -> MSP430GeneralIOC.Port51;
+  Led1 = Led1Impl;
+  Led1Impl -> MSP430GeneralIOC.Port51;
 
-  Led2 = PlatformLedsM.Led2;
-  PlatformLedsM.Led2Impl -> Led2Impl.GeneralIO;
-  Led2Impl.MSP430GeneralIO -> MSP430GeneralIOC.Port52;
-  
-  Led3 = PlatformLedsM.Led3;
-  PlatformLedsM.Led3Impl -> Led3Impl.GeneralIO;
-  Led3Impl.MSP430GeneralIO -> MSP430GeneralIOC.Port53;
+  Led2 = Led2Impl;
+  Led2Impl -> MSP430GeneralIOC.Port52;
+
+  Led3 = Led3Impl;
+  Led3Impl -> MSP430GeneralIOC.Port53;
+
 }
 
