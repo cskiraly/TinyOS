@@ -27,15 +27,20 @@
  * @date   August 31 2005
  *
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.6 $
+ * Date last modified:  $Revision: 1.1.2.1 $
  *
  * MacControl interface for tuning the parameters of the MAC protocol
  */
 
-/**
- * Mac Control Interface
- */
-interface CSMAControl {
-  async command error_t enableCCA();
-  async command error_t disableCCA();
+interface TransmitControl {
+  /**
+   * HaltTx() is used to halt whatever message is being sent on the
+   * radio, regardless of knowing which message is being sent.
+   * HaltTx(), when successful, always results in a sendDone() event 
+   * from the Send interface.
+   *
+   * @return NULL if nothing was being sent or the command failed,
+   *         otherwise a message_t* pointer to the message being sent
+   */
+  async command message_t* haltTx();
 }
