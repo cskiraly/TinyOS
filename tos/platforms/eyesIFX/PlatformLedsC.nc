@@ -1,4 +1,4 @@
-// $Id: PlatformLeds.nc,v 1.1.2.1 2005-05-24 17:14:47 klueska Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.1 2005-10-09 02:57:37 vlahan Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
