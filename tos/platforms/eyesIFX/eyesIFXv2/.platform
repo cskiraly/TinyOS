@@ -21,6 +21,8 @@ push( @includes, qw(
   %T/chips/msp430/bus_resource
   %T/chips/msp430/timer
   %T/lib/timer  
+  %T/lib/serial
+  %T/lib/adc
   %T/lib/ByteRadio  
 
 ) );
@@ -31,7 +33,7 @@ push( @includes, qw(
   -mmcu=msp430x1611
   -fnesc-target=msp430
   -fnesc-no-debug
-  -fnesc-scheduler=TinyScheduler,TinyScheduler.TaskBasic,TaskBasic,TaskBasic,runTask,postTask  
+  -fnesc-scheduler=TinySchedulerC,TinySchedulerC.TaskBasic,TaskBasic,TaskBasic,runTask,postTask  
 
 );
 
