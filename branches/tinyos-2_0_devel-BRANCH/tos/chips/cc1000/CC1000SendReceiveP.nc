@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.6 2005-10-09 16:14:25 scipio Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.7 2005-10-09 16:29:20 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -61,7 +61,7 @@ module CC1000SendReceiveP {
     interface RadioTimeStamping;
     interface Packet;
     interface ByteRadio;
-    interface PacketAcknowledgments;
+    interface PacketAcknowledgements;
   }
   uses {
     //interface PowerManagement;
@@ -635,15 +635,15 @@ implementation
     return (void*)msg->data;
   }
 
-  command error_t PacketAcknowledgments.enable() {
-    return SUCCESS;
+  command error_t PacketAcknowledgements.enable() {
+    return ByteRadio.setAck(TRUE);
   }
 
-  command error_t PacketAcknowledgments.disable() {
-    return FAIL;
+  command error_t PacketAcknowledgements.disable() {
+    return ByteRadio.setAck(FALSE);
   }
 
-  command bool PacketAcknowledgments.wasAcked(message_t* msg) {
+  command bool PacketAcknowledgements.wasAcked(message_t* msg) {
     CC1KMetadata* md = getMetadata(msg);
     return md->ack;
   }

@@ -1,4 +1,4 @@
-// $Id: CC1000CsmaP.nc,v 1.1.2.2 2005-08-15 19:28:28 idgay Exp $
+// $Id: CC1000CsmaP.nc,v 1.1.2.3 2005-10-09 16:29:20 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -53,6 +53,7 @@ module CC1000CsmaP {
   provides {
     interface Init;
     interface SplitControl;
+    interface TransmitControl;
     interface CSMAControl;
     interface CSMABackoff;
     interface LowPowerListening;
@@ -459,19 +460,9 @@ implementation
   /* Options */
   /*---------*/
 
-  async command message_t* CSMAControl.haltTx() {
+  async command message_t* TransmitControl.haltTx() {
     /* We simply ignore cancellations. */
     return NULL;
-  }
-
-  async command error_t CSMAControl.enableAck() {
-    call ByteRadio.setAck(TRUE);
-    return SUCCESS;
-  }
-
-  async command error_t CSMAControl.disableAck() {
-    call ByteRadio.setAck(FALSE);
-    return SUCCESS;
   }
 
   async command error_t CSMAControl.enableCCA() {

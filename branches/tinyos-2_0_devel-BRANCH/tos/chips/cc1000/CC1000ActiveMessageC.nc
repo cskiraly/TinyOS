@@ -1,4 +1,4 @@
-// $Id: CC1000ActiveMessageC.nc,v 1.1.2.3 2005-10-09 16:14:25 scipio Exp $
+// $Id: CC1000ActiveMessageC.nc,v 1.1.2.4 2005-10-09 16:29:19 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: CC1000ActiveMessageC.nc,v 1.1.2.3 2005-10-09 16:14:25 scipio Exp $
+ * Date last modified:  $Id: CC1000ActiveMessageC.nc,v 1.1.2.4 2005-10-09 16:29:19 scipio Exp $
  *
  */
 
@@ -56,7 +56,7 @@ configuration CC1000ActiveMessageC {
     interface Receive as Snoop[am_id_t id];
     interface AMPacket;
     interface Packet;
-    interface PacketAcknowledgments;
+    interface PacketAcknowledgements;
   }
 }
 implementation {
@@ -67,7 +67,7 @@ implementation {
   Init         = Radio;
   SplitControl = Radio;
   Packet       = Radio;
-  PacketAcknowledgments = Radio;
+  PacketAcknowledgements = Radio;
 
   AMSend   = AM;
   Receive  = AM.Receive;
