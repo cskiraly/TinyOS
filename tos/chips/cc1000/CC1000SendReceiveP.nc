@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.5 2005-10-05 22:28:28 idgay Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.6 2005-10-09 16:14:25 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -61,6 +61,7 @@ module CC1000SendReceiveP {
     interface RadioTimeStamping;
     interface Packet;
     interface ByteRadio;
+    interface PacketAcknowledgments;
   }
   uses {
     //interface PowerManagement;
@@ -632,6 +633,19 @@ implementation
       *len = header->length;
     }
     return (void*)msg->data;
+  }
+
+  command error_t PacketAcknowledgments.enable() {
+    return SUCCESS;
+  }
+
+  command error_t PacketAcknowledgments.disable() {
+    return FAIL;
+  }
+
+  command bool PacketAcknowledgments.wasAcked(message_t* msg) {
+    CC1KMetadata* md = getMetadata(msg);
+    return md->ack;
   }
   // Default events for radio send/receive coordinators do nothing.
   // Be very careful using these, or you'll break the stack.
