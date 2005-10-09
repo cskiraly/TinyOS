@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.7 2005-10-09 16:29:20 scipio Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.8 2005-10-09 16:35:35 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -635,15 +635,17 @@ implementation
     return (void*)msg->data;
   }
 
-  command error_t PacketAcknowledgements.enable() {
-    return ByteRadio.setAck(TRUE);
+  async command error_t PacketAcknowledgements.enable() {
+    call ByteRadio.setAck(TRUE);
+    return SUCCESS;
   }
 
-  command error_t PacketAcknowledgements.disable() {
-    return ByteRadio.setAck(FALSE);
+  async command error_t PacketAcknowledgements.disable() {
+    call ByteRadio.setAck(FALSE);
+    return SUCCESS;
   }
 
-  command bool PacketAcknowledgements.wasAcked(message_t* msg) {
+  async command bool PacketAcknowledgements.wasAcked(message_t* msg) {
     CC1KMetadata* md = getMetadata(msg);
     return md->ack;
   }
