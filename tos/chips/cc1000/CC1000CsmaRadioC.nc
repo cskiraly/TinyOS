@@ -1,4 +1,4 @@
-/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.6 2005-10-09 16:14:25 scipio Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.7 2005-10-09 16:29:20 scipio Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -43,7 +43,7 @@
  *
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.6 $
+ * Revision:  $Revision: 1.1.2.7 $
  */
 
 #include "CC1000Const.h"
@@ -60,7 +60,7 @@ configuration CC1000CsmaRadioC {
     interface CSMAControl;
     interface CSMABackoff;
     interface RadioTimeStamping;
-    interface PacketAcknowledgments;
+    interface PacketAcknowledgements;
 
     interface LowPowerListening;
   }
@@ -88,7 +88,7 @@ implementation {
   CSMABackoff = Csma;
   LowPowerListening = Csma;
   RadioTimeStamping = SendReceive;
-  PacketAcknowledgments = SendReceive;
+  PacketAcknowledgements = SendReceive;
 
   Csma.CC1000Control -> Control;
   Csma.Random -> RandomC;
