@@ -1,4 +1,4 @@
-//$Id: SerialDispatcherP.nc,v 1.1.2.2 2005-08-10 21:31:29 scipio Exp $
+//$Id: SerialDispatcherP.nc,v 1.1.2.3 2005-10-10 20:33:37 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -112,8 +112,10 @@ implementation {
         sendError = SUCCESS;
         sendCancelled = FALSE;
         sendBuffer = (uint8_t*)msg;
-        sendLen = call PacketInfo.dataLinkLength[id](msg, len);
         sendIndex = call PacketInfo.offset[id]();
+	// sendLen is where in the buffer the packet stops.
+	// This is the length of the packet, plus its start point
+	sendLen = call PacketInfo.dataLinkLength[id](msg, len) + sendIndex;
       }
       if (call SendBytePacket.startSend(id) == SUCCESS) {
         return SUCCESS;

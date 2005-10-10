@@ -1,4 +1,4 @@
-//$Id: SerialActiveMessageP.nc,v 1.1.2.3 2005-08-14 23:36:46 scipio Exp $
+//$Id: SerialActiveMessageP.nc,v 1.1.2.4 2005-10-10 20:33:37 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -44,6 +44,7 @@ generic module SerialActiveMessageP () {
 }
 implementation {
 
+  bool sent;
   SerialAMHeader* getHeader(message_t* msg) {
     return (SerialAMHeader*)(msg->data - sizeof(SerialAMHeader));
   }
@@ -52,6 +53,7 @@ implementation {
 					  message_t* msg,
 					  uint8_t len) {
     SerialAMHeader* header = getHeader(msg);
+    sent = 1;
     header->addr = dest;
     header->type = id;
     header->length = len;
@@ -64,6 +66,7 @@ implementation {
   }
 
   event void SubSend.sendDone(message_t* msg, error_t result) {
+    sent = 0;
     signal AMSend.sendDone[call AMPacket.type(msg)](msg, result);
   }
 
