@@ -1,4 +1,4 @@
-//$Id: TimerMicroCounterC.nc,v 1.1.2.1 2005-10-10 00:19:09 mturon Exp $
+//$Id: TimerMicroCounterC.nc,v 1.1.2.2 2005-10-10 03:20:52 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -49,7 +49,7 @@ implementation
   HALCounterMicro.Timer -> HplTimerC.Timer3;   // wire async timer to Timer 0
 
   // Counter Transform Wiring
-  Transform32.CounterFrom -> Transform16;
+  Transform32.CounterFrom -> HALCounterMicro;
 
   CounterToLocalTimeC.Counter -> Transform32;
 }

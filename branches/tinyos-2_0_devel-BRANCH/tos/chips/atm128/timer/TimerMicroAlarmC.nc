@@ -1,4 +1,4 @@
-/// $Id: TimerMicroAlarmC.nc,v 1.1.2.1 2005-10-10 00:19:09 mturon Exp $
+/// $Id: TimerMicroAlarmC.nc,v 1.1.2.2 2005-10-10 03:20:52 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -34,14 +34,13 @@ configuration TimerMicroAlarmC
 implementation
 {
   components HplTimerC,
-    new Atm128AlarmP(TMicro, uint8_t, ATM128_CLK8_NORMAL) as HalAlarm,
-    new TransformAlarmC(TMicro,uint16_t,TMicro,uint8_t,0) as Transform16,
+    new Atm128AlarmP(TMicro, uint16_t, ATM128_CLK8_NORMAL) as HalAlarm,
     new TransformAlarmC(TMicro,uint32_t,TMicro,uint16_t,0) as Transform32,
     TimerMicroCounterC as Counter
     ;
 
   // Top-level interface wiring
-  AlarmMicro16 = Transform16;
+  AlarmMicro16 = HalAlarm;
   AlarmMicro32 = Transform32;
 
   // Strap in low-level hardware timer (Timer0)
@@ -50,9 +49,7 @@ implementation
   HalAlarm.HplCompare -> HplTimerC.Compare3A; // assign HW resource : COMPARE3
 
   // Alarm Transform Wiring
-  Transform16.AlarmFrom -> HalAlarm;      // start with 16-bit hardware alarm
-  Transform16.Counter -> Counter;         // uses 16-bit virtualized counter
-  Transform32.AlarmFrom -> Transform16;   // then feed that into 32-bit xform
+  Transform32.AlarmFrom -> HalAlarm   ;   // feed 16-bit hardware alarm 
   Transform32.Counter -> Counter;         // uses 32-bit virtualized counter
 }
 
