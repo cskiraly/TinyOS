@@ -57,7 +57,7 @@
  * configures register IOCGF0 accordingly).
  * 
  * <pre>
- *   $Id: CC2420RadioP.nc,v 1.1.2.3 2005-09-22 00:45:01 scipio Exp $
+ *   $Id: CC2420RadioP.nc,v 1.1.2.4 2005-10-10 20:34:53 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -498,6 +498,7 @@ implementation {
       break;
     default:
       // fire RX SFD handler
+      getBus();
       getMetadata(myRxPtr)->time = time;
       signal TimeStamp.receivedSFD(time, myRxPtr);
     }
@@ -712,6 +713,7 @@ implementation {
       if (call CC2420Fifo.readRxFifo(ptr, len) != SUCCESS) {
 	atomic bPacketReceiving = FALSE;
 	post delayedRXFIFOtask();
+	return;
       }      
     }
     flushRXFIFO();
@@ -752,12 +754,8 @@ implementation {
      atomic {
        //call Leds.led2Toggle();
        if (getBus() == SUCCESS) {
-	 if (post delayedRXFIFOtask() == SUCCESS) {
-	   call FIFOP.disable();
-	 }
-	 else {
-	   flushRXFIFO();
-	 }
+	 post delayedRXFIFOtask();
+	 call FIFOP.disable();
        }
        else {
 	 flushRXFIFO();
@@ -783,10 +781,6 @@ implementation {
       acksEnabled = bAckEnable;
     }
 
-    if (currentstate == IDLE_STATE) {
-      releaseBus();
-    }
-    
     // if a FIFO overflow occurs or if the data length is invalid, flush
     // the RXFIFO to get back to a normal state.
     if ((!call CC_FIFO.get() && !call CC_FIFOP.get()) 
@@ -873,7 +867,9 @@ implementation {
     }
     flushRXFIFO();
     //    call FIFOP.startWait(FALSE);
-
+    if (currentstate == IDLE_STATE) {
+      releaseBus();
+    }
     return;
   }
 
