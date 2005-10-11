@@ -61,7 +61,7 @@
  *
  *
  * <pre>
- *  $Id: HalSpiMasterM.nc,v 1.1.2.2 2005-09-11 20:21:54 scipio Exp $
+ *  $Id: HalSpiMasterM.nc,v 1.1.2.3 2005-10-11 01:55:17 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -171,7 +171,12 @@ implementation {
     }
 
     for (;tmpPos < (end - 1) ; tmpPos++) {
-      uint8_t val = call SPIByte.write(tx[tmpPos]);
+      uint8_t val;
+      if (tx != NULL) 
+	val = call SPIByte.write(tx[tmpPos]);
+      else
+	val = call SPIByte.write(0);
+    
       if (rx != NULL) {
 	rx[tmpPos] = val;
       }
@@ -181,8 +186,12 @@ implementation {
 
    call Spi.enableInterrupt(TRUE);
    atomic {
-      call Spi.write(tx[tmpPos]);
-      pos = tmpPos;
+     if (tx != NULL)
+       call Spi.write(tx[tmpPos]);
+     else
+       call Spi.write(0);
+     
+     pos = tmpPos;
       // The final increment will be in the interrupt
       // handler.
     }
@@ -226,8 +235,10 @@ implementation {
    bool again;
    
    atomic {
-     rxBuffer[pos] = data;
-     // Increment position
+     if (rxBuffer != NULL) {
+       rxBuffer[pos] = data;
+       // Increment position
+     }
      pos++;
    }
    call Spi.enableInterrupt(FALSE);
@@ -243,12 +254,15 @@ implementation {
      uint8_t* rx;
      uint8_t* tx;
      uint8_t  myLen;
+     uint8_t discard;
      
      atomic {
        rx = rxBuffer;
        tx = txBuffer;
        myLen = len;
      }
+     discard = call Spi.read();
+	 
      signal SPIPacket.sendDone(tx, rx, myLen, SUCCESS);
    }
  }
