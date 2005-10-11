@@ -1,4 +1,4 @@
-// $Id: TestSerialC.nc,v 1.1.2.3 2005-10-02 22:08:02 scipio Exp $
+// $Id: TestSerialC.nc,v 1.1.2.4 2005-10-11 21:44:35 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -125,7 +125,7 @@ implementation {
 
   event void Control.startDone(error_t err) {
     if (err == SUCCESS) {
-      call MilliTimer.startPeriodicNow(1000);
+      call MilliTimer.startPeriodic(1000);
     }
   }
   event void Control.stopDone(error_t err) {}
