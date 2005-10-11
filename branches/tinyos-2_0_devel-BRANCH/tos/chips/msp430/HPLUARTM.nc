@@ -29,8 +29,8 @@
  * - Description ----------------------------------------------------------
  * Implementation of UART0 lowlevel functionality - stateless.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-09-29 04:53:08 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-10-11 22:14:49 $
  * @author Jan Hauer 
  * @author Vlado Handziski
  * @author Joe Polastre
@@ -41,6 +41,7 @@ includes msp430baudrates;
 
 module HPLUARTM {
   provides interface Init;
+  provides interface StdControl;
   provides interface SerialByteComm;
   uses interface HPLUSARTControl as USARTControl;
   uses interface HPLUSARTFeedback as USARTData;
@@ -49,6 +50,11 @@ implementation
 {
 
   command error_t Init.init() {
+    return SUCCESS;
+  }
+
+
+  command error_t StdControl.start() {
     // set up the USART to be a UART
     call USARTControl.setModeUART();
     // use SMCLK
@@ -56,21 +62,18 @@ implementation
     // set the bitrate to 57600
     call USARTControl.setClockRate(UBR_SMCLK_57600, UMCTL_SMCLK_57600);
     // enable interrupts
-    
     call USARTControl.enableRxIntr();
     call USARTControl.enableTxIntr();
     return SUCCESS;
   }
 
-#if 0
-  async command error_t UART.stop() {
+  command error_t StdControl.stop() {
     call USARTControl.disableRxIntr();
     call USARTControl.disableTxIntr();
     // disable the UART modules so that we can go in deeper LowPower mode
     call USARTControl.disableUART();
     return SUCCESS;
   }
-#endif
 
   async command error_t SerialByteComm.put(uint8_t data){
     return call USARTControl.tx(data);

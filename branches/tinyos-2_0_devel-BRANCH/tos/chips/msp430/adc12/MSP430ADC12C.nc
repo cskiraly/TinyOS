@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2005-06-08 08:08:16 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2005-10-11 22:14:50 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -48,7 +48,7 @@ implementation
   components MSP430ADC12M, HPLADC12M, MSP430TimerC, RefVoltGeneratorC, 
              // this arbiter should rather be a lean static Arbiter
              // that does not keep state (no events get signalled)
-             new FCFSArbiter(ADC_RESOURCE) as Arbiter;
+             new FcfsArbiterC(ADC_RESOURCE) as Arbiter;
 
   Init = Arbiter;
   Resource = Arbiter;

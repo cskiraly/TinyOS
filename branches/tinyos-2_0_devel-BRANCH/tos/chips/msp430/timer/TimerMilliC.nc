@@ -1,4 +1,4 @@
-//$Id: TimerMilliC.nc,v 1.1.2.5 2005-09-26 17:51:20 scipio Exp $
+//$Id: TimerMilliC.nc,v 1.1.2.6 2005-10-11 22:14:50 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -44,7 +44,6 @@ implementation
 	   ;
 
   Init = AlarmMilliC;
-  Init = VirtualizeTimerC;
   TimerMilli = VirtualizeTimerC;
 
   VirtualizeTimerC.TimerFrom -> AlarmToTimerC;

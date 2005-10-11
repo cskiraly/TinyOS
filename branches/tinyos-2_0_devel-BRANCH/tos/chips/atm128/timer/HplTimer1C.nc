@@ -1,4 +1,4 @@
-/// $Id: Timer32khzAlarmC.nc,v 1.1.2.4 2005-10-11 22:14:49 idgay Exp $
+/// $Id: HplTimer1C.nc,v 1.1.2.1 2005-10-11 22:14:49 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,30 +24,28 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-// Glue hardware timers into Alarm32khzC.
-configuration Timer32khzAlarmC
+configuration HplTimer1C
 {
-  provides interface Init;
-  provides interface Alarm<T32khz,uint32_t> as Alarm32khz32;
+  provides {
+    // 16-bit Timers
+    interface HplTimer<uint16_t>   as Timer1;
+    interface HplTimerCtrl16       as Timer1Ctrl;
+    interface HplCapture<uint16_t> as Capture1;
+    interface HplCompare<uint16_t> as Compare1A;
+    interface HplCompare<uint16_t> as Compare1B;
+    interface HplCompare<uint16_t> as Compare1C;
+  }
 }
 implementation
 {
-  components HplTimer0C,
-    new Atm128AlarmP(T32khz, uint8_t, ATM128_CLK8_NORMAL) as HalAlarm,
-    new TransformAlarmC(T32khz,uint32_t,T32khz,uint8_t,0) as Transform32,
-    Timer32khzCounterC as Counter
-    ;
+  components HplTimer0C, HplTimer1P;
 
-  // Top-level interface wiring
-  Alarm32khz32 = Transform32;
+  Timer1 = HplTimer1P;
+  Timer1Ctrl = HplTimer1P;
+  Capture1 = HplTimer1P;
+  Compare1A = HplTimer1P.Compare1A;
+  Compare1B = HplTimer1P.Compare1B;
+  Compare1C = HplTimer1P.Compare1C;
 
-  // Strap in low-level hardware timer (Timer0)
-  Init = HalAlarm;
-  HalAlarm.HplTimer -> HplTimer0C.Timer0;      // assign HW resource : TIMER0
-  HalAlarm.HplCompare -> HplTimer0C.Compare0;  // assign HW resource : COMPARE0
-
-  // Alarm Transform Wiring
-  Transform32.AlarmFrom -> HalAlarm;      // start with 8-bit hardware alarm
-  Transform32.Counter -> Counter;         // uses 32-bit virtualized counter
+  HplTimer1P.Timer0Ctrl -> HplTimer0C;
 }
-

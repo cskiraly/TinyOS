@@ -67,11 +67,11 @@ configuration CC2420PlatformAlarmC {
 }
 implementation {
   components new Atm128AlarmP(T32khz, uint16_t, ATM128_CLK16_DIVIDE_256);
-  components HplTimerC;
+  components HplTimer1C;
 
   Init = Atm128AlarmP;
   Alarm = Atm128AlarmP;
 
-  Atm128AlarmP.HplTimer -> HplTimerC.Timer1;
-  Atm128AlarmP.HplCompare -> HplTimerC.Compare1A;
+  Atm128AlarmP.HplTimer -> HplTimer1C.Timer1;
+  Atm128AlarmP.HplCompare -> HplTimer1C.Compare1A;
 }

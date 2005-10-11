@@ -1,4 +1,4 @@
-//$Id: VirtualizeTimerC.nc,v 1.1.2.6 2005-10-11 22:04:54 scipio Exp $
+//$Id: VirtualizeTimerC.nc,v 1.1.2.7 2005-10-11 22:14:50 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,7 +26,6 @@
 
 generic module VirtualizeTimerC( typedef precision_tag, int max_timers )
 {
-  provides interface Init;
   provides interface Timer<precision_tag> as Timer[ uint8_t num ];
   uses interface Timer<precision_tag> as TimerFrom;
 }
@@ -42,24 +41,12 @@ implementation
   {
     uint32_t t0;
     uint32_t dt;
-  } Timer_t;
-
-  typedef struct
-  {
     bool isoneshot : 1;
     bool isrunning : 1;
     bool _reserved : 6;
-  } Flags_t;
+  } Timer_t;
 
   Timer_t m_timers[NUM_TIMERS];
-  Flags_t m_flags[NUM_TIMERS];
-
-  command error_t Init.init()
-  {
-    memset( m_timers, 0, sizeof(m_timers) );
-    memset( m_flags, 0, sizeof(m_flags) );
-    return SUCCESS;
-  }
 
   task void executeTimersNow();
 
@@ -71,9 +58,9 @@ implementation
 
     for( num=0; num<NUM_TIMERS; num++ )
     {
-      Flags_t* flags = &m_flags[num];
+      Timer_t* timer = &m_timers[num];
 
-      if( flags->isrunning )
+      if( timer->isrunning )
       {
 	// Calculate "remaining" before the timer is fired.  If a timer
 	// restarts itself in a fired event, then we 1) need a consistent
@@ -81,7 +68,6 @@ implementation
 	// start commands post executeTimersNow, so the timer will be
 	// recomputed later, anyway.
 
-	Timer_t* timer = &m_timers[num];
 	int32_t elapsed = then - timer->t0;
 	uint32_t remaining = timer->dt - elapsed;
 	bool compute_min_remaining = TRUE;
@@ -93,9 +79,9 @@ implementation
 
 	if( (elapsed >= 0) && (timer->dt <= (uint32_t)elapsed) )
 	{
-	  if( flags->isoneshot )
+	  if( timer->isoneshot )
 	  {
-	    flags->isrunning = FALSE;
+	    timer->isrunning = FALSE;
 	    compute_min_remaining = FALSE;
 	  }
 	  else
@@ -111,7 +97,7 @@ implementation
 
 	// check isrunning in case the timer was stopped in the fired event
 
-	if( compute_min_remaining && flags->isrunning )
+	if( compute_min_remaining && timer->isrunning )
 	{
 	  if( remaining < min_remaining )
 	    min_remaining = remaining;
@@ -146,11 +132,10 @@ implementation
   void startTimer( uint8_t num, uint32_t t0, uint32_t dt, bool isoneshot )
   {
     Timer_t* timer = &m_timers[num];
-    Flags_t* flags = &m_flags[num];
     timer->t0 = t0;
     timer->dt = dt;
-    flags->isoneshot = isoneshot;
-    flags->isrunning = TRUE;
+    timer->isoneshot = isoneshot;
+    timer->isrunning = TRUE;
     post executeTimersNow();
   }
 
@@ -166,17 +151,17 @@ implementation
 
   command void Timer.stop[ uint8_t num ]()
   {
-    m_flags[num].isrunning = FALSE;
+    m_timers[num].isrunning = FALSE;
   }
 
   command bool Timer.isRunning[ uint8_t num ]()
   {
-    return m_flags[num].isrunning;
+    return m_timers[num].isrunning;
   }
 
   command bool Timer.isOneShot[ uint8_t num ]()
   {
-    return m_flags[num].isoneshot;
+    return m_timers[num].isoneshot;
   }
 
   command void Timer.startPeriodicAt[ uint8_t num ]( uint32_t t0, uint32_t dt )

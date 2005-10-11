@@ -26,20 +26,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-06-01 03:15:26 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-10-11 22:14:50 $
  * @author Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
 configuration InternalVoltageC
 {
+  provides interface StdControl;
   provides interface AcquireData;
 }
 implementation
 {
   // channel 11: (AVCC – AVSS) / 2
-  components new ADCChannelC(11) as InternalVoltageChannel;
+  components new AdcChannelC(11) as InternalVoltageChannel, AdcC;
   
+  StdControl = AdcC;
   AcquireData = InternalVoltageChannel;
 }
