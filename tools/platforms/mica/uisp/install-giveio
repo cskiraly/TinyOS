@@ -5,6 +5,6 @@
 # this is called.
 # 
 
-cd $TOSROOT/tools/src/uisp/kernel/win32
-$TOSROOT/tools/src/uisp/kernel/win32/giveio-install --install
+cd $TOSDIR/../tools/platforms/mica/uisp/kernel/win32
+$TOSDIR/../tools/platforms/mica/uisp/kernel/win32/giveio-install --install
 
