@@ -1,4 +1,4 @@
-// $Id: RadioSenseToLedsAppC.nc,v 1.1.2.1 2005-08-10 16:00:43 scipio Exp $
+// $Id: RadioSenseToLedsAppC.nc,v 1.1.2.2 2005-10-11 17:16:55 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -58,5 +58,3 @@ implementation {
   App.AcquireData -> DemoSensorC;
   App.SensorControl -> DemoSensorC;
 }
-
-
