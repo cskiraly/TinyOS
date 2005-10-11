@@ -1,4 +1,4 @@
-//$Id: SerialDispatcherP.nc,v 1.1.2.3 2005-10-10 20:33:37 scipio Exp $
+//$Id: SerialDispatcherP.nc,v 1.1.2.4 2005-10-11 23:54:35 idgay Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -98,62 +98,45 @@ implementation {
   uint8_t receiveTaskSize = 0;
 
   command error_t Send.send[uint8_t id](message_t* msg, uint8_t len) {
-    uint8_t myState;
-    atomic {
-      myState = sendState;
-    }
-    if (myState != SEND_STATE_IDLE) {
+    if (sendState != SEND_STATE_IDLE) {
       return EBUSY;
     }
+
+    sendState = SEND_STATE_DATA;
+    sendId = id;
+    sendCancelled = FALSE;
+    atomic {
+      sendError = SUCCESS;
+      sendBuffer = (uint8_t*)msg;
+      sendIndex = call PacketInfo.offset[id]();
+      // sendLen is where in the buffer the packet stops.
+      // This is the length of the packet, plus its start point
+      sendLen = call PacketInfo.dataLinkLength[id](msg, len) + sendIndex;
+    }
+    if (call SendBytePacket.startSend(id) == SUCCESS) {
+      return SUCCESS;
+    }
     else {
-      atomic {
-        sendState = SEND_STATE_DATA;
-        sendId = id;
-        sendError = SUCCESS;
-        sendCancelled = FALSE;
-        sendBuffer = (uint8_t*)msg;
-        sendIndex = call PacketInfo.offset[id]();
-	// sendLen is where in the buffer the packet stops.
-	// This is the length of the packet, plus its start point
-	sendLen = call PacketInfo.dataLinkLength[id](msg, len) + sendIndex;
-      }
-      if (call SendBytePacket.startSend(id) == SUCCESS) {
-        return SUCCESS;
-      }
-      else {
-        atomic {
-          sendState = SEND_STATE_IDLE;
-        }
-        return FAIL;
-      }
+      sendState = SEND_STATE_IDLE;
+      return FAIL;
     }
   }
 
   task void signalSendDone(){
-    bool cancelled;
     error_t error;
-    atomic {
-      sendState = SEND_STATE_IDLE;
-      error = sendError;
-      cancelled = sendCancelled;
-    }
-    if (cancelled) error = ECANCEL;
+
+    sendState = SEND_STATE_IDLE;
+    atomic error = sendError;
+
+    if (sendCancelled) error = ECANCEL;
     signal Send.sendDone[sendId]((message_t *)sendBuffer, error);
   }
 
   command error_t Send.cancel[uint8_t id](message_t *msg){
-    uint8_t myState;
-    uint8_t *buf;
-    uint8_t sid;
-
-    atomic {
-      myState = sendState;
-      buf = sendBuffer;
-      sid = sendId;
-    }
-    if (myState == SEND_STATE_DATA && buf == ((uint8_t *)msg) && id == sid){
+    if (sendState == SEND_STATE_DATA && sendBuffer == ((uint8_t *)msg) &&
+	id == sendId){
       call SendBytePacket.completeSend();
-      atomic sendCancelled = TRUE;
+      sendCancelled = TRUE;
       return SUCCESS;
     }
     return FAIL;
@@ -176,7 +159,7 @@ implementation {
     }
   }
   async event void SendBytePacket.sendCompleted(error_t error){
-    sendError = error;
+    atomic sendError = error;
     post signalSendDone();
   }
 
