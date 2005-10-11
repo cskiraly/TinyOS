@@ -57,7 +57,7 @@
  * configures register IOCGF0 accordingly).
  * 
  * <pre>
- *   $Id: CC2420RadioP.nc,v 1.1.2.7 2005-10-11 04:08:27 jwhui Exp $
+ *   $Id: CC2420RadioP.nc,v 1.1.2.8 2005-10-11 04:09:13 jwhui Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -662,7 +662,7 @@ implementation {
 	}
       }
     }
-    TOSH_TOGGLE_GREEN_LED_PIN();
+
     return FAIL;
   }
 
