@@ -57,7 +57,7 @@
  * configures register IOCGF0 accordingly).
  * 
  * <pre>
- *   $Id: CC2420RadioP.nc,v 1.1.2.6 2005-10-11 03:53:41 jwhui Exp $
+ *   $Id: CC2420RadioP.nc,v 1.1.2.7 2005-10-11 04:08:27 jwhui Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -662,6 +662,7 @@ implementation {
 	}
       }
     }
+    TOSH_TOGGLE_GREEN_LED_PIN();
     return FAIL;
   }
 
@@ -780,6 +781,7 @@ implementation {
     // after the correct length.  There is no currently known fix.
     uint8_t currentstate;
     bool acksEnabled;
+
     atomic { 
       currentstate = stateRadio;
       acksEnabled = bAckEnable;
@@ -804,19 +806,22 @@ implementation {
 	goo = 1;
       }
     }
-    
+   
+    len = getHeader( rxbufptr )->length;
+
     // check for an acknowledgement that passes the CRC check
     if (acksEnabled) {
       if (currentstate == POST_TX_STATE) {
 	if (((getHeader(rxbufptr)->fcf) & CC2420_DEF_FCF_TYPE_MASK) == CC2420_DEF_FCF_TYPE_ACK) {
 	  if (getHeader(rxbufptr)->dsn == currentDSN) {
-	    if ((data[getHeader(rxbufptr)->length] >> 7) == 1) {
+	    if ((data[len] >> 7) == 1) {
 	      atomic {
 		getMetadata(txbufptr)->ack = 1;
-		getMetadata(txbufptr)->strength = data[len-2];
-		getMetadata(txbufptr)->lqi = data[len-1] & 0x7F;
+		getMetadata(txbufptr)->strength = data[len-1];
+		getMetadata(txbufptr)->lqi = data[len] & 0x7F;
 		currentstate = POST_TX_ACK_STATE;
 		bPacketReceiving = FALSE;
+		call BackoffTimer.stop();
 	      }
 	      releaseBus();
 	      sendCompleted(SUCCESS);
@@ -840,7 +845,7 @@ implementation {
 
     //getHeader(rxbufptr)->length -= MAC_HEADER_SIZE + MAC_FOOTER_SIZE;
 
-    if (getHeader(rxbufptr)->length > TOSH_DATA_LENGTH + MAC_HEADER_SIZE + MAC_FOOTER_SIZE) {
+    if (len > TOSH_DATA_LENGTH + MAC_HEADER_SIZE + MAC_FOOTER_SIZE) {
       flushRXFIFO();
       atomic bPacketReceiving = FALSE;
       return;
@@ -850,11 +855,11 @@ implementation {
     //getHeaderrxbufptr->addr = fromLSB16(rxbufptr->addr);
  
     // if the length is shorter, we have to move the CRC bytes
-    getMetadata(rxbufptr)->crc = data[len-1] >> 7;
+    getMetadata(rxbufptr)->crc = data[len] >> 7;
     // put in RSSI
-    getMetadata(rxbufptr)->strength = data[len-2];
+    getMetadata(rxbufptr)->strength = data[len-1];
     // put in LQI
-    getMetadata(rxbufptr)->lqi = data[len-1] & 0x7F;
+    getMetadata(rxbufptr)->lqi = data[len] & 0x7F;
 
     atomic {
       if (post PacketRcvd() != SUCCESS) {
