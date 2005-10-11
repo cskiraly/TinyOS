@@ -57,7 +57,7 @@
  * configures register IOCGF0 accordingly).
  * 
  * <pre>
- *   $Id: CC2420RadioP.nc,v 1.1.2.5 2005-10-11 01:54:50 scipio Exp $
+ *   $Id: CC2420RadioP.nc,v 1.1.2.6 2005-10-11 03:53:41 jwhui Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -117,7 +117,9 @@ implementation {
     RX_STATE,
     POWER_DOWN_STATE,
     WARMUP_STATE,
+  };
 
+  enum {
     TIMER_INITIAL = 0,
     TIMER_BACKOFF = 1,
     TIMER_ACK = 2,
@@ -485,7 +487,7 @@ implementation {
       call SFD.enableCapture(TRUE);
       // if acks are enabled and it is a unicast packet, wait for the ack
       if ((acksEnabled)) {// && (getHeader(myTxPtr)->addr != TOS_BCAST_ADDR)) {
-        if (setAckTimer(CC2420_ACK_DELAY) != SUCCESS) {
+	if (setAckTimer(CC2420_ACK_DELAY) != SUCCESS) {
 	  sendCompleted(FAIL);
 	  stopTimer();
 	}
@@ -808,7 +810,7 @@ implementation {
       if (currentstate == POST_TX_STATE) {
 	if (((getHeader(rxbufptr)->fcf) & CC2420_DEF_FCF_TYPE_MASK) == CC2420_DEF_FCF_TYPE_ACK) {
 	  if (getHeader(rxbufptr)->dsn == currentDSN) {
-	    if ((data[len-1] >> 7) == 1) {
+	    if ((data[getHeader(rxbufptr)->length] >> 7) == 1) {
 	      atomic {
 		getMetadata(txbufptr)->ack = 1;
 		getMetadata(txbufptr)->strength = data[len-2];
