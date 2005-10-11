@@ -56,7 +56,7 @@
  * CC2420 radio. 
  *
  * <pre>
- *   $Id: CC2420C.nc,v 1.1.2.2 2005-09-14 01:09:40 scipio Exp $
+ *   $Id: CC2420C.nc,v 1.1.2.3 2005-10-11 01:56:04 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -141,7 +141,7 @@ configuration CC2420C {
 }
 implementation
 {
-  components CC2420P, CC2420FifoP, HplCC2420InterruptP;
+  components CC2420P, HplCC2420InterruptP;
   components HplCC2420PinsC as CC2420Pins;
   components Atm128SpiC, HplTimerC, HplInterruptC;
   components TimerMilliC;
@@ -152,7 +152,7 @@ implementation
   
   StdControl = Atm128SpiC;
   SpiBus     = Atm128SpiC.Resource[unique("Atm128SpiC.Resource")];
-  CC2420Fifo = CC2420FifoP;
+  CC2420Fifo = CC2420P;
   CC2420Ram  = CC2420P;
 
     
@@ -242,6 +242,4 @@ implementation
   HplCC2420InterruptP.SubFIFOP -> HplInterruptC.Int6;
   HplCC2420InterruptP.CC_FIFO  -> CC2420Pins.CC_FIFO;
   HplCC2420InterruptP.CC_CCA   -> CC2420Pins.CC_CCA;
-
-  CC2420FifoP.CC_CS -> CC2420Pins.CC_CS;
 } 
