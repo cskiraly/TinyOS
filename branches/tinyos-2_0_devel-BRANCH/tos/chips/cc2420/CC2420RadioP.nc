@@ -57,7 +57,7 @@
  * configures register IOCGF0 accordingly).
  * 
  * <pre>
- *   $Id: CC2420RadioP.nc,v 1.1.2.4 2005-10-10 20:34:53 scipio Exp $
+ *   $Id: CC2420RadioP.nc,v 1.1.2.5 2005-10-11 01:54:50 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -768,6 +768,8 @@ implementation {
    * After the buffer is received from the RXFIFO,
    * process it, then post a task to signal it to the higher layers
    */
+   uint8_t goo;
+   
    async event void CC2420Fifo.readRxFifoDone(uint8_t *data, uint8_t len, error_t err) {
      // JP NOTE: rare known bug in high contention:
     // radio stack will receive a valid packet, but for some reason the
@@ -780,7 +782,8 @@ implementation {
       currentstate = stateRadio;
       acksEnabled = bAckEnable;
     }
-
+    goo = len;
+    
     // if a FIFO overflow occurs or if the data length is invalid, flush
     // the RXFIFO to get back to a normal state.
     if ((!call CC_FIFO.get() && !call CC_FIFOP.get()) 
@@ -796,6 +799,7 @@ implementation {
 	// This code is here merely as a useful sanity check
 	// hook for when debugging: nesC will elide an
 	// empty statement.
+	goo = 1;
       }
     }
     
@@ -820,7 +824,7 @@ implementation {
 	}
       }
     }
-
+    
     // check for invalid packets
     // an invalid packet is a non-data packet with the wrong
     // addressing mode (FCFLO byte)
@@ -856,10 +860,10 @@ implementation {
       }
     }
 
-    if ((!call CC_FIFO.get()) && (!call CC_FIFOP.get())) {
-        flushRXFIFO();
-	return;
-    }
+    //    if ((!call CC_FIFO.get()) && (!call CC_FIFOP.get())) {
+    //        flushRXFIFO();
+    //	return;
+    // }
 
     if (!(call CC_FIFOP.get())) {
       if (post delayedRXFIFOtask() == SUCCESS)
