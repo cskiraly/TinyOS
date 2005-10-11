@@ -1,7 +1,7 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: telosa.target,v 1.1.2.2 2005-08-08 22:30:45 idgay Exp $
+#$Id: telosa.target,v 1.1.2.3 2005-10-11 17:13:38 idgay Exp $
 
-PLATFORM ?= telos
+PLATFORM ?= telosa
 
 MSP_MCU = msp430x149
 
