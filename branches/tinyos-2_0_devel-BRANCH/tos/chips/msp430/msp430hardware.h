@@ -1,4 +1,4 @@
-// $Id: msp430hardware.h,v 1.1.2.8 2005-05-20 10:25:16 cssharp Exp $
+// $Id: msp430hardware.h,v 1.1.2.9 2005-10-11 22:04:54 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -149,13 +149,13 @@ inline void TOSH_wait(void)
 
 #define TOSH_CYCLE_TIME_NS 250
 
-inline void TOSH_wait_250ns(void)
+inline void wait_250ns(void)
 {
   // 4 MHz clock == 1 cycle per 250 ns
   nop();
 }
 
-inline void TOSH_uwait(uint16_t u) 
+inline void uwait(uint16_t u) 
 { 
   /*
   uint16_t i;

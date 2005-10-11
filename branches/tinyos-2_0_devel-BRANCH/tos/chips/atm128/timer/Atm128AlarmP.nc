@@ -1,4 +1,4 @@
-/// $Id: Atm128AlarmP.nc,v 1.1.2.3 2005-09-22 00:46:26 scipio Exp $
+/// $Id: Atm128AlarmP.nc,v 1.1.2.4 2005-10-11 22:04:54 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -62,12 +62,12 @@ implementation
     call HplCompare.stop();
   }
 
-  async command void Alarm.startNow( timer_size dt ) 
+  async command void Alarm.start( timer_size dt ) 
   {
-    call Alarm.start( call HplTimer.get(), dt);
+    call Alarm.startAt( call HplTimer.get(), dt);
   }
 
-  async command void Alarm.start( timer_size t0, timer_size dt ) {
+  async command void Alarm.startAt( timer_size t0, timer_size dt ) {
     timer_size now;
     timer_size expires, guardedExpires;
 

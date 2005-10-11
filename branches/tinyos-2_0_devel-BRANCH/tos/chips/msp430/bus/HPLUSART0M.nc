@@ -30,8 +30,8 @@
  * Implementation of USART0 lowlevel functionality - stateless.
  * Setting a mode will by default disable USART-Interrupts.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-03-17 06:13:52 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-10-11 22:04:54 $
  * @author: Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author: Joe Polastre
  * ========================================================================
@@ -62,6 +62,11 @@ implementation
   uint8_t l_mctl;
   uint8_t l_ssel;
 
+  enum {
+    I2C = 0x20,
+    I2CEN = 0x01,
+  };
+  
   TOSH_SIGNAL(UART0RX_VECTOR) {
     uint8_t temp;
     if (U0RCTL & OE)

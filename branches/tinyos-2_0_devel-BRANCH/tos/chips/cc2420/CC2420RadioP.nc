@@ -57,7 +57,7 @@
  * configures register IOCGF0 accordingly).
  * 
  * <pre>
- *   $Id: CC2420RadioP.nc,v 1.1.2.8 2005-10-11 04:09:13 jwhui Exp $
+ *   $Id: CC2420RadioP.nc,v 1.1.2.9 2005-10-11 22:04:54 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -205,8 +205,8 @@ implementation {
       call SFLUSHRX.cmd();
       atomic bPacketReceiving = FALSE;
       atomic rxFlushPending = FALSE;
-      call FIFOP.startWait(FALSE);
     }
+    call FIFOP.startWait(FALSE);      
   }
   
 
@@ -243,40 +243,42 @@ implementation {
 	flush = rxFlushPending;
       }
     }
-    if (held && flush) {
-      flushRXFIFO();
-    }
-    if (held) {
-      call SpiBus.release();
-      atomic busHeld = FALSE;
+    atomic {
+      if (held && flush) {
+	flushRXFIFO();
+      }
+      if (held) {
+	call SpiBus.release();
+	busHeld = FALSE;
+      }
     }
   }
   
    inline error_t setInitialTimer( uint16_t jiffy ) {
      call BackoffTimer.stop();
      atomic stateTimer = TIMER_INITIAL;
-     call BackoffTimer.startNow(jiffy);
+     call BackoffTimer.start(jiffy);
      return SUCCESS;
    }
 
    inline error_t setBackoffTimer( uint16_t jiffy ) {
      call BackoffTimer.stop();
      atomic stateTimer = TIMER_BACKOFF;
-     call BackoffTimer.startNow(jiffy);
+     call BackoffTimer.start(jiffy);
      return SUCCESS;
    }
 
    inline error_t setAckTimer( uint16_t jiffy ) {
      call BackoffTimer.stop();
      atomic stateTimer = TIMER_ACK;
-     call BackoffTimer.startNow(jiffy);
+     call BackoffTimer.start(jiffy);
      return SUCCESS;
    }
 
    inline error_t setAbortTimer(uint16_t jiffy) {
      call BackoffTimer.stop();
      atomic stateTimer = TIMER_ABORT;
-     call BackoffTimer.startNow(jiffy);
+     call BackoffTimer.start(jiffy);
      return SUCCESS;
    }
 
@@ -293,7 +295,6 @@ implementation {
      atomic {
        pBuf = rxbufptr;
        header = getHeader(pBuf);
-       //header->length -= MAC_HEADER_SIZE + MAC_FOOTER_SIZE;
      }
      pBuf = signal Receive.receive((message_t*)pBuf, pBuf->data, header->length);
      atomic {
@@ -301,6 +302,13 @@ implementation {
        header = getHeader(rxbufptr);
        header->length = 0;
        bPacketReceiving = FALSE;
+     }
+     atomic {
+       flushRXFIFO();
+       //    call FIFOP.startWait(FALSE);
+       if (stateRadio == IDLE_STATE) {
+	 releaseBus();
+       }
      }
    }
 
@@ -501,6 +509,7 @@ implementation {
     default:
       // fire RX SFD handler
       getBus();
+      //call FIFOP.startWait(FALSE);
       getMetadata(myRxPtr)->time = time;
       signal TimeStamp.receivedSFD(time, myRxPtr);
     }
@@ -745,7 +754,7 @@ implementation {
      if (stateRadio == PRE_TX_STATE) {
        if (call BackoffTimer.isRunning()) {
          call BackoffTimer.stop();
-         call BackoffTimer.startNow((signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) + CC2420_ACK_DELAY);
+         call BackoffTimer.start((signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) + CC2420_ACK_DELAY);
        }
      }
      //     call Leds.led1Toggle();
@@ -823,7 +832,6 @@ implementation {
 		bPacketReceiving = FALSE;
 		call BackoffTimer.stop();
 	      }
-	      releaseBus();
 	      sendCompleted(SUCCESS);
 	      return;
 	    }
@@ -875,11 +883,6 @@ implementation {
     if (!(call CC_FIFOP.get())) {
       if (post delayedRXFIFOtask() == SUCCESS)
 	return;
-    }
-    flushRXFIFO();
-    //    call FIFOP.startWait(FALSE);
-    if (currentstate == IDLE_STATE) {
-      releaseBus();
     }
     return;
   }

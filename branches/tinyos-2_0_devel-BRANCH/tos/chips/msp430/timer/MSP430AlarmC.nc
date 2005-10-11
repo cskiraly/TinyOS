@@ -1,4 +1,4 @@
-//$Id: MSP430AlarmC.nc,v 1.1.2.2 2005-05-21 10:57:38 cssharp Exp $
+//$Id: MSP430AlarmC.nc,v 1.1.2.3 2005-10-11 22:04:54 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -43,9 +43,9 @@ implementation
     return SUCCESS;
   }
   
-  async command void Alarm.startNow( uint16_t dt )
+  async command void Alarm.start( uint16_t dt )
   {
-    call Alarm.start( call Alarm.getNow(), dt );
+    call Alarm.startAt( call Alarm.getNow(), dt );
   }
 
   async command void Alarm.stop()
@@ -64,7 +64,7 @@ implementation
     return call MSP430TimerControl.areEventsEnabled();
   }
 
-  async command void Alarm.start( uint16_t t0, uint16_t dt )
+  async command void Alarm.startAt( uint16_t t0, uint16_t dt )
   {
     atomic
     {

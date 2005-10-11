@@ -1,4 +1,4 @@
-//$Id: VirtualizeTimerC.nc,v 1.1.2.5 2005-10-11 19:49:10 cssharp Exp $
+//$Id: VirtualizeTimerC.nc,v 1.1.2.6 2005-10-11 22:04:54 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -127,7 +127,7 @@ implementation
       if( min_remaining <= elapsed )
 	post executeTimersNow();
       else
-	call TimerFrom.startOneShot( now, min_remaining - elapsed );
+	call TimerFrom.startOneShotAt( now, min_remaining - elapsed );
     }
   }
   
