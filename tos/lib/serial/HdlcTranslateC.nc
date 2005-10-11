@@ -1,4 +1,4 @@
-//$Id: HdlcTranslateC.nc,v 1.1.2.1 2005-08-07 21:56:15 scipio Exp $
+//$Id: HdlcTranslateC.nc,v 1.1.2.2 2005-10-11 23:54:35 idgay Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -46,7 +46,7 @@ implementation {
     uint8_t receiveEscape:1;
   } HdlcState;
   
-  norace uint8_t debugCnt = 0;
+  //norace uint8_t debugCnt = 0;
   norace HdlcState state = {0,0};
   norace uint8_t txTemp;
 
@@ -59,7 +59,7 @@ implementation {
     state.sendEscape = 0;
   }
   async event void SerialByteComm.get(uint8_t data) {
-    debugCnt++;
+    //debugCnt++;
     // 7E 41 0E 05 04 03 02 01 00 01 8F 7E
 /*     if (debugCnt == 1 && data == 0x7E) call Leds.led0On(); */
 /*     if (debugCnt == 2 && data == 0x41) call Leds.led1On(); */
