@@ -58,7 +58,7 @@
  * exclusive access to the SPI bus when it is called: its
  * caller is responsible for reserving the bus.
  * <pre>
- *  $Id: CC2420P.nc,v 1.1.2.3 2005-10-11 04:19:11 jwhui Exp $
+ *  $Id: CC2420P.nc,v 1.1.2.4 2005-10-11 22:04:54 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -530,7 +530,7 @@ implementation {
     call SpiPacket.send(buffer, NULL, length);
     return SUCCESS;
   }
-  
+
   async command error_t Fifo.readRxFifo(uint8_t* buffer, uint8_t length) {
     error_t err;
     uint8_t oldState;
@@ -552,15 +552,16 @@ implementation {
     /* Refer to page 26 of the CC2420 Preliminary Datasheet. Send the RXFIFO
        and then keep on reading. */
     err = call SpiByte.write(CC2420_RXFIFO | 0x40);
-    tmp = call SpiByte.write( 0 );
-    if ( tmp < length )
+    tmp  = call SpiByte.write( 0 );
+    if ( tmp < length ) {
       length = tmp;
+    }
     atomic {
       len = length;
       readBuffer = buffer;
       buffer[ 0 ] = len;
     }
-    call SpiPacket.send(NULL, buffer+1, length);
+    call SpiPacket.send(NULL, buffer+1, length-1);
     return SUCCESS;
   }
   
