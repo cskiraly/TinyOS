@@ -56,45 +56,33 @@ implementation
 
   /* Return the next 32 bit random number */
   async command uint32_t Random.rand32() {
-    uint32_t mlcg,p,q ;
-    uint64_t tmpseed  ;
-    atomic {
+    uint32_t mlcg,p,q;
+    uint64_t tmpseed;
+    atomic
+      {
 	tmpseed =  (uint64_t)33614U * (uint64_t)seed;
-	q = (uint32_t)(tmpseed & 0xFFFFFFFF); 	/* low */
+	q = tmpseed; 	/* low */
 	q = q >> 1;
-	p = (uint32_t)(tmpseed >> 32) ;		/* hi */
+	p = tmpseed >> 32 ;		/* hi */
 	mlcg = p + q;
         if (mlcg & 0x80000000) { 
-	    mlcg = mlcg & 0x7FFFFFFF;
-	    mlcg++;
+	  mlcg = mlcg & 0x7FFFFFFF;
+	  mlcg++;
 	}
 	seed = mlcg;
-    }
+      }
     return mlcg; 
   }
 
- /* Return low 16 bits of 32 bit number */
- inline uint16_t getLow16(uint32_t num) {
-    uint16_t l;
-    atomic l = (uint16_t)(num & 0xFFFF);
-    return l;
- }
-
   /* Return low 16 bits of next 32 bit random number */
   async command uint16_t Random.rand16() {
-    uint32_t mlcg;
-
-    mlcg = call Random.rand32();
-
-    return getLow16(mlcg);
+    return call Random.rand32();
   }
 
 #if 0
  /* Return high 16 bits of 32 bit number */
  inline uint16_t getHigh16(uint32_t num) {
-    uint16_t h;
-    atomic h = (uint16_t)((num >> 16) & 0xFFFF);
-    return h;
+    return num >> 16;
  }
 #endif
 }
