@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-06-01 03:18:09 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-10-11 19:49:10 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * @author: Kevin Klues <klues@tkn.tu-berlin.de>
  * ========================================================================
@@ -126,7 +126,7 @@ implementation
   }
         
   task void switchOnDelay(){
-    call SwitchOnTimer.startOneShotNow(STABILIZE_INTERVAL);
+    call SwitchOnTimer.startOneShot(STABILIZE_INTERVAL);
   }
 
   event void SwitchOnTimer.fired() {
@@ -189,12 +189,12 @@ implementation
             
   task void switchOffDelay(){
     if(switchOff == TRUE)
-      call SwitchOffTimer.startOneShotNow(SWITCHOFF_INTERVAL); 
+      call SwitchOffTimer.startOneShot(SWITCHOFF_INTERVAL); 
   }
   
   task void switchOffRetry(){
     if(switchOff == TRUE)
-      call SwitchOffTimer.startOneShotNow(SWITCHOFF_RETRY); 
+      call SwitchOffTimer.startOneShot(SWITCHOFF_RETRY); 
   }
              
   event void SwitchOffTimer.fired() {

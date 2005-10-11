@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2005-07-11 16:03:06 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2005-10-11 19:49:10 $
  * ========================================================================
  */
  
@@ -165,7 +165,7 @@ implementation
   
    async event void TDA5250PhyPacketRx.recvHeaderDone(uint8_t length_value) {
      atomic rxBusy = TRUE;
-     call RxTimeoutTimer.startOneShotNow((((TOSH_DATA_LENGTH+2)*100)/(384)+1));
+     call RxTimeoutTimer.startOneShot((((TOSH_DATA_LENGTH+2)*100)/(384)+1));
      signal PhyPacketRx.recvHeaderDone(length_value);
    }  
    

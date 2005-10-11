@@ -10,10 +10,10 @@ implementation
     return SUCCESS;
   }
 
-  command void TimerMilli.startPeriodicNow[ uint8_t num ]( uint32_t dt ) {
+  command void TimerMilli.startPeriodic[ uint8_t num ]( uint32_t dt ) {
   }
 
-  command void TimerMilli.startOneShotNow[ uint8_t num ]( uint32_t dt ) {
+  command void TimerMilli.startOneShot[ uint8_t num ]( uint32_t dt ) {
   }
 
   command void TimerMilli.stop[ uint8_t num ]() {
@@ -27,10 +27,10 @@ implementation
     return FALSE;
   }
 
-  command void TimerMilli.startPeriodic[ uint8_t num ]( uint32_t t0, uint32_t dt ) {
+  command void TimerMilli.startPeriodicAt[ uint8_t num ]( uint32_t t0, uint32_t dt ) {
   }
 
-  command void TimerMilli.startOneShot[ uint8_t num ]( uint32_t t0, uint32_t dt ) {
+  command void TimerMilli.startOneShotAt[ uint8_t num ]( uint32_t t0, uint32_t dt ) {
   }
 
   command uint32_t TimerMilli.getNow[ uint8_t num ]() {

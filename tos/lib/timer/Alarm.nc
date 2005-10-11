@@ -1,4 +1,4 @@
-//$Id: Alarm.nc,v 1.1.2.4 2005-05-18 11:19:16 cssharp Exp $
+//$Id: Alarm.nc,v 1.1.2.5 2005-10-11 19:49:10 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -29,13 +29,13 @@ includes Timer;
 interface Alarm<precision_tag,size_type>
 {
   // basic interface
-  async command void startNow( size_type dt );
+  async command void start( size_type dt );
   async command void stop();
   async event void fired();
 
   // extended interface
   async command bool isRunning();
-  async command void start( size_type t0, size_type dt );
+  async command void startAt( size_type t0, size_type dt );
   async command size_type getNow();
   async command size_type getAlarm();
 }
