@@ -1,4 +1,4 @@
-// $Id: TestAMOnOffC.nc,v 1.1.2.1 2005-08-10 15:57:14 scipio Exp $
+// $Id: TestAMOnOffC.nc,v 1.1.2.2 2005-10-11 21:44:35 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -69,7 +69,7 @@ implementation {
   event void Boot.booted() {
     call Service.start();
     //call SecondService.start();
-    call MilliTimer.startPeriodicNow(1000);
+    call MilliTimer.startPeriodic(1000);
   }
   
   event void MilliTimer.fired() {

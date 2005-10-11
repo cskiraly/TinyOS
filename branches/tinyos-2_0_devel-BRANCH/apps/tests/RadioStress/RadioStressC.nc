@@ -1,4 +1,4 @@
-// $Id: RadioStressC.nc,v 1.1.2.2 2005-10-02 22:08:02 scipio Exp $
+// $Id: RadioStressC.nc,v 1.1.2.3 2005-10-11 21:44:34 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -92,7 +92,7 @@ implementation {
   }
   
   event void ServiceNotify.started() {
-    call Timer.startPeriodicNow(1000);
+    call Timer.startPeriodic(1000);
     call Acks.enable();
   }
 

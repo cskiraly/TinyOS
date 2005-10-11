@@ -1,4 +1,4 @@
-// $Id: BlinkC.nc,v 1.1.2.6 2005-08-07 22:58:56 scipio Exp $
+// $Id: BlinkC.nc,v 1.1.2.7 2005-10-11 21:44:34 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -48,9 +48,9 @@ implementation
 {
   event void Boot.booted()
   {
-    call Timer0.startPeriodicNow( 250 );
-    call Timer1.startPeriodicNow( 500 );
-    call Timer2.startPeriodicNow( 1000 );
+    call Timer0.startPeriodic( 250 );
+    call Timer1.startPeriodic( 500 );
+    call Timer2.startPeriodic( 1000 );
   }
 
   event void Timer0.fired()

@@ -1,4 +1,4 @@
-// $Id: TestCC2420SendM.nc,v 1.1.2.1 2005-06-22 17:38:54 jpolastre Exp $
+// $Id: TestCC2420SendM.nc,v 1.1.2.2 2005-10-11 21:44:34 cssharp Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -49,7 +49,7 @@ implementation {
   }
 
   event void SplitControl.startDone(error_t error) { 
-    call Timer1.startPeriodicNow(1024);
+    call Timer1.startPeriodic(1024);
   }
   event void SplitControl.stopDone(error_t error) { }
 
