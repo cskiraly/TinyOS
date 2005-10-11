@@ -30,8 +30,8 @@
  * Implementation of USART0 lowlevel functionality - stateless.
  * Setting a mode will by default disable USART-Interrupts.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2005-10-11 22:04:54 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2005-10-11 22:14:50 $
  * @author: Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author: Joe Polastre
  * ========================================================================
@@ -62,11 +62,6 @@ implementation
   uint8_t l_mctl;
   uint8_t l_ssel;
 
-  enum {
-    I2C = 0x20,
-    I2CEN = 0x01,
-  };
-  
   TOSH_SIGNAL(UART0RX_VECTOR) {
     uint8_t temp;
     if (U0RCTL & OE)
@@ -212,12 +207,16 @@ implementation
   }
   
   async command void USARTControl.enableI2C() {
+#ifdef __msp430_have_usart0_with_i2c
     U0CTL |= I2C | I2CEN | SYNC;
+#endif
   }
 
   async command void USARTControl.disableI2C() {
+#ifdef __msp430_have_usart0_with_i2c
     if (call USARTControl.isI2C() == TRUE)
       U0CTL &= ~(I2C | I2CEN | SYNC);
+#endif
   }
 
   async command void USARTControl.setModeSPI() {

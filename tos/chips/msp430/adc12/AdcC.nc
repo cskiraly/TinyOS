@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-06-08 08:08:16 $
+ * $Revision: 1.1.2.1 $
+ * $Date: 2005-10-11 22:14:50 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -38,7 +38,7 @@
  * DO NOT wire to this configuration, use generic channel wrappers in
  * tinyos-2.x/tos/lib/adc instead.
  */
-configuration ADCC { 
+configuration AdcC { 
   provides {
     interface Init;
     interface StdControl;

@@ -1,4 +1,4 @@
-/* $Id: MotePlatformP.nc,v 1.1.2.3 2005-08-08 01:01:01 scipio Exp $
+/* $Id: MotePlatformP.nc,v 1.1.2.4 2005-10-11 22:14:50 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -24,6 +24,8 @@ implementation {
     // Pull C I/O port pins low
     PORTC = 0;
     DDRC = 0xff;
+
+    SET_BIT(ASSR, AS0);  // set Timer/Counter0 to use 32,768khz crystal
 
     // Prevent sourcing current
     call SerialIdPin.makeInput(); 

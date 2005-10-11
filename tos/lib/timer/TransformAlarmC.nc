@@ -1,4 +1,4 @@
-//$Id: TransformAlarmC.nc,v 1.1.2.7 2005-10-11 22:04:54 scipio Exp $
+//$Id: TransformAlarmC.nc,v 1.1.2.8 2005-10-11 22:14:50 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -104,7 +104,7 @@ implementation
 	m_dt = 0;
       }
     call AlarmFrom.startAt((from_size_type)now << bit_shift_right,
-			 (from_size_type)remaining << bit_shift_right);
+			   (from_size_type)remaining << bit_shift_right);
   }
 
   async command void Alarm.startAt( to_size_type t0, to_size_type dt )

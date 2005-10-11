@@ -1,4 +1,4 @@
-/* $Id: MotePlatformC.nc,v 1.1.2.4 2005-10-02 22:08:02 scipio Exp $
+/* $Id: MotePlatformC.nc,v 1.1.2.5 2005-10-11 22:14:50 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -18,15 +18,10 @@ configuration MotePlatformC
   uses interface Init as SubInit;
 }
 implementation {
-  components MotePlatformP, HplGeneralIOC, TimerMilliC;
-  components HplTimerC, RealMainP;
+  components MotePlatformP, HplGeneralIOC;
 
   PlatformInit = MotePlatformP;
-  PlatformInit = HplTimerC;
-  
-  RealMainP.SoftwareInit -> TimerMilliC;
   
   MotePlatformP.SerialIdPin -> HplGeneralIOC.PortA4;
   SubInit = MotePlatformP.SubInit;
-  
 }
