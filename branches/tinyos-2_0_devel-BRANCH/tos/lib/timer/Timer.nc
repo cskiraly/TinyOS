@@ -1,4 +1,4 @@
-//$Id: Timer.nc,v 1.1.2.3 2005-05-20 09:34:56 cssharp Exp $
+//$Id: Timer.nc,v 1.1.2.4 2005-10-11 19:49:10 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -29,16 +29,16 @@ includes Timer;
 interface Timer<precision_tag>
 {
   // basic interface
-  command void startPeriodicNow( uint32_t dt );
-  command void startOneShotNow( uint32_t dt );
+  command void startPeriodic( uint32_t dt );
+  command void startOneShot( uint32_t dt );
   command void stop();
   event void fired();
 
   // extended interface
   command bool isRunning();
   command bool isOneShot();
-  command void startPeriodic( uint32_t t0, uint32_t dt );
-  command void startOneShot( uint32_t t0, uint32_t dt );
+  command void startPeriodicAt( uint32_t t0, uint32_t dt );
+  command void startOneShotAt( uint32_t t0, uint32_t dt );
   command uint32_t getNow();
   command uint32_t gett0();
   command uint32_t getdt();

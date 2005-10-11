@@ -1,4 +1,4 @@
-//$Id: BusyWaitCounterC.nc,v 1.1.2.3 2005-05-20 09:56:04 cssharp Exp $
+//$Id: BusyWaitCounterC.nc,v 1.1.2.4 2005-10-11 19:49:10 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -45,17 +45,16 @@ implementation
       // comparisons are <= to guarantee a wait at least as long as dt
 
       size_type t0 = call Counter.get();
-      if( dt <= HALF_MAX_SIZE_TYPE )
+
+      if( dt > HALF_MAX_SIZE_TYPE )
       {
+        dt -= HALF_MAX_SIZE_TYPE;
 	while( (call Counter.get() - t0) <= dt );
+        t0 += dt;
+        dt = HALF_MAX_SIZE_TYPE;
       }
-      else
-      {
-	dt -= HALF_MAX_SIZE_TYPE;
-	while( (call Counter.get() - t0) <= dt );
-	t0 += dt;
-	while( (call Counter.get() - t0) <= HALF_MAX_SIZE_TYPE );
-      }
+
+      while( (call Counter.get() - t0) <= dt );
     }
   }
 

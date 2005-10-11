@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.6 2005-05-20 10:03:15 cssharp Exp $
+// $Id: BlinkM.nc,v 1.1.2.7 2005-10-11 19:49:10 cssharp Exp $
 
 includes Timer;
 
@@ -17,7 +17,7 @@ implementation
     atomic
     {
       call Leds.led1On();
-      call Alarm.startNow( DELAY_MILLI );
+      call Alarm.start( DELAY_MILLI );
     }
   }
 
@@ -26,7 +26,7 @@ implementation
     atomic
     {
       // this usage produces a periodic alarm with no frequency skew
-      call Alarm.start( call Alarm.getAlarm(), DELAY_MILLI );
+      call Alarm.startAt( call Alarm.getAlarm(), DELAY_MILLI );
       call Leds.led0Toggle();
     }
   }
