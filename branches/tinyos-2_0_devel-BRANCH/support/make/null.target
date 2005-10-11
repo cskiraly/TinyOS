@@ -1,0 +1,11 @@
+#-*-Makefile-*- vim:syntax=make
+#$Id: null.target,v 1.1.2.1 2005-10-11 17:18:57 idgay Exp $
+
+PLATFORM = null
+PFLAGS += -finline-limit=100000
+
+$(call TOSMake_include_platform,null)
+
+null: $(BUILD_DEPS)
+	@:
+
