@@ -17,6 +17,7 @@ push( @includes, qw(
   %T/chips/msp430/timer
   %T/lib/timer
   %T/lib/serial
+  %T/lib/adc
 
 ) );
 
