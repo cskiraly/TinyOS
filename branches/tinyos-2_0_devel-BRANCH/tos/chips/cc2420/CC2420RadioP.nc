@@ -57,7 +57,7 @@
  * configures register IOCGF0 accordingly).
  * 
  * <pre>
- *   $Id: CC2420RadioP.nc,v 1.1.2.9 2005-10-11 22:04:54 scipio Exp $
+ *   $Id: CC2420RadioP.nc,v 1.1.2.10 2005-10-12 17:51:06 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -88,7 +88,6 @@ module CC2420RadioP {
     interface Capture as SFD;
     interface Alarm<T32khz,uint16_t> as BackoffTimer;
     interface Random;
-    interface Leds;
     interface Resource as SpiBus;
     
     interface GeneralIO as CC_SFD;
@@ -106,7 +105,7 @@ module CC2420RadioP {
 }
 
 implementation {
-  enum {
+  typedef enum {
     DISABLED_STATE = 0,
     IDLE_STATE,
     TX_STATE,
@@ -117,7 +116,7 @@ implementation {
     RX_STATE,
     POWER_DOWN_STATE,
     WARMUP_STATE,
-  };
+  } cc2420_state_t;
 
   enum {
     TIMER_INITIAL = 0,
@@ -134,11 +133,12 @@ implementation {
 #define MAX_SEND_TRIES 2
 
   uint8_t countRetry;
-  uint8_t stateRadio;
+  cc2420_state_t stateRadio;
   uint8_t stateTimer;
   uint8_t currentDSN;
   bool bAckEnable;
   bool bPacketReceiving;
+  bool bReceptionPending;
   uint8_t txlength;
   message_t* txbufptr;  // pointer to transmit buffer
   message_t* rxbufptr;  // pointer to receive buffer
@@ -174,7 +174,7 @@ implementation {
       stateRadio = IDLE_STATE;
       pBuf = txbufptr;
       err = sendSuccess;
-      if (bPacketReceiving == FALSE) {
+      if (bReceptionPending == FALSE) {
 	releaseBus();
       }
     }
@@ -305,8 +305,9 @@ implementation {
      }
      atomic {
        flushRXFIFO();
-       //    call FIFOP.startWait(FALSE);
+       call FIFOP.startWait(FALSE);
        if (stateRadio == IDLE_STATE) {
+	 bReceptionPending = FALSE;
 	 releaseBus();
        }
      }
@@ -328,6 +329,7 @@ implementation {
       bAckEnable = FALSE;
       bPacketReceiving = FALSE;
       rxbufptr = &RxBuf;
+      txbufptr = NULL;
       getHeader(rxbufptr)->length = 0;
       busHeld = FALSE;
     }
@@ -408,14 +410,13 @@ implementation {
   /**
    * Try to send a packet.  If unsuccessful, backoff again
    **/
-  uint8_t sendStatus;
   
   void sendPacket() {
     uint8_t status;
     atomic {
       call SFD.enableCapture(TRUE);
       call STXONCCA.cmd();
-      sendStatus = status = call SNOP.cmd();
+      status = call SNOP.cmd();
     }
     atomic {
       if (status & CC2420_TX_ACTIVE) {
@@ -509,7 +510,6 @@ implementation {
     default:
       // fire RX SFD handler
       getBus();
-      //call FIFOP.startWait(FALSE);
       getMetadata(myRxPtr)->time = time;
       signal TimeStamp.receivedSFD(time, myRxPtr);
     }
@@ -552,14 +552,13 @@ implementation {
   void tryToSend() {
     uint8_t currentstate;
     atomic currentstate = stateRadio;
-    
     // and the CCA check is good
     if (currentstate == PRE_TX_STATE) {
       
       // if a FIFO overflow occurs or if the data length is invalid, flush
       // the RXFIFO to get back to a normal state.
       if ((!call CC_FIFO.get() && !call CC_FIFOP.get())) {
-	flushRXFIFO();
+	//flushRXFIFO();
       }
       
       if (call CC_CCA.get()) {
@@ -573,7 +572,7 @@ implementation {
 	atomic retryVal = countRetry--;
 	if (retryVal <= 0) {
 	  atomic countRetry = MAX_SEND_TRIES;
-	  flushRXFIFO();
+	  //flushRXFIFO();
 	  post startSend();
 	  return;
 	}
@@ -695,7 +694,6 @@ implementation {
   }
 
   void delayedRXFIFO() {
-    uint8_t len = MAC_DATA_SIZE;  
     uint8_t _bPacketReceiving;
 
     // If there's no data and FIFOP is low (there's a packet)
@@ -706,12 +704,12 @@ implementation {
 
     atomic {
       _bPacketReceiving = bPacketReceiving;
-      
+      bPacketReceiving = TRUE;
+      // If we're still in the midst of receiving and
+      // are running, delay.
       if (_bPacketReceiving) {
-	if (post delayedRXFIFOtask() != SUCCESS)
-	  flushRXFIFO();
-      } else {
-	bPacketReceiving = TRUE;
+	post delayedRXFIFOtask();
+	return;
       }
     }
     
@@ -722,13 +720,12 @@ implementation {
     if (!_bPacketReceiving) {
       uint8_t* ptr;
       atomic ptr = (uint8_t*)getHeader(rxbufptr);
-      if (call CC2420Fifo.readRxFifo(ptr, len) != SUCCESS) {
+      if (call CC2420Fifo.readRxFifo(ptr, MAC_DATA_SIZE) != SUCCESS) {
 	atomic bPacketReceiving = FALSE;
 	post delayedRXFIFOtask();
 	return;
       }      
     }
-    flushRXFIFO();
   }
   
   /**********************************************************
@@ -746,7 +743,8 @@ implementation {
    *  rxbufptr->rssi is CRC + Correlation value
    *  rxbufptr->strength is RSSI
    **********************************************************/
-   async event void FIFOP.fired() {
+
+  async event void FIFOP.fired() {
      // if we're trying to send a message and a FIFOP interrupt
      // occurs, we need to backoff longer so that we don't interfere
      // with a possible ACK. We could inspect the packet to see if
@@ -757,6 +755,7 @@ implementation {
          call BackoffTimer.start((signal CSMABackoff.congestion(txbufptr) * CC2420_SYMBOL_UNIT) + CC2420_ACK_DELAY);
        }
      }
+     
      //     call Leds.led1Toggle();
      /** Check for RXFIFO overflow **/     
      if (!call CC_FIFO.get()){
@@ -764,10 +763,15 @@ implementation {
        return;
      }
      atomic {
-       //call Leds.led2Toggle();
+       atomic bReceptionPending = TRUE;
        if (getBus() == SUCCESS) {
-	 post delayedRXFIFOtask();
 	 call FIFOP.disable();
+	 if (call CC2420Fifo.readRxFifo((uint8_t*)getHeader(rxbufptr), MAC_DATA_SIZE) == SUCCESS) {
+	   atomic bPacketReceiving = TRUE;
+	 }
+	 else {
+	   post delayedRXFIFOtask();
+	 }
        }
        else {
 	 flushRXFIFO();
@@ -780,8 +784,6 @@ implementation {
    * After the buffer is received from the RXFIFO,
    * process it, then post a task to signal it to the higher layers
    */
-   uint8_t goo;
-   
    async event void CC2420Fifo.readRxFifoDone(uint8_t *data, uint8_t len, error_t err) {
      // JP NOTE: rare known bug in high contention:
     // radio stack will receive a valid packet, but for some reason the
@@ -795,7 +797,6 @@ implementation {
       currentstate = stateRadio;
       acksEnabled = bAckEnable;
     }
-    goo = len;
     
     // if a FIFO overflow occurs or if the data length is invalid, flush
     // the RXFIFO to get back to a normal state.
@@ -812,7 +813,6 @@ implementation {
 	// This code is here merely as a useful sanity check
 	// hook for when debugging: nesC will elide an
 	// empty statement.
-	goo = 1;
       }
     }
    
@@ -874,17 +874,6 @@ implementation {
 	bPacketReceiving = FALSE;
       }
     }
-
-    //    if ((!call CC_FIFO.get()) && (!call CC_FIFOP.get())) {
-    //        flushRXFIFO();
-    //	return;
-    // }
-
-    if (!(call CC_FIFOP.get())) {
-      if (post delayedRXFIFOtask() == SUCCESS)
-	return;
-    }
-    return;
   }
 
   /**

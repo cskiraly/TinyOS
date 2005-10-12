@@ -58,7 +58,7 @@
  * exclusive access to the SPI bus when it is called: its
  * caller is responsible for reserving the bus.
  * <pre>
- *  $Id: CC2420P.nc,v 1.1.2.5 2005-10-12 05:43:57 jwhui Exp $
+ *  $Id: CC2420P.nc,v 1.1.2.6 2005-10-12 17:51:06 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -90,6 +90,7 @@ module CC2420P {
   }
 }
 implementation {
+
   uint8_t state;
   uint8_t* writeBuffer;
   uint8_t* readBuffer;
@@ -354,7 +355,7 @@ implementation {
 
     atomic {
       writeBuffer = cmd;
-      readBuffer = results;
+      readBuffer  = results;
       len = bufLens;
     }
 
@@ -424,6 +425,7 @@ implementation {
       ramAddr = addr;
       len = length;
       writeBuffer = buffer;
+      readBuffer = NULL;
     }
     
     call CC_CS.clr();                   //enable chip select
@@ -438,25 +440,6 @@ implementation {
     }
     
     err = call SpiPacket.send(ramCmd, NULL, 2);
-
-    
-    
-    if (0) {
-      uint8_t i;
-      for (i = 0; i < length; i++) {
-	call SpiByte.write(buffer[i]);
-      }
-      call CC_CS.set();
-      atomic state = CC2420M_IDLE;
-      post ramWriteDoneTask();
-    }
-    else {
-      call SpiPacket.send(buffer, NULL, length);
-      call CC_CS.set();
-      atomic state = CC2420M_IDLE;
-      post ramWriteDoneTask();
-    }
-
     return SUCCESS;
   }
 
@@ -500,11 +483,12 @@ implementation {
       signal RAM.writeDone(addr, myBuf, myLen, err);
     }
   }
+
+
   
   async command error_t Fifo.writeTxFifo(uint8_t* buffer, uint8_t length) {
     error_t err;
     uint8_t oldState;
-    
     atomic {
       oldState = state;
       if (oldState == CC2420M_IDLE) {
@@ -518,8 +502,8 @@ implementation {
     atomic {
       len = length;
       writeBuffer = buffer;
+      readBuffer  = NULL;
     }
-    
     call CC_CS.clr();                   //enable chip select
       
     /* Writing data out to RAM. Refer to page 26 of the CC2420
@@ -535,7 +519,6 @@ implementation {
     error_t err;
     uint8_t oldState;
     uint8_t tmp;
-
     atomic {
       oldState = state;
       if (oldState == CC2420M_IDLE) {
@@ -548,17 +531,23 @@ implementation {
     
     
     call CC_CS.clr();                   //enable chip select
-      
     /* Refer to page 26 of the CC2420 Preliminary Datasheet. Send the RXFIFO
        and then keep on reading. */
     err = call SpiByte.write(CC2420_RXFIFO | 0x40);
+
+    // Grab the frame length byte, which goes into the buffer. Subtract
+    // one from the buffer length accordingly (see call with buffer+1 below).
     tmp  = call SpiByte.write( 0 );
+    length--;
+
+    // If the frame is smaller than the buffer, don't read past it.
     if ( tmp < length ) {
       length = tmp;
     }
     atomic {
       len = length;
-      readBuffer = buffer;
+      readBuffer  = buffer;
+      writeBuffer = NULL;
       buffer[ 0 ] = len;
     }
     call SpiPacket.send(NULL, buffer+1, length);
