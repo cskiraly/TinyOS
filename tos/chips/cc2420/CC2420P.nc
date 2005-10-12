@@ -58,7 +58,7 @@
  * exclusive access to the SPI bus when it is called: its
  * caller is responsible for reserving the bus.
  * <pre>
- *  $Id: CC2420P.nc,v 1.1.2.4 2005-10-11 22:04:54 scipio Exp $
+ *  $Id: CC2420P.nc,v 1.1.2.5 2005-10-12 05:43:57 jwhui Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -561,7 +561,7 @@ implementation {
       readBuffer = buffer;
       buffer[ 0 ] = len;
     }
-    call SpiPacket.send(NULL, buffer+1, length-1);
+    call SpiPacket.send(NULL, buffer+1, length);
     return SUCCESS;
   }
   
