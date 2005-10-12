@@ -54,7 +54,7 @@
  * platform-specific abstractions (such as SPI access and pins).
  * 
  * <pre>
- *   $Id: CC2420RadioC.nc,v 1.1.2.4 2005-09-14 01:09:40 scipio Exp $
+ *   $Id: CC2420RadioC.nc,v 1.1.2.5 2005-10-12 17:51:06 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -81,7 +81,7 @@ implementation
   components CC2420C as CC2420Platform, CC2420PlatformAlarmC;
   components HplCC2420PinsC;
   
-  components RandomC, LedsC;
+  components RandomC;
 
   Init = CC2420PlatformAlarmC;
   Init = Radio;
@@ -113,7 +113,7 @@ implementation
   Radio.CC_FIFO            -> HplCC2420PinsC.CC_FIFO;
   Radio.CC_CCA             -> HplCC2420PinsC.CC_CCA;
   Radio.CC_FIFOP           -> HplCC2420PinsC.CC_FIFOP;
-
+  
   Control.HPLChipconInit    -> CC2420Platform;
   Control.HPLChipconControl -> CC2420Platform;
   Control.Ram               -> CC2420Platform;
