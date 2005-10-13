@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.1 2005-09-26 18:08:46 scipio Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.2 2005-10-13 23:18:09 klueska Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.1 2005-09-26 18:08:46 scipio Exp $
+ * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.2 2005-10-13 23:18:09 klueska Exp $
  *
  */
 
@@ -60,6 +60,7 @@ configuration ActiveMessageC {
 }
 implementation {
   components CC2420ActiveMessageC as AM;
+  components CC2420RadioC, RealMainP;
 
   Init         = AM;
   SplitControl = AM;
@@ -70,4 +71,6 @@ implementation {
   Packet       = AM;
   AMPacket     = AM;
   PacketAcknowledgements = AM;
+
+  RealMainP.SoftwareInit -> CC2420RadioC;
 }
