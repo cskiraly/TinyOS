@@ -1,4 +1,4 @@
-// $Id: RadioSenseToLedsC.nc,v 1.1.2.2 2005-08-08 03:30:40 scipio Exp $
+// $Id: RadioSenseToLedsC.nc,v 1.1.2.3 2005-10-13 18:11:02 klueska Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -64,7 +64,7 @@ implementation {
    
   event void Boot.booted() {
     call Service.start();
-    call MilliTimer.startPeriodicNow(1000);
+    call MilliTimer.startPeriodic(1000);
   }
   
   event void MilliTimer.fired() {
