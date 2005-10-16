@@ -26,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: hardware.h,v 1.1.2.2 2005-06-01 03:22:02 janhauer Exp $
+ * $Id: hardware.h,v 1.1.2.3 2005-10-16 13:55:23 janhauer Exp $
  *
  */
 
@@ -189,7 +189,7 @@ atomic {
   P2IE = 0;
 
   // wait 12ms for the radio and flash to start
-  TOSH_uwait(1024*12);
+  uwait(1024*12);
    //
   // Put the flash in deep sleep state
   TOSH_FLASH_M25P_DP();

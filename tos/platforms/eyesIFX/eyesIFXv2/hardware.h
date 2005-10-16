@@ -26,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: hardware.h,v 1.1.2.3 2005-07-06 18:04:44 klueska Exp $
+ * $Id: hardware.h,v 1.1.2.4 2005-10-16 13:55:23 janhauer Exp $
  *
  */
 
@@ -148,7 +148,7 @@ atomic {
 
 
  // wait 12ms for the radio to start
-  TOSH_uwait(1024*12);
+  uwait(1024*12);
 
   TOSH_SET_TDA_ENTDA_PIN(); // deselect the radio
   TOSH_SET_FLASH_CS_PIN(); // put flash in standby mode
