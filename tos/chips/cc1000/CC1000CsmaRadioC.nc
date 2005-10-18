@@ -1,4 +1,4 @@
-/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.7 2005-10-09 16:29:20 scipio Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.8 2005-10-18 18:48:47 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -43,7 +43,7 @@
  *
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.7 $
+ * Revision:  $Revision: 1.1.2.8 $
  */
 
 #include "CC1000Const.h"
@@ -76,6 +76,7 @@ implementation {
   components RandomC, TimerMilliC, ActiveMessageAddressC;
 
   Init = Csma;
+  Init = Squelch;
   Init = TimerMilliC;
   Init = RandomC;
 
