@@ -24,7 +24,7 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: SensorMts300P.nc,v 1.1.2.2 2005-10-20 05:19:53 mturon Exp $
+ *  $Id: SensorMts300P.nc,v 1.1.2.3 2005-10-20 05:23:47 mturon Exp $
  */
 
 includes Timer;
@@ -174,7 +174,7 @@ implementation
 
 	    case STATE_IDLE: 
 		// Okay, grab the sensor.
-		switchLightOn();
+		switchTempOn();
 		return;
 		
 	    case STATE_TEMP_WARMING:
@@ -183,7 +183,7 @@ implementation
 
 	    case STATE_TEMP_READY:
 		// Start the sample.
-		atomic { g_flags.bits.state = STATE_LIGHT_SAMPLING; }
+		atomic { g_flags.bits.state = STATE_TEMP_SAMPLING; }
 		call SensorADC.getData();
 		return;
 
