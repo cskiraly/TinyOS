@@ -24,11 +24,24 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: SensorMts300P.nc,v 1.1.2.1 2005-10-20 04:44:07 mturon Exp $
+ *  $Id: SensorMts300P.nc,v 1.1.2.2 2005-10-20 05:19:53 mturon Exp $
  */
 
 includes Timer;
 
+/**
+ * This component is the "platform" of the sensorboard space.
+ * It handles particulars of initialization, and glues all the
+ * member sensor "chips" into one place.  The current implementation 
+ * is overly monolithic, and should be divided into smaller 
+ * components that handle each individual sensor.  The temperature
+ * and light sensors are tightly coupled however and in the case
+ * of the micaz, interfere with the radio (INT2), so more can
+ * be done to clean up the design here.
+ * 
+ * @author  Martin Turon
+ * @date    October 19, 2005
+ */
 module SensorMts300P
 {
     provides {
@@ -57,6 +70,8 @@ implementation
 	STATE_TEMP_SAMPLING,   //!< Sampling sensor
     };
 
+    /// Yes, this could be a simple uint8_t.  There used to be more bits here,
+    /// but they were optimized out and removed.
     union {
 	uint8_t flat;
 	struct {
@@ -122,6 +137,7 @@ implementation
 	    case STATE_TEMP_READY:
 	    case STATE_TEMP_SAMPLING:
 		// If Temperature is busy, repost and try again later.
+		// This will not let the CPU sleep.  Add delay timer.
 		post getLightSample();
 		return;
 
@@ -152,6 +168,7 @@ implementation
 	    case STATE_LIGHT_READY:
 	    case STATE_LIGHT_SAMPLING:
 		// If Temperature is busy, repost and try again later.
+		// This will not let the CPU sleep.  Add delay timer.
 		post getLightSample();
 		return;
 
