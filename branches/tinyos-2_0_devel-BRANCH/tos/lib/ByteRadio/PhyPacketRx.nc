@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-07-02 07:41:51 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-10-25 10:19:53 $
  * ========================================================================
  */
  
@@ -42,7 +42,7 @@
  */ 
 interface PhyPacketRx {
   async command void recvHeader();
-  async event void recvHeaderDone(uint8_t length_value);
+  async event void recvHeaderDone(uint8_t length_value); //VH: remove length parameter
   async command void recvFooter();
   async event void recvFooterDone(bool error);
 }
