@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2005-07-11 16:05:06 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2005-10-25 10:19:53 $
  * ========================================================================
  */
  
@@ -43,6 +43,7 @@ module PacketSerializerM {
       interface Init;
       interface Send;
       interface Receive;
+      interface Packet;
    }
    uses {
       interface RadioByteComm;
@@ -55,7 +56,7 @@ implementation
    /**************** Module Global Variables  *****************/
    uint8_t *txBufPtr;  // pointer to tx buffer
    uint8_t *rxBufPtr;  // pointer to rx buffer
-	 message_t rxMsg;    // rx message buffer
+         message_t rxMsg;    // rx message buffer
    uint16_t byteCnt;      // index into current data
    uint16_t msgLength;   // Length of message
 
@@ -75,7 +76,7 @@ implementation
    }
    task void ReceiveTask() {
      signal Receive.receive((message_t*)rxBufPtr, (void*)rxBufPtr, msgLength);
-		 call PhyPacketRx.recvHeader();
+                 call PhyPacketRx.recvHeader();
    }   
 
    /**************** Radio Init  *****************/
@@ -99,20 +100,20 @@ implementation
      call PhyPacketTx.sendHeader(len);
      return SUCCESS;
    }
-	 
-	 command error_t Send.cancel(message_t* msg) {
-	   if(msg != (message_t*)txBufPtr)
-		   return FAIL;
-		else return call PhyPacketTx.cancel();
-	 }
+         
+         command error_t Send.cancel(message_t* msg) {
+           if(msg != (message_t*)txBufPtr)
+                   return FAIL;
+                else return call PhyPacketTx.cancel();
+         }
    
    async event void PhyPacketTx.sendHeaderDone(error_t error) {
      if(error == SUCCESS)
        TransmitNextByte();
      else if(error == ECANCEL)
-		   post SendDoneCancelTask();
+                   post SendDoneCancelTask();
      else post SendDoneFailTask();
-	 }
+         }
    
    /**************** Rx Done ****************/
    async event void RadioByteComm.txByteReady(error_t error) {
@@ -137,9 +138,11 @@ implementation
      else post SendDoneFailTask();
   }
   
+//VH: remove parameter
    async event void PhyPacketRx.recvHeaderDone(uint8_t length_value) {
      byteCnt = 0;
-		 msgLength = length_value;
+//VH: remove variable
+                 msgLength = length_value;
    }  
    
    /**************** Rx Done ****************/
@@ -152,9 +155,31 @@ implementation
    }   
 
   /* Receive the next Byte from the USART */
-  void ReceiveNextByte(uint8_t data) {
+  void ReceiveNextByte(uint8_t data) { //ReceiveNextPayload
     rxBufPtr[byteCnt++] = data;
-    if(byteCnt == msgLength)     
+    if(byteCnt == msgLength)    //byteCnt==rxBufPtr.header.length; 
       call PhyPacketRx.recvFooter();
   }
+
+  /**************** Packet interface ****************/
+
+  command void Packet.clear(message_t* msg) {
+    memset(msg, 0, sizeof(message_t));
+  }
+
+  command uint8_t Packet.payloadLength(message_t* msg) {
+    return msg->header.length;
+  }
+ 
+  command uint8_t Packet.maxPayloadLength() {
+    return TOSH_DATA_LENGTH;
+  }
+
+  command void* Packet.getPayload(message_t* msg, uint8_t* len) {
+    if (len != NULL) {
+      *len = msg->header.length;
+    }
+    return (void*)msg->data;
+  }
+
 }

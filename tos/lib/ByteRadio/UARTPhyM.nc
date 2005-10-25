@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2005-07-06 18:09:21 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2005-10-25 10:19:53 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -41,8 +41,8 @@ module UARTPhyM {
    provides {
       interface Init;
       interface PhyPacketTx;
-			interface RadioByteComm as SerializerRadioByteComm;
-			interface PhyPacketRx;
+      interface RadioByteComm as SerializerRadioByteComm;
+      interface PhyPacketRx;
    }
    uses {
       interface RadioByteComm;
@@ -52,16 +52,16 @@ implementation
 {
    /**************** Module Definitions  *****************/
    typedef enum {
-	    STATE_NULL,
+            STATE_NULL,
       STATE_PREAMBLE,    
       STATE_SYNC,
-			STATE_SFD,
-			STATE_LENGTH,
-			STATE_HEADER_DONE,
-			STATE_DATA,
+                        STATE_SFD,
+                        STATE_LENGTH,   //VH: remove this state
+                        STATE_HEADER_DONE,
+                        STATE_DATA,
       STATE_CRC1,
       STATE_CRC2,
-			STATE_FOOTER_DONE,
+                        STATE_FOOTER_DONE,
       STATE_CANCEL_HEADER,
       STATE_CANCEL_DATA,
       STATE_CANCEL_FOOTER
@@ -75,7 +75,9 @@ implementation
    phyState_t phyState;   // Current Phy state State
    uint16_t numPreambles;  //Number of preambles to send before the packet
    uint16_t crc;           //CRC value of either the current incoming or outgoing packet
-	 uint16_t length;       //Length of the payload to be sent by PacketSerializerM
+
+//VH: remove this
+         uint16_t length;       //Length of the payload to be sent by PacketSerializerM
 
    /**************** Local Function Declarations  *****************/
    void TransmitNextByte();
@@ -88,12 +90,16 @@ implementation
      }     
      return SUCCESS;
    }  
-   
+//VH: parameter length not needed
+
    async command void PhyPacketTx.sendHeader(uint8_t length_value) {
      atomic {
        phyState = STATE_PREAMBLE;
+
+//VH: not needed
+//VH: add interface for setting Preambles, turning CRC on,off
        length = length_value;
-			 numPreambles = 1;
+                         numPreambles = 1;
        crc = 0;
      }
      TransmitNextByte();
@@ -117,16 +123,16 @@ implementation
    /**************** Radio Recv ****************/
    async command void PhyPacketRx.recvHeader() {
      atomic {
-		   phyState = STATE_PREAMBLE;
-			 crc = 0;
-		 }
+                   phyState = STATE_PREAMBLE;
+                         crc = 0;
+                 }
    }
    
    async command void PhyPacketRx.recvFooter() {
      atomic phyState = STATE_CRC1;
    }      
    
-	 async command error_t PhyPacketTx.cancel() {
+         async command error_t PhyPacketTx.cancel() {
        switch(phyState) {
          case STATE_PREAMBLE:    
          case STATE_SYNC:
@@ -145,13 +151,13 @@ implementation
          default:
            return FAIL;
        }   
-	 }
-	 
+         }
+         
    /**************** Tx Done ****************/
    async event void RadioByteComm.txByteReady(error_t error) {
      if(error == SUCCESS) {
-			 TransmitNextByte();
-		 }
+                         TransmitNextByte();
+                 }
      else {
        switch(phyState) {
          case STATE_PREAMBLE:    
@@ -170,8 +176,8 @@ implementation
            break;
        }
      }
-   }	 
-	 
+   }     
+         
    void TransmitNextByte() {
     switch(phyState) {   
        case STATE_PREAMBLE:
@@ -181,56 +187,58 @@ implementation
            else phyState = STATE_SYNC;            
          }
          call RadioByteComm.txByte(PREAMBLE_BYTE);
-				 break;
+                                 break;
        case STATE_SYNC:
          atomic phyState = STATE_SFD;
          call RadioByteComm.txByte(SYNC_BYTE);
-				 break;
+                                 break;
        case STATE_SFD:
          atomic phyState = STATE_LENGTH;
          call RadioByteComm.txByte(SFD_BYTE);
-				 break;
+                                 break;
+
+//VH: remove this state
        case STATE_LENGTH:
          atomic {
-				   phyState = STATE_HEADER_DONE;
-				   crc = crcByte(crc, length);
-				 }
+                                   phyState = STATE_HEADER_DONE;
+                                   crc = crcByte(crc, length);
+                                 }
          call RadioByteComm.txByte(length);
-				 break;				 
+                                 break;                          
        case STATE_HEADER_DONE:
-			 	 atomic phyState = STATE_DATA;
+                                 atomic phyState = STATE_DATA;
          signal PhyPacketTx.sendHeaderDone(SUCCESS);  
-				 break;
+                                 break;
        case STATE_DATA:
          signal SerializerRadioByteComm.txByteReady(SUCCESS);  
-				 break;				 
-       case STATE_CRC1:		 
-			 	 atomic phyState = STATE_CRC2;
+                                 break;                          
+       case STATE_CRC1:          
+                                 atomic phyState = STATE_CRC2;
          call RadioByteComm.txByte((uint8_t)(crc >> 8));
          break;
        case STATE_CRC2: 
-			 	 atomic phyState = STATE_FOOTER_DONE;	
-				 call RadioByteComm.txByte((uint8_t)(crc));					
-				 break;
+                                 atomic phyState = STATE_FOOTER_DONE;   
+                                 call RadioByteComm.txByte((uint8_t)(crc));                                     
+                                 break;
        case STATE_FOOTER_DONE:
-         atomic phyState = STATE_NULL;		
-				 while(call RadioByteComm.isTxDone() == FALSE); 
-         signal PhyPacketTx.sendFooterDone(SUCCESS); 	
-				 break;
+         atomic phyState = STATE_NULL;          
+                                 while(call RadioByteComm.isTxDone() == FALSE); 
+         signal PhyPacketTx.sendFooterDone(SUCCESS);    
+                                 break;
        case STATE_CANCEL_HEADER:
-         atomic phyState = STATE_NULL;		
-         signal PhyPacketTx.sendHeaderDone(ECANCEL); 	
-				 break;			
+         atomic phyState = STATE_NULL;          
+         signal PhyPacketTx.sendHeaderDone(ECANCEL);    
+                                 break;                 
        case STATE_CANCEL_DATA:
-         atomic phyState = STATE_NULL;		
-         signal SerializerRadioByteComm.txByteReady(ECANCEL);		
-				 break;			
+         atomic phyState = STATE_NULL;          
+         signal SerializerRadioByteComm.txByteReady(ECANCEL);           
+                                 break;                 
        case STATE_CANCEL_FOOTER:
-         atomic phyState = STATE_NULL;		
-         signal PhyPacketTx.sendFooterDone(ECANCEL); 							 				 				 			  
+         atomic phyState = STATE_NULL;          
+         signal PhyPacketTx.sendFooterDone(ECANCEL);                                                                                                                                              
        default:
          break;                     
-	   }
+           }
    }
    
    /**************** Rx Done ****************/
@@ -247,7 +255,7 @@ implementation
       case STATE_SYNC:
         if(data != PREAMBLE_BYTE) {
            if (data == SFD_BYTE) {
-             atomic phyState = STATE_LENGTH;
+             atomic phyState = STATE_LENGTH; //VH:go to STATE_DATA
            }
            else atomic phyState = STATE_SFD;
         }
@@ -256,18 +264,20 @@ implementation
         if (data == SFD_BYTE)
            atomic phyState = STATE_LENGTH;
         else atomic phyState = STATE_PREAMBLE;
-        break;				
+        break;                          
+//VH: remove this state
       case STATE_LENGTH:
-			  atomic {
-				  phyState = STATE_DATA;
-			    crc = crcByte(crc, data);
-				}
+                          atomic {
+                                  phyState = STATE_DATA;
+                            crc = crcByte(crc, data);
+                                }
         signal PhyPacketRx.recvHeaderDone(data);
         break;
+
       case STATE_DATA:
-			   atomic crc = crcByte(crc, data);
+                           atomic crc = crcByte(crc, data);
          signal SerializerRadioByteComm.rxByteReady(data);  
-				 break;							
+                                 break;                                                 
       case STATE_CRC1:
         if (data == (uint8_t)(crc >> 8))
           atomic phyState = STATE_CRC2;
@@ -275,16 +285,16 @@ implementation
           atomic phyState = STATE_NULL;
           signal PhyPacketRx.recvFooterDone(FALSE);
         }
-        break;				
+        break;                          
       case STATE_CRC2:
         atomic phyState = STATE_NULL;
         if (data == (uint8_t)(crc))
           signal PhyPacketRx.recvFooterDone(TRUE);
-        else		
+        else            
           signal PhyPacketRx.recvFooterDone(FALSE);
         break;
       default:
         break;
     }
-	}
+        }
 }
