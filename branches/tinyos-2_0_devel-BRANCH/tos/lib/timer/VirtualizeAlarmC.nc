@@ -1,4 +1,4 @@
-//$Id: VirtualizeAlarmC.nc,v 1.1.2.2 2005-10-11 22:14:50 idgay Exp $
+//$Id: VirtualizeAlarmC.nc,v 1.1.2.3 2005-10-25 00:43:09 jpolastre Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,7 +24,7 @@
 
 // See TEP 102 Timers.
 
-generic module DupeAlarmC( typedef precision_tag, typedef size_type, int num_alarms )
+generic module VirtualizeAlarmC( typedef precision_tag, typedef size_type @integer(), int num_alarms )
 {
   provides interface Init;
   provides interface Alarm<precision_tag,size_type> as Alarm[int id];
@@ -50,8 +50,8 @@ implementation
 
   void setAlarm( size_type now )
   {
-    size_type t0;
-    size_type dt;
+    size_type t0 = 0;
+    size_type dt = 0;
     bool isNotSet = TRUE;
     int id;
 
@@ -111,10 +111,10 @@ implementation
         if( m_isset[id] && (m_dt[id] == 0) )
         {
           m_isset[id] = FALSE;
-          signal Alarm[id].fired();
+          signal Alarm.fired[id]();
         }
       }
-      call setAlarm( call AlarmFrom.getNow() );
+      setAlarm( call AlarmFrom.getNow() );
     }
   }
 
@@ -137,12 +137,15 @@ implementation
 
   async command size_type Alarm.getNow[int id]()
   {
-    return AlarmFrom.getNow();
+    return call AlarmFrom.getNow();
   }
 
   async command size_type Alarm.getAlarm[int id]()
   {
     atomic return m_t0[id]+m_dt[id];
   }
+
+  default async event void Alarm.fired[int id]() { }
+
 }
 
