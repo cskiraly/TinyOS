@@ -1,4 +1,4 @@
-// $Id: TinySchedulerC.nc,v 1.1.2.1 2005-08-07 20:33:57 scipio Exp $
+// $Id: TinySchedulerC.nc,v 1.1.2.2 2005-10-27 01:13:30 scipio Exp $
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.
  * All rights reserved.
@@ -37,7 +37,9 @@ configuration TinySchedulerC {
 }
 implementation {
   components SchedulerBasicP as Sched;
+  components McuSleepC as Sleep;
   Scheduler = Sched;
   TaskBasic = Sched;
+  Sched.McuSleep -> Sleep;
 }
 
