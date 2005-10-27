@@ -1,4 +1,4 @@
-// $Id: pxa27x_registers.h,v 1.1.2.1 2005-05-11 01:24:32 philipb Exp $ 
+// $Id: pxa27x_registers.h,v 1.1.2.2 2005-10-27 22:45:21 philipb Exp $ 
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -40,6 +40,9 @@
 /*
  *
  * Authors:		Phil Buonadonna
+ *
+ * Edits:	Josh Herbach, Konrad Lorincz
+ * Revised: 09/19/2005
  */
 
 #ifndef _PXA27X_REGISTER_H
@@ -78,6 +81,15 @@
 #define BSCNTR3	_PXAREG(0x48000060) /* System Memory Buffer Strength Control register 3 6-84 */
 #define SA1110	_PXAREG(0x48000064) /* SA-1110 Compatibility Mode for Static Memory register 6-70 */
 
+/* SXCNFG Bit defs */
+#define SXCNFG_SXEN0 (1)
+#define SXCNFG_SXEN1 (1<<1)
+#define SXCNFG_SXCL0(_x) (((_x) & 0x7) << 2)
+#define SXCNFG_SXTP0(_x) (((_x) & 0x3) << 12)
+#define SXCNFG_SXCLEXT0 (1<<15)
+
+/* SA1110 Bit defs */
+#define SA1110_SXSTACK(_x) (((_x) & 0x3) << 12)
 /******************************************************************************/
 /* LCD Controller */
 /******************************************************************************/
@@ -184,6 +196,68 @@
 #define CIBR0	_PXAREG(0x50000028) /* Quick Capture Interface Receive Buffer register 0 (Channel 0) 27-42 */
 #define CIBR1	_PXAREG(0x50000030) /* Quick Capture Interface Receive Buffer register 1 (Channel 1) 27-42 */
 #define CIBR2	_PXAREG(0x50000038) /* Quick Capture Interface Receive Buffer register 2 (Channel 2) 27-42 */
+
+
+/* Quick Capture Interface - Control Register 0 */
+#define CICR0_DMA_EN    (1 << 31)	/* DMA Request Enable */
+#define CICR0_EN        (1 << 28)	/* Quick Capture Interface Enable (and Quick Disable) */
+#define CICR0_TOM       (1 << 9)	/* Time-Out Interrupt Mask */
+#define CICR0_RDAVM     (1 << 8)	/* Receive-Data-Available Interrupt Mask */
+#define CICR0_FEM       (1 << 7)	/* FIFO-Empty Interrupt Mask */
+#define CICR0_EOLM      (1 << 6)	/* End-of-Line Interrupt Mask */
+#define CICR0_SOFM      (1 << 2)	/* Start-of-Frame Interrupt Mask */
+#define CICR0_EOFM      (1 << 1)	/* End-of-Frame Interrupt Mask */
+#define CICR0_FOM       (1 << 0)	/* FIFO Overrun Interrupt Mask */
+
+
+/* Quick Capture Interface - Control Register 1 */
+#define CICR1_TBIT      (1 << 31)   /* Transparency Bit */
+#define CICR1_RGBT_CONV(_data,_x)   ((_data & ~(0x7 << 29)) | (_x << 29))       /* RGBT Conversion */
+#define CICR1_PPL(_data,_x)         ((_data & ~(0x7ff << 15)) | (_x << 15))     /* Pixels per Line */
+#define CICR1_RGB_CONV(_data,_x)    ((_data & ~(0x7 << 12)) | (_x << 12))       /* RGB Bits per Pixel Conversion */
+#define CICR1_RGB_F     (1 << 11)   /* RGB Format */
+#define CICR1_YCBCR_F   (1 << 10)   /* YCbCr Format */
+#define CICR1_RGB_BPP(_data,_x)     ((_data & ~(0x7 << 7)) | (_x << 7))         /* RGB Bits per Pixel */
+#define CICR1_RAW_BPP(_data,_x)     ((_data & ~(0x3 << 5)) | (_x << 5))         /* Raw Bits per Pixel */
+#define CICR1_COLOR_SP(_data,_x)    ((_data & ~(0x3 << 3)) | (_x << 3))         /* Color Space */
+#define CICR1_DW(_data,_x)          ((_data & ~(0x7 << 0)) | (_x << 0))         /* Data Width */
+
+
+/* Quick Capture Interface - Control Register 3 */
+#define CICR3_LPF(_data,_x)	        ((_data & ~(0x7ff << 0)) | (_x << 0))       /* Lines per Frame */
+                                               
+/* Quick Capture Interface - Control Register 4 */
+#define CICR4_PCLK_EN   (1 << 23)   /* Pixel Clock Enable */
+#define CICR4_HSP       (1 << 21)	/* Horizontal Sync Polarity */
+#define CICR4_VSP       (1 << 20)	/* Vertical Sync Polarity */
+#define CICR4_MCLK_EN   (1 << 19)	/* MCLK Enable */
+#define CICR4_DIV(_data,_x)         ((_data & ~(0xff << 0)) | (_x << 0))        /* Clock Divisor */
+
+/* Quick Capture Interface - Status Register */
+#define CISR_FTO        (1 << 15)	/* FIFO Time-Out */
+#define CISR_RDAV_2     (1 << 14)	/* Channel 2 Receive Data Available */
+#define CISR_RDAV_1     (1 << 13)	/* Channel 1 Receive Data Available */
+#define CISR_RDAV_0     (1 << 12)	/* Channel 0 Receive Data Available */
+#define CISR_FEMPTY_2   (1 << 11)	/* Channel 2 FIFO Empty */
+#define CISR_FEMPTY_1   (1 << 10)	/* Channel 1 FIFO Empty */
+#define CISR_FEMPTY_0   (1 << 9)	/* Channel 0 FIFO Empty */
+#define CISR_EOL        (1 << 8)	/* End-of-Line */
+#define CISR_PAR_ERR    (1 << 7)	/* Parity Error */
+#define CISR_CQD        (1 << 6)	/* Quick Campture Interface Quick Dissable */
+#define CISR_CDD        (1 << 5)	/* Quick Campture Interface Quick Dissable Done */
+#define CISR_SOF        (1 << 4)	/* Start-of-Frame */
+#define CISR_EOF        (1 << 3)	/* End-of-Frame */
+#define CISR_IFO_2      (1 << 2)	/* FIFO Overrun for Channel 2 */
+#define CISR_IFO_1      (1 << 1)	/* FIFO Overrun for Channel 1 */
+#define CISR_IFO_0      (1 << 0)	/* FIFO Overrun for Channel 0 */
+
+
+/* Quick Capture Interface - FIFO Control Register */
+#define CIFR_FLVL0(_data,_x)        ((_data & ~(0xff << 8)) | (_x << 8))        /* FIFO 0 Level: value from 0-128 indicates the number of bytes */
+#define CIFR_THL_0(_data,_x)        ((_data & ~(0x3 << 4)) | (_x << 4))         /* Threshold Level for Channel 0 FIFO */
+#define CIFR_RESETF     (1 << 3)	/* Reset input FIFOs */
+
+
 
 
 /******************************************************************************/
@@ -464,7 +538,7 @@
 #define DCSR_RASIRQEN	(1 << 23)	/* Request After Channel Stoopped Interrupt Enable */
 #define DCSR_MASKRUN	(1 << 22)	/* Mask Run */
 #define DCSR_CMPST	(1 << 10)	/* Descriptor Compare Status */
-#define DCSR_EORINTR	(1 << 9)	/* End of Recieve */
+#define DCSR_EORINT	(1 << 9)	/* End of Recieve */
 #define DCSR_REQPEND	(1 << 8)	/* Request Pending (read-only) */
 #define DCSR_RASINTR	(1 << 4)	/* Request After Channel Stopped */
 #define DCSR_STOPINTR	(1 << 3)	/* Stop Interrupt */
@@ -490,7 +564,12 @@
 #define DCMD_WIDTH1	(1 << 14)	/* 1 byte width */
 #define DCMD_WIDTH2	(2 << 14)	/* 2 byte width (HalfWord) */
 #define DCMD_WIDTH4	(3 << 14)	/* 4 byte width (Word) */
-#define DCMD_LENGTH(_x)	(((_x) & 0x01fff))	/* No-descriptor transfer length */
+#define DCMD_SIZE(_x)	(((_x) & 0x3)<<16)	/* No-descriptor transfer length */
+#define DCMD_MAXSIZE    DCMD_SIZE(3)
+#define DCMD_WIDTH(_x)	(((_x) & 0x3)<<14)	/* No-descriptor transfer length */
+#define DCMD_MAXWIDTH   DCMD_WIDTH(3)
+#define DCMD_LEN(_x)	(((_x) & 0x1fff))	/* No-descriptor transfer length */
+#define DCMD_MAXLEN     DCMD_LEN(0x1fff)
 
 #define DMAREQ_DREQ0		(0)	
 #define DMAREQ_DREQ1		(1)	
@@ -687,6 +766,43 @@
 #define ISR	_PXAREG(0x40301698) /* I2C Status register 9-26 */
 #define ISAR	_PXAREG(0x403016A0) /* I2C Slave Address register 9-28 */
 
+/* I2C - Control Register */
+#define ICR_FM	        (1 << 15)	/* Fast Mode */
+#define ICR_UR	        (1 << 14)	/* Unit Reset */
+#define ICR_SADIE       (1 << 13)	/* Slave Address Detected Interrupt Enable */
+#define ICR_ALDIE	(1 << 12)	/* Arbitratino Loss Detected Interrupt Enable */
+#define ICR_SSDIE	(1 << 11)	/* Slave STOP Detected Interrupt Enable */
+#define ICR_BEIE	(1 << 10)	/* Bus Error Interrupt Enable */
+#define ICR_DRFIE	(1 << 9)	/* DBR Receive Full Interupt Enable */
+#define ICR_ITEIE	(1 << 8)	/* IDBR Transmit Empty Interrupt Enable */
+#define ICR_GCD	        (1 << 7)	/* General Call Disable */
+#define ICR_IUE	        (1 << 6)	/* I2C Unit Enable */
+#define ICR_SCLE	(1 << 5)	/* SCL Enable */
+#define ICR_MA	        (1 << 4)	/* Master Abort */
+#define ICR_TB	        (1 << 3)	/* Transfer Byte */
+#define ICR_ACKNAK	(1 << 2)	/* Positive/Negative Acknowledge */
+#define ICR_STOP	(1 << 1)	/* Stop */
+#define ICR_START	(1 << 0)	/* Start */
+            
+/* I2C - Status Register */
+#define ISR_BED	        (1 << 10)       /* Bus Error Detected */
+#define ISR_SAD	        (1 << 9)        /* Slave Address Detected */
+#define ISR_GCAD        (1 << 8)        /* General Call Address Detected */
+#define ISR_IRF	        (1 << 7)        /* IDBR Receive Full */
+#define ISR_ITE	        (1 << 6)        /* IDBR Transmit Empty */
+#define ISR_ALD	        (1 << 5)        /* Arbitration Loss Detection */
+#define ISR_SSD	        (1 << 4)        /* Slave STOP Detected */
+#define ISR_IBB	        (1 << 3)        /* I2C Bus Busy */
+#define ISR_UB          (1 << 2)        /* Unit Busy */
+#define ISR_ACKNAK      (1 << 1)        /* Ack/Nack Status */
+#define ISR_RWM         (1 << 0)        /* Read/Write Mode */
+
+/* I2C - Bus Monitor Register */
+#define IBMR_SCL        (1 << 1)        /* Continousely reflects the value of the SCL pin */
+#define IBMR_SDA        (1 << 0)        /* Continousely reflects the value of the SDA pin */
+
+
+
 
 /******************************************************************************/
 /* I2S Controller */
@@ -705,9 +821,9 @@
 /******************************************************************************/
 #define UDCCR	_PXAREG(0x40600000) /* UDC Control register 12-31 */
 #define UDCICR0	_PXAREG(0x40600004) /* UDC Interrupt Control register 0 12-35 */
-#define UDCCIR1	_PXAREG(0x40600008) /* UDC Interrupt Control register 1 12-35 */
+#define UDCICR1	_PXAREG(0x40600008) /* UDC Interrupt Control register 1 12-35 */
 #define UDCISR0	_PXAREG(0x4060000C) /* UDC Interrupt Status register 0 12-49 */
-#define UDCSIR1	_PXAREG(0x40600010) /* UDC Interrupt Status register 1 12-49 */
+#define UDCISR1	_PXAREG(0x40600010) /* UDC Interrupt Status register 1 12-49 */
 #define UDCFNR	_PXAREG(0x40600014) /* UDC Frame Number register 12-52 */
 #define UDCOTGICR	_PXAREG(0x40600018) /* UDC OTG Interrupt Control register 12-35 */
 #define UDCOTGISR	_PXAREG(0x4060001C) /* UDC OTG Interrupt Status register 12-49 */
@@ -812,6 +928,8 @@
 #define UDCCRW	_PXAREG(0x40600458) /* UDC Configuration register-Endpoint W 12-64 */
 #define UDCCRX	_PXAREG(0x4060045C) /* UDC Configuration register-Endpoint X 12-64 */
 
+/* UDCCR register */
+#define UDCCR_UDE (1 << 0)	    /* UDC Enable */
 
 /******************************************************************************/
 /* Standard UART */
@@ -866,6 +984,23 @@
 #define RTCPICR	_PXAREG(0x40900034) /* RTC Periodic Interrupt Counter register 21-27 */
 #define PIAR	_PXAREG(0x40900038) /* RTC Periodic Interrupt Alarm register 21-23 */
 
+/* RTSR */
+#define RTSR_PICE	(1 << 15)  /* periodic interrupt count enable */
+#define RTSR_PIALE	(1 << 14)  /* periodic interrupt alarm enable */
+#define RTSR_PIAL	(1 << 13)  /* periodic interrupt alarm status */
+#define RTSR_SWCE	(1 << 12)  /* stopwatch count enable */
+#define RTSR_SWALE2	(1 << 11)  /* stopwatch alarm 2 enable */
+#define RTSR_SWAL2	(1 << 10)  /* stopwatch alarm 2 status */
+#define RTSR_SWALE1	(1 << 9)   /* stopwatch alarm 1 enable */
+#define RTSR_SWAL1	(1 << 8)   /* stopwatch alarm 1 status */
+#define RTSR_RDALE2	(1 << 7)   /* wristwatch alarm 2 enable */
+#define RTSR_RDAL2	(1 << 6)   /* wristwatch alarm 2 status */
+#define RTSR_RDALE1	(1 << 5)   /* wristwatch alarm 1 enable */
+#define RTSR_RDAL1	(1 << 4)   /* wristwatch alarm 1 status */
+#define RTSR_HZE	(1 << 3)   /* HZ interrupt enable */
+#define RTSR_ALE	(1 << 2)   /* RTC alarm interrupt enable */
+#define RTSR_HZ		(1 << 1)   /* HZ rising edge detected */
+#define RTSR_AL		(1 << 0)   /* RTC alarm detected */
 
 /******************************************************************************/
 /* OS Timers */
@@ -907,20 +1042,20 @@
 #define OMCR10	_PXAREG(0x40A000D8) /* OS Match Control 10 register 22-11 */
 #define OMCR11	_PXAREG(0x40A000DC) /* OS Match Control 11 register 22-13 */
 
-// OS Timer Register shortcuts.  Be careful!
-#define OSCR(_num) *(((_num) < 4) ? (&_PXAREG_OFFSET(&OSCR0, ((_num) << 2))) \
-				   : (&_PXAREG_OFFSET(&OSCR4,((_num) << 2))))
-#define OSMR(_num) *(((_num) < 4) ? (&_PXAREG_OFFSET(&OSMR0, ((_num) << 2))) \
-				   : (&_PXAREG_OFFSET(&OSMR4,((_num) << 2))))
-#define OMCR(_num) _PXAREG_OFFSET(&OMCR4,((_num) << 2))
+// OS Timer Register Shortcuts
+#define OSCR(_ch) *(((_ch) == 0) ? (&OSCR0) : (&_PXAREG_OFFSET(&OSCR4,(((_ch) - 4) << 2)))) 
+#define OSMR(_ch) *(((_ch) < 4) ? (&_PXAREG_OFFSET(&OSMR0,((_ch) << 2))) \
+				: (&_PXAREG_OFFSET(&OSRM4,(((_ch) - 4) << 2)))) \
+#define OMCR(_ch) _PXAREG_OFFSET(&OMCR4,(((_ch) - 4) << 2))
 
+#define OMCR_N		(1 << 9)	/* Channel 9 & 11 Snapshot Mode */
 #define OMCR_C		(1 << 7)	/* Channel 4-7 Match Against */
 #define OMCR_P		(1 << 6)	/* Periodic Timer */
 #define OMCR_S_NONE	(0 << 4)	/* No External Sync */
-#define OMCR_S_EXT_SYNC_0 (1 << 4)	/* Ext Sync Reset OSCRx on rising edge EXC_SYNC<0> */
-#define OMCR_S_EXT_SYNC_1 (2 << 4)	/* Ext Sync Reset OSCRx on rising edge EXC_SYNC<1> */
+#define OMCR_S_EXT_SYNC_0 (1 << 4)	/* Ext Sync Reset OSCRx on rising edge EXT_SYNC<0> */
+#define OMCR_S_EXT_SYNC_1 (2 << 4)	/* Ext Sync Reset OSCRx on rising edge EXT_SYNC<1> */
 #define OMCR_R		(1 << 3)	/* Match Reset on match */	
-#define OMCR_CRES(_x)	((_x) << 0)	/* Match counter resolution */
+#define OMCR_CRES(_x)	((((_x) & 0x8) << 5) | (((_x) & 0x7) << 0))	/* Match counter resolution */
 
 #define OWER_WME	(1 << 0)	/* Watchdog Match Enable */
 
@@ -1002,8 +1137,8 @@
 #define PPID_RTC_HZ	(30)	/* RTC 1 Hz Clock */
 #define PPID_OST_3	(29)	/* OS Timer 3 */
 #define PPID_OST_2	(28)	/* OS Timer 2 */
-#define PPID_OST_1	(27)	/* OS Timer 2 */
-#define PPID_OST_0	(26)	/* OS Timer 2 */
+#define PPID_OST_1	(27)	/* OS Timer 1 */
+#define PPID_OST_0	(26)	/* OS Timer 0 */
 #define PPID_DMAC 	(25)	/* DMA Controller */
 #define PPID_SSP1	(24)	/* SSP 1 */
 #define PPID_MMC	(23)
@@ -1090,6 +1225,17 @@
 #define _GPIO_setaltfn(_gp,_fn) \
    _GAFR((_gp)) = ((_GAFR((_gp)) & ~(_GPIO_fn((_gp),3))) | (_GPIO_fn((_gp),(_fn))))
 
+#define GPIO_OUT 1
+#define GPIO_IN 0
+
+#define _PXA_setaltfn(_gp,_fn,_dir) \
+{ _GPDR(_gp) = (_dir==GPIO_OUT)? (_GPDR(_gp) |  _GPIO_bit(_gp)) : (_GPDR(_gp) & ~_GPIO_bit(_gp)); _GPIO_setaltfn(_gp,_fn);}
+
+#define _PXA_setgpio(_gp) \
+{_GPSR(_gp) = _GPIO_bit(_gp);}
+
+#define _PXA_clrgpio(_gp) \
+{_GPCR(_gp) = _GPIO_bit(_gp);}
 
 /******************************************************************************/
 /* Power Manager and Reset Control */
@@ -1156,6 +1302,10 @@
 #define PWER_WE1	(1 << 1)
 #define PWER_WE0	(1 << 0)
 
+#define PRER_RE1	(1 << 1)
+
+#define PFER_RE1	(1 << 1)
+
 #define PCFR_RO		(1 << 15)	/* RDH Override */
 #define PCFR_PO		(1 << 14)	/* PH Override */
 #define PCFR_GPROD	(1 << 12)	/* GPIO nRESET_OUT Disable */
@@ -1180,6 +1330,16 @@
 #define PCMD_SQC_PAUSE	(1 << 8)	/* Sequence Configuration Pause */
 #define PCMD_DATA(_x)	(((_x) & 0xFF)) /* Command Data */
 
+#define PSLR_SYS_DEL(_x) (((_x) & 0xf) << 28) /* High voltage ramp delay */
+#define PSLR_PWR_DEL(_x) (((_x) & 0xf) << 24) /* Low voltage ramp delay */
+#define PSLR_PSSD 	(1 << 23)	      /* Shorten wake-up delay */
+#define PSLR_IVF 	(1 << 22)	      /* Ignore VDD_FAULT */
+#define PSLR_SL_ROD 	(1 << 20)	      /*  Don't assert nRESET_OUT */
+#define PSLR_SL_R3 	(1 << 11)	      /* SRAM bank 3 retains state */
+#define PSLR_SL_R2 	(1 << 10)	      /* SRAM bank 2 retains state */
+#define PSLR_SL_R1 	(1 << 9)	      /* SRAM bank 1 retains state */
+#define PSLR_SL_R0 	(1 << 8)	      /* SRAM bank 0 retains state */
+#define PSLR_SL_PI(_x) (((_x) & 0x3) << 2)    /* PI power domain */
 
 /******************************************************************************/
 /* Power Manager I2C */
@@ -1208,10 +1368,10 @@
 #define SSACD_1	_PXAREG(0x4100003C) /* SSP1 Audio Clock Divider register 8-51 */
 
 // SSP Bit positions. THESE ARE ALSO VALID FOR SSP2 AND SSP3
-#define SSCRO_MOD	(1 << 31)	  /* Mode Network Mode Enable */
+#define SSCR0_MOD	(1 << 31)	  /* Mode Network Mode Enable */
 #define SSCR0_ACS	(1 << 30)	  /* Audio Clock Select */
 #define SSCR0_FRDC(_x)  (((_x) & 0x7) << 24)      /* Frame Rate Divider Control value */
-#define SSCRO_TIM	(1 << 23)	  /* Transmit FIFO underrun interrupt mask */
+#define SSCR0_TIM	(1 << 23)	  /* Transmit FIFO underrun interrupt mask */
 #define SSCR0_RIM	(1 << 22)	  /* Receive FIFO overrun interrupt mask */
 #define SSCR0_NCS	(1 << 21)	  /* Network Clock select */
 #define SSCR0_EDSS	(1 << 20)	  /* Extended Data Size select */
@@ -1262,6 +1422,20 @@
 #define SSSR_RNE	(1 << 3)	 /* RX FIFO Not Empty */
 #define SSSR_TNF	(1 << 2)	 /* TX FIFO Not Full */
 
+#define SSPSP_FSRT      (1 << 25)        /* Frame Sync Relative Timing */
+#define SSPSP_DMYSTOP(_x) (((_x) & 0x3) << 23)	 /* Dummy Stop */
+#define SSPSP_SFRMWDTH(_x)    (((_x) & 0x3F) << 16) /* Serial Frame width*/
+#define SSPSP_SFRMDLY(_x)    (((_x) & 0x7F) << 9) /* Serial Frame delay*/
+#define SSPSP_DMYSTRT(_x)    (((_x) & 0x3) << 7) /* Dummy Start*/
+#define SSPSP_STRTDLY(_x)    (((_x) & 0x7) << 4) /* Start Delay*/
+#define SSPSP_ETDS      (1 << 3)        /* End-of-Transfer Data State*/
+#define SSPSP_SFRMP     (1 << 2)        /* Serial Frame Polarity */
+#define SSPSP_SCMODE(_x)    (((_x) & 0x3)) /* Serial Bit-Rate Clock mode*/
+
+#define SSACD_ACPS(_x)    (((_x) & 0x7) << 4) /* Audio Clock PLL Select */
+#define SSACD_SCDB        (1 << 3) /* Audio Clock PLL Select */
+#define SSACD_ACDS(_x)    (((_x) & 0x7)) /* Audio Clock Divider Select */
+
 
 /******************************************************************************/
 /* MultiMediaCard/SD/SDIO Controller */
@@ -1304,6 +1478,9 @@
 #define CCCR_N_MASK	0x0380		/* Run Mode Frequency to Turbo Mode Frequency Multiplier */
 #define CCCR_M_MASK	0x0060		/* Memory Frequency to Run Mode Frequency Multiplier */
 #define CCCR_L_MASK	0x001f		/* Crystal Frequency to Memory Frequency Multiplier */
+#define CCCR_2N(_x)      (((_x) & 0xf) << 7)
+#define CCCR_L(_x)      (((_x) & 0x1f))
+
 
 #define CKEN24_CIF	(1 << 24)	/* CIF Unit Clock Enable */
 #define CKEN23_SSP1	(1 << 23)	/* SSP1 Unit Clock Enable */
