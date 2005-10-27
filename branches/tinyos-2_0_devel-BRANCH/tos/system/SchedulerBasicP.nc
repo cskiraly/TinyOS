@@ -1,4 +1,4 @@
-// $Id: SchedulerBasicP.nc,v 1.1.2.3 2005-10-27 01:13:30 scipio Exp $
+// $Id: SchedulerBasicP.nc,v 1.1.2.4 2005-10-27 18:45:52 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: SchedulerBasicP.nc,v 1.1.2.3 2005-10-27 01:13:30 scipio Exp $
+ * Date last modified:  $Id: SchedulerBasicP.nc,v 1.1.2.4 2005-10-27 18:45:52 idgay Exp $
  *
  */
 
@@ -59,9 +59,9 @@ implementation
     NO_TASK = 255,
   };
 
-  uint8_t m_head;
-  uint8_t m_tail;
-  uint8_t m_next[NUM_TASKS];
+  volatile uint8_t m_head;
+  volatile uint8_t m_tail;
+  volatile uint8_t m_next[NUM_TASKS];
 
   // Helper functions (internal functions) intentionally do not have atomic
   // sections.  It is left as the duty of the exported interface functions to
@@ -70,7 +70,7 @@ implementation
   // move the head forward
   // if the head is at the end, mark the tail at the end, too
   // mark the task as not in the queue
-  uint8_t popTask()
+  inline uint8_t popTask()
   {
     if( m_head != NO_TASK )
     {
@@ -120,13 +120,13 @@ implementation
   {
     atomic
     {
-      memset( m_next, NO_TASK, sizeof(m_next) );
+      memset( (void *)m_next, NO_TASK, sizeof(m_next) );
       m_head = NO_TASK;
       m_tail = NO_TASK;
     }
   }
   
-  command bool Scheduler.runNextTask( bool sleep )
+  command bool Scheduler.runNextTask()
   {
     uint8_t nextTask;
     atomic
@@ -134,13 +134,28 @@ implementation
       nextTask = popTask();
       if( nextTask == NO_TASK )
       {
-	if( sleep )
-	  call McuSleep.sleep();
 	return FALSE;
       }
     }
     signal TaskBasic.runTask[nextTask]();
     return TRUE;
+  }
+
+  command void Scheduler.taskLoop()
+  {
+    for (;;)
+    {
+      uint8_t nextTask;
+
+      atomic
+      {
+	while ((nextTask = popTask()) == NO_TASK)
+	{
+	  call McuSleep.sleep();
+	}
+      }
+      signal TaskBasic.runTask[nextTask]();
+    }
   }
 
   /**

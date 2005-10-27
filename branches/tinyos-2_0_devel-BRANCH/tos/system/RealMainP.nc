@@ -1,4 +1,4 @@
-// $Id: RealMainP.nc,v 1.1.2.1 2005-08-07 20:33:57 scipio Exp $
+// $Id: RealMainP.nc,v 1.1.2.2 2005-10-27 18:45:52 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: RealMainP.nc,v 1.1.2.1 2005-08-07 20:33:57 scipio Exp $
+ * Date last modified:  $Id: RealMainP.nc,v 1.1.2.2 2005-10-27 18:45:52 idgay Exp $
  *
  */
 
@@ -65,14 +65,14 @@ implementation {
 	 * more tasks; if no tasks remain, continue on to software
 	 * initialization */
 	call PlatformInit.init();    
-	while (call Scheduler.runNextTask(FALSE));
+	while (call Scheduler.runNextTask());
 
 	/* Initialize software components.Then spin on the Scheduler,
 	 * passing FALSE so it will not put the system to sleep if there
 	 * are no more tasks; if no tasks remain, the system has booted
 	 * successfully.*/
 	call SoftwareInit.init(); 
-	while (call Scheduler.runNextTask(FALSE));
+	while (call Scheduler.runNextTask());
       }
 
     /* Enable interrupts now that system is ready. */
@@ -80,12 +80,8 @@ implementation {
 
     signal Boot.booted();
 
-    /* Spin on the Scheduler, passing TRUE so the Scheduler will, when
-       there are no more tasks to run, put the CPU to sleep until the
-       next interrupt arrives. */       
-    while (1) {
-      call Scheduler.runNextTask(TRUE);
-    } 
+    /* Spin in the Scheduler */       
+    call Scheduler.taskLoop();
   }
 
   default command error_t PlatformInit.init() { return SUCCESS; }
