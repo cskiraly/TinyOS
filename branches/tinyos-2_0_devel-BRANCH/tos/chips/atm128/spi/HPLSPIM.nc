@@ -183,7 +183,7 @@ implementation {
   
   async command void SPI.setClock (uint8_t v) {
     v &= (SPR1) | (SPR0);
-    SET_FLAG(SPCR, v);
+    SPCR = (SPCR & ~(SPR1 | SPR0)) | v;
   }
 
   async command bool SPI.hasWriteCollided() {
