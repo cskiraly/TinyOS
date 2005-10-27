@@ -1,4 +1,4 @@
-// $Id: msp430hardware.h,v 1.1.2.10 2005-10-27 01:12:26 scipio Exp $
+// $Id: msp430hardware.h,v 1.1.2.11 2005-10-27 20:35:54 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -198,14 +198,14 @@ bool are_interrupts_enabled()
 
 typedef bool __nesc_atomic_t;
 
-__nesc_atomic_t __nesc_atomic_start(void)
+__nesc_atomic_t __nesc_atomic_start(void) __attribute__((spontaneous))
 {
   __nesc_atomic_t result = are_interrupts_enabled();
   __nesc_disable_interrupt();
   return result;
 }
 
-void __nesc_atomic_end( __nesc_atomic_t reenable_interrupts )
+void __nesc_atomic_end( __nesc_atomic_t reenable_interrupts ) __attribute__((spontaneous))
 {
   if( reenable_interrupts )
     __nesc_enable_interrupt();
