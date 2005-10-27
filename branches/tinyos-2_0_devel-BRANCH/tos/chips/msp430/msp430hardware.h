@@ -1,4 +1,4 @@
-// $Id: msp430hardware.h,v 1.1.2.11 2005-10-27 20:35:54 idgay Exp $
+// $Id: msp430hardware.h,v 1.1.2.12 2005-10-27 21:04:15 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -198,14 +198,14 @@ bool are_interrupts_enabled()
 
 typedef bool __nesc_atomic_t;
 
-__nesc_atomic_t __nesc_atomic_start(void) __attribute__((spontaneous))
+__nesc_atomic_t __nesc_atomic_start(void) @spontaneous()
 {
   __nesc_atomic_t result = are_interrupts_enabled();
   __nesc_disable_interrupt();
   return result;
 }
 
-void __nesc_atomic_end( __nesc_atomic_t reenable_interrupts ) __attribute__((spontaneous))
+void __nesc_atomic_end( __nesc_atomic_t reenable_interrupts ) @spontaneous()
 {
   if( reenable_interrupts )
     __nesc_enable_interrupt();
@@ -268,7 +268,7 @@ inline void TOSH_sleep() {
   }
 }
 
-typedef uint8_t mcu_power_t __attribute__((combine(mcombine)));
+typedef uint8_t mcu_power_t @combine("mcombine");
 enum {
   MSP430_POWER_ACTIVE = 0,
   MSP430_POWER_LPM0   = 1,
