@@ -1,4 +1,4 @@
-/// $Id: TimerMilliAlarmC.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: TimerMilliAlarmC.nc,v 1.1.2.2 2005-10-27 20:31:27 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -33,7 +33,7 @@ configuration TimerMilliAlarmC
 implementation
 {
     components 
-	Timer32khzAlarmC as HALAlarm,
+	Timer32khzAlarmCounterC as HALAlarm,
 	new TransformAlarmC(TMilli,uint32_t,T32khz,uint32_t,5) as Transform,
 	TimerMilliCounterC as Counter
 	;

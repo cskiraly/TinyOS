@@ -1,4 +1,4 @@
-//$Id: TimerMilliC.nc,v 1.1.2.3 2005-10-11 22:14:49 idgay Exp $
+//$Id: TimerMilliC.nc,v 1.1.2.4 2005-10-27 20:31:27 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -37,19 +37,17 @@ includes Timer;
 configuration TimerMilliC
 {
   provides interface Init;
-  provides interface Timer<TMilli> as TimerMilli[ uint8_t num ];
+  provides interface Timer<TMilli> as TimerMilli[uint8_t num];
 }
 implementation
 {
-  components TimerMilliAlarmC as AlarmMilliC
-	   , new AlarmToTimerC(TMilli)
-	   , new VirtualizeTimerC(TMilli,uniqueCount("TimerMilliC.TimerMilli"))
-	   ;
+  components AlarmCounterMilliC, new AlarmToTimerC(TMilli),
+    new VirtualizeTimerC(TMilli,uniqueCount("TimerMilliC.TimerMilli"));
 
-  Init = AlarmMilliC;
+  Init = AlarmCounterMilliC;
   TimerMilli = VirtualizeTimerC;
 
   VirtualizeTimerC.TimerFrom -> AlarmToTimerC;
-  AlarmToTimerC.Alarm -> AlarmMilliC;
+  AlarmToTimerC.Alarm -> AlarmCounterMilliC;
 }
 

@@ -1,4 +1,4 @@
-/// $Id: Atm128AlarmP.nc,v 1.1.2.4 2005-10-11 22:04:54 scipio Exp $
+/// $Id: Atm128AlarmC.nc,v 1.1.2.1 2005-10-27 20:31:27 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,9 +24,10 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-generic module Atm128AlarmP(typedef frequency_tag, 
-			     typedef timer_size @integer(),
-			     uint8_t prescalar)
+generic module Atm128AlarmC(typedef frequency_tag, 
+			    typedef timer_size @integer(),
+			    uint8_t prescaler,
+			    int mindt)
 {
   provides interface Init;
   provides interface Alarm<frequency_tag, timer_size> as Alarm;
@@ -41,7 +42,7 @@ implementation
       call HplCompare.stop();
       call HplTimer.set(0);
       call HplTimer.start();
-      call HplTimer.setScale(prescalar);
+      call HplTimer.setScale(prescaler);
     }
     return SUCCESS;
   }
@@ -71,25 +72,19 @@ implementation
     timer_size now;
     timer_size expires, guardedExpires;
 
-    /* Setting the compare register while the timer is = 0 seems
-       to be a bad idea... (lost overflow interrupts) */
-    while (!(now = call HplTimer.get()))
-      ;
+    now = call HplTimer.get();
 
-    /* We require dt >= 2 to avoid horrible complexity in the guarded
-       expiry case and because the hardware doesn't support interrupts in the
-       next timer-clock cycle */
-    if (dt < 2)
-      dt = 2;
+    /* We require dt >= mindt to avoid setting an interrupt which is in
+       the past by the time we actually set it. mindt should always be
+       at least 2, because you cannot set an interrupt one cycle in the
+       future. It should be more than 2 if the timer's clock rate is
+       very high (e.g., equal to the processor clock). */
+    if (dt < mindt)
+      dt = mindt;
 
     expires = t0 + dt;
-    /* Re the comment above: it's a bad idea to wake up at time 0, as we'll
-       just spin when setting the next deadline. Try and reduce the
-       likelihood by delaying the interrupt...
-    */
-    if (expires == 0 || expires == (timer_size)-1)
-      expires = 1;
-    guardedExpires = expires - 2;
+
+    guardedExpires = expires - mindt;
 
     /* t0 is assumed to be in the past. If it's numerically greater than
        now, that just represents a time one wrap-around ago. This requires
@@ -104,7 +99,7 @@ implementation
 	   guardedExpires <= now in wrap-around arithmetic). */
 	if (guardedExpires >= t0 && // if it wraps, it's > now
 	    guardedExpires <= now) 
-	  call HplCompare.set(call HplTimer.get() + 2);
+	  call HplCompare.set(call HplTimer.get() + mindt);
 	else
 	  call HplCompare.set(expires);
       }
@@ -113,10 +108,11 @@ implementation
 	/* again, guardedExpires <= now in wrap-around arithmetic */
 	if (guardedExpires >= t0 || // didn't wrap so < now
 	    guardedExpires <= now)
-	  call HplCompare.set(call HplTimer.get() + 2);
+	  call HplCompare.set(call HplTimer.get() + mindt);
 	else
 	  call HplCompare.set(expires);
       }
+    call HplCompare.reset();
     call HplCompare.start();
   }
 
