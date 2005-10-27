@@ -1,4 +1,4 @@
-// $Id: SchedulerBasicP.nc,v 1.1.2.2 2005-08-08 04:24:55 scipio Exp $
+// $Id: SchedulerBasicP.nc,v 1.1.2.3 2005-10-27 01:13:30 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: SchedulerBasicP.nc,v 1.1.2.2 2005-08-08 04:24:55 scipio Exp $
+ * Date last modified:  $Id: SchedulerBasicP.nc,v 1.1.2.3 2005-10-27 01:13:30 scipio Exp $
  *
  */
 
@@ -49,6 +49,7 @@ includes hardware;
 module SchedulerBasicP {
   provides interface Scheduler;
   provides interface TaskBasic[uint8_t id];
+  uses interface McuSleep;
 }
 implementation
 {
@@ -134,7 +135,7 @@ implementation
       if( nextTask == NO_TASK )
       {
 	if( sleep )
-	  __nesc_atomic_sleep();
+	  call McuSleep.sleep();
 	return FALSE;
       }
     }

@@ -33,7 +33,7 @@
  *  @author Jason Hill, Philip Levis, Nelson Lee, David Gay
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: atm128hardware.h,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+ *  $Id: atm128hardware.h,v 1.1.2.2 2005-10-27 01:12:56 scipio Exp $
  */
 
 #ifndef _H_atmega128hardware_H
@@ -107,5 +107,24 @@ __nesc_atomic_sleep()
   sei();  // Make sure interrupts are on, so we can wake up!
   asm volatile ("sleep");
 }
+
+/* Defines the mcu_power_t type for atm128 power management. */
+typedef uint8_t mcu_power_t __attribute__((combine(mcombine)));
+
+
+enum {
+  ATM128_POWER_IDLE        = 0,
+  ATM128_POWER_ADC_NR      = 1,
+  ATM128_POWER_EXT_STANDBY = 2,
+  ATM128_POWER_SAVE        = 3,
+  ATM128_POWER_STANDBY     = 4,
+  ATM128_POWER_DOWN        = 5, 
+};
+
+/** Combine function.  */
+mcu_power_t mcombine(mcu_power_t m1, mcu_power_t m2) {
+  return (m1 < m2)? m1: m2;
+}
+
 
 #endif //_H_atmega128hardware_H
