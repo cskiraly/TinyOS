@@ -175,7 +175,7 @@ void TOSH_SET_PIN_DIRECTIONS(void)
   // directions using the TOSH_SET/CLR macros
 
   // wait 10ms for the flash to startup
-  TOSH_uwait(1024*10);
+  uwait(1024*10);
   // Put the flash in deep sleep state
   TOSH_FLASH_M25P_DP();
 
