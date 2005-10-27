@@ -26,7 +26,7 @@
  *  @author Matt Miller, Crossbow <mmiller@xbow.com>
  *  @author Martin Turon, Crossbow <mturon@xbow.com>
  *
- *  $Id: Atm128CaptureP.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+ *  $Id: Atm128CaptureC.nc,v 1.1.2.1 2005-10-27 20:31:27 idgay Exp $
  */
 
 /**

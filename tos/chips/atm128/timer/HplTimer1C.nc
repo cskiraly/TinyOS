@@ -1,4 +1,4 @@
-/// $Id: HplTimer1C.nc,v 1.1.2.1 2005-10-11 22:14:49 idgay Exp $
+/// $Id: HplTimer1C.nc,v 1.1.2.2 2005-10-27 20:31:27 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -38,7 +38,7 @@ configuration HplTimer1C
 }
 implementation
 {
-  components HplTimer0C, HplTimer1P;
+  components HplTimer0AsyncC, HplTimer1P;
 
   Timer1 = HplTimer1P;
   Timer1Ctrl = HplTimer1P;
@@ -47,5 +47,5 @@ implementation
   Compare1B = HplTimer1P.Compare1B;
   Compare1C = HplTimer1P.Compare1C;
 
-  HplTimer1P.Timer0Ctrl -> HplTimer0C;
+  HplTimer1P.Timer0Ctrl -> HplTimer0AsyncC;
 }

@@ -1,4 +1,4 @@
-/// $Id: Timer32khzAlarmC.nc,v 1.1.2.4 2005-10-11 22:14:49 idgay Exp $
+//$Id: Atm128CounterC.nc,v 1.1.2.1 2005-10-27 20:31:27 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,30 +24,33 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-// Glue hardware timers into Alarm32khzC.
-configuration Timer32khzAlarmC
+// Convert ATmega128 hardware timer to TinyOS CounterBase.
+generic module Atm128CounterC(typedef frequency_tag,
+			      typedef timer_size @integer())
 {
-  provides interface Init;
-  provides interface Alarm<T32khz,uint32_t> as Alarm32khz32;
+  provides interface Counter<frequency_tag,timer_size> as Counter;
+  uses interface HplTimer<timer_size> as Timer;
 }
 implementation
 {
-  components HplTimer0C,
-    new Atm128AlarmP(T32khz, uint8_t, ATM128_CLK8_NORMAL) as HalAlarm,
-    new TransformAlarmC(T32khz,uint32_t,T32khz,uint8_t,0) as Transform32,
-    Timer32khzCounterC as Counter
-    ;
+  async command timer_size Counter.get()
+  {
+    return call Timer.get();
+  }
 
-  // Top-level interface wiring
-  Alarm32khz32 = Transform32;
+  async command bool Counter.isOverflowPending()
+  {
+    return call Timer.test();
+  }
 
-  // Strap in low-level hardware timer (Timer0)
-  Init = HalAlarm;
-  HalAlarm.HplTimer -> HplTimer0C.Timer0;      // assign HW resource : TIMER0
-  HalAlarm.HplCompare -> HplTimer0C.Compare0;  // assign HW resource : COMPARE0
+  async command void Counter.clearOverflow()
+  {
+    call Timer.reset();
+  }
 
-  // Alarm Transform Wiring
-  Transform32.AlarmFrom -> HalAlarm;      // start with 8-bit hardware alarm
-  Transform32.Counter -> Counter;         // uses 32-bit virtualized counter
+  async event void Timer.overflow()
+  {
+    signal Counter.overflow();
+  }
 }
 

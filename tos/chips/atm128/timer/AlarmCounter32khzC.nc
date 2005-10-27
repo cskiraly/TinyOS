@@ -1,4 +1,4 @@
-//$Id: Timer32khzCounterC.nc,v 1.1.2.2 2005-10-11 22:14:49 idgay Exp $
+/// $Id: AlarmCounter32khzC.nc,v 1.1.2.1 2005-10-27 20:31:27 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,32 +23,39 @@
  */
 
 /// @author Martin Turon <mturon@xbow.com>
+/// @author David Gay <dgay@intel-research.net>
 
-// Timer32khzCounterC is the counter to be used for all Timer32khz[].
-configuration Timer32khzCounterC
+// Glue hardware timers into Alarm32khzC.
+configuration AlarmCounter32khzC
 {
+  provides interface Init;
+  provides interface Alarm<T32khz,uint32_t> as Alarm32khz32;
   provides interface Counter<T32khz,uint32_t> as Counter32khz32;
   provides interface LocalTime<T32khz> as LocalTime32khz;
 }
 implementation
 {
-    components HplTimer0C,
-	new Atm128CounterP(T32khz, uint8_t) as HALCounter32khz, 
-	new TransformCounterC(T32khz, uint32_t, T32khz, uint8_t,
-			      0, uint32_t) as Transform32,
-	new CounterToLocalTimeC(T32khz)
-	;
-  
+  components HplTimer0C,
+    new Atm128AlarmC(T32khz, uint8_t, ATM128_CLK8_NORMAL, 2) as HalAlarm,
+    new Atm128CounterC(T32khz, uint8_t) as HalCounter, 
+    new TransformAlarmCounterC(T32khz, uint32_t, T32khz, uint8_t, 0, uint32_t) 
+      as Transform32,
+    new CounterToLocalTimeC(T32khz)
+    ;
+
   // Top-level interface wiring
-  Counter32khz32 = Transform32.Counter;
+  Alarm32khz32 = Transform32;
+  Counter32khz32 = Transform32;
   LocalTime32khz = CounterToLocalTimeC;
 
   // Strap in low-level hardware timer (Timer0)
-  HALCounter32khz.Timer -> HplTimer0C.Timer0;   // wire async timer to Timer 0
+  Init = HalAlarm;
+  HalAlarm.HplTimer -> HplTimer0C.Timer0;
+  HalAlarm.HplCompare -> HplTimer0C.Compare0;
+  HalCounter.Timer -> HplTimer0C.Timer0;
 
-  // Counter Transform Wiring
-  Transform32.CounterFrom -> HALCounter32khz;
-
+  // Alarm Transform Wiring
+  Transform32.AlarmFrom -> HalAlarm;
+  Transform32.CounterFrom -> HalCounter;
   CounterToLocalTimeC.Counter -> Transform32;
 }
-

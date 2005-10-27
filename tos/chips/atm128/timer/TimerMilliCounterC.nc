@@ -1,4 +1,4 @@
-//$Id: TimerMilliCounterC.nc,v 1.1.2.2 2005-10-11 22:14:49 idgay Exp $
+//$Id: TimerMilliCounterC.nc,v 1.1.2.3 2005-10-27 20:31:27 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -33,7 +33,7 @@ configuration TimerMilliCounterC
 implementation
 {
     components 
-	Timer32khzCounterC as HALCounter32khz, 
+	Timer32khzAlarmCounterC as HALCounter32khz, 
 	new TransformCounterC(TMilli, uint32_t, T32khz, uint32_t,
 			      5, uint32_t) as Transform,
 	new CounterToLocalTimeC(TMilli)
