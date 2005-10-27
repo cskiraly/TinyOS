@@ -1,4 +1,4 @@
-// $Id: msp430hardware.h,v 1.1.2.9 2005-10-11 22:04:54 scipio Exp $
+// $Id: msp430hardware.h,v 1.1.2.10 2005-10-27 01:12:26 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -266,6 +266,20 @@ inline void TOSH_sleep() {
     LPMode_bits |= SR_GIE;
     __asm__ __volatile__( "bis  %0, r2" : : "m" ((uint16_t)LPMode_bits) );
   }
+}
+
+typedef uint8_t mcu_power_t __attribute__((combine(mcombine)));
+enum {
+  MSP430_POWER_ACTIVE = 0,
+  MSP430_POWER_LPM0   = 1,
+  MSP430_POWER_LPM1   = 2,
+  MSP430_POWER_LPM2   = 3,
+  MSP430_POWER_LPM3   = 4,
+  MSP430_POWER_LPM4   = 5
+};
+/** Combine function.  */
+mcu_power_t mcombine(mcu_power_t m1, mcu_power_t m2) {
+  return (m1 < m2)? m1: m2;
 }
 
 void __nesc_atomic_sleep()
