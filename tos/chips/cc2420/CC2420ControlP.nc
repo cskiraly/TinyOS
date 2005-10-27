@@ -53,7 +53,7 @@
  * is platform independent.
  *
  * <pre>
- *  $Id: CC2420ControlP.nc,v 1.1.2.2 2005-09-22 00:45:01 scipio Exp $
+ *  $Id: CC2420ControlP.nc,v 1.1.2.3 2005-10-27 01:18:23 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -488,6 +488,7 @@ implementation
     atomic oldState = state;
     if (oldState == START_STATE) {
       post PostOscillatorOn();
+      //call CCA.disable();
     }
     return;
   }

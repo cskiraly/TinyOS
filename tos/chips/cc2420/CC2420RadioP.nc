@@ -57,7 +57,7 @@
  * configures register IOCGF0 accordingly).
  * 
  * <pre>
- *   $Id: CC2420RadioP.nc,v 1.1.2.10 2005-10-12 17:51:06 scipio Exp $
+ *   $Id: CC2420RadioP.nc,v 1.1.2.11 2005-10-27 01:18:23 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -206,7 +206,9 @@ implementation {
       atomic bPacketReceiving = FALSE;
       atomic rxFlushPending = FALSE;
     }
-    call FIFOP.startWait(FALSE);      
+    if (stateRadio != DISABLED_STATE) {
+      call FIFOP.startWait(FALSE);
+    }
   }
   
 
@@ -305,7 +307,9 @@ implementation {
      }
      atomic {
        flushRXFIFO();
-       call FIFOP.startWait(FALSE);
+       if (stateRadio != DISABLED_STATE) {
+	 call FIFOP.startWait(FALSE);
+       }	 
        if (stateRadio == IDLE_STATE) {
 	 bReceptionPending = FALSE;
 	 releaseBus();
