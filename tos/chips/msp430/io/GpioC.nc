@@ -1,4 +1,4 @@
-//$Id: GeneralIOM.nc,v 1.1.2.2 2005-05-18 05:18:57 jpolastre Exp $
+//$Id: GpioC.nc,v 1.1.2.1 2005-10-29 17:24:17 jwhui Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,7 +24,7 @@
  * @author Joe Polastre
  */
 
-generic module GeneralIOM() {
+generic module GpioC() {
   provides interface GeneralIO;
   uses interface MSP430GeneralIO;
 }
