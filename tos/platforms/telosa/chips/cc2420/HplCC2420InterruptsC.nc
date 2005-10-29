@@ -34,44 +34,32 @@
  * @author Jonathan Hui <jhui@archedrock.com>
  */
 
-configuration HplCC2420PinsC {
+configuration HplCC2420InterruptsC {
 
-  provides interface GeneralIO as CCA;
-  provides interface GeneralIO as CSN;
-  provides interface GeneralIO as FIFO;
-  provides interface GeneralIO as FIFOP;
-  provides interface GeneralIO as RSTN;
-  provides interface GeneralIO as SFD;
-  provides interface GeneralIO as VREN;
+  provides interface GpioCapture as CaptureSFD;
+  provides interface GpioInterrupt as InterruptCCA;
+  provides interface GpioInterrupt as InterruptFIFOP;
 
 }
 
 implementation {
 
+  components Counter32khzC;
   components MSP430GeneralIOC;
-  components new GpioC() as CCAM;
-  components new GpioC() as CSNM;
-  components new GpioC() as FIFOM;
-  components new GpioC() as FIFOPM;
-  components new GpioC() as RSTNM;
-  components new GpioC() as SFDM;
-  components new GpioC() as VRENM;
+  components MSP430TimerC;
+  components new GpioCaptureC() as CaptureSFDC;
+  CaptureSFDC.MSP430TimerControl -> MSP430TimerC.ControlB1;
+  CaptureSFDC.MSP430Capture -> MSP430TimerC.CaptureB1;
+  CaptureSFDC.MSP430GeneralIO -> MSP430GeneralIOC.Port41;
 
-  CCAM -> MSP430GeneralIOC.Port14;
-  CSNM -> MSP430GeneralIOC.Port42;
-  FIFOM -> MSP430GeneralIOC.Port13;
-  FIFOPM -> MSP430GeneralIOC.Port10;
-  RSTNM -> MSP430GeneralIOC.Port46;
-  SFDM -> MSP430GeneralIOC.Port41;
-  VRENM -> MSP430GeneralIOC.Port45;
+  components MSP430InterruptPort1C;
+  components new GpioInterruptC() as InterruptCCAC;
+  components new GpioInterruptC() as InterruptFIFOPC;
+  InterruptCCAC.MSP430Interrupt -> MSP430InterruptPort1C.Port14;
+  InterruptFIFOPC.MSP430Interrupt -> MSP430InterruptPort1C.Port10;
 
-  CCA = CCAM;
-  CSN = CSNM;
-  FIFO = FIFOM;
-  FIFOP = FIFOPM;
-  RSTN = RSTNM;
-  SFD = SFDM;
-  VREN = VRENM;
+  CaptureSFD = CaptureSFDC.Capture;
+  InterruptCCA = InterruptCCAC.Interrupt;
+  InterruptFIFOP = InterruptFIFOPC.Interrupt;
 
 }
-

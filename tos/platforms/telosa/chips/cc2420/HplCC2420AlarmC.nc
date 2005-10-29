@@ -34,44 +34,20 @@
  * @author Jonathan Hui <jhui@archedrock.com>
  */
 
-configuration HplCC2420PinsC {
+generic configuration HplCC2420AlarmC() {
 
-  provides interface GeneralIO as CCA;
-  provides interface GeneralIO as CSN;
-  provides interface GeneralIO as FIFO;
-  provides interface GeneralIO as FIFOP;
-  provides interface GeneralIO as RSTN;
-  provides interface GeneralIO as SFD;
-  provides interface GeneralIO as VREN;
+  provides interface Init;
+  provides interface Alarm<T32khz,uint16_t> as Alarm32khz16;
+  provides interface Alarm<T32khz,uint32_t> as Alarm32khz32;
 
 }
 
 implementation {
 
-  components MSP430GeneralIOC;
-  components new GpioC() as CCAM;
-  components new GpioC() as CSNM;
-  components new GpioC() as FIFOM;
-  components new GpioC() as FIFOPM;
-  components new GpioC() as RSTNM;
-  components new GpioC() as SFDM;
-  components new GpioC() as VRENM;
+  components new Alarm32khzC();
 
-  CCAM -> MSP430GeneralIOC.Port14;
-  CSNM -> MSP430GeneralIOC.Port42;
-  FIFOM -> MSP430GeneralIOC.Port13;
-  FIFOPM -> MSP430GeneralIOC.Port10;
-  RSTNM -> MSP430GeneralIOC.Port46;
-  SFDM -> MSP430GeneralIOC.Port41;
-  VRENM -> MSP430GeneralIOC.Port45;
-
-  CCA = CCAM;
-  CSN = CSNM;
-  FIFO = FIFOM;
-  FIFOP = FIFOPM;
-  RSTN = RSTNM;
-  SFD = SFDM;
-  VREN = VRENM;
-
+  Init = Alarm32khzC;
+  Alarm32khz16 = Alarm32khzC.Alarm32khz16;
+  Alarm32khz32 = Alarm32khzC.Alarm32khz32;
+  
 }
-
