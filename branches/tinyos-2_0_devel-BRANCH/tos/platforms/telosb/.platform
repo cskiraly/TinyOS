@@ -13,8 +13,8 @@ push( @includes, qw(
   %T/chips/msp430
   %T/chips/msp430/adc12
   %T/chips/msp430/io
-  %T/chips/msp430/bus
   %T/chips/msp430/timer
+  %T/chips/msp430/usart
   %T/lib/timer
   %T/lib/serial
   %T/lib/adc
