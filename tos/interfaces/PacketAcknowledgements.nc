@@ -24,6 +24,7 @@
  * This interface allows a component to enable or disable acknowledgments
  * on a communication channel.
  *
+ * @author Jonathan Hui
  * @author Philip Levis
  * @author Joe Polastre
  * @date   August 31 2005
@@ -37,7 +38,7 @@ interface PacketAcknowledgements {
    * if it does not support them.
    */
   
-  async command error_t enable();
+  async command void requestAck( message_t* msg );
 
   /**
    * Disable acknowledgments. 
@@ -46,7 +47,7 @@ interface PacketAcknowledgements {
    * if it cannot support unacknowledged communication.
    */
 
-  async command error_t disable();
+  async command void noAck( message_t* msg );
 
   /**
    * Whether or not a given packet was acknowledged. If a packet
