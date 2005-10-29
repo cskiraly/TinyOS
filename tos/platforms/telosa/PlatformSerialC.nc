@@ -4,12 +4,9 @@ configuration PlatformSerialC {
   provides interface SerialByteComm;
 }
 implementation {
-  components HPLUARTM, HPLUSART1C;
+  components new Uart1C() as UartC;
 
-  Init = HPLUARTM;
-  StdControl = HPLUARTM;
-  SerialByteComm = HPLUARTM;
-
-  HPLUARTM.USARTControl -> HPLUSART1C;
-  HPLUARTM.USARTData -> HPLUSART1C;
+  Init = UartC;
+  StdControl = UartC;
+  SerialByteComm = UartC;
 }
