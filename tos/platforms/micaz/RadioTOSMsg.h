@@ -1,4 +1,4 @@
-/* $Id: RadioTOSMsg.h,v 1.1.2.1 2005-08-29 00:54:23 scipio Exp $
+/* $Id: RadioTOSMsg.h,v 1.1.2.2 2005-10-29 17:44:05 jwhui Exp $
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -33,27 +33,25 @@
  *
  * @author Philip Levis
  * @date   May 16 2005
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  */
 
 
 #ifndef RADIO_TOS_MSG_H
 #define RADIO_TOS_MSG_H
 
-#include "CC2420Const.h"
-#include "Serial.h"
+#include "CC2420.h"
 
 typedef union TOSRadioHeader {
-  CC2420Header cc2420;
-  SerialAMHeader serial;
+  cc2420_header_t cc2420;
 } TOSRadioHeader;
 
 typedef union TOSRadioFooter {
-  CC2420Footer cc2420;
+  cc2420_footer_t cc2420;
 } TOSRadioFooter;
 
 typedef union TOSRadioMetadata {
-  CC2420Metadata cc2420;
+  cc2420_metadata_t cc2420;
 } TOSRadioMetadata;
 
 #endif
