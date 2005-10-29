@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-08-13 02:49:01 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-10-29 17:00:49 $ 
  * ======================================================================== 
  */
  
@@ -204,7 +204,7 @@ implementation {
     //in FCFS order after release of the resource
   bool QueueRequest(uint8_t id) {
     atomic {
-      if((resQ[id] == NO_RES) || (qTail != id)) {
+      if((resQ[id] == NO_RES) && (qTail != id)) {
 	if(qHead == NO_RES ) {
 	  qHead = id;
 	  qTail = id;
