@@ -1,4 +1,4 @@
-//$Id: Counter32khzC.nc,v 1.1.2.3 2005-05-18 11:25:38 cssharp Exp $
+//$Id: Counter32khzC.nc,v 1.1.2.4 2005-10-29 17:22:58 jwhui Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -25,6 +25,9 @@
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
 // Counter32khzC is the counter to be used for all 32khzs.
+
+includes Timer;
+
 configuration Counter32khzC
 {
   provides interface Counter<T32khz,uint16_t> as Counter32khz16;
