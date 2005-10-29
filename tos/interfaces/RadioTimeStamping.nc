@@ -25,9 +25,10 @@
  * This information is generally embedded in packet metadata, so it's
  * not clear if it's needed.
  *
+ * @author Jonathan Hui
  * @author Philip Levis
  * @author Joe Polastre
- * @date   September 11 2005
+ * @date   October 10 2005
  *
  */
 
@@ -37,7 +38,7 @@ interface RadioTimeStamping
    * Provides the time at which start of frame delimiter has been
    * transmitted: units are in terms of a 32kHz clock.
    */
-  async event void transmittedSFD(uint16_t time, message_t* msgBuff);
+  async event void transmittedSFD( uint16_t time, message_t* p_msg );
   
   /** 
    * Provides the time at which start of frame delimiter was received:
@@ -48,5 +49,5 @@ interface RadioTimeStamping
    * events will always be great than or equal to the number of
    * Receive message events.
    */
-  async event void receivedSFD(uint16_t time, message_t* msgBuff);
+  async event void receivedSFD( uint16_t time );
 }
