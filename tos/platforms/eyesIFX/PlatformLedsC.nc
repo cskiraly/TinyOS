@@ -1,4 +1,4 @@
-// $Id: PlatformLedsC.nc,v 1.1.2.2 2005-10-09 03:05:57 vlahan Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.3 2005-10-29 17:51:31 jwhui Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -37,10 +37,10 @@ implementation
 {
   components 
     MSP430GeneralIOC
-    , new GeneralIOM() as Led0Impl
-    , new GeneralIOM() as Led1Impl
-    , new GeneralIOM() as Led2Impl
-    , new GeneralIOM() as Led3Impl
+    , new GpioC() as Led0Impl
+    , new GpioC() as Led1Impl
+    , new GpioC() as Led2Impl
+    , new GpioC() as Led3Impl
     ;
 
   

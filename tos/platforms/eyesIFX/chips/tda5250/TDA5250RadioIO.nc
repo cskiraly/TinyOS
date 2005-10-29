@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-24 17:14:47 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-10-29 17:51:31 $ 
  * ======================================================================== 
  */
  
@@ -49,11 +49,11 @@ configuration TDA5250RadioIO
 implementation {
   components
       MSP430GeneralIOC as MSPGeneralIO
-    , new GeneralIOM() as rBUSM
-    , new GeneralIOM() as rENTDA
-    , new GeneralIOM() as rTXRX
-    , new GeneralIOM() as rDATA
-    , new GeneralIOM() as rPWDD
+    , new GpioC() as rBUSM
+    , new GpioC() as rENTDA
+    , new GpioC() as rTXRX
+    , new GpioC() as rDATA
+    , new GpioC() as rPWDD
     ;
 
   TDA5250RadioBUSM = rBUSM;

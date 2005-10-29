@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-30 19:38:26 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-10-29 17:51:31 $ 
  * ======================================================================== 
  */
  
@@ -46,8 +46,8 @@ configuration AD5200PotIO
 implementation {
   components
       MSP430GeneralIOC as MSPGeneralIO
-    , new GeneralIOM() as rENPOT
-    , new GeneralIOM() as rSDPOT
+    , new GpioC() as rENPOT
+    , new GpioC() as rSDPOT
     ;
 
   AD5200PotENPOT = rENPOT;
