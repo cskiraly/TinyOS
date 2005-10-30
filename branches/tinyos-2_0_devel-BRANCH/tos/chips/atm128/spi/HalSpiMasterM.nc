@@ -61,7 +61,7 @@
  *
  *
  * <pre>
- *  $Id: HalSpiMasterM.nc,v 1.1.2.5 2005-10-29 17:38:24 jwhui Exp $
+ *  $Id: HalSpiMasterM.nc,v 1.1.2.6 2005-10-30 00:33:19 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -74,12 +74,15 @@ module HalSpiMasterM
 {
   provides {
     interface Init;
-    interface StdControl;
     interface SPIByte;
     interface SPIPacket;
+    interface Resource[uint8_t id];
   }
   uses {
     interface HPLSPI as Spi;
+    interface Resource as ResourceArbiter[uint8_t id];
+    interface ResourceUser;
+    interface McuPowerState;
   }
 }
 implementation {
@@ -97,8 +100,9 @@ implementation {
   command error_t Init.init() {
     return SUCCESS;
   }
-
-  command error_t StdControl.start() {
+  bool started;
+  
+  void startSpi() {
     call Spi.enableSpi(FALSE);
     atomic {
       call Spi.initMaster();
@@ -109,18 +113,16 @@ implementation {
       call Spi.setClock(0);
       call Spi.enableSpi(TRUE);
     }
-    return SUCCESS;
+    call McuPowerState.update();
   }
 
-  command error_t StdControl.stop() {
+  void stopSpi() {
     call Spi.enableSpi(FALSE);
+    started = FALSE;
     atomic {
       call Spi.sleep();
     }
-    // (pull the SS line high). This should put the slave
-    // into passive mode.
-    //call SpiBus.masterStop();
-    return SUCCESS;
+    call McuPowerState.update();
   }
   
   async command error_t SPIByte.write( uint8_t tx, uint8_t* rx ) {
@@ -272,4 +274,42 @@ implementation {
    }
  }
 
+ async command error_t Resource.immediateRequest[ uint8_t id ]() {
+   error_t result = call ResourceArbiter.immediateRequest[ id ]();
+   if ( result == SUCCESS ) {
+     startSpi();
+   }
+   return result;
+ }
+ 
+ async command error_t Resource.request[ uint8_t id ]() {
+   atomic {
+     if (!call ResourceUser.inUse()) {
+       startSpi();
+     }
+   }
+   return call ResourceArbiter.request[ id ]();
+ }
+
+ async command void Resource.release[ uint8_t id ]() {
+   call ResourceArbiter.release[ id ]();
+   atomic {
+     if (!call ResourceUser.inUse()) {
+       stopSpi();
+     }
+   }
+ }
+ 
+ event void ResourceArbiter.granted[ uint8_t id ]() {
+   
+   signal Resource.granted[ id ]();
+ }
+ 
+ event void ResourceArbiter.requested[ uint8_t id ]() {
+   signal Resource.requested[ id ]();
+ }
+
+ default event void Resource.requested[ uint8_t id ] () {}
+ default event void Resource.granted[ uint8_t id ]() {}
+ 
 }
