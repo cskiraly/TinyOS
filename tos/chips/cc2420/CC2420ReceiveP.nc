@@ -139,6 +139,9 @@ implementation {
   }
 
   async event void InterruptFIFOP.fired() {
+#ifdef PLATFORM_MICAZ
+    call InterruptFIFOP.disable();
+#endif
     if ( m_state == S_STARTED ) {
       m_state = S_RX_HEADER;
       beginReceive();
@@ -180,6 +183,10 @@ implementation {
     uint8_t length = buf[ 0 ];
     bool too_big;
 
+#ifdef PLATFORM_MICAZ
+    call InterruptFIFOP.enableRisingEdge();
+#endif
+    
     if ( m_state == S_RX_HEADER ) {
       m_state = S_RX_PAYLOAD;
 
@@ -262,7 +269,6 @@ implementation {
   void waitForNextPacket() {
     
     bool keep_receiving = FALSE;
-
     atomic {
       if ( m_state == S_STOPPED )
 	return;

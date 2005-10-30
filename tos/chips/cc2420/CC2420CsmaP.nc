@@ -65,7 +65,8 @@ implementation {
   message_t* m_msg;
   uint8_t m_state = S_PREINIT;
   uint8_t m_dsn;
-
+  error_t sendErr = SUCCESS;
+  
   task void startDone_task();
   task void stopDone_task();
   task void sendDone_task();
@@ -205,13 +206,16 @@ implementation {
     return ( call Random.rand16() & 0x7 ) + 1;
   }
 
-  async event void CC2420Transmit.sendDone( message_t* p_msg ) {
+  async event void CC2420Transmit.sendDone( message_t* p_msg, error_t err ) {
+    atomic sendErr = err;
     post sendDone_task();
   }
 
   task void sendDone_task() {
+    error_t packetErr;
+    atomic packetErr = sendErr;
     m_state = S_STARTED;
-    signal Send.sendDone( m_msg, SUCCESS );
+    signal Send.sendDone( m_msg, packetErr );
   }
 
   event void Resource.requested() {};
