@@ -61,7 +61,7 @@
  *
  *
  * <pre>
- *  $Id: HalSpiMasterM.nc,v 1.1.2.6 2005-10-30 00:33:19 scipio Exp $
+ *  $Id: Atm128SpiP.nc,v 1.1.2.1 2005-10-30 00:43:39 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -70,8 +70,7 @@
  *
  */
 
-module HalSpiMasterM
-{
+module Atm128SpiP {
   provides {
     interface Init;
     interface SPIByte;
@@ -79,7 +78,7 @@ module HalSpiMasterM
     interface Resource[uint8_t id];
   }
   uses {
-    interface HPLSPI as Spi;
+    interface Atm128Spi as Spi;
     interface Resource as ResourceArbiter[uint8_t id];
     interface ResourceUser;
     interface McuPowerState;
