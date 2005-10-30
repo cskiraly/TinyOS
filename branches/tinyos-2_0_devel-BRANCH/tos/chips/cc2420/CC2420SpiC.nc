@@ -41,6 +41,7 @@ generic configuration CC2420SpiC() {
 
   // commands
   provides interface CC2420Strobe as SFLUSHRX;
+  provides interface CC2420Strobe as SFLUSHTX;
   provides interface CC2420Strobe as SNOP;
   provides interface CC2420Strobe as SRXON;
   provides interface CC2420Strobe as SRFOFF;
@@ -80,6 +81,7 @@ implementation {
 
   // commands
   SFLUSHRX = Spi.Strobe[ CC2420_SFLUSHRX ];
+  SFLUSHTX = Spi.Strobe[ CC2420_SFLUSHTX ];
   SNOP = Spi.Strobe[ CC2420_SNOP ];
   SRXON = Spi.Strobe[ CC2420_SRXON ];
   SRFOFF = Spi.Strobe[ CC2420_SRFOFF ];

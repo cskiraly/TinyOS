@@ -41,7 +41,7 @@ interface CC2420Transmit {
   async command error_t resendCCA();
   async command error_t resend();
   async command error_t cancel();
-  async event void sendDone( message_t* p_msg );
+  async event void sendDone( message_t* p_msg, error_t err );
 
   async command error_t modify( uint8_t offset, uint8_t* buf, uint8_t len );
 

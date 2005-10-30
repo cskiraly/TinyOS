@@ -54,6 +54,7 @@ module CC2420TransmitP {
   uses interface CC2420Strobe as SNOP;
   uses interface CC2420Strobe as STXON;
   uses interface CC2420Strobe as STXONCCA;
+  uses interface CC2420Strobe as SFLUSHTX;
 
   uses interface CC2420Receive;
   uses interface Leds;
@@ -74,6 +75,14 @@ implementation {
     S_CANCEL,
   };
 
+  // This specifies how many jiffies the stack should wait after a
+  // TXACTIVE to receive an SFD interrupt before assuming something is
+  // wrong and aborting the send. There seems to be a condition
+  // on the micaZ where the SFD interrupt is never handled.
+  enum {
+    CC2420_ABORT_PERIOD = 320
+  };
+  
   norace message_t* m_msg;
   norace bool m_cca;
   uint8_t m_state = S_STOPPED;
@@ -81,6 +90,8 @@ implementation {
   bool m_receiving = FALSE;
   uint16_t m_prev_time;
 
+  bool timerStarted = 0;
+  
   void loadTXFIFO();
   void attemptSend();
 
@@ -92,6 +103,16 @@ implementation {
     return (cc2420_metadata_t*)msg->metadata;
   }
 
+  void startBackoffTimer(uint16_t time) {
+    atomic timerStarted = 1;
+    call BackoffTimer.start(time);
+  }
+
+  void stopBackoffTimer() {
+    call BackoffTimer.stop();
+    atomic timerStarted = 0;
+  }
+  
   error_t acquireSpiResource() {
 
     atomic {
@@ -116,9 +137,9 @@ implementation {
     }
   }
 
-  void signalDone() {
+  void signalDone(error_t err) {
     atomic m_state = S_STARTED;
-    signal Send.sendDone( m_msg );
+    signal Send.sendDone( m_msg, SUCCESS );
   }
 
   command error_t Init.init() {
@@ -137,7 +158,7 @@ implementation {
   async command error_t AsyncControl.stop() {
     atomic {
       m_state = S_STOPPED;
-      call BackoffTimer.stop();
+      stopBackoffTimer();
       call CaptureSFD.disable();
     }
     return SUCCESS;
@@ -178,7 +199,7 @@ implementation {
     }
 
     if ( m_cca ) {
-      call BackoffTimer.start( signal CSMABackoff.initial( m_msg ) * 
+      startBackoffTimer( signal CSMABackoff.initial( m_msg ) * 
 			       CC2420_BACKOFF_PERIOD );
     }
     else if ( acquireSpiResource() == SUCCESS ) {
@@ -199,7 +220,7 @@ implementation {
 
   async command error_t Send.cancel() {
 
-    call BackoffTimer.stop();
+    stopBackoffTimer();
 
     atomic {
       switch( m_state ) {
@@ -240,8 +261,8 @@ implementation {
     else {
       releaseSpiResource();
       m_state = S_SAMPLE_CCA;
-      call BackoffTimer.start( signal CSMABackoff.initial( m_msg ) * 
-			       CC2420_BACKOFF_PERIOD );
+      startBackoffTimer( signal CSMABackoff.initial( m_msg ) * 
+			 CC2420_BACKOFF_PERIOD );
     }
 
   }
@@ -250,45 +271,58 @@ implementation {
     atomic {
       uint16_t time = signal CSMABackoff.congestion( m_msg );
       if ( time )
-	call BackoffTimer.start( time * CC2420_BACKOFF_PERIOD );
+	startBackoffTimer( time * CC2420_BACKOFF_PERIOD );
       else
 	m_state = S_STARTED;
     }
   }
 
+  bool timerStarted;
+
+  
   async event void BackoffTimer.fired() {
 
     uint8_t cur_state;
-
-    atomic cur_state = m_state;
-
-    switch( cur_state ) {
+    atomic {
+      timerStarted = 0;
+      cur_state = m_state;
       
-    case S_SAMPLE_CCA :
-      // sample CCA and wait a little longer if free, just in case we
-      // sampled during the ack turn-around window
-      if ( call CCA.get() ) {
-	atomic m_state = S_BEGIN_TRANSMIT;
-	call BackoffTimer.start( CC2420_TIME_ACK_TURNAROUND );
-      }
-      else {
-	congestionBackoff();
-      }
-      break;
+      switch( cur_state ) {
 	
-    case S_BEGIN_TRANSMIT :
-      if ( acquireSpiResource() == SUCCESS )
-	attemptSend();
-      break;
-      
-    case S_ACK_WAIT :
-      signalDone();
-      break;
-
+      case S_SAMPLE_CCA :
+	// sample CCA and wait a little longer if free, just in case we
+	// sampled during the ack turn-around window
+	if ( call CCA.get() ) {
+	  atomic m_state = S_BEGIN_TRANSMIT;
+	  startBackoffTimer( CC2420_TIME_ACK_TURNAROUND );
+	}
+	else {
+	  congestionBackoff();
+	}
+	break;
+	
+      case S_BEGIN_TRANSMIT :
+	if ( acquireSpiResource() == SUCCESS )
+	  attemptSend();
+	break;
+	
+      case S_ACK_WAIT :
+	signalDone(SUCCESS);
+	break;
+	
+      case S_SFD:
+	// We didn't receive an SFD interrupt within CC2420_ABORT_PERIOD
+	// jiffies. Assume something is wrong.
+	//call SFLUSHTX.strobe();
+	//call CaptureSFD.disable();
+	//call CaptureSFD.captureRisingEdge();
+	signalDone(ERETRY);
+	break;
+      }
     }
 
   }
-
+  
   void attemptSend() {
 
     uint8_t status;
@@ -306,6 +340,9 @@ implementation {
 
     if ( status & CC2420_STATUS_TX_ACTIVE ) {
       atomic m_state = S_SFD;
+#ifdef PLATFORM_MICAZ
+      startBackoffTimer(CC2420_ABORT_PERIOD);
+#endif
     }
     else {
       releaseSpiResource();
@@ -330,8 +367,10 @@ implementation {
     atomic {
       cur_state = m_state;
       cur_receiving = m_receiving;
+      if (m_state == S_SFD) {
+	stopBackoffTimer();
+      }
     }
-
     switch( cur_state ) {
       
     case S_SFD:
@@ -349,16 +388,15 @@ implementation {
       call CaptureSFD.captureRisingEdge();
       if ( getHeader( m_msg )->fcf & ( 1 << IEEE154_FCF_ACK_REQ ) ) {
 	atomic m_state = S_ACK_WAIT;
-	call BackoffTimer.start( CC2420_ACK_WAIT_DELAY );
+	startBackoffTimer( CC2420_ACK_WAIT_DELAY );
       }
       else {
-	signalDone();
+	signalDone(SUCCESS);
       }
       if ( !call SFD.get() )
 	break;
       
     default:
-      
       if ( !cur_receiving ) {
 	call CaptureSFD.captureFallingEdge();
 	signal TimeStamp.receivedSFD( time );
@@ -378,7 +416,6 @@ implementation {
 	    call CC2420Receive.sfd_dropped();
 	}
       }
-      
       break;
       
     }
@@ -396,11 +433,11 @@ implementation {
       
       if ( m_state == S_ACK_WAIT &&
 	   msg_header->dsn == ack_header->dsn ) {
-	call BackoffTimer.stop();
+	stopBackoffTimer();
 	msg_metadata->ack = TRUE;
 	msg_metadata->strength = ack_buf[ length - 1 ];
 	msg_metadata->lqi = ack_buf[ length ] & 0x7f;
-	signalDone();
+	signalDone(SUCCESS);
       }
     }
 

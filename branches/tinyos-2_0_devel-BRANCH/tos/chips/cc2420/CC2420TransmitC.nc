@@ -71,11 +71,12 @@ implementation {
   CC2420TransmitP.CaptureSFD -> Interrupts.CaptureSFD;
 
   CC2420TransmitP.SpiResource -> Spi;
-  CC2420TransmitP.SNOP -> Spi.SNOP;
-  CC2420TransmitP.STXON -> Spi.STXON;
-  CC2420TransmitP.STXONCCA -> Spi.STXONCCA;
-  CC2420TransmitP.TXFIFO -> Spi.TXFIFO;
-  CC2420TransmitP.TXFIFO_RAM -> Spi.TXFIFO_RAM;
+  CC2420TransmitP.SNOP        -> Spi.SNOP;
+  CC2420TransmitP.STXON       -> Spi.STXON;
+  CC2420TransmitP.STXONCCA    -> Spi.STXONCCA;
+  CC2420TransmitP.SFLUSHTX    -> Spi.SFLUSHTX;
+  CC2420TransmitP.TXFIFO      -> Spi.TXFIFO;
+  CC2420TransmitP.TXFIFO_RAM  -> Spi.TXFIFO_RAM;
 
   components CC2420ReceiveC;
   CC2420TransmitP.CC2420Receive -> CC2420ReceiveC;
