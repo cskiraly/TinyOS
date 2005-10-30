@@ -49,32 +49,103 @@
  */
 
 /**
- * A platform independent abstraction of an asynchronous 32KHz, 16-bit
- * timer for the CC2420. As these timers (the Alarm interface) are
- * usually part of an HAL, they are platform specific. But as the
- * CC2420 needs to be cross-platform, this component bridges between
- * the two, providing a platform-independent abstraction of
- * CC2420-specific Alarm. This is a Atmega128 implementation that
- * uses the Compare1A register.
+ * MicaZ implementation of the CC2420 interrupts. FIFOP is a real
+ * interrupt, while CCA and FIFO are emulated through timer polling.
+ * <pre>
+ *  $Id: HplCC2420InterruptsP.nc,v 1.1.2.1 2005-10-30 00:34:42 scipio Exp $
+ * <pre>
  *
  * @author Philip Levis
- * @date   August 31 2005
+ * @author Matt Miller
+ * @date   September 11 2005
  */
 
-includes Atm128Timer;
+includes Timer;
 
-generic configuration HplCC2420AlarmC() {
-  provides interface Init;
-  provides interface Alarm<T32khz, uint16_t>;
+module HplCC2420InterruptsP {
+  provides {
+    interface GpioInterrupt as CCA;
+  }
+  uses {
+    interface GeneralIO as CC_CCA;
+    interface Timer<TMilli> as CCATimer;
+  }
 }
-
 implementation {
-  components new Atm128AlarmC(T32khz, uint16_t, ATM128_CLK16_DIVIDE_256, 2);
-  components HplTimer1C;
+  norace uint8_t CCAWaitForState;
+  norace uint8_t CCALastState;
+  bool ccaTimerDisabled = FALSE;
+  // Add stdcontrol.init/.start to setup TimerCapture timebase
 
-  Init = Atm128AlarmC;
-  Alarm = Atm128AlarmC;
+  // ************* CCA Interrupt handlers and dispatch *************
+  
+  /**
+   * enable an edge interrupt on the CCA pin
+   NOT an interrupt in MICAz. Implement as a timer polled pin monitor
+   */
 
-  Atm128AlarmC.HplTimer -> HplTimer1C.Timer1;
-  Atm128AlarmC.HplCompare -> HplTimer1C.Compare1A;
-}
+  task void CCATask() {
+    atomic {
+      if (!ccaTimerDisabled) 
+	call CCATimer.startOneShot(1);
+    }
+  }
+  
+  async command error_t CCA.enableRisingEdge() { 
+    atomic CCAWaitForState = TRUE; //save the state we are waiting for
+    atomic ccaTimerDisabled = FALSE;
+    CCALastState = call CC_CCA.get(); //get current state
+    post CCATask();
+    return SUCCESS;
+  }
+
+  async command error_t CCA.enableFallingEdge() { 
+    atomic CCAWaitForState = FALSE; //save the state we are waiting for
+    atomic ccaTimerDisabled = FALSE;
+    CCALastState = call CC_CCA.get(); //get current state
+    post CCATask();
+    return SUCCESS;
+  }
+
+  /**
+   * disables CCA interrupts
+   */
+  void task stopTask() {
+    atomic{
+      if (ccaTimerDisabled) {
+	call CCATimer.stop();
+      }
+    }
+  }
+  async command error_t CCA.disable() {
+    atomic ccaTimerDisabled = TRUE;
+    post stopTask();
+    return SUCCESS;
+  }
+
+  /**
+   * TImer Event fired so now check for CCA	level
+   */
+  event void CCATimer.fired() {
+    uint8_t CCAState;
+    atomic {
+      if (ccaTimerDisabled) {
+	return;
+      }
+    }
+    //check CCA state
+    CCAState = call CC_CCA.get(); //get current state
+    //here if waiting for an edge
+    if ((CCALastState != CCAWaitForState) && (CCAState==CCAWaitForState)) {
+      signal CCA.fired();
+    }//if CCA Pin is correct and edge found
+    //restart timer and try again
+    CCALastState = CCAState;
+    post CCATask();
+    return;
+  }//CCATimer.fired
+
+ default async event void CCA.fired() {}
+
+} //Module HPLCC2420InterruptM
+  

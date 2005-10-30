@@ -49,14 +49,14 @@ implementation {
   CaptureSFD = CaptureSFDC;
   CaptureSFDC.Atm128Capture -> HplTimer1C.Capture1;
 
-  components new SoftIrqC( 10 ) as SoftIrqCCA;
-  components HplCC2420PinsC;
-  InterruptCCA = SoftIrqCCA;
-  SoftIrqCCA -> HplCC2420PinsC.CCA;
-
   components new GpioInterruptC() as InterruptFIFOPC;
   components HplInterruptC;
   InterruptFIFOP = InterruptFIFOPC;
   InterruptFIFOPC.Atm128Interrupt -> HplInterruptC.Int6;
 
+  components HplCC2420InterruptsP, HplCC2420PinsC, TimerMilliC;
+  InterruptCCA   = HplCC2420InterruptsP.CCA;
+  HplCC2420InterruptsP.CCATimer -> TimerMilliC.TimerMilli[unique("TimerMilliC.TimerMilli")];
+  HplCC2420InterruptsP.CC_CCA -> HplCC2420PinsC.CCA;
+  
 }
