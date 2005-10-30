@@ -90,8 +90,6 @@ implementation {
   bool m_receiving = FALSE;
   uint16_t m_prev_time;
 
-  bool timerStarted = 0;
-  
   void loadTXFIFO();
   void attemptSend();
 
@@ -104,13 +102,11 @@ implementation {
   }
 
   void startBackoffTimer(uint16_t time) {
-    atomic timerStarted = 1;
     call BackoffTimer.start(time);
   }
 
   void stopBackoffTimer() {
     call BackoffTimer.stop();
-    atomic timerStarted = 0;
   }
   
   error_t acquireSpiResource() {
