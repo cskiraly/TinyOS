@@ -42,29 +42,62 @@
  */
 
 /**
- * Configuration encapsulating the basic SPI HPL for the atm128.
+ * HPL-level access to the Atmega128 SPI bus. Refer to pages 162-9
+ * of the Atmega128 datasheet (rev. 2467M-AVR-11/04) for details.
  *
  * <pre>
- * $Id: HPLSPIC.nc,v 1.1.2.2 2005-09-11 20:21:54 scipio Exp $
+ *  $Id: Atm128Spi.nc,v 1.1.2.1 2005-10-30 00:43:39 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
  * @author Martin Turon <mturon@xbow.com>
+ * @date   September 8 2005
  */
 
+includes Atm128Spi;
 
-configuration HPLSPIC
-{
-    provides interface HPLSPI as SpiBus;
-}
-implementation
-{
-    components HplGeneralIOC as IO, HPLSPIM as HplSpiP;
-    
-    SpiBus = HplSpiP;
+interface Atm128Spi {
 
-    HplSpiP.SS   -> IO.PortB0;  // Slave set line
-    HplSpiP.SCK  -> IO.PortB1;  // SPI clock line
-    HplSpiP.MOSI -> IO.PortB2;  // Master out, slave in
-    HplSpiP.MISO -> IO.PortB3;  // Master in, slave out
+  /* Modal functions */
+  async command void initMaster();
+  async command void initSlave();
+  async command void sleep();
+  
+  /* SPDR: SPI Data Register */
+  async command uint8_t read();
+  async command void write(uint8_t data);
+  async event   void dataReady(uint8_t data);
+  
+  /* SPCR: SPI Control Register */
+  /* SPIE bit */
+  async command void enableInterrupt(bool enabled);
+  async command bool isInterruptEnabled();
+  /* SPI bit */
+  async command void enableSpi(bool busOn);
+  async command bool isSpiEnabled();
+  /* DORD bit */
+  async command void setDataOrder(bool lsbFirst);
+  async command bool isOrderLsbFirst();
+  /* MSTR bit */
+  async command void setMasterBit(bool isMaster);
+  async command bool isMasterBitSet();
+  /* CPOL bit */
+  async command void setClockPolarity(bool highWhenIdle);
+  async command bool getClockPolarity();
+  /* CPHA bit */
+  async command void setClockPhase(bool sampleOnTrailing);
+  async command bool getClockPhase();
+  /* SPR1 and SPR0 bits */
+  async command void  setClock(uint8_t speed);
+  async command uint8_t getClock();
+  
+  /* SPSR: SPI Status Register */
+  
+  /* SPIF bit */
+  async command bool isInterruptPending();
+  /* WCOL bit */
+  async command bool hasWriteCollided();
+  /* SPI2X bit */
+  async command bool isMasterDoubleSpeed();
+  async command void setMasterDoubleSpeed(bool on);
 }

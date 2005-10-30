@@ -49,10 +49,10 @@
  * @author Martin Turon
  */
 
-#include <Atm128Spi.h>
+includes Atm128Spi;
 
-module HPLSPIM {
-  provides interface HPLSPI as SPI;
+module HplAtm128SpiP {
+  provides interface Atm128Spi as SPI;
   
   uses {
     interface GeneralIO as SS;   // Slave set line
