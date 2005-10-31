@@ -148,12 +148,14 @@ implementation {
     signal SplitControl.stopDone( SUCCESS );
   }
 
-  async command void Acks.requestAck( message_t* msg ) {
+  async command error_t Acks.requestAck( message_t* msg ) {
     getHeader( msg )->fcf |= 1 << IEEE154_FCF_ACK_REQ;
+    return SUCCESS;
   }
   
-  async command void Acks.noAck( message_t* msg ) {
+  async command error_t Acks.noAck( message_t* msg ) {
     getHeader( msg )->fcf &= ~(1 << IEEE154_FCF_ACK_REQ);
+    return SUCCESS;
   }
   
   async command bool Acks.wasAcked( message_t* msg ) {

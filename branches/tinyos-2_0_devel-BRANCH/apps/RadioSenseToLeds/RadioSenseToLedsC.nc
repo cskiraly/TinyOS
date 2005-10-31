@@ -1,4 +1,4 @@
-// $Id: RadioSenseToLedsC.nc,v 1.1.2.2 2005-10-11 21:44:34 cssharp Exp $
+// $Id: RadioSenseToLedsC.nc,v 1.1.2.3 2005-10-31 19:53:52 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -52,6 +52,7 @@ module RadioSenseToLedsC {
     interface AMSend;
     interface Timer<TMilli> as MilliTimer;
     interface Service;
+    interface ServiceNotify;
     interface Packet;
     interface AcquireData;
     interface StdControl as SensorControl;
@@ -64,38 +65,40 @@ implementation {
    
   event void Boot.booted() {
     call Service.start();
+  }
+
+  event void ServiceNotify.started() {
     call MilliTimer.startPeriodic(1000);
   }
+  event void ServiceNotify.stopped() {}
   
   event void MilliTimer.fired() {
-    //call Leds.led0Off();      
     if (call SensorControl.start() != SUCCESS) {
       return;
     }
+    signal AcquireData.dataReady(0);
+    return;
+    
     if (call AcquireData.getData() != SUCCESS) {
       call SensorControl.stop();
       return;
     }
-    //    call Leds.led0On();
   }
 
   event void AcquireData.dataReady(uint16_t data) {
     call SensorControl.stop();
     if (locked) {
-      //      call Leds.led1Off();
       return;
     }
     else {
       RadioSenseMsg* rsm;
 
       rsm = (RadioSenseMsg*)call Packet.getPayload(&packet, NULL);
-      //      call Leds.led1On();
       if (call Packet.maxPayloadLength() < sizeof(RadioSenseMsg)) {
 	return;
       }
       rsm->error = 0;
       rsm->data = data;
-      //      call Leds.led2On();
       if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(RadioSenseMsg)) == SUCCESS) {
 	locked = TRUE;
       }
@@ -105,7 +108,6 @@ implementation {
   event void AcquireData.error(uint16_t err) {
     uint8_t len;
     RadioSenseMsg* rsm;
-    
     if (locked) {
       return;
     }
@@ -123,18 +125,12 @@ implementation {
 
   event message_t* Receive.receive(message_t* bufPtr, 
 				   void* payload, uint8_t len) {
+    call Leds.led1Toggle();
     if (len != sizeof(RadioSenseMsg)) {return bufPtr;}
     else {
       RadioSenseMsg* rsm = (RadioSenseMsg*)payload;
-      uint16_t val;
-      if (rsm->error) {
-       	call Leds.led0On();
-	val = 0;
-      }
-      else {
-	call Leds.led0Off();
-	val = rsm->data;
-      }
+      uint16_t val = rsm->data;
+      call Leds.led0Toggle();
       if (val & 0x8000) {
 	call Leds.led1On();
       }
@@ -154,7 +150,6 @@ implementation {
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {
     if (&packet == bufPtr) {
       locked = FALSE;
-      //      call Leds.led2Off();
     }
   }
 

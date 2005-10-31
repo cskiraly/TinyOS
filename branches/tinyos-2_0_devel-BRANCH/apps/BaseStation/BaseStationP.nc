@@ -1,4 +1,4 @@
-// $Id: BaseStationP.nc,v 1.1.2.3 2005-08-12 00:29:08 scipio Exp $
+// $Id: BaseStationP.nc,v 1.1.2.4 2005-10-31 19:53:52 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: BaseStationP.nc,v 1.1.2.3 2005-08-12 00:29:08 scipio Exp $
+ * Revision:	$Id: BaseStationP.nc,v 1.1.2.4 2005-10-31 19:53:52 scipio Exp $
  */
   
 /* 
@@ -49,7 +49,8 @@ includes Serial;
 module BaseStationP {
   uses {
     interface Boot;
-    interface SplitControl as IOControl;
+    interface SplitControl as SerialControl;
+    interface SplitControl as RadioControl;
 
     interface AMSend as UartSend[am_id_t id];
     interface Receive as UartReceive[am_id_t id];
@@ -108,27 +109,36 @@ implementation
     radioBusy = FALSE;
     radioFull = TRUE;
 
-    call IOControl.start();
+    call RadioControl.start();
+    call SerialControl.start();
   }
 
-  event void IOControl.startDone(error_t error) {
-    uartFull = radioFull = FALSE;
+  event void RadioControl.startDone(error_t error) {
+    if (error == SUCCESS) {
+      radioFull = FALSE;
+    }
   }
 
-  event void IOControl.stopDone(error_t error) {
+  event void SerialControl.startDone(error_t error) {
+    if (error == SUCCESS) {
+      uartFull = FALSE;
+    }
   }
 
+  event void SerialControl.stopDone(error_t error) {}
+  event void RadioControl.stopDone(error_t error) {}
+
+  uint8_t count = 0;
   event message_t *RadioReceive.receive[am_id_t id](message_t *msg,
 						    void *payload,
 						    uint8_t len) {
     message_t *ret = msg;
-
 #if 0
     if (!msg->crc || msg->group != TOS_AM_GROUP)
       return msg;
 #endif
 
-    atomic
+    atomic {
       if (!uartFull)
 	{
 	  ret = uartQueue[uartIn];
@@ -147,9 +157,12 @@ implementation
 	}
       else
 	dropBlink();
-
+    }
+    
     return ret;
   }
+
+  uint8_t tmpLen;
   
   task void uartSendTask() {
     uint8_t len;
@@ -164,7 +177,7 @@ implementation
 	}
 
     msg = uartQueue[uartOut];
-    len = call RadioPacket.payloadLength(msg);
+    tmpLen = len = call RadioPacket.payloadLength(msg);
     id = call RadioAMPacket.type(msg);
     addr = call RadioAMPacket.destination(msg);
 

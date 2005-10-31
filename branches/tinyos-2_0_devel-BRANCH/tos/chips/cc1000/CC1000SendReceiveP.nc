@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.8 2005-10-09 16:35:35 scipio Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.9 2005-10-31 19:53:52 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -248,9 +248,11 @@ implementation
 	  return FAIL;
 	else {
 	  CC1KHeader* header = getHeader(msg);
+	  CC1KMetadata* md = getMetadata(msg);
 	  f.txBusy = TRUE;
 	  header->length = len;
 	  txBufPtr = msg;
+	  call ByteRadio.setAck(md->ack);
 	}
       }
     signal ByteRadio.rts();
@@ -456,7 +458,7 @@ implementation
 		enterRxState();
 		signal ByteRadio.rx();
 		f.rxBitOffset = 7 - i;
-		signal RadioTimeStamping.receivedSFD(0, rxBufPtr);
+		signal RadioTimeStamping.receivedSFD(0);
 		call RssiRx.getData();
 	      }
 	  }
@@ -635,13 +637,15 @@ implementation
     return (void*)msg->data;
   }
 
-  async command error_t PacketAcknowledgements.enable() {
-    call ByteRadio.setAck(TRUE);
+  async command error_t PacketAcknowledgements.requestAck(message_t* msg) {
+    CC1KMetadata* md = getMetadata(msg);
+    md->ack = 1;
     return SUCCESS;
   }
 
-  async command error_t PacketAcknowledgements.disable() {
-    call ByteRadio.setAck(FALSE);
+  async command error_t PacketAcknowledgements.noAck(message_t* msg) {
+    CC1KMetadata* md = getMetadata(msg);
+    md->ack = 1;
     return SUCCESS;
   }
 
@@ -652,5 +656,5 @@ implementation
   // Default events for radio send/receive coordinators do nothing.
   // Be very careful using these, or you'll break the stack.
   default async event void RadioTimeStamping.transmittedSFD(uint16_t time, message_t* msgBuff) { }
-  default async event void RadioTimeStamping.receivedSFD(uint16_t time, message_t* msgBuff) { }
+  default async event void RadioTimeStamping.receivedSFD(uint16_t time) { }
 }

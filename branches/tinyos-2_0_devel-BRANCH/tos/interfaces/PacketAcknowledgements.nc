@@ -38,7 +38,7 @@ interface PacketAcknowledgements {
    * if it does not support them.
    */
   
-  async command void requestAck( message_t* msg );
+  async command error_t requestAck( message_t* msg );
 
   /**
    * Disable acknowledgments. 
@@ -47,7 +47,7 @@ interface PacketAcknowledgements {
    * if it cannot support unacknowledged communication.
    */
 
-  async command void noAck( message_t* msg );
+  async command error_t noAck( message_t* msg );
 
   /**
    * Whether or not a given packet was acknowledged. If a packet
