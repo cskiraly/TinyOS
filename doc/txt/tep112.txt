@@ -10,8 +10,8 @@ Microcontroller Power Management
 :Author: Robert Szewczyk, Philip Levis, Martin Turon, Lama Nachman, Philip Buonadonna, Vlado Handziski
 
 :Draft-Created: 19-Sep-2005
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2005-10-31 22:30:55 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -284,6 +284,14 @@ of the basic HIL mechanisms.
 5. Author's Address
 ====================================================================
 
+| Robert Szewczyk
+| Moteiv Corporation
+| 2168 Shattuck Ave, Floor 2
+| Berkeley, CA 94704
+|
+| email - rob@moteiv.com
+|
+|
 | Philip Levis
 | 358 Gates
 | Computer Science Laboratory

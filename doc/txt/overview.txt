@@ -260,7 +260,11 @@ Kristin Wright, Ion Yannopoulos, and Phil Levis.
 13. Citations
 ====================================================================
 
-.. [TEP2] TEP 2: Hardware Abstraction Architecture. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep2.txt?view=markup
+.. [TEP1] TEP 1: TEP Structure and Keywords
+
+.. [TEP2] TEP 2: Hardware Abstraction Architecture. 
+
+.. [TEP3] TEP 3: Coding Standard
 
 .. [TEP101] TEP 101: Analog-to-Digital Converters. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep101.txt?view=markup
 
@@ -270,9 +274,15 @@ Kristin Wright, Ion Yannopoulos, and Phil Levis.
 
 .. [TEP107] TEP 107: Boot Sequence. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep107.txt?view=markup
 
+.. [TEP107] TEP 108: message_t. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep108.txt?view=markup
+
 .. [TEP109] TEP 109: Sensorboards. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep109.txt?view=markup
 
 .. [TEP110] TEP 110: Service Distributions. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep110.txt?view=markup
 
 .. [TEP111] TEP 111: message_t. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep111.txt?view=markup
+
+.. [TEP111] TEP 112: Microcontroller Power Management. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep112.txt?view=markup
+
+.. [TEP111] TEP 113: Serial Communication. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep113.txt?view=markup
  
