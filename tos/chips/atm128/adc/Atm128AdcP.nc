@@ -1,4 +1,4 @@
-/* $Id: Atm128AdcP.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/* $Id: Atm128AdcP.nc,v 1.1.2.2 2005-10-31 19:34:02 scipio Exp $
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -65,7 +65,7 @@ module Atm128AdcP
     interface Atm128AdcMultiple;
   }
   uses {
-    interface HplAdc;
+    interface HplAtm128Adc;
   }
 }
 implementation
@@ -88,7 +88,7 @@ implementation
 	adcsr.adif = ATM128_ADC_INT_FLAG_OFF;               
 	adcsr.adie = ATM128_ADC_INT_ENABLE_OFF;       
 	adcsr.adps = ATM128_ADC_PRESCALE;
-	call HplAdc.setAdcsra(adcsr);
+	call HplAtm128Adc.setAdcsra(adcsr);
       }
     return SUCCESS;
   }
@@ -98,12 +98,12 @@ implementation
      increases idle mode power consumption a little). 
   */
   command error_t StdControl.start() {
-    atomic call HplAdc.enableAdc();
+    atomic call HplAtm128Adc.enableAdc();
     return SUCCESS;
   }
 
   command error_t StdControl.stop() {
-    atomic call HplAdc.disableAdc();
+    atomic call HplAtm128Adc.disableAdc();
 
     return SUCCESS;
   }
@@ -117,7 +117,7 @@ implementation
       (channel <= ATM128_ADC_SNGL_ADC7 || channel >= ATM128_ADC_SNGL_1_23 || channel == admux.mux);
   }
 
-  async event void HplAdc.dataReady(uint16_t data) {
+  async event void HplAtm128Adc.dataReady(uint16_t data) {
     bool precise, multiple;
     uint8_t channel;
 
@@ -132,7 +132,7 @@ implementation
       {
 	/* A single sample. Disable the ADC interrupt to avoid starting
 	   a new sample at the next "sleep" instruction. */
-	call HplAdc.disableInterruption();
+	call HplAtm128Adc.disableInterruption();
 	signal Atm128AdcSingle.dataReady[channel](data, precise);
       }
     else
@@ -150,7 +150,7 @@ implementation
 
 	atomic 
 	  {
-	    admux = call HplAdc.getAdmux();
+	    admux = call HplAtm128Adc.getAdmux();
 	    nextVoltage = admux.refs;
 	    nextChannel = admux.mux;
 	  }
@@ -165,14 +165,14 @@ implementation
 		 be incorrect if we take too long to get to this point. */
 	      admux.refs = nextVoltage;
 	      admux.mux = nextChannel;
-	      call HplAdc.setAdmux(admux);
+	      call HplAtm128Adc.setAdmux(admux);
 
 	      f = nextF;
 	      nextF.channel = nextChannel;
 	      nextF.precise = isPrecise(admux, nextChannel, nextVoltage);
 	    }
 	  else
-	    call HplAdc.cancel();
+	    call HplAtm128Adc.cancel();
       }
   }
 
@@ -181,14 +181,14 @@ implementation
     Atm128Admux_t admux;
     Atm128Adcsra_t adcsr;
 
-    admux = call HplAdc.getAdmux();
+    admux = call HplAtm128Adc.getAdmux();
     f.precise = isPrecise(admux, channel, refVoltage);
     f.channel = channel;
 
     admux.refs = refVoltage;
     admux.adlar = leftJustify;
     admux.mux = channel;
-    call HplAdc.setAdmux(admux);
+    call HplAtm128Adc.setAdmux(admux);
 
     adcsr.aden = ATM128_ADC_ENABLE_ON;
     adcsr.adsc = ATM128_ADC_START_CONVERSION_ON;
@@ -196,7 +196,7 @@ implementation
     adcsr.adif = ATM128_ADC_INT_FLAG_OFF;
     adcsr.adie = ATM128_ADC_INT_ENABLE_ON;
     adcsr.adps = prescaler;
-    call HplAdc.setAdcsra(adcsr);
+    call HplAtm128Adc.setAdcsra(adcsr);
   }
 
   async command bool Atm128AdcSingle.getData[uint8_t channel](uint8_t refVoltage, bool leftJustify,
@@ -213,7 +213,7 @@ implementation
   async command bool Atm128AdcSingle.cancel[uint8_t channel]() {
     /* There is no Atm128AdcMultiple.cancel, for reasons discussed in that
        interface */
-    return call HplAdc.cancel();
+    return call HplAtm128Adc.cancel();
   }
 
   default async event void Atm128AdcSingle.dataReady[uint8_t channel](uint16_t data, bool precise) {

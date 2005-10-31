@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.4 2005-10-29 17:44:05 jwhui Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.5 2005-10-31 19:34:02 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.4 2005-10-29 17:44:05 jwhui Exp $
+ * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.5 2005-10-31 19:34:02 scipio Exp $
  *
  */
 
@@ -61,7 +61,7 @@ configuration ActiveMessageC {
 }
 implementation {
   components CC2420ActiveMessageC as AM;
-
+  
   Init         = AM;
   SplitControl = AM;
   

@@ -1,4 +1,4 @@
-/// $Id: VoltageP.nc,v 1.1.2.1 2005-10-11 17:30:45 idgay Exp $
+/// $Id: VoltageP.nc,v 1.1.2.2 2005-10-31 19:34:02 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -30,13 +30,13 @@ module VoltageP {
 implementation {
   
   command error_t StdControl.start() {
-    call BAT_MON.makeOutput();
-    call BAT_MON.set();
+    //call BAT_MON.makeOutput();
+    //    call BAT_MON.set();
     return SUCCESS;
   }
 
   command error_t StdControl.stop() {
-	call BAT_MON.clr();
+    //call BAT_MON.clr();
     return SUCCESS;
   }	
 

@@ -34,6 +34,8 @@
  * $ Date: $
  */
 
+includes Timer;
+
 module CC2420ControlP {
 
   provides interface Init;
