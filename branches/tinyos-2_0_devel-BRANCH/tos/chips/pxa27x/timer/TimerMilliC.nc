@@ -32,7 +32,7 @@
  *
  */
 
-configuration HalTimerMilliC
+configuration TimerMilliC
 {
   provides interface Init;
   provides interface Timer<TMilli> as TimerMilli[ uint8_t num ];
