@@ -1,4 +1,4 @@
-/* $Id: Adc.h,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/* $Id: Adc.h,v 1.1.2.2 2005-10-31 18:24:25 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -14,6 +14,6 @@
 #define ADC_H
 
 // The unique string for allocating ADC resource interfaces
-#define ADC_RESOURCE "ADC.resource"
+#include <Atm128Adc.h>
 
 #endif
