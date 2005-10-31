@@ -1,4 +1,4 @@
-// $Id: TinyError.h,v 1.1.2.10 2005-08-13 00:43:18 idgay Exp $
+// $Id: TinyError.h,v 1.1.2.11 2005-10-31 19:34:02 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -23,7 +23,7 @@
 /**
  * @author Phil Levis
  * @author David Gay
- * Revision:  $Revision: 1.1.2.10 $
+ * Revision:  $Revision: 1.1.2.11 $
  *
  * Defines global error codes for error_t in TinyOS.
  */
@@ -36,6 +36,7 @@ enum {
   EOFF           = 4,           // Subsystem is not active
   EBUSY          = 5,           // The underlying system is busy; retry later
   EINVAL         = 6,           // An invalid parameter was passed
+  ERETRY         = 7,           // A rare and transient failure: can retry
 };
 
 typedef uint8_t error_t __attribute__((combine(ecombine)));

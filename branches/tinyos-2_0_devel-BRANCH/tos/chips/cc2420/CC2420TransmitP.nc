@@ -139,6 +139,9 @@ implementation {
   }
 
   command error_t Init.init() {
+    call CCA.makeInput();
+    call CSN.makeOutput();
+    call SFD.makeInput();
     return SUCCESS;
   }
 
@@ -309,9 +312,9 @@ implementation {
       case S_SFD:
 	// We didn't receive an SFD interrupt within CC2420_ABORT_PERIOD
 	// jiffies. Assume something is wrong.
-	//call SFLUSHTX.strobe();
-	//call CaptureSFD.disable();
-	//call CaptureSFD.captureRisingEdge();
+	call SFLUSHTX.strobe();
+	call CaptureSFD.disable();
+	call CaptureSFD.captureRisingEdge();
 	signalDone(ERETRY);
 	break;
       }

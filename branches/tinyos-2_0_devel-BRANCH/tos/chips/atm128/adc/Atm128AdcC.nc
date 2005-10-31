@@ -1,4 +1,4 @@
-/// $Id: Atm128AdcC.nc,v 1.1.2.2 2005-10-31 18:24:25 scipio Exp $
+/// $Id: Atm128AdcC.nc,v 1.1.2.3 2005-10-31 19:34:02 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -48,7 +48,7 @@ configuration Atm128AdcC
 }
 implementation
 {
-  components Atm128AdcP, HplAdcC,
+  components Atm128AdcP, HplAtm128AdcC,
     new RoundRobinArbiterC(ADC_RESOURCE) as AdcArbiter;
 
   Init = Atm128AdcP;
@@ -59,5 +59,5 @@ implementation
   Atm128AdcSingle = Atm128AdcP;
   Atm128AdcMultiple = Atm128AdcP;
 
-  Atm128AdcP.HplAdc -> HplAdcC;
+  Atm128AdcP.HplAtm128Adc -> HplAtm128AdcC;
 }

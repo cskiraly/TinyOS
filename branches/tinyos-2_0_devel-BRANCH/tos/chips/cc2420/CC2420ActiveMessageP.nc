@@ -29,7 +29,7 @@
  * of the data payload.
  *
  * <pre>
- *   $Id: CC2420ActiveMessageP.nc,v 1.1.2.4 2005-10-29 17:31:36 jwhui Exp $
+ *   $Id: CC2420ActiveMessageP.nc,v 1.1.2.5 2005-10-31 19:34:02 scipio Exp $
  * </pre>
 
  * @author Philip Levis
@@ -99,10 +99,10 @@ implementation {
     return header->dest;
   }
 
-  command void AMPacket.setDestination(am_addr_t dest, message_t* amsg){
-    cc2420_header_t* header = getHeader(amsg);
-    header->dest = dest;
-  }
+  //command void AMPacket.setDestination(am_addr_t dest, message_t* amsg){
+  //  cc2420_header_t* header = getHeader(amsg);
+  //  header->dest = dest;
+  //}
 
   command bool AMPacket.isForMe(message_t* amsg) {
     return (call AMPacket.destination(amsg) == call AMPacket.address() ||
@@ -133,9 +133,9 @@ implementation {
    return getHeader(msg)->length - CC2420_SIZE;
  }
 
- command void Packet.setPayloadLength(message_t* msg, uint8_t length){
-   getHeader(msg)->length = CC2420_SIZE + length;
- }
+ //command void Packet.setPayloadLength(message_t* msg, uint8_t length){
+ //  getHeader(msg)->length = CC2420_SIZE + length;
+ // }
  
  command uint8_t Packet.maxPayloadLength() {
    return TOSH_DATA_LENGTH;

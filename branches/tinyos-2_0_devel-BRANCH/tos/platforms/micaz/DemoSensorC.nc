@@ -1,4 +1,4 @@
-/// $Id: DemoSensorC.nc,v 1.1.2.1 2005-10-11 17:30:43 idgay Exp $
+/// $Id: DemoSensorC.nc,v 1.1.2.2 2005-10-31 19:34:02 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -21,7 +21,13 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR 
  * MODIFICATIONS.
  */
-/// @author Hu Siquan <husq@xbow.com>
+/**
+ * The micaZ Voltage sensor seems to have a few issues, so the default
+ * micaZ sensor returns a constant value of 0xbeef.
+ *
+ * @author Philip Levis
+ * @author Hu Siquan <husq@xbow.com>
+ */
 
 configuration DemoSensorC
 {
@@ -30,7 +36,7 @@ configuration DemoSensorC
 }
 implementation
 {
-  components VoltageC as DemoChannel;
+  components new ConstantSensorC(0xbeef) as DemoChannel;
 
   StdControl  = DemoChannel;    
   AcquireData = DemoChannel;
