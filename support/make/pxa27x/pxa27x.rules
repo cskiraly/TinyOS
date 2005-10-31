@@ -1,17 +1,19 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: pxa27x.rules,v 1.1.2.1 2005-03-23 19:35:18 cssharp Exp $
+#$Id: pxa27x.rules,v 1.1.2.2 2005-10-31 18:55:09 philipb Exp $
 
-define MSP_HELP
+define PXA27X_HELP
 
  PXA27x extras:
 
    debug    : compile with minimal optimization and debug symbols
    debugopt : compile with debug symbols
   endef
-HELP += $(MSP_HELP)
+HELP += $(PXA27X_HELP)
 
+GAS = xscale-elf-as
 OBJCOPY = xscale-elf-objcopy
 OBJDUMP = xscale-elf-objdump
+SET_ID = $(TINYOS_MAKE_PATH)/msp/set-mote-id
 XDB_SYMBOL_EXTRACT = dwarf2bd
 NCC = ncc
 LIBS = -lm
@@ -19,7 +21,13 @@ LIBS = -lm
 BUILDDIR = build/$(PLATFORM)
 MAIN_EXE = $(BUILDDIR)/main.exe
 MAIN_BIN = $(BUILDDIR)/main.bin
+INSTALL_BIN = $(MAIN_BIN).out$(if $(NODEID),-$(NODEID),)
+PLATFORM_DIR = $(TOSDIR)/platform/pxa27x
+ASSEMBLY_FILES += $(PLATFORM_DIR)/barecrt.s $(PLATFORM_DIR)/mmu_table.s $(PLATFORM_DIR)/util.s 
+ASSEMBLY_OBJS =  $(BUILDDIR)/asms.o
+LIBRARY_OBJS  =  $(PLATFORM_DIR)/lib/profile.o $(PLATFORM_DIR)/lib/queue.o
 
+OPTFLAGS ?= -O3 -g
 PFLAGS += -Wall -Wshadow -DDEF_TOS_AM_GROUP=$(DEFAULT_LOCAL_GROUP) $(NESC_FLAGS)
 PFLAGS += -target=$(PLATFORM) -fnesc-cfile=$(BUILDDIR)/app.c -board=$(SENSORBOARD)
 ifdef MSG_SIZE
@@ -37,20 +45,22 @@ $(if $(PROGRAM),,$(call TOSMake_include,pxa27x/$(INSTALL_PROGRAM).extra))
 
 ifndef BUILD_DEPS
   ifeq ($(filter $(BUILDLESS_DEPS),$(GOALS)),)
-    BUILD_DEPS = ihex bytes
+    BUILD_DEPS = bin bytes setid $(POST_BUILD_EXTRA_DEPS)
   endif
 endif
 
-ihex: exe FORCE
-	$(OBJCOPY) --output-target=binary $(MAIN_EXE) $(MAIN_BIN)
+setid: FORCE
+	@cmd () { echo "$$@"; $$@; }; if [ x = x$(NODEID) ]; then cmd $(OBJCOPY) --output-target=binary $(MAIN_EXE) $(INSTALL_BIN); else cmd $(SET_ID) --objcopy $(OBJCOPY) --objdump $(OBJDUMP) --target binary $(MAIN_EXE) $(INSTALL_BIN) $(NODEID); fi
+
+bin: exe FORCE
 	$(XDB_SYMBOL_EXTRACT) $(MAIN_EXE)
 
 exe: exe0 bytes FORCE
 	@:
 
-exe0: builddir $(BUILD_EXTRA_DEPS) FORCE
+exe0: builddir asms library $(BUILD_EXTRA_DEPS) FORCE
 	@echo "    compiling $(COMPONENT) to a $(PLATFORM) binary"
-	$(NCC) -o $(MAIN_EXE) $(OPTFLAGS) $(PFLAGS) $(CFLAGS) $(COMPONENT).nc $(LIBS) $(LDFLAGS)
+	$(NCC) -o $(MAIN_EXE) $(OPTFLAGS) $(PFLAGS) $(CFLAGS) $(COMPONENT).nc $(LIBS) $(LDFLAGS) $(ASSEMBLY_OBJS) $(LIBRARY_OBJS)
 	@echo "    compiled $(COMPONENT) to $(MAIN_EXE)"
 
 builddir: FORCE
@@ -59,3 +69,8 @@ builddir: FORCE
 bytes: FORCE
 	@objdump -h $(MAIN_EXE) | perl -ne '$$b{$$1}=hex $$2 if /^\s*\d+\s*\.(text|data|bss)\s+(\S+)/; END { printf("%16d bytes in ROM\n%16d bytes in RAM\n",$$b{text}+$$b{data},$$b{data}+$$b{bss}); }'
 
+asms: 
+	$(GAS) $(ASSEMBLY_FILES) -o $(BUILDDIR)/asms.o -mfpu=softfpa
+
+library:
+	cd $(PLATFORM_DIR)/lib; make;
