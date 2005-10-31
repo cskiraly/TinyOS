@@ -1,4 +1,4 @@
-/// $Id: HplUartC.nc,v 1.1.2.2 2005-10-02 22:08:02 scipio Exp $
+/// $Id: HplAtm128UartC.nc,v 1.1.2.1 2005-10-31 20:07:09 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -26,7 +26,7 @@
 
 #include <Atm128Uart.h>
 
-module HplUartC
+module HplAtm128UartC
 {
   provides {
     interface Init as Uart0Init;
