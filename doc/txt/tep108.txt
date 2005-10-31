@@ -1,0 +1,353 @@
+============================
+Resource Arbitration
+============================
+
+:TEP: 108
+:Group: Core Working Group 
+:Type: Documentary
+:Status: Draft
+:TinyOS-Version: 2.x
+:Authors: David Gay, David Culler, Philip Levis, Kevin Klues
+
+:Draft-Created: 28-Mar-2005
+:Draft-Version: $Revision: 1.1.2.1 $
+:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
+
+.. Note::
+
+   This memo documents a part of TinyOS for the TinyOS Community, and
+   requests discussion and suggestions for improvements.  Distribution
+   of this memo is unlimited. This memo is in full compliance with
+   TEP 1.
+
+Abstract
+====================================================================
+
+This memo documents the general resource sharing mechanisms for TinyOS
+2.x. These mechanisms are used to allow multiple software components to
+arbitrate the use of both hardware buses, software components, etc.
+
+
+1. Introduction
+====================================================================
+
+Components that wish to use a shared resource, such as a hardware bus,
+memory or the services offered by another component need a way to arbitrate
+use of these resources. 
+
+In TinyOS 1.x, this arbitration was performed on a first-come, first-served
+basis by having requests for, e.g., a service X return FAIL if it was
+currently in use. Users of X could monitor service completion events if
+they wished to retry a failed request. This approach has several drawbacks:
+
+- If you need to make several requests of X, you have to handle the
+  possibility of failure at any stage. This complicates implementations by
+  adding extra internal states.
+- You have no control over timing of a sequence of operations. This is a
+  problem for, e.g., timing-sensitive use of an A/D converter.
+- If a hardware resource supports reservation, you cannot express this
+  via this software interface. For instance, I2C buses have a concept of
+  "repeated start" when doing multiple bus transactions, but it was not
+  clear how to use this in TinyOS 1.x's I2C abstraction.
+- Most TinyOS 1.x services did not provide a very convenient way of 
+  monitoring X's availability for the purpose of retries, nor very
+  clear documentation of which requests could happen simultaneously.
+
+In light of all these problems, TinyOS 2.x introduces resource reservation
+mechanisms for use by components providing access to shared resources.
+
+2. Resource sharing in TinyOS 2.x
+====================================================================
+
+A single approach to resource sharing is not appropriate for all
+circumstances. For instance, requiring resource reservation allows programs
+to have better timing guarantees for access to an A/D converter. But if
+a program does not need precise timing guarantees (e.g., when measuring
+temperature in a biological monitoring application), this extra resource
+reservation step complicates code. 
+
+Thus, TinyOS services should offer resource sharing mechanisms appropriate
+to their goals and level of abstraction. However, to preserve simplicity
+and consistency there should only be a few different resource sharing
+approaches, which we outline here.
+
+- Resource reservation: the service must be reserved before use, via the
+  Resource interface. This approach is described in Section 3.  Because many
+  services will have similar approaches to resource sharing (e.g.,
+  round-robin, or priority-based), TinyOS includes default arbiters
+  implementing various resource sharing policies. These arbiters are
+  described in Section 4.
+
+- Request queuing: requests from different clients are queued and handled
+  in some (service-dependent) order. This approach is described in Section 5.
+
+- Resource virtualisation: the service is virtualised so as to support an
+  arbitrary number of clients - a typical example is the Timer service. From 
+  a programming perspective, this behaves similarly to resource queuing and
+  is therefore also described in Section 5.
+
+Note that request queuing and resource virtualisation may need to store
+significant amounts of per-client state. We expect that lower-level
+services will use the resource reservation approach, while higher level
+ones will prefer queuing or virtualisation. These higher-level services
+will typically be built on top of the lower-level, resource-reservation
+based services.
+
+3. Resource Reservation Interface
+====================================================================
+
+The resource interface is defined as follows:
+
+|  ``interface Resource {``
+|    ``/**``
+|     ``* Request access to a shared resource. You must call release()``
+|     ``* when you are done with it.``
+|     ``* @return SUCCESS Request accepted. The granted() event will``
+|     ``*           be signaled when you have the resource.``
+|     ``*         EBUSY You have already requested this resource via this``
+|     ``*           interface.``
+|     ``*/``
+|    ``async command error_t request();``
+|
+|    ``/**``
+|     ``* Request immediate access to a shared resource. You must call``
+|     ``* release() when you are done with it.``
+|     ``* @return SUCCESS You now have the resource.``
+|     ``*         EBUSY The resource is busy.``
+|     ``*/``
+|    ``async command error_t immediateRequest();``
+|
+|    ``/**``
+|     ``* You have received access to this resource. Note that this event``
+|     ``* is NOT signaled when immediateRequest() succeeds.``
+|     ``*/``
+|    ``event void granted();``
+|
+|    ``/**``
+|     ``* Release a shared resource you previously acquired.``
+|     ``*/``
+|    ``async command void release();``
+|
+|   ``/**``
+|    ``* Some other component has requested this resource. You might``
+|    ``* want to consider releasing it.``
+|    ``*/``
+|    ``event void requested();``
+|  ``}``
+
+This Resource interface is offered as a parameterised interface by services
+which wish to provide access to a shared resource. The interface's
+parameter represents client ids. A component SomeNameC must #define
+SOME_NAME_RESOURCE to a string which can be passed to the special unique()
+function to obtain a client id. For instance, the I2C service might look
+like this:
+
+|  ``includes I2CPacketC;``
+|  ``configuration I2CPacketC {``
+|    ``provides {``
+|      ``/**``
+|       ``* For reserving the I2C bus. 'id' is the client id, obtained``
+|       ``* via unique(I2C_RESOURCE)``
+|       ``*/``
+|      ``interface Resource[uint8_t id];``
+|
+|      ``/**``
+|       ``* Actual I2C packet interface. 'busId' is the I2C``
+|       ``* bus identifer of the device you wish to use.``
+|       ``*/``
+|      ``interface I2CPacket[uint8_t busId];``
+|    ``}``
+|  ``} ...``
+
+where I2CPacketC.h contains the #define for the resource:
+
+|  ``#ifndef I2CPACKETC_H``
+|  ``#define I2CPACKETC_H``
+|
+|  ``#define I2CPACKET_RESOURCE "I2CPacket.Resource"``
+|
+|  ``#endif``
+
+The #define for the unique string must be placed in a separate file
+because of the way nesC files are preprocessed: referring to I2CPacketC
+isn't enough to ensure that macros #define'd in I2CPacketC are visible
+in the referring component.
+
+Clients of the I2C service would use it as follows:
+
+|  ``module I2CUserM {``
+|    ``uses interface Resource as I2CResource;``
+|    ``uses interface I2CPacket;``
+|  ``} ...``
+|
+|  ``includes I2CPacketC;``
+|  ``configuration I2CUserC { }``
+|  ``implementation {``
+|    ``components I2CUserM, I2CPacketC;``
+|
+|    ``I2CUserM.I2CResource -> I2CPacketC.Resource[unique(I2C_RESOURCE)];``
+|    ``I2CUserM.I2CPacket -> I2CPacket.I2CPacket[0x73]; // using I2C device 0x73``
+|  ``}``
+
+A final note: in some cases, resource reservation will correspond to
+hardware resource reservation (e.g., for I2C). In other cases --- where
+there is no hardware, for a bus which cannot be reserved, etc --- resource
+reservation is purely a reservation of the software component itself.
+
+3.1 Cross-component reservation
+-------------------------------
+
+In some cases, it is desireable to share reservation of resources across
+components. For example, on the TI MSP 430, the same pins can be used as
+an I2C bus, a UART, or an SPI connection. Clearly, on this chip, a reservation
+of the I2C bus implicitly reserves the corresponding UART and SPI. This can
+be accomplished in the framework described above by:
+1) using the same unique string for all three resources
+2) wiring the three parameterised Resource interfaces to the same arbiter
+
+This could be done as follows (the UART and SPI components are omitted, they
+are similar to I2CC):
+
+I2CC.nc (a low-level I2C component):
+
+| ``#define I2C_RESOURCE MSP_BUS_RESOURCE``
+| ``configuration I2CC {``
+|    ``provides interface Resource[uint8_t clientId];``
+|    ``provides interface I2C;``
+| ``}``
+| ``implementation {``
+|  ``components MspBusC, I2CM;``
+|
+|  ``Resource = MspBusC.Resource;``
+|  ``I2C = I2CM.I2C;``
+| ``}``
+
+MspBusC (the arbiter for the MSP bus):
+
+| ``#define MSP_BUS_RESOURCE "MspBus.Resource"``
+| ``configuration {``
+|   ``provides interface Resource[uint8_t clientId];``
+| ``} ...``
+
+4. Default arbiters
+====================================================================
+
+Each service could provide its own implementation of the Resource
+interface, but this would be a waste of programmer effort and would lead to
+inconsistent resource sharing policies across services. Instead, TinyOS
+includes a number of default resource arbiters, in the form of generic
+components, which implement the Resource interface. All of these arbiters
+also provide a ResourceUser interface which can be interrogated to find the
+current set of resource allocation:
+
+| ``interface ResourceUser {``
+|  ``/**``
+|   ``* Check whether resource is allocated.``
+|   ``* @returns TRUE if the resource is currently allocated, FALSE otherwise.``
+|   ``*/``
+|   ``command bool inUse();``
+| 
+|   ``/**``
+|    ``* Return id of client currently using the resource. Meaningless if``
+|    ``* inUse() returns FALSE.``
+|    ``*/``
+|   ``command uint8_t user();``
+| ``}``
+
+ResourceUser can be used by the service implementation, e.g., to refuse
+requests when it is not allocated. Or to allow implicit per-request
+resource allocation in the style of TinyOS 1.x.
+
+The RoundRobinArbiter provides round-robin arbitration:
+
+| ``generic component RoundRobinArbiter {``
+|   ``provides interface Resource[uin8_t id];``
+|   ``provides interface ResourceUser;``
+| ``}``
+
+There is also a First-Come-First-Served (Fcfs) arbiter. RoundRobin
+grants the resource based on a fixed order (ids), while Fcfs grants it
+based on request order.
+
+5. Request queuing and resource virtualisation
+====================================================================
+
+A service which is queued or provides virtualisation is implemented by
+parameterising the service interface (in contrast, the resource reservation
+approach parameterises the Resource interface). As with Resource, each
+client obtains an id via unique(). The service must support one outstanding
+request for each unique id; a second request (before completion of the
+first) on the same instance of a parameterised interface returns EBUSY.
+
+As an example, the Timer services looks as follows:
+
+| ``configuration TimerMillicC {``
+|   ``provides interface Timer<TMilli>[uint8_t id];``
+| ``} ...``
+
+and clients use it as follows:
+| ``module TimerUserM {``
+|   ``uses interface Timer<TMilli> as MyTimer;``
+| ``} ...``
+
+| ``configuration TimerUserC { }``
+| ``implementation {``
+|   ``components TimerUserM, TimerC;``
+|
+|   ``TimerUserM.MyTimer -> TimerC.Timer[unique(TIMER_SERVICE)];``
+| ``}``
+
+The difference between queuing of requests and virtualisation is only
+in the internal implementation of a service, and is thus beyond the
+scope of this document.
+
+We also note that some queued/virtualised services may wish to also support
+reservation, e.g., an A/D conveter which wants to support low-latency
+requests.  Such components will use the same id for their service and
+resource interfaces, e.g.:
+
+| ``#define ADC_RESOURCE "Adc.resource"``
+| ``#define ADC_SERVICE ADC_RESOURCE``
+| ``configuration ADCC {``
+|   ``provides interface ADC[uint8_t id];``
+|   ``provides interface Resource[uint8_t id];``
+| ``} ...``
+
+
+6. Author's Address
+====================================================================
+
+| David Gay
+| 2150 Shattuck Ave, Suite 1300
+| Intel Research
+| Berkeley, CA 94704
+|
+| phone - +1 510 495 3055
+| email - david.e.gay@intel.com
+|
+| David Culler
+| 627 Soda Hall
+| UC Berkeley
+| Berkeley, CA 94720
+| 
+| phone - +1 510 643 7572
+| email - culler@cs.berkeley.edu
+|
+| Philip Levis
+| 358 Gates Hall
+| Stanford University
+| Stanford, CA 94305-9030
+|
+| phone - +1 650 725 9046
+| email - pal@cs.stanford.edu
+|
+| Kevin Klues
+| Sekr FT5
+| Einsteinufer 25
+| 10587 Berlin
+| GERMANY
+|
+| phone - +49-30-314-23813
+| email - klues@tkn.tu-berlin.de
+

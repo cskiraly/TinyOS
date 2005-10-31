@@ -1,0 +1,822 @@
+============================
+Timers
+============================
+
+:TEP: 102
+:Group: Core Working Group 
+:Type: Documentary
+:Status: Draft
+:TinyOS-Version: 2.x
+:Author: Cory Sharp, Martin Turon
+
+:Draft-Created: 22-Sep-2004
+:Draft-Version: $Revision: 1.1.2.1 $
+:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
+
+.. Note::
+
+   This memo documents a part of TinyOS for the TinyOS Community, and
+   requests discussion and suggestions for improvements.  Distribution
+   of this memo is unlimited.  This memo is in full compliance with
+   TEP 1.
+
+
+Abstract
+====================================================================
+
+This TEP proposes a Timer design that supports common timing
+requirements both in precision and width across common hardware
+configurations.  This TEP focuses on aligning the Timer abstraction
+with the three-layer Hardware Abstraction Architecture (HAA).
+
+
+Overview
+====================================================================
+
+This TEP proposes a timer system which supports a set of basic
+event-driven timing operations for common timing fidelities.
+
+Fidelity is the combination of precision and width.  Examples of
+precision are millisecond, a cycle of a 32kHz clock, and
+microseconds.  Examples of widths are 8-bit, 16-bit, 32-bit, and
+64-bit.
+
+The most basic behavior on time is to measure it.  This TEP defines
+"counters" that provide a free running count of time.  "Free
+running" means that time continues counting even if interrupts are
+disabled or code enters an atomic section.  This is the standard and
+expected behavior, and it means that timer code must be constructed
+specifically with an understanding of any implications from it.
+
+The next most basic behavior on time is to wait.  This TEP defines
+"alarms" that can fire an event when a *counter* reaches a specified
+value.  HAL level alarms can only set single events, and this TEP
+proposes functionality to allow virtualization of a single HAL alarm.
+
+The components proposed by this TEP are constructed to handle
+overflow of the counters, which is inevitable.
+
+This TEP proposes all timer interfaces be parameterized by
+precision.  All precisions are in "binary" units with respect to one
+second.  Precision is expressed an empty type
+
+* TMilli
+* T32khz
+* TMicro
+
+These HAL interfaces are proposed:
+
+* Counter
+* Alarm
+* BusyWait
+
+The Counter and Alarm interfaces are fundamental components to be
+implemented by each hardware platform.  A Counter is a free running
+clock, and an Alarm can schedule a single asynchronous event for
+some specified time.  These interfaces are parameterized by
+precision and size.  The most common sizes are 16-bit and 32-bit.
+Some platforms will likely use 8-bit for internal implementation,
+and it is expected that some future platforms will use 64-bit.
+
+These of platform dependent HAL components MUST exist:
+
+* Alarm32khzC
+* AlarmMilliC
+* BusyWait32khzC
+* BusyWaitMicroC
+* Counter32khzC
+* CounterMilliC
+
+A number of platform independent generic components are provided by
+the TinyOS timer system to help derive the full HAL requirements with
+minimal source code:
+
+* AlarmToTimerC
+* BusyWaitCounterC
+* CounterToLocalTimeC
+* TransformAlarmC
+* TransformCounterC
+* VirtualizeTimerC
+
+It is expected that a platform only needs to directly implement in
+code concise Counter and Alarm components expressed in the
+platform-native precision and width.  It SHOULD be possible to
+implement the remaining timer system by using only configurations and
+platform independent generic timer components.
+
+These HIL interfaces are proposed:
+
+* LocalTime
+* Timer
+
+LocalTime and Timer are HIL versions of Counter and Alarm.
+LocalTime is a simplified version Counter in that it does not expose
+overflow.  Timer can schedule single or periodic synchronous events
+at some specified time.  The LocalTime and Timer interfaces are used
+primarily by user applications and use a fixed width of 32-bits.
+
+This HAL component MUST also exist:
+
+* HalTimerMilliC
+
+
+Precision and Width
+====================================================================
+
+Two fundamental properties of timers are *precision* and *width*.
+
+Examples of precision are millisecond, a cycle of a 32kHz clock, and
+microseconds.  All precisions are in "binary" units with respect to
+one second.  That is, one second contains 1024 binary milliseconds,
+32768 32kHz ticks, or 1048576 microseconds.  This TEP emphasizes
+millisecond and 32kHz tick precisions while reasonably accommodating
+other precisions.
+
+Examples of widths are 8-bit, 16-bit, 32-bit, and 64-bit.  The width
+for timer interfaces and components SHOULD be 32-bits.  That is, for
+lack of a good reason, timer interfaces should expose a 32-bit
+interface.  In a number of circumstances there are good reasons not
+to expose a 32-bit interface.  This TEP emphasizes 32-bit widths
+while reasonably accommodating other widths.
+
+This TEP parameterizes all interfaces by precision and some
+interfaces by width.  This intentionally makes similar timer
+interfaces with different precision or width mutually incompatible.
+It also allows user code to clearly express and understand the
+precision and width for a given timer interface.
+
+Precision is expressed as an empty type -- TMilli, T32khz, and
+TMicro -- written in the standard Timer.h header like this::
+
+  typedef struct { } TMilli;
+  typedef struct { } T32khz;
+  typedef struct { } TMicro;
+
+Note that the precision names are expressed as either frequency or
+period, whichever is convenient.
+
+HPL Layer
+====================================================================
+
+At the lowest level, the HPLTimerC wraps all the hardware registers
+that control the hardware subsystem.  The specifics of these interfaces 
+are dependant on the chip that contains the timer subsystem.  But certain
+design paterns can be followed:
+
+  HplTimer<width>   - get/set current time, overflow event, control, init
+  HplCompare<width> - get/set compare time, fired event,    control
+  HplCapture<width> - get/set capture time, captured event, control, config
+
+Note that on a platform that has multiple timers of variable width, it 
+is helpful to abstract the width out of the interface at the HPL level 
+if possible.  This simplifies higher level interfaces by allowing them to
+wire to any timer in the system trivially.
+
+One sample set of HPL level interfaces follows::
+ 
+  interface HplTimer<timer_size>
+  {
+    /// Timer value register: Direct access
+    async command timer_size get();
+    async command void       set( timer_size t );
+
+    /// Interrupt signals
+    async event void overflow();        //<! Signalled on overflow interrupt
+
+    /// Interrupt flag utilites: Bit level set/clr
+    async command void reset(); //<! Clear the overflow interrupt flag
+    async command void start(); //<! Enable the overflow interrupt
+    async command void stop();  //<! Turn off overflow interrupts
+    async command bool test();  //<! Did overflow interrupt occur?
+    async command bool isOn();  //<! Is overflow interrupt on?
+
+    /// Clock initialization interface
+    async command void    off();                     //<! Turn off the clock 
+    async command void    setScale( uint8_t scale);  //<! Turn on the clock
+    async command uint8_t getScale();                //<! Get prescaler setting
+  }
+
+  interface HplCompare<size_type>
+  {
+    /// Compare value register: Direct access
+    async command size_type get();
+    async command void      set(size_type t);
+
+    /// Interrupt signals
+    async event void fired();           //<! Signalled on compare interrupt
+
+    /// Interrupt flag utilites: Bit level set/clr
+    async command void reset();         //<! Clear the compare interrupt flag
+    async command void start();         //<! Enable the compare interrupt
+    async command void stop();          //<! Turn off comparee interrupts
+    async command bool test();          //<! Did compare interrupt occur?
+    async command bool isOn();          //<! Is compare interrupt on?
+  }
+
+  interface HplCapture<size_type>
+  {
+    /// Capture value register: Direct access
+    async command size_type get();
+    async command void      set(size_type t);
+
+    /// Interrupt signals
+    async event void captured(size_type t);  //<! Signalled on capture int
+
+    /// Interrupt flag utilites: Bit level set/clr  
+    async command void reset();          //<! Clear the capture interrupt flag
+    async command void start();          //<! Enable the capture interrupt
+    async command void stop();           //<! Turn off capture interrupts
+    async command bool test();           //<! Did capture interrupt occur?
+    async command bool isOn();           //<! Is capture interrupt on?
+
+    async command void setEdge(bool up); //<! True = detect rising edge
+  }
+
+
+HAL Interfaces
+====================================================================
+
+This TEP proposes these HAL timer interfaces::
+
+  interface Counter< precision_tag, size_type >
+  interface Alarm< precision_tag, size_type >
+  interface BusyWait< precision_tag, size_type >
+
+
+Counter
+--------------------------------------------------------------------
+
+A Counter component will increase the width of a low-level hardware timer 
+by wrapping the overflow event and incrementing its higher order bits.
+These higher order bits are considered extra state over the HPL register
+layer, and therefore qualify all Counters as HAL components.
+The Counter interface returns the current time and provides commands
+and an event for managing overflow conditions.  These overflow
+commands and events are necessary for properly deriving larger width
+Counters from smaller widths.  ::
+
+  interface Counter<precision_tag,size_type>
+  {
+    async command size_type get();
+    async command bool isOverflowPending();
+    async command void clearOverflow();
+    async event void overflow();
+  }
+
+get() 
+  return the current time.
+
+isOverflowPending() 
+  return TRUE if an overflow interrupt will occur after the outermost
+  atomic block is exits.  FALSE otherwise.
+
+clearOverflow() 
+  cancel the pending overflow interrupt.
+
+overflow() 
+  signals that an overflow in the current time.  That is, the current
+  time has wrapped around from its maximum value to zero.
+
+
+Alarm
+--------------------------------------------------------------------
+
+Alarm components are extensions of Counters that signal an event
+when their Compare register detects the alarm time has been hit.
+All commands and events of the Alarm interface are asynchronous (or
+in "interrupt context").  The Alarm interface provides a set of
+"basic" commands for common usage and provides a set of "extended"
+commands for advanced use.  ::
+
+  interface Alarm<precision_tag,size_type>
+  {
+    // basic interface
+    async command void start( size_type dt );
+    async command void stop();
+    async event void fired();
+
+    // extended interface
+    async command bool isRunning();
+    async command void startAt( size_type t0, size_type dt );
+    async command size_type getNow();
+    async command size_type getAlarm();
+  }
+
+start(dt) 
+  cancel any previously running alarm and set to fire in dt time units
+  from the time of invocation.  The alarm will only fire once then
+  stop.
+
+stop() 
+  cancel any previously running alarm.
+
+fired() 
+  signals that the alarm has occurred.
+
+isRunning() 
+  return TRUE if the alarm has been started and has not been cancelled
+  or has not yet fired.  FALSE is returned otherwise.
+
+startAt(t0,dt) 
+  cancel any previously running alarm and set to fire at time t1 =
+  t0+dt.  This form allows a delay to be anchored to some time t0
+  taken before the invocation of start.  This is also the form used
+  internally in the timer subsystem to allow the use of the full width
+  of an alarm while being able to detect if the alarm time for a short
+  alarm prematurely elapsed.
+
+getNow() 
+  return the current time in the precision and width of the alarm.
+
+getAlarm() 
+  return the time the currently running alarm will fire or the time
+  that the previously running alarm was set to fire.
+
+
+BusyWait
+--------------------------------------------------------------------
+
+The BusyWait interface replaces the TOSH_uwait macro from TinyOS
+1.x.  ::
+
+  interface BusyWait<precision_tag,size_type>
+  {
+    async command void wait( size_type dt );
+  }
+
+wait(dt)
+  block for no less than the specified amount of time.
+
+
+HIL Interfaces
+====================================================================
+
+This TEP proposes these HIL timer interfaces::
+
+  interface LocalTime< precision_tag >
+  interface Timer< precision_tag >
+
+The LocalTime and Timer interfaces are used primarily by user
+applications and use a fixed width of 32-bits.  The Alarm, BusyWait,
+and Counter interfaces are used by the TinyOS timer system and
+advanced user components.
+
+
+LocalTime
+--------------------------------------------------------------------
+
+The LocalTime interface exposes a 32-bit counter without overflow
+utilities.  This is primarily for application code that does not
+care about overflow conditions.  ::
+
+  interface LocalTime<precision_tag>
+  {
+    async command uint32_t get();
+  }
+
+get() 
+  return the current time.
+
+
+Timer
+--------------------------------------------------------------------
+
+All commands and events of the Timer interface are synchronous (or
+in "task context").  The Timer interface provides a set of "basic"
+commands for common usage and provides a set of "extended" commands
+for advanced use.  The Timer interface allows for periodic events.
+::
+
+  interface Timer<precision_tag>
+  {
+    // basic interface
+    command void startPeriodic( uint32_t dt );
+    command void startOneShot( uint32_t dt );
+    command void stop();
+    event void fired();
+
+    // extended interface
+    command bool isRunning();
+    command bool isOneShot();
+    command void startPeriodicAt( uint32_t t0, uint32_t dt );
+    command void startOneShotAt( uint32_t t0, uint32_t dt );
+    command uint32_t getNow();
+    command uint32_t gett0();
+    command uint32_t getdt();
+  }
+
+startPeriodic(dt) 
+  cancel any previously running timer and set to fire in dt time units
+  from the time of invocation.  The timer will fire periodically every
+  dt time units until stopped.
+
+startOneShot(dt) 
+  cancel any previously running timer and set to fire in dt time units
+  from the time of invocation.  The timer will only fire once then
+  stop.
+
+stop() 
+  cancel any previously running timer.
+
+fired()
+  signals that the timer has occurred.
+
+isRunning() 
+  return TRUE if the timer has been started and has not been cancelled
+  and has not fired for the case of one-shot timers.  One a periodic
+  timer is started, isRunning will return TRUE until it is cancelled.
+
+isOneShot() 
+  return TRUE if the timer is a one-shot timer.  Return FALSE
+  otherwise if the timer is a periodic timer.
+
+startPeriodicAt(t0,dt) 
+  cancel any previously running timer and set to fire at time t1 =
+  t0+dt.  The timer will fire periodically every dt time units until
+  stopped.
+
+startOneShotAt(t0,dt) 
+  cancel any previously running timer and set to fire at time t1 =
+  t0+dt.  The timer will fire once then stop.
+
+getNow() 
+  return the current time in the precision and width of the timer.
+
+gett0() 
+  return the time anchor for the previously started timer or the time
+  of the previous event for periodic timers.
+
+getdt() 
+  return the delay or period for the previously started timer.
+
+
+HIL: Platform independent components
+====================================================================
+
+A number of platform independent generic components are provided by
+the TinyOS timer system:
+
+* AlarmToTimerC
+* BusyWaitCounterC
+* CounterToLocalTimeC
+* TransformAlarmC
+* TransformCounterC
+* VirtualizeTimerC
+
+The platform independent components are used to help derive the
+platform dependent components discussed in the next section.
+
+
+AlarmToTimerC
+--------------------------------------------------------------------
+
+AlarmToTimerC converts a 32-bit Alarm to a Timer.  ::
+
+  generic component AlarmToTimerC( typedef precision_tag )
+  {
+    provides interface Timer<precision_tag>;
+    uses interface Alarm<precision_tag,uint32_t>;
+  }
+
+
+BusyWaitCounterC
+--------------------------------------------------------------------
+
+BusyWaitCounterC uses a Counter to block until a specified amount of
+time elapses.  ::
+
+  generic component BusyWaitC( typedef precision_tag,
+    typedef size_type @integer() )
+  {
+    provides interface BusyWait<precision_tag,size_type>;
+    uses interface Counter<precision_tag,size_type>;
+  }
+
+
+CounterToLocalTimeC
+--------------------------------------------------------------------
+
+CounterToLocalTimeC converts from a 32-bit Counter to LocalTime.  ::
+
+  generic component CounterToLocalTimeC( precision_tag )
+  {
+    provides interface LocalTime<precision_tag>;
+    uses interface Counter<precision_tag,uint32_t>;
+  }
+
+
+TransformAlarmC
+--------------------------------------------------------------------
+
+TransformAlarmC decreases precision and/or widens an Alarm.  An
+already widened Counter component is used to help.  ::
+
+  generic component TransformAlarmC( 
+    typedef to_precision_tag,
+    typedef to_size_type @integer(),
+    typedef from_precision_tag,
+    typedef from_size_type @integer(),
+    uint8_t bit_shift_right )
+  {
+    provides interface Alarm<to_precision_tag,to_size_type> as Alarm;
+    uses interface Counter<to_precision_tag,to_size_type> as Counter;
+    uses interface Alarm<from_precision_tag,from_size_type> as AlarmFrom;
+  }
+
+to_precision_tag and to_size_type describe the final precision and
+final width for the provided Alarm.  from_precision_tag and
+from_size_type describe the precision and width for the source
+AlarmFrom.  bit_shift_right describes the bit-shift necessary to
+convert from the used precision to the provided precision.
+
+For instance to convert from an Alarm<T32khz,uint16_t> to an
+Alarm<TMilli,uint32_t>, the following TransformAlarmC would be
+created::
+
+  new TransformAlarmC( TMilli, uint32_t, T32khz, uint16_t, 5 )
+
+
+TransformCounterC
+--------------------------------------------------------------------
+
+TransformCounterC decreases precision and/or widens a Counter.  ::
+
+  generic component TransformCounterC(
+    typedef to_precision_tag,
+    typedef to_size_type @integer(),
+    typedef from_precision_tag,
+    typedef from_size_type @integer(),
+    uint8_t bit_shift_right,
+    typedef upper_count_type @integer() )
+  {
+    provides interface Counter<to_precision_tag,to_size_type> as Counter;
+    uses interface Counter<from_precision_tag,from_size_type> as CounterFrom;
+  }
+
+to_precision_tag and to_size_type describe the final precision and
+final width for the provided Counter.  from_precision_tag and
+from_size_type describe the precision and width for the source
+AlarmFrom.  bit_shift_right describes the bit-shift necessary to
+convert from the used precision to the provided precision.
+upper_count_type describes the numeric type used to store the
+additional counter bits.  upper_count_type MUST be a type with width
+greater than or equal to the additional bits in to_size_type plus
+bit_shift_right.
+
+For instance to convert from a Counter<T32khz,uint16_t> to a
+Counter<TMilli,uint32_t>, the following TransformCounterC would be
+created::
+
+  new TransformCounterC( TMilli, uint32_t, T32khz, uint16_t, 5, uint32_t )
+
+
+VirtualizeTimerC
+--------------------------------------------------------------------
+
+VirtualizeTimerC uses a single Timer to create up to 255 virtual
+timers.  ::
+
+  generic component VirtualizeTimerC( typedef precision_tag, int max_timers )
+  {
+    provides interface Init;
+    provides interface Timer<precision_tag> as Timer[ uint8_t num ];
+    uses interface Timer<precision_tag> as TimerFrom;
+  }
+
+
+Platform dependent components
+====================================================================
+
+A number of platform dependent components MUST exist:
+
+* Alarm32khzC
+* AlarmMilliC
+* BusyWait32khzC
+* BusyWaitMicroC
+* Counter32khzC
+* CounterMilliC
+* TimerMilliC
+
+
+Alarm32khzC
+--------------------------------------------------------------------
+
+Alarm32khzC MUST provide Init and Alarm<T32khz,uint32_t> as
+Alarm32khz32.  The configuration MAY provide additional
+hardware-specific Alarm interfaces.  Alarm32khzC is a generic
+component.  Each instantiation allocates a new, distinct Alarm.
+Each instance of an Alarm32khzC MAY directly map to a hardware
+timer.  ::
+
+  generic configuration Alarm32khzC()
+  {
+    provides interface Init;
+    provides interface Alarm<T32khz,uint16_t> as Alarm32khz16;
+    provides interface Alarm<T32khz,uint32_t> as Alarm32khz32;
+  }
+
+
+AlarmMilliC
+--------------------------------------------------------------------
+
+AlarmMilliC MUST provide Init and Alarm<TMilli,uint32_t> as
+AlarmMilli32.  The configuration MAY provide additional
+hardware-specific Alarm interfaces.  AlarmMilliC is a generic
+component.  Each instantiation allocates a new, distinct Alarm.
+Each instance of an AlarmMilliC MAY directly map to a hardware
+timer.  ::
+
+  generic configuration AlarmMilliC()
+  {
+    provides interface Init;
+    provides interface Alarm<TMilli,uint32_t> as AlarmMilli32;
+  }
+
+
+BusyWait32khzC
+--------------------------------------------------------------------
+
+BusyWait32khzC MUST provide BusyWait<T32khz,uint16_t> as
+BusyWait32khz16.  The configuration MAY provide additional
+hardware-specific BusyWait interfaces.  ::
+
+  configuration BusyWait32khzC
+  {
+    provides interface BusyWait<T32khz,uint16_t> as BusyWait32khz16;
+  }
+
+
+BusyWaitMicroC
+--------------------------------------------------------------------
+
+BusyWaitMicroC MUST provide BusyWait<TMicro,uint16_t> as
+BusyWaitMicro16.  The configuration MAY provide additional
+hardware-specific BusyWait interfaces.  ::
+
+  configuration BusyWaitMicroC
+  {
+    provides interface BusyWait<TMicro,uint16_t> as BusyWaitMicro16;
+  }
+
+
+Counter32khzC
+--------------------------------------------------------------------
+
+Counter32khz MUST provide Counter<T32khz,uint32_t> as Counter32khz32
+and LocalTime<T32khz> as LocalTime32khz.  The configuration MAY
+provide additional hardware-specific Counter interfaces.  ::
+
+  configuration Counter32khzC
+  {
+    provides interface Counter<T32khz,uint32_t> as Counter32khz32;
+    provides interface LocalTime<T32khz> as LocalTime32khz;
+  }
+
+
+CounterMilliC
+--------------------------------------------------------------------
+
+CounterMilli MUST provide Counter<TMilli,uint32_t> as CounterMilli32
+and LocalTime<TMilli> as LocalTimeMilli.  The configuration MAY
+provide additional hardware-specific Counter interfaces.  ::
+
+  configuration CounterMilliC
+  {
+    provides interface Counter<TMilli,uint32_t> as CounterMilli32;
+    provides interface LocalTime<TMilli> as LocalTimeMilli;
+  }
+
+
+HalTimerMilliC
+--------------------------------------------------------------------
+
+HalTimerMilliC MUST provide Init and Timer<TMilli> as
+TimerMilli[uint8_t num].  HalTimerMilliC is used by OSKI to
+implement the generic component TimerMilliC that allocates a new,
+virtual timer with each instantiation.  ::
+
+  configuration HalTimerMilliC
+  {
+    provides interface Init;
+    provides interface Timer<TMilli> as TimerMilli[ uint8_t num ];
+  }
+
+
+Hardware differences between the current platforms
+====================================================================
+
+  a. Mica2 (ATmega128)
+
+    i. Two 8-bit timers, each with
+
+      * 10-bit prescaler
+      * One compare register
+
+    ii. Two 16-bit timers, each with
+
+      * Limited prescalers
+      * Three compare registers
+
+  b. Telos/EYES (MSP430)
+
+    i. Two 16-bit timers with
+
+      * One with three compare registers
+      * One with eight compare registers
+      * Each from distinct clock source
+      * Each with limited prescalers
+
+  c. Intel Mote (V2) (Xscale PXA27X)
+
+    i. One fixed rate (3.25MHz) 32-bit timer with
+
+      * 4 compare registers
+      * Watchdog functionality
+
+    ii. 8 variable rate 32-bit timers with
+
+      * 1 associated compare register each
+      * Individually selectable rates: 1/32768s, 1ms, 1s, 1us
+      * Individually selectable sources: (32.768 external osc,
+        13 Mhz internal clock)
+
+    iii. Periodic & one-shot capability
+
+    iv. Two external sync events
+
+Platform Specific Mapping
+====================================================================
+
+   a. Mica2
+	Timer	Size	Clock Source	Usage
+	-----	----	------------	-----
+	Timer0	8-bit	32khz		Application (TimerMilli)
+	Timer1	16-bit	CPU (7.4/8MHz)	Not used
+	Timer2	8-bit	CPU (7.4/8MHz)	Not used
+	Timer3	16-bit	CPU (7.4/8MHz)	Not used
+
+   b. Mica2dot
+	Timer	Size	Clock Source	Usage
+	-----	----	------------	-----
+	Timer0	8-bit	32khz		Application (TimerMilli)
+	Timer1	16-bit	CPU (4MHz)	Not used
+	Timer2	8-bit	CPU (4MHz)	Not used
+	Timer3	16-bit	CPU (4MHz)	Not used
+
+   c. MicaZ
+	Timer	Size	Clock Source	Usage
+	-----	----	------------	-----
+	Timer0	8-bit	32khz		Application (TimerMilli)
+	Timer1	16-bit	CPU (7.4/8MHz)	[CaptureA] CC2420 SFD Pin
+	Timer2	8-bit	CPU (7.4/8MHz)	CC2420: high resolution (32uSec) timing
+	Timer3	16-bit	CPU (7.4/8MHz)	Not used
+
+Implementation
+====================================================================
+
+For platform independent headers, interfaces, and components, see
+
+* tinyos-2.x/tos/lib/timer/
+
+For platform dependent implementations, see specific chip
+directories, such as
+
+* tinyos-2.x/tos/chips/msp430/timer/
+* tinyos-2.x/tos/chips/ATmega128/timer/
+* tinyos-2.x/tos/chips/pxa27a/timer/
+
+
+Hints
+====================================================================
+
+In implementing Alarm32khzC.nc and AlarmMilliC.nc for the MSP430 in
+tinyos-2.x/tos/chips/msp430/timer/, see MSP430Timer32khzC.nc and
+MSP430Timer32khzMapC.nc for an example of how a set of similar
+hardware resources can be exposed through a parameterized interface
+for compile-time allocation.  See how Alarm32khzC.nc and
+AlarmMilliC.nc call new MSP430Timer32khzC() to allocate a new,
+arbitrary hardware timer.  Using this methodology, specific
+platforms can override MSP430Timer32khzMapC.nc to remove statically
+allocated hardware timers from the set available for compile-time
+allocation, such as the Telos platform in
+tinyos-2.x/tos/platform/telosa.
+
+
+Author's Address
+====================================================================
+
+| Cory Sharp
+| Moteiv Corporation
+| 2168 Shattuck Ave
+| Berkeley, CA 94704
+|
+| email - cory@moteiv.com
+|
+| Martin Turon
+| P.O. Box 8525
+| Berkeley, CA 94707
+|
+| phone - +1 408 965 3355
+| email - mturon@xbow.com
+
