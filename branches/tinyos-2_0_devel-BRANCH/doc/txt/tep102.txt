@@ -10,8 +10,8 @@ Timers
 :Author: Cory Sharp, Martin Turon
 
 :Draft-Created: 22-Sep-2004
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2005-10-31 22:30:55 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -109,17 +109,13 @@ These HIL interfaces are proposed:
 
 * LocalTime
 * Timer
+* TimerMilliC (for OSKI support)
 
 LocalTime and Timer are HIL versions of Counter and Alarm.
 LocalTime is a simplified version Counter in that it does not expose
 overflow.  Timer can schedule single or periodic synchronous events
 at some specified time.  The LocalTime and Timer interfaces are used
 primarily by user applications and use a fixed width of 32-bits.
-
-This HAL component MUST also exist:
-
-* HalTimerMilliC
-
 
 Precision and Width
 ====================================================================
@@ -688,15 +684,15 @@ provide additional hardware-specific Counter interfaces.  ::
   }
 
 
-HalTimerMilliC
+TimerMilliC
 --------------------------------------------------------------------
 
-HalTimerMilliC MUST provide Init and Timer<TMilli> as
-TimerMilli[uint8_t num].  HalTimerMilliC is used by OSKI to
-implement the generic component TimerMilliC that allocates a new,
-virtual timer with each instantiation.  ::
+TimerMilliC MUST provide Init and Timer<TMilli> as TimerMilli[uint8_t
+num].  TimerMilliC is used by OSKI to implement the generic component
+TimerMilliC that allocates a new, virtual timer with each
+instantiation.  ::
 
-  configuration HalTimerMilliC
+  configuration TimerMilliC
   {
     provides interface Init;
     provides interface Timer<TMilli> as TimerMilli[ uint8_t num ];
