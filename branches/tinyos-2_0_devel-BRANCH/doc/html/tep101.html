@@ -1,0 +1,1101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<title>Analog-to-Digital Converters (ADCs)</title>
+<meta name="author" content="Jan-Hinrich Hauer" />
+<meta name="author" content="Philip Levis" />
+<meta name="author" content="Vlado Handziski" />
+<meta name="author" content="David Gay" />
+<style type="text/css">
+
+/*
+:Author: David Goodger
+:Contact: goodger@users.sourceforge.net
+:date: $Date: 2005-10-31 22:16:36 $
+:version: $Revision: 1.1.2.1 $
+:copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+*/
+body {
+  font-family: Times;
+  font-size: 16px;
+}
+
+.first {
+  margin-top: 0 ! important }
+
+.last {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (& remove this text!) to get bold-faced definition list terms
+dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.attention, div.caution, div.danger, div.error, div.hint,
+div.important, div.note, div.tip, div.warning, div.admonition {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.hint p.admonition-title, div.important p.admonition-title,
+div.note p.admonition-title, div.tip p.admonition-title,
+div.admonition p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em }
+
+div.footer, div.header {
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin-left: 1em ;
+  border: medium outset ;
+  padding: 0em 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1 {
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+}
+
+h1.title {
+ text-align: center;
+ font-size: 32px;
+}
+
+h2 {
+ font-size: 16px;
+ font-family: Arial, sans-serif;
+}
+
+h2.subtitle {
+  text-align: center }
+
+h3 {
+ font-size: 12px;
+ font-family: Arial, sans-serif;
+}
+
+hr {
+  width: 75% }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font-family: serif ;
+  font-size: 100% }
+
+pre.line-block {
+  font-family: serif ;
+  font-size: 100% }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em ;
+  background-color: #eeeeee }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.option-argument {
+  font-style: italic }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+table {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.citation {
+  border-left: solid thin gray ;
+  padding-left: 0.5ex }
+
+table.docinfo {
+  margin: 2em 4em;
+}
+
+table.footnote {
+  border-left: solid thin black ;
+  padding-left: 0.5ex }
+
+td, th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+th.docinfo-name, th.field-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap;
+  }
+
+h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
+  font-size: 100% }
+
+tt {
+  background-color: #eeeeee }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="analog-to-digital-converters-adcs">
+<h1 class="title">Analog-to-Digital Converters (ADCs)</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr class="field"><th class="docinfo-name">TEP:</th><td class="field-body">101</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Group:</th><td class="field-body">Core Working Group</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Type:</th><td class="field-body">Documentary</td>
+</tr>
+<tr><th class="docinfo-name">Status:</th>
+<td>Draft</td></tr>
+<tr class="field"><th class="docinfo-name">TinyOS-Version:</th><td class="field-body">2.x</td>
+</tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Jan-Hinrich Hauer</td></tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Philip Levis</td></tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Vlado Handziski</td></tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>David Gay</td></tr>
+<tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">20-Dec-2004</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.16</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2005-09-27</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
+</tr>
+</tbody>
+</table>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">This memo documents a part of TinyOS for the TinyOS Community, and
+requests discussion and suggestions for improvements.  Distribution
+of this memo is unlimited. This memo is in full compliance with
+TEP 1.</p>
+</div>
+<div class="section" id="abstract">
+<h1><a name="abstract">Abstract</a></h1>
+<p>This TEP proposes a hardware abstraction for TinyOS 2.x
+analog-to-digital converters (ADCs). It focuses on aligning the ADC
+abstraction with the three-layer Hardware Abstraction Architecture
+(HAA) described in TEP 2. This TEP only addresses the HPL and HAL of
+an ADC. TEP 109 (Sensorboards) presents an example HIL that can sit on
+top of the ADC.</p>
+</div>
+<div class="section" id="introduction">
+<h1><a name="introduction">Introduction</a></h1>
+<p>Analog-to-digital converters (ADCs) are devices that convert analog
+input signals to discrete digital output signals, typically voltage to
+a digital number. In earlier versions of TinyOS, the distinction
+between a sensor and an ADC were blurred: this led components that had
+nothing to do with an ADC to still resemble one programatically, even
+though the semantics and forms of operation were completely different.
+To compensate for the difference non-ADC sensors introduced additional
+interfaces, such as ADCError, that were tightly bound to sensor
+acquisition but separate in wiring. The separation between the ADC and
+ADCError interface is bug prone and problematic, as is the equation of
+a sensor and an ADC. TinyOS 2.x separates the structure and interfaces
+of an ADC from those of sensors (which may be on top of an ADC, but
+this is hidden from higher level components). This TEP presents how
+TinyOS 2.x decomposes and structures ADC software. TEP 109
+(Sensorboards) presents how a platform can present actual named
+sensors <a class="citation-reference" href="#tep109" id="id1" name="id1">[tep109]</a>.</p>
+<p>TinyOS platforms are based on many different hardware chips, whose
+ADCs differ in many respects (see <a class="reference" href="#hardware-differences-between-the-current-platforms">Hardware differences between the
+current platforms</a>).  This makes it difficult to find a chip
+independent representation for ADCs. Even if there were such a
+representation, the configuration details of an ADC still depend on
+the actual device (sensor) producing the input signal. Neither a
+platform independent application nor the ADC hardware stack itself has
+access to this information, which can only be determined on a platform
+or sensorboard level. For example, determining which ADC port a
+certain sensor is attached to and how a conversion result needs to be
+interpreted is a platform specific determination. Thus ADCs themselves
+are not well suited to a platform independent (HIL) representation.</p>
+<p>Although ADCs are very platform specific, there are commonalities
+across platforms. For example, many ADCs only allow a single sample at
+a time. As many components may be sampling different sensors that
+share an ADC, the ADC system needs to provide some form of resource
+arbitration, and being able to use a library of common arbitration
+components is desirable. Therefore, following a common structure to
+interface to the HIL can greatly simplify sensor deployment and
+development.</p>
+<p>In order to facilitate sensor development and allow them to
+incorporate certain services (e.g. access to the ADC on a round robin
+basis), the ADC hardware stack includes as its top layer a second,
+chip independent (but still platform dependent) HAL.  The following
+section gives an overview of the involved components.  Afterwards each
+layer is discussed in detail.</p>
+</div>
+<div class="section" id="overview">
+<h1><a name="overview">Overview</a></h1>
+<p>The ADC hardware abstraction ends with a platform dependent HAL. But
+it is designed with regard to the sensor abstraction in TEP 109, which
+covers the definition and implementation of HIL sensor components.
+This overview shows how they match up by describing the integrated
+component graph in a top-down fashion.</p>
+<p>The highest layer of abstraction, the HIL, is composed of named sensor
+components that provide interfaces only for acquiring the
+corresponding data <a class="citation-reference" href="#tep109" id="id2" name="id2">[tep109]</a>.</p>
+<p>Many sensors sit on top of a shared hardware ADC, however. As the ADC
+hardware is a shared resource that is multiplexed between several
+clients, it requires access arbitration.  The Service layer provides
+this level of ADC abstraction. The Service layer uses a library of
+standard TinyOS resource management modules, such as
+AcquireDataRoundRobinM (found in tos/system), to arbitrate access to
+underlying ADC abstractions. These generic arbitration modules use
+parameterized intefaces, where the parameterization follows the
+Service Instance pattern to represent arbitration
+clients <a class="citation-reference" href="#sipattern" id="id3" name="id3">[sipattern]</a>.</p>
+<p>The highest level of actual ADC abstraction -- HAL2, which sensors
+interact with -- is composed of three parameterized interfaces:
+AcquireData, AcquireDataNow, and Resource.  An ADC hardware stack that
+supports arbitration of its input channels therefore MUST incorporate
+a layer providing these interfaces for standard arbiter components to
+use. The parameter to these parameterized interfaces defines the
+sensor or, more precisely, the ADC input channel. An input channel is
+the most natural representation on this level of abstraction, because
+a common denominator of all ADCs is that they sample an input channel
+and produce conversion results.</p>
+<p>Although HAL2 is common across many ADCs, it is <em>not</em> a HIL
+representation, because choosing an input channel is a platform or
+sensorboard specific decision (as a platform independent application
+would not know which channel to choose).  Instead, this layer is a
+platform dependent HAL interface. The implementation HAL2 is chip
+dependent and platform independent, and instantiation is performed on
+a platform level (for an example, see below).</p>
+<p>There is also need for an HAL in the 'traditional' sense of the
+Hardware Abstraction Architecture (HAA): a HAL that offers access to
+all the chip specific capabilities via a chip specific interface. This
+HAL is called HAL1. HAL1 resembles a standard HAL in the HAA; the HPL
+lies below it.</p>
+<p>An example for a component stack of a platform independent application
+wiring to a sensor wrapper on the 'eyes' platform (using the TI MSP430
+MCU) is shown in the following figure.:</p>
+<pre class="literal-block">
+                 +-------------+
+                 |  Platform   |
+APPLICATION:     | independent | location: e.g. tinyos-2.x/apps/TestADC
+                 | Application |
+                 +-------------+
+                        ^
+                        | 
+                   AcquireData
+                        | 
+                 +----------------+ 
+                 |  DemoSensorRRC | 
+  HIL:           | (instantiating | location: tinyos-2.x/tos/platforms/eyes
+                 |  ADCChannelC)  | 
+                 +----------------+ 
+                        ^
+                        |           
+                    AcquireData[]               
+                        | 
+                 +----------------------------+ 
+                 |    ADCChannelArbiterC      | 
+Service:         |     (instantiating         | location: tinyos-2.x/tos/lib/adc
+                 | AcquireDataNowRoundRobinM) | 
+                 +----------------------------+ 
+                         ^
+                         |
+                     AcquireData[]
+                         |
+                 +---------------------+ 
+                 |       ADCC          | 
+  HAL2:          | (MSP430 specific    | location: tinyos-2.x/tos/chips/msp430
+                 |  implementation)    | 
+                 +---------------------+ 
+                          ^
+                          |
+                 MSP430ADC12SingleChannel  
+                          |
+                 +-----------------------+
+                 |    MSP430ADC12C       |
+  HAL1:          | (accessed via generic | location: tinyos-2.x/tos/chips/msp430
+                 |  MSP430ADC12Client)   |
+                 +-----------------------+
+                          ^
+                          |
+                    MSP430ADC12HPL
+                          |
+                 +---------------------+
+                 |   MSP430ADC12HPLC   |
+  HPL:           | (MSP430 specific    | location: tinyos-2.x/tos/chips/msp430
+                 |  implementation and |
+                 |  representation)    |
+                 +---------------------+
+</pre>
+</div>
+<div class="section" id="hardware-differences-between-the-current-platforms">
+<h1><a name="hardware-differences-between-the-current-platforms">Hardware differences between the current platforms</a></h1>
+<p>The TI MSP430 and the Atmel ATmega 128 are two common microcontrollers
+used in TinyOS platforms. They both have integrated ADCs, but have
+very different functionality and capabilities. These distinctions
+illustrate the complexities that prevent ADCs from having a truly
+hardware independent abstraction. The following table compares the
+characteristics of the two microcontrollers:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="34%" />
+<col width="34%" />
+<col width="32%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">&nbsp;</th>
+<th class="head">Atmel Atmega 128</th>
+<th class="head">TI MSP430 ADC12</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Resolution</td>
+<td>10-bit</td>
+<td>12-bit</td>
+</tr>
+<tr><td>channels</td>
+<td><ul class="first last simple">
+<li>8 multiplexed
+external channels</li>
+<li>16 differential
+voltage input
+combinations</li>
+<li>2 differential
+inputs with gain
+amplification</li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li>8 individually
+configurable
+external channels</li>
+<li>internal channels
+(AVcc, temperature,
+reference voltages)</li>
+</ul>
+</td>
+</tr>
+<tr><td>internal reference
+voltage</td>
+<td>2.56V</td>
+<td>1.5V or 2.5V</td>
+</tr>
+<tr><td>conversion reference</td>
+<td><ul class="first last simple">
+<li>positive terminal:
+AVcc or 2.56V  or
+AREF (external)</li>
+<li>negative terminal:
+GND</li>
+</ul>
+</td>
+<td><blockquote class="first">
+individually
+selectable per
+channel:</blockquote>
+<ul class="last simple">
+<li>AVcc and AVss</li>
+<li>Vref+ and AVss</li>
+<li>Veref+ and AVss</li>
+<li>AVcc and (Vref- or
+Veref-)</li>
+<li>AVref+ and (Vref-
+or Veref-)</li>
+<li>Veref+ and (Vref-
+or Veref-)</li>
+</ul>
+</td>
+</tr>
+<tr><td>conversion modes</td>
+<td><ul class="first last simple">
+<li>single channel
+conversion mode</li>
+<li>free running mode
+(channels and
+reference voltages
+can be switched
+between samples)</li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li>single conversion
+mode</li>
+<li>repeat single
+conversion mode</li>
+<li>sequence mode
+(sequence &lt;= 16
+channels)</li>
+<li>repeat sequence
+mode</li>
+</ul>
+</td>
+</tr>
+<tr><td>conversion clock
+source</td>
+<td>clkADC with prescaler</td>
+<td>ACLK, MCLK, SMCLK or
+ADC-oscillator (5MHz)
+with prescaler
+respectively</td>
+</tr>
+<tr><td>sample-hold-time</td>
+<td>1.5 clock cycles
+(fixed)</td>
+<td>selectable values
+from 4 to 1024 clock
+cycles</td>
+</tr>
+<tr><td>conversion triggering</td>
+<td>by software</td>
+<td>by software or timers</td>
+</tr>
+<tr><td>conversion during
+sleep mode possible</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr><td>interrupts</td>
+<td>after each conversion</td>
+<td>after single or
+sequence conversion</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="hardware-presentation-layer-hpl">
+<h1><a name="hardware-presentation-layer-hpl">Hardware Presentation Layer (HPL)</a></h1>
+<blockquote>
+<ol class="loweralpha simple">
+<li>Implementation: Chip dependent</li>
+<li>Presentation: Chip dependent</li>
+<li>Stateless</li>
+<li>General structure:<ol class="lowerroman">
+<li>provides StdControl interface if necessary for power management</li>
+<li>get/set commands for the registers that control the hardware</li>
+<li>additional commands for frequently used operations</li>
+<li>commands for enabling/disabling of interrupts</li>
+<li>service routines for the ADC interrupt</li>
+</ol>
+</li>
+</ol>
+</blockquote>
+</div>
+<div class="section" id="hardware-adaptation-layer-hal">
+<h1><a name="hardware-adaptation-layer-hal">Hardware Adaptation Layer (HAL)</a></h1>
+<p>As explained in the <a class="reference" href="#overview">Overview</a> the HAL consists of two sublayers.  To
+differentiate the two Hardware Adaptation 'sub'Layers they are called
+HAL2 (for the HAL providing a parameterized AcquireData and
+AcquireDataNow interface) and HAL1 (for the 'traditional' HAL). In the
+hardware stack for the ADC the HAL1 resides below HAL2, i.e. HAL2 uses
+the primitives of HAL1. Only chip dependent applications may wire to
+HAL1 or HAL2, i.e. platform independent applications MUST NOT wire to
+HAL1 or HAL2.</p>
+<div class="section" id="hardware-adaptation-sublayer1-hal1">
+<h2><a name="hardware-adaptation-sublayer1-hal1">Hardware Adaptation SubLayer1 (HAL1)</a></h2>
+<blockquote>
+<ol class="loweralpha">
+<li><p class="first">Implementation: Chip dependent</p>
+</li>
+<li><p class="first">Presentation: Chip dependent</p>
+</li>
+<li><p class="first">Async</p>
+</li>
+<li><p class="first">ADC12 on MSP430</p>
+<blockquote>
+<p>The core configuration of the HAL1 on MSP430 is
+the MSP430ADC12C configuration.:</p>
+<pre class="literal-block">
+configuration MSP430ADC12C  
+{
+  provides interface Init;
+  provides interface Resource[uint8_t id];
+  provides interface MSP430ADC12SingleChannel as SingleChannel[uint8_t id];
+}
+</pre>
+<p>MSP430ADC12C provides a parameterized MSP430ADC12SingleChannel
+interface to access the ADC12 on a per-channel basis. However, an
+application SHOULD NOT directly wire to the MSP430ADC12C, but to 
+an instantiation of the following generic configuration.:</p>
+<pre class="literal-block">
+generic configuration MSP430ADC12Client()
+{
+   provides interface Resource;
+   provides interface MSP430ADC12SingleChannel;
+}
+</pre>
+<p>i. The Resource interface is specified in TEP 108. Before a
+call to any command of the MSP430ADC12SingleChannel interface
+can succeed, the ADC12 MUST be reserved via the Resource
+interface.  After an application has performed all desired
+operations on the ADC12, it then MUST release the ADC12 via the
+Resource interface. In the meantime the ADC12 will be blocked
+for all other applications, therefore an application SHOULD
+minimize the reservation period. Every application MUST
+conform to this policy. The HAL1 MAY check at runtime whether a
+data request maps to the application that has reserved the ADC, but
+a caller MUST NOT assume it does.</p>
+<p>ii. The MSP430ADC12SingleChannel interface includes four
+<em>getData</em> commands, two events signalling data back and a
+<em>getConfigurationData</em> event.:</p>
+<pre class="literal-block">
+interface MSP430ADC12SingleChannel 
+{     
+  async event msp430adc12_channel_config_t getConfigurationData();
+  async command msp430adc12_result_t getSingleData();
+  async command msp430adc12_result_t getSingleDataRepeat(uint16_t jiffies);   
+  async command msp430adc12_result_t getMultipleData(uint16_t *buf, 
+                               uint16_t length, uint16_t jiffies);
+  async command msp430adc12_result_t getMultipleDataRepeat(uint16_t *buf, 
+                               uint8_t length, uint16_t jiffies);
+  async event result_t singleDataReady(uint16_t data);
+  async event uint16_t* multipleDataReady(uint16_t *buf, uint16_t length);
+}
+
+typedef struct 
+{
+  unsigned int inch: 4;            // input channel
+  unsigned int sref: 3;            // reference voltage
+  unsigned int ref2_5v: 1;         // reference voltage level
+  unsigned int adc12ssel: 2;       // clock source sample-hold-time
+  unsigned int adc12div: 3;        // clock divider sample-hold-time
+  unsigned int sht: 4;             // sample-hold-time
+  unsigned int sampcon_ssel: 2;    // clock source sampcon signal
+  unsigned int sampcon_id: 2;      // clock divider sampcon
+} msp430adc12_channel_config_t;
+</pre>
+<p>An application needs to implement an event handler for
+the MSP430ADC12SingleChannel.getConfigurationData() event. This
+event handler MUST return the configuration data for the
+channel the application wants to sample. The event will be
+signalled by HAL1 each time a <em>getData</em> command is called to
+request the respective channel configuration settings.  This
+approach (in contrast to a command) has the advantage that HAL1
+does not need to maintain a table of configuration data in RAM.
+Instead configuration data is retrieved from the application at
+runtime whenever needed.  The application SHOULD keep
+configuration data in program memory (flash), not in RAM.</p>
+<p>The <em>getData</em> commands use the four different conversion modes
+of the ADC12: A single channel converted once or repeatedly or
+a sequence of channels converted once or repeatedly. The
+sequence-of-channel mode is used to perform high-frequency
+sampling of around 70kSPS (kilo samples per second) on a single
+channel. The MSP430 ADC12 allows to define a sampling period
+for subsequent conversions.  This is reflected by an additional
+parameter <em>jiffies</em> in the relevant commands. A datatype
+<tt class="docutils literal"><span class="pre">msp430adc12_result_t</span></tt> is used, which not only includes
+MSP430ADC12_SUCCESS but also MSP430ADC12_QUEUED to queue 
+commands. This is necessary to deal with a possible 17ms delay 
+when starting the internal reference voltage generator.</p>
+<ol class="loweralpha simple" start="5">
+<li>The ADC on ATmega128:</li>
+</ol>
+<p>The HAL for the ATmega128 offers two interfaces: ATm128ADCSingle is
+for collecting single samples from a given channel, and
+ATm128ADCMultiple is for collecting multiple samples from one or
+more channels, using the ATmega128's A/D free-running mode. Rather
+than using a configuration mechanism, the commands of these
+interfaces have explicit parameters for setting all A/D conversion
+parameters:</p>
+<pre class="literal-block">
+configuration HALADCC
+{
+  provides {
+    interface Init;
+    interface StdControl;
+    interface Resource[uint8_t client];
+    interface ATm128ADCSingle[uint8_t channel];
+    interface ATm128ADCMultiple;
+  }
+}
+
+interface ATm128ADCSingle
+{
+  /**
+   * Initiates an ADC conversion on a given channel.
+   *
+   * &#64;param refVoltage Select reference voltage for A/D conversion. See
+   *   the ATM128_ADC_VREF_xxx constants in ATm128ADC.h
+   * &#64;param leftJustify TRUE to place A/D result in high-order bits 
+   *   (i.e., shifted left by 6 bits), low to place it in the low-order bits
+   * &#64;param prescaler Prescaler value for the A/D conversion clock. Normally
+   *  this should be ATM128_ADC_PRESCALE to guarantee full precision. Other
+   *  prescalers can be used to get faster conversions. See the ATmega128
+   *  manual for details.
+   * &#64;return TRUE if the conversion will be precise, FALSE if it will be 
+   *   imprecise (due to a change in refernce voltage, or switching to a
+   *   differential input channel)
+   */
+  async command bool getData(uint8_t refVoltage, bool leftJustify,
+                             uint8_t prescaler);
+
+  /**
+   * Indicates a sample has been recorded by the ADC as the result
+   * of a &lt;code&gt;getData()&lt;/code&gt; command.
+   *
+   * &#64;param data a 2 byte unsigned data value sampled by the ADC.
+   * &#64;param precise if the conversion precise, FALSE if it wasn't. This
+   *   values matches the result from the &lt;code&gt;getData&lt;/code&gt; call.
+   */  
+  async event void dataReady(uint16_t data, bool precise);
+
+  /**
+   * Cancel an outstanding getData operation. Use with care, to
+   * avoid problems with races between the dataReady event and cancel.
+   * &#64;return TRUE if a conversion was in-progress or an interrupt
+   *   was pending. dataReady will not be signaled. FALSE if the
+   *   conversion was already complete. dataReady will be (or has
+   *   already been) signaled.
+   */
+  async command bool cancel();
+}
+
+interface ATm128ADCMultiple
+{
+  /**
+   * Initiates free-running ADC conversions, with the ability to switch 
+   * channels and reference-voltage with a one sample delay.
+   *
+   * &#64;param channel Initial A/D conversion channel. The channel can 
+   *   be changed in the dataReady event, though these changes happen
+   *   with a one-sample delay (this is a hardware restriction).
+   * &#64;param refVoltage Initial A/D reference voltage. See the
+   *   ATM128_ADC_VREF_xxx constants in ATm128ADC.h. Like the channel,
+   *   the reference voltage can be changed in the dataReady event with
+   *   a one-sample delay.
+   * &#64;param leftJustify TRUE to place A/D result in high-order bits 
+   *   (i.e., shifted left by 6 bits), low to place it in the low-order bits
+   * &#64;param prescaler Prescaler value for the A/D conversion clock. Normally
+   *  this should be ATM128_ADC_PRESCALE to guarantee full precision. Other
+   *  prescalers can be used to get faster conversions. See the ATmega128
+   *  manual for details.
+   * &#64;return TRUE if the conversion will be precise, FALSE if it will be 
+   *   imprecise (due to a change in reference voltage, or switching to a
+   *   differential input channel)
+   */
+  async command bool getData(uint8_t channel, uint8_t refVoltage,
+                             bool leftJustify, uint8_t prescaler);
+
+  /**
+   * Returns the next sample in a free-running conversion. Allow the user
+   * to switch channels and/or reference voltages with a one sample delay.
+   *
+   * &#64;param data a 2 byte unsigned data value sampled by the ADC.
+   * &#64;param precise if this conversion was precise, FALSE if it wasn't 
+   *   (we assume that the second conversion after a change of reference
+   *   voltage or after switching to a differential channel is precise)
+   * &#64;param channel Channel this sample was from.
+   * &#64;param newChannel Change this parameter to switch to a new channel
+   *   for the second next sample.
+   * &#64;param newRefVoltage Change this parameter to change the reference 
+   *   voltage for the second next sample.
+   *
+   * &#64;return TRUE to continue sampling, FALSE to stop.
+   */  
+  async event bool dataReady(uint16_t data, bool precise, uint8_t channel,
+                             uint8_t *newChannel, uint8_t *newRefVoltage);
+}
+</pre>
+<p>The Resource interface is specified in TEP 108. Before any call is
+made to the ATm128ADCSingle or ATm128ADCMultiple interfaces, the ADC
+MUST be reserved via the Resource interface. After an application
+has performed all desired operations on the ADC, it then MUST
+release the ADC via the Resource interface.  In the meantime the ADC
+will be blocked for all other applications, therefore an application
+SHOULD minimize this reservation period. The ADC MUST NOT be released
+or stopped while an A/D conversion is in progress. Each platform MUST
+define an ATM128_ADC_PRESCALE constant which gives maximum A/D conversion
+precision (see the ATmega128 manual for details).</p>
+<p>The ATm128ADCSingle interface allows cancellation of outstanding
+conversions; the ATm128ADCMultiple does not (because it is hard to
+tell if there will be 0 or 1 more ADC samples after cancellation
+when using the ATmega128 free-running A/D conversion mode).</p>
+<p>Because of the possibility that samples may be imprecise after 
+switching channels and/or reference voltages, and because there
+is a one sample delay on swithcing channels and reference voltages,
+ATm128ADCMultiple is complex. Two straightforward uses are:</p>
+<ol class="upperalpha">
+<li><p class="first">Acquire N samples from channel C:
+1. call getData to start sampling on channel C at the desired rate
+(note that the choice of prescalers is very limited, so you
+don't have many choices for sampling rate)</p>
+<ol class="arabic simple" start="2">
+<li>ignore the first dataReady event</li>
+</ol>
+<p>3. use the results of the next N dataReady() events, return FALSE
+on the last one</p>
+</li>
+<li><p class="first">Acquire one sample each from channels C1, ..., Cn (this pseudocode
+assumes that none of these channels are differential)
+1. call getData to start sampling on channel C1</p>
+<p>2. on the ith dataReady event switch to channel Ci+1 by changing
+*newChannel</p>
+<p>3. the data passed to the ith dataReady event is for channel Ci-1
+(the data from the first dataReady event is ignored)</p>
+</li>
+</ol>
+</blockquote>
+</li>
+</ol>
+</blockquote>
+</div>
+<div class="section" id="hardware-adaptation-sublayer2-hal2">
+<h2><a name="hardware-adaptation-sublayer2-hal2">Hardware Adaptation SubLayer2 (HAL2)</a></h2>
+<blockquote>
+<ol class="loweralpha">
+<li><p class="first">Presentation: Chip independent, platform dependent</p>
+<blockquote>
+<p>The common denominator of all ADCs is that they sample an input
+channel and produce conversion results. An abstraction of the
+ADC that satisfies both, is a parameterized AcquireData
+interface, where the parameter defines the ADC channel (i.e. port)
+to be sampled. An HAL2 MUST provide the following
+interfaces.:</p>
+<pre class="literal-block">
+configuration ADCC {
+  provides {
+    interface Init;
+    interface StdControl;
+    interface Resource[uint8_t client];
+    interface AcquireData[uint8_t port];
+    interface AcquireDataNow[uint8_t port];
+    interface AcquireDataBuffered[uint8_t port]; } }
+  }
+} implementation { 
+  // chip dependent
+}
+</pre>
+<p>The name of a HAL2 configuration is chip specific (it can be, but
+doesn't have to be &quot;ADCC&quot;). In the AcquireData, AcquireDataNow and
+AcquireDataBuffered the respective <em>dataReady</em> events return
+uninterpreted 16-bit values. An HAL2 module will perform a mapping of
+the chip specific HAL1 interfaces to the above shown standard TinyOS
+interfaces. Note that, although the provided interfaces are standard
+TinyOS interfaces, the fact that they are parameterized by a port
+identifier makes the HAL2 representation platform dependent.  Platform
+independent applications SHOULD NOT wire to HAL2.</p>
+</blockquote>
+</li>
+<li><p class="first">Implementation: Chip dependent</p>
+<blockquote>
+<p>The HAL2 representation allows access to an ADC on a port
+basis.  For ADCs that require more detailed configuration
+information than the port number an additional mechanism is
+required for the HAL2 implementation to determine what the
+actual chip-specific settings for a given ADC port are. What
+these settings are can only be determined on a platform or
+sensorboard level and not within the ADC hardware stack itself.
+The mapping of a channel number to its settings must be
+well-defined for all relevant ADCs.</p>
+<ol class="lowerroman simple">
+<li>MSP430</li>
+</ol>
+<p>Each platform or sensorboard that allows access to the
+ADC12 via ADCC MUST provide a module
+&quot;MSP430ADC12ChannelConfigM.nc&quot;, because in its implementation
+ADCC wires to MSP430ADC12ChannelConfigM:</p>
+<pre class="literal-block">
+/* HAL2 component for ADC12 of MSP430 */
+configuration ADCC { 
+  provides {
+    interface Init;
+    interface StdControl;
+    interface Resource[uint8_t client];
+    interface AcquireData[uint8_t port];
+    interface AcquireDataNow[uint8_t port];
+    interface AcquireDataBuffered[uint8_t port];
+  }
+}
+implementation {
+  components ADCM, MSP430ADC12ChannelConfigM, MSP430ADC12C,
+           new MSP430ADC12Client() as HAL1;
+
+  Init = MSP430ADC12C;
+  StdControl = ADCM.StdControlNull;
+  Resource = ADCM;
+  AcquireData = ADCM;
+  AcquireDataNow = ADCM;
+  AcquireDataBuffered = ADCM;
+
+  ADCM.ResourceHAL1 -&gt; HAL1.Resource;
+  ADCM.SingleChannel -&gt; HAL1.MSP430ADC12SingleChannel;
+  MSP430ADC12ChannelConfigM.MSP430ADC12ChannelConfig -&gt; ADCM.ChannelConfig;
+}
+</pre>
+<p>The MSP430ADC12ChannelConfigM module SHOULD be placed in the
+according platform or sensorboard directory and it MUST
+implement the interface &quot;MSP430ADC12ChannelConfig&quot;.:</p>
+<pre class="literal-block">
+interface MSP430ADC12ChannelConfig {
+  async event msp430adc12_channel_config_t getConfigurationData(uint8_t channel);
+}
+</pre>
+<p>ADCM will signal the <em>getConfigurationData()</em> event for channels
+0-7 and MSP430ADC12ChannelConfigM MUST return the corresponding
+configuration data for the platform or sensorboard.</p>
+<p>ii. Like the MSP430, the ATmega128 uses a configuration interface
+to acquire the per-channel settings. This interface is parameterised
+by channel number:</p>
+<pre class="literal-block">
+configuration ADCC {
+  provides {
+    interface Init;
+    interface StdControl;
+    interface Resource[uint8_t client];
+    interface AcquireData[uint8_t port];
+    interface AcquireDataNow[uint8_t port];
+    interface AcquireDataBuffered[uint8_t port];
+  }
+  uses interface ATm128ADCConfig[uint8_t port];
+}
+
+interface ATm128ADCConfig {
+  /**
+   * Return the reference voltage to use for this channel
+   */
+  async command uint8_t getRefVoltage();
+
+  /**
+   * Return the prescaler value to use for this channel
+   */
+  async command uint8_t getPrescaler();
+}
+</pre>
+<p>If the ATm128ADCConfig interface is not wired for a particular port,
+the default values of ATM128_ADC_VREF_OFF (use external AREF pin)
+and ATM128_ADC_PRESCALE are used. If the ATmega128 HAL1 indicates
+that the conversion may be imprecise, the conversion will be
+repeated automatically.</p>
+</blockquote>
+</li>
+</ol>
+</blockquote>
+</div>
+</div>
+<div class="section" id="services">
+<h1><a name="services">Services</a></h1>
+<p>As the ADC hardware will usually be multiplexed between several client
+applications, access to it needs to be arbitrated. Arbitration of the
+HAL2 is performed by channel arbiter components, e.g.
+ADCChannelArbiterC or ADCNowChannelArbiterC, located in
+tinyos-2.x/tos/lib/adc. These arbiters SHOULD NOT be wired to
+directly. Instead generic wrapper components, e.g. ADCChannelC or
+ADCNowChannelC, SHOULD be used. This guarantees correct wiring between
+arbiters and HAL2. The generic wrapper components will be instantiated
+by sensor wrapper components, i.e. per platform. Platform independent
+applications SHOULD NOT instantiate these themselves.</p>
+</div>
+<div class="section" id="hardware-interface-layer-hil">
+<h1><a name="hardware-interface-layer-hil">Hardware Interface Layer (HIL)</a></h1>
+<p>The ADC hardware stack itself does not include an HIL for reasons
+mentioned in the <a class="reference" href="#introduction">Introduction</a>. Instead named sensor wrappers
+provide platform independent access to the ADC which is covered in TEP
+109 <a class="citation-reference" href="#tep109" id="id4" name="id4">[tep109]</a>.</p>
+</div>
+<div class="section" id="implementation">
+<h1><a name="implementation">Implementation</a></h1>
+<p>See the tinyos-2.x/tos/ tree.  Interfaces are in interfaces/
+and HPL, HAL1 and HAL2 components in chips/ , e.g.
+chips/msp430/adc12. Arbitration service components are in
+lib/adc. An example for MSP430ADC12ChannelConfigM is in
+tos/platforms/eyesIFX.  A test application can be found in
+tinyos-2.x/apps/TestADC.</p>
+</div>
+<div class="section" id="author-s-address">
+<h1><a name="author-s-address">4. Author's Address</a></h1>
+<div class="line-block">
+<div class="line">Jan Hauer / Vlado Handziski</div>
+<div class="line">Sekr FT5</div>
+<div class="line">Einsteinufer 25</div>
+<div class="line">10587 Berlin</div>
+<div class="line">GERMANY</div>
+<div class="line"><br /></div>
+<div class="line">email - <a class="reference" href="mailto:hauer&#64;tkn.tu-berlin.de">hauer&#64;tkn.tu-berlin.de</a>, <a class="reference" href="mailto:handzisk&#64;tkn.tu-berlin.de">handzisk&#64;tkn.tu-berlin.de</a></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line">Philip Levis</div>
+<div class="line">467 Soda Hall</div>
+<div class="line">UC Berkeley</div>
+<div class="line">Berkeley, CA 94720</div>
+<div class="line"><br /></div>
+<div class="line">phone - +1 510 290 5283</div>
+<div class="line"><br /></div>
+<div class="line">email - <a class="reference" href="mailto:pal&#64;cs.berkeley.edu">pal&#64;cs.berkeley.edu</a></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line">David Gay</div>
+<div class="line">2150 Shattuck Ave, Suite 1300</div>
+<div class="line">Intel Research</div>
+<div class="line">Berkeley, CA 94704</div>
+<div class="line"><br /></div>
+<div class="line">phone - +1 510 495 3055</div>
+<div class="line"><br /></div>
+<div class="line">email - <a class="reference" href="mailto:david.e.gay&#64;intel.com">david.e.gay&#64;intel.com</a></div>
+</div>
+</div>
+<div class="section" id="citations">
+<h1><a name="citations">5. Citations</a></h1>
+<table class="docutils citation" frame="void" id="sipattern" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3" name="sipattern">[sipattern]</a></td><td>The Service Instance Pattern. In <em>Software Design Patterns for TinyOS.</em> David Gay, Philip Levis, and David Culler. Published in Proceedings of the ACM SIGPLAN/SIGBED 2005 Conference on Languages, Compilers, and Tools for Embedded Systems (LCTES'05).</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="tep109" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep109">[tep109]</a></td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>, <a class="fn-backref" href="#id4">3</a>)</em> TEP 109: Sensorboards. David Gay, Wei Hong, Philip Levis, and Joe Polastre.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>

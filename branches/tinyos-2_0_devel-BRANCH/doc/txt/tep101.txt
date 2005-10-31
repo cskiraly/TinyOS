@@ -1,0 +1,731 @@
+===================================
+Analog-to-Digital Converters (ADCs)
+===================================
+
+:TEP: 101
+:Group: Core Working Group 
+:Type: Documentary
+:Status: Draft
+:TinyOS-Version: 2.x
+:Authors: Jan-Hinrich Hauer, Philip Levis, Vlado Handziski, David Gay
+
+:Draft-Created: 20-Dec-2004
+:Draft-Version: $Revision: 1.1.2.1 $
+:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
+
+.. Note::
+
+   This memo documents a part of TinyOS for the TinyOS Community, and
+   requests discussion and suggestions for improvements.  Distribution
+   of this memo is unlimited. This memo is in full compliance with
+   TEP 1.
+
+
+Abstract
+====================================================================
+
+This TEP proposes a hardware abstraction for TinyOS 2.x
+analog-to-digital converters (ADCs). It focuses on aligning the ADC
+abstraction with the three-layer Hardware Abstraction Architecture
+(HAA) described in TEP 2. This TEP only addresses the HPL and HAL of
+an ADC. TEP 109 (Sensorboards) presents an example HIL that can sit on
+top of the ADC.
+
+Introduction
+====================================================================
+
+Analog-to-digital converters (ADCs) are devices that convert analog
+input signals to discrete digital output signals, typically voltage to
+a digital number. In earlier versions of TinyOS, the distinction
+between a sensor and an ADC were blurred: this led components that had
+nothing to do with an ADC to still resemble one programatically, even
+though the semantics and forms of operation were completely different.
+To compensate for the difference non-ADC sensors introduced additional
+interfaces, such as ADCError, that were tightly bound to sensor
+acquisition but separate in wiring. The separation between the ADC and
+ADCError interface is bug prone and problematic, as is the equation of
+a sensor and an ADC. TinyOS 2.x separates the structure and interfaces
+of an ADC from those of sensors (which may be on top of an ADC, but
+this is hidden from higher level components). This TEP presents how
+TinyOS 2.x decomposes and structures ADC software. TEP 109
+(Sensorboards) presents how a platform can present actual named
+sensors [tep109]_.
+
+TinyOS platforms are based on many different hardware chips, whose
+ADCs differ in many respects (see `Hardware differences between the
+current platforms`_).  This makes it difficult to find a chip
+independent representation for ADCs. Even if there were such a
+representation, the configuration details of an ADC still depend on
+the actual device (sensor) producing the input signal. Neither a
+platform independent application nor the ADC hardware stack itself has
+access to this information, which can only be determined on a platform
+or sensorboard level. For example, determining which ADC port a
+certain sensor is attached to and how a conversion result needs to be
+interpreted is a platform specific determination. Thus ADCs themselves
+are not well suited to a platform independent (HIL) representation.
+
+Although ADCs are very platform specific, there are commonalities
+across platforms. For example, many ADCs only allow a single sample at
+a time. As many components may be sampling different sensors that
+share an ADC, the ADC system needs to provide some form of resource
+arbitration, and being able to use a library of common arbitration
+components is desirable. Therefore, following a common structure to
+interface to the HIL can greatly simplify sensor deployment and
+development.
+
+In order to facilitate sensor development and allow them to
+incorporate certain services (e.g. access to the ADC on a round robin
+basis), the ADC hardware stack includes as its top layer a second,
+chip independent (but still platform dependent) HAL.  The following
+section gives an overview of the involved components.  Afterwards each
+layer is discussed in detail.
+
+Overview
+====================================================================
+
+The ADC hardware abstraction ends with a platform dependent HAL. But
+it is designed with regard to the sensor abstraction in TEP 109, which
+covers the definition and implementation of HIL sensor components.
+This overview shows how they match up by describing the integrated
+component graph in a top-down fashion. 
+
+The highest layer of abstraction, the HIL, is composed of named sensor
+components that provide interfaces only for acquiring the
+corresponding data [tep109]_.
+
+Many sensors sit on top of a shared hardware ADC, however. As the ADC
+hardware is a shared resource that is multiplexed between several
+clients, it requires access arbitration.  The Service layer provides
+this level of ADC abstraction. The Service layer uses a library of
+standard TinyOS resource management modules, such as
+AcquireDataRoundRobinM (found in tos/system), to arbitrate access to
+underlying ADC abstractions. These generic arbitration modules use
+parameterized intefaces, where the parameterization follows the
+Service Instance pattern to represent arbitration
+clients [sipattern]_.
+
+The highest level of actual ADC abstraction -- HAL2, which sensors
+interact with -- is composed of three parameterized interfaces:
+AcquireData, AcquireDataNow, and Resource.  An ADC hardware stack that
+supports arbitration of its input channels therefore MUST incorporate
+a layer providing these interfaces for standard arbiter components to
+use. The parameter to these parameterized interfaces defines the
+sensor or, more precisely, the ADC input channel. An input channel is
+the most natural representation on this level of abstraction, because
+a common denominator of all ADCs is that they sample an input channel
+and produce conversion results.
+
+Although HAL2 is common across many ADCs, it is *not* a HIL
+representation, because choosing an input channel is a platform or
+sensorboard specific decision (as a platform independent application
+would not know which channel to choose).  Instead, this layer is a
+platform dependent HAL interface. The implementation HAL2 is chip
+dependent and platform independent, and instantiation is performed on
+a platform level (for an example, see below).
+
+There is also need for an HAL in the 'traditional' sense of the
+Hardware Abstraction Architecture (HAA): a HAL that offers access to
+all the chip specific capabilities via a chip specific interface. This
+HAL is called HAL1. HAL1 resembles a standard HAL in the HAA; the HPL
+lies below it.
+
+An example for a component stack of a platform independent application
+wiring to a sensor wrapper on the 'eyes' platform (using the TI MSP430
+MCU) is shown in the following figure.::
+
+
+                   +-------------+
+                   |  Platform   |
+  APPLICATION:     | independent | location: e.g. tinyos-2.x/apps/TestADC
+                   | Application |
+                   +-------------+
+                          ^
+                          | 
+                     AcquireData
+                          | 
+                   +----------------+ 
+                   |  DemoSensorRRC | 
+    HIL:           | (instantiating | location: tinyos-2.x/tos/platforms/eyes
+                   |  ADCChannelC)  | 
+                   +----------------+ 
+                          ^
+                          |           
+                      AcquireData[]               
+                          | 
+                   +----------------------------+ 
+                   |    ADCChannelArbiterC      | 
+  Service:         |     (instantiating         | location: tinyos-2.x/tos/lib/adc
+                   | AcquireDataNowRoundRobinM) | 
+                   +----------------------------+ 
+                           ^
+                           |
+                       AcquireData[]
+                           |
+                   +---------------------+ 
+                   |       ADCC          | 
+    HAL2:          | (MSP430 specific    | location: tinyos-2.x/tos/chips/msp430
+                   |  implementation)    | 
+                   +---------------------+ 
+                            ^
+                            |
+                   MSP430ADC12SingleChannel  
+                            |
+                   +-----------------------+
+                   |    MSP430ADC12C       |
+    HAL1:          | (accessed via generic | location: tinyos-2.x/tos/chips/msp430
+                   |  MSP430ADC12Client)   |
+                   +-----------------------+
+                            ^
+                            |
+                      MSP430ADC12HPL
+                            |
+                   +---------------------+
+                   |   MSP430ADC12HPLC   |
+    HPL:           | (MSP430 specific    | location: tinyos-2.x/tos/chips/msp430
+                   |  implementation and |
+                   |  representation)    |
+                   +---------------------+
+                                        
+                                        
+                         
+
+Hardware differences between the current platforms
+====================================================================
+
+The TI MSP430 and the Atmel ATmega 128 are two common microcontrollers
+used in TinyOS platforms. They both have integrated ADCs, but have
+very different functionality and capabilities. These distinctions
+illustrate the complexities that prevent ADCs from having a truly
+hardware independent abstraction. The following table compares the
+characteristics of the two microcontrollers:
+
++----------------------+----------------------+---------------------+
+|                      | Atmel Atmega 128     | TI MSP430 ADC12     |
++======================+======================+=====================+
+|Resolution            | 10-bit               | 12-bit              |
++----------------------+----------------------+---------------------+
+|channels              |- 8 multiplexed       |- 8 individually     |
+|                      |  external channels   |  configurable       |
+|                      |- 16 differential     |  external channels  |
+|                      |  voltage input       |- internal channels  |
+|                      |  combinations        |  (AVcc, temperature,|
+|                      |- 2 differential      |  reference voltages)|
+|                      |  inputs with gain    |                     |
+|                      |  amplification       |                     |
++----------------------+----------------------+---------------------+
+|internal reference    | 2.56V                | 1.5V or 2.5V        |
+|voltage               |                      |                     |
++----------------------+----------------------+---------------------+
+|conversion reference  |- positive terminal:  | individually        |
+|                      |  AVcc or 2.56V  or   | selectable per      |
+|                      |  AREF (external)     | channel:            |
+|                      |- negative terminal:  |                     |
+|                      |  GND                 |- AVcc and AVss      |
+|                      |                      |- Vref+ and AVss     |
+|                      |                      |- Veref+ and AVss    |
+|                      |                      |- AVcc and (Vref- or |
+|                      |                      |  Veref-)            |
+|                      |                      |- AVref+ and (Vref-  |
+|                      |                      |  or Veref-)         |
+|                      |                      |- Veref+ and (Vref-  |
+|                      |                      |  or Veref-)         |
++----------------------+----------------------+---------------------+
+|conversion modes      |- single channel      |- single conversion  |
+|                      |  conversion mode     |  mode               |
+|                      |- free running mode   |- repeat single      |
+|                      |  (channels and       |  conversion mode    |
+|                      |  reference voltages  |- sequence mode      |
+|                      |  can be switched     |  (sequence <= 16    |
+|                      |  between samples)    |  channels)          |
+|                      |                      |- repeat sequence    |
+|                      |                      |  mode               |
++----------------------+----------------------+---------------------+
+|conversion clock      |clkADC with prescaler |ACLK, MCLK, SMCLK or |
+|source                |                      |ADC-oscillator (5MHz)|
+|                      |                      |with prescaler       |
+|                      |                      |respectively         |
++----------------------+----------------------+---------------------+
+|sample-hold-time      |1.5 clock cycles      |selectable values    |
+|                      |(fixed)               |from 4 to 1024 clock |
+|                      |                      |cycles               |
++----------------------+----------------------+---------------------+
+|conversion triggering |by software           |by software or timers|
++----------------------+----------------------+---------------------+
+|conversion during     |yes                   |yes                  |
+|sleep mode possible   |                      |                     |
++----------------------+----------------------+---------------------+
+|interrupts            |after each conversion |after single or      |
+|                      |                      |sequence conversion  |
++----------------------+----------------------+---------------------+
+
+Hardware Presentation Layer (HPL)
+====================================================================
+
+  a. Implementation: Chip dependent
+  b. Presentation: Chip dependent
+  c. Stateless
+  d. General structure:
+
+     i.   provides StdControl interface if necessary for power management 
+     ii.  get/set commands for the registers that control the hardware 
+     iii. additional commands for frequently used operations
+     iv.  commands for enabling/disabling of interrupts    
+     v.   service routines for the ADC interrupt 
+
+Hardware Adaptation Layer (HAL)
+====================================================================
+
+As explained in the `Overview`_ the HAL consists of two sublayers.  To
+differentiate the two Hardware Adaptation 'sub'Layers they are called
+HAL2 (for the HAL providing a parameterized AcquireData and
+AcquireDataNow interface) and HAL1 (for the 'traditional' HAL). In the
+hardware stack for the ADC the HAL1 resides below HAL2, i.e. HAL2 uses
+the primitives of HAL1. Only chip dependent applications may wire to
+HAL1 or HAL2, i.e. platform independent applications MUST NOT wire to
+HAL1 or HAL2.
+  
+Hardware Adaptation SubLayer1 (HAL1)
+--------------------------------------------------------------------
+ 
+  a. Implementation: Chip dependent 
+  b. Presentation: Chip dependent
+  c. Async
+  d. ADC12 on MSP430 
+       
+       The core configuration of the HAL1 on MSP430 is
+       the MSP430ADC12C configuration.::
+    
+           configuration MSP430ADC12C  
+           {
+             provides interface Init;
+             provides interface Resource[uint8_t id];
+             provides interface MSP430ADC12SingleChannel as SingleChannel[uint8_t id];
+           }
+
+       MSP430ADC12C provides a parameterized MSP430ADC12SingleChannel
+       interface to access the ADC12 on a per-channel basis. However, an
+       application SHOULD NOT directly wire to the MSP430ADC12C, but to 
+       an instantiation of the following generic configuration.:: 
+                     
+         generic configuration MSP430ADC12Client()
+         {
+            provides interface Resource;
+            provides interface MSP430ADC12SingleChannel;
+         }
+
+       i. The Resource interface is specified in TEP 108. Before a
+       call to any command of the MSP430ADC12SingleChannel interface
+       can succeed, the ADC12 MUST be reserved via the Resource
+       interface.  After an application has performed all desired
+       operations on the ADC12, it then MUST release the ADC12 via the
+       Resource interface. In the meantime the ADC12 will be blocked
+       for all other applications, therefore an application SHOULD
+       minimize the reservation period. Every application MUST
+       conform to this policy. The HAL1 MAY check at runtime whether a
+       data request maps to the application that has reserved the ADC, but
+       a caller MUST NOT assume it does.
+       
+       ii. The MSP430ADC12SingleChannel interface includes four
+       *getData* commands, two events signalling data back and a
+       *getConfigurationData* event.:: 
+
+           interface MSP430ADC12SingleChannel 
+           {     
+             async event msp430adc12_channel_config_t getConfigurationData();
+             async command msp430adc12_result_t getSingleData();
+             async command msp430adc12_result_t getSingleDataRepeat(uint16_t jiffies);   
+             async command msp430adc12_result_t getMultipleData(uint16_t *buf, 
+                                          uint16_t length, uint16_t jiffies);
+             async command msp430adc12_result_t getMultipleDataRepeat(uint16_t *buf, 
+                                          uint8_t length, uint16_t jiffies);
+             async event result_t singleDataReady(uint16_t data);
+             async event uint16_t* multipleDataReady(uint16_t *buf, uint16_t length);
+           }
+       
+           typedef struct 
+           {
+             unsigned int inch: 4;            // input channel
+             unsigned int sref: 3;            // reference voltage
+             unsigned int ref2_5v: 1;         // reference voltage level
+             unsigned int adc12ssel: 2;       // clock source sample-hold-time
+             unsigned int adc12div: 3;        // clock divider sample-hold-time
+             unsigned int sht: 4;             // sample-hold-time
+             unsigned int sampcon_ssel: 2;    // clock source sampcon signal
+             unsigned int sampcon_id: 2;      // clock divider sampcon
+           } msp430adc12_channel_config_t;
+
+ 
+       An application needs to implement an event handler for
+       the MSP430ADC12SingleChannel.getConfigurationData() event. This
+       event handler MUST return the configuration data for the
+       channel the application wants to sample. The event will be
+       signalled by HAL1 each time a *getData* command is called to
+       request the respective channel configuration settings.  This
+       approach (in contrast to a command) has the advantage that HAL1
+       does not need to maintain a table of configuration data in RAM.
+       Instead configuration data is retrieved from the application at
+       runtime whenever needed.  The application SHOULD keep
+       configuration data in program memory (flash), not in RAM.
+       
+       The *getData* commands use the four different conversion modes
+       of the ADC12: A single channel converted once or repeatedly or
+       a sequence of channels converted once or repeatedly. The
+       sequence-of-channel mode is used to perform high-frequency
+       sampling of around 70kSPS (kilo samples per second) on a single
+       channel. The MSP430 ADC12 allows to define a sampling period
+       for subsequent conversions.  This is reflected by an additional
+       parameter *jiffies* in the relevant commands. A datatype
+       ``msp430adc12_result_t`` is used, which not only includes
+       MSP430ADC12_SUCCESS but also MSP430ADC12_QUEUED to queue 
+       commands. This is necessary to deal with a possible 17ms delay 
+       when starting the internal reference voltage generator.       
+       
+           
+       e. The ADC on ATmega128:
+       
+       The HAL for the ATmega128 offers two interfaces: ATm128ADCSingle is
+       for collecting single samples from a given channel, and
+       ATm128ADCMultiple is for collecting multiple samples from one or
+       more channels, using the ATmega128's A/D free-running mode. Rather
+       than using a configuration mechanism, the commands of these
+       interfaces have explicit parameters for setting all A/D conversion
+       parameters::
+       
+         configuration HALADCC
+         {
+           provides {
+             interface Init;
+             interface StdControl;
+             interface Resource[uint8_t client];
+             interface ATm128ADCSingle[uint8_t channel];
+             interface ATm128ADCMultiple;
+           }
+         }
+
+	 interface ATm128ADCSingle
+	 {
+	   /**
+	    * Initiates an ADC conversion on a given channel.
+	    *
+	    * @param refVoltage Select reference voltage for A/D conversion. See
+	    *   the ATM128_ADC_VREF_xxx constants in ATm128ADC.h
+	    * @param leftJustify TRUE to place A/D result in high-order bits 
+	    *   (i.e., shifted left by 6 bits), low to place it in the low-order bits
+	    * @param prescaler Prescaler value for the A/D conversion clock. Normally
+	    *  this should be ATM128_ADC_PRESCALE to guarantee full precision. Other
+	    *  prescalers can be used to get faster conversions. See the ATmega128
+	    *  manual for details.
+	    * @return TRUE if the conversion will be precise, FALSE if it will be 
+	    *   imprecise (due to a change in refernce voltage, or switching to a
+	    *   differential input channel)
+	    */
+	   async command bool getData(uint8_t refVoltage, bool leftJustify,
+				      uint8_t prescaler);
+
+	   /**
+	    * Indicates a sample has been recorded by the ADC as the result
+	    * of a <code>getData()</code> command.
+	    *
+	    * @param data a 2 byte unsigned data value sampled by the ADC.
+	    * @param precise if the conversion precise, FALSE if it wasn't. This
+	    *   values matches the result from the <code>getData</code> call.
+	    */	
+	   async event void dataReady(uint16_t data, bool precise);
+
+	   /**
+	    * Cancel an outstanding getData operation. Use with care, to
+	    * avoid problems with races between the dataReady event and cancel.
+	    * @return TRUE if a conversion was in-progress or an interrupt
+	    *   was pending. dataReady will not be signaled. FALSE if the
+	    *   conversion was already complete. dataReady will be (or has
+	    *   already been) signaled.
+	    */
+	   async command bool cancel();
+	 }
+       
+	 interface ATm128ADCMultiple
+	 {
+	   /**
+	    * Initiates free-running ADC conversions, with the ability to switch 
+	    * channels and reference-voltage with a one sample delay.
+	    *
+	    * @param channel Initial A/D conversion channel. The channel can 
+	    *   be changed in the dataReady event, though these changes happen
+	    *   with a one-sample delay (this is a hardware restriction).
+	    * @param refVoltage Initial A/D reference voltage. See the
+	    *   ATM128_ADC_VREF_xxx constants in ATm128ADC.h. Like the channel,
+	    *   the reference voltage can be changed in the dataReady event with
+	    *   a one-sample delay.
+	    * @param leftJustify TRUE to place A/D result in high-order bits 
+	    *   (i.e., shifted left by 6 bits), low to place it in the low-order bits
+	    * @param prescaler Prescaler value for the A/D conversion clock. Normally
+	    *  this should be ATM128_ADC_PRESCALE to guarantee full precision. Other
+	    *  prescalers can be used to get faster conversions. See the ATmega128
+	    *  manual for details.
+	    * @return TRUE if the conversion will be precise, FALSE if it will be 
+	    *   imprecise (due to a change in reference voltage, or switching to a
+	    *   differential input channel)
+	    */
+	   async command bool getData(uint8_t channel, uint8_t refVoltage,
+				      bool leftJustify, uint8_t prescaler);
+
+	   /**
+	    * Returns the next sample in a free-running conversion. Allow the user
+	    * to switch channels and/or reference voltages with a one sample delay.
+	    *
+	    * @param data a 2 byte unsigned data value sampled by the ADC.
+	    * @param precise if this conversion was precise, FALSE if it wasn't 
+	    *   (we assume that the second conversion after a change of reference
+	    *   voltage or after switching to a differential channel is precise)
+	    * @param channel Channel this sample was from.
+	    * @param newChannel Change this parameter to switch to a new channel
+	    *   for the second next sample.
+	    * @param newRefVoltage Change this parameter to change the reference 
+	    *   voltage for the second next sample.
+	    *
+	    * @return TRUE to continue sampling, FALSE to stop.
+	    */	
+	   async event bool dataReady(uint16_t data, bool precise, uint8_t channel,
+				      uint8_t *newChannel, uint8_t *newRefVoltage);
+	 }
+
+       The Resource interface is specified in TEP 108. Before any call is
+       made to the ATm128ADCSingle or ATm128ADCMultiple interfaces, the ADC
+       MUST be reserved via the Resource interface. After an application
+       has performed all desired operations on the ADC, it then MUST
+       release the ADC via the Resource interface.  In the meantime the ADC
+       will be blocked for all other applications, therefore an application
+       SHOULD minimize this reservation period. The ADC MUST NOT be released
+       or stopped while an A/D conversion is in progress. Each platform MUST
+       define an ATM128_ADC_PRESCALE constant which gives maximum A/D conversion
+       precision (see the ATmega128 manual for details).
+
+       The ATm128ADCSingle interface allows cancellation of outstanding
+       conversions; the ATm128ADCMultiple does not (because it is hard to
+       tell if there will be 0 or 1 more ADC samples after cancellation
+       when using the ATmega128 free-running A/D conversion mode).
+        
+       Because of the possibility that samples may be imprecise after 
+       switching channels and/or reference voltages, and because there
+       is a one sample delay on swithcing channels and reference voltages,
+       ATm128ADCMultiple is complex. Two straightforward uses are:
+
+       A) Acquire N samples from channel C:
+	  1. call getData to start sampling on channel C at the desired rate
+          (note that the choice of prescalers is very limited, so you
+	  don't have many choices for sampling rate)
+
+	  2. ignore the first dataReady event
+
+	  3. use the results of the next N dataReady() events, return FALSE
+          on the last one
+
+       B) Acquire one sample each from channels C1, ..., Cn (this pseudocode
+	  assumes that none of these channels are differential)
+	  1. call getData to start sampling on channel C1
+ 
+	  2. on the ith dataReady event switch to channel Ci+1 by changing
+          \*newChannel
+
+	  3. the data passed to the ith dataReady event is for channel Ci-1
+          (the data from the first dataReady event is ignored)
+
+Hardware Adaptation SubLayer2 (HAL2)
+--------------------------------------------------------------------
+
+  a. Presentation: Chip independent, platform dependent
+
+       The common denominator of all ADCs is that they sample an input
+       channel and produce conversion results. An abstraction of the
+       ADC that satisfies both, is a parameterized AcquireData
+       interface, where the parameter defines the ADC channel (i.e. port)
+       to be sampled. An HAL2 MUST provide the following
+       interfaces.::
+       
+         configuration ADCC {
+           provides {
+             interface Init;
+             interface StdControl;
+             interface Resource[uint8_t client];
+             interface AcquireData[uint8_t port];
+             interface AcquireDataNow[uint8_t port];
+             interface AcquireDataBuffered[uint8_t port]; } }
+           }
+         } implementation { 
+           // chip dependent
+         }
+       
+       The name of a HAL2 configuration is chip specific (it can be, but
+       doesn't have to be "ADCC"). In the AcquireData, AcquireDataNow and
+       AcquireDataBuffered the respective *dataReady* events return
+       uninterpreted 16-bit values. An HAL2 module will perform a mapping of
+       the chip specific HAL1 interfaces to the above shown standard TinyOS
+       interfaces. Note that, although the provided interfaces are standard
+       TinyOS interfaces, the fact that they are parameterized by a port
+       identifier makes the HAL2 representation platform dependent.  Platform
+       independent applications SHOULD NOT wire to HAL2.
+              
+  b. Implementation: Chip dependent 
+
+       The HAL2 representation allows access to an ADC on a port
+       basis.  For ADCs that require more detailed configuration
+       information than the port number an additional mechanism is
+       required for the HAL2 implementation to determine what the
+       actual chip-specific settings for a given ADC port are. What
+       these settings are can only be determined on a platform or
+       sensorboard level and not within the ADC hardware stack itself.
+       The mapping of a channel number to its settings must be
+       well-defined for all relevant ADCs.
+       
+       i. MSP430
+       
+       Each platform or sensorboard that allows access to the
+       ADC12 via ADCC MUST provide a module
+       "MSP430ADC12ChannelConfigM.nc", because in its implementation
+       ADCC wires to MSP430ADC12ChannelConfigM::
+
+         /* HAL2 component for ADC12 of MSP430 */
+         configuration ADCC { 
+           provides {
+             interface Init;
+             interface StdControl;
+             interface Resource[uint8_t client];
+             interface AcquireData[uint8_t port];
+             interface AcquireDataNow[uint8_t port];
+             interface AcquireDataBuffered[uint8_t port];
+           }
+         }
+         implementation {
+           components ADCM, MSP430ADC12ChannelConfigM, MSP430ADC12C,
+                    new MSP430ADC12Client() as HAL1;
+         
+           Init = MSP430ADC12C;
+           StdControl = ADCM.StdControlNull;
+           Resource = ADCM;
+           AcquireData = ADCM;
+           AcquireDataNow = ADCM;
+           AcquireDataBuffered = ADCM;
+       
+           ADCM.ResourceHAL1 -> HAL1.Resource;
+           ADCM.SingleChannel -> HAL1.MSP430ADC12SingleChannel;
+           MSP430ADC12ChannelConfigM.MSP430ADC12ChannelConfig -> ADCM.ChannelConfig;
+         }
+       
+       The MSP430ADC12ChannelConfigM module SHOULD be placed in the
+       according platform or sensorboard directory and it MUST
+       implement the interface "MSP430ADC12ChannelConfig".::
+       
+         interface MSP430ADC12ChannelConfig {
+           async event msp430adc12_channel_config_t getConfigurationData(uint8_t channel);
+         }
+       
+       ADCM will signal the *getConfigurationData()* event for channels
+       0-7 and MSP430ADC12ChannelConfigM MUST return the corresponding
+       configuration data for the platform or sensorboard.
+
+       ii. Like the MSP430, the ATmega128 uses a configuration interface
+       to acquire the per-channel settings. This interface is parameterised
+       by channel number::
+
+	 configuration ADCC {
+	   provides {
+	     interface Init;
+	     interface StdControl;
+	     interface Resource[uint8_t client];
+	     interface AcquireData[uint8_t port];
+	     interface AcquireDataNow[uint8_t port];
+             interface AcquireDataBuffered[uint8_t port];
+	   }
+	   uses interface ATm128ADCConfig[uint8_t port];
+	 }
+
+	 interface ATm128ADCConfig {
+	   /**
+	    * Return the reference voltage to use for this channel
+	    */
+	   async command uint8_t getRefVoltage();
+
+	   /**
+	    * Return the prescaler value to use for this channel
+	    */
+	   async command uint8_t getPrescaler();
+	 }
+
+       If the ATm128ADCConfig interface is not wired for a particular port,
+       the default values of ATM128_ADC_VREF_OFF (use external AREF pin)
+       and ATM128_ADC_PRESCALE are used. If the ATmega128 HAL1 indicates
+       that the conversion may be imprecise, the conversion will be
+       repeated automatically.
+
+Services 
+====================================================================
+
+As the ADC hardware will usually be multiplexed between several client
+applications, access to it needs to be arbitrated. Arbitration of the
+HAL2 is performed by channel arbiter components, e.g.
+ADCChannelArbiterC or ADCNowChannelArbiterC, located in
+tinyos-2.x/tos/lib/adc. These arbiters SHOULD NOT be wired to
+directly. Instead generic wrapper components, e.g. ADCChannelC or
+ADCNowChannelC, SHOULD be used. This guarantees correct wiring between
+arbiters and HAL2. The generic wrapper components will be instantiated
+by sensor wrapper components, i.e. per platform. Platform independent
+applications SHOULD NOT instantiate these themselves.
+
+        
+Hardware Interface Layer (HIL)
+====================================================================
+
+The ADC hardware stack itself does not include an HIL for reasons
+mentioned in the `Introduction`_. Instead named sensor wrappers
+provide platform independent access to the ADC which is covered in TEP
+109 [tep109]_.  
+
+Implementation
+====================================================================
+
+See the tinyos-2.x/tos/ tree.  Interfaces are in interfaces/
+and HPL, HAL1 and HAL2 components in chips/ , e.g.
+chips/msp430/adc12. Arbitration service components are in
+lib/adc. An example for MSP430ADC12ChannelConfigM is in
+tos/platforms/eyesIFX.  A test application can be found in
+tinyos-2.x/apps/TestADC. 
+ 
+4. Author's Address
+====================================================================
+
+| Jan Hauer / Vlado Handziski
+| Sekr FT5
+| Einsteinufer 25
+| 10587 Berlin
+| GERMANY
+|
+| email - hauer@tkn.tu-berlin.de, handzisk@tkn.tu-berlin.de
+|
+|
+| Philip Levis
+| 467 Soda Hall
+| UC Berkeley
+| Berkeley, CA 94720
+|
+| phone - +1 510 290 5283
+|
+| email - pal@cs.berkeley.edu
+|
+|
+| David Gay
+| 2150 Shattuck Ave, Suite 1300
+| Intel Research
+| Berkeley, CA 94704
+|
+| phone - +1 510 495 3055
+|
+| email - david.e.gay@intel.com
+
+
+5. Citations
+====================================================================
+
+.. [sipattern] The Service Instance Pattern. In *Software Design Patterns for TinyOS.* David Gay, Philip Levis, and David Culler. Published in Proceedings of the ACM SIGPLAN/SIGBED 2005 Conference on Languages, Compilers, and Tools for Embedded Systems (LCTES'05).
+
+.. [tep109] TEP 109: Sensorboards. David Gay, Wei Hong, Philip Levis, and Joe Polastre.
