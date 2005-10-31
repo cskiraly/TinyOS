@@ -1,4 +1,4 @@
-// $Id: TestSerialC.nc,v 1.1.2.5 2005-08-13 00:52:04 scipio Exp $
+// $Id: TestSerialC.nc,v 1.1.2.6 2005-10-31 19:53:52 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -39,15 +39,15 @@ includes Timer;
 
 configuration TestSerialC {}
 implementation {
-  components MainC, TestSerialM, SerialC, LedsC;
+  components MainC, TestSerialM, SerialActiveMessageC, LedsC;
 
   MainC.SoftwareInit -> LedsC;
-  MainC.SoftwareInit -> SerialC;
+  MainC.SoftwareInit -> SerialActiveMessageC;
 
   TestSerialM.Boot -> MainC.Boot;
 
-  TestSerialM.Receive -> SerialC.Receive[0];
-  TestSerialM.Send -> SerialC.AMSend[0];
+  TestSerialM.Receive -> SerialActiveMessageC.Receive[0];
+  TestSerialM.Send -> SerialActiveMessageC.AMSend[0];
 
   TestSerialM.Leds -> LedsC;
 }

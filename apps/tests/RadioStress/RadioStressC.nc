@@ -1,4 +1,4 @@
-// $Id: RadioStressC.nc,v 1.1.2.3 2005-10-11 21:44:34 cssharp Exp $
+// $Id: RadioStressC.nc,v 1.1.2.4 2005-10-31 19:53:52 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -64,11 +64,12 @@ implementation {
   uint32_t txCounter = 0;
   uint32_t ackCounter = 0;
   uint32_t rxCounter = 0;
-  uint16_t timerCounter = 0;
+  int16_t timerCounter = -1;
   uint16_t taskCounter = 0;
   uint16_t errorCounter = 0;
   
   event void Boot.booted() {
+    call Leds.led0On();
     call Service.start();
   }
 
@@ -78,7 +79,7 @@ implementation {
     RadioCountMsg* rcm = (RadioCountMsg*)call Packet.getPayload(&packet, NULL);
     if (locked) {return;}
     rcm->counter = txCounter;
-    if (call AMSend.send(AM_BROADCAST_ADDR, &packet, 3) == SUCCESS) {
+    if (call AMSend.send(AM_BROADCAST_ADDR, &packet, 2) == SUCCESS) {
       locked = TRUE;
     }
     else {
@@ -92,8 +93,9 @@ implementation {
   }
   
   event void ServiceNotify.started() {
+    call Leds.led1On();
     call Timer.startPeriodic(1000);
-    call Acks.enable();
+    //call Acks.enable();
   }
 
   event void ServiceNotify.stopped() {
@@ -129,6 +131,7 @@ implementation {
   }
 
   event void Timer.fired() {
+    call Leds.led2Toggle();
     timerCounter++;
     if (!locked) {
       sendPacket();

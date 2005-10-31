@@ -1,4 +1,4 @@
-//$Id: SerialActiveMessageP.nc,v 1.1.2.6 2005-10-31 18:16:15 gtolle Exp $
+//$Id: SerialActiveMessageP.nc,v 1.1.2.7 2005-10-31 19:53:52 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -92,11 +92,6 @@ implementation {
     return TOSH_DATA_LENGTH;
   }
   
-  command void Packet.setPayloadLength(message_t* msg, uint8_t length) {
-    SerialAMHeader* header = getHeader(msg);    
-    header->length = length;
-  }
-
   command void* Packet.getPayload(message_t* msg, uint8_t* len) {
     if (len != NULL) { 
       *len = call Packet.payloadLength(msg);
@@ -111,11 +106,6 @@ implementation {
   command am_addr_t AMPacket.destination(message_t* amsg) {
     SerialAMHeader* header = getHeader(amsg);
     return header->addr;
-  }
-
-  command void AMPacket.setDestination(am_addr_t dest, message_t* amsg) {
-    SerialAMHeader* header = getHeader(amsg);
-    header->addr = dest;
   }
 
   command bool AMPacket.isForMe(message_t* amsg) {

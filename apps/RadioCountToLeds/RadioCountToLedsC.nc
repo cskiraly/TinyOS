@@ -1,4 +1,4 @@
-// $Id: RadioCountToLedsC.nc,v 1.1.2.2 2005-10-11 21:44:34 cssharp Exp $
+// $Id: RadioCountToLedsC.nc,v 1.1.2.3 2005-10-31 19:53:52 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -67,6 +67,7 @@ implementation {
   
   event void MilliTimer.fired() {
     counter++;
+    call Leds.led0Toggle();
     if (locked) {
       return;
     }

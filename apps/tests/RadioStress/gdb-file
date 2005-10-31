@@ -10,6 +10,14 @@ define printAckPercent
   print (double)RadioStressC$ackCounter / (double)RadioStressC$txCounter
   end
 
+define printErrorRate
+  print (double)RadioStressC$errorCounter / (double)RadioStressC$txCounter
+  end
+
+define printErrorPps
+  print RadioStressC$error / RadioStressC$timerCounter 
+  end
+
 define printRxPps 
   print RadioStressC$rxCounter / RadioStressC$timerCounter
   end
