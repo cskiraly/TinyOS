@@ -1,4 +1,4 @@
-// $Id: Packet.nc,v 1.1.2.5 2005-10-29 17:42:32 jwhui Exp $
+// $Id: Packet.nc,v 1.1.2.6 2005-10-31 19:32:12 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -49,8 +49,6 @@ interface Packet {
     */
 
   command void clear(message_t* msg);
-
-  command void setPayloadLength(message_t* msg, uint8_t length);
 
   /**
     * Return the length of the payload of msg. This value may be less

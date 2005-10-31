@@ -27,7 +27,7 @@
  * @author Jonathan Hui
  * @author Philip Levis
  * @author Joe Polastre
- * @date   August 31 2005
+ * @date   October 10 2005
  */
 interface PacketAcknowledgements {
 

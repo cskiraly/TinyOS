@@ -1,5 +1,6 @@
-// $Id: SPIPacket.nc,v 1.1.2.2 2005-09-14 01:07:04 scipio Exp $
-/*
+// $Id: SPIPacket.nc,v 1.1.2.3 2005-10-31 19:32:12 scipio Exp $
+
+/*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
  *
@@ -21,45 +22,53 @@
  */
 
 /**
- * SPI Packet/buffer interface for sending data over an SPI bus.
- * This interface provides a synchronous send command where an equal
- * transmit and receive buffer are provided to services using the SPI
- * bus.  A single byte may be transmitted or received over the bus using
- * this interface.  This interface is only for buffer based
- * transfers where the microcontroller is the master (clocking) device.
+ * SPI Packet/buffer interface for sending data over an SPI bus.  This
+ * interface provides a split-phase send command which can be used for
+ * sending, receiving or both. It is a "send" command because reading
+ * from the SPI requires writing bytes. The send call allows NULL
+ * parameters for receive or send only operations. This interface is
+ * for buffer based transfers where the microcontroller is the master
+ * (clocking) device.
  *
- * The SPI bus must first be acquired using BusArbitration in order for
- * commands to be accepted by the SPIPacket interface.
+ * Often, an SPI bus must first be acquired using a Resource interface
+ * before sending commands with SPIPacket. In the case of multiple
+ * devices attached to a single SPI bus, chip select pins are often also
+ * used.
  *
+ * @author Philip Levis
+ * @author Jonathan Hui
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  */
 interface SPIPacket {
 
   /**
    * Send a message over the SPI bus.
    *
-   * @param txbuffer A pointer to the buffer to send over the bus
-   * @param rxbuffer A pointer to the buffer where received data should
-   *                 be stored
-   * @param length Length of the message.  Note that both the rxbuffer and
-   *               txbuffer must be AT LEAST as long as the length provided
-   *               in this command.
+   * @param txBuf A pointer to the buffer to send over the bus. If this
+   *              parameter is NULL, then the SPI will send zeroes.
+   * @param rxBuf A pointer to the buffer where received data should
+   *              be stored. If this parameter is NULL, then the SPI will
+   *              discard incoming bytes.
+   * @param len   Length of the message.  Note that non-NULL rxBuf and txBuf
+   *              parameters must be AT LEAST as large as len, or the SPI
+   *              will overflow a buffer.
    *
    * @return SUCCESS if the request was accepted for transfer
    */
-  async command error_t send(uint8_t* txbuffer, uint8_t* rxbuffer, uint8_t length);
+  async command error_t send( uint8_t* txBuf, uint8_t* rxBuf, uint8_t len );
   
   /**
    * Notification that the send command has completed.
    *
-   * @param txbuffer The buffer used for transmission
-   * @param rxbuffer The buffer used for reception
-   * @param length The request length of the transfer, but not necessarily
+   * @param txBuf The buffer used for transmission
+   * @param rxBuf The buffer used for reception
+   * @param len    The request length of the transfer, but not necessarily
    *               the number of bytes that were actually transferred
-   * @param success SUCCESS if the operation completed successfully, FAIL 
-   *                otherwise
+   * @param error  SUCCESS if the operation completed successfully, FAIL 
+   *               otherwise
    */
-  async event void sendDone(uint8_t* txbuffer, uint8_t* rxbuffer, uint8_t length, error_t success);
+  async event void sendDone( uint8_t* txBuf, uint8_t* rxBuf, uint8_t len, 
+			     error_t error );
 
 }

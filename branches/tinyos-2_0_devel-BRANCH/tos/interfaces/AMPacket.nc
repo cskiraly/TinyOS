@@ -1,4 +1,4 @@
-// $Id: AMPacket.nc,v 1.1.2.5 2005-10-29 17:42:04 jwhui Exp $
+// $Id: AMPacket.nc,v 1.1.2.6 2005-10-31 19:32:12 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -56,8 +56,6 @@ interface AMPacket {
    */
   
   command am_addr_t destination(message_t* amsg);
-
-  command void setDestination(am_addr_t dest, message_t* amsg);
 
   /**
    * Return whether <tt>amsg</tt> is destined for this mote. This is
