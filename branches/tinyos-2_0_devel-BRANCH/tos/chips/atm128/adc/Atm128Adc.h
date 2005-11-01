@@ -1,4 +1,4 @@
-/// $Id: Atm128Adc.h,v 1.1.2.2 2005-10-31 18:24:25 scipio Exp $
+/// $Id: Atm128Adc.h,v 1.1.2.3 2005-11-01 01:08:18 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -147,6 +147,8 @@ typedef struct
 typedef uint8_t Atm128_ADCH_t;         //!< ADC data register high
 typedef uint8_t Atm128_ADCL_t;         //!< ADC data register low
 
+// The resource identifier string for the ADC subsystem
+#define ADC_RESOURCE "ADC.resource"
 
 #endif //_H_Atm128ADC_h
 
