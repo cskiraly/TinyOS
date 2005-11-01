@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2005-06-04 00:03:57 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2005-11-01 01:27:58 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -333,9 +333,11 @@ implementation
   
   void configureAdcPin( uint8_t inch )
   {
-    if( inch <= 7 ){
-      P6SEL |= (1 << inch); //adc function (instead of general IO)
-      P6DIR &= ~(1 << inch); //input (instead of output)
+    atomic {
+      if( inch <= 7 ){
+	P6SEL |= (1 << inch); //adc function (instead of general IO)
+	P6DIR &= ~(1 << inch); //input (instead of output)
+      }
     }
   }
 
