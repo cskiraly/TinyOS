@@ -1,4 +1,4 @@
-/* $Id: AdcC.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/* $Id: AdcC.nc,v 1.1.2.2 2005-11-01 01:23:10 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -13,6 +13,9 @@
  *
  * @author David Gay
  */
+
+includes Atm128Adc;
+
 configuration AdcC {
   provides {
     interface Init;

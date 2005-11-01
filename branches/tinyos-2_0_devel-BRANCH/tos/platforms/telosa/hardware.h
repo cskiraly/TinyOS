@@ -3,10 +3,6 @@
 
 
 #include "msp430hardware.h"
-#include "MSP430ADC12.h"
-
-#include "CC2420Const.h"
-#include "AM.h"
 
 // LEDs
 TOSH_ASSIGN_PIN(RED_LED, 5, 4);
