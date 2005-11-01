@@ -1,4 +1,4 @@
-/// $Id: Atm128AdcC.nc,v 1.1.2.3 2005-10-31 19:34:02 scipio Exp $
+/// $Id: Atm128AdcC.nc,v 1.1.2.4 2005-11-01 01:23:10 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -34,7 +34,7 @@
  * @author David Gay
  */
 
-#include "Atm128Adc.h"
+includes Atm128Adc;
 
 configuration Atm128AdcC
 {
