@@ -5,12 +5,13 @@ cd ../..
 rm -rf $NAME-$VERSION
 tools/release/extractor $NAME-$VERSION <<'EOF' | gzip >../$NAME-$VERSION.tar.gz
 !^./apps/(BlinkAlarm|BlinkMSP430|Powerup|Test*)
-!^./apps/tests/(eyesIFX|TestScheduler|TestSchedulerTemp)
-!^./chips/(pxa27x|tda5250)
+!^./apps/tests/(eyesIFX|TestScheduler|TestSleep)
+!^./apps/tests/mica2/(ADC|I2C|Radio|Timer)
+!^./chips/(ad5200|ad45db|pxa27x|stm25p|tda5250)
 !^./overall-todo.txt
 !^./tools
 !^./tos/oski
-!^./tos/lib/(deluge|tossim)
+!^./tos/lib/(byteradio|deluge|tossim)
 !^./tos/platforms/(eyesIFX|intelmote2)
 !^./support/make/(imote2*|eyes*|pxa27x)
 !/.cvsignore
