@@ -1,10 +1,18 @@
 NAME=tinyos
-VERSION=2.0.0pre1
+VERSION=2.0.0pre2
 
 cd ../..
 rm -rf $NAME-$VERSION
 tools/release/extractor $NAME-$VERSION <<'EOF' | gzip >../$NAME-$VERSION.tar.gz
+!^./apps/(BlinkAlarm|BlinkMSP430|Powerup|Test*)
+!^./apps/tests/(eyesIFX|TestScheduler|TestSchedulerTemp)
+!^./chips/(pxa27x|tda5250)
+!^./overall-todo.txt
 !^./tools
+!^./tos/oski
+!^./tos/lib/(deluge|tossim)
+!^./tos/platforms/(eyesIFX|intelmote2)
+!^./support/make/(imote2*|eyes*|pxa27x)
 !/.cvsignore
 !/CVS/
 !/CVS$
