@@ -1,0 +1,9 @@
+bin_SCRIPTS = motelist
+
+if CYGWIN
+motelist: motelist-win32.cpp
+	g++ -O3 -Wall -o motelist motelist-win32.cpp
+else
+motelist: motelist-linux
+	cp motelist-linux motelist
+endif
