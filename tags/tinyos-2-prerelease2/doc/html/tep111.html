@@ -1,0 +1,676 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<title>message_t</title>
+<meta name="author" content="Philip Levis" />
+<style type="text/css">
+
+/*
+:Author: David Goodger
+:Contact: goodger@users.sourceforge.net
+:date: $Date: 2005-10-31 22:16:36 $
+:version: $Revision: 1.1.2.1 $
+:copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+*/
+body {
+  font-family: Times;
+  font-size: 16px;
+}
+
+.first {
+  margin-top: 0 ! important }
+
+.last {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (& remove this text!) to get bold-faced definition list terms
+dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.attention, div.caution, div.danger, div.error, div.hint,
+div.important, div.note, div.tip, div.warning, div.admonition {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.hint p.admonition-title, div.important p.admonition-title,
+div.note p.admonition-title, div.tip p.admonition-title,
+div.admonition p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em }
+
+div.footer, div.header {
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin-left: 1em ;
+  border: medium outset ;
+  padding: 0em 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1 {
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+}
+
+h1.title {
+ text-align: center;
+ font-size: 32px;
+}
+
+h2 {
+ font-size: 16px;
+ font-family: Arial, sans-serif;
+}
+
+h2.subtitle {
+  text-align: center }
+
+h3 {
+ font-size: 12px;
+ font-family: Arial, sans-serif;
+}
+
+hr {
+  width: 75% }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font-family: serif ;
+  font-size: 100% }
+
+pre.line-block {
+  font-family: serif ;
+  font-size: 100% }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em ;
+  background-color: #eeeeee }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.option-argument {
+  font-style: italic }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+table {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.citation {
+  border-left: solid thin gray ;
+  padding-left: 0.5ex }
+
+table.docinfo {
+  margin: 2em 4em;
+}
+
+table.footnote {
+  border-left: solid thin black ;
+  padding-left: 0.5ex }
+
+td, th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+th.docinfo-name, th.field-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap;
+  }
+
+h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
+  font-size: 100% }
+
+tt {
+  background-color: #eeeeee }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="message-t">
+<h1 class="title">message_t</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr class="field"><th class="docinfo-name">TEP:</th><td class="field-body">111</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Group:</th><td class="field-body">Core Working Group</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Type:</th><td class="field-body">Documentary</td>
+</tr>
+<tr><th class="docinfo-name">Status:</th>
+<td>Draft</td></tr>
+<tr class="field"><th class="docinfo-name">TinyOS-Version:</th><td class="field-body">2.x</td>
+</tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Philip Levis</td></tr>
+<tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">11-Jul-2005</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.2</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2005-10-26</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
+</tr>
+</tbody>
+</table>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">This memo documents a part of TinyOS for the TinyOS Community, and
+requests discussion and suggestions for improvements.  Distribution
+of this memo is unlimited. This memo is in full compliance with
+TEP 1.</p>
+</div>
+<div class="section" id="abstract">
+<h1><a name="abstract">Abstract</a></h1>
+<p>This memo covers the TinyOS 2.x message buffer abstraction, <tt class="docutils literal"><span class="pre">message_t</span></tt>.
+It describes the message buffer design considerations, how and where 
+<tt class="docutils literal"><span class="pre">message_t</span></tt> is specified, and how data link layers should access it.</p>
+</div>
+<div class="section" id="introduction">
+<h1><a name="introduction">1. Introduction</a></h1>
+<p>In TinyOS 1.x, a message buffer is a TOS_Msg. A buffer contains an
+active message (AM) packet as well as packet metadata, such as timestamps,
+acknowledgement bits, and signal strength if the packet was received.
+TOS_Msg is a fixed size structure whose size is defined by the maximum
+AM payload length (the default is 29 bytes). Fixed sized buffers allows
+TinyOS 1.x to have zero-copy semantics: when a component receives a
+buffer, rather than copy out the contents it can return a pointer
+to a new buffer for the underlying layer to use for the next received 
+packet.</p>
+<p>One issue that arises is what defines the TOS_Msg structure, as different
+link layers may require different layouts. For example, 802.15.4 radio 
+hardware (such as the CC2420, used in the Telos and micaZ platforms) 
+may require 802.15.4 headers, while a software stack built on top of
+byte radios (such as the CC1000, used in the mica2 platform) can specify 
+its own packet format. This means that TOS_Msg may be different on
+different platforms.</p>
+<p>The solution to this problem in TinyOS 1.x is for there to be a standard
+definition of TOS_Msg, which a platform (e.g., the micaZ) can
+redefine to match its radio. For example, a mica2 mote uses the standard 
+definition, which is</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">struct</span> <span class="pre">TOS_Msg</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">The</span> <span class="pre">following</span> <span class="pre">fields</span> <span class="pre">are</span> <span class="pre">transmitted/received</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">radio.</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">addr;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">type;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">group;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">length;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">int8_t</span> <span class="pre">data[TOSH_DATA_LENGTH];</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">crc;</span></tt></div>
+<div class="line"><br /></div>
+<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">The</span> <span class="pre">following</span> <span class="pre">fields</span> <span class="pre">are</span> <span class="pre">not</span> <span class="pre">actually</span> <span class="pre">transmitted</span> <span class="pre">or</span> <span class="pre">received</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">radio!</span> <span class="pre">They</span> <span class="pre">are</span> <span class="pre">used</span> <span class="pre">for</span> <span class="pre">internal</span> <span class="pre">accounting</span> <span class="pre">only.</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">The</span> <span class="pre">reason</span> <span class="pre">they</span> <span class="pre">are</span> <span class="pre">in</span> <span class="pre">this</span> <span class="pre">structure</span> <span class="pre">is</span> <span class="pre">that</span> <span class="pre">the</span> <span class="pre">AM</span> <span class="pre">interface</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">requires</span> <span class="pre">them</span> <span class="pre">to</span> <span class="pre">be</span> <span class="pre">part</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">TOS_Msg</span> <span class="pre">that</span> <span class="pre">is</span> <span class="pre">passed</span> <span class="pre">to</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">send/receive</span> <span class="pre">operations.</span></tt></div>
+<div class="line"><br /></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">strength;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">ack;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">time;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">sendSecurityMode;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">receiveSecurityMode;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">TOS_Msg;</span></tt></div>
+</div>
+<p>while on a mote with a CC420 radio (e.g., micaZ), TOS_Msg is defined as:</p>
+<div class="line-block">
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">struct</span> <span class="pre">TOS_Msg</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">The</span> <span class="pre">following</span> <span class="pre">fields</span> <span class="pre">are</span> <span class="pre">transmitted/received</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">radio.</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">length;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">fcfhi;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">fcflo;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">dsn;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">destpan;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">addr;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">type;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">group;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">int8_t</span> <span class="pre">data[TOSH_DATA_LENGTH];</span></tt></div>
+<div class="line"><br /></div>
+<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">The</span> <span class="pre">following</span> <span class="pre">fields</span> <span class="pre">are</span> <span class="pre">not</span> <span class="pre">actually</span> <span class="pre">transmitted</span> <span class="pre">or</span> <span class="pre">received</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">radio!</span> <span class="pre">They</span> <span class="pre">are</span> <span class="pre">used</span> <span class="pre">for</span> <span class="pre">internal</span> <span class="pre">accounting</span> <span class="pre">only.</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">The</span> <span class="pre">reason</span> <span class="pre">they</span> <span class="pre">are</span> <span class="pre">in</span> <span class="pre">this</span> <span class="pre">structure</span> <span class="pre">is</span> <span class="pre">that</span> <span class="pre">the</span> <span class="pre">AM</span> <span class="pre">interface</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">requires</span> <span class="pre">them</span> <span class="pre">to</span> <span class="pre">be</span> <span class="pre">part</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">TOS_Msg</span> <span class="pre">that</span> <span class="pre">is</span> <span class="pre">passed</span> <span class="pre">to</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">send/receive</span> <span class="pre">operations.</span></tt></div>
+<div class="line"><br /></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">strength;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">lqi;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">bool</span> <span class="pre">crc;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">ack;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">time;</span></tt></div>
+</div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">TOS_Msg;</span></tt></div>
+</div>
+<p>There are two basic problems with this approach. First, exposing all of
+the link layer fields leads components to directly access the packet
+structure. This introduces dependencies between higher level components
+and the structure layout. For example, many network services built on
+top of data link layers care whether sent packets are acknowledged. They
+therefore check the <tt class="docutils literal"><span class="pre">ack</span></tt> field of TOS_Msg. If a link layer does not 
+provide acknowledgements, it must still include the <tt class="docutils literal"><span class="pre">ack</span></tt> field
+and always set it to 0, wasting a byte of RAM per buffer.</p>
+<p>Second, this model does not easily support multiple data link layers.
+Radio chip implementations assume that the fields they require are 
+defined in the structure and directly access them. If a platform
+has two different link layers (e.g., a CC1000 <em>and</em> a CC2420 radio),
+then a TOS_Msg needs to allocate the right amount of space for both
+of their headers while allowing implementations to directly access
+header fields. This is very difficult to do in C.</p>
+<p>The <tt class="docutils literal"><span class="pre">data</span></tt> payload is especially problematic. Many
+components refer to this field, so it must be at a fixed offset.
+Depending on the underlying link layer, the header fields 
+preceding it might have different lengths, and packet-level radios
+often require packets to be contiguous memory regions. Overall, these 
+complexities make specifying the format of TOS_Msg very difficult.</p>
+</div>
+<div class="section" id="id1">
+<h1><a name="id1">2. message_t</a></h1>
+<p>In TinyOS 2.x, the standard message buffer is <tt class="docutils literal"><span class="pre">message_t</span></tt>. The
+message_t structure is defined in <tt class="docutils literal"><span class="pre">tos/types/TOSMsg.h</span></tt>:</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">nx_struct</span> <span class="pre">message_t</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">TOSRadioHeader</span> <span class="pre">header;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">nx_uint8_t</span> <span class="pre">data[TOSH_DATA_LENGTH];</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">TOSRadioFooter</span> <span class="pre">footer;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">TOSRadioMetadata</span> <span class="pre">metadata;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">message_t;</span></tt></div>
+</div>
+<p>This format keeps data at a fixed offset, which is important when
+passing a message buffer between two different link layers. If
+the data payload is at different offsets for different link layers,
+then passing a packet between two link layers requires a <tt class="docutils literal"><span class="pre">memmove(3)</span></tt>
+operation (essentially, a copy).</p>
+<p>The header, footer, and metadata fields are all opaque. Higher
+level components access their fields through interfaces. Section
+3 discusses this in greater depth.</p>
+<p>Every link layer defines its header, footer, and metadata
+structures. For example, the CC1000 radio implementation defines its
+structures in <tt class="docutils literal"><span class="pre">CC1000Msg.h</span></tt>:</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">nx_struct</span> <span class="pre">CC1KHeader</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">nx_am_addr_t</span> <span class="pre">addr;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">nx_uint8_t</span> <span class="pre">length;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">nx_am_group_t</span> <span class="pre">group;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">nx_am_id_t</span> <span class="pre">type;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">CC1KHeader;</span></tt></div>
+<div class="line"><br /></div>
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">nx_struct</span> <span class="pre">CC1KFooter</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">nxle_uint16_t</span> <span class="pre">crc;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">CC1KFooter;</span></tt></div>
+<div class="line"><br /></div>
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">nx_struct</span> <span class="pre">CC1KMetadata</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">nx_uint16_t</span> <span class="pre">strength;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">nx_uint8_t</span> <span class="pre">ack;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">nx_uint16_t</span> <span class="pre">time;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">nx_uint8_t</span> <span class="pre">sendSecurityMode;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">nx_uint8_t</span> <span class="pre">receiveSecurityMode;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">CC1KMetadata;</span></tt></div>
+</div>
+<p>Each link layer defines its structres, but a <strong>platform</strong> is responsible 
+for defining <tt class="docutils literal"><span class="pre">TOSRadioHeader</span></tt>, <tt class="docutils literal"><span class="pre">TOSRadioFooter</span></tt>, and <tt class="docutils literal"><span class="pre">TOSRadioMetadata</span></tt>. 
+This is because a platform may have multiple link layers, and so only
+it can resolve which structures are needed. These definitions MUST be
+in a file in a platform directory named <tt class="docutils literal"><span class="pre">RadioTOSMsg.h</span></tt>.
+The mica2 platform is a simple example, as it has only a CC1000 radio.
+Its RadioTOSMsg.h looks like this:</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">CC1KHeader</span> <span class="pre">TOSRadioHeader;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">CC1KFooter</span> <span class="pre">TOSRadioFooter;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">CC1KMetadata</span> <span class="pre">TOSRadioMetadata;</span></tt></div>
+</div>
+<p>For a more complex example, consider a fictional platform named 'megamica' 
+that has both a CC1000 and a CC2420 radio. Its RadioTOSMsg.h looks like this:</p>
+<div class="line-block">
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">union</span> <span class="pre">MegaMicaHeader</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">CC1KHeader</span> <span class="pre">cc1k;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">CC2420Header</span> <span class="pre">cc2420;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">MegaMicaHeader;</span></tt></div>
+<div class="line"><br /></div>
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">union</span> <span class="pre">MegaMicaFooter</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">CC1KFooter</span> <span class="pre">cc1k;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">CC2420Footer</span> <span class="pre">cc2420;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">MegaMicaFooter;</span></tt></div>
+<div class="line"><br /></div>
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">union</span> <span class="pre">MegaMicaMetadata</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">CC1KMetadata</span> <span class="pre">cc1k;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">CC2420Metadata</span> <span class="pre">cc2420;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">MegaMicaMetadata;</span></tt></div>
+<div class="line"><br /></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">MegaMicaHeader</span> <span class="pre">TOSRadioHeader;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">MegaMicaFooter</span> <span class="pre">TOSRadioFooter;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">MegaMicaMetadata</span> <span class="pre">TOSRadioMetadata;</span></tt></div>
+</div>
+<p>If a platform has more than one link layer, it SHOULD define each of the
+message_t fields to be a union of the underlying link layer structures.
+This ensures that enough space is allocated for all underlying link layers.</p>
+</div>
+<div class="section" id="accessing-message-t-fields">
+<h1><a name="accessing-message-t-fields">3. Accessing message_t fields</a></h1>
+<p>A TinyOS component MUST NOT access any message_t fields directly besides
+its top-level structures:</p>
+<blockquote>
+o TOSRadioHeader
+o data
+o TOSRadioFooter
+o TOSRadioMetadata</blockquote>
+<p>That is, a TinyOS component MUST NOT access any sub-fields of these
+structures. Components above the link layer MUST access packet fields
+through a nesC interface. For example, active messages have an interface
+named <tt class="docutils literal"><span class="pre">AMPacket</span></tt> which provides access commands to AM fields. In
+TinyOS 1.x, a component would directly access <tt class="docutils literal"><span class="pre">TOS_Msg.addr</span></tt>;
+in TinyOS 2.x, a component calls <tt class="docutils literal"><span class="pre">AMPacket.getAddress(msg)</span></tt>.</p>
+<div class="section" id="tosradioheader">
+<h2><a name="tosradioheader">3.1 TOSRadioHeader</a></h2>
+<p>Link layer components MAY handle packet fields differently than other 
+components, as they are aware of the actual packet format. They can
+therefore implement the interfaces that provide access to the fields
+for other components.</p>
+<p>Link layer components MUST NOT directly access sub-fields
+of message_t. There are two reasons for this. First, whether 
+each type is their link type or a union of link types is unknown, 
+as it can change depending on the platform. 
+Each of these cases has different C syntax, and in the union case the
+name of the field is unknown.</p>
+<p>Second, although the structures ensure that enough space is allocated, 
+C's placement of the structures is not necessarily correct.
+Defining a message_t header as a union of the underlying link layer headers
+means that, in terms of C structures, a packet may not be contiguous. For
+example, consider this case:</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">struct</span> <span class="pre">HeaderA</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">a;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">struct</span> <span class="pre">HeaderB</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">b;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">union</span> <span class="pre">MyHeader</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">HeaderA</span> <span class="pre">A;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">HeaderB</span> <span class="pre">B;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">MyHeader</span> <span class="pre">TOSRadioHeader;</span></tt></div>
+</div>
+<p>Given nesC nx_struct layout, when TOSRadioHeader is specified as a union
+of HeaderA and HeaderB, there will be a padding byte after <tt class="docutils literal"><span class="pre">HeaderA.a</span></tt>.
+However, some radios require that packets passed to them are contiguous.</p>
+<p>The packet for a link layer does not necessarily start at the beginning
+of the message_t. Instead, is starts at a negative offset from the
+data field.  When a link layer component needs to read or write protocol 
+header fields, it MUST compute the location of the header as a negative 
+offset from the data field. The padding bytes that C introduces for
+the different sized headers are at the beginning of message_t, not
+between the header and payload. For example, let us suppose that HeaderA
+has an interface <tt class="docutils literal"><span class="pre">APacket</span></tt>, which provides a command <tt class="docutils literal"><span class="pre">a</span></tt> that 
+returns the field <tt class="docutils literal"><span class="pre">a</span></tt> of HeaderA. Its code looks like this:</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">command</span> <span class="pre">uint8_t</span> <span class="pre">APacket.a(message_t*</span> <span class="pre">msg)</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">HeaderA*</span> <span class="pre">hdr</span> <span class="pre">=</span> <span class="pre">(HeaderA*)(msg-&gt;data</span> <span class="pre">-</span> <span class="pre">sizeof(HeaderA));</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">return</span> <span class="pre">hdr-&gt;a;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+</div>
+<p>We can trust the C compiler to optimize the call into a static offset
+memory load.</p>
+<p>The following code is incorrect, as it directly casts the header field.
+It is an example of what components MUST NOT do:</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">command</span> <span class="pre">uint8_t</span> <span class="pre">APacket.a(message_t*</span> <span class="pre">msg)</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">HeaderA*</span> <span class="pre">hdr</span> <span class="pre">=</span> <span class="pre">(HeaderA*)(msg-&gt;header);</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">return</span> <span class="pre">hdr-&gt;a;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+</div>
+<p>The following example is also incorrect, as it directly accesses the
+header structure. It is an example of what components MUST NOT do.</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">command</span> <span class="pre">uint8_t</span> <span class="pre">APacket.a(message_t*</span> <span class="pre">msg)</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">return</span> <span class="pre">msg-&gt;header.A.a;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+</div>
+</div>
+<div class="section" id="tosradiofooter">
+<h2><a name="tosradiofooter">3.2 TOSRadioFooter</a></h2>
+<p>The TOSRadioFooter field ensures that message_t has enough space
+to store the footers for all underlying link layers when there
+are MTU-sized packets. Like headers, footers are not necessarily
+stored where the C structs indicate they are: instead, their
+placement is implementation dependent. For example, a link
+layer can store a full packet as a contiguous area of memory. In
+this case, a short packet will store the footer within the <tt class="docutils literal"><span class="pre">data</span></tt>
+field of the structure.</p>
+<p>The placement of the packet footer is implementation dependent.</p>
+<p>The footer starts at the start of the footer field, and metadata begins
+at the start of the metadata field. However, data link components MUST 
+NOT directly access these fields, as their structure is platform
+dependent. A component MUST cast these fields to link specific structures.</p>
+<p>Following these rules means that a packet is</p>
+<p>The basic issue driving these design considerations is that 
+the C naming layout of message_t fields is platform specific. As a
+data link implementation may be used on many platforms, an implementation
+cannot depend on a particular C naming. An implementation can depend on 
+there being enough space for its header and footer in message_t.</p>
+<p>Following this approach means that the packet header and data payload
+are contiguous in memory, which allows other communication abstractions
+(such as a UART) to easily encapsulate a packet.</p>
+</div>
+</div>
+<div class="section" id="author-s-address">
+<h1><a name="author-s-address">4. Author's Address</a></h1>
+<div class="line-block">
+<div class="line">Philip Levis</div>
+<div class="line">467 Soda Hall</div>
+<div class="line">UC Berkeley</div>
+<div class="line">Berkeley, CA 94720</div>
+<div class="line"><br /></div>
+<div class="line">phone - +1 510 290 5283</div>
+<div class="line"><br /></div>
+<div class="line">email - <a class="reference" href="mailto:pal&#64;cs.berkeley.edu">pal&#64;cs.berkeley.edu</a></div>
+</div>
+</div>
+<div class="section" id="citations">
+<h1><a name="citations">7. Citations</a></h1>
+<table class="docutils citation" frame="void" id="rst" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="rst">[rst]</a></td><td>reStructuredText Markup Specification. &lt;<a class="reference" href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html">http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html</a>&gt;</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="sipattern" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="sipattern">[sipattern]</a></td><td>The Service Instance Pattern. In <em>Software Design Patterns for TinyOS.</em> David Gay, Philip Levis, and David Culler. Published in Proceedings of the ACM SIGPLAN/SIGBED 2005 Conference on Languages, Compilers, and Tools for Embedded Systems (LCTES'05).</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="boot" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="boot">[boot]</a></td><td>TEP 107: TinyOS 2.x Boot Sequence.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+#-*-Makefile-*- vim:syntax=make
+#$Id: all.target,v 1.1.2.1.4.1 2005-11-02 20:32:12 kristinwright Exp $
+
+PLATFORMS ?= mica2 telosb micaz
+
+all: FORCE
+	for target in $(filter-out $(INVALID_PLATFORMS),$(PLATFORMS)); do cmd="make $$target"; echo ".... $$cmd"; $$cmd; done
+
