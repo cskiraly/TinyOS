@@ -82,14 +82,14 @@ interface HplPXA27xOSTimer
    * 
    * @param val The desired OMCR value.
    */
-  async command void setOCMR(uint32_t val);
+  async command void setOMCR(uint32_t val);
 
   /**
    * Get the current channel match control register (OMCRx) setting.
    * 
    * @return value The current OMCR value.
    */
-  async command uint32t_t getOCMR();
+  async command uint32_t getOMCR();
 
   /**
    * Returns the bit value of the OSSR register corresponding to the 
@@ -125,7 +125,7 @@ interface HplPXA27xOSTimer
    * Get the snapshot register (OSNR) value. 
    * Any parameterization of this function is ignored.
    */
-  async command void getOSNR();
+  async command uint32_t getOSNR();
 
   /**
    * Timer channel interrupt. Fired when the channel match register matches 

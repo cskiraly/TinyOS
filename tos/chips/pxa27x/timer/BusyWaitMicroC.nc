@@ -28,6 +28,10 @@
  * DAMAGE.
  */
 /**
+ * Implements the BusyWaitMicroC timer component. This component
+ * instantiates a new Counter with Microsecond precision and 
+ * binds it to the BusyWait interface via PXA27xBusyWaitP
+ * 
  * @author Phil Buonadonna
  */
 module BusyWaitMicroC
@@ -37,16 +41,18 @@ module BusyWaitMicroC
 
 implementation
 {
-  components new PXA27xBusyWaitP(TMicro);
-  components new HalPXA27xCounterM(TMicro,4) as PXA27xCounterMicro;
+  components new PXA27xBusyWaitP(TMicro) as PXA27xBusyWaitMicro;
+  components new HalPXA27xCounterM(TMicro,4) as PXA27xCounterMicro32;
   components HplPXA27xOSTimerC;
-#error Needs Init
-  BusyWaitMicro16 = PXA27xBusyWaitP.BusyWait;
+  components PlatformP;
 
-  PXA27xBusyWaitP.Counter -> PXA27xCounterMicro.Counter;
+  BusyWaitMicro16 = PXA27xBusyWaitMicro.BusyWait;
 
-  PXA27xCounterMicro.OSTInit -> HplPXA27xOSTimer.Init;
-  PXA27xCounterMicro.OSTChnl -> HPLPXA27xOSTimer.OST9;
+  // Wire the initialization to the platform init routine
+  PlatformP.SubInit -> PXA27xCounterMicro32.Init;
+  PXA27xBusyWaitP.Counter -> PXA27xCounterMicro32.Counter;
 
+  PXA27xCounterMicro32.OSTInit -> HplPXA27xOSTimer.Init;
+  PXA27xCounterMicro32.OSTChnl -> HplPXA27xOSTimerC.OST9;
 }
 

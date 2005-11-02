@@ -33,18 +33,18 @@
  */
 
 
-module HplPXA27xOSTimerM.nc {
+module HplPXA27xOSTimerM {
   provides {
     interface Init;
-    interface HplPXA27xOSTimerChnl as 27xOST[uint8_t chnl_id];
-    interface HplPXA27xOSTimerWD as 27xWD;
+    interface HplPXA27xOSTimer as PXA27xOST[uint8_t chnl_id];
+    interface HplPXA27xOSTimerWatchdog as PXA27xWD;
   }
   uses {
     interface HplPXA27xInterrupt as OST0Irq;
     interface HplPXA27xInterrupt as OST1Irq;
     interface HplPXA27xInterrupt as OST2Irq;
     interface HplPXA27xInterrupt as OST3Irq;
-    interface HplPXA27xInterrupt as OSTimerIrq;
+    interface HplPXA27xInterrupt as OST4_11Irq;
   }
 }
 
@@ -54,8 +54,8 @@ implementation {
 
   void DispatchOSTInterrupt(uint8_t id)
   {
-    signal 27xOST.fired[id]();
-    call 27xOST.clearStatus[id]();
+    signal PXA27xOST.fired[id]();
+    call PXA27xOST.clearStatus[id]();
     return;
   }
 
@@ -73,12 +73,12 @@ implementation {
       call OST1Irq.allocate();
       call OST2Irq.allocate();
       call OST3Irq.allocate();
-      call OSTIrq.allocate();
+      call OST4_11Irq.allocate();
     }
     return SUCCESS;
   }
   
-  async command void 27xOST.setOSCR[uint8_t chnl_id](uint32_t val) 
+  async command void PXA27xOST.setOSCR[uint8_t chnl_id](uint32_t val) 
   {
     uint8_t remap_id;
 
@@ -88,7 +88,7 @@ implementation {
     return;
   }
   
-  async command uint32_t 27xOST.getOSCR[uint8_t chnl_id]()
+  async command uint32_t PXA27xOST.getOSCR[uint8_t chnl_id]()
   {
     uint8_t remap_id;
     uint32_t val;
@@ -99,20 +99,20 @@ implementation {
     return val;
   }
   
-  async command void 27xOST.setOSMR[uint8_t chnl_id](uint32_t val)
+  async command void PXA27xOST.setOSMR[uint8_t chnl_id](uint32_t val)
   {
     OSMR(chnl_id) = val;
     return;
   }
 
-  async command uint32_t 27xOST.getOSMR[uint8_t chnl_id]()
+  async command uint32_t PXA27xOST.getOSMR[uint8_t chnl_id]()
   {
     uint32_t val;
     val = OSMR(chnl_id);
     return val;
   }
 
-  async command void 27xOST.setOMCR[uint8_t chnl_id](uint32_t val)
+  async command void PXA27xOST.setOMCR[uint8_t chnl_id](uint32_t val)
   {
     if (chnl_id > 3) {
       OMCR(chnl_id) = val;
@@ -120,7 +120,7 @@ implementation {
     return;
   }
 
-  async command uint32_t 27xOST.getOMCR[uint8_t chnl_id]()
+  async command uint32_t PXA27xOST.getOMCR[uint8_t chnl_id]()
   {
     uint32_t val = 0;
     if (chnl_id > 3) {
@@ -129,7 +129,7 @@ implementation {
     return val;
   }
 
-  async command bool 27xOST.getStatus[uint8_t chnl_id]() 
+  async command bool PXA27xOST.getStatus[uint8_t chnl_id]() 
   {
     bool bFlag = FALSE;
     
@@ -140,7 +140,7 @@ implementation {
     return bFlag;
   }
 
-  async command bool 27xOST.clearStatus[uint8_t chnl_id]()
+  async command bool PXA27xOST.clearStatus[uint8_t chnl_id]()
   {
     bool bFlag = FALSE;
 
@@ -154,7 +154,7 @@ implementation {
     return bFlag;
   }
 
-  async command void 27xOST.enableInterrupt[uint8_t chnl_id]()
+  async command void PXA27xOST.enableInterrupt[uint8_t chnl_id]()
   {
     // Opportunistic enable switch.  Enables underlying interrupt only when
     // required.
@@ -172,7 +172,7 @@ implementation {
       call OST3Irq.enable();
       break;
     default:
-      call OSTIrq.enable();
+      call OST4_11Irq.enable();
       break;
     }
 
@@ -180,21 +180,21 @@ implementation {
     return;
   }
   
-  async command void 27xOST.disableInterrupt[uint8_t chnl_id]()
+  async command void PXA27xOST.disableInterrupt[uint8_t chnl_id]()
   {
 
-    OIER &= ~(1 << chnld_id);
+    OIER &= ~(1 << chnl_id);
     return;
   }
 
-  async command uint32_t 27xOST.getOSNR[uint8_t chnl_id]() 
+  async command uint32_t PXA27xOST.getOSNR[uint8_t chnl_id]() 
   {
     uint32_t val;
     val = OSNR;
     return val;
   }
 
-  async command void 27xWD.enableWatchdog() 
+  async command void PXA27xWD.enableWatchdog() 
   {
     OWER = OWER_WME;
   }
@@ -204,30 +204,29 @@ implementation {
   // This should not have any impact on performance and simplifies
   // the software implementation.
 
-  async event OST0Irq.fired() 
+  async event void OST0Irq.fired() 
   {
     DispatchOSTInterrupt(0);
   }
   
-  async event OST1Irq.fired() 
+  async event void OST1Irq.fired() 
   {
     DispatchOSTInterrupt(1);
   }
   
-  async event OST2Irq.fired() 
+  async event void OST2Irq.fired() 
   {
     DispatchOSTInterrupt(2);
   }
 
-  async event OST3Irq.fired() 
+  async event void OST3Irq.fired() 
   {
     DispatchOSTInterrupt(3);
   }
 
-  async event OSTIrq.fired() 
+  async event void OST4_11Irq.fired() 
   {
     uint32_t statusReg;
-    uint32_t statusMask = OSSR_M4;
     uint8_t chnl;
 
     statusReg = OSSR;
@@ -242,12 +241,9 @@ implementation {
     return;
   }
 
-
-
-
-  default async event void 27xOST.fired[uint8_t chnl_id]() 
+  default async event void PXA27xOST.fired[uint8_t chnl_id]() 
   {
-    call 27xOST.clearStatus[chnl_id]();
+    call PXA27xOST.clearStatus[chnl_id]();
     return;
   }
 

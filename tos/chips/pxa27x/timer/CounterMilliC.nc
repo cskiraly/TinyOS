@@ -42,13 +42,15 @@ implementation
 {
   components new HalPXA27xCounterM(TMilli,2) as PXA27xCounterMilli32;
   components HplPXA27xOSTimerC;
+  components PlatformP;
 
-#error Need Init Interface!
   CounterMilli32 = PXA27xCounterMilli.Counter;
   LocalTimeMilli = PXA27xCounterMilli.LocalTime;
 
+  // Wire the initialization to the plaform init routine
+  PlatformP.SubInit -> PXA27xCounterMilli32.Init;
+
   PXA27xCounterMilli.OSTInit -> HPLPXA27xOSTimerC.Init;
   PXA27xCounterMilli.OSTChnl -> HPLPXA27xOSTimerC.OST7;
-
 }
 

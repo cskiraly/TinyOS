@@ -28,6 +28,9 @@
  * DAMAGE.
  */
 /** 
+ * This private component provides a 16-bit BusyWait given a 32-bit
+ * Counter.
+ *
  * @author Phil Buonadonna
  *
  */
