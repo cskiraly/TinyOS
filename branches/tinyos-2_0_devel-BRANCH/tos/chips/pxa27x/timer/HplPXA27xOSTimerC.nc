@@ -36,45 +36,45 @@ configuration HplPXA27xOSTimerC {
 
   provides {
     interface Init;
-    interface HplPXA27xOSTimerChnl as OST0;
-    interface HplPXA27xOSTimerChnl as OST0M1;
-    interface HplPXA27xOSTimerChnl as OST0M2;
-    interface HplPXA27xOSTimerChnl as OST0M3;
-    interface HplPXA27xOSTimerChnl as OST4;
-    interface HplPXA27xOSTimerChnl as OST5;
-    interface HplPXA27xOSTimerChnl as OST6;
-    interface HplPXA27xOSTimerChnl as OST7;
-    interface HplPXA27xOSTimerChnl as OST8;
-    interface HplPXA27xOSTimerChnl as OST9;
-    interface HplPXA27xOSTimerChnl as OST10;
-    interface HplPXA27xOSTimerChnl as OST11;
-    interface HplPXA27xOSTimerWD as OSTWDCntl;
+    interface HplPXA27xOSTimer as OST0;
+    interface HplPXA27xOSTimer as OST0M1;
+    interface HplPXA27xOSTimer as OST0M2;
+    interface HplPXA27xOSTimer as OST0M3;
+    interface HplPXA27xOSTimer as OST4;
+    interface HplPXA27xOSTimer as OST5;
+    interface HplPXA27xOSTimer as OST6;
+    interface HplPXA27xOSTimer as OST7;
+    interface HplPXA27xOSTimer as OST8;
+    interface HplPXA27xOSTimer as OST9;
+    interface HplPXA27xOSTimer as OST10;
+    interface HplPXA27xOSTimer as OST11;
+    interface HplPXA27xOSTimerWatchdog as OSTWDCntl;
   }
 
 }
 
 implementation {
-  components HplPXA27xOSTimerM, HPlPXA27xInterruptM;
+  components HplPXA27xOSTimerM, HplPXA27xInterruptM;
 
   Init = HplPXA27xOSTimerM;
 
-  OST0 = HplPXA27xOSTimerM.27xOST[0];
-  OST0M1 = HplPXA27xOSTimerM.27xOST[1];
-  OST0M2 = HplPXA27xOSTimerM.27xOST[2];
-  OST0M3 = HplPXA27xOSTimerM.27xOST[3];
-  OST4 = HplPXA27xOSTimerM.27xOST[4];
-  OST5 = HplPXA27xOSTimerM.27xOST[5];
-  OST6 = HplPXA27xOSTimerM.27xOST[6];
-  OST7 = HplPXA27xOSTimerM.27xOST[7];
-  OST8 = HplPXA27xOSTimerM.27xOST[8];
-  OST9 = HplPXA27xOSTimerM.27xOST[9];
-  OST10 = HplPXA27xOSTimerM.27xOST[10];
-  OST11 = HplPXA27xOSTimerM.27xOST[11];
-  OSTWDCntl = HplPXA27xOSTimerWD.27xWD;
+  OST0 = HplPXA27xOSTimerM.PXA27xOST[0];
+  OST0M1 = HplPXA27xOSTimerM.PXA27xOST[1];
+  OST0M2 = HplPXA27xOSTimerM.PXA27xOST[2];
+  OST0M3 = HplPXA27xOSTimerM.PXA27xOST[3];
+  OST4 = HplPXA27xOSTimerM.PXA27xOST[4];
+  OST5 = HplPXA27xOSTimerM.PXA27xOST[5];
+  OST6 = HplPXA27xOSTimerM.PXA27xOST[6];
+  OST7 = HplPXA27xOSTimerM.PXA27xOST[7];
+  OST8 = HplPXA27xOSTimerM.PXA27xOST[8];
+  OST9 = HplPXA27xOSTimerM.PXA27xOST[9];
+  OST10 = HplPXA27xOSTimerM.PXA27xOST[10];
+  OST11 = HplPXA27xOSTimerM.PXA27xOST[11];
+  OSTWDCntl = HplPXA27xOSTimerM.PXA27xWD;
   
   HplPXA27xOSTimerM.OST0Irq -> HplPXA27xInterruptM.PXA27xIrq[PPID_OST_0];
   HplPXA27xOSTimerM.OST1Irq -> HplPXA27xInterruptM.PXA27xIrq[PPID_OST_1];
   HplPXA27xOSTimerM.OST2Irq -> HplPXA27xInterruptM.PXA27xIrq[PPID_OST_2];
-  HplPXA27xOSTimerM.OST3Irq -> HplPXA27xInterruptM.PXA27xIrq[PPID_OST_4];
-  HplPXA27xOSTimerM.OSTIrq -> HplPXA27xInterruptM.PXA27xIrq[PPID_OST_4_11];
+  HplPXA27xOSTimerM.OST3Irq -> HplPXA27xInterruptM.PXA27xIrq[PPID_OST_3];
+  HplPXA27xOSTimerM.OST4_11Irq -> HplPXA27xInterruptM.PXA27xIrq[PPID_OST_4_11];
 }

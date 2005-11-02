@@ -45,8 +45,7 @@ implementation
   components new HalPXA27xAlarmM(TMilli,2) as PXA27xAlarmMilli32;
   components HplPXA27xOSTimerC;
 
-  Init = VirtTimersMilli32;
-  Init = HplPXA27xOSTimerC;
+  Init = PXA27xAlarmMilli32;
 
   TimerMilli = VirtTimersMilli32.Timer;
 

@@ -63,7 +63,7 @@ implementation
     atomic {
       gfRunning = FALSE;
       //OMCR(channel) = (OMCR_C | OMCR_P | OMCR_CRES(resolution));
-      call OSTChnl.setOMCR = (OMCR_C | OMCR_P | OMCR_CRES(resolution));
+      call OSTChnl.setOMCR(OMCR_C | OMCR_P | OMCR_CRES(resolution));
       //OSCR(channel) = 0;  // Start the counter
       call OSTChnl.setOSCR(0);
     }
@@ -77,7 +77,7 @@ implementation
     tf = (call OSTChnl.getOSCR()) + dt;
     atomic {
       call OSTChnl.disableInterrupt();
-      call OSTChnl.setOSMR(t1);
+      call OSTChnl.setOSMR(tf);
       call OSTChnl.enableInterrupt();
       gfRunning = TRUE;
     }
@@ -88,7 +88,7 @@ implementation
     atomic {
       // OIER &= ~(1 << channel);
       call OSTChnl.disableInterrupt();
-      gfRunning = FALSE
+      gfRunning = FALSE;
     }
     return;
   }
@@ -105,7 +105,7 @@ implementation
     tf = t0 + dt;
     atomic {
       call OSTChnl.disableInterrupt();
-      OSTChnl.setOSMR(tf);
+      call OSTChnl.setOSMR(tf);
       call OSTChnl.enableInterrupt();
       gfRunning = TRUE;
     }
@@ -121,7 +121,7 @@ implementation
     return call OSTChnl.getOSMR(); //OSMR(channel);
   }
 
-  async event void OSTIrq.fired() {
+  async event void OSTChnl.fired() {
     if (call OSTChnl.getStatus()) {
       atomic {
 	call OSTChnl.disableInterrupt();

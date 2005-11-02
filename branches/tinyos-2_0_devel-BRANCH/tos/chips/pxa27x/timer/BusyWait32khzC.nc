@@ -28,6 +28,9 @@
  * DAMAGE.
  */
 /**
+ * This configuration piggybacks off of the TOS 2.0 Counter32khzC component.
+ * This component manages initialization of the underlying Timer components.
+ *
  * @author Phil Buonadonna
  */
 configuration BusyWait32khzC
@@ -37,11 +40,10 @@ configuration BusyWait32khzC
 
 implementation 
 {
-  components new PXA27xBusyWaitP(T32khz);
+  components new PXA27xBusyWaitP(T32khz)as PXA27xBusyWait32khz;
   components Counter32khzC;
-
-  BusyWait32khz16 = PXA27xBusyWaitP.BusyWait;
+  
+  BusyWait32khz16 = PXA27xBusyWait32khz.BusyWait;
   
   PXA27xBusyWaitP.Counter -> Counter32khzC.Counter32khz32;
-  
 }

@@ -42,12 +42,14 @@ implementation
 {
   components new HalPXA27xCounterM(T32khz,1) as PXA27xCounter32khz32;
   components HplPXA27xOSTimerC;
+  components PlatformP;
 
-#error Need Init Interface!
   Counter32khz32 = PXA27xCounter32khz.Counter;
   LocalTime32khz = PXA27xCounter32khz.LocalTime;
 
+  // Wire the initialization to the platform init routine
+  PlatformP.SubInit -> PXA27xCounter32khz32.Init;
+
   PXA27xCounter32khz.OSTInit -> HPLPXA27xOSTimerC.Init;
   PXA27xCounter32khz.OSTChnl -> HPLPXA27xOSTimerC.OST6;
-
 }
