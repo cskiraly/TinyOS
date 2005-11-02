@@ -36,7 +36,7 @@
  * @author Phil Buonadonna
  */
 
-interface HplPXA27xOSTimerWD
+interface HplPXA27xOSTimerWatchdog
 {
   /** 
    * Enable the timer-based watchdog reset feature.
