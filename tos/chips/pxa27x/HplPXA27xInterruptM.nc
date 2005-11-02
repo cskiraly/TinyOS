@@ -1,4 +1,4 @@
-// $Id: HplPXA27xInterruptM.nc,v 1.1.2.1 2005-10-27 22:52:25 philipb Exp $ 
+// $Id: HplPXA27xInterruptM.nc,v 1.1.2.2 2005-11-02 01:22:11 philipb Exp $ 
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -45,11 +45,11 @@
  * Revised: 09/02/2005
  */
 
-module HplPXA27XInterruptM
+module HplPXA27xInterruptM
 {
   provides {
-    interface HplPXA27XInterrupt as PXA27XIrq[uint8_t id];
-    interface HplPXA27XInterrupt as PXA27XFiq[uint8_t id];
+    interface HplPXA27xInterrupt as PXA27xIrq[uint8_t id];
+    interface HplPXA27xInterrupt as PXA27xFiq[uint8_t id];
   }
 }
 
@@ -67,7 +67,7 @@ implementation {
 
     while (IRQPending & (1 << 15)) {
       uint8_t PeripheralID = (IRQPending & 0x3f); // Get rid of the Valid bit
-      signal PXA27XIrq.fired[PeripheralID]();     // Handler is responsible for clearing interrupt
+      signal PXA27xIrq.fired[PeripheralID]();     // Handler is responsible for clearing interrupt
       IRQPending = ICHP;  // Determine which interrupt to service
       IRQPending >>= 16;  // Right justify to the IRQ portion
     }
@@ -84,7 +84,7 @@ implementation {
 
     while (FIQPending & (1 << 15)) {
       uint8_t PeripheralID = (FIQPending & 0x3f); // Get rid of the Valid bit
-      signal PXA27XFiq.fired[PeripheralID]();	  // Handler is responsible for clearing interrupt
+      signal PXA27xFiq.fired[PeripheralID]();	  // Handler is responsible for clearing interrupt
       FIQPending = ICHP;
       FIQPending &= 0xFF;
     }
@@ -97,10 +97,10 @@ implementation {
   /* Helper functions */
   /* NOTE: Read-back of all register writes is necessary to ensure the data latches */
 
-  result_t allocate(uint8_t id, bool level, uint8_t priority)
+  error_t allocate(uint8_t id, bool level, uint8_t priority)
   {
     uint32_t tmp;
-    result_t result = FAIL;
+    error_t error = FAIL;
 
     atomic{
       uint8_t i;
@@ -159,10 +159,10 @@ implementation {
 	  tmp = _ICLR(id);
 	} 
 	
-	result = SUCCESS;
+	error = SUCCESS;
       }
     }
-    return result;
+    return error;
   }
   
   void enable(uint8_t id)
@@ -191,46 +191,46 @@ implementation {
 
   /* Interface implementation */
 
-  async command result_t PXA27XIrq.allocate[uint8_t id]()
+  async command error_t PXA27xIrq.allocate[uint8_t id]()
   {
     return allocate(id, FALSE, TOSH_IRP_TABLE[id]);
   }
 
-  async command void PXA27XIrq.enable[uint8_t id]()
+  async command void PXA27xIrq.enable[uint8_t id]()
   {
     enable(id);
     return;
   }
 
-  async command void PXA27XIrq.disable[uint8_t id]()
+  async command void PXA27xIrq.disable[uint8_t id]()
   {
     disable(id);
     return;
   }
 
-  async command result_t PXA27XFiq.allocate[uint8_t id]() 
+  async command error_t PXA27xFiq.allocate[uint8_t id]() 
   {
     return allocate(id, TRUE, TOSH_IRP_TABLE[id]);
   }
 
-  async command void PXA27XFiq.enable[uint8_t id]()
+  async command void PXA27xFiq.enable[uint8_t id]()
   {
     enable(id);
     return;
   }
 
-  async command void PXA27XFiq.disable[uint8_t id]()
+  async command void PXA27xFiq.disable[uint8_t id]()
   {
     disable(id);
     return;
   }
 
-  default async event void PXA27XIrq.fired[uint8_t id]() 
+  default async event void PXA27xIrq.fired[uint8_t id]() 
   {
     return;
   }
 
-  default async event void PXA27XFiq.fired[uint8_t id]() 
+  default async event void PXA27xFiq.fired[uint8_t id]() 
   {
     return;
   }

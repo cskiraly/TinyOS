@@ -1,4 +1,4 @@
-// $Id: HplPXA27xInterrupt.nc,v 1.1.2.1 2005-10-27 22:52:25 philipb Exp $
+// $Id: HplPXA27xInterrupt.nc,v 1.1.2.2 2005-11-02 01:22:11 philipb Exp $
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
@@ -50,14 +50,14 @@
  * @author: Philip Buonadonna
  */
 
-interface HplPXA27XInterrupt
+interface HplPXA27xInterrupt
 {
   /** 
    * Allocates a given peripheral interrupt with the PXA27X interrupt manager.
    * Specifically, it establishes the interrupt level (IRQ or FIQ) and the 
    * priority. 
    */
-  async command result_t allocate();
+  async command error_t allocate();
 
   /**
    * Enables a periperhal interrupt.

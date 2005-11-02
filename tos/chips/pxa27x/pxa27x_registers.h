@@ -1,4 +1,4 @@
-// $Id: pxa27x_registers.h,v 1.1.2.2 2005-10-27 22:45:21 philipb Exp $ 
+// $Id: pxa27x_registers.h,v 1.1.2.3 2005-11-02 01:22:11 philipb Exp $ 
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -1045,7 +1045,7 @@
 // OS Timer Register Shortcuts
 #define OSCR(_ch) *(((_ch) == 0) ? (&OSCR0) : (&_PXAREG_OFFSET(&OSCR4,(((_ch) - 4) << 2)))) 
 #define OSMR(_ch) *(((_ch) < 4) ? (&_PXAREG_OFFSET(&OSMR0,((_ch) << 2))) \
-				: (&_PXAREG_OFFSET(&OSRM4,(((_ch) - 4) << 2)))) \
+				: (&_PXAREG_OFFSET(&OSMR4,(((_ch) - 4) << 2))))
 #define OMCR(_ch) _PXAREG_OFFSET(&OMCR4,(((_ch) - 4) << 2))
 
 #define OMCR_N		(1 << 9)	/* Channel 9 & 11 Snapshot Mode */
