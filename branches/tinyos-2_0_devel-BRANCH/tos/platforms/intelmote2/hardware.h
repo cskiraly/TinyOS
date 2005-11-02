@@ -98,8 +98,7 @@
 #define __TOSH_HARDWARE_H__
 
 #include "pxa27xhardware.h"
-#include "CC2420Const.h"
-#include "AM.h"
+//#include "AM.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 

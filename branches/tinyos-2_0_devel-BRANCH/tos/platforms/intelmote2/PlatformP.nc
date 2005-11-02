@@ -40,7 +40,25 @@ module PlatformP {
 implementation {
   command error_t Init.init() {
 
-    call SubInit.init();
+
+    CKEN = (CKEN22_MEMC | CKEN20_IMEM | CKEN15_PMI2C | CKEN9_OST);
+    OSCC = (OSCC_OON);
+    
+    while ((OSCC & OSCC_OOK) == 0);
+    
+    TOSH_SET_PIN_DIRECTIONS();
+
+     // Place PXA27X into 13M w/ PPLL enabled...
+    // other bits are ignored...but might be useful later
+    CCCR = (CCCR_CPDIS | CCCR_L(8) | CCCR_2N(2) | CCCR_A);
+    asm volatile (
+		  "mcr p14,0,%0,c6,c0,0\n\t"
+		  :
+		  : "r" (0x2)
+		  );
+
+    // Place all global platform initialization before this command.
+    return call SubInit.init();
   }
 
   default command error_t SubInit.init() {

@@ -35,6 +35,7 @@ includes hardware;
 configuration PlatformC
 {
   provides interface Init;
+
 }
 
 implementation
@@ -42,5 +43,5 @@ implementation
   components PlatformP;
 
   Init = PlatformP;
-}
 
+}
