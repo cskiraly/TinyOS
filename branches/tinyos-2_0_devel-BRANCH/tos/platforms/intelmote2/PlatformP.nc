@@ -57,6 +57,10 @@ implementation {
 		  : "r" (0x2)
 		  );
 
+    // Enable access to CP6 (Interrupt Controller processor)
+    // Enable access to Intel WMMX enhancements
+    asm volatile ("mcr p15,0,%0,c15,c1,0\n\t": : "r" (0x43));
+
     // Place all global platform initialization before this command.
     return call SubInit.init();
   }
