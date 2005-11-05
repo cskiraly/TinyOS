@@ -1,4 +1,4 @@
-// $Id: pxa27x_registers.h,v 1.1.2.3 2005-11-02 01:22:11 philipb Exp $ 
+// $Id: pxa27x_registers.h,v 1.1.2.4 2005-11-05 01:53:08 philipb Exp $ 
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -1141,30 +1141,30 @@
 #define PPID_OST_0	(26)	/* OS Timer 0 */
 #define PPID_DMAC 	(25)	/* DMA Controller */
 #define PPID_SSP1	(24)	/* SSP 1 */
-#define PPID_MMC	(23)
-#define PPID_FFUART	(22)
-#define PPID_BTUART	(21)
-#define PPID_STUART	(20)
-#define PPID_ICP	(19)
-#define	PPID_I2C	(18)
-#define PPID_LCD	(17)
-#define PPID_SSP2	(16)
-#define PPID_USIM	(15)
-#define PPID_AC97	(14)
-#define PPID_I2S	(13)
-#define PPID_PMU	(12)
-#define PPID_USBC	(11)
-#define PPID_GPIO_X	(10)
-#define PPID_GPIO_1	(9)
-#define PPID_GPIO_0	(8)
-#define PPID_OST_4_11	(7)
-#define PPID_PWR_I2C	(6)
-#define PPID_MEM_STK	(5)
-#define PPID_KEYPAD	(4)
-#define PPID_USBH1	(3)
-#define PPID_USBH2	(2)
-#define PPID_MSL	(1)
-#define PPID_SSP3	(0)
+#define PPID_MMC	(23)	/* Flash Card Interface/MMC */
+#define PPID_FFUART	(22)	/* FFUART */
+#define PPID_BTUART	(21)	/* BTUART */
+#define PPID_STUART	(20)	/* STUART */
+#define PPID_ICP	(19)	/* Infrared Comm. Port*/
+#define	PPID_I2C	(18)	/* I2C */
+#define PPID_LCD	(17)	/* LCD */
+#define PPID_SSP2	(16)	/* SSP 2 */
+#define PPID_USIM	(15)	/* SmartCard Interface */
+#define PPID_AC97	(14)	/* AC '97 */
+#define PPID_I2S	(13)	/* I2S */
+#define PPID_PMU	(12)	/* Performance Monitor */
+#define PPID_USBC	(11)	/* USB Client */
+#define PPID_GPIO_X	(10)	/* GPIO except GPIO<1> or GPIO<0> */
+#define PPID_GPIO_1	(9)	/* GPIO<1> */
+#define PPID_GPIO_0	(8)	/* GPIO<0> */
+#define PPID_OST_4_11	(7)	/* OS Timer Channel 4 - 11 */
+#define PPID_PWR_I2C	(6)	/* Power I2C */
+#define PPID_MEM_STK	(5)	/* Memory Stick*/
+#define PPID_KEYPAD	(4)	/* Keypad */
+#define PPID_USBH1	(3)	/* USB Host 1 */
+#define PPID_USBH2	(2)	/* USB Host 2 */
+#define PPID_MSL	(1)	/* MSL */
+#define PPID_SSP3	(0)	/* SSP 3 */
 
 
 /******************************************************************************/
@@ -1209,33 +1209,36 @@
 #define GEDR3	_PXAREG(0x40E00148) /* GPIO Edge Detect Status register GPIO<120:96> 24-18 */
 
 // GPIO Shortcuts
-#define _GPLR(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GPLR0, ((_gpio) & 0x60) >> 3)) : (&GPLR3))
-#define _GPDR(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GPDR0, ((_gpio) & 0x60) >> 3)) : (&GPDR3))
-#define _GPSR(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GPSR0, ((_gpio) & 0x60) >> 3)) : (&GPSR3))
-#define _GPCR(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GPCR0, ((_gpio) & 0x60) >> 3)) : (&GPCR3))
-#define _GRER(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GRER0, ((_gpio) & 0x60) >> 3)) : (&GRER3))
-#define _GFER(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GFER0, ((_gpio) & 0x60) >> 3)) : (&GFER3))
-#define _GEDR(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GEDR0, ((_gpio) & 0x60) >> 3)) : (&GEDR3))
-#define _GAFR(_gpio) (_PXAREG_OFFSET(0x40E00054, ((_gpio) & 0x70) >> 2))
+#define GPLR(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GPLR0, ((_gpio) & 0x60) >> 3)) : (&GPLR3))
+#define GPDR(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GPDR0, ((_gpio) & 0x60) >> 3)) : (&GPDR3))
+#define GPSR(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GPSR0, ((_gpio) & 0x60) >> 3)) : (&GPSR3))
+#define GPCR(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GPCR0, ((_gpio) & 0x60) >> 3)) : (&GPCR3))
+#define GRER(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GRER0, ((_gpio) & 0x60) >> 3)) : (&GRER3))
+#define GFER(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GFER0, ((_gpio) & 0x60) >> 3)) : (&GFER3))
+#define GEDR(_gpio) *(((_gpio) < 96) ? (&_PXAREG_OFFSET(&GEDR0, ((_gpio) & 0x60) >> 3)) : (&GEDR3))
+#define GAFR(_gpio) (_PXAREG_OFFSET(0x40E00054, ((_gpio) & 0x70) >> 2))
 
 // These provide the correct bit/function placement in a SINGLE register
 #define _GPIO_bit(_gpio)  (1 << ((_gpio) & 0x1f))
 #define _GPIO_fn(_gpio,_fn)	((_fn) << (((_gpio) & 0x0f) << 1))
 
 #define _GPIO_setaltfn(_gp,_fn) \
-   _GAFR((_gp)) = ((_GAFR((_gp)) & ~(_GPIO_fn((_gp),3))) | (_GPIO_fn((_gp),(_fn))))
+   GAFR((_gp)) = ((GAFR((_gp)) & ~(_GPIO_fn((_gp),3))) | (_GPIO_fn((_gp),(_fn))))
+
+#define _GPIO_getaltfun(_gp) \
+   ((GAFR((_gp)) & (_GPIO_fn((_gp),0x3))) >> (((_gp) & 0x0f) << 1))
 
 #define GPIO_OUT 1
 #define GPIO_IN 0
 
 #define _PXA_setaltfn(_gp,_fn,_dir) \
-{ _GPDR(_gp) = (_dir==GPIO_OUT)? (_GPDR(_gp) |  _GPIO_bit(_gp)) : (_GPDR(_gp) & ~_GPIO_bit(_gp)); _GPIO_setaltfn(_gp,_fn);}
+{ GPDR(_gp) = (_dir==GPIO_OUT)? (GPDR(_gp) |  _GPIO_bit(_gp)) : (GPDR(_gp) & ~_GPIO_bit(_gp)); _GPIO_setaltfn(_gp,_fn);}
 
 #define _PXA_setgpio(_gp) \
-{_GPSR(_gp) = _GPIO_bit(_gp);}
+{GPSR(_gp) = _GPIO_bit(_gp);}
 
 #define _PXA_clrgpio(_gp) \
-{_GPCR(_gp) = _GPIO_bit(_gp);}
+{GPCR(_gp) = _GPIO_bit(_gp);}
 
 /******************************************************************************/
 /* Power Manager and Reset Control */
