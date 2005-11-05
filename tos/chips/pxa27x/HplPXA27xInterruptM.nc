@@ -1,4 +1,4 @@
-// $Id: HplPXA27xInterruptM.nc,v 1.1.2.2 2005-11-02 01:22:11 philipb Exp $ 
+// $Id: HplPXA27xInterruptM.nc,v 1.1.2.3 2005-11-05 01:52:38 philipb Exp $ 
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -58,17 +58,24 @@ implementation {
   /* Core PXA27X interrupt dispatch vectors */
   /* DO NOT change the name of these functions */
 
+  uint32_t getICHP() {
+    uint32_t val;
+
+    asm volatile ("mrc p6,0,%0,c5,c0,0\n\t":"=r" (val));
+    return val;
+  }
+
   void hplarmv_irq() __attribute__ ((interrupt ("IRQ"), spontaneous, C)) {
 
     uint32_t IRQPending;
 
-    IRQPending = ICHP;  // Determine which interrupt to service
+    IRQPending = getICHP();  // Determine which interrupt to service
     IRQPending >>= 16;  // Right justify to the IRQ portion
 
     while (IRQPending & (1 << 15)) {
       uint8_t PeripheralID = (IRQPending & 0x3f); // Get rid of the Valid bit
       signal PXA27xIrq.fired[PeripheralID]();     // Handler is responsible for clearing interrupt
-      IRQPending = ICHP;  // Determine which interrupt to service
+      IRQPending = getICHP();  // Determine which interrupt to service
       IRQPending >>= 16;  // Right justify to the IRQ portion
     }
 
@@ -79,13 +86,13 @@ implementation {
 
     uint32_t FIQPending;
 
-    FIQPending = ICHP;   // Determine which interrupt to service
+    FIQPending = getICHP();   // Determine which interrupt to service
     FIQPending &= 0xFF;  // Mask off the IRQ portion
 
     while (FIQPending & (1 << 15)) {
       uint8_t PeripheralID = (FIQPending & 0x3f); // Get rid of the Valid bit
       signal PXA27xFiq.fired[PeripheralID]();	  // Handler is responsible for clearing interrupt
-      FIQPending = ICHP;
+      FIQPending = getICHP();
       FIQPending &= 0xFF;
     }
 
