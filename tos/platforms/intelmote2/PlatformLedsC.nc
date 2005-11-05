@@ -43,10 +43,14 @@ configuration PlatformLedsC
 
 implementation
 {
-  components PlatformLedsP;
+  //components PlatformLedsP;
+  components GeneralIOC;
 
-  Led0 = PlatformLedsP.Led0;
-  Led1 = PlatformLedsP.Led1;
-  Led2 = PlatformLedsP.Led2;
+  //Led0 = PlatformLedsP.Led0;
+  //Led1 = PlatformLedsP.Led1;
+  //Led2 = PlatformLedsP.Led2;
 
+  Led0 = GeneralIOC.GeneralIO[103];
+  Led1 = GeneralIOC.GeneralIO[104];
+  Led2 = GeneralIOC.GeneralIO[105];
 }
