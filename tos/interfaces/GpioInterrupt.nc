@@ -1,4 +1,4 @@
-// $Id: GpioInterrupt.nc,v 1.1.2.2 2005-11-09 23:43:06 philipb Exp $
+// $Id: GpioInterrupt.nc,v 1.1.2.3 2005-11-10 00:57:22 philipb Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -23,7 +23,7 @@
 /**
  * @author Jonathan Hui
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  *
  * Provides a microcontroller-independent presentation of interrupts
  */
@@ -36,8 +36,6 @@ interface GpioInterrupt {
    * not cumulative: only the transition type of the last called function
    * will be monitored for.
    *
-   * @param low_to_high TRUE if the edge interrupt should occur on
-   *        a low to high transition, FALSE for high to low.
    *
    * @return SUCCESS if the interrupt has been enabled
    */
