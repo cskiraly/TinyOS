@@ -57,12 +57,12 @@ module CC2420ReceiveP {
 
 implementation {
 
-  enum {
+  typedef enum {
     S_STOPPED,
     S_STARTED,
     S_RX_HEADER,
     S_RX_PAYLOAD,
-  };
+  } cc2420_receive_state_t;
 
   enum {
     RXFIFO_SIZE = 128,
@@ -77,7 +77,7 @@ implementation {
   norace message_t* m_p_rx_buf;
 
   message_t m_rx_buf;
-  uint8_t m_state;
+  cc2420_receive_state_t m_state;
 
   void beginReceive();
   void receive();
@@ -121,44 +121,35 @@ implementation {
   }
 
   async command void CC2420Receive.sfd( uint16_t time ) {
-    atomic {
-      if ( m_timestamp_size < TIMESTAMP_QUEUE_SIZE ) {
-	uint8_t tail =  ( ( m_timestamp_head + m_timestamp_size ) % 
-			  TIMESTAMP_QUEUE_SIZE );
-	m_timestamp_queue[ tail ] = time;
-	m_timestamp_size++;
-      }
+    if ( m_timestamp_size < TIMESTAMP_QUEUE_SIZE ) {
+      uint8_t tail =  ( ( m_timestamp_head + m_timestamp_size ) % 
+			TIMESTAMP_QUEUE_SIZE );
+      m_timestamp_queue[ tail ] = time;
+      m_timestamp_size++;
     }
   }
 
   async command void CC2420Receive.sfd_dropped() {
-    atomic {
-      if ( m_timestamp_size )
-	m_timestamp_size--;
-    }
+    if ( m_timestamp_size )
+      m_timestamp_size--;
   }
 
   async event void InterruptFIFOP.fired() {
 #ifdef PLATFORM_MICAZ
     call InterruptFIFOP.disable();
 #endif
-    if ( m_state == S_STARTED ) {
-      m_state = S_RX_HEADER;
+    if ( m_state == S_STARTED )
       beginReceive();
-    }
-    else {
+    else
       m_missed_packets++;
-    }
   }
   
   void beginReceive() { 
-
+    m_state = S_RX_HEADER;
     if ( call SpiResource.immediateRequest() == SUCCESS )
       receive();
-    else {
+    else
       call SpiResource.request();
-    }
-
   }
   
   event void SpiResource.granted() {
@@ -166,12 +157,8 @@ implementation {
   }
 
   void receive() {
-
-    cc2420_header_t* header = getHeader( m_p_rx_buf );
-
     call CSN.clr();
-    call RXFIFO.beginRead( (uint8_t*)header, 1 );
-
+    call RXFIFO.beginRead( (uint8_t*)getHeader( m_p_rx_buf ), 1 );
   }
 
   async event void RXFIFO.readDone( uint8_t* rx_buf, uint8_t rx_len,
@@ -192,7 +179,7 @@ implementation {
 
       too_big = ( length + 1 > m_bytes_left );
       if ( !call FIFO.get() && !call FIFOP.get() )
-	m_bytes_left -= rx_len + 1;
+	m_bytes_left -= length + 1;
 
       if ( too_big ) {
 	reset_state();
@@ -206,7 +193,7 @@ implementation {
 	return;
       }
       
-      call RXFIFO.continueRead( (length < MAC_PACKET_SIZE) ? buf + 1 : NULL ,
+      call RXFIFO.continueRead( (length <= MAC_PACKET_SIZE) ? buf + 1 : NULL,
 				length );
     }
 
@@ -277,7 +264,7 @@ implementation {
 	if ( m_missed_packets )
 	  m_missed_packets--;
 	keep_receiving = TRUE;
-	m_state = S_RX_HEADER;
+	beginReceive();
       }
       else {
 	m_state = S_STARTED;
@@ -285,9 +272,6 @@ implementation {
       }
     }      
     
-    if ( keep_receiving )
-      beginReceive();
-
   }
 
   async event void RXFIFO.writeDone( uint8_t* tx_buf, uint8_t tx_len, error_t error ) {}  

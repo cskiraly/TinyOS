@@ -67,13 +67,13 @@ module CC2420ControlP {
 
 implementation {
 
-  enum {
+  typedef enum {
     S_VREG_STOPPED,
     S_VREG_STARTING,
     S_VREG_STARTED,
     S_XOSC_STARTING,
     S_XOSC_STARTED,
-  };
+  } cc2420_control_state_t;
 
   uint8_t m_channel = CC2420_DEF_CHANNEL;
   uint8_t m_tx_power = 31;
@@ -81,7 +81,7 @@ implementation {
   uint16_t m_short_addr;
 
   norace error_t m_have_resource = FAIL;
-  norace uint8_t m_state = S_VREG_STOPPED;
+  norace cc2420_control_state_t m_state = S_VREG_STOPPED;
 
   command error_t Init.init() {
     call CSN.makeOutput();
@@ -159,7 +159,7 @@ implementation {
 	call InterruptCCA.enableRisingEdge();
 	call SXOSCON.strobe();
 	call IOCFG0.write( ( 1 << CC2420_IOCFG0_FIFOP_POLARITY ) |
-			   ( MAC_PACKET_SIZE << CC2420_IOCFG0_FIFOP_THR ) );
+			   ( 127 << CC2420_IOCFG0_FIFOP_THR ) );
 	call FSCTRL.write( ( 1 << CC2420_FSCTRL_LOCK_THR ) |
 			   ( ( (m_channel - 11)*5+357 ) 
 			     << CC2420_FSCTRL_FREQ ) );
