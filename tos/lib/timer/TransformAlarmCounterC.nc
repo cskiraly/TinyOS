@@ -1,4 +1,4 @@
-//$Id: TransformAlarmCounterC.nc,v 1.1.2.1 2005-10-27 20:31:27 idgay Exp $
+//$Id: TransformAlarmCounterC.nc,v 1.1.2.2 2005-11-11 00:25:48 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -135,12 +135,12 @@ implementation
     atomic
     {
 
-      if (m_skip_overflows && !--m_skip_overflows)
-	set_alarm();
-
       m_upper++;
       if( (m_upper & OVERFLOW_MASK) == 0 )
 	signal Counter.overflow();
+
+      if (m_skip_overflows && !--m_skip_overflows)
+	set_alarm();
     }
   }
 
