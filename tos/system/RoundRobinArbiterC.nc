@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-10-11 22:14:50 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-11-11 21:20:36 $ 
  * ======================================================================== 
  */
  
@@ -107,19 +107,24 @@ implementation {
      be returned to the caller.
   */
   async command error_t Resource.request[uint8_t id]() {
-    atomic
-      {
-	if(state == RES_IDLE)
-	  {
-	    state = RES_BUSY;
-	    reqResId = id;
-	    post grantedTask();
-	    return SUCCESS;
-	  }
+    
+    error_t error;
+    
+    atomic {
+      error = requested( id ) ? EBUSY : SUCCESS;
+      if(state == RES_IDLE) {
+	state = RES_BUSY;
+	reqResId = id;
+	post grantedTask();
+      }
+      else {
 	queueRequest(id);
       }
-    return EBUSY;
-  }  
+    }
+    
+    return error;
+    
+  } 
   
   /**
    * Request immediate access to the shared resource.  Requests are
