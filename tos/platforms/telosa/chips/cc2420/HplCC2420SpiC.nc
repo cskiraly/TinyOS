@@ -46,7 +46,6 @@ generic configuration HplCC2420SpiC() {
 implementation {
 
   components new Spi0C() as SpiC;
-  components MSP430GeneralIOC;
   
   Init = SpiC;
   Resource = SpiC;
