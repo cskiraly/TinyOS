@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-10-29 17:00:49 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-11-11 21:20:36 $ 
  * ======================================================================== 
  */
  
@@ -58,30 +58,30 @@ generic module FcfsArbiterC(char resourceName[]) {
 }
 implementation {
 
-  uint8_t state;
-  uint8_t resId;
-  uint8_t reqResId;
-  uint8_t resQ[uniqueCount(resourceName)];
-  uint8_t qHead;
-  uint8_t qTail;
   enum {RES_IDLE, RES_BUSY};
   enum {NO_RES = 0xFF};
+
+  uint8_t state = RES_IDLE;
+  uint8_t resId = NO_RES;
+  uint8_t reqResId = NO_RES;
+  uint8_t resQ[uniqueCount(resourceName)];
+  uint8_t qHead = NO_RES;
+  uint8_t qTail = NO_RES;
   
-  task void GrantedTask();
-  task void RequestedTask();
-  bool QueueRequest(uint8_t id);
-  bool GrantNextRequest();
+  task void grantedTask();
+  task void requestedTask();
+  void queueRequest(uint8_t id);
+  void grantNextRequest();
   
+  bool requested(uint8_t id) {
+    return ( ( resQ[id] != NO_RES ) || ( qTail == id ) );
+  }
+
   /**  
     Initialize the Arbiter to the idle state
   */
   command error_t Init.init() {
-    state = RES_IDLE;
-    resId = NO_RES;
-    
-    memset(resQ, NO_RES, sizeof(resQ));
-    qHead = NO_RES;
-    qTail = NO_RES;
+    memset( resQ, NO_RES, sizeof( resQ ) );
     return SUCCESS;
   }  
   
@@ -104,21 +104,23 @@ implementation {
     be returned to the caller.
   */
   async command error_t Resource.request[uint8_t id]() {
-    bool granted = FALSE;
+
+    error_t error;
+
     atomic {
-      if(state == RES_IDLE) {
+      error = requested( id ) ? EBUSY : SUCCESS;
+      if( state == RES_IDLE ) {
         state = RES_BUSY;
         reqResId = id;
-        granted = TRUE;
+	post grantedTask();
+      }
+      else {
+	queueRequest( id );
       }
     }
-    if(granted == TRUE) {
-      post GrantedTask();
-      return SUCCESS;
-    }
-    if(QueueRequest(id) == SUCCESS)
-      post RequestedTask();
-    return EBUSY;
+
+    return error;
+
   } 
   
    /**
@@ -130,10 +132,10 @@ implementation {
    */
   async command error_t Resource.immediateRequest[uint8_t id]() {
     atomic {
-      if(state == RES_IDLE) {
+      if( state == RES_IDLE ) {
         state = RES_BUSY;
         resId = id;
-        return SUCCESS;
+	return SUCCESS;
       }
     }
     return EBUSY;
@@ -153,12 +155,8 @@ implementation {
   */
   async command void Resource.release[uint8_t id]() {
     atomic {
-      if ((state != RES_BUSY) || (resId != id))
-        return;
-      if(GrantNextRequest() == FAIL) {
-        state = RES_IDLE;
-        resId = NO_RES;
-      }
+      if ( ( state == RES_BUSY ) && ( resId == id ) )
+	grantNextRequest();
     }
   } 
     
@@ -167,7 +165,7 @@ implementation {
   */    
   async command bool ResourceUser.inUse() {
     atomic {
-      if(state == RES_BUSY)
+      if ( state == RES_BUSY )
         return TRUE;
     }
     return FALSE;
@@ -184,7 +182,7 @@ implementation {
   
   //Grant a request to the next Pending user
     //in FCFS order
-  bool GrantNextRequest() {
+  void grantNextRequest() {
     if(qHead != NO_RES) {
       uint8_t id = qHead;
       qHead = resQ[qHead];
@@ -192,36 +190,32 @@ implementation {
         qTail = NO_RES;
       resQ[id] = NO_RES;
       reqResId = id;
-      post GrantedTask();
-      return SUCCESS;
+      post grantedTask();
     }
     else {
-      return FAIL;
+      state = RES_IDLE;
+      resId = NO_RES;
     }
   }
   
   //Queue the requests so that they can be granted
     //in FCFS order after release of the resource
-  bool QueueRequest(uint8_t id) {
+  void queueRequest(uint8_t id) {
     atomic {
-      if((resQ[id] == NO_RES) && (qTail != id)) {
-	if(qHead == NO_RES ) {
+      if( !requested( id ) ) { 
+	if(qHead == NO_RES )
 	  qHead = id;
-	  qTail = id;
-	}
-	else {
+	else
 	  resQ[qTail] = id;
-	  qTail = id;
-	}
-	return SUCCESS;
+	qTail = id;
+	post requestedTask();
       }
-      return FAIL;
     }
   }
   
   //Task for pulling the Resource.granted() signal
     //into synchronous context  
-  task void GrantedTask() {
+  task void grantedTask() {
     uint8_t tmpId;
     atomic {
       tmpId = resId = reqResId;
@@ -231,7 +225,7 @@ implementation {
   
   //Task for pulling the Resource.requested() signal
     //into synchronous context   
-  task void RequestedTask() {
+  task void requestedTask() {
     uint8_t tmpId;
     atomic {
       tmpId = resId;
