@@ -1,4 +1,4 @@
-//$Id: VirtualizeAlarmC.nc,v 1.1.2.3 2005-10-25 00:43:09 jpolastre Exp $
+//$Id: VirtualizeAlarmC.nc,v 1.1.2.4 2005-11-11 02:27:36 jpolastre Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -27,7 +27,7 @@
 generic module VirtualizeAlarmC( typedef precision_tag, typedef size_type @integer(), int num_alarms )
 {
   provides interface Init;
-  provides interface Alarm<precision_tag,size_type> as Alarm[int id];
+  provides interface Alarm<precision_tag,size_type> as Alarm[uint8_t id];
   uses interface Alarm<precision_tag,size_type> as AlarmFrom;
 }
 implementation
@@ -42,9 +42,6 @@ implementation
 
   command result_t Init.init()
   {
-    memset( m_t0, 0, sizeof(m_t0) );
-    memset( m_dt, 0, sizeof(m_t0) );
-    memset( m_isset, FALSE, sizeof(m_t0) );
     return SUCCESS;
   }
 
@@ -53,7 +50,7 @@ implementation
     size_type t0 = 0;
     size_type dt = 0;
     bool isNotSet = TRUE;
-    int id;
+    uint8_t id;
 
     for( id=0; id<NUM_ALARMS; id++ )
     {
@@ -83,16 +80,16 @@ implementation
     if( isNotSet )
       call AlarmFrom.stop();
     else
-      call AlarmFrom.start( t0, dt );
+      call AlarmFrom.startAt( t0, dt );
   }
   
   // basic interface
-  async command void Alarm.start[int id]( size_type dt )
+  async command void Alarm.start[uint8_t id]( size_type dt )
   {
     call Alarm.startAt[id]( call AlarmFrom.getNow(), dt );
   }
 
-  async command void Alarm.stop[int id]()
+  async command void Alarm.stop[uint8_t id]()
   {
     atomic
     {
@@ -105,7 +102,7 @@ implementation
   {
     atomic
     {
-      int id;
+      uint8_t id;
       for( id=0; id<NUM_ALARMS; id++ )
       {
         if( m_isset[id] && (m_dt[id] == 0) )
@@ -119,12 +116,12 @@ implementation
   }
 
   // extended interface
-  async command bool Alarm.isRunning[int id]()
+  async command bool Alarm.isRunning[uint8_t id]()
   {
     return m_isset[id];
   }
 
-  async command void Alarm.startAt[int id]( size_type t0, size_type dt )
+  async command void Alarm.startAt[uint8_t id]( size_type t0, size_type dt )
   {
     atomic
     {
@@ -135,17 +132,17 @@ implementation
     }
   }
 
-  async command size_type Alarm.getNow[int id]()
+  async command size_type Alarm.getNow[uint8_t id]()
   {
     return call AlarmFrom.getNow();
   }
 
-  async command size_type Alarm.getAlarm[int id]()
+  async command size_type Alarm.getAlarm[uint8_t id]()
   {
     atomic return m_t0[id]+m_dt[id];
   }
 
-  default async event void Alarm.fired[int id]() { }
+  default async event void Alarm.fired[uint8_t id]() { }
 
 }
 
