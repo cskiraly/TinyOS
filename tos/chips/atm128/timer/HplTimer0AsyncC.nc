@@ -1,4 +1,4 @@
-/// $Id: HplTimer0AsyncC.nc,v 1.1.2.1 2005-10-27 20:31:27 idgay Exp $
+/// $Id: HplTimer0AsyncC.nc,v 1.1.2.2 2005-11-11 00:29:53 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -157,7 +157,7 @@ implementation
 	   we'll just spin when setting the next deadline. Try and reduce
 	   the likelihood by delaying the interrupt...
 	*/
-	if (t == 0 || t == 0xfe)
+	if (t == 0 || t >= 0xfe)
 	  t = 1;
 
 	OCR0 = t; 
