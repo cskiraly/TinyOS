@@ -42,7 +42,7 @@ module CC2420TransmitP {
   provides interface CSMABackoff;
   provides interface RadioTimeStamping as TimeStamp;
 
-  uses interface Alarm<T32khz,uint16_t> as BackoffTimer;
+  uses interface Alarm<T32khz,uint32_t> as BackoffTimer;
   uses interface GpioCapture as CaptureSFD;
   uses interface GeneralIO as CCA;
   uses interface GeneralIO as CSN;

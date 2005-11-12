@@ -37,7 +37,7 @@
 configuration AlarmMultiplexC {
 
   provides interface Init;
-  provides interface Alarm<T32khz,uint16_t> as Alarm32khz16;
+  provides interface Alarm<T32khz,uint32_t> as Alarm32khz32;
 
 }
 
@@ -46,6 +46,6 @@ implementation {
   components new HplCC2420AlarmC() as Alarm;
 
   Init = Alarm;
-  Alarm32khz16 = Alarm;
+  Alarm32khz32 = Alarm;
 
 }

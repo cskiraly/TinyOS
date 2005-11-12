@@ -42,7 +42,7 @@ module CC2420ControlP {
   provides interface Resource;
   provides interface CC2420Config;
 
-  uses interface Alarm<T32khz,uint16_t> as StartupTimer;
+  uses interface Alarm<T32khz,uint32_t> as StartupTimer;
   uses interface GeneralIO as CSN;
   uses interface GeneralIO as RSTN;
   uses interface GeneralIO as VREN;
