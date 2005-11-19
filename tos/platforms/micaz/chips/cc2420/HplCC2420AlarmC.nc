@@ -65,16 +65,22 @@ includes Atm128Timer;
 
 generic configuration HplCC2420AlarmC() {
   provides interface Init;
-  provides interface Alarm<T32khz, uint16_t>;
+  provides interface Alarm<T32khz, uint32_t>;
 }
 
 implementation {
   components new Atm128AlarmC(T32khz, uint16_t, ATM128_CLK16_DIVIDE_256, 2);
+  components new Atm128CounterC(T32khz, uint16_t);
+  components new TransformAlarmC(T32khz,uint32_t,T32khz,uint16_t,0) as TransformAlarm32;
+  components new TransformCounterC(T32khz,uint32_t,T32khz,uint16_t,0,uint32_t) as TransformCounter32;
   components HplTimer1C;
 
   Init = Atm128AlarmC;
-  Alarm = Atm128AlarmC;
-
+  Alarm = TransformAlarm32;//Atm128AlarmC;
+  TransformAlarm32.AlarmFrom -> Atm128AlarmC;
+  TransformAlarm32.Counter -> TransformCounter32;
+  TransformCounter32.CounterFrom -> Atm128CounterC;
+  Atm128CounterC.Timer -> HplTimer1C.Timer1;
   Atm128AlarmC.HplTimer -> HplTimer1C.Timer1;
   Atm128AlarmC.HplCompare -> HplTimer1C.Compare1A;
 }
