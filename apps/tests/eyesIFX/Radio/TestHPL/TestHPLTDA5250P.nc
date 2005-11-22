@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.1.1 $
- * $Date: 2005-11-04 18:20:16 $ 
+ * $Revision: 1.1.2.1 $
+ * $Date: 2005-11-22 12:31:10 $ 
  * ======================================================================== 
  */
  
@@ -36,84 +36,100 @@
  * Test Application for the HPL layer of the TDA5250 radio
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
- */
+  */
 
-module TestHPLTDA5250M {
+module TestHPLTDA5250P {
   uses {
-    interface Boot;
-    interface Leds;
-    interface Alarm<TMilli, uint32_t> as ModeTimer;
-    interface TDA5250Config;
-    interface Resource;
+	  interface Boot;
+	  interface Leds;
+	  interface Alarm<TMilli, uint32_t> as ModeTimer;
+	  interface HPLTDA5250Config as TDA5250Config;
+	  interface Resource;
   }  
 }
 
 implementation {
   
-  uint8_t mode;
+	uint8_t mode;
    
-  event void Boot.booted() {
-    mode = 0;
-    call Resource.request();
-  }
+	event void Boot.booted() {
+		mode = 0;
+		call Resource.request();
+	}
   
-  event void Resource.granted() {
-	  call TDA5250Config.reset();
-    call ModeTimer.start(50);
-  }
+	event void Resource.granted() {
+		call TDA5250Config.reset();
+		call ModeTimer.start(50);
+	}
   
-  event void Resource.requested() {
-    call ModeTimer.stop();
-    call Resource.release();
-    call Resource.request();
-  }  
+	event void Resource.requested() {
+		call ModeTimer.stop();
+		call Resource.release();
+		call Resource.request();
+	}  
 
   /***********************************************************************
-   * Commands and events
-   ***********************************************************************/
-  async event void ModeTimer.fired() {
-    if(mode == 0) {
-      call TDA5250Config.SetRxMode();
-      mode = 1;
-      call Leds.led0Off();
-      call Leds.led1Off();
-      call Leds.led2Off();     
-    }
-    else if(mode == 1) {
-      call TDA5250Config.SetTxMode();
-      mode = 2;
-      call Leds.led0Off();
-      call Leds.led1Off();
-      call Leds.led2On();       
-    }     
-    else if(mode == 2) {
-      call TDA5250Config.SetTimerMode(5, 5);
-      mode = 3;
-      call Leds.led0Off();
-      call Leds.led1On();
-      call Leds.led2Off();    
-    }
-    else if(mode == 3) {
-      call TDA5250Config.SetSelfPollingMode(5, 5);
-      mode = 4;
-      call Leds.led0Off();
-      call Leds.led1On();
-      call Leds.led2On(); 
-    }    
-    else {
-      call TDA5250Config.SetSlaveMode();
-      call TDA5250Config.SetSleepMode();
-      mode = 0;
-      call Leds.led0On();
-      call Leds.led1Off();
-      call Leds.led2Off();
-    }   
-    call ModeTimer.start(50);
-  }
+	* Commands and events
+  ***********************************************************************/
+	async event void ModeTimer.fired() {
+		if(mode == 0) {
+			call TDA5250Config.SetRxMode();
+			mode = 1;
+			call Leds.led0Off();
+			call Leds.led1Off();
+			call Leds.led2Off();     
+		}
+		else if(mode == 1) {
+			call TDA5250Config.SetTxMode();
+			mode = 2;
+			call Leds.led0Off();
+			call Leds.led1Off();
+			call Leds.led2On();       
+		}     
+		else if(mode == 2) {
+			call TDA5250Config.SetTimerMode(5, 5);
+			mode = 3;
+			call Leds.led0Off();
+			call Leds.led1On();
+			call Leds.led2Off();    
+		}
+		else if(mode == 3) {
+			call TDA5250Config.SetSelfPollingMode(5, 5);
+			mode = 4;
+			call Leds.led0Off();
+			call Leds.led1On();
+			call Leds.led2On(); 
+		}    
+		else {
+			call TDA5250Config.SetSlaveMode();
+			call TDA5250Config.SetSleepMode();
+			mode = 0;
+			call Leds.led0On();
+			call Leds.led1Off();
+			call Leds.led2Off();
+		}   
+		call ModeTimer.start(50);
+	}
   
-  async event void TDA5250Config.PWDDDInterrupt() {
-    TOSH_TOGGLE_LED3_PIN();
-  } 
+	async event void TDA5250Config.PWDDDInterrupt() {
+		TOSH_TOGGLE_LED3_PIN();
+	} 
+	
+	async event void TDA5250Config.SetSleepModeDone() {
+		// dummy
+	} 
+	
+	async event void TDA5250Config.SetTxModeDone() {
+		// dummy
+	} 
+	
+	async event void TDA5250Config.SetRxModeDone() {
+		// dummy
+	} 
+	
+	async event void TDA5250Config.RSSIStable() {
+		// dummy
+	} 
 }
 
 

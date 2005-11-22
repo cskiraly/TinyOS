@@ -34,7 +34,7 @@ includes Timer;
 configuration TestUARTPhyC {
 }
 implementation {
-  components Main, TestUARTPhyM
+  components MainC, TestUARTPhyP
            , new AlarmMilliC() as TxTimer
            , new AlarmMilliC() as RxTimer
            , new AlarmMilliC() as CCATimer
@@ -44,30 +44,30 @@ implementation {
            , LedsC
            , TDA5250RadioC
            , RandomLfsrC
-           , UARTPhyM
+           , UARTPhyP
            ;
 
-  Main.SoftwareInit -> TDA5250RadioC.Init;
-  Main.SoftwareInit -> RandomLfsrC.Init;
-  Main.SoftwareInit -> LedsC.Init;
-  Main.SoftwareInit -> UARTPhyM.Init;
-  TestUARTPhyM -> Main.Boot;
+  MainC.SoftwareInit -> TDA5250RadioC.Init;
+  MainC.SoftwareInit -> RandomLfsrC.Init;
+  MainC.SoftwareInit -> LedsC.Init;
+  MainC.SoftwareInit -> UARTPhyP.Init;
+  TestUARTPhyP -> MainC.Boot;
 
-  TestUARTPhyM.Random -> RandomLfsrC.Random;
-  TestUARTPhyM.TxTimer -> TxTimer;
-  TestUARTPhyM.RxTimer -> RxTimer;
-  TestUARTPhyM.CCATimer -> CCATimer;
-  TestUARTPhyM.TimerTimer -> TimerTimer;
-//   TestUARTPhyM.SelfPollingTimer -> SelfPollingTimer;
-//   TestUARTPhyM.SleepTimer -> SleepTimer;
-  TestUARTPhyM.Leds  -> LedsC;
-  TestUARTPhyM.TDA5250Control -> TDA5250RadioC.TDA5250Control;
-  TestUARTPhyM.RadioSplitControl -> TDA5250RadioC.SplitControl;  
-  TestUARTPhyM.RadioByteComm -> UARTPhyM.SerializerRadioByteComm;
-  TestUARTPhyM.PhyPacketTx -> UARTPhyM.PhyPacketTx;
-  TestUARTPhyM.PhyPacketRx -> UARTPhyM.PhyPacketRx;
+  TestUARTPhyP.Random -> RandomLfsrC.Random;
+  TestUARTPhyP.TxTimer -> TxTimer;
+  TestUARTPhyP.RxTimer -> RxTimer;
+  TestUARTPhyP.CCATimer -> CCATimer;
+  TestUARTPhyP.TimerTimer -> TimerTimer;
+//   TestUARTPhyP.SelfPollingTimer -> SelfPollingTimer;
+//   TestUARTPhyP.SleepTimer -> SleepTimer;
+  TestUARTPhyP.Leds  -> LedsC;
+  TestUARTPhyP.TDA5250Control -> TDA5250RadioC.TDA5250Control;
+  TestUARTPhyP.RadioSplitControl -> TDA5250RadioC.SplitControl;  
+  TestUARTPhyP.RadioByteComm -> UARTPhyP.SerializerRadioByteComm;
+  TestUARTPhyP.PhyPacketTx -> UARTPhyP.PhyPacketTx;
+  TestUARTPhyP.PhyPacketRx -> UARTPhyP.PhyPacketRx;
   
-  UARTPhyM.RadioByteComm -> TDA5250RadioC.RadioByteComm;
+  UARTPhyP.RadioByteComm -> TDA5250RadioC.RadioByteComm;
 }
 
 

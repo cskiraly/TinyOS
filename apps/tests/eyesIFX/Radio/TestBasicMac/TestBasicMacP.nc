@@ -1,4 +1,4 @@
-// $Id: TestBasicMacM.nc,v 1.1.1.1 2005-11-04 18:20:16 kristinwright Exp $
+// $Id: TestBasicMacP.nc,v 1.1.2.1 2005-11-22 12:31:10 phihup Exp $
 
 /*                                  tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.
@@ -29,54 +29,54 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-module TestBasicMacM {
+module TestBasicMacP {
   uses {
-    interface Boot;
-    interface SplitControl as MacSplitControl;
-    interface Alarm<TMilli, uint32_t> as SendTimer;
-    interface Leds;
-    interface Random;
-    interface Send;
-    interface Receive;
+	  interface Boot;
+	  interface SplitControl as MacSplitControl;
+	  interface Alarm<TMilli, uint32_t> as SendTimer;
+	  interface Leds;
+	  interface Random;
+	  interface Send;
+	  interface Receive;
   }
 }
 
 implementation {
   
-  #define TIMER_RATE    500
-  #define NUM_BYTES     TOSH_DATA_LENGTH
+#define TIMER_RATE    500
+#define NUM_BYTES     TOSH_DATA_LENGTH
   
   message_t sendMsg;
   
   event void Boot.booted() {
-    uint8_t i;
-    for(i=0; i<NUM_BYTES; i++)
-      sendMsg.data[i] = 0xF0;//call Random.rand16() / 2;
-    call MacSplitControl.start();
+	  uint8_t i;
+	  for(i=0; i<NUM_BYTES; i++)
+		  sendMsg.data[i] = 0xF0;//call Random.rand16() / 2;
+	  call MacSplitControl.start();
   }
   
   event void MacSplitControl.startDone(error_t error) {
-    call Send.send(&sendMsg, NUM_BYTES);  
+	  call Send.send(&sendMsg, NUM_BYTES);  
   }
   
   event void MacSplitControl.stopDone(error_t error) {
-    call SendTimer.stop();
+	  call SendTimer.stop();
   }  
   
   async event void SendTimer.fired() {
-    call Send.send(&sendMsg, NUM_BYTES);
+	  call Send.send(&sendMsg, NUM_BYTES);
   }
   
   event void Send.sendDone(message_t* msg, error_t error) {
-    if(error == SUCCESS)
-		  call Leds.led0Toggle();
+	  if(error == SUCCESS)
+		  call Leds.led1Toggle();
 	  else call Leds.led2Toggle();
-    call SendTimer.start(call Random.rand16() % TIMER_RATE);
+	  call SendTimer.start(call Random.rand16() % TIMER_RATE);
   }
   
   event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
-    call Leds.led1Toggle();
-    return msg;
+	  call Leds.led0Toggle();
+	  return msg;
   }
 }
 

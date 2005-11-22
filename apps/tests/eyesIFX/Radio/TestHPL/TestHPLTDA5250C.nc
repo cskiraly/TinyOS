@@ -1,4 +1,4 @@
-// $Id: TestHPLTDA5250C.nc,v 1.1.1.1 2005-11-04 18:20:16 kristinwright Exp $
+// $Id: TestHPLTDA5250C.nc,v 1.1.1.1.2.1 2005-11-22 12:31:10 phihup Exp $
 
 /*                                  tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.
@@ -36,22 +36,22 @@ includes Timer;
 configuration TestHPLTDA5250C {
 }
 implementation {
-  components Main
-           , TestHPLTDA5250M
+  components MainC
+           , TestHPLTDA5250P
            , new AlarmMilliC() as ModeTimer
            , LedsC
-           , TDA5250ConfigC
-           ;
+           , HPLTDA5250ConfigC 
+  ;
 
-  TestHPLTDA5250M -> Main.Boot;
+  TestHPLTDA5250P -> MainC.Boot;
   
-  Main.SoftwareInit -> LedsC;
-  Main.SoftwareInit -> TDA5250ConfigC;
+  MainC.SoftwareInit -> LedsC;
+  MainC.SoftwareInit -> HPLTDA5250ConfigC;
 
-  TestHPLTDA5250M.Resource -> TDA5250ConfigC.Resource;
-  TestHPLTDA5250M.ModeTimer -> ModeTimer;
-  TestHPLTDA5250M.Leds  -> LedsC;
-  TestHPLTDA5250M.TDA5250Config -> TDA5250ConfigC;
+  TestHPLTDA5250P.Resource -> HPLTDA5250ConfigC.Resource;
+  TestHPLTDA5250P.ModeTimer -> ModeTimer;
+  TestHPLTDA5250P.Leds -> LedsC;
+  TestHPLTDA5250P.TDA5250Config -> HPLTDA5250ConfigC.HPLTDA5250Config;
 }
 
 
