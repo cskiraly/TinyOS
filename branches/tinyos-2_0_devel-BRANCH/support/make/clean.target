@@ -1,6 +1,7 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: clean.target,v 1.1.2.1 2005-03-23 19:34:52 cssharp Exp $
+#$Id: clean.target,v 1.1.2.2 2005-11-22 23:33:26 scipio Exp $
 
 clean: FORCE
 	rm -rf build
+	rm -rf _TOSSIMmodule.so TOSSIM.pyc TOSSIM.py
 
