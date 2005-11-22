@@ -1,4 +1,4 @@
-// $Id: TDA5250ActiveMessageM.nc,v 1.1.2.1 2005-10-25 10:19:01 vlahan Exp $
+// $Id: TDA5250ActiveMessageP.nc,v 1.1.2.1 2005-11-22 12:10:47 phihup Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: TDA5250ActiveMessageM.nc,v 1.1.2.1 2005-10-25 10:19:01 vlahan Exp $
+ * Date last modified:  $Id: TDA5250ActiveMessageP.nc,v 1.1.2.1 2005-11-22 12:10:47 phihup Exp $
  *
  */
 
@@ -41,7 +41,7 @@
  * @date July 20 2005
  */
 
-module TDA5250ActiveMessageM {
+module TDA5250ActiveMessageP {
   provides {
     interface AMSend[am_id_t id];
     interface Receive[am_id_t id];
@@ -56,12 +56,17 @@ module TDA5250ActiveMessageM {
 }
 implementation {
 
+  TDA5250Header* getHeader( message_t* msg ) {
+		return (TDA5250Header*)( msg->data - sizeof(TDA5250Header) );
+  }
+	
   command error_t AMSend.send[am_id_t id](am_addr_t addr,
                                           message_t* msg,
                                           uint8_t len) {
-    msg->header.type = id;
-    msg->header.addr = addr;
-    msg->header.group = TOS_AM_GROUP;
+    TDA5250Header* header = getHeader(msg);		  
+    header->type = id;
+    header->addr = addr;
+    header->group = TOS_AM_GROUP;
     return call SubSend.send(msg, len);
   }
 
@@ -89,7 +94,8 @@ implementation {
   }
  
   command am_addr_t AMPacket.destination(message_t* amsg) {
-    return amsg->header.addr;
+    TDA5250Header* header = getHeader(amsg);
+    return header->addr;
   }
 
   command bool AMPacket.isForMe(message_t* amsg) {
@@ -98,7 +104,8 @@ implementation {
   }
 
   command am_id_t AMPacket.type(message_t* amsg) {
-    return amsg->header.type;
+    TDA5250Header* header = getHeader(amsg);
+    return header->type;
   }
 
   //command am_group_t AMPacket.group(message_t* amsg) {

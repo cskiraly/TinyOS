@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-07-04 15:12:13 $ 
+ * $Revision: 1.1.2.1 $
+ * $Date: 2005-11-22 12:10:47 $ 
  * ======================================================================== 
  */
  
@@ -37,7 +37,7 @@
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
  
-module HPLTDA5250ConfigM {
+module HPLTDA5250ConfigP {
   provides {
     interface Init;
     interface HPLTDA5250Config;
@@ -63,7 +63,8 @@ module HPLTDA5250ConfigM {
     interface Alarm<T32khz, uint16_t> as RSSIStableDelay; 
     interface GeneralIO as TXRX;     
     interface GeneralIO as PWDDD;
-    interface Interrupt as PWDDDInterrupt;
+    //interface Interrupt as PWDDDInterrupt;
+    interface GpioInterrupt as PWDDDInterrupt;
   }
 }
 
@@ -294,7 +295,8 @@ implementation {
      call CONFIG.set(currentConfig);      
      call TXRX.set();      
      call PWDDD.makeInput(); 
-     call PWDDDInterrupt.startWait(FALSE);
+     // call PWDDDInterrupt.startWait(FALSE);
+     call PWDDDInterrupt.enableFallingEdge();
    }
    async command void HPLTDA5250Config.ResetTimerMode() {         
      call PWDDD.clr();        
@@ -302,7 +304,8 @@ implementation {
      currentConfig = CONFIG_MODE_2_TIMER(currentConfig);
      call CONFIG.set(currentConfig);      
      call PWDDD.makeInput();
-     call PWDDDInterrupt.startWait(FALSE); 
+     // call PWDDDInterrupt.startWait(FALSE); 
+     call PWDDDInterrupt.enableFallingEdge();
    }
    async command void HPLTDA5250Config.SetSelfPollingMode(float on_time, float off_time) {   
      call PWDDD.clr();           
@@ -312,7 +315,8 @@ implementation {
      call CONFIG.set(currentConfig);      
      call TXRX.set();        
      call PWDDD.makeInput(); 
-     call PWDDDInterrupt.startWait(FALSE);     
+     // call PWDDDInterrupt.startWait(FALSE);     
+     call PWDDDInterrupt.enableFallingEdge();
    }
    async command void HPLTDA5250Config.ResetSelfPollingMode() {      
      call PWDDD.clr();          
@@ -320,7 +324,8 @@ implementation {
      call CONFIG.set(currentConfig);      
      call TXRX.set();     
      call PWDDD.makeInput();
-     call PWDDDInterrupt.startWait(FALSE);
+     // call PWDDDInterrupt.startWait(FALSE);
+     call PWDDDInterrupt.enableFallingEdge();
    }
    /**
       Set the on time and off time of the radio
@@ -442,7 +447,8 @@ implementation {
        call TXRX.clr();
        call PWDDD.clr();
       }
-			call TransmitterDelay.startNow(TDA5250_TRANSMITTER_SETUP_TIME);
+			// call TransmitterDelay.startNow(TDA5250_TRANSMITTER_SETUP_TIME);
+      			call TransmitterDelay.start(TDA5250_TRANSMITTER_SETUP_TIME);
    }
    
    async command void HPLTDA5250Config.SetRxMode() { 
@@ -455,7 +461,8 @@ implementation {
        call TXRX.set();	 
        call PWDDD.clr();
      }
-		 call ReceiverDelay.startNow(TDA5250_RECEIVER_SETUP_TIME);
+		 // call ReceiverDelay.startNow(TDA5250_RECEIVER_SETUP_TIME);
+     		call ReceiverDelay.start(TDA5250_RECEIVER_SETUP_TIME);
    }
    
    async command void HPLTDA5250Config.SetSleepMode() {
@@ -486,8 +493,9 @@ implementation {
 	 }
 	 
 	 async event void ReceiverDelay.fired() {
-	   call RSSIStableDelay.startNow(TDA5250_RSSI_STABLE_TIME-TDA5250_RECEIVER_SETUP_TIME);
-		 signal HPLTDA5250Config.SetRxModeDone();
+	   // call RSSIStableDelay.startNow(TDA5250_RSSI_STABLE_TIME-TDA5250_RECEIVER_SETUP_TIME);
+		call RSSIStableDelay.start(TDA5250_RSSI_STABLE_TIME-TDA5250_RECEIVER_SETUP_TIME);
+		signal HPLTDA5250Config.SetRxModeDone();
 	 }
 	 
 	 async event void RSSIStableDelay.fired() {

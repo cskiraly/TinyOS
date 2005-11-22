@@ -28,13 +28,13 @@
  *
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-06-24 11:45:05 $
+ * $Revision: 1.1.2.1 $
+ * $Date: 2005-11-22 12:10:47 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
  
-module TDA5250RegCommM {
+module TDA5250RegCommP {
   provides {
     interface Init;
     interface TDA5250RegComm;

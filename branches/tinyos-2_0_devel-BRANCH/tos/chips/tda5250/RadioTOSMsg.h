@@ -26,13 +26,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-20 12:55:44 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-11-22 12:07:46 $ 
  * ======================================================================== 
  */
  
 /*
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
+ * should be in platform dir.
  */
  
 #ifndef RADIOTOSMSG_H

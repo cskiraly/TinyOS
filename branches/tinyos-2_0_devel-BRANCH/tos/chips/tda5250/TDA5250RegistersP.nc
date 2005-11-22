@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-06-24 11:45:05 $ 
+ * $Revision: 1.1.2.1 $
+ * $Date: 2005-11-22 12:10:47 $ 
  * ======================================================================== 
  */
  
@@ -37,7 +37,7 @@
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
-module TDA5250RegistersM {
+module TDA5250RegistersP {
   provides {
     interface Init;
     interface TDA5250WriteReg<TDA5250_REG_TYPE_CONFIG>      as CONFIG;
@@ -57,9 +57,9 @@ module TDA5250RegistersM {
     interface TDA5250ReadReg<TDA5250_REG_TYPE_ADC>          as ADC;
   }
   uses {  
-    interface TDA5250RegComm; 
-		interface Pot;
-    interface GeneralIO as ENTDA;
+	interface TDA5250RegComm; 
+	interface Pot;
+	interface GeneralIO as ENTDA;
   }  
 }
 implementation {
