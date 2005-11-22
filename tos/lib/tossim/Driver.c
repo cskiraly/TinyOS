@@ -22,37 +22,26 @@
  */
 
 /**
- * This version of Main is the system interface the TinyOS boot
- * sequence in TOSSIM. It wires the boot sequence implementation to
- * the scheduler and hardware resources. Unlike the standard Main,
- * it does not actually define the <tt>main</tt> function, as a
- * TOSSIM simulation is triggered from Python.
+ * Simple example C++ driver for a TOSSIM simulation.
  *
  * @author Philip Levis
- * @date   August 6 2005
+ * @date   Nov 22 2005
  */
 
-// $Id: MainC.nc,v 1.1.2.3 2005-11-22 23:29:13 scipio Exp $
+// $Id: Driver.c,v 1.1.2.1 2005-11-22 23:29:13 scipio Exp $
 
-includes hardware;
+#include <tossim.h>
 
-configuration MainC {
-  provides interface Boot;
-  uses interface Init as SoftwareInit;
+int main() {
+  Tossim* t = new Tossim();
+
+  // Boot 20 nodes at time 1, 501, 1001 ... 9501
+  for (int i = 0; i < 20; i++) {
+    Mote* m = t->getNode(i);
+    m->bootAtTime(500 * i + 1);
+  }
+
+  while (t->runNextEvent()) {
+
+  }
 }
-implementation {
-  components PlatformC, SimMainP, TinySchedulerC;
-
-  // SimMoteP is not referred to by any component here.
-  // It is included to make sure nesC loads it, as it
-  // includes functionality many other systems depend on.
-  components SimMoteP;
-  
-  SimMainP.Scheduler -> TinySchedulerC;
-  SimMainP.PlatformInit -> PlatformC;
-
-  // Export the SoftwareInit and Booted for applications
-  SoftwareInit = SimMainP.SoftwareInit;
-  Boot = SimMainP;
-}
-

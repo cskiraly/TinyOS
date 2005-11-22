@@ -1,3 +1,39 @@
+/*
+ * "Copyright (c) 2005 Stanford University. All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation for any purpose, without fee, and without written
+ * agreement is hereby granted, provided that the above copyright
+ * notice, the following two paragraphs and the author appear in all
+ * copies of this software.
+ * 
+ * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+ * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
+ * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ * ENHANCEMENTS, OR MODIFICATIONS."
+ */
+
+/**
+ * Implementation of all of the basic TOSSIM primitives and utility
+ * functions.
+ *
+ * @author Philip Levis
+ * @date   Nov 22 2005
+ */
+
+// $Id: tos.h,v 1.1.2.4 2005-11-22 23:29:13 scipio Exp $
+
+#ifndef TOS_H_INCLUDED
+#define TOS_H_INCLUDED
+
 #if !defined(__CYGWIN__)
 #if defined(__MSP430__)
 #include <sys/inttypes.h>
@@ -15,43 +51,39 @@
 #include <math.h>
 #include <stddef.h>
 #include <ctype.h>
+#include <stdio.h>
 
+typedef long long int sim_time_t;
+
+#ifndef __cplusplus
 typedef uint8_t bool;
+#endif
+
 enum { FALSE = 0, TRUE = 1 };
 
 typedef int8_t nx_bool __attribute__((nx_base(int8)));
-uint16_t TOS_LOCAL_ADDRESS = 1;
 
-typedef uint8_t __nesc_atomic_t;
+extern uint16_t TOS_LOCAL_ADDRESS;
 
-inline __nesc_atomic_t
-__nesc_atomic_start(void) __attribute__((spontaneous))
-{
-  //__nesc_atomic_t result = SREG;
-  //__nesc_disable_interrupt();
-  return 0;
-}
-
-/** Restores interrupt mask to original state. */
-inline void __nesc_atomic_end(__nesc_atomic_t original_SREG) __attribute__((spontaneous))
-{
-  //SREG = original_SREG;
-}
-
-inline void __nesc_enable_interrupt() {
-  //sei();
-}
-/** Disables all interrupts. */
-inline void __nesc_disable_interrupt() {
-  //cli();
-}
-
+#ifndef TOSSIM_MAX_NODES
+#define TOSSIM_MAX_NODES 1000
+#endif
 
 #include <sim_event_queue.h>
 #include <sim_tossim.h>
 #include <sim_mote.h>
-#include <stdio.h>
+#include <sim_log.h>
 
+// We only want to include these files if we are compiling TOSSIM proper,
+// that is, the C file representing the TinyOS application. The TinyOS
+// build process means that this is the only really good place to put
+// them.
+#ifdef TOSSIM
+#include <sim_log.c>
 #include <heap.c>
 #include <sim_event_queue.c>
 #include <sim_tossim.c>
+#include <hashtable.c>
+#endif
+
+#endif

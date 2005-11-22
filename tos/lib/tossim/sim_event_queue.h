@@ -1,60 +1,58 @@
-// $Id: sim_event_queue.h,v 1.1.2.2 2005-09-02 01:52:22 scipio Exp $
+// $Id: sim_event_queue.h,v 1.1.2.3 2005-11-22 23:29:13 scipio Exp $
 
 /*									tab:4
- * "Copyright (c) 2005 The Regents of the University  of California.  
- * All rights reserved.
+* "Copyright (c) 2005 Stanford University. All rights reserved.
  *
- * Permission to use, copy, modify, and distribute this software and its
- * documentation for any purpose, without fee, and without written agreement is
- * hereby granted, provided that the above copyright notice, the following
- * two paragraphs and the author appear in all copies of this software.
- * 
- * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
- * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
- * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
- * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
- * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
- * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation for any purpose, without fee, and without written
+ * agreement is hereby granted, provided that the above copyright
+ * notice, the following two paragraphs and the author appear in all
+ * copies of this software.
  *
- * Copyright (c) 2005 Intel Corporation
- * All rights reserved.
+ * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
- * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
- * 94704.  Attention:  Intel License Inquiry.
+ * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+ * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
+ * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ * ENHANCEMENTS, OR MODIFICATIONS."
  */
-
 /**
  * The event queue is the core of the mote side of TOSSIM. It is a
- * wrapper around the underlying heap. It is not re-entrant: merging
- * the Python console and TOSSIM means that functionality like packet
- * injection/reception from external tools is on the Python side.
+ * wrapper around the underlying heap. Unlike the 1.x version, it is
+ * not re-entrant: merging the Python console and TOSSIM means that
+ * functionality like packet injection/reception from external tools
+ * is on the Python side.
  *
  * @author Phil Levis
- * @date   August 19 2005
+ * @date   November 22 2005
  */
 
 
 #ifndef SIM_EVENT_QUEUE_H_INCLUDED
 #define SIM_EVENT_QUEUE_H_INCLUDED
 
-typedef struct sim_event {
-  long long int time;
-  int  mote;
+struct sim_event;
+typedef struct sim_event sim_event_t;
+
+struct sim_event {
+  sim_time_t time;
+  unsigned long  mote;
   bool force; // Whether this event type should always be executed
             // even if a mote is "turned off"
   bool cancelled; // Whether this event has been cancelled
   void* data;
   
-  void (*handle)(struct sim_event* e);
-  void (*cleanup)(struct sim_event* e);
-} sim_event_t;
+  void (*handle)(sim_event_t* e);
+  void (*cleanup)(sim_event_t* e);
+};
 
+sim_event_t* sim_queue_allocate_event();
 
 void sim_queue_init();
 void sim_queue_insert(sim_event_t* event);

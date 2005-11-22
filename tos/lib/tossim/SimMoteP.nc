@@ -1,41 +1,38 @@
-// $Id: SimMoteP.nc,v 1.1.2.2 2005-09-02 01:52:22 scipio Exp $
-
-/*									tab:4
- * "Copyright (c) 2005 The Regents of the University  of California.  
- * All rights reserved.
+/*
+ * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
- * Permission to use, copy, modify, and distribute this software and its
- * documentation for any purpose, without fee, and without written agreement is
- * hereby granted, provided that the above copyright notice, the following
- * two paragraphs and the author appear in all copies of this software.
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation for any purpose, without fee, and without written
+ * agreement is hereby granted, provided that the above copyright
+ * notice, the following two paragraphs and the author appear in all
+ * copies of this software.
  * 
- * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
- * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
- * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
- * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
  * 
- * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
- * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
- * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
- *
- * Copyright (c) 2005 Intel Corporation
- * All rights reserved.
- *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
- * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
- * 94704.  Attention:  Intel License Inquiry.
+ * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+ * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
+ * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ * ENHANCEMENTS, OR MODIFICATIONS."
  */
 
+
 /**
- * The TOSSIM abstraction of a mote.
+ * The TOSSIM abstraction of a mote. By putting simulation state into
+ * a component, we can scale and reference this state automatically
+ * using nesC's rewriting, rather than managing and indexing into
+ * arrays manually.
  *
  * @author Phil Levis
  * @date   August 19 2005
  */
 
+// $Id: SimMoteP.nc,v 1.1.2.3 2005-11-22 23:29:13 scipio Exp $
 
 module SimMoteP {
   provides interface SimMote;
@@ -47,29 +44,33 @@ implementation {
   bool isOn;
   sim_event_t* bootEvent;
   
-  command long long int SimMote.getEuid() {
+  async command long long int SimMote.getEuid() {
     return euid;
   }
-  command void SimMote.setEuid(long long int e) {
+  async command void SimMote.setEuid(long long int e) {
     euid = e;
   }
-  command long long int SimMote.getStartTime() {
+  async command long long int SimMote.getStartTime() {
     return startTime;
   }
-  command bool SimMote.isOn() {
+  async command bool SimMote.isOn() {
     return isOn;
   }
+
   command void SimMote.turnOn() {
     if (!isOn) {
       if (bootEvent != NULL) {
 	bootEvent->cancelled = TRUE;
       }
+      __nesc_nido_initialise(sim_node());
       startTime = sim_time();
+      dbg("SimMoteP", "Setting start time to %llu\n", startTime);
       isOn = TRUE;
       sim_main_start_mote();
     }
   }
-  command void SimMote.turnOff() {
+
+  async command void SimMote.turnOff() {
     isOn = FALSE;
   }
 
@@ -103,6 +104,7 @@ implementation {
     int tmpID = sim_node();
     sim_set_node(mote);
     startTime = t;
+    dbg("SimMoteP", "Setting start time to %llu\n", startTime);
     sim_set_node(tmpID);
     return;
   }
@@ -131,7 +133,11 @@ implementation {
   }
 
   void sim_mote_boot_handle(sim_event_t* e) {
-    bootEvent = NULL;
+    char buf[128];
+    sim_print_now(buf, 128);
+	   
+    bootEvent = (sim_event_t*)NULL;
+    dbg("SimMoteP", "Turning on mote %i at time %s.\n", (int)sim_node(), buf);
     call SimMote.turnOn();
   }
   
