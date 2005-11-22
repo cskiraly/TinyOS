@@ -13,6 +13,7 @@
 $TOSDIR = "@TOSDIR@";
 $TOSDIR = $ENV{"TOSDIR"} if defined($ENV{"TOSDIR"});
 $nescc = "@nescc_prefix@/bin/nescc";
+$tossim = 0;
 
 # Support platform directory renaming for 2.x
 if (-d "$TOSDIR/platform") {
@@ -58,6 +59,11 @@ for ($i = 0; $i <= $#ARGV; $i++) {
 	elsif (/^-v$/) {
 	    $verbose = 1;
 	}
+	elsif (/^-tossim$/) {
+	    $tossim = 1;
+	    $verbose = 1;
+            $strip = 1;
+	}
 	elsif (/^-I/) {
 	    ($i, $file) = &extractarg($i);
 	    $strip = 1;
@@ -90,17 +96,31 @@ if ($print_platforms)
     exit 0;
 }
 
+if ($tossim) {
+  push @new_args, "-DTOSSIM";
+}
+
 $target = "@default_target@" if !defined($target);
 
 # First see if the directory for this platform was explicitly specified
 foreach $dir (@includes) {
     if ($dir =~ m!/$target/?$! && -f "$dir/.platform") {
+      if ($tossim) {
+	$platform_def = "$dir/sim/.platform";
+      }
+      else {
 	$platform_def = "$dir/.platform";
+      }
 	last;
     }
 }
 
-$platform_def = "$TOSDIR/$platform/$target/.platform" unless $platform_def;
+if ($tossim) {
+  $platform_def = "$TOSDIR/$platform/$target/sim/.platform" unless $platform_def;
+}
+else {
+  $platform_def = "$TOSDIR/$platform/$target/.platform" unless $platform_def;
+}
 if (!-f $platform_def) {
     print STDERR "Unknown target $target\n";
     print STDERR "Known targets for TinyOS directory $TOSDIR\n";
@@ -165,6 +185,9 @@ if (!$nostdinc) {
 
 foreach $idir (@includes) {
     $idir = &idir_subst($idir);
+    if ($tossim) {
+      push @new_args, "-I$idir/sim";
+    }
     push @new_args, "-I$idir";
 }
 
