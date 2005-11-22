@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-07-01 13:05:12 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-11-22 12:07:46 $ 
  * ======================================================================== 
  */
  
@@ -50,21 +50,21 @@ configuration TDA5250RadioC {
   }
 }
 implementation {
-  components TDA5250RadioM
+  components TDA5250RadioP
            , HPLTDA5250ConfigC
            , HPLTDA5250DataC
            ;
    
   Init = HPLTDA5250ConfigC;
   Init = HPLTDA5250DataC;  
-  Init = TDA5250RadioM; 
-  TDA5250Control = TDA5250RadioM;
-  RadioByteComm = TDA5250RadioM;
-  SplitControl = TDA5250RadioM;
+  Init = TDA5250RadioP; 
+  TDA5250Control = TDA5250RadioP;
+  RadioByteComm = TDA5250RadioP;
+  SplitControl = TDA5250RadioP;
   
-  TDA5250RadioM.ConfigResource -> HPLTDA5250ConfigC;
-  TDA5250RadioM.DataResource -> HPLTDA5250DataC;
+  TDA5250RadioP.ConfigResource -> HPLTDA5250ConfigC;
+  TDA5250RadioP.DataResource -> HPLTDA5250DataC;
   
-  TDA5250RadioM.HPLTDA5250Config -> HPLTDA5250ConfigC;
-  TDA5250RadioM.HPLTDA5250Data -> HPLTDA5250DataC;
+  TDA5250RadioP.HPLTDA5250Config -> HPLTDA5250ConfigC;
+  TDA5250RadioP.HPLTDA5250Data -> HPLTDA5250DataC;
 }

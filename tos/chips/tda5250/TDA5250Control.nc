@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  * Configuring the registers on the TDA5250 Radio.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-07-01 13:05:12 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-11-22 12:07:46 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -51,10 +51,10 @@ interface TDA5250Control {
 	 
    async event void TimerModeDone();
    async event void SelfPollingModeDone();
-	 async event void TxModeDone();
-	 async event void RxModeDone();
+   async event void TxModeDone();
+   async event void RxModeDone();
    async event void CCAModeDone();
-	 async event void SleepModeDone();
+   async event void SleepModeDone();
 	 
    /**
       Interrupt avialable on the PWD_DD pin when in 

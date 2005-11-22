@@ -27,7 +27,7 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-07-01 13:05:11 $ 
+ * $Date: 2005-11-22 12:10:47 $ 
  * ======================================================================== 
  */
  
@@ -37,7 +37,7 @@
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
  
-module HPLTDA5250DataM {
+module HPLTDA5250DataP {
   provides {
     interface Init;
     interface HPLTDA5250Data;

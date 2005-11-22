@@ -26,13 +26,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-07-01 13:05:11 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-11-22 12:07:46 $ 
  * ======================================================================== 
  */
  
  /**
- * HPLTDA5250ConfigM configuration  
+ * HPLTDA5250ConfigP configuration  
  * Controlling the TDA5250 at the HPL layer.. 
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
@@ -49,41 +49,41 @@ configuration HPLTDA5250ConfigC {
   }
 }
 implementation {
-  components HPLTDA5250ConfigM
+  components HPLTDA5250ConfigP
            , TDA5250RegistersC
-					 , new Alarm32khzC() as TransmitterDelay
-					 , new Alarm32khzC() as ReceiverDelay
-					 , new Alarm32khzC() as RSSIStableDelay
+	   , new Alarm32khzC() as TransmitterDelay
+	   , new Alarm32khzC() as ReceiverDelay
+	   , new Alarm32khzC() as RSSIStableDelay
            , TDA5250RadioIO
            , TDA5250RadioInterruptPWDDD
            ;
    
-  Init = HPLTDA5250ConfigM;
+  Init = HPLTDA5250ConfigP;
   Init = TDA5250RegistersC;  
   Resource = TDA5250RegistersC.Resource;
-  HPLTDA5250Config = HPLTDA5250ConfigM;
+  HPLTDA5250Config = HPLTDA5250ConfigP;
   
-  HPLTDA5250ConfigM.CONFIG -> TDA5250RegistersC.CONFIG;
-  HPLTDA5250ConfigM.FSK -> TDA5250RegistersC.FSK;
-  HPLTDA5250ConfigM.XTAL_TUNING -> TDA5250RegistersC.XTAL_TUNING;
-  HPLTDA5250ConfigM.LPF -> TDA5250RegistersC.LPF;
-  HPLTDA5250ConfigM.ON_TIME -> TDA5250RegistersC.ON_TIME;
-  HPLTDA5250ConfigM.OFF_TIME -> TDA5250RegistersC.OFF_TIME;
-  HPLTDA5250ConfigM.COUNT_TH1 -> TDA5250RegistersC.COUNT_TH1;
-  HPLTDA5250ConfigM.COUNT_TH2 -> TDA5250RegistersC.COUNT_TH2;
-  HPLTDA5250ConfigM.RSSI_TH3 -> TDA5250RegistersC.RSSI_TH3;
-  HPLTDA5250ConfigM.RF_POWER -> TDA5250RegistersC.RF_POWER;
-  HPLTDA5250ConfigM.CLK_DIV -> TDA5250RegistersC.CLK_DIV;
-  HPLTDA5250ConfigM.XTAL_CONFIG -> TDA5250RegistersC.XTAL_CONFIG;
-  HPLTDA5250ConfigM.BLOCK_PD -> TDA5250RegistersC.BLOCK_PD;
-  HPLTDA5250ConfigM.STATUS -> TDA5250RegistersC.STATUS;
-  HPLTDA5250ConfigM.ADC -> TDA5250RegistersC.ADC;  
+  HPLTDA5250ConfigP.CONFIG -> TDA5250RegistersC.CONFIG;
+  HPLTDA5250ConfigP.FSK -> TDA5250RegistersC.FSK;
+  HPLTDA5250ConfigP.XTAL_TUNING -> TDA5250RegistersC.XTAL_TUNING;
+  HPLTDA5250ConfigP.LPF -> TDA5250RegistersC.LPF;
+  HPLTDA5250ConfigP.ON_TIME -> TDA5250RegistersC.ON_TIME;
+  HPLTDA5250ConfigP.OFF_TIME -> TDA5250RegistersC.OFF_TIME;
+  HPLTDA5250ConfigP.COUNT_TH1 -> TDA5250RegistersC.COUNT_TH1;
+  HPLTDA5250ConfigP.COUNT_TH2 -> TDA5250RegistersC.COUNT_TH2;
+  HPLTDA5250ConfigP.RSSI_TH3 -> TDA5250RegistersC.RSSI_TH3;
+  HPLTDA5250ConfigP.RF_POWER -> TDA5250RegistersC.RF_POWER;
+  HPLTDA5250ConfigP.CLK_DIV -> TDA5250RegistersC.CLK_DIV;
+  HPLTDA5250ConfigP.XTAL_CONFIG -> TDA5250RegistersC.XTAL_CONFIG;
+  HPLTDA5250ConfigP.BLOCK_PD -> TDA5250RegistersC.BLOCK_PD;
+  HPLTDA5250ConfigP.STATUS -> TDA5250RegistersC.STATUS;
+  HPLTDA5250ConfigP.ADC -> TDA5250RegistersC.ADC;  
 	
-	HPLTDA5250ConfigM.TransmitterDelay -> TransmitterDelay.Alarm32khz16;
-	HPLTDA5250ConfigM.ReceiverDelay -> ReceiverDelay.Alarm32khz16;
-	HPLTDA5250ConfigM.RSSIStableDelay -> RSSIStableDelay.Alarm32khz16;
+  HPLTDA5250ConfigP.TransmitterDelay -> TransmitterDelay.Alarm32khz16;
+  HPLTDA5250ConfigP.ReceiverDelay -> ReceiverDelay.Alarm32khz16;
+  HPLTDA5250ConfigP.RSSIStableDelay -> RSSIStableDelay.Alarm32khz16;
   
-  HPLTDA5250ConfigM.PWDDD -> TDA5250RadioIO.TDA5250RadioPWDDD;    
-  HPLTDA5250ConfigM.TXRX -> TDA5250RadioIO.TDA5250RadioTXRX;  
-  HPLTDA5250ConfigM.PWDDDInterrupt -> TDA5250RadioInterruptPWDDD;
+  HPLTDA5250ConfigP.PWDDD -> TDA5250RadioIO.TDA5250RadioPWDDD;    
+  HPLTDA5250ConfigP.TXRX -> TDA5250RadioIO.TDA5250RadioTXRX;  
+  HPLTDA5250ConfigP.PWDDDInterrupt -> TDA5250RadioInterruptPWDDD;
 }

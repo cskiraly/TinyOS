@@ -29,13 +29,13 @@
  * - Description ---------------------------------------------------------
  * Controlling the TDA5250, switching modes and initializing.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2005-07-11 15:58:23 $
+ * $Revision: 1.1.2.1 $
+ * $Date: 2005-11-22 12:10:47 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
  
-module TDA5250RadioM {
+module TDA5250RadioP {
   provides {
     interface Init;
     interface SplitControl;
@@ -45,7 +45,7 @@ module TDA5250RadioM {
   uses {
     interface HPLTDA5250Config;
     interface HPLTDA5250Data;
-		interface Resource as ConfigResource;
+    interface Resource as ConfigResource;
     interface Resource as DataResource;
   }
 }
