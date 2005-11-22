@@ -1,4 +1,4 @@
-// $Id: heap.c,v 1.1.2.1 2005-09-02 01:52:22 scipio Exp $
+// $Id: heap.c,v 1.1.2.2 2005-11-22 23:29:13 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -43,7 +43,6 @@
 #include <string.h> // For memcpy(3)
 #include <stdlib.h> // for rand(3)
 #include <stdio.h>  // For printf(3)
-#include <dbg.h>
 
 const int STARTING_SIZE = 511;
 

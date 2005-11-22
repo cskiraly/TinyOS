@@ -22,37 +22,45 @@
  */
 
 /**
- * This version of Main is the system interface the TinyOS boot
- * sequence in TOSSIM. It wires the boot sequence implementation to
- * the scheduler and hardware resources. Unlike the standard Main,
- * it does not actually define the <tt>main</tt> function, as a
- * TOSSIM simulation is triggered from Python.
+ * Implementation of all of the basic TOSSIM primitives and utility
+ * functions.
  *
  * @author Philip Levis
- * @date   August 6 2005
+ * @date   Nov 22 2005
  */
 
-// $Id: MainC.nc,v 1.1.2.3 2005-11-22 23:29:13 scipio Exp $
+// $Id: sim_tossim.h,v 1.1.2.1 2005-11-22 23:29:13 scipio Exp $
 
-includes hardware;
+#ifndef SIM_TOSSIM_H_INCLUDED
+#define SIM_TOSSIM_H_INCLUDED
 
-configuration MainC {
-  provides interface Boot;
-  uses interface Init as SoftwareInit;
-}
-implementation {
-  components PlatformC, SimMainP, TinySchedulerC;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-  // SimMoteP is not referred to by any component here.
-  // It is included to make sure nesC loads it, as it
-  // includes functionality many other systems depend on.
-  components SimMoteP;
+void sim_init();
+void sim_start();
+void sim_end();
+
+sim_time_t sim_time();
+void sim_set_time(sim_time_t time);
+sim_time_t sim_ticks_per_sec();
   
-  SimMainP.Scheduler -> TinySchedulerC;
-  SimMainP.PlatformInit -> PlatformC;
+unsigned long sim_node();
+void sim_set_node(unsigned long node);
 
-  // Export the SoftwareInit and Booted for applications
-  SoftwareInit = SimMainP.SoftwareInit;
-  Boot = SimMainP;
+int sim_print_time(char* buf, int bufLen, sim_time_t time);
+int sim_print_now(char* buf, int bufLen);
+char* sim_current_time();
+
+bool sim_add_channel(char* channel, FILE* file);
+bool sim_remove_channel(char* channel, FILE* file);
+  
+bool sim_run_next_event();
+
+  
+#ifdef __cplusplus
 }
-
+#endif
+  
+#endif // SIM_TOSSIM_H_INCLUDED

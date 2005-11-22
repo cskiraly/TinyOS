@@ -1,45 +1,32 @@
-// $Id: SimSchedulerBasicP.nc,v 1.1.2.1 2005-08-19 01:06:58 scipio Exp $
-
-/*									tab:4
- * "Copyright (c) 2000-2005 The Regents of the University  of California.  
- * All rights reserved.
- *
- * Permission to use, copy, modify, and distribute this software and its
- * documentation for any purpose, without fee, and without written agreement is
- * hereby granted, provided that the above copyright notice, the following
- * two paragraphs and the author appear in all copies of this software.
- * 
- * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
- * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
- * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
- * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
- * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
- * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
- *
- * Copyright (c) 2002-2005 Intel Corporation
- * All rights reserved.
- *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
- * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
- * 94704.  Attention:  Intel License Inquiry.
- */
 /*
+ * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
- * Authors:		Philip Levis
- * Date last modified:  $Id: SimSchedulerBasicP.nc,v 1.1.2.1 2005-08-19 01:06:58 scipio Exp $
- *
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation for any purpose, without fee, and without written
+ * agreement is hereby granted, provided that the above copyright
+ * notice, the following two paragraphs and the author appear in all
+ * copies of this software.
+ * 
+ * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
+ * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
+ * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ * ENHANCEMENTS, OR MODIFICATIONS."
  */
 
 /**
+ *
  * SimSchedulerBasic implements the default TinyOS scheduler sequence
  * (documented in TEP 106) for the TOSSIM platform. Its major departure
  * from the standard TinyOS scheduler is that tasks are executed
- * within TOSSIM events.
+ * within TOSSIM events. This introduces task latency.
  *
  * @author Philip Levis
  * @author Cory Sharp
@@ -97,7 +84,7 @@ implementation
     // away, but this code is cleaner, and more accurately reflects
     // the real TinyOS main loop.
     
-    if (call Scheduler.runNextTask(FALSE)) {
+    if (call Scheduler.runNextTask()) {
       sim_scheduler_submit_event();
     }
   }
@@ -170,6 +157,7 @@ implementation
   
   command void Scheduler.init()
   {
+    dbg("Scheduler", "Initializing scheduler.\n");
     atomic
     {
       memset( m_next, NO_TASK, sizeof(m_next) );
@@ -181,7 +169,7 @@ implementation
     }
   }
   
-  command bool Scheduler.runNextTask( bool sleep )
+  command bool Scheduler.runNextTask()
   {
     uint8_t nextTask;
     atomic
@@ -189,16 +177,19 @@ implementation
       nextTask = popTask();
       if( nextTask == NO_TASK )
       {
-	if( sleep ) {
-	  // do nothing
-	}
+	dbg("Scheduler", "Told to run next task, but no task to run.\n");
 	return FALSE;
       }
     }
+    dbg("Scheduler", "Running task %hhu.\n", nextTask);
     signal TaskBasic.runTask[nextTask]();
     return TRUE;
   }
 
+  command void Scheduler.taskLoop() {
+    // This should never run.
+  }
+  
   /**
    * Return SUCCESS if the post succeeded, EBUSY if it was already posted.
    */
@@ -210,8 +201,13 @@ implementation
       result =  pushTask(id) ? SUCCESS : EBUSY;
     }
     if (result == SUCCESS) {
+      dbg("Scheduler", "Posting task %hhu.\n", id);
       sim_scheduler_submit_event();
     }
+    else {
+      dbg("Scheduler", "Posting task %hhu, but already posted.\n", id);
+    }
+    return result;
   }
 
   default event void TaskBasic.runTask[uint8_t id]()

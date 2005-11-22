@@ -22,37 +22,39 @@
  */
 
 /**
- * This version of Main is the system interface the TinyOS boot
- * sequence in TOSSIM. It wires the boot sequence implementation to
- * the scheduler and hardware resources. Unlike the standard Main,
- * it does not actually define the <tt>main</tt> function, as a
- * TOSSIM simulation is triggered from Python.
+ * The TOSSIM logging system. Unlike in TinyOS 1.x, this logging
+ * system supports an arbitrary number of channels, denoted by
+ * a string identifier. A channel can be connected to any number
+ * of outputs, and a debug statement can be associated with any
+ * number of channels.
  *
  * @author Philip Levis
- * @date   August 6 2005
+ * @date   Nov 22 2005
  */
 
-// $Id: MainC.nc,v 1.1.2.3 2005-11-22 23:29:13 scipio Exp $
+// $Id: sim_log.h,v 1.1.2.1 2005-11-22 23:29:13 scipio Exp $
 
-includes hardware;
 
-configuration MainC {
-  provides interface Boot;
-  uses interface Init as SoftwareInit;
+#ifndef SIM_LOG_H_INCLUDED
+#define SIM_LOG_H_INCLUDED
+
+#define dbg(s, ...) sim_log_debug(unique("TOSSIM.debug"), s, __VA_ARGS__)
+#define dbgerror(s, ...) sim_log_error(unique("TOSSIM.debug"), s, __VA_ARGS__)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void sim_log_init();
+bool sim_log_add_channel(char* output, FILE* file);
+bool sim_log_remove_channel(char* output, FILE* file);
+void sim_log_commit_change();
+
+void sim_log_debug(uint16_t id, char* string, const char* format, ...);
+void sim_log_error(uint16_t id, char* string, const char* format, ...);
+
+#ifdef __cplusplus
 }
-implementation {
-  components PlatformC, SimMainP, TinySchedulerC;
-
-  // SimMoteP is not referred to by any component here.
-  // It is included to make sure nesC loads it, as it
-  // includes functionality many other systems depend on.
-  components SimMoteP;
+#endif
   
-  SimMainP.Scheduler -> TinySchedulerC;
-  SimMainP.PlatformInit -> PlatformC;
-
-  // Export the SoftwareInit and Booted for applications
-  SoftwareInit = SimMainP.SoftwareInit;
-  Boot = SimMainP;
-}
-
+#endif // SIM_LOG_H_INCLUDED

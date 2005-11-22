@@ -1,4 +1,4 @@
-// $Id: heap.h,v 1.1.2.1 2005-09-02 01:52:22 scipio Exp $
+// $Id: heap.h,v 1.1.2.2 2005-11-22 23:29:13 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -40,7 +40,6 @@
  */
 
 /**
- * @author pal
  * @author Philip Levis
  */
 
