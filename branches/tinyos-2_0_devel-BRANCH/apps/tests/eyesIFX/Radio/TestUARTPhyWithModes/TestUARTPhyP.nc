@@ -1,4 +1,4 @@
-// $Id: TestPacketSerializerM.nc,v 1.1.1.1 2005-11-04 18:20:17 kristinwright Exp $
+// $Id: TestUARTPhyP.nc,v 1.1.2.1 2005-11-22 12:31:10 phihup Exp $
 
 /*                                  tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.
@@ -29,46 +29,42 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-module TestPacketSerializerM {
+module TestUARTPhyP {
   uses {
     interface Boot;
     interface Alarm<TMilli, uint32_t> as TxTimer;
     interface Alarm<TMilli, uint32_t> as RxTimer;
-//     interface Alarm<TMilli, uint32_t> as TimerTimer;
+    interface Alarm<TMilli, uint32_t> as TimerTimer;
     interface Alarm<TMilli, uint32_t> as CCATimer;
-    interface Alarm<TMilli, uint32_t> as SelfPollingTimer;    
+//     interface Alarm<TMilli, uint32_t> as SelfPollingTimer;    
 //     interface Alarm<TMilli, uint32_t> as SleepTimer;
     interface Leds;
     interface TDA5250Control;
     interface Random;
     interface SplitControl as RadioSplitControl;
-    interface Send;
-    interface Receive;
+    interface PhyPacketTx;
+    interface PhyPacketRx;
+    interface RadioByteComm;
   }
 }
 
 implementation {
   
-  #define TIMER_RATE    500
-  #define NUM_BYTES     TOSH_DATA_LENGTH
+  #define TIMER_RATE 500
+  #define NUM_BYTES     36
   
   uint8_t bytes_sent;
   bool sending;
-  message_t sendMsg;
   
   event void Boot.booted() {
-    uint8_t i;
     bytes_sent = 0;
     sending = FALSE;
-    for(i=0; i<NUM_BYTES; i++)
-      sendMsg.data[i] = 0x00;//call Random.rand16() / 2;
     call RadioSplitControl.start();
   }
   
   event void RadioSplitControl.startDone(error_t error) {
     call TxTimer.start(call Random.rand16() % TIMER_RATE);
-//     call TimerTimer.start(call Random.rand16() % TIMER_RATE); 
-		call SelfPollingTimer.start(call Random.rand16() % TIMER_RATE); 
+    call TimerTimer.start(call Random.rand16() % TIMER_RATE); 
     call RxTimer.start(call Random.rand16() % TIMER_RATE); 
     call CCATimer.start(call Random.rand16() % TIMER_RATE); 
   }
@@ -109,21 +105,21 @@ implementation {
     call CCATimer.start(call Random.rand16() % TIMER_RATE); 
   }
   
-//   async event void TimerTimer.fired() {
-//     if(sending == FALSE)  
-//       if(call TDA5250Control.TimerMode(call Random.rand16() % TIMER_RATE/20, 
-//                                        call Random.rand16() % TIMER_RATE/20) != FAIL)                        
-//         return;
-//     call TimerTimer.start(call Random.rand16() % TIMER_RATE);                   
-//   }
-  
-  async event void SelfPollingTimer.fired() {
-    if(sending == FALSE)
-      if(call TDA5250Control.SelfPollingMode(call Random.rand16() % TIMER_RATE/20, 
-                                             call Random.rand16() % TIMER_RATE/20) != FAIL)
+  async event void TimerTimer.fired() {
+    if(sending == FALSE)  
+      if(call TDA5250Control.TimerMode(call Random.rand16() % TIMER_RATE/20, 
+                                       call Random.rand16() % TIMER_RATE/20) != FAIL)                        
         return;
-    call SelfPollingTimer.start(call Random.rand16() % TIMER_RATE); 
+    call TimerTimer.start(call Random.rand16() % TIMER_RATE);                   
   }
+  
+//   async event void SelfPollingTimer.fired() {
+//     if(sending == FALSE)
+//       if(call TDA5250Control.SelfPollingMode(call Random.rand16() % TIMER_RATE/20, 
+//                                              call Random.rand16() % TIMER_RATE/20) != FAIL)
+//         return;
+//     call SelfPollingTimer.start(call Random.rand16() % TIMER_RATE); 
+//   }
   
 //   async event void SleepTimer.fired() {
 //     if(sending == FALSE)  
@@ -134,31 +130,39 @@ implementation {
           
     
   async event void TDA5250Control.TxModeDone(){
-    call Send.send(&sendMsg, NUM_BYTES);
+    call PhyPacketTx.sendHeader();
   }
   
-  event void Send.sendDone(message_t* msg, error_t error) {
+  async event void PhyPacketTx.sendHeaderDone(error_t error) {
+    call RadioByteComm.txByte(call Random.rand16() / 2);
+  }
+  
+  async event void RadioByteComm.txByteReady(error_t error) {
+    if(++bytes_sent < NUM_BYTES)
+      call RadioByteComm.txByte(call Random.rand16() / 2);
+    else {
+      bytes_sent = 0;  
+      call PhyPacketTx.sendFooter();    
+    }
+  } 
+  
+  async event void PhyPacketTx.sendFooterDone(error_t error) {
     call TDA5250Control.SleepMode();
     sending = FALSE;    
-    call TxTimer.start(call Random.rand16() % TIMER_RATE);  
-  }
-  
-  event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
-    TOSH_TOGGLE_LED3_PIN();
-    return msg;
-  }
+    call TxTimer.start(call Random.rand16() % TIMER_RATE);
+  }  
   
   async event void TDA5250Control.TimerModeDone(){ 
-//     call TimerTimer.start(call Random.rand16() % TIMER_RATE); 
-//     call Leds.led0On();
-//     call Leds.led1On();
-//     call Leds.led2Off();    
+    call TimerTimer.start(call Random.rand16() % TIMER_RATE); 
+    call Leds.led0On();
+    call Leds.led1On();
+    call Leds.led2Off();    
   }
   async event void TDA5250Control.SelfPollingModeDone(){ 
-    call SelfPollingTimer.start(call Random.rand16() % TIMER_RATE);   
-    call Leds.led0On();
-    call Leds.led1Off();
-    call Leds.led2On();        
+//     call SelfPollingTimer.start(call Random.rand16() % TIMER_RATE);   
+//     call Leds.led0On();
+//     call Leds.led1Off();
+//     call Leds.led2On();        
   }  
   async event void TDA5250Control.RxModeDone(){ 
     call RxTimer.start(call Random.rand16() % TIMER_RATE);   
@@ -180,7 +184,11 @@ implementation {
   }    
   
   async event void TDA5250Control.PWDDDInterrupt() {
-  }  
+  }
+  async event void PhyPacketRx.recvHeaderDone() {}    
+  async event void PhyPacketRx.recvFooterDone(bool error) {}  
+  async event void RadioByteComm.rxByteReady(uint8_t data) {}
+  
 }
 
 

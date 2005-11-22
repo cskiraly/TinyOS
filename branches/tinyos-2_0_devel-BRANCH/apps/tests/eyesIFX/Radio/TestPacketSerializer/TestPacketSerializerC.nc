@@ -35,7 +35,7 @@ includes TOSMsg;
 configuration TestPacketSerializerC {
 }
 implementation {
-  components Main, TestPacketSerializerM
+  components MainC, TestPacketSerializerP
            , new AlarmMilliC() as TxTimer
            , new AlarmMilliC() as RxTimer
            , new AlarmMilliC() as CCATimer
@@ -45,35 +45,35 @@ implementation {
            , LedsC
            , TDA5250RadioC
            , RandomLfsrC
-           , UARTPhyM
-           , PacketSerializerM
+           , UARTPhyP
+           , PacketSerializerP
            ;
 
-  Main.SoftwareInit -> TDA5250RadioC.Init;
-  Main.SoftwareInit -> RandomLfsrC.Init;
-  Main.SoftwareInit -> LedsC.Init;
-  Main.SoftwareInit -> UARTPhyM.Init;
-	Main.SoftwareInit -> PacketSerializerM.Init;
-  TestPacketSerializerM -> Main.Boot;
+  MainC.SoftwareInit -> TDA5250RadioC.Init;
+  MainC.SoftwareInit -> RandomLfsrC.Init;
+  MainC.SoftwareInit -> LedsC.Init;
+  MainC.SoftwareInit -> UARTPhyP.Init;
+  MainC.SoftwareInit -> PacketSerializerP.Init;
+  TestPacketSerializerP -> MainC.Boot;
 
-  TestPacketSerializerM.Random -> RandomLfsrC.Random;
-  TestPacketSerializerM.TxTimer -> TxTimer;
-  TestPacketSerializerM.RxTimer -> RxTimer;
-  TestPacketSerializerM.CCATimer -> CCATimer;
-//   TestPacketSerializerM.TimerTimer -> TimerTimer;
-  TestPacketSerializerM.SelfPollingTimer -> SelfPollingTimer;
-//   TestPacketSerializerM.SleepTimer -> SleepTimer;
-  TestPacketSerializerM.Leds  -> LedsC;
-  TestPacketSerializerM.TDA5250Control -> TDA5250RadioC.TDA5250Control;
-  TestPacketSerializerM.RadioSplitControl -> TDA5250RadioC.SplitControl; 
-  TestPacketSerializerM.Send -> PacketSerializerM.Send; 
-  TestPacketSerializerM.Receive -> PacketSerializerM.Receive; 
+  TestPacketSerializerP.Random -> RandomLfsrC.Random;
+  TestPacketSerializerP.TxTimer -> TxTimer;
+  TestPacketSerializerP.RxTimer -> RxTimer;
+  TestPacketSerializerP.CCATimer -> CCATimer;
+//   TestPacketSerializerP.TimerTimer -> TimerTimer;
+  TestPacketSerializerP.SelfPollingTimer -> SelfPollingTimer;
+//   TestPacketSerializerP.SleepTimer -> SleepTimer;
+  TestPacketSerializerP.Leds  -> LedsC;
+  TestPacketSerializerP.TDA5250Control -> TDA5250RadioC.TDA5250Control;
+  TestPacketSerializerP.RadioSplitControl -> TDA5250RadioC.SplitControl; 
+  TestPacketSerializerP.Send -> PacketSerializerP.Send; 
+  TestPacketSerializerP.Receive -> PacketSerializerP.Receive; 
 
-  UARTPhyM.RadioByteComm -> TDA5250RadioC.RadioByteComm;    
+  UARTPhyP.RadioByteComm -> TDA5250RadioC.RadioByteComm;    
    
-  PacketSerializerM.RadioByteComm -> UARTPhyM.SerializerRadioByteComm;
-  PacketSerializerM.PhyPacketTx -> UARTPhyM.PhyPacketTx;
-  PacketSerializerM.PhyPacketRx -> UARTPhyM.PhyPacketRx;  
+  PacketSerializerP.RadioByteComm -> UARTPhyP.SerializerRadioByteComm;
+  PacketSerializerP.PhyPacketTx -> UARTPhyP.PhyPacketTx;
+  PacketSerializerP.PhyPacketRx -> UARTPhyP.PhyPacketRx;  
 }
 
 

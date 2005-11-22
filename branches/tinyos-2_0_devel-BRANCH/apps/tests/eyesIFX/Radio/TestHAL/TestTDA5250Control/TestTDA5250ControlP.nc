@@ -1,4 +1,4 @@
-// $Id: TestTDA5250ControlM.nc,v 1.1.1.1 2005-11-04 18:20:16 kristinwright Exp $
+// $Id: TestTDA5250ControlP.nc,v 1.1.2.1 2005-11-22 12:31:10 phihup Exp $
 
 /*                                  tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.
@@ -29,7 +29,7 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-module TestTDA5250ControlM {
+module TestTDA5250ControlP {
   uses {
     interface Boot;
     interface Alarm<TMilli, uint32_t> as ModeTimer;

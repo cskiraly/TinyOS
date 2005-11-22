@@ -1,4 +1,4 @@
-// $Id: TestUARTPhyM.nc,v 1.1.1.1 2005-11-04 18:20:17 kristinwright Exp $
+// $Id: TestUARTPhyP.nc,v 1.1.2.1 2005-11-22 12:31:10 phihup Exp $
 
 /*                                  tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.
@@ -29,74 +29,82 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-module TestUARTPhyM {
+module TestUARTPhyP {
   uses {
-    interface Boot;
-    interface Alarm<TMilli, uint32_t> as TxTimer;
-    interface Leds;
-    interface TDA5250Control;
-    interface Random;
-    interface SplitControl as RadioSplitControl;
-    interface PhyPacketTx;
-    interface PhyPacketRx;
-    interface RadioByteComm;
+	  interface Boot;
+	  interface Alarm<TMilli, uint32_t> as TxTimer;
+	  interface Leds;
+	  interface TDA5250Control;
+	  interface Random;
+	  interface SplitControl as RadioSplitControl;
+	  interface PhyPacketTx;
+	  interface PhyPacketRx;
+	  interface RadioByteComm;
   }
 }
 
 implementation {
   
-  #define TX_TIMER_RATE 500
-  #define NUM_BYTES     36
+#define TX_TIMER_RATE 500
+#define NUM_BYTES     36
   
   uint8_t bytes_sent;
   
   event void Boot.booted() {
-    bytes_sent = 0;
-    call RadioSplitControl.start();
+	  bytes_sent = 0;
+	  call RadioSplitControl.start();
   }
   
   event void RadioSplitControl.startDone(error_t error) {
-    call TDA5250Control.TxMode();
+	  // call TDA5250Control.TxMode();
+	  call TDA5250Control.RxMode();
   }
   
   event void RadioSplitControl.stopDone(error_t error) {
-    call TxTimer.stop();
+	  call TxTimer.stop();
   }  
 
   /***********************************************************************
-   * Commands and events
-   ***********************************************************************/   
+  * Commands and events
+  ***********************************************************************/   
 
   async event void TxTimer.fired() {
-    call TDA5250Control.TxMode();
+	  call TDA5250Control.TxMode();
   }
     
   async event void TDA5250Control.TxModeDone(){
-     call PhyPacketTx.sendHeader(NUM_BYTES);
+	  call PhyPacketTx.sendHeader();
   }
   
   async event void PhyPacketTx.sendHeaderDone(error_t error) {
-    call RadioByteComm.txByte(call Random.rand16() / 2);
+	  call RadioByteComm.txByte(call Random.rand16() / 2);
   }
   
   async event void RadioByteComm.txByteReady(error_t error) {
-    if(++bytes_sent < NUM_BYTES)
-      call RadioByteComm.txByte(call Random.rand16() / 2);
-    else {
-      bytes_sent = 0;  
-      call PhyPacketTx.sendFooter();    
-    }
+	  if(++bytes_sent < NUM_BYTES) {
+      		  call RadioByteComm.txByte(call Random.rand16() / 2);
+    	  } else { 
+		  bytes_sent = 0;  
+		  call PhyPacketTx.sendFooter();    
+	  }
   } 
   
   async event void PhyPacketTx.sendFooterDone(error_t error) {
-    call TDA5250Control.SleepMode();
-    call TxTimer.start(call Random.rand16() % TX_TIMER_RATE);   
-    call Leds.led0Toggle();
+	  call TDA5250Control.SleepMode();
+	  call TxTimer.start(call Random.rand16() % TX_TIMER_RATE);   
+	  call Leds.led0Toggle();
   }  
 
-  async event void PhyPacketRx.recvHeaderDone(uint8_t length_value) {}    
-  async event void PhyPacketRx.recvFooterDone(bool error) {}  
-  async event void RadioByteComm.rxByteReady(uint8_t data) {}  
+  async event void PhyPacketRx.recvHeaderDone() {
+	  call Leds.led2On();
+  }    
+  
+  async event void PhyPacketRx.recvFooterDone(bool error) {
+  }  
+  
+  async event void RadioByteComm.rxByteReady(uint8_t data) {
+	  call Leds.led2Toggle();
+  }  
   
   async event void TDA5250Control.PWDDDInterrupt() {
   }
