@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-10-25 10:19:53 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-11-22 12:15:11 $
  * ========================================================================
  */
 
@@ -43,7 +43,7 @@
  
 interface PhyPacketTx {
   async command error_t cancel();
-  async command void sendHeader(uint8_t length_value); //VH: remove parameter
+  async command void sendHeader();
   async event void sendHeaderDone(error_t error);
   async command void sendFooter();
   async event void sendFooterDone(error_t error);  
