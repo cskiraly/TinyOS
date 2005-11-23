@@ -27,8 +27,8 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.1 $
-* $Date: 2005-11-22 12:15:11 $
+* $Revision: 1.1.2.2 $
+* $Date: 2005-11-23 20:22:48 $
 * ========================================================================
 */
 
@@ -202,7 +202,6 @@ implementation {
 	}  
 
 	async event void RadioByteComm.rxByteReady(uint8_t data) {
-		post ReceiveTask();
 		ReceiveNextByte(data);
 	}   
 
