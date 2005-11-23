@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.2 2005-10-25 10:22:19 vlahan Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.3 2005-11-23 20:22:48 phihup Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.2 2005-10-25 10:22:19 vlahan Exp $
+ * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.3 2005-11-23 20:22:48 phihup Exp $
  *
  */
 
@@ -57,11 +57,12 @@ configuration ActiveMessageC {
     interface Packet;
     interface AMPacket;
     
+    interface PacketAcknowledgements;
   }
 }
 implementation {
   components TDA5250ActiveMessageC as AM;
-  components TDA5250RadioC, RealMainP
+  // components TDA5250RadioC, RealMainP;
   Init         = AM;
   SplitControl = AM;
   AMSend       = AM;
@@ -70,5 +71,8 @@ implementation {
   Packet       = AM;
   AMPacket     = AM;
 
-  RealMainP->SoftwareInit->TDA5250C;
+  PacketAcknowledgements = AM;
+  // RealMainP.SoftwareInit->TDA5250C;
+  
+  
 }
