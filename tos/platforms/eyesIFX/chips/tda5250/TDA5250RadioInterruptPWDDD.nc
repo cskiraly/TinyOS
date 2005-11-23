@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-24 17:14:47 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-11-23 18:10:45 $ 
  * ======================================================================== 
  */
  
@@ -40,16 +40,16 @@
  */
 configuration TDA5250RadioInterruptPWDDD
 {
-  provides interface Interrupt;
+  provides interface GpioInterrupt;
 }
 implementation
 {
   components 
       MSP430InterruptPort1C
-    , new InterruptM()
+    , new GpioInterruptC()
     ;
 
-  Interrupt = InterruptM.Interrupt;
-  InterruptM.MSP430Interrupt -> MSP430InterruptPort1C.Port10;
+    GpioInterrupt = GpioInterruptC.Interrupt;
+    GpioInterruptC.MSP430Interrupt -> MSP430InterruptPort1C.Port10;
 }
 
