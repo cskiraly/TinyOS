@@ -1,4 +1,4 @@
-// $Id: MSP430SPIM.nc,v 1.1.2.1 2005-05-24 16:30:33 klueska Exp $
+// $Id: MSP430SPIP.nc,v 1.1.2.1 2005-11-23 17:59:17 phihup Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -35,7 +35,7 @@
 
 includes msp430usart;
 
-generic module MSP430SPIM()
+generic module MSP430SPIP()
 {
   provides {
     interface Init;
@@ -71,24 +71,25 @@ implementation
     return SUCCESS;
   }
 
-  async command uint8_t SPIByte.tx[uint8_t id](uint8_t value) {
+  async command error_t SPIByte.write[uint8_t id](uint8_t tx_value, uint8_t* rx_value) {
     uint8_t temp;
     atomic {
-      if ((call ResourceUser.user() != id) || (state != SPI_IDLE))
-	return 0;
+    if ((call ResourceUser.user() != id) || (state != SPI_IDLE))
+	    return FAIL;
     }
     // clear out the receive buffer
     temp = call USARTControl.rx();
     // transmit
-    call USARTControl.tx(value);
+    call USARTControl.tx(tx_value);
     // wait for the transmission to complete
     while (!call USARTControl.isRxIntrPending()) ;
     // get the result
-    temp = call USARTControl.rx();
-    return temp;
+    *rx_value = call USARTControl.rx();
+    return SUCCESS;
   }
 
-  command error_t SPIPacket.send[uint8_t id](uint8_t* _txbuffer, uint8_t* _rxbuffer, uint8_t _length) {
+  
+  async command error_t SPIPacket.send[uint8_t id](uint8_t* _txbuffer, uint8_t* _rxbuffer, uint8_t _length) {
     uint8_t _state;
     atomic {
       _state = state;
@@ -105,7 +106,7 @@ implementation
     return FAIL;
   }
 
-  default event void SPIPacket.sendDone[uint8_t id](uint8_t* _txbuffer, uint8_t* _rxbuffer, uint8_t _length, error_t _success) { }
+  default async event void SPIPacket.sendDone[uint8_t id](uint8_t* _txbuffer, uint8_t* _rxbuffer, uint8_t _length, error_t _success) { }
 
   task void taskSendDone() {
     uint8_t _state;

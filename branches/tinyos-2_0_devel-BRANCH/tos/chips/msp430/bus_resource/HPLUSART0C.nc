@@ -23,7 +23,7 @@
  *
  * Authors:		Joe Polastre
  *
- * $Id: HPLUSART0C.nc,v 1.1.2.1 2005-05-24 16:30:33 klueska Exp $
+ * $Id: HPLUSART0C.nc,v 1.1.2.2 2005-11-23 17:59:17 phihup Exp $
  */
 
 #include "msp430BusResource.h"
@@ -39,22 +39,22 @@ configuration HPLUSART0C
 }
 implementation
 {
-  components HPLUSART0M
-           , new FCFSArbiter(MSP430_HPLUSART0_RESOURCE) as ResourceArbiter
-           , MSP430GeneralIOC as IO;
+  components HPLUSART0P
+	, new FcfsArbiterC(MSP430_HPLUSART0_RESOURCE) as ResourceArbiter
+	, MSP430GeneralIOC as IO;
 
   Init = ResourceArbiter;
 
   Resource = ResourceArbiter;
   ResourceUser = ResourceArbiter;
 
-  HPLUSARTControl = HPLUSART0M;
-  HPLUSARTFeedback = HPLUSART0M;
+  HPLUSARTControl = HPLUSART0P;
+  HPLUSARTFeedback = HPLUSART0P;
 
-  HPLUSART0M.PinUTXD0 -> IO.UTXD0;
-  HPLUSART0M.PinURXD0 -> IO.URXD0;
-  HPLUSART0M.PinSIMO0 -> IO.SIMO0;
-  HPLUSART0M.PinSOMI0 -> IO.SOMI0;
-  HPLUSART0M.PinUCLK0 -> IO.UCLK0;
+  HPLUSART0P.PinUTXD0 -> IO.UTXD0;
+  HPLUSART0P.PinURXD0 -> IO.URXD0;
+  HPLUSART0P.PinSIMO0 -> IO.SIMO0;
+  HPLUSART0P.PinSOMI0 -> IO.SOMI0;
+  HPLUSART0P.PinUCLK0 -> IO.UCLK0;
 }
 

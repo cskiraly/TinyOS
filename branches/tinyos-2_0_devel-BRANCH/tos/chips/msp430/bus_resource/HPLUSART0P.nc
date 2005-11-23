@@ -31,13 +31,13 @@
  * Setting a mode will by default disable USART-Interrupts.
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-05-24 16:30:33 $
+ * $Date: 2005-11-23 17:59:17 $
  * @author: Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author: Joe Polastre
  * ========================================================================
  */
 
-module HPLUSART0M {
+module HPLUSART0P {
   provides {
     interface HPLUSARTControl as USARTControl;
     interface HPLUSARTFeedback as USARTData;
