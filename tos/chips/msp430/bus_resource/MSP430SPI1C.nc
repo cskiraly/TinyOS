@@ -1,4 +1,4 @@
-// $Id: MSP430SPI1C.nc,v 1.1.2.1 2005-05-24 16:30:33 klueska Exp $
+// $Id: MSP430SPI1C.nc,v 1.1.2.2 2005-11-23 17:59:17 phihup Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 /**
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  *
  * Interfaces for controlling the MSP430 USART0 port in SPI master mode
  */
@@ -40,17 +40,17 @@ configuration MSP430SPI0C
 implementation
 {
   components HPLUSART1C
-           , new MSP430SPIM() as SPIM;
+           , new MSP430SPIP() as SPIP;
 
   Init = HPLUSART0C;
-  Init = SPIM;
-  SPIByte = SPIM;
-  SPIPacket = SPIM;
-  SPIPacketAdvanced = SPIM;
-  Resource = SPIM;
+  Init = SPIP;
+  SPIByte = SPIP;
+  SPIPacket = SPIP;
+  SPIPacketAdvanced = SPIP;
+  Resource = SPIP;
 
-  SPIM.Resource -> HPLUSART0C.Resource;
-  SPIM.ResourceUser -> HPLUSART0C.ResourceUser;
-  SPIM.USARTControl -> HPLUSART0C.HPLUSARTControl;
-  SPIM.USARTFeedback -> HPLUSART0C.HPLUSARTFeedback;
+  SPIP.Resource -> HPLUSART0C.Resource;
+  SPIP.ResourceUser -> HPLUSART0C.ResourceUser;
+  SPIP.USARTControl -> HPLUSART0C.HPLUSARTControl;
+  SPIP.USARTFeedback -> HPLUSART0C.HPLUSARTFeedback;
 }
