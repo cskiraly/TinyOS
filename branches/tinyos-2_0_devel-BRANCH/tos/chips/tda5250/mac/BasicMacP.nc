@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-11-22 12:11:34 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-11-23 20:27:37 $
  * ========================================================================
  */
  
@@ -83,6 +83,7 @@ implementation
 	command error_t SplitControl.stop(){
 		call RxTimeoutTimer.stop();
 		call RadioSplitControl.stop();
+		return SUCCESS;
 	}    
    
 	event void RadioSplitControl.startDone(error_t error) {
