@@ -1,4 +1,4 @@
-// $Id: TDA5250ActiveMessageC.nc,v 1.1.2.2 2005-11-22 12:07:46 phihup Exp $
+// $Id: TDA5250ActiveMessageC.nc,v 1.1.2.3 2005-11-23 18:01:11 phihup Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,14 +31,14 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: TDA5250ActiveMessageC.nc,v 1.1.2.2 2005-11-22 12:07:46 phihup Exp $
+ * Date last modified:  $Id: TDA5250ActiveMessageC.nc,v 1.1.2.3 2005-11-23 18:01:11 phihup Exp $
  *
  */
 
 /**
  *
  * The Active Message layer for the TDA5250 radio. This configuration
- * just layers the AM dispatch (TDA5250ActiveMessageM) on top of the
+ * just layers the AM dispatch (TDA5250ActiveMessageP) on top of the
  * underlying TDA5250 radio packet.
  * 
  * @author Philip Levis
@@ -58,45 +58,20 @@ configuration TDA5250ActiveMessageC {
     interface Receive as Snoop[am_id_t id];
     interface AMPacket;
     interface Packet;
-    
     interface PacketAcknowledgements;
   }
 }
 implementation {
 
-  components TDA5250ActiveMessageP as AM, PacketSerializerP as Radio;
+  components TDA5250ActiveMessageP as AM, PacketSerializerC as Radio;
   components ActiveMessageAddressC as Address;
   
-  // new components
-  components new OskiTimerMilliC() as RxTimeoutTimer,
-	     TDA5250RadioC,
-             UARTPhyP,
-	     BasicMacP;
-  //
-  
   Init         = Radio;
-  //SplitControl = Radio;
-  
-  // new wireings but we need mac otherwise receiving is not functional!?
-  SplitControl = BasicMacP.SplitControl;
-  PacketAcknowledgements = Radio;
-  
-  Radio.PhyPacketTx -> BasicMacP.PhyPacketTx;
-  Radio.PhyPacketRx -> BasicMacP.PhyPacketRx; 
-  Radio.RadioByteComm -> BasicMacP.RadioByteComm; 
-    
-  BasicMacP.TDA5250Control -> TDA5250RadioC.TDA5250Control; 
-  BasicMacP.TDA5250RadioByteComm -> UARTPhyP.SerializerRadioByteComm;
-  BasicMacP.TDA5250PhyPacketTx -> UARTPhyP.PhyPacketTx;
-  BasicMacP.TDA5250PhyPacketRx -> UARTPhyP.PhyPacketRx;     
-  BasicMacP.RxTimeoutTimer -> RxTimeoutTimer;  
-  BasicMacP.RadioSplitControl -> TDA5250RadioC.SplitControl;    
-  
-  UARTPhyP.RadioByteComm -> TDA5250RadioC.RadioByteComm;
-  //
+  SplitControl = Radio;
   
   Packet       = Radio;
-
+  PacketAcknowledgements = Radio;
+  
   AMSend   = AM;
   Receive  = AM.Receive;
   Snoop    = AM.Snoop;
