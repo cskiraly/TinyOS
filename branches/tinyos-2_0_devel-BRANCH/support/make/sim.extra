@@ -1,0 +1,34 @@
+#-*-Makefile-*- vim:syntax=make
+#$Id: sim.extra,v 1.1.2.1 2005-11-25 19:51:54 scipio Exp $
+
+GCC=gcc
+GPP=g++
+OPTFLAGS = -g -O0
+LIBS = -lm -lstdc++ 
+PFLAGS += -I%T/lib/tossim -tossim -fnesc-nido-tosnodes=1000 -fnesc-simulate -fnesc-nido-motenumber=sim_node\(\)  
+WFLAGS = -Wno-nesc-data-race
+
+BUILDDIR   = simbuild/$(PLATFORM)
+CFILE    = $(BUILDDIR)/sim.c
+OBJFILE    = $(BUILDDIR)/sim.o
+CXXFILE    = $(TOSDIR)/lib/tossim/tossim.c
+CXXOBJFILE = $(BUILDDIR)/tossim.o
+PYFILE     = $(TOSDIR)/lib/tossim/tossim_wrap.cxx
+PYOBJFILE  = $(BUILDDIR)/pytossim.o
+PYDIR      =/usr/include/python2.3
+SIMDIR     =$(TOSDIR)/lib/tossim
+
+BUILD_DEPS = sim-exe
+
+sim-exe: builddir $(BUILD_EXTRA_DEPS) FORCE
+	@echo "    compiling $(COMPONENT) to object file $(OBJFILE)"
+	$(NCC) -c -fPIC -o $(OBJFILE) $(OPTFLAGS) $(PFLAGS) $(CFLAGS) $(WFLAGS) $(COMPONENT).nc $(LDFLAGS)
+	@echo "    compiling Python support"
+	$(GPP) -c -shared -fPIC -o $(PYOBJFILE) $(OPTFLAGS) $(CFLAGS) $(PYFILE) -I$(PYDIR) -I$(SIMDIR) -DHAVE_CONFIG_H
+	$(GPP) -c -shared -fPIC -o $(CXXOBJFILE) $(OPTFLAGS) $(CFLAGS) $(CXXFILE) -I$(PYDIR) -I$(SIMDIR)
+	@echo "    generating shared object"
+	$(GPP) -shared $(PYOBJFILE) $(OBJFILE) $(CXXOBJFILE) -lstdc++ -o _TOSSIMmodule.so
+	cp $(TOSDIR)/lib/tossim/TOSSIM.py .
+	@echo " "
+	@echo "*** Successfully built $(PLATFORM) TOSSIM library. "
+
