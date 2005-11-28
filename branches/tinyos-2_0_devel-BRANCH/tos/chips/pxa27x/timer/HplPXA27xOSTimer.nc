@@ -100,7 +100,7 @@ interface HplPXA27xOSTimer
    *  
    *
    */
-  async command bool getStatus();
+  async command bool getOSSRbit();
 
   /**
    * Clears the bit position of the OSSR register corresponding to the
@@ -109,17 +109,22 @@ interface HplPXA27xOSTimer
    * @return flag TRUE if an event is signaled (OSSR.M{n} set) prior 
    * to clearing. FALSE otherwise.
    */
-  async command bool clearStatus();
+  async command bool clearOSSRbit();
 
   /**
-   * Enable interrupts for a match event on the current channel.
+   * Sets the OIER bit corresponding to the timer match channel.
+   *
+   * @param flag TRUE to set the OIER bit, FALSE to clear.
    */
-  async command void enableInterrupt();
+  async command void setOIERbit(bool flag);
 
   /**
-   * Disable interrupts for a match event on the current channel.
+   * Returns the setting of the OIER bit corresponding to the timer
+   * match channel.
+   * 
+   * @return flag TRUE if set, FALSE if not set.
    */
-  async command void disableInterrupt();
+  async command bool getOIERbit();
 
   /** 
    * Get the snapshot register (OSNR) value. 
