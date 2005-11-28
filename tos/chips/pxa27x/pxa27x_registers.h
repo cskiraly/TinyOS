@@ -1,4 +1,4 @@
-// $Id: pxa27x_registers.h,v 1.1.2.4 2005-11-05 01:53:08 philipb Exp $ 
+// $Id: pxa27x_registers.h,v 1.1.2.5 2005-11-28 20:16:38 philipb Exp $ 
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -81,12 +81,66 @@
 #define BSCNTR3	_PXAREG(0x48000060) /* System Memory Buffer Strength Control register 3 6-84 */
 #define SA1110	_PXAREG(0x48000064) /* SA-1110 Compatibility Mode for Static Memory register 6-70 */
 
+/* MDCNFG Bit Defs */
+#define MDCNFG_MDENX		(1 << 31)
+#define MDCNFG_DCACX2		(1 << 30)
+#define MDCNFG_DSA1110_2	(1 << 28)
+#define MDCNFG_DADDR2		(1 << 26)
+#define MDCNFG_DTC2(_x)		(((_x) & 0x3) << 24)
+#define MDCNFG_DNB2		(1 << 23)
+#define MDCNFG_DRAC2(_x)	(((_x) & 0x3) << 21)
+#define MDCNFG_DCAC2(_x)	(((_x) & 0x3) << 19)
+#define MDCNFG_DWID2		(1 << 18)
+#define MDCNFG_DE3		(1 << 17)
+#define MDCNFG_DE2		(1 << 16)
+#define MDCNFG_STACK1		(1 << 15)
+#define MDCNFG_DCACX0		(1 << 14)
+#define MDCNFG_STACK0		(1 << 13)
+#define MDCNFG_DSA1110_0	(1 << 12)
+#define MDCNFG_DADDR0		(1 << 10)
+#define MDCNFG_DTC0(_x)		(((_x) & 0x3) << 8)
+#define MDCNFG_DNB0		(1 << 7)
+#define MDCNFG_DRAC0(_x)	(((_x) & 0x3) << 5)
+#define MDCNFG_DCAC0(_x)	(((_x) & 0x3) << 3)
+#define MDCNFG_DWID0		(1 << 2)
+#define MDCNFG_DE1		(1 << 1)
+#define MDCNFG_DE0		(1 << 0)
+#define MDCNFG_SETALWAYS	((1 << 27) | (1 << 11))
+
+/* MSCx Bit Defs */
+#define MSC_RBUFF135	(1 << 31)		 /* Return Data Buff vs. Streaming  nCS 1,3 or 5 */
+#define MSC_RRR135(_x)	(((_x) & (0x7)) << 28)	/* ROM/SRAM Recovery Time  nCS 1,3 or 5 */
+#define MSC_RDN135(_x)	(((_x) & (0x7)) << 24)	/* ROM Delay Next Access nCS 1,3 or 5 */
+#define MSC_RDF135(_x)	(((_x) & (0x7)) << 20)	/* ROM Delay First Access nCS 1,3 or 5 */
+#define MSC_RBW135	(1 << 19)		/* ROM Bus Width nCS 1,3 or 5 */
+#define MSC_RT135(_x)	(((_x) & (0x7)) << 16)	/* ROM Type  nCS 1,3 or 5 */
+#define MSC_RBUFF024	(1 << 15)		/* Return Data Buff vs. Streaming  nCS 0,2 or 4 */
+#define MSC_RRR024(_x)	(((_x) & (0x7)) << 12)	/* ROM/SRAM Recover Time  nCS 0,2 or 4 */
+#define MSC_RDN024(_x)	(((_x) & (0x7)) << 8)	/* ROM Delay Next Access  nCS 0,2 or 4 */
+#define MSC_RDF024(_x)	(((_x) & (0x7)) << 4)	/* ROM Delay First Access  nCS 0,2 or 4 */
+#define MSC_RBW024	(1 << 3)		/* ROM Bus Width  nCS 0,2 or 4 */
+#define MSC_RT024(_x)	(((_x) & (0x7)) << 0)	/* ROM Type  nCS 0,2 or 4 */
+
 /* SXCNFG Bit defs */
 #define SXCNFG_SXEN0 (1)
 #define SXCNFG_SXEN1 (1<<1)
 #define SXCNFG_SXCL0(_x) (((_x) & 0x7) << 2)
 #define SXCNFG_SXTP0(_x) (((_x) & 0x3) << 12)
 #define SXCNFG_SXCLEXT0 (1<<15)
+
+/* ARB_CNTL Bit defs */
+#define ARB_CNTL_DMA_SLV_PARK (1 << 31) 
+#define ARB_CNTL_CI_PARK (1 << 30) 
+#define ARB_CNTL_EX_MEM_PARK (1 << 29) 
+#define ARB_CNTL_INT_MEM_PARK (1 << 28) 
+#define ARB_CNTL_USB_PARK (1 << 27) 
+#define ARB_CNTL_LCD_PARK (1 << 26) 
+#define ARB_CNTL_DMA_PARK (1 << 25) 
+#define ARB_CNTL_CORE_PARK (1 << 24) 
+#define ARB_CNTL_LOCK_FLAG (1 << 23) 
+#define ARB_CNTL_LCD_WT(_wt) (((_wt) & 0xF) << 8)
+#define ARB_CNTL_DMA_WT(_wt) (((_wt) & 0xF) << 4)
+#define ARB_CNTL_CORE_WT(_wt) (((_wt) & 0xF) << 0)
 
 /* SA1110 Bit defs */
 #define SA1110_SXSTACK(_x) (((_x) & 0x3) << 12)
@@ -564,11 +618,11 @@
 #define DCMD_WIDTH1	(1 << 14)	/* 1 byte width */
 #define DCMD_WIDTH2	(2 << 14)	/* 2 byte width (HalfWord) */
 #define DCMD_WIDTH4	(3 << 14)	/* 4 byte width (Word) */
-#define DCMD_SIZE(_x)	(((_x) & 0x3)<<16)	/* No-descriptor transfer length */
+#define DCMD_SIZE(_x)	(((_x) & 0x3)<<16)	/* Burst Size */
 #define DCMD_MAXSIZE    DCMD_SIZE(3)
-#define DCMD_WIDTH(_x)	(((_x) & 0x3)<<14)	/* No-descriptor transfer length */
+#define DCMD_WIDTH(_x)	(((_x) & 0x3)<<14)	/* Peripheral Width  */
 #define DCMD_MAXWIDTH   DCMD_WIDTH(3)
-#define DCMD_LEN(_x)	(((_x) & 0x1fff))	/* No-descriptor transfer length */
+#define DCMD_LEN(_x)	(((_x) & 0x1fff))	/* Length of transfer (0 for descriptor ops) */
 #define DCMD_MAXLEN     DCMD_LEN(0x1fff)
 
 #define DMAREQ_DREQ0		(0)	
@@ -1526,7 +1580,8 @@
 #define CCSR_L_S_MASK	(0x1f << 0)
 
 #define CLKCFG_T    	(1 << 0)      	/* Turbo mode */
-#define CLKCFG_F     	(1 << 1)	/* Frequnce change */
+#define CLKCFG_F     	(1 << 1)	/* Frequency change */
+#define CLKCFG_HT	(1 << 2)	/* Half-turbo Mode */
 #define CLKCFG_B     	(1 << 3)	/* Fast-bus mode */
 
 
