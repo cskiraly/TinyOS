@@ -55,7 +55,6 @@ implementation {
   void DispatchOSTInterrupt(uint8_t id)
   {
     signal PXA27xOST.fired[id]();
-    call PXA27xOST.clearStatus[id]();
     return;
   }
 
@@ -68,13 +67,20 @@ implementation {
     }
     
     if (!initflag) {
+      OIER = 0x0UL;
       OSSR = 0xFFFFFFFF; // Clear all status bits.
       call OST0Irq.allocate();
       call OST1Irq.allocate();
       call OST2Irq.allocate();
       call OST3Irq.allocate();
       call OST4_11Irq.allocate();
+      call OST0Irq.enable();
+      call OST1Irq.enable();
+      call OST2Irq.enable();
+      call OST3Irq.enable();
+      call OST4_11Irq.enable();
     }
+
     return SUCCESS;
   }
   
@@ -129,7 +135,7 @@ implementation {
     return val;
   }
 
-  async command bool PXA27xOST.getStatus[uint8_t chnl_id]() 
+  async command bool PXA27xOST.getOSSRbit[uint8_t chnl_id]() 
   {
     bool bFlag = FALSE;
     
@@ -140,7 +146,7 @@ implementation {
     return bFlag;
   }
 
-  async command bool PXA27xOST.clearStatus[uint8_t chnl_id]()
+  async command bool PXA27xOST.clearOSSRbit[uint8_t chnl_id]()
   {
     bool bFlag = FALSE;
 
@@ -154,37 +160,20 @@ implementation {
     return bFlag;
   }
 
-  async command void PXA27xOST.enableInterrupt[uint8_t chnl_id]()
+  async command void PXA27xOST.setOIERbit[uint8_t chnl_id](bool flag)
   {
-    // Opportunistic enable switch.  Enables underlying interrupt only when
-    // required.
-    switch (chnl_id) {
-    case 0:
-      call OST0Irq.enable();
-      break;
-    case 1:
-      call OST1Irq.enable();
-      break;
-    case 2:
-      call OST2Irq.enable();
-      break;
-    case 3:
-      call OST3Irq.enable();
-      break;
-    default:
-      call OST4_11Irq.enable();
-      break;
+    if (flag == TRUE) {
+      OIER |= (1 << chnl_id);
     }
-
-    OIER |= (1 << chnl_id);
+    else {
+      OIER &= ~(1 << chnl_id);      
+    }
     return;
   }
   
-  async command void PXA27xOST.disableInterrupt[uint8_t chnl_id]()
+  async command bool PXA27xOST.getOIERbit[uint8_t chnl_id]()
   {
-
-    OIER &= ~(1 << chnl_id);
-    return;
+    return ((OIER & (1 << chnl_id)) != 0);
   }
 
   async command uint32_t PXA27xOST.getOSNR[uint8_t chnl_id]() 
@@ -234,7 +223,7 @@ implementation {
 
     while (statusReg) {
       chnl = 31 - _pxa27x_clzui(statusReg);
-      DispatchOSTInterrupt(chnl);  // Function Clears status bit
+      DispatchOSTInterrupt(chnl); 
       statusReg &= ~(1 << chnl);
     }
       
@@ -243,7 +232,8 @@ implementation {
 
   default async event void PXA27xOST.fired[uint8_t chnl_id]() 
   {
-    call PXA27xOST.clearStatus[chnl_id]();
+    call PXA27xOST.setOIERbit[chnl_id](FALSE);
+    call PXA27xOST.clearOSSRbit[chnl_id]();
     return;
   }
 
