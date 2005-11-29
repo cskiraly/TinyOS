@@ -1,4 +1,4 @@
-//$Id: VirtualizeAlarmC.nc,v 1.1.2.4 2005-11-11 02:27:36 jpolastre Exp $
+//$Id: VirtualizeAlarmC.nc,v 1.1.2.5 2005-11-29 03:13:47 philipb Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -40,7 +40,7 @@ implementation
   size_type m_dt[NUM_ALARMS];
   bool m_isset[NUM_ALARMS];
 
-  command result_t Init.init()
+  command error_t Init.init()
   {
     return SUCCESS;
   }
