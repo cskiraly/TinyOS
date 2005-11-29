@@ -1,4 +1,4 @@
-//$Id: TransformAlarmCounterC.nc,v 1.1.2.2 2005-11-11 00:25:48 idgay Exp $
+//$Id: TransformAlarmCounterC.nc,v 1.1.2.3 2005-11-29 03:12:22 philipb Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -247,6 +247,9 @@ implementation
   }
 
   default async event void Alarm.fired()
+  {
+  }
+  default async event void Counter.overflow()
   {
   }
 }
