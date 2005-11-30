@@ -27,8 +27,8 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.2 $
-* $Date: 2005-11-23 20:22:48 $
+* $Revision: 1.1.2.3 $
+* $Date: 2005-11-30 20:14:48 $
 * ========================================================================
 */
 
@@ -105,7 +105,7 @@ implementation {
 	}
 	task void ReceiveTask() {
 		TOSRadioHeader* header = getHeader((message_t*)(&rxMsg));
-		signal Receive.receive((message_t*)rxBufPtr, (void*)rxBufPtr, header->length);
+		signal Receive.receive((message_t*)rxBufPtr, ((message_t*)rxBufPtr)->data, header->length);
 		call PhyPacketRx.recvHeader();
 	}   
 
@@ -129,9 +129,8 @@ implementation {
 			header->length = len;
 			// TOSHeader can contain more than only the TOSRadioHeader 
 			// (see /tos/platforms/mica2/RadioTOSMsg.h should be PlatformTOSMsg.h or something)
-			byteCnt = (sizeof(TOSHeader) - sizeof(TOSRadioHeader)) -1; // offset
+			byteCnt = (sizeof(TOSHeader) - sizeof(TOSRadioHeader)); // offset
 		}
-
 		call PhyPacketTx.sendHeader();	
 		return SUCCESS;
 	}
@@ -197,7 +196,7 @@ implementation {
 
 	/**************** Radio Receive ****************/
 	async event void PhyPacketRx.recvHeaderDone() {
-		byteCnt = (sizeof(TOSHeader) - sizeof(TOSRadioHeader)) -1; 
+		byteCnt = (sizeof(TOSHeader) - sizeof(TOSRadioHeader)); 
 		getHeader(&rxMsg)->length = sizeof(TOSRadioHeader);
 	}  
 
@@ -211,11 +210,10 @@ implementation {
 
 	/* Receive the next Byte from the USART */
 	void ReceiveNextByte(uint8_t data) { //ReceiveNextPayload
-		uint8_t rxLength = getHeader(&rxMsg)->length + offsetof(message_t, data);
 		rxBufPtr[byteCnt++] = data;
-		if (byteCnt <= rxLength) {
+		if ( byteCnt < (getHeader(&rxMsg)->length + sizeof(TOSRadioHeader)) ) {
 			crc = crcByte(crc, data);
-		} else {
+		} else if ( byteCnt == (getHeader(&rxMsg)->length + sizeof(TOSRadioHeader) + sizeof(TOSRadioFooter)) ) {
 			TOSRadioFooter* footer = getFooter((message_t*)rxBufPtr);
 			// we don't care about wrong crc in this layer
 			footer->crc = (footer->crc == crc);
