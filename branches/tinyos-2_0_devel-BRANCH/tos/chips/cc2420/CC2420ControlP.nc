@@ -120,8 +120,6 @@ implementation {
     signal Resource.granted();
   }
 
-  event void SpiResource.requested() {}
-
   async command error_t CC2420Config.startVReg() {
     atomic {
       if ( m_state != S_VREG_STOPPED )

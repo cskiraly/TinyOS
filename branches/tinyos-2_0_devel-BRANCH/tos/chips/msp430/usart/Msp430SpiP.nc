@@ -87,10 +87,6 @@ implementation {
     signal Resource.granted[ id ]();
   }
 
-  event void UsartResource.requested[ uint8_t id ]() {
-    signal Resource.requested[ id ]();
-  }
-
   async command error_t SPIByte.write( uint8_t tx, uint8_t* rx ) {
 
     call HplUsart.tx( tx );
@@ -101,7 +97,6 @@ implementation {
 
   }
 
-  default event void Resource.requested[ uint8_t id ] () {}
   default event void Resource.granted[ uint8_t id ]() {}
 
   void continueOp() {

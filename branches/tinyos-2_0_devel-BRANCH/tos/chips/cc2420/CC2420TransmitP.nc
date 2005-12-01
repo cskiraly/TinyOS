@@ -430,7 +430,6 @@ implementation {
 
   }
 
-  event void SpiResource.requested() {}
   async event void TXFIFO.readDone( uint8_t* tx_buf, uint8_t tx_len, error_t error ) {}
 
   default async event void TimeStamp.transmittedSFD( uint16_t time, message_t* p_msg ) {}

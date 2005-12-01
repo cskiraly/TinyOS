@@ -275,7 +275,4 @@ implementation {
   }
 
   async event void RXFIFO.writeDone( uint8_t* tx_buf, uint8_t tx_len, error_t error ) {}  
-
-  event void SpiResource.requested() {}
-
 }
