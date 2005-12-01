@@ -1,4 +1,4 @@
-/* $Id: RadioTOSMsg.h,v 1.1.2.2 2005-12-01 17:46:33 phihup Exp $
+/* $Id: PlatformTOSMsg.h,v 1.1.2.1 2005-12-01 17:46:33 phihup Exp $
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -34,17 +34,27 @@
  * @author Philip Levis
  * @author Vlado Handziski (TDA5250 Modifications)
  * @date   May 16 2005
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.1 $
  */
 
 
-#ifndef RADIO_TOS_MSG_H
-#define RADIO_TOS_MSG_H
+#ifndef PLATFORM_TOS_MSG_H
+#define PLATFORM_TOS_MSG_H
 
+#include "Serial.h"
 #include "TDA5250Msg.h"
 
-typedef TDA5250Header message_radio_header_t;
-typedef TDA5250Footer message_radio_footer_t;
-typedef TDA5250Metadata message_radio_metadata_t;
+typedef union message_header_t {
+  TDA5250Header radio;
+  SerialAMHeader serial;
+} message_header_t;
+
+typedef union message_footer_t {
+  TDA5250Footer radio;
+} message_footer_t;
+
+typedef union message_metadata_t {
+  TDA5250Metadata radio;
+} message_metadata_t;
 
 #endif

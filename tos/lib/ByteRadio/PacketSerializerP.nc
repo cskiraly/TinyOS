@@ -27,8 +27,8 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.3 $
-* $Date: 2005-11-30 20:14:48 $
+* $Revision: 1.1.2.4 $
+* $Date: 2005-12-01 17:46:32 $
 * ========================================================================
 */
 
@@ -36,7 +36,8 @@
 
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // dirty hack for now
-#define TOSHeader	TOSRadioHeader
+#include "PlatformTOSMsg.h"
+#include "RadioTOSMsg.h"
 
 /**
 * PacketSerializerP module
@@ -63,7 +64,7 @@ uses {
 implementation {
 	/**************** Module Global Variables  *****************/
 	typedef enum {
-		STATE_CRC1,
+                STATE_CRC1,
 		STATE_CRC2,
 		STATE_CRC_DONE,
 	} crcState_t;
@@ -79,18 +80,18 @@ implementation {
 	void TransmitNextByte();
 	void ReceiveNextByte(uint8_t data);
 
-	// platform-independant radiostructures are called TOSRadioHeader & TOSRadioFooter
+	// platform-independant radiostructures are called message_radio_header_t & message_radio_footer_t
 	/**************** Packet structure accessor functions************/
-	TOSRadioHeader* getHeader(message_t* amsg) {
-		return (TOSRadioHeader*)(amsg->data - sizeof(TOSRadioHeader));
+	message_radio_header_t* getHeader(message_t* amsg) {
+		return (message_radio_header_t*)(amsg->data - sizeof(message_radio_header_t));
 	}
 
-	TOSRadioFooter* getFooter(message_t* amsg) {
-		return (TOSRadioFooter*)(amsg->footer);
+	message_radio_footer_t* getFooter(message_t* amsg) {
+		return (message_radio_footer_t*)(amsg->footer);
 	}
 
-	TOSRadioMetadata* getMetadata(message_t* amsg) {
-		return (TOSRadioMetadata*)((uint8_t*)amsg->footer + sizeof(TOSRadioFooter));
+ message_radio_metadata_t* getMetadata(message_t* amsg) {
+   return (message_radio_metadata_t*)((uint8_t*)amsg->footer + sizeof(message_radio_footer_t));
 	}
 
 	/**************** Task Declarations  *****************/   
@@ -104,7 +105,7 @@ implementation {
 		signal Send.sendDone((message_t*)txBufPtr, FAIL);
 	}
 	task void ReceiveTask() {
-		TOSRadioHeader* header = getHeader((message_t*)(&rxMsg));
+		message_radio_header_t* header = getHeader((message_t*)(&rxMsg));
 		signal Receive.receive((message_t*)rxBufPtr, ((message_t*)rxBufPtr)->data, header->length);
 		call PhyPacketRx.recvHeader();
 	}   
@@ -122,14 +123,14 @@ implementation {
 
 	/**************** Radio Send ****************/
 	command error_t Send.send(message_t* msg, uint8_t len) {
-		TOSRadioHeader* header = getHeader(msg);
+		message_radio_header_t* header = getHeader(msg);
 		atomic {
 			crc = 0;
 			txBufPtr = (uint8_t*) msg;
 			header->length = len;
-			// TOSHeader can contain more than only the TOSRadioHeader 
+			// message_header_t can contain more than only the message_radio_header_t 
 			// (see /tos/platforms/mica2/RadioTOSMsg.h should be PlatformTOSMsg.h or something)
-			byteCnt = (sizeof(TOSHeader) - sizeof(TOSRadioHeader)); // offset
+			byteCnt = (sizeof(message_header_t) - sizeof(message_radio_header_t)); // offset
 		}
 		call PhyPacketTx.sendHeader();	
 		return SUCCESS;
@@ -159,8 +160,8 @@ implementation {
 	}   
 
 	void TransmitNextByte() {
-		TOSRadioHeader* header = getHeader((message_t*) txBufPtr);
-		if (byteCnt < header->length + sizeof(TOSHeader) ) {  // send (data + header), compute crc
+   message_radio_header_t* header = getHeader((message_t*) txBufPtr);
+  if (byteCnt < header->length + sizeof(message_header_t) ) {  // send (data + header), compute crc
 			atomic {
 				crcState = STATE_CRC1;
 				crc = crcByte(crc, txBufPtr[byteCnt]);
@@ -196,8 +197,8 @@ implementation {
 
 	/**************** Radio Receive ****************/
 	async event void PhyPacketRx.recvHeaderDone() {
-		byteCnt = (sizeof(TOSHeader) - sizeof(TOSRadioHeader)); 
-		getHeader(&rxMsg)->length = sizeof(TOSRadioHeader);
+   byteCnt = (sizeof(message_header_t) - sizeof(message_radio_header_t)); 
+   getHeader(&rxMsg)->length = sizeof(message_radio_header_t);
 	}  
 
 	async event void RadioByteComm.rxByteReady(uint8_t data) {
@@ -211,10 +212,10 @@ implementation {
 	/* Receive the next Byte from the USART */
 	void ReceiveNextByte(uint8_t data) { //ReceiveNextPayload
 		rxBufPtr[byteCnt++] = data;
-		if ( byteCnt < (getHeader(&rxMsg)->length + sizeof(TOSRadioHeader)) ) {
+  if ( byteCnt < (getHeader(&rxMsg)->length + sizeof(message_radio_header_t)) ) {
 			crc = crcByte(crc, data);
-		} else if ( byteCnt == (getHeader(&rxMsg)->length + sizeof(TOSRadioHeader) + sizeof(TOSRadioFooter)) ) {
-			TOSRadioFooter* footer = getFooter((message_t*)rxBufPtr);
+  } else if ( byteCnt == (getHeader(&rxMsg)->length + sizeof(message_radio_header_t) + sizeof(message_radio_footer_t)) ) {
+			message_radio_footer_t* footer = getFooter((message_t*)rxBufPtr);
 			// we don't care about wrong crc in this layer
 			footer->crc = (footer->crc == crc);
 			call PhyPacketRx.recvFooter();
