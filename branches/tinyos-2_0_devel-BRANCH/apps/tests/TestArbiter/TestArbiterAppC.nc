@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-08-13 02:52:56 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-12-01 04:18:40 $ 
  * ======================================================================== 
  */
  
@@ -43,15 +43,15 @@
 configuration TestArbiterAppC{
 }
 implementation {
-  components MainC, TestArbiterC,
-     // new RoundRobinArbiterC(TEST_ARBITER_RESOURCE) as Arbiter, 
-     new FcfsArbiterC(TEST_ARBITER_RESOURCE) as Arbiter, LedsC;
+  components MainC, TestArbiterC,LedsC,
+     new RoundRobinArbiterC(TEST_ARBITER_RESOURCE) as Arbiter; 
+     //new FcfsArbiterC(TEST_ARBITER_RESOURCE) as Arbiter;
 
   TestArbiterC -> MainC.Boot;
   MainC.SoftwareInit -> LedsC;
   MainC.SoftwareInit -> Arbiter;
  
-  TestArbiterC.ResourceUser -> Arbiter.ResourceUser;  
+  TestArbiterC.Arbiter -> Arbiter.Arbiter;  
   TestArbiterC.Resource0 -> Arbiter.Resource[unique(TEST_ARBITER_RESOURCE)];
   TestArbiterC.Resource1 -> Arbiter.Resource[unique(TEST_ARBITER_RESOURCE)];
   TestArbiterC.Resource2 -> Arbiter.Resource[unique(TEST_ARBITER_RESOURCE)];
