@@ -1,40 +1,29 @@
-/* Copyright (C) 2005, Washington University in Saint Louis 
- * 
- * Washington University states that this is free software; 
- * you can redistribute it and/or modify it under the terms of 
- * the current version of the GNU Lesser General Public License 
- * as published by the Free Software Foundation.
- * 
- * This software is distributed in the hope that it will be useful, but 
- * THERE ARE NO WARRANTIES, WHETHER ORAL OR WRITTEN, EXPRESS OR 
- * IMPLIED, INCLUDING BUT NOT LIMITED TO, IMPLIED WARRANTIES OF 
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE.
+/*
+ * "Copyright (c) 2005 Washington University in St. Louis.
+ * All rights reserved.
  *
- * YOU UNDERSTAND THAT THIS SOFTWARE IS PROVIDED "AS IS" FOR WHICH NO 
- * WARRANTIES AS TO CAPABILITIES OR ACCURACY ARE MADE. THERE ARE NO 
- * WARRANTIES AND NO REPRESENTATION THAT THIS SOFTWARE IS FREE OF 
- * INFRINGEMENT OF THIRD PARTY PATENT, COPYRIGHT, OR OTHER 
- * PROPRIETARY RIGHTS.  THERE ARE NO WARRANTIES THAT SOFTWARE IS 
- * FREE FROM "BUGS", "VIRUSES", "TROJAN HORSES", "TRAP DOORS", "WORMS", 
- * OR OTHER HARMFUL CODE.  
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation for any purpose, without fee, and without written agreement is
+ * hereby granted, provided that the above copyright notice, the following
+ * two paragraphs and the author appear in all copies of this software.
  *
- * YOU ASSUME THE ENTIRE RISK AS TO THE PERFORMANCE OF SOFTWARE AND/OR 
- * ASSOCIATED MATERIALS, AND TO THE PERFORMANCE AND VALIDITY OF 
- * INFORMATION GENERATED USING SOFTWARE. By using this code you agree to 
- * indemnify, defend, and hold harmless WU, its employees, officers and 
- * agents from any and all claims, costs, or liabilities, including 
- * attorneys fees and court costs at both the trial and appellate levels 
- * for any loss, damage, or injury caused by your actions or actions of 
- * your officers, servants, agents or third parties acting on behalf or 
- * under authorization from you, as a result of using this code. 
+ * IN NO EVENT SHALL WASHINGTON UNIVERSITY IN ST. LOUIS BE LIABLE TO ANY PARTY 
+ * FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING 
+ * OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF WASHINGTON 
+ * UNIVERSITY IN ST. LOUIS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * See the GNU Lesser General Public License for more details, which can 
- * be found here: http://www.gnu.org/copyleft/lesser.html
+ * WASHINGTON UNIVERSITY IN ST. LOUIS SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND WASHINGTON UNIVERSITY IN ST. LOUIS HAS NO 
+ * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
+ * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-12-01 04:13:25 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-12-01 04:51:32 $ 
  * ======================================================================== 
+ *
  */
  
  /**
