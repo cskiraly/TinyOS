@@ -25,9 +25,10 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2005-05-20 08:40:08 $ 
+ * $Revision: 1.1.2.6 $
+ * $Date: 2005-12-01 04:13:24 $ 
  * ======================================================================== 
  */
  
@@ -70,10 +71,4 @@ interface Resource {
    * Release a shared resource you previously acquired.
    */
   async command void release();
-   
-  /**
-   * Some other component has requested this resource. You might
-   * want to consider releasing it.
-   */
-  event void requested();
 }
