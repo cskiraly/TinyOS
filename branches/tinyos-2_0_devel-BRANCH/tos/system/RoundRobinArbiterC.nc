@@ -26,14 +26,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-11-11 21:20:36 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-12-01 04:14:00 $ 
  * ======================================================================== 
  */
  
  /**
  * RoundRobinArbiter generic module
- * The RoundRobinArbiter component provides the Resource and ResourceUser 
+ * The RoundRobinArbiter component provides the Resource and Arbiter 
  * interfaces.  It provides arbitration to a shared resource in a round 
  * robin fashion.  An array keeps track of which users have put in 
  * requests for the resource.  Upon the release of the resource, this
@@ -49,7 +49,11 @@ generic module RoundRobinArbiterC(char resourceName[]) {
   provides {
     interface Init;
     interface Resource[uint8_t id];
-    interface ResourceUser;
+    interface ResourceRequested[uint8_t id];
+    interface Arbiter;
+  }
+  uses {
+    interface ResourceConfigure[uint8_t id];
   }
 }
 implementation {
@@ -63,6 +67,7 @@ implementation {
   
   task void grantedTask();
   task void requestedTask();
+  task void idleTask();
   bool grantNextRequest();
   
   /**  
@@ -135,13 +140,15 @@ implementation {
    */
   async command error_t Resource.immediateRequest[uint8_t id]() {
     atomic {
-      if(state == RES_IDLE) {
+      if( state != RES_IDLE )
+        return EBUSY;
+      else {
         state = RES_BUSY;
         resId = id;
-        return SUCCESS;
       }
     }
-    return EBUSY;
+    call ResourceConfigure.configure[id]();
+    return SUCCESS;
   }  
   
   /**
@@ -160,6 +167,7 @@ implementation {
       if (state == RES_BUSY && resId == id)
 	if (grantNextRequest() == FAIL)
 	  {
+      post idleTask();
 	    state = RES_IDLE;
 	    resId = NO_RES;
 	  }
@@ -168,7 +176,7 @@ implementation {
   /**
      Check if the Resource is currently in use
   */    
-  async command bool ResourceUser.inUse() {
+  async command bool Arbiter.inUse() {
     atomic return state == RES_BUSY;
   }
 
@@ -177,7 +185,7 @@ implementation {
      If there is no current user, the return value
      will be 0xFF
   */      
-  async command uint8_t ResourceUser.user() {
+  async command uint8_t Arbiter.user() {
     atomic return resId;
   }
   
@@ -211,20 +219,30 @@ implementation {
     signal Resource.granted[id]();
   }
   
-  //Task for pulling the Resource.requested() signal
-  //into synchronous context   
+  //Task for pulling the ResourceRequested.requested() signal
+    //into synchronous context   
   task void requestedTask() {
     uint8_t id;
 
     atomic id = resId;
-    signal Resource.requested[id]();
+    signal ResourceRequested.requested[id]();
   } 
+
+  //Task for pulling the Arbiter.idle() signal
+    //into synchronous context   
+  task void idleTask() {
+    signal Arbiter.idle();
+  }
   
-  //Default event handlers for all of the other
-  //potential users of the parameterized interface 
-  //that have not been connected to.  
+  //Default event/command handlers for all of the other
+    //potential users/providers of the parameterized interfaces 
+    //that have not been connected to.  
   default event void Resource.granted[uint8_t id]() {
   }
-  default event void Resource.requested[uint8_t id]() {
+  default event void ResourceRequested.requested[uint8_t id]() {
+  }
+  default event void Arbiter.idle() {
+  }
+  default async command void ResourceConfigure.configure[uint8_t id]() {
   }
 }
