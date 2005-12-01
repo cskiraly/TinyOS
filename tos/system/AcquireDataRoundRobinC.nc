@@ -1,4 +1,4 @@
-/* $Id: AcquireDataRoundRobinC.nc,v 1.1.2.1 2005-08-07 20:33:56 scipio Exp $
+/* $Id: AcquireDataRoundRobinC.nc,v 1.1.2.2 2005-12-01 23:03:17 klueska Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -39,8 +39,6 @@ implementation {
     call Resource.release[client]();
     signal AcquireData.error[client](info);
   }
-
-  event void Resource.requested[uint8_t client]() { }
 
   default async command error_t Resource.request[uint8_t client]() { 
     return SUCCESS; 
