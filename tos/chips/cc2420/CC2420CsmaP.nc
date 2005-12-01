@@ -220,7 +220,5 @@ implementation {
     signal Send.sendDone( m_msg, packetErr );
   }
 
-  event void Resource.requested() {};
-
 }
 
