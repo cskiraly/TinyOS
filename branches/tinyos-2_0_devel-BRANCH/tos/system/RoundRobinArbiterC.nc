@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2005-12-01 04:14:00 $ 
+ * $Revision: 1.1.2.5 $
+ * $Date: 2005-12-02 00:55:54 $ 
  * ======================================================================== 
  */
  
@@ -57,18 +57,18 @@ generic module RoundRobinArbiterC(char resourceName[]) {
   }
 }
 implementation {
-  enum {RES_IDLE, RES_BUSY};
+  enum {RES_IDLE, RES_GRANTING, RES_BUSY};
   enum {NO_RES = 0xFF};
 
   uint8_t state = RES_IDLE;
   uint8_t resId = NO_RES;
   uint8_t reqResId;
   uint8_t request[(uniqueCount(resourceName)-1)/8 + 1];
+  bool irp = FALSE;
   
   task void grantedTask();
   task void requestedTask();
-  task void idleTask();
-  bool grantNextRequest();
+  void grantNextRequest();
   
   /**  
        Initialize the Arbiter to the idle state
@@ -85,12 +85,12 @@ implementation {
     request[id / 8] &= ~(1 << (id % 8));
   }
   
-  void queueRequest(uint8_t id) {
-    if (!requested(id))
-      {
-	request[id / 8] |=  1 << (id % 8);
-	post requestedTask();
-      }
+  error_t queueRequest(uint8_t id) {
+    if (!requested(id)){
+	    request[id / 8] |=  1 << (id % 8);
+      return SUCCESS;
+    }
+    return EBUSY;
   }
   
   /**
@@ -112,23 +112,20 @@ implementation {
      be returned to the caller.
   */
   async command error_t Resource.request[uint8_t id]() {
-    
     error_t error;
-    
+    uint8_t ownerId;
     atomic {
-      error = requested( id ) ? EBUSY : SUCCESS;
-      if(state == RES_IDLE) {
-	state = RES_BUSY;
-	reqResId = id;
-	post grantedTask();
+      if( state == RES_IDLE ) {
+        state = RES_GRANTING;
+        reqResId = id;
+        post grantedTask();
+        return SUCCESS;
       }
-      else {
-	queueRequest(id);
-      }
+      ownerId = resId;
+      error = queueRequest( id );
     }
-    
+    post requestedTask();
     return error;
-    
   } 
   
   /**
@@ -138,17 +135,41 @@ implementation {
    * while a return value of EBUSY signifies that the resource is 
    * currently being used.
    */
-  async command error_t Resource.immediateRequest[uint8_t id]() {
+  uint8_t tryImmediateRequest(uint8_t id) {
     atomic {
-      if( state != RES_IDLE )
-        return EBUSY;
-      else {
+      if( state == RES_IDLE ) {
         state = RES_BUSY;
         resId = id;
+        return id;
       }
+      return resId;
+    }     
+  }
+  async command error_t Resource.immediateRequest[uint8_t id]() {
+    uint8_t ownerId = tryImmediateRequest(id);
+
+    if(ownerId == id) {
+      call ResourceConfigure.configure[id]();
+      return SUCCESS;
     }
-    call ResourceConfigure.configure[id]();
-    return SUCCESS;
+    else if(ownerId == NO_RES)  //Only happens when in RES_GRANTING
+      return EBUSY;
+    else {
+      atomic {
+        irp = TRUE;  //indicate that immediateRequest is pending
+        reqResId = id; //Id to grant resource to if can
+      }  
+      signal ResourceRequested.requested[ownerId]();
+      atomic {
+        ownerId = resId;   //See if I have been granted the resource
+        irp = FALSE;  //Indicate that immediate request no longer pending
+      }
+      if(ownerId == id) {
+        call ResourceConfigure.configure[id]();
+        return SUCCESS;
+      }
+      return EBUSY;
+    }
   }  
   
   /**
@@ -163,14 +184,16 @@ implementation {
      for immediate access to the resource.
   */
   async command void Resource.release[uint8_t id]() {
-    atomic
-      if (state == RES_BUSY && resId == id)
-	if (grantNextRequest() == FAIL)
-	  {
-      post idleTask();
-	    state = RES_IDLE;
-	    resId = NO_RES;
-	  }
+    uint8_t currentState;
+    atomic {
+      if ( ( state == RES_BUSY ) && ( resId == id ) )
+        if(irp == TRUE)
+          resId = reqResId;
+        else grantNextRequest();
+        currentState = state;
+    }
+    if(currentState == RES_IDLE)
+      signal Arbiter.idle();
   }
     
   /**
@@ -191,47 +214,44 @@ implementation {
   
   //Grant a request to the next Pending user
   //in Round-Robin order
-  bool grantNextRequest() {
+  void grantNextRequest() {
     int i;
     
-    for (i = resId + 1; ; i++)
-      {
-	if (i >= uniqueCount(resourceName))
-	  i = 0;
-	if (i == resId)
-	  break;
-	if (requested(i)) {
-	  reqResId = i;
-	  clearRequest(i);
-	  post grantedTask();
-	  return SUCCESS;
-	}  
-      }
-    return FAIL;
+    for (i = resId + 1; ; i++) {
+	    if (i >= uniqueCount(resourceName))
+	    i = 0;
+	    if (i == resId)
+	      break;
+	    if (requested(i)) {
+	      reqResId = i;
+	      clearRequest(i);
+	      post grantedTask();
+	      return;
+	    }  
+    }
+    state = RES_IDLE;
+    resId = NO_RES;
   }
   
   //Task for pulling the Resource.granted() signal
   //into synchronous context  
   task void grantedTask() {
     uint8_t id;
-
-    atomic id = resId = reqResId;
+    atomic {
+      id = resId = reqResId;
+      state = RES_BUSY;
+    }
     signal Resource.granted[id]();
   }
-  
+
   //Task for pulling the ResourceRequested.requested() signal
-    //into synchronous context   
+    //into synchronous context  
   task void requestedTask() {
-    uint8_t id;
-
-    atomic id = resId;
-    signal ResourceRequested.requested[id]();
-  } 
-
-  //Task for pulling the Arbiter.idle() signal
-    //into synchronous context   
-  task void idleTask() {
-    signal Arbiter.idle();
+    uint8_t tmpId;
+    atomic {
+      tmpId = resId;
+    }
+    signal ResourceRequested.requested[tmpId]();
   }
   
   //Default event/command handlers for all of the other
@@ -239,9 +259,9 @@ implementation {
     //that have not been connected to.  
   default event void Resource.granted[uint8_t id]() {
   }
-  default event void ResourceRequested.requested[uint8_t id]() {
+  default async event void ResourceRequested.requested[uint8_t id]() {
   }
-  default event void Arbiter.idle() {
+  default async event void Arbiter.idle() {
   }
   default async command void ResourceConfigure.configure[uint8_t id]() {
   }
