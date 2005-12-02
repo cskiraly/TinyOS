@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2005-12-01 04:14:00 $ 
+ * $Revision: 1.1.2.5 $
+ * $Date: 2005-12-02 00:55:53 $ 
  * ======================================================================== 
  */
  
@@ -45,7 +45,7 @@
  * The code for implementing the FCFS scheme has been borrowed from the 
  * SchedulerBasic component written by Philip Levis and Cory Sharp
  * 
- * @author Kevin Klues <klues@tkn.tu-berlin.de>
+ * @author Kevin Klues <klueska@cs.wustl.edu>
  * @author Philip Levis
  */
  
@@ -62,7 +62,7 @@ generic module FcfsArbiterC(char resourceName[]) {
 }
 implementation {
 
-  enum {RES_IDLE, RES_BUSY};
+  enum {RES_IDLE, RES_GRANTING, RES_BUSY};
   enum {NO_RES = 0xFF};
 
   uint8_t state = RES_IDLE;
@@ -71,11 +71,11 @@ implementation {
   uint8_t resQ[uniqueCount(resourceName)];
   uint8_t qHead = NO_RES;
   uint8_t qTail = NO_RES;
+  bool irp = FALSE;
   
   task void grantedTask();
   task void requestedTask();
-  task void idleTask();
-  void queueRequest(uint8_t id);
+  error_t queueRequest(uint8_t id);
   void grantNextRequest();
   
   bool requested(uint8_t id) {
@@ -109,45 +109,66 @@ implementation {
     be returned to the caller.
   */
   async command error_t Resource.request[uint8_t id]() {
-
     error_t error;
+    uint8_t ownerId;
     atomic {
-      error = requested( id ) ? EBUSY : SUCCESS;
       if( state == RES_IDLE ) {
-        state = RES_BUSY;
+        state = RES_GRANTING;
         reqResId = id;
-	post grantedTask();
+	      post grantedTask();
+        return SUCCESS;
       }
-      else {
-//TOSH_TOGGLE_LED2_PIN();
-	queueRequest( id );
-      }
+      ownerId = resId;
+	    error = queueRequest( id );
     }
-
+    post requestedTask();
     return error;
-
   } 
   
-   /**
-   * Request immediate access to the shared resource.  Requests are
-   * not queued, and no granted event is returned.  A return value 
-   * of SUCCESS signifies that the resource has been granted to you,
-   * while a return value of EBUSY signifies that the resource is 
-   * currently being used.
-   */
-  async command error_t Resource.immediateRequest[uint8_t id]() {
+  /**
+  * Request immediate access to the shared resource.  Requests are
+  * not queued, and no granted event is returned.  A return value 
+  * of SUCCESS signifies that the resource has been granted to you,
+  * while a return value of EBUSY signifies that the resource is 
+  * currently being used.
+  */
+  uint8_t tryImmediateRequest(uint8_t id) {
     atomic {
-      if( state != RES_IDLE )
-        return EBUSY;
-      else {
+      if( state == RES_IDLE ) {
         state = RES_BUSY;
         resId = id;
+        return id;
       }
+      return resId;
+    }     
+  }
+  async command error_t Resource.immediateRequest[uint8_t id]() {
+    uint8_t ownerId = tryImmediateRequest(id);
+
+    if(ownerId == id) {
+      call ResourceConfigure.configure[id]();
+      return SUCCESS;
     }
-    call ResourceConfigure.configure[id]();
-    return SUCCESS;
-  }    
-  
+    else if(ownerId == NO_RES)  //Only happens when in RES_GRANTING
+      return EBUSY;
+    else {
+      atomic {
+        irp = TRUE;  //indicate that immediateRequest is pending
+        reqResId = id; //Id to grant resource to if can
+      }  
+      signal ResourceRequested.requested[ownerId]();
+      atomic {
+        ownerId = resId;   //See if I have been granted the resource
+        irp = FALSE;  //Indicate that immediate request no longer pending
+      }
+      if(ownerId == id) {
+        call ResourceConfigure.configure[id]();
+        return SUCCESS;
+      }
+      return EBUSY;
+    }
+  }  
+ 
   /**
     Release the use of the shared resource
     
@@ -161,10 +182,16 @@ implementation {
     the resource.
   */
   async command void Resource.release[uint8_t id]() {
+    uint8_t currentState;
     atomic {
       if ( ( state == RES_BUSY ) && ( resId == id ) )
-	grantNextRequest();
+        if(irp == TRUE)
+          resId = reqResId;
+	      else grantNextRequest();
+        currentState = state;
     }
+    if(currentState == RES_IDLE)
+      signal Arbiter.idle();
   } 
     
   /**
@@ -200,7 +227,6 @@ implementation {
       post grantedTask();
     }
     else {
-      post idleTask();
       state = RES_IDLE;
       resId = NO_RES;
     }
@@ -208,16 +234,17 @@ implementation {
   
   //Queue the requests so that they can be granted
     //in FCFS order after release of the resource
-  void queueRequest(uint8_t id) {
+  error_t queueRequest(uint8_t id) {
     atomic {
       if( !requested( id ) ) { 
-	if(qHead == NO_RES )
-	  qHead = id;
-	else
-	  resQ[qTail] = id;
-	qTail = id;
-	post requestedTask();
+	      if(qHead == NO_RES )
+	        qHead = id;
+	      else
+	        resQ[qTail] = id;
+	      qTail = id;
+        return SUCCESS;
       }
+      return EBUSY;
     }
   }
   
@@ -227,24 +254,20 @@ implementation {
     uint8_t tmpId;
     atomic {
       tmpId = resId = reqResId;
+      state = RES_BUSY;
     }
     call ResourceConfigure.configure[tmpId]();
     signal Resource.granted[tmpId]();
   }
-  
+
   //Task for pulling the ResourceRequested.requested() signal
-    //into synchronous context   
+    //into synchronous context  
   task void requestedTask() {
-    uint8_t id;
-
-    atomic id = resId;
-    signal ResourceRequested.requested[id]();
-  } 
-
-  //Task for pulling the Arbiter.idle() signal
-    //into synchronous context   
-  task void idleTask() {
-    signal Arbiter.idle();
+    uint8_t tmpId;
+    atomic {
+      tmpId = resId;
+    }
+    signal ResourceRequested.requested[tmpId]();
   }
   
   //Default event/command handlers for all of the other
@@ -252,9 +275,9 @@ implementation {
     //that have not been connected to.  
   default event void Resource.granted[uint8_t id]() {
   }
-  default event void ResourceRequested.requested[uint8_t id]() {
+  default async event void ResourceRequested.requested[uint8_t id]() {
   }
-  default event void Arbiter.idle() {
+  default async event void Arbiter.idle() {
   }
   default async command void ResourceConfigure.configure[uint8_t id]() {
   }
