@@ -48,8 +48,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-12-01 04:51:32 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-12-02 00:52:20 $ 
  * ======================================================================== 
  */
  
@@ -85,5 +85,5 @@ interface Arbiter {
    * Signalled both at startup and whenever a user releases the 
    *   resource and there are no more pending requests.
    */
-  event void idle(); 
+  async event void idle(); 
 }
