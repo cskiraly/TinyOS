@@ -20,8 +20,8 @@
  * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-12-01 04:51:32 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-12-02 00:52:20 $ 
  * ======================================================================== 
  *
  */
@@ -43,5 +43,5 @@ interface ResourceRequested {
    * Event signalled to resource onwer when resource has been requested
    * Owner might want to consider releasing it.
    */
-  event void requested();
+  async event void requested();
 }
