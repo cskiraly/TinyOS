@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.5 2005-10-31 19:34:02 scipio Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.6 2005-12-05 18:34:59 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.5 2005-10-31 19:34:02 scipio Exp $
+ * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.6 2005-12-05 18:34:59 scipio Exp $
  *
  */
 
@@ -56,7 +56,6 @@ configuration ActiveMessageC {
     interface Packet;
     interface AMPacket;
     interface PacketAcknowledgements;
-    interface LinkStats;
   }
 }
 implementation {
@@ -71,5 +70,4 @@ implementation {
   Packet       = AM;
   AMPacket     = AM;
   PacketAcknowledgements = AM;
-  LinkStats    = AM;
 }
