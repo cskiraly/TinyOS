@@ -20,8 +20,8 @@
  * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-12-06 22:11:54 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-12-06 23:04:02 $ 
  * ======================================================================== 
  *
  */
@@ -44,7 +44,7 @@ implementation {
              new OskiTimerMilliC() as StartTimer, new OskiTimerMilliC() as StopTimer,
              new FcfsArbiterC(MYCOMPONENT_RESOURCE) as Arbiter,
 //              new PowerManagerC() as PowerManager;
-             new DeferredPowerManagerC(1000) as PowerManager;
+             new DeferredPowerManagerC(750) as PowerManager;
 
   enum {
     POWER_MANAGER_RESOURCE_ID = unique(MYCOMPONENT_RESOURCE),
