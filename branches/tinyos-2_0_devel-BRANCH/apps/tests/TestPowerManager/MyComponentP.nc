@@ -20,8 +20,8 @@
  * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-12-01 05:10:14 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-12-06 22:11:54 $ 
  * ======================================================================== 
  *
  */
@@ -36,6 +36,7 @@ module MyComponentP {
   provides {
     interface SplitControl;
     interface StdControl;
+    interface AsyncSplitControl;
   }
   uses {
     interface Leds;
@@ -78,7 +79,21 @@ implementation {
     return SUCCESS;
   }
 
+  async command error_t AsyncSplitControl.start() {
+    call Leds.led0On();
+    signal AsyncSplitControl.startDone(SUCCESS);
+    return SUCCESS;
+  }
+
+  async command error_t AsyncSplitControl.stop() {
+    call Leds.led0Off();
+    signal AsyncSplitControl.stopDone(SUCCESS);
+    return SUCCESS;
+  }
+
   default event void SplitControl.startDone(error_t error) {}
   default event void SplitControl.stopDone(error_t error) {}
+  default async event void AsyncSplitControl.startDone(error_t error) {}
+  default async event void AsyncSplitControl.stopDone(error_t error) {}
 }
 
