@@ -1,4 +1,4 @@
-// $Id: AsyncSplitControl.nc,v 1.1.2.1 2005-12-06 22:04:11 klueska Exp $
+// $Id: AsyncSplitControl.nc,v 1.1.2.1 2005-12-06 22:53:04 klueska Exp $
 /*                  tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
