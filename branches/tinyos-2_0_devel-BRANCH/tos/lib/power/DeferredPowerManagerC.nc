@@ -21,23 +21,50 @@
  *
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-12-06 22:04:11 $ 
+ * $Date: 2005-12-06 22:53:04 $ 
  * ======================================================================== 
  *
  */
  
  /**
- * PowerDownCleanup interface
+ * PowerManagerC Component  
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
  */
+ 
+generic configuration DeferredPowerManagerC(uint32_t delay) {
+  provides {
+    interface Init;
+  }
+  uses {
+    interface StdControl;
+    interface SplitControl;
+    interface AsyncSplitControl;
 
-interface PowerDownCleanup {
-  /**
-   * Implemented by a resource provider that is connected to a
-   * PowerManager component implementing automatic shutdown
-   *
-   * Should run any cleanup code for the resource before powering down
-   */
-  async command void cleanup();
-} 
+    interface PowerDownCleanup;
+    interface Init as ArbiterInit;
+    interface Resource;
+    interface ResourceRequested;
+    interface Arbiter;
+  }
+}
+implementation {
+  components new OskiTimerMilliC(),
+             new DeferredPowerManagerP(delay) as PowerManager;
+
+  Init = PowerManager;
+ 
+  PowerManager.StdControl = StdControl;
+  PowerManager.SplitControl = SplitControl;
+  PowerManager.AsyncSplitControl = AsyncSplitControl;
+
+  PowerManager.PowerDownCleanup = PowerDownCleanup;
+ 
+  PowerManager.ArbiterInit  = ArbiterInit;
+  PowerManager.Arbiter = Arbiter;
+  PowerManager.Resource = Resource;
+  PowerManager.ResourceRequested = ResourceRequested;
+
+  PowerManager.TimerMilli -> OskiTimerMilliC;
+}
+
