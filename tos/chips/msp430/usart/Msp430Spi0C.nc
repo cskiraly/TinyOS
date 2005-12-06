@@ -39,7 +39,6 @@ configuration Msp430Spi0C {
 
   provides interface Init;
   provides interface Resource[ uint8_t id ];
-  provides interface ResourceUser;
 
   provides interface SPIByte;
   provides interface SPIPacket[ uint8_t id ];
@@ -55,7 +54,6 @@ implementation {
   Init = SpiP;
   Init = HplUsart;
   Resource = SpiP;
-  ResourceUser = HplUsart;
 
   SPIByte = SpiP;
   SPIPacket = SpiP;

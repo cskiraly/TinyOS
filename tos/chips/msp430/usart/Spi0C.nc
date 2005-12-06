@@ -38,7 +38,6 @@ generic configuration Spi0C() {
 
   provides interface Init;
   provides interface Resource;
-  provides interface ResourceUser;
   provides interface SPIByte;
   provides interface SPIPacket;
 
@@ -54,7 +53,6 @@ implementation {
   
   Init = SpiC.Init;
   Resource = SpiC.Resource[ CLIENT_ID ];
-  ResourceUser = SpiC.ResourceUser;
   SPIByte = SpiC.SPIByte;
   SPIPacket = SpiC.SPIPacket[ CLIENT_ID ];
 

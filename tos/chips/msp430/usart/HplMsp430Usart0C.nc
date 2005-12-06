@@ -30,7 +30,6 @@
 configuration HplMsp430Usart0C {
   provides interface Init;
   provides interface Resource[ uint8_t id ];
-  provides interface ResourceUser;
   provides interface HplMsp430Usart;
 }
 
@@ -42,7 +41,6 @@ implementation {
 
   Init = Arbiter;
   Resource = Arbiter;
-  ResourceUser = Arbiter;
   HplMsp430Usart = HplUsartP;
 
   HplUsartP.SIMO -> GIO.SIMO0;
