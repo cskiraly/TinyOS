@@ -20,8 +20,8 @@
  * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-12-01 05:10:14 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-12-06 22:11:54 $ 
  * ======================================================================== 
  *
  */
@@ -44,9 +44,7 @@ implementation {
              new OskiTimerMilliC() as StartTimer, new OskiTimerMilliC() as StopTimer,
              new FcfsArbiterC(MYCOMPONENT_RESOURCE) as Arbiter,
 //              new PowerManagerC() as PowerManager;
-//              new DeferredPowerManagerC(2000) as PowerManager;
-//              new SplitPhasePowerManagerC() as PowerManager;
-             new SplitPhaseDeferredPowerManagerC(2000) as PowerManager;
+             new DeferredPowerManagerC(1000) as PowerManager;
 
   enum {
     POWER_MANAGER_RESOURCE_ID = unique(MYCOMPONENT_RESOURCE),
@@ -58,7 +56,8 @@ implementation {
   Resource = Arbiter;
  
 //   PowerManager.StdControl -> MyComponentP.StdControl; 
-  PowerManager.SplitControl -> MyComponentP.SplitControl;  
+//   PowerManager.SplitControl -> MyComponentP.SplitControl;  
+  PowerManager.AsyncSplitControl -> MyComponentP.AsyncSplitControl;  
   PowerManager.ArbiterInit -> Arbiter.Init;  
   PowerManager.Arbiter -> Arbiter.Arbiter;
   PowerManager.Resource -> Arbiter.Resource[POWER_MANAGER_RESOURCE_ID];

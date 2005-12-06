@@ -1,5 +1,5 @@
 COMPONENT=TestPowerManagerAppC
 OPTFLAGS = -O0
-PFLAGS += -I%T/lib/oski
+PFLAGS += -I%T/lib/oski -I%T/lib/pm
 include $(MAKERULES)
 
