@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-12-01 04:18:40 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-12-06 22:58:17 $ 
  * ======================================================================== 
  */
  
@@ -47,14 +47,22 @@ implementation {
      new RoundRobinArbiterC(TEST_ARBITER_RESOURCE) as Arbiter; 
      //new FcfsArbiterC(TEST_ARBITER_RESOURCE) as Arbiter;
 
+  enum {
+    RESOURCE0_ID = unique(TEST_ARBITER_RESOURCE),
+    RESOURCE1_ID = unique(TEST_ARBITER_RESOURCE),
+    RESOURCE2_ID = unique(TEST_ARBITER_RESOURCE),
+  };
+
   TestArbiterC -> MainC.Boot;
   MainC.SoftwareInit -> LedsC;
   MainC.SoftwareInit -> Arbiter;
  
-  TestArbiterC.Arbiter -> Arbiter.Arbiter;  
-  TestArbiterC.Resource0 -> Arbiter.Resource[unique(TEST_ARBITER_RESOURCE)];
-  TestArbiterC.Resource1 -> Arbiter.Resource[unique(TEST_ARBITER_RESOURCE)];
-  TestArbiterC.Resource2 -> Arbiter.Resource[unique(TEST_ARBITER_RESOURCE)];
+  TestArbiterC.ResourceRequested0 -> Arbiter.ResourceRequested[RESOURCE0_ID];  
+  TestArbiterC.ResourceRequested1 -> Arbiter.ResourceRequested[RESOURCE1_ID];  
+  TestArbiterC.ResourceRequested2 -> Arbiter.ResourceRequested[RESOURCE2_ID];  
+  TestArbiterC.Resource0 -> Arbiter.Resource[RESOURCE0_ID];
+  TestArbiterC.Resource1 -> Arbiter.Resource[RESOURCE1_ID];
+  TestArbiterC.Resource2 -> Arbiter.Resource[RESOURCE2_ID];
   
   TestArbiterC.Leds -> LedsC;
 }
