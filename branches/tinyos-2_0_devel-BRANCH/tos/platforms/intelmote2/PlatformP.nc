@@ -35,38 +35,86 @@ includes hardware;
 
 module PlatformP {
   provides interface Init;
-  uses interface Init as SubInit;
+  uses {
+    interface Init as InitL0;
+    interface Init as InitL1;
+    interface Init as InitL2;
+    interface Init as InitL3;
+    interface Init as PMICInit;
+  }
 }
 implementation {
+
+  //void enableICache() @C();
   command error_t Init.init() {
 
-
+    // Enable clocks to critical components 
     CKEN = (CKEN22_MEMC | CKEN20_IMEM | CKEN15_PMI2C | CKEN9_OST);
+    // Set the arbiter to something meaningful for this platform
+    ARB_CNTL = (ARB_CNTL_CORE_PARK | 
+		ARB_CNTL_LCD_WT(0) | ARB_CNTL_DMA_WT(1) | ARB_CNTL_CORE_WT(4));
+
+
     OSCC = (OSCC_OON);
-    
     while ((OSCC & OSCC_OOK) == 0);
     
     TOSH_SET_PIN_DIRECTIONS();
 
+    // Enable access to CP6 (Interrupt Controller processor)
+    // Enable access to Intel WMMX enhancements
+    asm volatile ("mcr p15,0,%0,c15,c1,0\n\t": : "r" (0x43));
+
+#ifdef PXA27X_13M
      // Place PXA27X into 13M w/ PPLL enabled...
     // other bits are ignored...but might be useful later
     CCCR = (CCCR_CPDIS | CCCR_L(8) | CCCR_2N(2) | CCCR_A);
     asm volatile (
 		  "mcr p14,0,%0,c6,c0,0\n\t"
 		  :
-		  : "r" (0x2)
+		  : "r" (CLKCFG_F)
 		  );
 
-    // Enable access to CP6 (Interrupt Controller processor)
-    // Enable access to Intel WMMX enhancements
-    asm volatile ("mcr p15,0,%0,c15,c1,0\n\t": : "r" (0x43));
+#else
+    // Place PXA27x into 104/104 MHz mode
+    CCCR = CCCR_L(8) | CCCR_2N(2) | CCCR_A; 
+    asm volatile (
+		  "mcr p14,0,%0,c6,c0,0\n\t"
+		  :
+		  : "r" (CLKCFG_B | CLKCFG_F | CLKCFG_T)
+		  );
+#endif
+
+    // Initialize Memory/Flash subsystems
+    SA1110 = SA1110_SXSTACK(1);
+    MSC0 = MSC0 | MSC_RBW024 | MSC_RBUFF024 | MSC_RT024(2) ;
+    MSC1 = MSC1 | MSC_RBW024;
+    MSC2 = MSC2 | MSC_RBW024;
+    MECR = 0;
+    // PXA271 Required initialization settings
+    MDCNFG = (MDCNFG_SETALWAYS | MDCNFG_DTC2(0x3) | 
+	      MDCNFG_STACK0 | MDCNFG_DTC0(0x3) | MDCNFG_DNB0 | 
+	      MDCNFG_DRAC0(0x2) | MDCNFG_DCAC0(0x1) | MDCNFG_DWID0 /* |
+								      MDCNFG_DE0 */);
+    MDREFR = (MDREFR & ~(MDREFR_K0DB4 | MDREFR_K0DB2)) | MDREFR_K0DB2;
+
+    enableICache();
+    initSyncFlash();
 
     // Place all global platform initialization before this command.
-    return call SubInit.init();
-  }
+    // return call SubInit.init();
+    call InitL0.init();
+    call InitL1.init();
+    call InitL2.init();
+    call InitL3.init();
 
-  default command error_t SubInit.init() {
+    //call PMICInit.init();
     return SUCCESS;
   }
+
+  default command error_t InitL0.init() { return SUCCESS; }
+  default command error_t InitL1.init() { return SUCCESS; }
+  default command error_t InitL2.init() { return SUCCESS; }
+  default command error_t InitL3.init() { return SUCCESS; }
+
 }
 
