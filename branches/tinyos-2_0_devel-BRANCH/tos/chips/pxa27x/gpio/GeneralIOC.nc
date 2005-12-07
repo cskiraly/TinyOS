@@ -1,4 +1,4 @@
-// $Id: GeneralIOC.nc,v 1.1.2.1 2005-11-05 01:54:39 philipb Exp $
+// $Id: GeneralIOC.nc,v 1.1.2.2 2005-12-07 23:16:35 philipb Exp $
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -44,6 +44,7 @@ configuration GeneralIOC
 {
   provides {
     interface GeneralIO[uint8_t pin];
+    interface GpioInterrupt[uint8_t pin];
   }
 }
 
@@ -53,8 +54,8 @@ implementation
   components HplPXA27xGPIOC;
 
   GeneralIO = HalPXA27xGeneralIOM;
+  GpioInterrupt = HalPXA27xGeneralIOM;
 
   HalPXA27xGeneralIOM.HplPXA27xGPIOPin -> HplPXA27xGPIOC;
-
 
 }
