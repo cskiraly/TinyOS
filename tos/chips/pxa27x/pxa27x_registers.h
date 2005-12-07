@@ -1,4 +1,4 @@
-// $Id: pxa27x_registers.h,v 1.1.2.5 2005-11-28 20:16:38 philipb Exp $ 
+// $Id: pxa27x_registers.h,v 1.1.2.6 2005-12-07 23:31:44 philipb Exp $ 
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -106,6 +106,24 @@
 #define MDCNFG_DE1		(1 << 1)
 #define MDCNFG_DE0		(1 << 0)
 #define MDCNFG_SETALWAYS	((1 << 27) | (1 << 11))
+
+/* MDREFR Bit Defs */
+#define MDREFR_ALTREFA	(1 << 31)	/* */
+#define MDREFR_ALTREFB	(1 << 30)	/* */
+#define MDREFR_K0DB4	(1 << 29)	/* */
+#define MDREFR_K2FREE	(1 << 25)	/* */
+#define MDREFR_K1FREE	(1 << 24)	/* */
+#define MDREFR_K0FREE	(1 << 23)	/* */
+#define MDREFR_SLFRSH	(1 << 22)	/* */
+#define MDREFR_APD	(1 << 20)	/* */
+#define MDREFR_K2DB2	(1 << 19)	/* */
+#define MDREFR_K2RUN	(1 << 18)	/* */
+#define MDREFR_K1DB2	(1 << 17)	/* */
+#define MDREFR_K1RUN	(1 << 16)	/* */
+#define MDREFR_E1PIN	(1 << 15)	/* */
+#define MDREFR_K0DB2	(1 << 14)	/* */
+#define MDREFR_K0RUN	(1 << 13)	/* */
+#define MDREFR_DRI(_x)  ((_x) & 0xfff) /* */
 
 /* MSCx Bit Defs */
 #define MSC_RBUFF135	(1 << 31)		 /* Return Data Buff vs. Streaming  nCS 1,3 or 5 */
@@ -753,8 +771,7 @@
 #define IIR_FIFOES1	(1 << 7)	/* FIFO Mode Enable Status */
 #define IIR_FIFOES0	(1 << 6)	/* FIFO Mode Enable Status */
 #define IIR_TOD		(1 << 3)	/* Time Out Detected */
-#define IIR_IID2	(1 << 2)	/* Interrupt Source Encoded */
-#define IIR_IID1	(1 << 1)	/* Interrupt Source Encoded */
+#define IIR_IID_MASK	(0x3 << 1)	/* Interrupt Source Encoded */
 #define IIR_IP		(1 << 0)	/* Interrupt Pending (active low) */
 
 #define FCR_ITL(_x)	((_x) << 6)	/* Interrupt Trigger Level */
@@ -776,8 +793,7 @@
 #define LCR_EPS		(1 << 4)	/* Even Parity Select */
 #define LCR_PEN		(1 << 3)	/* Parity Enable */
 #define LCR_STB		(1 << 2)	/* Stop Bit */
-#define LCR_WLS1	(1 << 1)	/* Word Length Select */
-#define LCR_WLS0	(1 << 0)	/* Word Length Select */
+#define LCR_WLS(_x)	((_x) << 0)	/* Word Length Select */
 
 #define LSR_FIFOE	(1 << 7)	/* FIFO Error Status */
 #define LSR_TEMT	(1 << 6)	/* Transmitter Empty */
