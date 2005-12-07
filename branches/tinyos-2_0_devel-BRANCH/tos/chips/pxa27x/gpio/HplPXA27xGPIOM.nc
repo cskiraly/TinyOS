@@ -1,4 +1,4 @@
-// $Id: HplPXA27xGPIOM.nc,v 1.1.2.1 2005-11-05 01:54:39 philipb Exp $
+// $Id: HplPXA27xGPIOM.nc,v 1.1.2.2 2005-12-07 23:15:13 philipb Exp $
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -57,36 +57,6 @@ implementation {
 
   bool gfInitialized = FALSE;
 
-#if 0
-  command result_t StdControl.init() {
-    bool isInited;
-    atomic {
-      isInited = gfInitialized;
-      gfInitialized = TRUE;
-    }
-
-    if (!isInited) {
-      call GPIOIrq0.allocate();
-      call GPIOIrq1.allocate();
-      call GPIOIrq.allocate();
-    }
-
-    return SUCCESS;
-  }
-
-  command result_t StdControl.start() {
-    call GPIOIrq0.enable();
-    call GPIOIrq1.enable();
-    call GPIOIrq.enable();
-    return SUCCESS;
-  }
-
-  command result_t StdControl.stop() {
-
-    return SUCCESS;
-  }
-#endif 
-
   command error_t Init.init() 
   {
     bool isInited;
@@ -107,12 +77,12 @@ implementation {
     return SUCCESS;
   }
 
-  async command bool HplPXA27xGPIOPin.getLevel[uint8_t pin]() 
+  async command bool HplPXA27xGPIOPin.getGPLRbit[uint8_t pin]() 
   {
     return ((GPLR(pin) & _GPIO_bit(pin)) != 0);
   }
 
-  async command void HplPXA27xGPIOPin.setDirection[uint8_t pin](bool dir) 
+  async command void HplPXA27xGPIOPin.setGPDRbit[uint8_t pin](bool dir) 
   {
     if (dir) {
       GPDR(pin) |= _GPIO_bit(pin);
@@ -123,24 +93,24 @@ implementation {
     return;
   }
 
-  async command bool HplPXA27xGPIOPin.getDirection[uint8_t pin]() 
+  async command bool HplPXA27xGPIOPin.getGPDRbit[uint8_t pin]() 
   {
     return ((GPDR(pin) & _GPIO_bit(pin)) != 0);
   }
 
-  async command void HplPXA27xGPIOPin.setOutput[uint8_t pin]() 
+  async command void HplPXA27xGPIOPin.setGPSRbit[uint8_t pin]() 
   {
     GPSR(pin) |= _GPIO_bit(pin);
     return;
   }
 
-  async command void HplPXA27xGPIOPin.clearOutput[uint8_t pin]() 
+  async command void HplPXA27xGPIOPin.setGPCRbit[uint8_t pin]() 
   {
     GPCR(pin) |= _GPIO_bit(pin);
     return;
   }
 
-  async command void HplPXA27xGPIOPin.setRisingEDEnable[uint8_t pin](bool flag) 
+  async command void HplPXA27xGPIOPin.setGRERbit[uint8_t pin](bool flag) 
   {
     if (flag) {
       GRER(pin) |= _GPIO_bit(pin);
@@ -151,12 +121,12 @@ implementation {
     return;
   }
 
-  async command bool HplPXA27xGPIOPin.getRisingEDEnable[uint8_t pin]() 
+  async command bool HplPXA27xGPIOPin.getGRERbit[uint8_t pin]() 
   {
     return ((GRER(pin) & _GPIO_bit(pin)) != 0);
   }
 
-  async command void HplPXA27xGPIOPin.setFallingEDEnable[uint8_t pin](bool flag) 
+  async command void HplPXA27xGPIOPin.setGFERbit[uint8_t pin](bool flag) 
   {
     if (flag) {
       GFER(pin) |= _GPIO_bit(pin);
@@ -167,17 +137,17 @@ implementation {
     return;
   }
 
-  async command bool HplPXA27xGPIOPin.getFallingEDEnable[uint8_t pin]() 
+  async command bool HplPXA27xGPIOPin.getGFERbit[uint8_t pin]() 
   {
     return ((GFER(pin) & _GPIO_bit(pin)) != 0);
   }
 
-  async command bool HplPXA27xGPIOPin.getEDStatus[uint8_t pin]() 
+  async command bool HplPXA27xGPIOPin.getGEDRbit[uint8_t pin]() 
   {
     return ((GEDR(pin) & _GPIO_bit(pin)) != 0);
   }
 
-  async command bool HplPXA27xGPIOPin.clearEDStatus[uint8_t pin]() 
+  async command bool HplPXA27xGPIOPin.clearGEDRbit[uint8_t pin]() 
   {
     bool flag;
     flag = ((GEDR(pin) & _GPIO_bit(pin)) != 0);
@@ -185,21 +155,21 @@ implementation {
     return flag;
   }
 
-  async command void HplPXA27xGPIOPin.setAltFn[uint8_t pin](uint8_t func) 
+  async command void HplPXA27xGPIOPin.setGAFRpin[uint8_t pin](uint8_t func) 
   {
     func &= 0x3;
     _GPIO_setaltfn(pin,func);
     return;
   }
 
-  async command uint8_t HplPXA27xGPIOPin.getAltFn[uint8_t pin]() 
+  async command uint8_t HplPXA27xGPIOPin.getGAFRpin[uint8_t pin]() 
   {
     return (_GPIO_getaltfun(pin));
   }
 
-  default async event void HplPXA27xGPIOPin.eventEdge[uint8_t pin]() 
+  default async event void HplPXA27xGPIOPin.interruptGPIOPin[uint8_t pin]() 
   {
-    call HplPXA27xGPIOPin.clearEDStatus[pin]();
+    call HplPXA27xGPIOPin.clearGEDRbit[pin]();
     return;
   }
 
@@ -303,7 +273,7 @@ implementation {
 
     while (DetectReg) {
       pin = 31 - _pxa27x_clzui(DetectReg);
-      signal HplPXA27xGPIOPin.eventEdge[pin]();
+      signal HplPXA27xGPIOPin.interruptGPIOPin[pin]();
       DetectReg &= ~(1 << pin);
     }
 
@@ -311,7 +281,7 @@ implementation {
 
     while (DetectReg) {
       pin = 31 - _pxa27x_clzui(DetectReg);
-      signal HplPXA27xGPIOPin.eventEdge[(pin+32)]();
+      signal HplPXA27xGPIOPin.interruptGPIOPin[(pin+32)]();
       DetectReg &= ~(1 << pin);
     }
 
@@ -319,7 +289,7 @@ implementation {
 
     while (DetectReg) {
       pin = 31 - _pxa27x_clzui(DetectReg);
-      signal HplPXA27xGPIOPin.eventEdge[(pin+64)]();
+      signal HplPXA27xGPIOPin.interruptGPIOPin[(pin+64)]();
       DetectReg &= ~(1 << pin);
     }
 
@@ -327,7 +297,7 @@ implementation {
 
     while (DetectReg) {
       pin = 31 - _pxa27x_clzui(DetectReg);
-      signal HplPXA27xGPIOPin.eventEdge[(pin+96)]();
+      signal HplPXA27xGPIOPin.interruptGPIOPin[(pin+96)]();
       DetectReg &= ~(1 << pin);
     }
 
@@ -336,12 +306,12 @@ implementation {
 
   async event void GPIOIrq0.fired()
   {
-    signal HplPXA27xGPIOPin.eventEdge[0]();
+    signal HplPXA27xGPIOPin.interruptGPIOPin[0]();
   }
 
   async event void GPIOIrq1.fired() 
   {
-    signal HplPXA27xGPIOPin.eventEdge[1]();
+    signal HplPXA27xGPIOPin.interruptGPIOPin[1]();
   } 
 
 }
