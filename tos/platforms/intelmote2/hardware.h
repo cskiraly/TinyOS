@@ -126,10 +126,10 @@ const uint8_t TOSH_IRP_TABLE[] = { 0xFF, // PPID  0 SSP_3 Service Req
 				   0xFF, // PPID  4 Keypad
 				   0xFF, // PPID  5 Memory Stick
 				   0xFF, // PPID  6 Power I2C
-				   0x01, // PPID  7 OST match Register 4-11
-				   0x02, // PPID  8 GPIO_0
+				   0x04, // PPID  7 OST match Register 4-11
+				   0x01, // PPID  8 GPIO_0
 				   0x03, // PPID  9 GPIO_1
-				   0x04, // PPID 10 GPIO_x
+				   0x02, // PPID 10 GPIO_x
 				   0x08, // PPID 11 USBC
 				   0xFF, // PPID 12 PMU
 				   0xFF, // PPID 13 I2S
@@ -160,20 +160,40 @@ const uint8_t TOSH_IRP_TABLE[] = { 0xFF, // PPID  0 SSP_3 Service Req
 				   0xFF, // PPID 38
 				   0xFF  // PPID 39
 };
-#if 0
+
+#ifdef IMOTE2_DEVBOARD 
+
 // LED assignments
-TOSH_ASSIGN_PIN(RED_LED, A, 103);
-TOSH_ASSIGN_PIN(GREEN_LED, A, 104);
-TOSH_ASSIGN_PIN(YELLOW_LED, A, 105);
+#define RED_LED_PIN (95)
+#define GREEN_LED_PIN (102)
+#define BLUE_LED_PIN (27)
 
 // CC2420 RADIO #defines
-#define CC_VREN_PIN (115)
-#define CC_RSTN_PIN (22)
-#define CC_FIFO_PIN (114)
-#define RADIO_CCA_PIN (116)
-#define CC_FIFOP_PIN (0)
-#define CC_SFD_PIN (16)
-#define CC_CSN_PIN (39)
+#define CC2420_VREN_PIN (40)
+#define CC2420_RSTN_PIN (22)
+#define CC2420_FIFO_PIN (114)
+#define CC2420_CCA_PIN (116)
+#define CC2420_FIFOP_PIN (115)
+#define CC2420_SFD_PIN (16)
+#define CC2420_CSN_PIN (39)
+
+#else
+
+// LED assignments
+#define RED_LED_PIN (103)
+#define GREEN_LED_PIN (104)
+#define BLUE_LED_PIN (105)
+
+// CC2420 RADIO #defines
+#define CC2420_VREN_PIN (115)
+#define CC2420_RSTN_PIN (22)
+#define CC2420_FIFO_PIN (114)
+#define CC2420_CCA_PIN (116)
+#define CC2420_FIFOP_PIN (0)
+#define CC2420_SFD_PIN (16)
+#define CC2420_CSN_PIN (39)
+
+#endif /* IMOTE2_DEVBOARD */
 
 #define SSP3_RXD (41)
 #define SSP3_RXD_ALTFN (3)
@@ -193,6 +213,18 @@ TOSH_ASSIGN_PIN(YELLOW_LED, A, 105);
 #define SSP1_SFRM (24)
 #define SSP1_SFRM_ALTFN (2 )
 
+#define FFUART_RXD (96)
+#define FFUART_RXD_ALTFN (3)
+#define FFUART_TXD (99) 
+#define FFUART_TXD_ALTFN (3)
+
+#define STUART_RXD (46)
+#define STUART_RXD_ALTFN (2)
+#define STUART_TXD (47) 
+#define STUART_TXD_ALTFN (1)
+
+
+#if 0
 TOSH_ASSIGN_PIN(CC_VREN,A,CC_VREN_PIN); 
 TOSH_ASSIGN_PIN(CC_RSTN,A,CC_RSTN_PIN);
 TOSH_ASSIGN_PIN(CC_FIFO,A,CC_FIFO_PIN);
