@@ -40,8 +40,9 @@ configuration PlatformC
 
 implementation
 {
-  components PlatformP;
+  components PlatformP,PMICM;
 
   Init = PlatformP;
+  PlatformP.PMICInit -> PMICM.Init;
 
 }
