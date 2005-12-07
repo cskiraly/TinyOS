@@ -31,7 +31,7 @@
 configuration HplPXA27xGPIOC {
   provides {
     interface HplPXA27xGPIOPin[uint8_t pin];
-    interface  HplPXA27xGPIO;
+    interface HplPXA27xGPIO;
   }
 }
 implementation 
@@ -44,7 +44,7 @@ implementation
   HplPXA27xGPIO = HplPXA27xGPIOM;
 
 
-  HplPXA27xGPIOM.Init <- PlatformP.SubInit;
+  HplPXA27xGPIOM.Init <- PlatformP.InitL1;
   
   HplPXA27xGPIOM.GPIOIrq0 -> HplPXA27xInterruptM.PXA27xIrq[PPID_GPIO_0];
   HplPXA27xGPIOM.GPIOIrq1 -> HplPXA27xInterruptM.PXA27xIrq[PPID_GPIO_1];
