@@ -40,17 +40,19 @@ configuration CounterMilliC
 
 implementation
 {
-  components new HalPXA27xCounterM(TMilli,2) as PXA27xCounterMilli32;
-  components HplPXA27xOSTimerC;
+  components new HalPXA27xCounterM(TMilli,2) as PhysCounterMilli32;
+  components HalPXA27xOSTimerMapC;
   components PlatformP;
 
-  CounterMilli32 = PXA27xCounterMilli.Counter;
-  LocalTimeMilli = PXA27xCounterMilli.LocalTime;
+  enum {OST_CLIENT_ID = unique("PXA27xOSTimer.Resource")};
+
+  CounterMilli32 = PhysCounterMilli.Counter;
+  LocalTimeMilli = PhysCounterMilli.LocalTime;
 
   // Wire the initialization to the plaform init routine
-  PlatformP.SubInit -> PXA27xCounterMilli32.Init;
+  PlatformP.InitL0 -> PhysCounterMilli32.Init;
 
-  PXA27xCounterMilli.OSTInit -> HPLPXA27xOSTimerC.Init;
-  PXA27xCounterMilli.OSTChnl -> HPLPXA27xOSTimerC.OST7;
+  PhysCounterMilli.OSTInit -> HalPXA27xOSTimerMapC.Init;
+  PhysCounterMilli.OSTChnl -> HalPXA27xOSTimerMapC.OSTChnl[OST_CLIENT_ID];
 }
 

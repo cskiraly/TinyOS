@@ -28,30 +28,38 @@
  * DAMAGE.
  */
 /** 
+ * This private component provides a 16-bit BusyWait interface
+ * of a given precision over OS Timer channel 0
+ *
+ * @param precision_tag A type tag mapped to the set precision
+ *
+ * @param val4xScale A value to scale the underlying counter by. 
+ *   The passed in parameter is given by the equation
+ *   val4xScale = (3.25 MHz/<desired_precision_in_Hz>) * 4
+ *   and rounded to the nearest integer.
+ *   Example: Counter precision of 32.768 kHz would have 
+ *   a val4xScale of 397
+ * 
  * @author Phil Buonadonna
  *
  */
 
-configuration Counter32khzC
+generic module HalPXA27xBusyWaitM(typedef precision_tag, uint16_t val4xScale)
 {
-  provides interface Counter<T32khz,uint32_t> as Counter32khz32;
-  provides interface LocalTime<T32khz> as LocalTime32khz;
+  provides interface BusyWait<precision_tag,uint16_t>;
+  uses interface HplPXA27xOSTimer as OST;
 }
 
 implementation
 {
-  components new HalPXA27xCounterM(T32khz,1) as PhysCounter32khz32;
-  components HalPXA27xOSTimerMapC;
-  components PlatformP;
 
-  enum {OST_CLIENT_ID = unique("PXA27xOSTimer.Resource")};
-
-  Counter32khz32 = PhysCounter32khz32.Counter;
-  LocalTime32khz = PhysCounter32khz32.LocalTime;
-
-  // Wire the initialization to the platform init routine
-  PlatformP.InitL0 -> PhysCounter32khz32.Init;
-
-  PhysCounter32khz32.OSTInit -> HalPXA27xOSTimerMapC.Init;
-  PhysCounter32khz32.OSTChnl -> HalPXA27xOSTimerMapC.OSTChnl[OST_CLIENT_ID];
+  async command void BusyWait.wait(uint16_t dt) {
+    uint32_t dCounts;
+    atomic {
+      uint32_t t0 = call OST.getOSCR();
+      dCounts = (dt * 4) * valScale;
+      dCounts >>= 2;
+      while (((call OST.getOSCR.get()) - t0) < dCounts);
+    }
+  }
 }

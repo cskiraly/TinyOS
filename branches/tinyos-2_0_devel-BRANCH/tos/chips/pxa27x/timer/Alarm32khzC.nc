@@ -40,11 +40,15 @@ generic configuration Alarm32khzC()
 
 implementation
 {
-  components PXA27xAlarm32khzP;
+  components new HalPXA27xAlarmM(T32khz,1) as PhysAlarm32khz;
+  components HalPXA27xOSTimerMapC;
 
-  enum {ALARM_ID = unique("PXA27xAlarm32khzP");
+  enum {OST_CLIENT_ID = unique("PXA27xOSTimer.Resource")};
 
-  Init = PXA27xAlarm32khzP;
-  Alarm32khz32 = PXA27xAlarm32khzP.Alarm32khz32[ALARM_ID];
+  Init = PhysAlarm32khz;
+  Alarm32khz32 = PhysAlarm32khz;
+
+  PhysAlarm32khz.OSTInit -> HalPXA27xOSTimerMapC.Init;
+  PhysAlarm32khz.OSTChnl -> HalPXA27xOSTimerMapC.OSTChnl[OST_CLIENT_ID];
 
 }

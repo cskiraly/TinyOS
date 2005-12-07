@@ -42,18 +42,20 @@ implementation
 {
   components new VirtualizeTimerC(TMilli,16) as VirtTimersMilli32;
   components new AlarmToTimerC(TMilli) as AlarmToTimerMilli32;
-  components new HalPXA27xAlarmM(TMilli,2) as PXA27xAlarmMilli32;
-  components HplPXA27xOSTimerC;
+  components new HalPXA27xAlarmM(TMilli,2) as PhysAlarmMilli32;
+  components HalPXA27xOSTimerMapC;
 
-  Init = PXA27xAlarmMilli32;
+  enum {OST_CLIENT_ID = unique("PXA27xOSTimer.Resource")};
+
+  Init = PhysAlarmMilli32;
 
   TimerMilli = VirtTimersMilli32.Timer;
 
   VirtTimersMilli32.TimerFrom -> AlarmToTimerMilli32.Timer;
 
-  AlarmToTimerMilli32.Alarm -> PXA27xAlarmMilli32.Alarm;
+  AlarmToTimerMilli32.Alarm -> PhysAlarmMilli32.Alarm;
 
-  PXA27xAlarmMilli32.OSTInit -> HplPXA27xOSTimerC.Init;
-  PXA27xAlarmMilli32.OSTChnl -> HplPXA27xOSTimerC.OST8;
+  PhysAlarmMilli32.OSTInit -> HalPXA27xOSTimerMapC.Init;
+  PhysAlarmMilli32.OSTChnl -> HalPXA27xOSTimerMapC.OSTChnl[OST_CLIENT_ID];
 
 }

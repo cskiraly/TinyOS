@@ -39,11 +39,15 @@ generic configuration AlarmMilliC()
 
 implementation
 {
-  components PXA27xAlarmMilliP;
+  components new HalPXA27xAlarmM(TMilli,2) as PhysAlarmMilli;
+  components HalPXA27xOSTimerMapC;
+  
+  enum {OST_CLIENT_ID = unique("PXA27xOSTimer.Resource")};
 
-  enum {ALARM_ID = unique("PXA27xAlarmMilliP");
+  Init = PhysAlarmMilli;
+  AlarmMilli32 = PhysAlarmMilli;
 
-  Init = PXA27xAlarmMilliP;
-  AlarmMilli32 = PXA27xAlarmMilliP.AlarmMilli32[ALARM_ID];
+  PhysAlarmMilli.OSTInit -> HalPXA27xOSTimerMapC.Init;
+  PhysAlarmMilli.OSTChnl -> HalPXA27xOSTimerMapC.OSTChnl[OST_CLIENT_ID];
 
 }

@@ -43,11 +43,11 @@ generic module HalPXA27xCounterM(typedef frequency_tag, uint8_t resolution)
   provides {
     interface Init;
     interface Counter<frequency_tag,uint32_t> as Counter;
-    interface LocalTime<frequency_tag,uint32_t> as LocalTime;
+    interface LocalTime<frequency_tag> as LocalTime;
   }
   uses {
     interface Init as OSTInit;
-    interface HplPXA27XOSTimer as OSTChnl;
+    interface HplPXA27xOSTimer as OSTChnl;
   }
 }
 
@@ -56,20 +56,14 @@ implementation
   command error_t Init.init() {
 
     call OSTInit.init(); 
-    //OIER &= ~(1 << channel);
-    //OSTIrq.allocate();
-    //OSTIrq.enable();
 
     // Continue on match, Non-periodic, w/ given resolution
     atomic {
-      gfRunning = FALSE;
-      //OMCR(channel) = (OMCR_C | OMCR_P | OMCR_CRES(resolution));
-      call OSTChnl.setOMCR = (OMCR_C | OMCR_P | OMCR_CRES(resolution));
-      //OSCR(channel) = 0;  // Start the counter
+      call OSTChnl.setOMCR(OMCR_C | OMCR_P | OMCR_CRES(resolution));
       call OSTChnl.setOMCR(0);
       call OSTChnl.setOSCR(1);
-      call OSTChnl.clearStatus();
-      call OSTChnl.enableInterrupt();
+      call OSTChnl.clearOSSRbit();
+      call OSTChnl.setOIERbit(TRUE);
     }
     return SUCCESS;
 
@@ -85,20 +79,18 @@ implementation
   async command bool Counter.isOverflowPending() {
     bool flag;
 
-    atomic flag = call OSTChnl.getStatus();
+    atomic flag = call OSTChnl.getOSSRbit();
     return flag;
   }
 
-
   async command void Counter.clearOverflow() {
 
-    atomic call OSTChnl.clearStatus();
+    atomic call OSTChnl.clearOSSRbit();
   }
 
-  async event void OSTIrq.fired() {
-    if (call OSTChnl.getStatus()) {
-      signal Counter.overflow();
-    }
+  async event void OSTChnl.fired() {
+    call OSTChnl.clearOSSRbit();
+    signal Counter.overflow();
     return;
   }
 
