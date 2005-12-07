@@ -42,14 +42,14 @@ interface HplPXA27xGPIOPin
    *
    * @return bool TRUE if logic '1', FALSE if logic '0'
    */
-  async command bool getLevel();
+  async command bool getGPLRbit();
 
   /** 
    * Configures the direction of a GPIO pin.
    *
    * @param dir TRUE to configure as an output, FALSE to configure as an input.
    */
-  async command void setDirection(bool dir);
+  async command void setGPDRbit(bool dir);
 
   /** 
    * Get's the current pin direction configuration.
@@ -57,19 +57,19 @@ interface HplPXA27xGPIOPin
    * @return bool TRUE if configured as an output, FALSE if configured 
    *  as an input.
    */
-  async command bool getDirection();
+  async command bool getGPDRbit();
 
   /** 
    * Sets a GPIO pin configured as an output to a HIGH state.
    *
    */
-  async command void setOutput();
+  async command void setGPSRbit();
 
   /** 
    * Sets a GPIO pin configured as an output to a LOW state.
    *
    */
-  async command void clearOutput();
+  async command void setGPCRbit();
 
   /** 
    * Enables/Disables events on the rising edge of a GPIO pin 
@@ -80,7 +80,7 @@ interface HplPXA27xGPIOPin
    * disable.
    *
    */
-  async command void setRisingEDEnable(bool flag);
+  async command void setGRERbit(bool flag);
 
   /** 
    * Returns the status of rising edge detection.
@@ -88,7 +88,7 @@ interface HplPXA27xGPIOPin
    * @return val TRUE if rising edge detection is enable, FALSE
    * otherwise.
    */
-  async command bool getRisingEDEnable();
+  async command bool getGRERbit();
 
   /** 
    * Enables/Disables events on the falling edge of a GPIO pin 
@@ -98,7 +98,7 @@ interface HplPXA27xGPIOPin
    * @param flag TRUE to enable falling edge detection, FASLE to
    * disable.
    */
-  async command void setFallingEDEnable(bool flag);
+  async command void setGFERbit(bool flag);
 
   /** 
    * Returns the status of falling edge detection.
@@ -106,14 +106,14 @@ interface HplPXA27xGPIOPin
    * @return val TRUE if falling edge detection is enable, FALSE
    * otherwise.
    */
-  async command bool getFallingEDEnable();
+  async command bool getGFERbit();
 
   /** 
    * Indicates wether an edge detection event is pending for GPIO Pin
    *
    * @return val TRUE if an event is pending.
    */
-  async command bool getEDStatus();
+  async command bool getGEDRbit();
 
   /** 
    * Clears the edge detection event status.
@@ -121,7 +121,7 @@ interface HplPXA27xGPIOPin
    * @return val TRUE if there was a pending event prior to clearing, 
    * FALSE otherwise.
    */
-  async command bool clearEDStatus();
+  async command bool clearGEDRbit();
 
   /** 
    * Sets the GPIO pin to one of it's alternate peripheral functions.
@@ -131,7 +131,7 @@ interface HplPXA27xGPIOPin
    * @param func An integer between 0 and 3 indicating the desired 
    * pin alternate function. 
    */
-  async command void setAltFn(uint8_t func);
+  async command void setGAFRpin(uint8_t func);
 
   /** 
    * Returns the current alternate function selected for the GPIO pin.
@@ -139,7 +139,7 @@ interface HplPXA27xGPIOPin
    * @return val An integer between 0 and 3 indicated the current
    * alternate function.
    */
-  async command uint8_t getAltFn();
+  async command uint8_t getGAFRpin();
 
   /** 
    * The pin edge detection event. Signalled when a rising/falling edge
@@ -147,6 +147,6 @@ interface HplPXA27xGPIOPin
    * The default event DOES NOT clear any pending requests.
    *
    */
-  async event void eventEdge();
+  async event void interruptGPIOPin();
 }
 
