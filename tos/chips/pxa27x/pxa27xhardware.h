@@ -1,4 +1,4 @@
-// $Id: pxa27xhardware.h,v 1.1.2.1 2005-11-02 00:41:49 philipb Exp $
+// $Id: pxa27xhardware.h,v 1.1.2.2 2005-12-07 23:31:22 philipb Exp $
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -73,77 +73,19 @@
 #ifndef PXA27X_HARDWARE_H
 #define PXA27X_HARDWARE_H
 
-
 #include "arm_defs.h"
 #include "pxa27x_registers.h"
 
+#define _pxa27x_perf_clear() {asm volatile ("mcr p14,0,%0,c0,c1,0\n\t"::"r" (0x5));}
+#define _pxa27x_perf_get(_x) {asm volatile ("mrc p14,0,%0,c1,c1,0":"=r" (_x));}
 
-
-#define TOSH_ASSIGN_PIN(name, port, regbit) \
-static inline void TOSH_SET_##name##_PIN() {_GPSR(regbit) |= _GPIO_bit(regbit);} \
-static inline void TOSH_CLR_##name##_PIN() {_GPCR(regbit) |= _GPIO_bit(regbit);} \
-static inline char TOSH_READ_##name##_PIN() {return ((_GPLR(regbit) & _GPIO_bit(regbit)) != 0);} \
-static inline void TOSH_MAKE_##name##_OUTPUT() {_GPIO_setaltfn(regbit,0);_GPDR(regbit) |= _GPIO_bit(regbit);} \
-static inline void TOSH_MAKE_##name##_INPUT() {_GPIO_setaltfn(regbit,0);_GPDR(regbit) &= ~(_GPIO_bit(regbit));}
-
-#define TOSH_ASSIGN_OUTPUT_ONLY_PIN(name, port, regbit) \
-static inline void TOSH_SET_##name##_PIN() {_GPSR(regbit) |= _GPIO_bit(regbit);} \
-static inline void TOSH_CLR_##name##_PIN() {_GPCR(regbit) |= _GPIO_bit(regbit);} \
-static inline void TOSH_MAKE_##name##_OUTPUT() {_GPDR(regbit) |= _GPIO_bit(regbit);} 
-
-// We need slightly different defs than SIGNAL, INTERRUPT
-#define TOSH_SIGNAL(signame)					\
-void signame() __attribute__ ((signal, spontaneous, C))
-
-#define TOSH_INTERRUPT(signame)				\
-void signame() __attribute__ ((interrupt, spontaneous, C))
-
-// GPIO Interrupt Defines
-#define TOSH_RISING_EDGE (1)
-#define TOSH_FALLING_EDGE (2)
-#define TOSH_BOTH_EDGE (3)
-
-void TOSH_wait()
-{
-  asm volatile("nop");
-  asm volatile("nop");
-}
-
-void TOSH_sleep()
-{
-#if 0
-  // Place PXA into idle
-  asm volatile (
-		"mcr p14,0,%0,c7,c0,0"
-		: 
-		: "r" (1)
-		);
-#endif
-}
-
-/**
- * (Busy) wait <code>usec</code> microseconds
- */
-inline void TOSH_uwait(uint16_t usec)
-{
-  uint32_t mark = usec;
-
-  mark <<= 2;
-  mark *= 13;
-  mark >>= 2;
-
-  OSCR0 = 0;
-
-  while (OSCR0 < mark);
-
-}
+// External utility functions
+extern void enableICache();
+extern void initSyncFlash();
 
 inline uint32_t _pxa27x_clzui(uint32_t i) {
   uint32_t count;
-  asm volatile ("clz %0,%1"
-		: "=r" (count)
-		: "r" (i)
-		);
+  asm volatile ("clz %0,%1": "=r" (count) : "r" (i));
   return count;
 }
 
