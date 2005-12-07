@@ -34,25 +34,18 @@
  * 
  * @author Phil Buonadonna
  */
-module BusyWaitMicroC
+configuration BusyWaitMicroC
 {
   provides interface BusyWait<TMicro,uint16_t> as BusyWaitMicro16;
 }
 
 implementation
 {
-  components new PXA27xBusyWaitP(TMicro) as PXA27xBusyWaitMicro;
-  components new HalPXA27xCounterM(TMicro,4) as PXA27xCounterMicro32;
+  components new HalPXA27xBusWaitM(TMicro,13) as PXA27xBusyWaitMicro;
   components HplPXA27xOSTimerC;
-  components PlatformP;
 
   BusyWaitMicro16 = PXA27xBusyWaitMicro.BusyWait;
 
-  // Wire the initialization to the platform init routine
-  PlatformP.SubInit -> PXA27xCounterMicro32.Init;
-  PXA27xBusyWaitP.Counter -> PXA27xCounterMicro32.Counter;
-
-  PXA27xCounterMicro32.OSTInit -> HplPXA27xOSTimer.Init;
-  PXA27xCounterMicro32.OSTChnl -> HplPXA27xOSTimerC.OST9;
+  PXA27xBusyWaitMicro.OST -> HplPXA27xOSTimerC.OST0;
 }
 

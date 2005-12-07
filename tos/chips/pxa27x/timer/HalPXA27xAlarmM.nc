@@ -50,21 +50,40 @@ generic module HalPXA27xAlarmM(typedef frequency_tag, uint8_t resolution)
 
 implementation
 {
-  bool gfRunning;
+  bool mfRunning;
+  uint32_t mMinDeltaT;
 
+  task void lateAlarm() {
+    atomic {
+      mfRunning = FALSE;
+      signal Alarm.fired();
+    }
+  }
+  
   command error_t Init.init() {
 
     call OSTInit.init(); 
-    //OIER &= ~(1 << channel);
-    //OSTIrq.allocate();
-    //OSTIrq.enable();
-
     // Continue on match, Non-periodic, w/ given resolution
     atomic {
-      gfRunning = FALSE;
-      //OMCR(channel) = (OMCR_C | OMCR_P | OMCR_CRES(resolution));
+      mfRunning = FALSE;
+      switch (resolution) {
+      case 1: // 1/32768 second
+	mMinDeltaT = 10;
+	break;
+      case 2: // 1 ms
+	mMinDeltaT = 1;
+	break;
+      case 3: // 1 s
+	mMinDeltaT = 1;
+	break;
+      case 4: // 1 us
+	mMinDeltaT = 300;
+	break;
+      default:  // External
+	mMinDeltaT = 0;
+	break;
+      }
       call OSTChnl.setOMCR(OMCR_C | OMCR_P | OMCR_CRES(resolution));
-      //OSCR(channel) = 0;  // Start the counter
       call OSTChnl.setOSCR(0);
     }
     return SUCCESS;
@@ -72,23 +91,33 @@ implementation
   }
 
   async command void Alarm.start( uint32_t dt ) {
-    uint32_t tf;
+    uint32_t t0,t1,tf;
+    //uint32_t cycles;
+    bool bPending;
+    if (dt < mMinDeltaT) dt = mMinDeltaT;
 
-    tf = (call OSTChnl.getOSCR()) + dt;
     atomic {
-      call OSTChnl.disableInterrupt();
+      //_pxa27x_perf_clear();
+      t0 = call OSTChnl.getOSCR();
+      tf = t0 + dt;
+      call OSTChnl.setOIERbit(TRUE);
       call OSTChnl.setOSMR(tf);
-      call OSTChnl.enableInterrupt();
-      gfRunning = TRUE;
+      //_pxa27x_perf_get(cycles);
+      mfRunning = TRUE;
+      t1 = call OSTChnl.getOSCR();
+      bPending = call OSTChnl.getOSSRbit();
+      if ((dt <= (t1 - t0)) && !(bPending)) {
+	call OSTChnl.setOIERbit(FALSE);
+	post lateAlarm();
+      }
     }
     return;
   }
 
   async command void Alarm.stop() {
     atomic {
-      // OIER &= ~(1 << channel);
-      call OSTChnl.disableInterrupt();
-      gfRunning = FALSE;
+      call OSTChnl.setOIERbit(FALSE);
+      mfRunning = FALSE;
     }
     return;
   }
@@ -96,39 +125,43 @@ implementation
   async command bool Alarm.isRunning() {
     bool flag;
 
-    atomic flag = gfRunning;
+    atomic flag = mfRunning;
     return flag;
   }
-  
+
   async command void Alarm.startAt( uint32_t t0, uint32_t dt ) {
-    uint32_t tf;
+    uint32_t tf,t1;
+    bool bPending;
     tf = t0 + dt;
+
     atomic {
-      call OSTChnl.disableInterrupt();
+      call OSTChnl.setOIERbit(TRUE);
       call OSTChnl.setOSMR(tf);
-      call OSTChnl.enableInterrupt();
-      gfRunning = TRUE;
+      mfRunning = TRUE;
+      t1 = call OSTChnl.getOSCR();
+      bPending = call OSTChnl.getOSSRbit();
+      if ((dt <= (t1 - t0)) && !(bPending)) {
+	call OSTChnl.setOIERbit(FALSE);
+	post lateAlarm();
+      }
     }
 
     return;
   } 
 
   async command uint32_t Alarm.getNow() {
-    return call OSTChnl.getOSCR(); //OSCR(channel);
+    return call OSTChnl.getOSCR();
   }
 
   async command uint32_t Alarm.getAlarm() {
-    return call OSTChnl.getOSMR(); //OSMR(channel);
+    return call OSTChnl.getOSMR();
   }
 
   async event void OSTChnl.fired() {
-    if (call OSTChnl.getStatus()) {
-      atomic {
-	call OSTChnl.disableInterrupt();
-	gfRunning = FALSE;
-      }
-      signal Alarm.fired();
-    }
+    call OSTChnl.clearOSSRbit();
+    call OSTChnl.setOIERbit(FALSE);
+    mfRunning = FALSE;
+    signal Alarm.fired();
     return;
   }
 

@@ -40,10 +40,10 @@ configuration BusyWait32khzC
 
 implementation 
 {
-  components new PXA27xBusyWaitP(T32khz)as PXA27xBusyWait32khz;
-  components Counter32khzC;
-  
+  components new HalPXA27xBusyWaitPM(T32khz,397) as PXA27xBusyWait32khz;
+  components HplPXA27xOSTimerC;
+
   BusyWait32khz16 = PXA27xBusyWait32khz.BusyWait;
   
-  PXA27xBusyWaitP.Counter -> Counter32khzC.Counter32khz32;
+  PXA27xBusyWait32khz.OST -> HplPXA27xOSTimerC.OST0;
 }

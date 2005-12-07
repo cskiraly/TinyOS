@@ -28,30 +28,33 @@
  * DAMAGE.
  */
 /** 
+ * This components maps requested timer resources connected using the
+ * 'PXA27xOSTimer.Resource' flag to physical timer resource of the PXA27x.
+ * 
  * @author Phil Buonadonna
  *
  */
 
-configuration Counter32khzC
-{
-  provides interface Counter<T32khz,uint32_t> as Counter32khz32;
-  provides interface LocalTime<T32khz> as LocalTime32khz;
+configuration HalPXA27xOSTimerMapC {
+
+  provides {
+    interface Init;
+    interface HplPXA27xOSTimer as OSTChnl[uint8_t id];
+  }
 }
 
-implementation
-{
-  components new HalPXA27xCounterM(T32khz,1) as PhysCounter32khz32;
-  components HalPXA27xOSTimerMapC;
-  components PlatformP;
+implementation {
+  components HplPXA27xOSTimerC;
 
-  enum {OST_CLIENT_ID = unique("PXA27xOSTimer.Resource")};
+  Init = HplPXA27xOSTimerC;
 
-  Counter32khz32 = PhysCounter32khz32.Counter;
-  LocalTime32khz = PhysCounter32khz32.LocalTime;
+  OSTChnl[0] = HplPXA27xOSTimerC.OST4;
+  OSTChnl[1] = HplPXA27xOSTimerC.OST5;
+  OSTChnl[2] = HplPXA27xOSTimerC.OST6;
+  OSTChnl[3] = HplPXA27xOSTimerC.OST7;
+  OSTChnl[4] = HplPXA27xOSTimerC.OST8;
+  OSTChnl[5] = HplPXA27xOSTimerC.OST9;
+  OSTChnl[6] = HplPXA27xOSTimerC.OST10;
+  OSTChnl[7] = HplPXA27xOSTimerC.OST11;
 
-  // Wire the initialization to the platform init routine
-  PlatformP.InitL0 -> PhysCounter32khz32.Init;
-
-  PhysCounter32khz32.OSTInit -> HalPXA27xOSTimerMapC.Init;
-  PhysCounter32khz32.OSTChnl -> HalPXA27xOSTimerMapC.OSTChnl[OST_CLIENT_ID];
 }
