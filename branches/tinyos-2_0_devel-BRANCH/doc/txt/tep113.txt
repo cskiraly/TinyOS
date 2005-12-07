@@ -10,8 +10,8 @@ Serial Communication
 :Author: Ben Greenstein and Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2005-12-07 06:30:23 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -402,7 +402,7 @@ that any data bytes (P - CR) equal to 0x7e or 0x7d will be escaped to
 independent AM packet of type 6, group 0x7d, and length 5 to
 destination 0xbeef with a payload of 1 2 3 4 5 would look like this:
 
-``7e 40 09 00 be ef 05 7d 5d 06 01 02 03 04 05``
+``7e 40 09 00 be ef 05 7d 5d 06 01 02 03 04 05 7e``
 
 Note that the group 0x7d is escaped to 0x7d 0x5d. The protocol field
 (P) is 0x40 (64), corresponding to ``SERIAL_PROTO_ACK`` (in Serial.h).
