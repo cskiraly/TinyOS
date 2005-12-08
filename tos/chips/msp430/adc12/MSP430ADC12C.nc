@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2005-10-11 22:14:50 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2005-12-08 03:21:28 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -54,7 +54,7 @@ implementation
   Resource = Arbiter;
   SingleChannel = MSP430ADC12M.SingleChannel;
     
-  MSP430ADC12M.ADCResourceUser -> Arbiter;
+  MSP430ADC12M.ADCArbiterInfo -> Arbiter;
   MSP430ADC12M.HPLADC12 -> HPLADC12M;
   MSP430ADC12M.RefVoltGenerator -> RefVoltGeneratorC;
 

@@ -61,7 +61,7 @@
  *
  *
  * <pre>
- *  $Id: Atm128SpiP.nc,v 1.1.2.1 2005-10-30 00:43:39 scipio Exp $
+ *  $Id: Atm128SpiP.nc,v 1.1.2.2 2005-12-08 03:21:00 klueska Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -80,7 +80,7 @@ module Atm128SpiP {
   uses {
     interface Atm128Spi as Spi;
     interface Resource as ResourceArbiter[uint8_t id];
-    interface ResourceUser;
+    interface ArbiterInfo;
     interface McuPowerState;
   }
 }
@@ -283,7 +283,7 @@ implementation {
  
  async command error_t Resource.request[ uint8_t id ]() {
    atomic {
-     if (!call ResourceUser.inUse()) {
+     if (!call ArbiterInfo.inUse()) {
        startSpi();
      }
    }
@@ -293,7 +293,7 @@ implementation {
  async command void Resource.release[ uint8_t id ]() {
    call ResourceArbiter.release[ id ]();
    atomic {
-     if (!call ResourceUser.inUse()) {
+     if (!call ArbiterInfo.inUse()) {
        stopSpi();
      }
    }

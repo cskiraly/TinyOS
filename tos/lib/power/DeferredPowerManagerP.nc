@@ -20,8 +20,8 @@
  * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-12-06 22:53:04 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-12-08 03:21:45 $ 
  * ======================================================================== 
  *
  */
@@ -43,9 +43,8 @@ generic module DeferredPowerManagerP(uint32_t delay) {
 
     interface PowerDownCleanup;
     interface Init as ArbiterInit;
-    interface Resource;
-    interface ResourceRequested;
-    interface Arbiter;
+    interface ResourceController;
+    interface ArbiterInfo;
     interface Timer<TMilli> as TimerMilli;
   }
 }
@@ -68,11 +67,11 @@ implementation {
     f.stopping = FALSE;
     f.requested = FALSE;
     call ArbiterInit.init();
-    call Resource.immediateRequest();
+    call ResourceController.immediateRequest();
     return SUCCESS;
   }
 
-  async event void ResourceRequested.requested() {
+  async event void ResourceController.requested() {
     if(f.stopping == FALSE)
       call AsyncSplitControl.start();
     else atomic f.requested = TRUE;
@@ -91,19 +90,19 @@ implementation {
   }
 
   async event void AsyncSplitControl.startDone(error_t error) {
-    call Resource.release();
+    call ResourceController.release();
   }
   event void SplitControl.startDone(error_t error) {
-    call Resource.release();
+    call ResourceController.release();
   }
 
-  async event void Arbiter.idle() {
-    if(!(call Arbiter.inUse()))
+  async event void ResourceController.idle() {
+    if(!(call ArbiterInfo.inUse()))
       post timerTask();
   }
 
   event void TimerMilli.fired() {
-    if(call Resource.immediateRequest() == SUCCESS) {
+    if(call ResourceController.immediateRequest() == SUCCESS) {
       f.stopping = TRUE;
       call PowerDownCleanup.cleanup();
       call AsyncSplitControl.stop();
@@ -124,7 +123,7 @@ implementation {
     signal AsyncSplitControl.stopDone(error);
   }
 
-  event void Resource.granted() {
+  event void ResourceController.granted() {
   }
 
   default async command error_t AsyncSplitControl.stop() {

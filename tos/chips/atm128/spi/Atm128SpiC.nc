@@ -50,7 +50,7 @@
  * The HAL of the SPI bus on the atm128.
  *
  * <pre>
- *  $Id: Atm128SpiC.nc,v 1.1.2.4 2005-10-30 00:43:39 scipio Exp $
+ *  $Id: Atm128SpiC.nc,v 1.1.2.5 2005-12-08 03:21:00 klueska Exp $
  * </pre>
  *
  *
@@ -80,7 +80,7 @@ implementation {
   Resource     = SpiMaster;
 
   SpiMaster.ResourceArbiter -> Arbiter;
-  SpiMaster.ResourceUser    -> Arbiter;
+  SpiMaster.ArbiterInfo    -> Arbiter;
   SpiMaster.Spi             -> HplSpi;
   SpiMaster.McuPowerState   -> McuSleepC;
 }

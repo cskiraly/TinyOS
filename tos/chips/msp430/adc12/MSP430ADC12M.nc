@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2005-11-01 01:27:58 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2005-12-08 03:21:28 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -40,7 +40,7 @@ module MSP430ADC12M
     interface MSP430ADC12SingleChannel as SingleChannel[uint8_t id];
 	}
 	uses {
-    interface ResourceUser as ADCResourceUser;
+    interface ArbiterInfo as ADCArbiterInfo;
     interface RefVoltGenerator;
 	  interface HPLADC12;
     interface MSP430Timer as TimerA;
@@ -198,7 +198,7 @@ implementation
 
   msp430adc12_result_t getAccess(uint8_t id)
   {
-    if (call ADCResourceUser.user() == id){
+    if (call ADCArbiterInfo.userId() == id){
       if (getAndSetBusy() == FAIL)
         return MSP430ADC12_FAIL_BUSY;
       clientID = id;
