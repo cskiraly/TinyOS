@@ -27,22 +27,24 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.7 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2005-12-08 03:20:05 $ 
  * ======================================================================== 
  */
  
  /**
- * Resource interface.  
+ * ResourceController interface.  
  * This interface is to be used by components for providing access to 
  * shared resources.  A component wishing to arbitrate the use of a shared 
  * resource should implement this interface in conjunction with the 
- * ResourceUser interface.
+ * ResourceUser interface.  It should be wired to by a user needing access
+ * to the reqeusted() and idle() events for taking cotnrol of the resource
+ * and releasing it in extraordinary circumstances.
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
-interface Resource {
+interface ResourceController {
   /**
    * Request access to a shared resource. You must call release()
    * when you are done with it.
@@ -77,4 +79,16 @@ interface Resource {
    * of a parameterized Resource interface.
    */
   async command uint8_t getId();
+
+  /**
+   * Event signalled to resource controller when it owns the resource 
+   * and another user has requested the resource
+   * The controller might want to consider releasing it.
+   */
+  async event void requested();
+
+  /**
+   * Event sent to the resource controller whenever a resource goes idle.
+   */
+  async event void idle(); 
 }
