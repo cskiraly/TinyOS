@@ -104,6 +104,10 @@ implementation {
     return call SpiResource.request();
   }
 
+  async command uint8_t Resource.getId() {
+    return call SpiResource.getId();
+  }
+
   async command void Resource.release() {
     atomic {
       m_have_resource = FAIL;

@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2005-12-01 04:15:45 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2005-12-08 03:56:17 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -92,6 +92,11 @@ implementation
   async command void ResourceHAL2.release[uint8_t client]()
   {
     return;
+  }
+
+  async command uint8_t ResourceHAL2.getId[uint8_t client]()
+  {
+    return call ResourceHAL1.getId();
   }
 
   event void ResourceHAL1.granted()

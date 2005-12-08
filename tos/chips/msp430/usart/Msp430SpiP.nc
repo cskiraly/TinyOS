@@ -78,6 +78,10 @@ implementation {
     return call UsartResource.request[ id ]();
   }
 
+  async command uint8_t Resource.getId[ uint8_t id ]() {
+    return call UsartResource.getId[ id ]();
+  }
+
   async command void Resource.release[ uint8_t id ]() {
     call UsartResource.release[ id ]();
   }
