@@ -48,13 +48,13 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-12-02 00:52:20 $ 
+ * $Revision: 1.1.2.1 $
+ * $Date: 2005-12-08 03:20:05 $ 
  * ======================================================================== 
  */
  
  /**
- * Arbiter interface.  
+ * ArbiterInfo interface.  
  * This interface is to be used for seeing if a resource protected by the
  * Resource interface is currently allocated to anyone. This interface
  * should only be implemented in conjunction with a paramaterized 
@@ -63,7 +63,7 @@
  * @author Kevin Klues (klueska@cs.wustl.edu)
  */
 
-interface Arbiter {
+interface ArbiterInfo {
   /**
    * Check whether the resource is currently allocated.
    *
@@ -78,12 +78,5 @@ interface Arbiter {
    * @return id of the current owner of the resource
    *         0xFF if no one currently owns the resource
    */
-  async command uint8_t user();
-
-  /**
-   * Event broadcast to all resource users when resource goes idle.
-   * Signalled both at startup and whenever a user releases the 
-   *   resource and there are no more pending requests.
-   */
-  async event void idle(); 
+  async command uint8_t userId();
 }

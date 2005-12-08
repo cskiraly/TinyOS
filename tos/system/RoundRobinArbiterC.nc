@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2005-12-02 00:55:54 $ 
+ * $Revision: 1.1.2.6 $
+ * $Date: 2005-12-08 03:20:06 $ 
  * ======================================================================== 
  */
  
@@ -49,8 +49,8 @@ generic module RoundRobinArbiterC(char resourceName[]) {
   provides {
     interface Init;
     interface Resource[uint8_t id];
-    interface ResourceRequested[uint8_t id];
-    interface Arbiter;
+    interface ResourceController;
+    interface ArbiterInfo;
   }
   uses {
     interface ResourceConfigure[uint8_t id];
@@ -59,6 +59,7 @@ generic module RoundRobinArbiterC(char resourceName[]) {
 implementation {
   enum {RES_IDLE, RES_GRANTING, RES_BUSY};
   enum {NO_RES = 0xFF};
+  enum {CONTROLLER_ID = uniqueCount(resourceName) + 1};
 
   uint8_t state = RES_IDLE;
   uint8_t resId = NO_RES;
@@ -112,8 +113,6 @@ implementation {
      be returned to the caller.
   */
   async command error_t Resource.request[uint8_t id]() {
-    error_t error;
-    uint8_t ownerId;
     atomic {
       if( state == RES_IDLE ) {
         state = RES_GRANTING;
@@ -121,11 +120,10 @@ implementation {
         post grantedTask();
         return SUCCESS;
       }
-      ownerId = resId;
-      error = queueRequest( id );
+      if(resId == CONTROLLER_ID)
+        post requestedTask();
+      return queueRequest( id );
     }
-    post requestedTask();
-    return error;
   } 
   
   /**
@@ -152,14 +150,12 @@ implementation {
       call ResourceConfigure.configure[id]();
       return SUCCESS;
     }
-    else if(ownerId == NO_RES)  //Only happens when in RES_GRANTING
-      return EBUSY;
-    else {
+    else if(ownerId == CONTROLLER_ID){
       atomic {
         irp = TRUE;  //indicate that immediateRequest is pending
         reqResId = id; //Id to grant resource to if can
       }  
-      signal ResourceRequested.requested[ownerId]();
+      signal ResourceController.requested();
       atomic {
         ownerId = resId;   //See if I have been granted the resource
         irp = FALSE;  //Indicate that immediate request no longer pending
@@ -170,6 +166,7 @@ implementation {
       }
       return EBUSY;
     }
+    else return EBUSY;
   }  
   
   /**
@@ -193,13 +190,13 @@ implementation {
         currentState = state;
     }
     if(currentState == RES_IDLE)
-      signal Arbiter.idle();
+      signal ArbiterInfo.idle();
   }
     
   /**
      Check if the Resource is currently in use
   */    
-  async command bool Arbiter.inUse() {
+  async command bool ArbiterInfo.inUse() {
     atomic return state == RES_BUSY;
   }
 
@@ -208,8 +205,18 @@ implementation {
      If there is no current user, the return value
      will be 0xFF
   */      
-  async command uint8_t Arbiter.user() {
+  async command uint8_t ArbiterInfo.userId() {
     atomic return resId;
+  }
+
+  /**
+   * Returns my user id.
+   */      
+  async command uint8_t Resource.getId[uint8_t id]() {
+    return id;
+  }
+  async command uint8_t ResourceController.getId() {
+    return call Resource.getId[CONTROLLER_ID]();
   }
   
   //Grant a request to the next Pending user
@@ -217,6 +224,7 @@ implementation {
   void grantNextRequest() {
     int i;
     
+    resId = NO_RES;
     for (i = resId + 1; ; i++) {
 	    if (i >= uniqueCount(resourceName))
 	    i = 0;
@@ -225,12 +233,12 @@ implementation {
 	    if (requested(i)) {
 	      reqResId = i;
 	      clearRequest(i);
+        state = RES_GRANTING;
 	      post grantedTask();
 	      return;
 	    }  
     }
     state = RES_IDLE;
-    resId = NO_RES;
   }
   
   //Task for pulling the Resource.granted() signal
@@ -244,24 +252,26 @@ implementation {
     signal Resource.granted[id]();
   }
 
-  //Task for pulling the ResourceRequested.requested() signal
+  //Task for pulling the ResourceController.requested() signal
     //into synchronous context  
   task void requestedTask() {
     uint8_t tmpId;
     atomic {
       tmpId = resId;
     }
-    signal ResourceRequested.requested[tmpId]();
+    if(tmpId == CONTROLLER_ID)
+      signal ResourceController.requested();
   }
   
   //Default event/command handlers for all of the other
     //potential users/providers of the parameterized interfaces 
     //that have not been connected to.  
   default event void Resource.granted[uint8_t id]() {
+    signal ResourceController.granted();
   }
-  default async event void ResourceRequested.requested[uint8_t id]() {
+  default async event void ResourceController.requested[uint8_t id]() {
   }
-  default async event void Arbiter.idle() {
+  default async event void ResourceController.idle() {
   }
   default async command void ResourceConfigure.configure[uint8_t id]() {
   }
