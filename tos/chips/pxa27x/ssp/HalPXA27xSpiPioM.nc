@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSpiPioM.nc,v 1.1.2.1 2005-12-07 23:10:40 philipb Exp $ */
+/* $Id: HalPXA27xSpiPioM.nc,v 1.1.2.2 2005-12-08 00:57:40 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -51,10 +51,6 @@ generic module HalPXA27xSpiPioM(uint8_t valSCR, uint8_t valDSS)
   }
   uses {
     interface HplPXA27xSSP as SSP;
-    //interface HplPXA27xDMAChnl as RxDMA;
-    //interface HplPXA27xDMAChnl as TxDMA;
-    //interface HplPXA27xDMAInfo as SSPRxDMAInfo;
-    //interface HplPXA27xDMAInfo as SSPTxDMAInfo;
   }
 }
 
@@ -94,13 +90,6 @@ implementation
     call SSP.setSSTO(96*8);
     call SSP.setSSCR0(SSCR0_SCR(/*1*/ valSCR) | SSCR0_SSE | SSCR0_FRF(0) | SSCR0_DSS(/*0x7*/ valDSS) );
 
-    //call TxDMA.setMap(call SSPTxDMAInfo.getMapIndex());
-    //call RxDMA.setMap(call SSPRxDMAInfo.getMapIndex());
-    //call TxDMA.setDALGNbit(TRUE);
-    //call RxDMA.setDALGNbit(TRUE);
-
-    //call RxDMA.setDSADR(call SSPRxDMAInfo.getAddr());
-    //call TxDMA.setDTADR(call SSPTxDMAInfo.getAddr());
     return SUCCESS;
   }
 
