@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2005-12-08 03:20:06 $ 
+ * $Revision: 1.1.2.7 $
+ * $Date: 2005-12-13 20:32:58 $ 
  * ======================================================================== 
  */
  
@@ -125,6 +125,10 @@ implementation {
       return queueRequest( id );
     }
   } 
+
+  async command error_t ResourceController.request() {
+    call Resource.request[CONTROLLER_ID]();
+  }
   
   /**
    * Request immediate access to the shared resource.  Requests are
@@ -168,6 +172,10 @@ implementation {
     }
     else return EBUSY;
   }  
+
+  async command error_t ResourceController.immediateRequest() {
+    return call Resource.immediateRequest[CONTROLLER_ID]();
+  }
   
   /**
      Release the use of the shared resource
@@ -190,14 +198,22 @@ implementation {
         currentState = state;
     }
     if(currentState == RES_IDLE)
-      signal ArbiterInfo.idle();
+      signal ResourceController.idle();
+  }
+
+  async command void ResourceController.release() {
+    call Resource.release[CONTROLLER_ID]();
   }
     
   /**
      Check if the Resource is currently in use
   */    
   async command bool ArbiterInfo.inUse() {
-    atomic return state == RES_BUSY;
+    atomic {
+      if ( state == RES_BUSY )
+        return TRUE;
+    }
+    return FALSE;
   }
 
   /**
@@ -224,32 +240,34 @@ implementation {
   void grantNextRequest() {
     int i;
     
-    resId = NO_RES;
     for (i = resId + 1; ; i++) {
-	    if (i >= uniqueCount(resourceName))
-	    i = 0;
+	    if (i >= (uniqueCount(resourceName) + 1))
+	      i = 0;
 	    if (i == resId)
 	      break;
 	    if (requested(i)) {
 	      reqResId = i;
 	      clearRequest(i);
+        resId = NO_RES;
         state = RES_GRANTING;
 	      post grantedTask();
 	      return;
 	    }  
     }
+    resId = NO_RES;
     state = RES_IDLE;
   }
   
   //Task for pulling the Resource.granted() signal
-  //into synchronous context  
+    //into synchronous context  
   task void grantedTask() {
-    uint8_t id;
+    uint8_t tmpId;
     atomic {
-      id = resId = reqResId;
+      tmpId = resId = reqResId;
       state = RES_BUSY;
     }
-    signal Resource.granted[id]();
+    call ResourceConfigure.configure[tmpId]();
+    signal Resource.granted[tmpId]();
   }
 
   //Task for pulling the ResourceController.requested() signal
@@ -269,7 +287,9 @@ implementation {
   default event void Resource.granted[uint8_t id]() {
     signal ResourceController.granted();
   }
-  default async event void ResourceController.requested[uint8_t id]() {
+  default event void ResourceController.granted() {
+  }
+  default async event void ResourceController.requested() {
   }
   default async event void ResourceController.idle() {
   }

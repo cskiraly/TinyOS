@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2005-12-08 03:20:06 $ 
+ * $Revision: 1.1.2.7 $
+ * $Date: 2005-12-13 20:32:57 $ 
  * ======================================================================== 
  */
  
@@ -294,6 +294,8 @@ implementation {
     //that have not been connected to.  
   default event void Resource.granted[uint8_t id]() {
     signal ResourceController.granted();
+  }
+  default event void ResourceController.granted() {
   }
   default async event void ResourceController.requested() {
   }
