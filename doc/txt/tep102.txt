@@ -7,11 +7,11 @@ Timers
 :Type: Documentary
 :Status: Draft
 :TinyOS-Version: 2.x
-:Author: Cory Sharp, Martin Turon
+:Author: Cory Sharp, Martin Turon, David Gay
 
 :Draft-Created: 22-Sep-2004
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2005-10-31 22:30:55 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2005-12-14 23:52:36 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -30,97 +30,52 @@ requirements both in precision and width across common hardware
 configurations.  This TEP focuses on aligning the Timer abstraction
 with the three-layer Hardware Abstraction Architecture (HAA).
 
-
-Overview
+1. Introduction
 ====================================================================
 
-This TEP proposes a timer system which supports a set of basic
-event-driven timing operations for common timing fidelities.
+Most microcontrollers offer a rich timer system, with features like:
 
-Fidelity is the combination of precision and width.  Examples of
-precision are millisecond, a cycle of a 32kHz clock, and
-microseconds.  Examples of widths are 8-bit, 16-bit, 32-bit, and
-64-bit.
+* several counters, possibly of different widths, with multiple clocking options
+* one or more compare registers for each counter, which can trigger
+  interrupts, changes to output pins and changes to the counter value
+* capture of the time of input pin changes
 
-The most basic behavior on time is to measure it.  This TEP defines
-"counters" that provide a free running count of time.  "Free
-running" means that time continues counting even if interrupts are
-disabled or code enters an atomic section.  This is the standard and
-expected behavior, and it means that timer code must be constructed
-specifically with an understanding of any implications from it.
+The interested reader can refer to Appendix A for a brief overview of
+the timer hardware on some current TinyOS platforms.
 
-The next most basic behavior on time is to wait.  This TEP defines
-"alarms" that can fire an event when a *counter* reaches a specified
-value.  HAL level alarms can only set single events, and this TEP
-proposes functionality to allow virtualization of a single HAL alarm.
+TinyOS does not attempt to capture all this diversity in a
+platform-independent fashion. Instead, following the principles of the
+HAA[_tep2], each microcontroller should expose all this functionality
+via components and interfaces at the HPL and, where appropriate, HAL levels.
+However, two aspects of timers are sufficiently common and important 
+that they should be made available in a well-defined way: measuring time,
+and triggering (possibly repeating) events at specific times. The rest
+of this TEP specifies:
 
-The components proposed by this TEP are constructed to handle
-overflow of the counters, which is inevitable.
+* a set of platform-independent interfaces for counting time and triggering
+  events (`2. Interfaces`_)
+* guidelines on how each microcontroller's HAL SHOULD expose its timer hardware
+  in terms of the above interfaces (`3. HAL guidelines`_)
+* what components a microcontroller's timer HIL MUST implement 
+  (`4. HIL requirements`_)
+* a set of utility components whose use simplifies building the components
+  specified by the HAL guidelines and HIL requirements (`5. Utility components`_)
 
-This TEP proposes all timer interfaces be parameterized by
-precision.  All precisions are in "binary" units with respect to one
-second.  Precision is expressed an empty type
+This TEP ends with appendices documenting, as an example, the mica2
+timer subsystem implementation.
 
-* TMilli
-* T32khz
-* TMicro
-
-These HAL interfaces are proposed:
-
-* Counter
-* Alarm
-* BusyWait
-
-The Counter and Alarm interfaces are fundamental components to be
-implemented by each hardware platform.  A Counter is a free running
-clock, and an Alarm can schedule a single asynchronous event for
-some specified time.  These interfaces are parameterized by
-precision and size.  The most common sizes are 16-bit and 32-bit.
-Some platforms will likely use 8-bit for internal implementation,
-and it is expected that some future platforms will use 64-bit.
-
-These of platform dependent HAL components MUST exist:
-
-* Alarm32khzC
-* AlarmMilliC
-* BusyWait32khzC
-* BusyWaitMicroC
-* Counter32khzC
-* CounterMilliC
-
-A number of platform independent generic components are provided by
-the TinyOS timer system to help derive the full HAL requirements with
-minimal source code:
-
-* AlarmToTimerC
-* BusyWaitCounterC
-* CounterToLocalTimeC
-* TransformAlarmC
-* TransformCounterC
-* VirtualizeTimerC
-
-It is expected that a platform only needs to directly implement in
-code concise Counter and Alarm components expressed in the
-platform-native precision and width.  It SHOULD be possible to
-implement the remaining timer system by using only configurations and
-platform independent generic timer components.
-
-These HIL interfaces are proposed:
-
-* LocalTime
-* Timer
-* TimerMilliC (for OSKI support)
-
-LocalTime and Timer are HIL versions of Counter and Alarm.
-LocalTime is a simplified version Counter in that it does not expose
-overflow.  Timer can schedule single or periodic synchronous events
-at some specified time.  The LocalTime and Timer interfaces are used
-primarily by user applications and use a fixed width of 32-bits.
-
-Precision and Width
+2. Interfaces
 ====================================================================
 
-Two fundamental properties of timers are *precision* and *width*.
+Before presenting the interfaces (2.2), we start with a general
+discussion of the issues of precision, width and accuracy in
+timer interfaces (2.1).
+
+2.1 Precision, Width and Accuracy.
+--------------------------------------------------------------------
+
+Three fundamental properties of timers are *precision*, *width* and
+*accuracy*.
 
 Examples of precision are millisecond, a cycle of a 32kHz clock, and
 microseconds.  All precisions are in "binary" units with respect to
@@ -136,11 +91,23 @@ interface.  In a number of circumstances there are good reasons not
 to expose a 32-bit interface.  This TEP emphasizes 32-bit widths
 while reasonably accommodating other widths.
 
+Accuracy reflects how closely a component conforms to the precision it
+claims to provide. Accuracy is affected by issues such as clock drift (much
+higher for internal vs crystal oscillators) and hardware limitations. As an
+example of hardware limitations, a mica2 clocked at 7.37MHz cannot offer an
+exact microsecond timer -- the closest it can come is 7.37MHz/8. Rather
+than introduce a plethora of precisions, we believe it is often best to
+pick the existing precision closest to what can be provided, along with
+appropriate documentation. However, the accuracy MUST remain reasonable:
+for instance, it would be inappropriate to claim that a millisecond timer
+is a 32kHz timer.
+
 This TEP parameterizes all interfaces by precision and some
 interfaces by width.  This intentionally makes similar timer
 interfaces with different precision or width mutually incompatible.
 It also allows user code to clearly express and understand the
-precision and width for a given timer interface.
+precision and width for a given timer interface. Accuracy is not
+reflected in the interface type.
 
 Precision is expressed as an empty type -- TMilli, T32khz, and
 TMicro -- written in the standard Timer.h header like this::
@@ -152,93 +119,21 @@ TMicro -- written in the standard Timer.h header like this::
 Note that the precision names are expressed as either frequency or
 period, whichever is convenient.
 
-HPL Layer
-====================================================================
+2.2 Timer interfaces
+--------------------------------------------------------------------
 
-At the lowest level, the HPLTimerC wraps all the hardware registers
-that control the hardware subsystem.  The specifics of these interfaces 
-are dependant on the chip that contains the timer subsystem.  But certain
-design paterns can be followed:
-
-  HplTimer<width>   - get/set current time, overflow event, control, init
-  HplCompare<width> - get/set compare time, fired event,    control
-  HplCapture<width> - get/set capture time, captured event, control, config
-
-Note that on a platform that has multiple timers of variable width, it 
-is helpful to abstract the width out of the interface at the HPL level 
-if possible.  This simplifies higher level interfaces by allowing them to
-wire to any timer in the system trivially.
-
-One sample set of HPL level interfaces follows::
- 
-  interface HplTimer<timer_size>
-  {
-    /// Timer value register: Direct access
-    async command timer_size get();
-    async command void       set( timer_size t );
-
-    /// Interrupt signals
-    async event void overflow();        //<! Signalled on overflow interrupt
-
-    /// Interrupt flag utilites: Bit level set/clr
-    async command void reset(); //<! Clear the overflow interrupt flag
-    async command void start(); //<! Enable the overflow interrupt
-    async command void stop();  //<! Turn off overflow interrupts
-    async command bool test();  //<! Did overflow interrupt occur?
-    async command bool isOn();  //<! Is overflow interrupt on?
-
-    /// Clock initialization interface
-    async command void    off();                     //<! Turn off the clock 
-    async command void    setScale( uint8_t scale);  //<! Turn on the clock
-    async command uint8_t getScale();                //<! Get prescaler setting
-  }
-
-  interface HplCompare<size_type>
-  {
-    /// Compare value register: Direct access
-    async command size_type get();
-    async command void      set(size_type t);
-
-    /// Interrupt signals
-    async event void fired();           //<! Signalled on compare interrupt
-
-    /// Interrupt flag utilites: Bit level set/clr
-    async command void reset();         //<! Clear the compare interrupt flag
-    async command void start();         //<! Enable the compare interrupt
-    async command void stop();          //<! Turn off comparee interrupts
-    async command bool test();          //<! Did compare interrupt occur?
-    async command bool isOn();          //<! Is compare interrupt on?
-  }
-
-  interface HplCapture<size_type>
-  {
-    /// Capture value register: Direct access
-    async command size_type get();
-    async command void      set(size_type t);
-
-    /// Interrupt signals
-    async event void captured(size_type t);  //<! Signalled on capture int
-
-    /// Interrupt flag utilites: Bit level set/clr  
-    async command void reset();          //<! Clear the capture interrupt flag
-    async command void start();          //<! Enable the capture interrupt
-    async command void stop();           //<! Turn off capture interrupts
-    async command bool test();           //<! Did capture interrupt occur?
-    async command bool isOn();           //<! Is capture interrupt on?
-
-    async command void setEdge(bool up); //<! True = detect rising edge
-  }
-
-
-HAL Interfaces
-====================================================================
-
-This TEP proposes these HAL timer interfaces::
+This TEP proposes these timer interfaces::
 
   interface Counter< precision_tag, size_type >
   interface Alarm< precision_tag, size_type >
   interface BusyWait< precision_tag, size_type >
+  interface LocalTime< precision_tag >
+  interface Timer< precision_tag >
 
+The LocalTime and Timer interfaces are used primarily by user
+applications and use a fixed width of 32-bits.  The Alarm, BusyWait,
+and Counter interfaces are used by the TinyOS timer system and
+advanced user components.
 
 Counter
 --------------------------------------------------------------------
@@ -344,21 +239,6 @@ The BusyWait interface replaces the TOSH_uwait macro from TinyOS
 wait(dt)
   block for no less than the specified amount of time.
 
-
-HIL Interfaces
-====================================================================
-
-This TEP proposes these HIL timer interfaces::
-
-  interface LocalTime< precision_tag >
-  interface Timer< precision_tag >
-
-The LocalTime and Timer interfaces are used primarily by user
-applications and use a fixed width of 32-bits.  The Alarm, BusyWait,
-and Counter interfaces are used by the TinyOS timer system and
-advanced user components.
-
-
 LocalTime
 --------------------------------------------------------------------
 
@@ -447,11 +327,95 @@ getdt()
   return the delay or period for the previously started timer.
 
 
-HIL: Platform independent components
+3. HAL guidelines
 ====================================================================
 
-A number of platform independent generic components are provided by
-the TinyOS timer system:
+Platforms typically select a clocking option for each of their
+hardware counters, based on their hardware design (e.g., the mica
+family of motes all run their hardware timer 0 at 32kHz, and the micaz
+mote runs its timer 1 at cpu frequency/256). Platforms SHOULD expose
+the timing functionality of these timers using the Alarm and Counter
+interfaces, in the fashion described below. Platforms MAY expose the
+same hardware timer with different frequencies - use of conflicting
+frequences in the same program SHOULD produce compile-time
+errors.
+
+
+A hardware timer with precision *P* and width *W* SHOULD be exposed as a
+several components::
+
+  configuration CounterPW {
+    provides interface Counter<TP, uintW_t>;
+  } ... 
+  generic configuration AlarmPWC {
+    provides interface Alarm<TP,uintW_t>;
+  } ...
+
+and, except if *W* is 32::
+
+  configuration CounterP32 {
+    provides interface Counter<TP, uint32_t>;
+  } ... 
+  generic configuration AlarmP32C {
+    provides interface Alarm<TP,uint32_t>;
+  } ...
+
+Instantiating the Alarm... components provides a new Alarm independent
+of all prior instantiations. Instantiating such a component "consumes"
+a compare register from the corresponding hardware timer; when no more
+compare registers are available, instantiation SHOULD produce a
+compile-time error (see Appendix B for an example of how to achieve
+this).
+
+For example, the micaz platform includes an AlarmMilli8C and
+AlarmMilli32C components for timer 0 (one instantiation allowed), and
+Alarm32kHz16C and Alarm32kHz32C for timer 1 (three instantiations
+allowed).
+
+4. HIL requirements
+====================================================================
+
+The following component MUST be provided on all platforms::
+  TimerMilliC
+  BusyWaitMicroC
+
+TimerMilliC
+--------------------------------------------------------------------
+
+::
+
+  #define TIMERMILLIC_SERVICE ...
+  configuration TimerMilliC
+  {
+    provides interface Init;
+    provides interface Timer<TMilli>[uint8_t num];
+    provides interface LocalTime<TMilli>;
+  }
+
+A timer is allocated using unique(TIMERMILLIC_SERVICE) to obtain a new
+unique timer number. This timer number is used to index the TimerMilli
+parameterised interface.
+
+BusyWaitMicroC
+--------------------------------------------------------------------
+
+::
+
+  configuration BusyWaitMicroC
+  {
+    provides interface BusyWait<TMicro,uint16_t>;
+  }
+
+BusyWaitMicroC allows applications to busy-wait for a number of
+microseconds. It's use should be restricted to situations where the
+delay is small and setting a timer or alarm would be impractical,
+inefficient or insufficiently precise.
+
+5. Utility components
+====================================================================
+
+A number of platform independent generic components are provided to
+help implementers and advanced users of the TinyOS timer system:
 
 * AlarmToTimerC
 * BusyWaitCounterC
@@ -460,9 +424,8 @@ the TinyOS timer system:
 * TransformCounterC
 * VirtualizeTimerC
 
-The platform independent components are used to help derive the
-platform dependent components discussed in the next section.
-
+Appendices B and C show how these can be used to help implement
+the timer HAL and HIL.
 
 AlarmToTimerC
 --------------------------------------------------------------------
@@ -580,141 +543,27 @@ timers.  ::
     uses interface Timer<precision_tag> as TimerFrom;
   }
 
-
-Platform dependent components
+Appendix A: Timer hardware on various microcontrollers
 ====================================================================
 
-A number of platform dependent components MUST exist:
+  a. Atmega128
 
-* Alarm32khzC
-* AlarmMilliC
-* BusyWait32khzC
-* BusyWaitMicroC
-* Counter32khzC
-* CounterMilliC
-* TimerMilliC
+    i. Two 8-bit timers, each allowing
 
-
-Alarm32khzC
---------------------------------------------------------------------
-
-Alarm32khzC MUST provide Init and Alarm<T32khz,uint32_t> as
-Alarm32khz32.  The configuration MAY provide additional
-hardware-specific Alarm interfaces.  Alarm32khzC is a generic
-component.  Each instantiation allocates a new, distinct Alarm.
-Each instance of an Alarm32khzC MAY directly map to a hardware
-timer.  ::
-
-  generic configuration Alarm32khzC()
-  {
-    provides interface Init;
-    provides interface Alarm<T32khz,uint16_t> as Alarm32khz16;
-    provides interface Alarm<T32khz,uint32_t> as Alarm32khz32;
-  }
-
-
-AlarmMilliC
---------------------------------------------------------------------
-
-AlarmMilliC MUST provide Init and Alarm<TMilli,uint32_t> as
-AlarmMilli32.  The configuration MAY provide additional
-hardware-specific Alarm interfaces.  AlarmMilliC is a generic
-component.  Each instantiation allocates a new, distinct Alarm.
-Each instance of an AlarmMilliC MAY directly map to a hardware
-timer.  ::
-
-  generic configuration AlarmMilliC()
-  {
-    provides interface Init;
-    provides interface Alarm<TMilli,uint32_t> as AlarmMilli32;
-  }
-
-
-BusyWait32khzC
---------------------------------------------------------------------
-
-BusyWait32khzC MUST provide BusyWait<T32khz,uint16_t> as
-BusyWait32khz16.  The configuration MAY provide additional
-hardware-specific BusyWait interfaces.  ::
-
-  configuration BusyWait32khzC
-  {
-    provides interface BusyWait<T32khz,uint16_t> as BusyWait32khz16;
-  }
-
-
-BusyWaitMicroC
---------------------------------------------------------------------
-
-BusyWaitMicroC MUST provide BusyWait<TMicro,uint16_t> as
-BusyWaitMicro16.  The configuration MAY provide additional
-hardware-specific BusyWait interfaces.  ::
-
-  configuration BusyWaitMicroC
-  {
-    provides interface BusyWait<TMicro,uint16_t> as BusyWaitMicro16;
-  }
-
-
-Counter32khzC
---------------------------------------------------------------------
-
-Counter32khz MUST provide Counter<T32khz,uint32_t> as Counter32khz32
-and LocalTime<T32khz> as LocalTime32khz.  The configuration MAY
-provide additional hardware-specific Counter interfaces.  ::
-
-  configuration Counter32khzC
-  {
-    provides interface Counter<T32khz,uint32_t> as Counter32khz32;
-    provides interface LocalTime<T32khz> as LocalTime32khz;
-  }
-
-
-CounterMilliC
---------------------------------------------------------------------
-
-CounterMilli MUST provide Counter<TMilli,uint32_t> as CounterMilli32
-and LocalTime<TMilli> as LocalTimeMilli.  The configuration MAY
-provide additional hardware-specific Counter interfaces.  ::
-
-  configuration CounterMilliC
-  {
-    provides interface Counter<TMilli,uint32_t> as CounterMilli32;
-    provides interface LocalTime<TMilli> as LocalTimeMilli;
-  }
-
-
-TimerMilliC
---------------------------------------------------------------------
-
-TimerMilliC MUST provide Init and Timer<TMilli> as TimerMilli[uint8_t
-num].  TimerMilliC is used by OSKI to implement the generic component
-TimerMilliC that allocates a new, virtual timer with each
-instantiation.  ::
-
-  configuration TimerMilliC
-  {
-    provides interface Init;
-    provides interface Timer<TMilli> as TimerMilli[ uint8_t num ];
-  }
-
-
-Hardware differences between the current platforms
-====================================================================
-
-  a. Mica2 (ATmega128)
-
-    i. Two 8-bit timers, each with
-
-      * 10-bit prescaler
-      * One compare register
+      * 7 prescaler values (division by different powers of 2)
+      * Timer 0 can use an external 32768Hz crystal 
+      * One compare register, with many compare actions (change
+        output pin, clear counter, generate interrupt, etc)
+      
 
     ii. Two 16-bit timers, each with
 
-      * Limited prescalers
-      * Three compare registers
+      * 5 prescaler values
+      * External and software clocking options
+      * Three compare registers (again with many actions)
+      * Input capture
 
-  b. Telos/EYES (MSP430)
+  b. MSP430
 
     i. Two 16-bit timers with
 
@@ -723,7 +572,7 @@ Hardware differences between the current platforms
       * Each from distinct clock source
       * Each with limited prescalers
 
-  c. Intel Mote (V2) (Xscale PXA27X)
+  c. Intel PXA27x
 
     i. One fixed rate (3.25MHz) 32-bit timer with
 
@@ -741,78 +590,131 @@ Hardware differences between the current platforms
 
     iv. Two external sync events
 
-Platform Specific Mapping
+Appendix B: a microcontroller: Atmega 128 timer subsystem
 ====================================================================
 
-   a. Mica2
-	Timer	Size	Clock Source	Usage
-	-----	----	------------	-----
-	Timer0	8-bit	32khz		Application (TimerMilli)
-	Timer1	16-bit	CPU (7.4/8MHz)	Not used
-	Timer2	8-bit	CPU (7.4/8MHz)	Not used
-	Timer3	16-bit	CPU (7.4/8MHz)	Not used
+The Atmega128 exposes its four timers through a common set of interfaces:
 
-   b. Mica2dot
-	Timer	Size	Clock Source	Usage
-	-----	----	------------	-----
-	Timer0	8-bit	32khz		Application (TimerMilli)
-	Timer1	16-bit	CPU (4MHz)	Not used
-	Timer2	8-bit	CPU (4MHz)	Not used
-	Timer3	16-bit	CPU (4MHz)	Not used
+  * HplTimer<width>   - get/set current time, overflow event, control, init
+  * HplCompare<width> - get/set compare time, fired event,    control
+  * HplCapture<width> - get/set capture time, captured event, control, config
 
-   c. MicaZ
-	Timer	Size	Clock Source	Usage
-	-----	----	------------	-----
-	Timer0	8-bit	32khz		Application (TimerMilli)
-	Timer1	16-bit	CPU (7.4/8MHz)	[CaptureA] CC2420 SFD Pin
-	Timer2	8-bit	CPU (7.4/8MHz)	CC2420: high resolution (32uSec) timing
-	Timer3	16-bit	CPU (7.4/8MHz)	Not used
+Parameterising these interfaces by width allows reusing the same interfaces
+for the 8 and 16-bit timers. This simplifies building reusable higher level
+components which are independent of timer width. ::
 
-Implementation
+  interface HplAtm128Timer<timer_size>
+  {
+    /// Timer value register: Direct access
+    async command timer_size get();
+    async command void       set( timer_size t );
+
+    /// Interrupt signals
+    async event void overflow();        //<! Signalled on overflow interrupt
+
+    /// Interrupt flag utilites: Bit level set/clr
+    async command void reset(); //<! Clear the overflow interrupt flag
+    async command void start(); //<! Enable the overflow interrupt
+    async command void stop();  //<! Turn off overflow interrupts
+    async command bool test();  //<! Did overflow interrupt occur?
+    async command bool isOn();  //<! Is overflow interrupt on?
+
+    /// Clock initialization interface
+    async command void    off();                     //<! Turn off the clock 
+    async command void    setScale( uint8_t scale);  //<! Turn on the clock
+    async command uint8_t getScale();                //<! Get prescaler setting
+  }
+
+  interface HplAtm128Compare<size_type>
+  {
+    /// Compare value register: Direct access
+    async command size_type get();
+    async command void      set(size_type t);
+
+    /// Interrupt signals
+    async event void fired();           //<! Signalled on compare interrupt
+
+    /// Interrupt flag utilites: Bit level set/clr
+    async command void reset();         //<! Clear the compare interrupt flag
+    async command void start();         //<! Enable the compare interrupt
+    async command void stop();          //<! Turn off comparee interrupts
+    async command bool test();          //<! Did compare interrupt occur?
+    async command bool isOn();          //<! Is compare interrupt on?
+  }
+
+  interface HplAtm128Capture<size_type>
+  {
+    /// Capture value register: Direct access
+    async command size_type get();
+    async command void      set(size_type t);
+
+    /// Interrupt signals
+    async event void captured(size_type t);  //<! Signalled on capture int
+
+    /// Interrupt flag utilites: Bit level set/clr  
+    async command void reset();          //<! Clear the capture interrupt flag
+    async command void start();          //<! Enable the capture interrupt
+    async command void stop();           //<! Turn off capture interrupts
+    async command bool test();           //<! Did capture interrupt occur?
+    async command bool isOn();           //<! Is capture interrupt on?
+
+    async command void setEdge(bool up); //<! True = detect rising edge
+  }
+
+These interfaces are provided by four components, corresponding to
+each hardware timer: HplAtm128Timer0C through HplAtm128Timer3C.
+
+The Atmega128 chip components do not define a HAL, as the timer
+configuration choices (frequencies, use of input capture or compare output,
+etc) are platform-specific. Instead, it provides a few generic components
+for converting the HPL interfaces into platform-independent interfaces.
+These generic components include appropriate configuration parameters
+(e.g., prescaler values)::
+
+  generic module Atm128AlarmC(typedef frequency_tag,
+			      typedef timer_size @integer(),
+			      uint8_t prescaler,
+			      int mindt)
+  {
+    provides interface Init;
+    provides interface Alarm<frequency_tag, timer_size> as Alarm;
+    uses interface HplTimer<timer_size>;
+    uses interface HplCompare<timer_size>;
+  } ...
+
+  generic module Atm128CounterC(typedef frequency_tag,
+				typedef timer_size @integer())
+  {
+    provides interface Counter<frequency_tag,timer_size> as Counter;
+    uses interface HplTimer<timer_size> as Timer;
+  } ...
+
+Appendix C: a mote: Mica2 timer subsystem
 ====================================================================
 
-For platform independent headers, interfaces, and components, see
+The mica2 HAL exposes its four timers as follows: 
 
-* tinyos-2.x/tos/lib/timer/
+* Timer 0: divides the external 32768Hz crystal by 32 to build AlarmMilli8C
+  and AlarmMilli32C (see Section 3). As timer 0 has a single compare
+  register, these can only be instantiated once.
+  Timing accuracy is as good as the external crystal.
+* Timer 1: the internal oscillator is divided by 8 to build AlarmMicro16C
+  and AlarmMicro32C (see Section 3). 3 compare registers are available.
+  The timing accuracy depends on how the mica2 is clocked:
 
-For platform dependent implementations, see specific chip
-directories, such as
+  - internal 8MHz clock: depends on how well the clock is calibrated
+  - external 7.37MHz crystal: times will be off by ~8.6%
+  - selecting other clocking options will produce gross inaccuracy
 
-* tinyos-2.x/tos/chips/msp430/timer/
-* tinyos-2.x/tos/chips/ATmega128/timer/
-* tinyos-2.x/tos/chips/pxa27a/timer/
+* Timer 2, 3: these timers are not currently exposed by the HAL.
 
+The mica2 HIL components are built as follows:
 
-Hints
-====================================================================
-
-In implementing Alarm32khzC.nc and AlarmMilliC.nc for the MSP430 in
-tinyos-2.x/tos/chips/msp430/timer/, see MSP430Timer32khzC.nc and
-MSP430Timer32khzMapC.nc for an example of how a set of similar
-hardware resources can be exposed through a parameterized interface
-for compile-time allocation.  See how Alarm32khzC.nc and
-AlarmMilliC.nc call new MSP430Timer32khzC() to allocate a new,
-arbitrary hardware timer.  Using this methodology, specific
-platforms can override MSP430Timer32khzMapC.nc to remove statically
-allocated hardware timers from the set available for compile-time
-allocation, such as the Telos platform in
-tinyos-2.x/tos/platform/telosa.
+* TimerMilliC: built using AlarmMilli32C (consuming its single compare
+  register)
+* BusyWaitMicroC: implemented using a simple software busy-wait loop which
+  waits for 8 cycles per requested microsecond. Accuracy is the same as
+  with Timer 1.
 
 
-Author's Address
-====================================================================
-
-| Cory Sharp
-| Moteiv Corporation
-| 2168 Shattuck Ave
-| Berkeley, CA 94704
-|
-| email - cory@moteiv.com
-|
-| Martin Turon
-| P.O. Box 8525
-| Berkeley, CA 94707
-|
-| phone - +1 408 965 3355
-| email - mturon@xbow.com
-
+We include here as an example some of the source code for the above components:
