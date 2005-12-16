@@ -10,8 +10,8 @@ message_t
 :Author: Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2005-12-16 19:18:10 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -151,8 +151,10 @@ level components access their fields through interfaces. Section
 3 discusses this in greater depth.
 
 Every link layer defines its header, footer, and metadata
-structures. For example, the CC1000 radio implementation defines its
-structures in ``CC1000Msg.h``:
+structures. These structures MUST be network structs, and all of their
+fields MUST be network types, in order to ensure cross-platform
+compatibility.  For example, the CC1000 radio implementation defines
+its structures in ``CC1000Msg.h``:
 
 |  ``typedef nx_struct CC1KHeader {``
 |    ``nx_am_addr_t addr;``
@@ -211,7 +213,7 @@ If a platform has more than one link layer, it SHOULD define each of the
 message_t fields to be a union of the underlying link layer structures.
 This ensures that enough space is allocated for all underlying link layers.
 
-3. Accessing message_t fields
+3. Message_t fields
 ====================================================================
 
 A TinyOS component MUST NOT access any message_t fields directly besides
@@ -319,8 +321,6 @@ at the start of the metadata field. However, data link components MUST
 NOT directly access these fields, as their structure is platform
 dependent. A component MUST cast these fields to link specific structures. 
 
-Following these rules means that a packet is 
-
 The basic issue driving these design considerations is that 
 the C naming layout of message_t fields is platform specific. As a
 data link implementation may be used on many platforms, an implementation
@@ -329,25 +329,21 @@ there being enough space for its header and footer in message_t.
 
 Following this approach means that the packet header and data payload
 are contiguous in memory, which allows other communication abstractions
-(such as a UART) to easily encapsulate a packet.
+(such as a UART, see TEP 113[_tep113]) to easily encapsulate a packet.
 
 4. Author's Address
 ====================================================================
 
 | Philip Levis
-| 467 Soda Hall
-| UC Berkeley
-| Berkeley, CA 94720
+| 358 Gates Hall
+| Computer Science Laboratory
+| Stanford University
+| Stanford, CA 94305
 |
-| phone - +1 510 290 5283
-|
-| email - pal@cs.berkeley.edu
+| phone - +1 650 725 9046
+| email - pal@cs.stanford.edu
 
-7. Citations
+5. Citations
 ====================================================================
 
-.. [rst] reStructuredText Markup Specification. <http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html>
- 
-.. [sipattern] The Service Instance Pattern. In *Software Design Patterns for TinyOS.* David Gay, Philip Levis, and David Culler. Published in Proceedings of the ACM SIGPLAN/SIGBED 2005 Conference on Languages, Compilers, and Tools for Embedded Systems (LCTES'05).
-
-.. [boot] TEP 107: TinyOS 2.x Boot Sequence.
+.. [tep113] TEP 113: Serial Communication.
