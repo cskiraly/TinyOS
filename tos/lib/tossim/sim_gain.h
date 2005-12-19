@@ -22,53 +22,47 @@
  */
 
 /**
- * Implementation of all of the basic TOSSIM primitives and utility
- * functions.
+ * The C functions that allow TOSSIM-side code to access the SimMoteP
+ * component.
  *
  * @author Philip Levis
  * @date   Nov 22 2005
  */
 
-// $Id: sim_tossim.h,v 1.1.2.2 2005-12-19 23:51:20 scipio Exp $
 
-#ifndef SIM_TOSSIM_H_INCLUDED
-#define SIM_TOSSIM_H_INCLUDED
+// $Id: sim_gain.h,v 1.1.2.1 2005-12-19 23:51:20 scipio Exp $
 
-#include <stdio.h>
+
+
+#ifndef SIM_GAIN_H_INCLUDED
+#define SIM_GAIN_H_INCLUDED
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef long long int sim_time_t;
+typedef struct gain_entry {
+  int mote;
+  double gain;
+  struct gain_entry* next;  
+} gain_entry_t;
   
-void sim_init();
-void sim_start();
-void sim_end();
+void sim_gain_add(int src, int dest, double gain);
+double sim_gain_value(int src, int dest);
+bool sim_gain_connected(int src, int dest);
+void sim_gain_remove(int src, int dest);
+void sim_gain_set_noise_floor(int node, double mean, double range);
+double sim_gain_noise(int node);
 
-void sim_random_seed(int seed);
-int sim_random();
+void sim_gain_set_sensitivity(double value);
+double sim_gain_sensitivity();
   
-sim_time_t sim_time();
-void sim_set_time(sim_time_t time);
-sim_time_t sim_ticks_per_sec();
-  
-unsigned long sim_node();
-void sim_set_node(unsigned long node);
-
-int sim_print_time(char* buf, int bufLen, sim_time_t time);
-int sim_print_now(char* buf, int bufLen);
-char* sim_time_string();
-
-bool sim_add_channel(char* channel, FILE* file);
-bool sim_remove_channel(char* channel, FILE* file);
-  
-bool sim_run_next_event();
-
+gain_entry_t* sim_gain_first(int src);
+gain_entry_t* sim_gain_next(gain_entry_t* e);
   
 #ifdef __cplusplus
 }
 #endif
   
-#endif // SIM_TOSSIM_H_INCLUDED
+#endif // SIM_GAIN_H_INCLUDED

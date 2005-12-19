@@ -22,53 +22,46 @@
  */
 
 /**
- * Implementation of all of the basic TOSSIM primitives and utility
- * functions.
+ *
+ * Configuration parameters for a CSMA link.
  *
  * @author Philip Levis
- * @date   Nov 22 2005
+ * @date   Dec 10 2005
  */
 
-// $Id: sim_tossim.h,v 1.1.2.2 2005-12-19 23:51:20 scipio Exp $
+#ifndef CSMA_H_INCLUDED
+#define CSMA_H_INCLUDED
 
-#ifndef SIM_TOSSIM_H_INCLUDED
-#define SIM_TOSSIM_H_INCLUDED
+class Csma {
+ public:
+  Csma();
+  ~Csma();
 
-#include <stdio.h>
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef long long int sim_time_t;
+  int initHigh();
+  int initLow();
+  int high();
+  int low();
+  int symbolsPerSec();
+  int bitsPerSymbol();
+  int preambleLength(); // in symbols
+  int exponentBase();
+  int maxIterations();
+  int minFreeSamples();
+  int rxtxDelay();
+  int ackTime(); // in symbols
   
-void sim_init();
-void sim_start();
-void sim_end();
-
-void sim_random_seed(int seed);
-int sim_random();
-  
-sim_time_t sim_time();
-void sim_set_time(sim_time_t time);
-sim_time_t sim_ticks_per_sec();
-  
-unsigned long sim_node();
-void sim_set_node(unsigned long node);
-
-int sim_print_time(char* buf, int bufLen, sim_time_t time);
-int sim_print_now(char* buf, int bufLen);
-char* sim_time_string();
-
-bool sim_add_channel(char* channel, FILE* file);
-bool sim_remove_channel(char* channel, FILE* file);
-  
-bool sim_run_next_event();
-
-  
-#ifdef __cplusplus
+  void setInitHigh(int val);
+  void setInitLow(int val);
+  void setHigh(int val);
+  void setLow(int val);
+  void setSymbolsPerSec(int val);
+  void setBitsBerSymbol(int val);
+  void setPreambleLength(int val); // in symbols
+  void setExponentBase(int val);
+  void setMaxIterations(int val);
+  void setMinFreeSamples(int val);
+  void setRxtxDelay(int val);
+  void setAckTime(int val); // in symbols int 
 }
+
 #endif
-  
-#endif // SIM_TOSSIM_H_INCLUDED

@@ -1,3 +1,4 @@
+// $Id: RadioTOSMsg.h,v 1.1.2.1 2005-12-19 23:51:20 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -18,57 +19,36 @@
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
  * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
  * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
- * ENHANCEMENTS, OR MODIFICATIONS."
+ *
  */
-
+ 
 /**
- * Implementation of all of the basic TOSSIM primitives and utility
- * functions.
+ * Defining the platform-independently named packet structures to be the
+ * tossim structures.
  *
  * @author Philip Levis
- * @date   Nov 22 2005
+ * @date   Dec 2 2005
+ * Revision:  $Revision: 1.1.2.1 $
  */
 
-// $Id: sim_tossim.h,v 1.1.2.2 2005-12-19 23:51:20 scipio Exp $
 
-#ifndef SIM_TOSSIM_H_INCLUDED
-#define SIM_TOSSIM_H_INCLUDED
+#ifndef RADIO_TOS_MSG_H
+#define RADIO_TOS_MSG_H
 
-#include <stdio.h>
+#include <TossimRadioMsg.h>
+#include <Serial.h>
 
+typedef union TOSRadioHeader {
+  tossim_header_t tossim;
+  SerialAMHeader serial;
+} TOSRadioHeader;
 
-#ifdef __cplusplus
-extern "C" {
+typedef union TOSRadioFooter {
+  tossim_footer_t tossim;
+} TOSRadioFooter;
+
+typedef union TOSRadioMetadata {
+  tossim_metadata_t tossim;
+} TOSRadioMetadata;
+
 #endif
-
-typedef long long int sim_time_t;
-  
-void sim_init();
-void sim_start();
-void sim_end();
-
-void sim_random_seed(int seed);
-int sim_random();
-  
-sim_time_t sim_time();
-void sim_set_time(sim_time_t time);
-sim_time_t sim_ticks_per_sec();
-  
-unsigned long sim_node();
-void sim_set_node(unsigned long node);
-
-int sim_print_time(char* buf, int bufLen, sim_time_t time);
-int sim_print_now(char* buf, int bufLen);
-char* sim_time_string();
-
-bool sim_add_channel(char* channel, FILE* file);
-bool sim_remove_channel(char* channel, FILE* file);
-  
-bool sim_run_next_event();
-
-  
-#ifdef __cplusplus
-}
-#endif
-  
-#endif // SIM_TOSSIM_H_INCLUDED

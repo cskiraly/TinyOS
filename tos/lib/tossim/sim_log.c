@@ -1,4 +1,4 @@
-// $Id: sim_log.c,v 1.1.2.1 2005-11-22 23:29:13 scipio Exp $
+// $Id: sim_log.c,v 1.1.2.2 2005-12-19 23:51:20 scipio Exp $
 
 /*									tab:4
 * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -230,7 +230,7 @@ void sim_log_debug(uint16_t id, char* string, const char* format, ...) {
   }
 }
 
-void simlog_error(uint16_t id, char* string, const char* format, ...) {
+void sim_log_error(uint16_t id, char* string, const char* format, ...) {
   va_list args;
   int i;
   if (outputs[id].files == NULL) {
@@ -240,6 +240,34 @@ void simlog_error(uint16_t id, char* string, const char* format, ...) {
     FILE* file = outputs[id].files[i];
     va_start(args, format);
     fprintf(file, "ERROR (%i): ", (int)sim_node());
+    vfprintf(file, format, args);
+    fflush(file);
+  }
+}
+
+void sim_log_debug_clear(uint16_t id, char* string, const char* format, ...) {
+  va_list args;
+  int i;
+  if (outputs[id].files == NULL) {
+    fillInOutput(id, string);
+  }
+  for (i = 0; i < outputs[id].num; i++) {
+    FILE* file = outputs[id].files[i];
+    va_start(args, format);
+    vfprintf(file, format, args);
+    fflush(file);
+  }
+}
+
+void sim_log_error_clear(uint16_t id, char* string, const char* format, ...) {
+  va_list args;
+  int i;
+  if (outputs[id].files == NULL) {
+    fillInOutput(id, string);
+  }
+  for (i = 0; i < outputs[id].num; i++) {
+    FILE* file = outputs[id].files[i];
+    va_start(args, format);
     vfprintf(file, format, args);
     fflush(file);
   }

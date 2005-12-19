@@ -22,17 +22,25 @@
  */
 
 /**
- * SWIG interface specification for TOSSIM.
+ * SWIG interface specification for TOSSIM. This file defines
+ * the top-level TOSSIM and Mote objects which are exported to
+ * Python. The typemap at the beginning allows a script to
+ * use Python files as a parameter to a function that takes a
+ * FILE* as a parameter (e.g., the logging system in sim_log.h).
  *
  * @author Philip Levis
  * @date   Nov 22 2005
  */
 
 %module TOSSIM
+
 %{
 #include <memory.h>
 #include <tossim.h>
 %}
+
+%include mac.i
+%include radio.i
 
 %typemap(python,in) FILE * {
   if (!PyFile_Check($input)) {
@@ -82,6 +90,8 @@ class Tossim {
   bool removeChannel(char* channel, FILE* file);
 
   bool runNextEvent();
+  MAC* mac();
+  Radio* radio();
 };
 
 

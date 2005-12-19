@@ -1,3 +1,4 @@
+// $Id: SimpleRadioModel.nc,v 1.1.2.1 2005-12-19 23:51:20 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -22,53 +23,23 @@
  */
 
 /**
- * Implementation of all of the basic TOSSIM primitives and utility
- * functions.
+ * The interface to a simple radio model, which has per-link bit error
+ * probabilities and assumes complete interferences (the old TOSSIM
+ * story).
  *
  * @author Philip Levis
- * @date   Nov 22 2005
- */
-
-// $Id: sim_tossim.h,v 1.1.2.2 2005-12-19 23:51:20 scipio Exp $
-
-#ifndef SIM_TOSSIM_H_INCLUDED
-#define SIM_TOSSIM_H_INCLUDED
-
-#include <stdio.h>
+ * @date   December 2 2005
+ */ 
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+includes TinyError;
 
-typedef long long int sim_time_t;
+interface SimpleRadioModel {
+  command void putOnAirTo(int dest, message_t* msg, bool ack, sim_time_t endTime);
+  command void putOnAirToAll(message_t* msg, bool ack, sim_time_t endTime);
+  command bool clearChannel();
   
-void sim_init();
-void sim_start();
-void sim_end();
-
-void sim_random_seed(int seed);
-int sim_random();
+  event void acked(message_t* msg);
   
-sim_time_t sim_time();
-void sim_set_time(sim_time_t time);
-sim_time_t sim_ticks_per_sec();
-  
-unsigned long sim_node();
-void sim_set_node(unsigned long node);
-
-int sim_print_time(char* buf, int bufLen, sim_time_t time);
-int sim_print_now(char* buf, int bufLen);
-char* sim_time_string();
-
-bool sim_add_channel(char* channel, FILE* file);
-bool sim_remove_channel(char* channel, FILE* file);
-  
-bool sim_run_next_event();
-
-  
-#ifdef __cplusplus
+  event void receive(message_t* msg);
 }
-#endif
-  
-#endif // SIM_TOSSIM_H_INCLUDED

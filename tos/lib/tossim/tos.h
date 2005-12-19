@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tos.h,v 1.1.2.4 2005-11-22 23:29:13 scipio Exp $
+// $Id: tos.h,v 1.1.2.5 2005-12-19 23:51:20 scipio Exp $
 
 #ifndef TOS_H_INCLUDED
 #define TOS_H_INCLUDED
@@ -52,8 +52,6 @@
 #include <stddef.h>
 #include <ctype.h>
 #include <stdio.h>
-
-typedef long long int sim_time_t;
 
 #ifndef __cplusplus
 typedef uint8_t bool;
@@ -84,6 +82,7 @@ extern uint16_t TOS_LOCAL_ADDRESS;
 #include <sim_event_queue.c>
 #include <sim_tossim.c>
 #include <hashtable.c>
+#include <sim_mac.c>
 #endif
 
 #endif

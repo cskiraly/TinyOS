@@ -29,33 +29,58 @@
  * @date   Nov 22 2005
  */
 
-// $Id: sim_tossim.c,v 1.1.2.2 2005-11-22 23:29:13 scipio Exp $
+// $Id: sim_tossim.c,v 1.1.2.3 2005-12-19 23:51:20 scipio Exp $
 
 
 #include <sim_tossim.h>
 #include <sim_event_queue.h>
 #include <sim_mote.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 static sim_time_t sim_ticks;
 static unsigned long current_node;
+static int sim_seed;
 
 static int __nesc_nido_resolve(int mote, char* varname, uintptr_t* addr, size_t* size);
 
 void sim_init() __attribute__ ((C, spontaneous)) {
-  uintptr_t ptr;
-  size_t size;
-  //  __nesc_nido_resolve(0, "DUMMY", &ptr, &size);
-  
   sim_queue_init();
   sim_log_init();
   sim_log_commit_change();
+
+  {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    sim_seed = tv.tv_usec;
+  } 
 }
 
 void sim_end() __attribute__ ((C, spontaneous)) {
   sim_queue_init();
 }
 
+
+
+int sim_random() __attribute__ ((C, spontaneous)) {
+  uint32_t mlcg,p,q;
+  uint64_t tmpseed;
+  tmpseed =  (uint64_t)33614U * (uint64_t)sim_seed;
+  q = tmpseed;    /* low */
+  q = q >> 1;
+  p = tmpseed >> 32 ;             /* hi */
+  mlcg = p + q;
+  if (mlcg & 0x80000000) {
+    mlcg = mlcg & 0x7FFFFFFF;
+    mlcg++;
+  }
+  sim_seed = mlcg;
+  return mlcg;
+}
+
+void sim_random_seed(int seed) __attribute__ ((C, spontaneous)) {
+  sim_seed = seed;
+}
 
 sim_time_t sim_time() __attribute__ ((C, spontaneous)) {
   return sim_ticks;
@@ -121,7 +146,7 @@ int sim_print_now(char* buf, int len) __attribute__ ((C, spontaneous)) {
 }
 
 char simTimeBuf[128];
-char* sim_current_time() __attribute__ ((C, spontaneous)) {
+char* sim_time_string() __attribute__ ((C, spontaneous)) {
   sim_print_now(simTimeBuf, 128);
   return simTimeBuf;
 }
