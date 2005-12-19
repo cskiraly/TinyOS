@@ -29,14 +29,16 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tossim.h,v 1.1.2.3 2005-11-22 23:29:13 scipio Exp $
+// $Id: tossim.h,v 1.1.2.4 2005-12-19 23:51:20 scipio Exp $
 
 #ifndef TOSSIM_H_INCLUDED
 #define TOSSIM_H_INCLUDED
 
+//#include <stdint.h>
 #include <memory.h>
-#include <stdint.h>
 #include <tos.h>
+#include <mac.h>
+#include <radio.h>
 
 class Mote {
  public:
@@ -79,6 +81,10 @@ class Tossim {
   bool removeChannel(char* channel, FILE* file);
   
   bool runNextEvent();
+
+  MAC* mac();
+  Radio* radio();
+  
  private:
   char timeBuf[256];
 };

@@ -22,14 +22,14 @@
  */
 
 /**
- * Implementation of all of the basic TOSSIM primitives and utility
- * functions.
+ * TOSSIM-specific scheduler implementation, which models
+ * tasks as simulation events (in order to capture delay).
  *
  * @author Philip Levis
  * @date   Nov 22 2005
  */
 
-// $Id: TinySchedulerC.nc,v 1.1.2.2 2005-11-22 23:29:13 scipio Exp $
+// $Id: TinySchedulerC.nc,v 1.1.2.3 2005-12-19 23:51:20 scipio Exp $
 
 configuration TinySchedulerC {
   provides interface Scheduler;

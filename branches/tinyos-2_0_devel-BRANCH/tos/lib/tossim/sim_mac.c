@@ -22,53 +22,13 @@
  */
 
 /**
- * Implementation of all of the basic TOSSIM primitives and utility
- * functions.
+ *
+ * This file is where you change which MAC and radio models TOSSIM
+ * incorporates.
  *
  * @author Philip Levis
- * @date   Nov 22 2005
+ * @date   Dec 10 2005
  */
 
-// $Id: sim_tossim.h,v 1.1.2.2 2005-12-19 23:51:20 scipio Exp $
-
-#ifndef SIM_TOSSIM_H_INCLUDED
-#define SIM_TOSSIM_H_INCLUDED
-
-#include <stdio.h>
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef long long int sim_time_t;
-  
-void sim_init();
-void sim_start();
-void sim_end();
-
-void sim_random_seed(int seed);
-int sim_random();
-  
-sim_time_t sim_time();
-void sim_set_time(sim_time_t time);
-sim_time_t sim_ticks_per_sec();
-  
-unsigned long sim_node();
-void sim_set_node(unsigned long node);
-
-int sim_print_time(char* buf, int bufLen, sim_time_t time);
-int sim_print_now(char* buf, int bufLen);
-char* sim_time_string();
-
-bool sim_add_channel(char* channel, FILE* file);
-bool sim_remove_channel(char* channel, FILE* file);
-  
-bool sim_run_next_event();
-
-  
-#ifdef __cplusplus
-}
-#endif
-  
-#endif // SIM_TOSSIM_H_INCLUDED
+#include <sim_csma.c>
+#include <sim_gain.c>

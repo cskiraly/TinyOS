@@ -22,53 +22,26 @@
  */
 
 /**
- * Implementation of all of the basic TOSSIM primitives and utility
- * functions.
+ *
+ * Configuration parameters for a CSMA link.
  *
  * @author Philip Levis
- * @date   Nov 22 2005
+ * @date   Dec 10 2005
  */
 
-// $Id: sim_tossim.h,v 1.1.2.2 2005-12-19 23:51:20 scipio Exp $
+#ifndef RADIO_H_INCLUDED
+#define RADIO_H_INCLUDED
 
-#ifndef SIM_TOSSIM_H_INCLUDED
-#define SIM_TOSSIM_H_INCLUDED
+class Radio {
+ public:
+  Radio();
+  ~Radio();
 
-#include <stdio.h>
+  void add(int src, int dest, double value);
+  double gain(int src, int dest);
+  bool connected(int src, int dest);
+  void remove(int src, int dest);
+  void setNoise(int node, double mean, double range);
+};
 
-
-#ifdef __cplusplus
-extern "C" {
 #endif
-
-typedef long long int sim_time_t;
-  
-void sim_init();
-void sim_start();
-void sim_end();
-
-void sim_random_seed(int seed);
-int sim_random();
-  
-sim_time_t sim_time();
-void sim_set_time(sim_time_t time);
-sim_time_t sim_ticks_per_sec();
-  
-unsigned long sim_node();
-void sim_set_node(unsigned long node);
-
-int sim_print_time(char* buf, int bufLen, sim_time_t time);
-int sim_print_now(char* buf, int bufLen);
-char* sim_time_string();
-
-bool sim_add_channel(char* channel, FILE* file);
-bool sim_remove_channel(char* channel, FILE* file);
-  
-bool sim_run_next_event();
-
-  
-#ifdef __cplusplus
-}
-#endif
-  
-#endif // SIM_TOSSIM_H_INCLUDED

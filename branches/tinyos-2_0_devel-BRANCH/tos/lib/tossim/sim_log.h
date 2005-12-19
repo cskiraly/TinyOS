@@ -32,14 +32,16 @@
  * @date   Nov 22 2005
  */
 
-// $Id: sim_log.h,v 1.1.2.1 2005-11-22 23:29:13 scipio Exp $
+// $Id: sim_log.h,v 1.1.2.2 2005-12-19 23:51:20 scipio Exp $
 
 
 #ifndef SIM_LOG_H_INCLUDED
 #define SIM_LOG_H_INCLUDED
 
 #define dbg(s, ...) sim_log_debug(unique("TOSSIM.debug"), s, __VA_ARGS__)
+#define dbg_clear(s, ...) sim_log_debug_clear(unique("TOSSIM.debug"), s, __VA_ARGS__)
 #define dbgerror(s, ...) sim_log_error(unique("TOSSIM.debug"), s, __VA_ARGS__)
+#define dbgerror_clear(s, ...) sim_log_error_clear(unique("TOSSIM.debug"), s, __VA_ARGS__)
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,6 +54,8 @@ void sim_log_commit_change();
 
 void sim_log_debug(uint16_t id, char* string, const char* format, ...);
 void sim_log_error(uint16_t id, char* string, const char* format, ...);
+void sim_log_debug_clear(uint16_t id, char* string, const char* format, ...);
+void sim_log_error_clear(uint16_t id, char* string, const char* format, ...);
 
 #ifdef __cplusplus
 }
