@@ -61,7 +61,7 @@
  *
  *
  * <pre>
- *  $Id: Atm128SpiP.nc,v 1.1.2.2 2005-12-08 03:21:00 klueska Exp $
+ *  $Id: Atm128SpiP.nc,v 1.1.2.3 2005-12-20 18:09:52 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -298,17 +298,15 @@ implementation {
      }
    }
  }
+
+ async command uint8_t Resource.getId[uint8_t id]() {
+   return call ResourceArbiter.getId[id]();
+ }
  
  event void ResourceArbiter.granted[ uint8_t id ]() {
-   
    signal Resource.granted[ id ]();
  }
  
- event void ResourceArbiter.requested[ uint8_t id ]() {
-   signal Resource.requested[ id ]();
- }
-
- default event void Resource.requested[ uint8_t id ] () {}
  default event void Resource.granted[ uint8_t id ]() {}
  
 }
