@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSpiPioM.nc,v 1.1.2.2 2005-12-08 00:57:40 philipb Exp $ */
+/* $Id: HalPXA27xSpiPioM.nc,v 1.1.2.3 2005-12-20 00:55:38 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -29,20 +29,27 @@
  * DAMAGE.
  */
 /**
- * I'm plements the TOS 2.0 SPIByte and SPIPacket interfaces for the PXA27x.
- * It assumes the Motorola Serial Peripheral Interface format.
- * Uses DMA for the packet based transfers.
+ * Implements the TOS 2.0 SPIByte and SPIPacket interfaces for the PXA27x.
+ * Provides master mode communication for a variety of frame formats, speeds
+ * and data sizes.
  * 
- * @param valSCR The value for the SCR field in the SSCR0 register of the 
- * associated SSP peripheral.
+ * @param valFRF The frame format to use. 
+ * 
+ * @param valSCR The value for the SSP clock rate.
  *
  * @param valDSS The value for the DSS field in the SSCR0 register of the
  * associated SSP peripheral.
  * 
+ * @param enableRWOT Enables Receive without transmit mode. Used only for 
+ * the SPIPacket interface. If the txBuf parameter of SPIPacket.send is null
+ * the implementation will continuously clock in data without regard to the 
+ * contents of the TX FIFO.  This is different from the spec for the interface
+ * which requires that the transmitter send zeros (0) for this case.
+ * 
  * @author Phil Buonadonna
  */
 
-generic module HalPXA27xSpiPioM(uint8_t valSCR, uint8_t valDSS) 
+generic module HalPXA27xSpiPioM(uint8_t valFRF, uint8_t valSCR, uint8_t valDSS, bool enableRWOT) 
 {
   provides {
     interface Init;
@@ -61,12 +68,13 @@ implementation
   uint8_t *txCurrentBuf, *rxCurrentBuf;
   uint8_t instanceCurrent;
   uint32_t lenCurrent;
+  norace uint32_t flagsSSCR0, flagsSSCR1;
 
   task void SpiPacketDone() {
     uint8_t *txBuf,*rxBuf;
     uint8_t instance;
     uint32_t len;
-    
+
     atomic {
       instance = instanceCurrent;
       len = lenCurrent;
@@ -86,9 +94,14 @@ implementation
     lenCurrent = 0 ;
     instanceCurrent = 0;
 
-    call SSP.setSSCR1(0 /*(SSCR1_TRAIL | SSCR1_RFT(8) | SSCR1_TFT(8))*/);
+    flagsSSCR1 = 0;
+    flagsSSCR0 = (SSCR0_SCR(valSCR) | SSCR0_FRF(/*0*/valFRF) | SSCR0_DSS(valDSS) );
+    //call SSP.setSSCR1(0 /*(SSCR1_TRAIL | SSCR1_RFT(8) | SSCR1_TFT(8))*/ );
+    call SSP.setSSCR1(flagsSSCR1);
     call SSP.setSSTO(96*8);
-    call SSP.setSSCR0(SSCR0_SCR(/*1*/ valSCR) | SSCR0_SSE | SSCR0_FRF(0) | SSCR0_DSS(/*0x7*/ valDSS) );
+    //call SSP.setSSCR0(SSCR0_SCR(valSCR) | SSCR0_SSE | SSCR0_FRF(/*0*/valFRF) | SSCR0_DSS(valDSS) );
+    call SSP.setSSCR0(flagsSSCR0);
+    call SSP.setSSCR0(flagsSSCR0 | SSCR0_SSE);
 
     return SUCCESS;
   }
@@ -147,28 +160,44 @@ implementation
       txPtr = txBuf;
     }
 
-    while (len > 16) {
-      for (i = 0;i < 16; i++) {
-	call SSP.setSSDR(*txPtr);
-	txPtr += txInc;
+    if ((txBuf == NULL) && (enableRWOT == TRUE)) {
+
+      call SSP.setSSCR0(flagsSSCR0);
+      call SSP.setSSCR1(flagsSSCR1 | SSCR1_RWOT);
+      call SSP.setSSCR0(flagsSSCR0 | SSCR0_SSE);
+      while (len > 0) {
+	while (!(call SSP.getSSSR() & SSSR_RNE));
+	*rxPtr = call SSP.getSSDR();
+	rxPtr += rxInc;
+	len--;
       }
-      while (call SSP.getSSSR() & SSSR_BSY);
+      call SSP.setSSCR0(flagsSSCR0);
+      call SSP.setSSCR1(flagsSSCR1);
+      call SSP.setSSCR0(flagsSSCR0 | SSCR0_SSE);
+    }
+    else {
+      while (len > 16) {
+	for (i = 0;i < 16; i++) {
+	  call SSP.setSSDR(*txPtr);
+	  txPtr += txInc;
+	}
+	while (call SSP.getSSSR() & SSSR_BSY);
       for (i = 0;i < 16;i++) {
 	*rxPtr = call SSP.getSSDR();
 	rxPtr += rxInc;
       }
       len -= 16;
+      }
+      for (i = 0;i < len; i++) {
+	call SSP.setSSDR(*txPtr);
+	txPtr += txInc;
+      }
+      while (call SSP.getSSSR() & SSSR_BSY);
+      for (i = 0;i < len;i++) {
+	*rxPtr = call SSP.getSSDR();
+	rxPtr += rxInc;
+      }
     }
-    for (i = 0;i < len; i++) {
-      call SSP.setSSDR(*txPtr);
-      txPtr += txInc;
-    }
-    while (call SSP.getSSSR() & SSSR_BSY);
-    for (i = 0;i < len;i++) {
-      *rxPtr = call SSP.getSSDR();
-      rxPtr += rxInc;
-    }
-
     post SpiPacketDone();
 
     error = SUCCESS;
