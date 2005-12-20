@@ -29,7 +29,7 @@
  * @date   Dec 10 2005
  */
 
-// $Id: sim_csma.h,v 1.1.2.1 2005-12-19 23:51:20 scipio Exp $
+// $Id: sim_csma.h,v 1.1.2.2 2005-12-20 17:13:49 scipio Exp $
 
 #ifndef SIM_CSMA_H_INCLUDED
 #define SIM_CSMA_H_INCLUDED
@@ -71,7 +71,7 @@
 #endif
 
 #ifndef SIM_CSMA_MIN_FREE_SAMPLES
-#define SIM_CSMA_MIN_FREE_SAMPLES 1
+#define SIM_CSMA_MIN_FREE_SAMPLES 2
 #endif
 
 // 500 us ~= 32 symbols

@@ -42,7 +42,7 @@ void sim_gain_add(int src, int dest, double gain) __attribute__ ((C, spontaneous
   current->gain = gain;
   current->next = connectivity[src];
   connectivity[src] = current;
-  dbg("Binary", "Adding link from %i to %i with gain %llf\n", src, dest, gain);
+  dbg("Gain", "Adding link from %i to %i with gain %f\n", src, dest, gain);
   sim_set_node(temp);
 }
 
