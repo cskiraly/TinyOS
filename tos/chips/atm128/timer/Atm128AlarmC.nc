@@ -1,4 +1,4 @@
-/// $Id: Atm128AlarmC.nc,v 1.1.2.1 2005-10-27 20:31:27 idgay Exp $
+/// $Id: Atm128AlarmC.nc,v 1.1.2.2 2005-12-20 18:09:52 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -73,7 +73,7 @@ implementation
     timer_size expires, guardedExpires;
 
     now = call HplTimer.get();
-
+    dbg("Atm128AlarmC", "   starting timer at %llu with dt %llu\n", (uint64_t)t0, (uint64_t) dt);
     /* We require dt >= mindt to avoid setting an interrupt which is in
        the past by the time we actually set it. mindt should always be
        at least 2, because you cannot set an interrupt one cycle in the
@@ -118,6 +118,7 @@ implementation
 
   async event void HplCompare.fired() {
     call HplCompare.stop();
+    dbg("Atm128AlarmC", " Compare fired, signal alarm above.\n");
     signal Alarm.fired();
   }
 

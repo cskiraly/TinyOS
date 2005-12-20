@@ -1,4 +1,4 @@
-// $Id: HplGeneralIOC.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+// $Id: HplGeneralIOC.nc,v 1.1.2.2 2005-12-20 18:09:51 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -27,6 +27,8 @@
 /**
  * Provide GeneralIO interfaces for all of the ATmega128's pins.
  */
+
+#include <atm128hardware.h>
 
 configuration HplGeneralIOC
 {

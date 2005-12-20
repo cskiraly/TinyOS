@@ -1,7 +1,6 @@
 #ifndef ATM128_SIM_H_INCLUDED
 #define ATM128_SIM_H_INCLUDED
 
-#include <tos.h>
 
 //uint8_t atm128RegFile[100][0xa0];
 

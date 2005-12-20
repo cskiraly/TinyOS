@@ -32,14 +32,10 @@
  * @author David Gay <dgay@intel-research.net>
  */
 
-// $Id: HplCounter0C.nc,v 1.1.2.2 2005-11-23 00:25:44 scipio Exp $/// $Id: HplTimer2C.nc,
+// $Id: HplCounter0C.nc,v 1.1.2.3 2005-12-20 18:09:52 scipio Exp $/// $Id: HplTimer2C.nc,
 
 #include <Atm128Timer.h>
 #include <hardware.h>
-
-enum {
-  ATM128_TIMER0_TICKSPPS = 32768
-};
 
 module HplCounter0C {
   provides {
