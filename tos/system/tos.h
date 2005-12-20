@@ -21,3 +21,11 @@ enum { FALSE = 0, TRUE = 1 };
 
 typedef int8_t nx_bool __attribute__((nx_base(int8)));
 uint16_t TOS_LOCAL_ADDRESS = 1;
+
+#ifndef TOSSIM
+#define dbg(s, ...) {}
+#define dbgerror(s, ...) {}
+#define dbg_clear(s, ...) {}
+#define dbgerror_clear(s, ...) {}
+#endif
+
