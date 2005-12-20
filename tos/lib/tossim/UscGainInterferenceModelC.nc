@@ -1,4 +1,4 @@
-// $Id: UscGainInterferenceModelC.nc,v 1.1.2.1 2005-12-19 23:51:20 scipio Exp $
+// $Id: UscGainInterferenceModelC.nc,v 1.1.2.2 2005-12-20 17:13:49 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -131,6 +131,7 @@ implementation {
     receive_message_t* mine = (receive_message_t*)evt->data;
     receive_message_t* predecessor = NULL;
     receive_message_t* list = outstandingReceptionHead;
+    dbg("Gain", "Handling reception event @ %s.\n", sim_time_string());
     while (list != NULL) {
       if (list->next == mine) {
 	predecessor = list;
@@ -157,10 +158,14 @@ implementation {
     }
     
     if (!mine->lost) {
+      dbg_clear("Gain", "  -signaling reception.\n");
       signal Model.receive(mine->msg);
       if (mine->ack && signal Model.shouldAck(mine->msg)) {
 	sim_gain_schedule_ack(mine->source, sim_time()); 
       }
+    }
+    else {
+      dbg_clear("Gain", "  -packet was lost.\n");
     }
     free(mine);
   }
@@ -176,7 +181,7 @@ implementation {
     rcv->end = endTime;
     rcv->power = power;
     rcv->msg = msg;
-    rcv->lost = (heardSignal() + sim_gain_sensitivity()) < power;
+    rcv->lost = (heardSignal() + sim_gain_sensitivity()) >= power;
     rcv->next = outstandingReceptionHead;
 
     outstandingReceptionHead = rcv;
@@ -186,8 +191,8 @@ implementation {
   
   void sim_gain_put(int dest, message_t* msg, sim_time_t endTime, bool receive, double power) {
     int prevNode = sim_node();
-    sim_set_node(dest);
     dbg("Gain", "Enqueing reception event for %i.\n", dest);
+    sim_set_node(dest);
     enqueue_receive_event(prevNode, endTime - 1, msg, receive, power);
     sim_set_node(prevNode);
   }
