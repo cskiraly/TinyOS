@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-12-21 17:43:06 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-12-21 18:15:23 $ 
  * ======================================================================== 
  */
  
@@ -77,15 +77,6 @@ implementation {
   bool res2Active = FALSE;
   
   
-  //Function for inserting delay so that you can see
-  //  Leds as they flash
-  void delay() {
-    uint16_t i, j;
-    for (i= 0; i < 5; i++) {
-      for (j = 0; j < 30000; j++) {}
-    }
-  }
-
   task void startResource4SafePeriod() {
     call TimerResource4.stop();
     call TimerResource4.startOneShot(RESOURCE4_SAFE_PERIOD);
@@ -99,7 +90,7 @@ implementation {
       res1Active = FALSE;
     } else {
       call Leds.led0Toggle();
-      delay();
+      uwait(100000);
       call Leds.led0Toggle();
       call Resource1.request();
     }
@@ -113,7 +104,7 @@ implementation {
       res2Active = FALSE;
     } else {
       call Leds.led1Toggle();
-      delay();
+      uwait(100000);
       call Leds.led1Toggle();
       call Resource2.request();
     }
@@ -123,13 +114,12 @@ implementation {
     call Leds.led0Toggle();
     call Leds.led1Toggle();
     call Leds.led2Toggle();
-    delay();
+    uwait(100000);
     call Leds.led0Toggle();
     call Leds.led1Toggle();
     call Leds.led2Toggle();
     call Resource4.release();
     // and request again 'cause we know that one client will be served in between...
-    delay();
     call Resource4.request();
     atomic {resReq = FALSE;}
   }
