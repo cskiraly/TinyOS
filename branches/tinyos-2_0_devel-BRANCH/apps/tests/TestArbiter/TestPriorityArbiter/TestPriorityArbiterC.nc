@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-12-21 18:15:23 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2005-12-21 19:02:40 $ 
  * ======================================================================== 
  */
  
@@ -60,6 +60,7 @@ implementation {
 
 #define RESOURCE4_FULL_PERIOD     8000
 #define RESOURCE4_SAFE_PERIOD     1000
+#define RESOURCE4_SLEEP_PERIOD    10000
 
 #define RESOURCE2_ACTIVE_PERIOD   1000
 #define RESOURCE2_WAIT_PERIOD     6000
@@ -69,7 +70,8 @@ implementation {
 
 
 
-  // internal state of Resource4 (High Prio Resource)
+  // internal states of Resource4 (High Prio Resource)
+  uint8_t sleepCnt = 0;
   bool resReq = FALSE;
   
   // internal state Resources (active / not active)
@@ -90,7 +92,7 @@ implementation {
       res1Active = FALSE;
     } else {
       call Leds.led0Toggle();
-      uwait(100000);
+      uwait(100);
       call Leds.led0Toggle();
       call Resource1.request();
     }
@@ -104,7 +106,7 @@ implementation {
       res2Active = FALSE;
     } else {
       call Leds.led1Toggle();
-      uwait(100000);
+      uwait(100);
       call Leds.led1Toggle();
       call Resource2.request();
     }
@@ -114,7 +116,7 @@ implementation {
     call Leds.led0Toggle();
     call Leds.led1Toggle();
     call Leds.led2Toggle();
-    uwait(100000);
+    uwait(100);
     call Leds.led0Toggle();
     call Leds.led1Toggle();
     call Leds.led2Toggle();
@@ -129,7 +131,6 @@ implementation {
   event void Boot.booted() {
     call Resource1.request();
     call Resource2.request();
-    call Resource3.request();
     call Resource4.request(); 
   }
   
@@ -156,14 +157,22 @@ implementation {
  
   }  
   event void Resource4.granted() {
-    call Leds.led0On();  
-    call Leds.led1On(); 
-    call Leds.led2On(); 
-    if (resReq) {
-      call TimerResource4.startOneShot(RESOURCE4_SAFE_PERIOD);  
+    if (sleepCnt > 4) {
+      // immediatly release resource and sleep
+      call Resource4.release();
+      call TimerResource4.startOneShot(RESOURCE4_SLEEP_PERIOD);  
+      sleepCnt = 0;
     } else {
-      call TimerResource4.startOneShot(RESOURCE4_FULL_PERIOD);  
+      call Leds.led0On();  
+      call Leds.led1On(); 
+      call Leds.led2On(); 
+      if (resReq) {
+       call TimerResource4.startOneShot(RESOURCE4_SAFE_PERIOD);  
+      } else {
+       call TimerResource4.startOneShot(RESOURCE4_FULL_PERIOD);  
+      }
     }
+    ++sleepCnt;
   }  
   
   //If detect that someone else wants the resource,
