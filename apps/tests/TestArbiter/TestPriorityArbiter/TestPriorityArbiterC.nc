@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-12-21 19:02:40 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2005-12-22 12:53:58 $ 
  * ======================================================================== 
  */
  
@@ -46,27 +46,27 @@ module TestPriorityArbiterC {
   uses {
     interface Boot;  
     interface Leds;
-    interface Resource as Resource1;
-    interface Resource as Resource2;  
-    interface ResourceController as Resource3;
-    interface ResourceController as Resource4;
+    interface Resource as Client1;
+    interface Resource as Client2;  
+    interface ResourceController as PowerManager;
+    interface ResourceController as HighClient;
     interface ArbiterInfo;
-    interface Timer<TMilli> as TimerResource1;
-    interface Timer<TMilli> as TimerResource2;
-    interface Timer<TMilli> as TimerResource4;
+    interface Timer<TMilli> as TimerClient1;
+    interface Timer<TMilli> as TimerClient2;
+    interface Timer<TMilli> as TimerHighClient;
   }
 }
 implementation {
 
-#define RESOURCE4_FULL_PERIOD     8000
-#define RESOURCE4_SAFE_PERIOD     1000
-#define RESOURCE4_SLEEP_PERIOD    10000
+#define HIGHCLIENT_FULL_PERIOD     8000
+#define HIGHCLIENT_SAFE_PERIOD     1000
+#define HIGHCLIENT_SLEEP_PERIOD    10000
 
-#define RESOURCE2_ACTIVE_PERIOD   1000
-#define RESOURCE2_WAIT_PERIOD     6000
+#define CLIENT2_ACTIVE_PERIOD   1000
+#define CLIENT2_WAIT_PERIOD     6000
 
-#define RESOURCE1_ACTIVE_PERIOD   2000
-#define RESOURCE1_WAIT_PERIOD     6000
+#define CLIENT1_ACTIVE_PERIOD   2000
+#define CLIENT1_WAIT_PERIOD     6000
 
 
 
@@ -75,44 +75,44 @@ implementation {
   bool resReq = FALSE;
   
   // internal state Resources (active / not active)
-  bool res1Active = FALSE;
-  bool res2Active = FALSE;
+  bool client1Active = FALSE;
+  bool client2Active = FALSE;
   
   
-  task void startResource4SafePeriod() {
-    call TimerResource4.stop();
-    call TimerResource4.startOneShot(RESOURCE4_SAFE_PERIOD);
+  task void startHighClientSafePeriod() {
+    call TimerHighClient.stop();
+    call TimerHighClient.startOneShot(HIGHCLIENT_SAFE_PERIOD);
   }
   
-  event void TimerResource1.fired() {
-    if (res1Active) {
-      call Resource1.release();
-      call TimerResource1.startOneShot(RESOURCE1_WAIT_PERIOD);
+  event void TimerClient1.fired() {
+    if (client1Active) {
+      call Client1.release();
+      call TimerClient1.startOneShot(CLIENT1_WAIT_PERIOD);
       call Leds.led0Off();    
-      res1Active = FALSE;
+      client1Active = FALSE;
     } else {
       call Leds.led0Toggle();
       uwait(100);
       call Leds.led0Toggle();
-      call Resource1.request();
+      call Client1.request();
     }
   }
   
-  event void TimerResource2.fired() {
-    if (res2Active) {
-      call Resource2.release();
-      call TimerResource2.startOneShot(RESOURCE2_WAIT_PERIOD);
+  event void TimerClient2.fired() {
+    if (client2Active) {
+      call Client2.release();
+      call TimerClient2.startOneShot(CLIENT2_WAIT_PERIOD);
       call Leds.led1Off(); 
-      res2Active = FALSE;
+      client2Active = FALSE;
     } else {
       call Leds.led1Toggle();
       uwait(100);
       call Leds.led1Toggle();
-      call Resource2.request();
+      call Client2.request();
     }
   }
   
-  event void TimerResource4.fired() {
+  event void TimerHighClient.fired() {
     call Leds.led0Toggle();
     call Leds.led1Toggle();
     call Leds.led2Toggle();
@@ -120,56 +120,55 @@ implementation {
     call Leds.led0Toggle();
     call Leds.led1Toggle();
     call Leds.led2Toggle();
-    call Resource4.release();
+    call HighClient.release();
     // and request again 'cause we know that one client will be served in between...
-    call Resource4.request();
+    call HighClient.request();
     atomic {resReq = FALSE;}
   }
  
  
   //All resources try to gain access
   event void Boot.booted() {
-    call Resource1.request();
-    call Resource2.request();
-    call Resource4.request(); 
+    call Client1.request();
+    call Client2.request();
+    call HighClient.request(); 
   }
   
   //If granted the resource, turn on an LED  
-  event void Resource1.granted() {
+  event void Client1.granted() {
     call Leds.led0On();    
     call Leds.led1Off(); 
     call Leds.led2Off();   
-    call TimerResource1.startOneShot(RESOURCE1_ACTIVE_PERIOD);
-    res1Active = TRUE; 
+    call TimerClient1.startOneShot(CLIENT1_ACTIVE_PERIOD);
+    client1Active = TRUE; 
   }  
   
-  event void Resource2.granted() {
+  event void Client2.granted() {
     call Leds.led0Off();
     call Leds.led1On(); 
     call Leds.led2Off(); 
-    call TimerResource2.startOneShot(RESOURCE2_ACTIVE_PERIOD);
-    res2Active = TRUE;    
+    call TimerClient2.startOneShot(CLIENT2_ACTIVE_PERIOD);
+    client2Active = TRUE;    
   }  
-  event void Resource3.granted() {
+  event void PowerManager.granted() {
     call Leds.led0Off(); 
     call Leds.led1Off(); 
     call Leds.led2On();  
- 
   }  
-  event void Resource4.granted() {
-    if (sleepCnt > 4) {
+  event void HighClient.granted() {
+    if (sleepCnt > 7) {
       // immediatly release resource and sleep
-      call Resource4.release();
-      call TimerResource4.startOneShot(RESOURCE4_SLEEP_PERIOD);  
+      call HighClient.release();
+      call TimerHighClient.startOneShot(HIGHCLIENT_SLEEP_PERIOD);  
       sleepCnt = 0;
     } else {
       call Leds.led0On();  
       call Leds.led1On(); 
       call Leds.led2On(); 
       if (resReq) {
-       call TimerResource4.startOneShot(RESOURCE4_SAFE_PERIOD);  
+        call TimerHighClient.startOneShot(HIGHCLIENT_SAFE_PERIOD);  
       } else {
-       call TimerResource4.startOneShot(RESOURCE4_FULL_PERIOD);  
+        call TimerHighClient.startOneShot(HIGHCLIENT_FULL_PERIOD);  
       }
     }
     ++sleepCnt;
@@ -177,28 +176,28 @@ implementation {
   
   //If detect that someone else wants the resource,
   //  release it 
-  async event void Resource3.requested() {
-    call Resource3.release();
+  async event void PowerManager.requested() {
+    call PowerManager.release();
   }
   
   //If detect that someone else wants the resource,
   //  release it if its safe 
-  async event void Resource4.requested() {
+  async event void HighClient.requested() {
     if (!resReq) {
-      if (call ArbiterInfo.userId() == call Resource4.getId() ) {
-        post startResource4SafePeriod();
+      if (call ArbiterInfo.userId() == call HighClient.getId() ) {
+        post startHighClientSafePeriod();
       } else {}
       atomic {resReq = TRUE;}
     }
   }
   
   // do something
-  async event void Resource3.idle() {
-    call Resource3.request(); 
+  async event void PowerManager.idle() {
+    call PowerManager.request(); 
   }
   
   // do nothing
-  async event void Resource4.idle() {
+  async event void HighClient.idle() {
   }
 }
 

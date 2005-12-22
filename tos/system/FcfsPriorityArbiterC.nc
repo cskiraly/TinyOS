@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-12-21 17:43:06 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2005-12-22 12:53:58 $ 
  * ======================================================================== 
  */
  
@@ -58,8 +58,8 @@ generic module FcfsPriorityArbiterC(char resourceName[]) {
   provides {
     interface Init;
     interface Resource[uint8_t id];
-    interface ResourceController as HighestPriorityClient;
-    interface ResourceController as LowestPriorityClient;
+    interface ResourceController as HighPriorityClient;
+    interface ResourceController as LowPriorityClient;
     interface ArbiterInfo;
   }
   uses {
@@ -70,8 +70,8 @@ implementation {
 
   enum {RES_IDLE, RES_GRANTING, RES_BUSY};
   enum {NO_RES = 0xFF};
-  enum {LOWEST_PRIORITY_CLIENT_ID = uniqueCount(resourceName) + 1};
-  enum {HIGHEST_PRIORITY_CLIENT_ID = uniqueCount(resourceName) + 2};
+  enum {LOW_PRIORITY_CLIENT_ID = uniqueCount(resourceName) + 1};
+  enum {HIGH_PRIORITY_CLIENT_ID = uniqueCount(resourceName) + 2};
 
   uint8_t state = RES_IDLE;
   uint8_t resId = NO_RES;
@@ -83,7 +83,6 @@ implementation {
   bool irp = FALSE;     // immediate request pending
   
   task void grantedTask();
-  task void requestedTask();
   error_t queueRequest(uint8_t id);
   void grantNextRequest();
   
@@ -109,10 +108,9 @@ implementation {
     the granted() event in synchronous context once it has 
     been given access to the resource.
     
-    Whenever requests are queued, the highest priority client on the bus 
-    will receive a requested() event, notifying him that another
-    user would like to have access to the resource. This is done even
-    if he is not the owner.
+    Whenever requests are queued, the highest priority client 
+    will receive a requested() event after he receives granted(),
+    notifying him that another user would like to have access to the resource. 
     
     If the user has already requested access to the resource and
     is waiting on a pending granted() event, an EBUSY value will 
@@ -126,28 +124,40 @@ implementation {
         post grantedTask();
         return SUCCESS;
       }
-      if (resId == LOWEST_PRIORITY_CLIENT_ID)  {
-        post requestedTask();
-      } 
-      if (id == HIGHEST_PRIORITY_CLIENT_ID) {
-        atomic {
-          hpreq = TRUE;
-          return SUCCESS;
-        } 
-      } else {
-        // if any other client requests the resource, signal it to the highest priority client
-        signal HighestPriorityClient.requested(); 
+      if (resId == LOW_PRIORITY_CLIENT_ID)  {
+        signal LowPriorityClient.requested();
+      } else if (resId == HIGH_PRIORITY_CLIENT_ID) {
+        signal HighPriorityClient.requested();
       }
       return queueRequest( id );
     }
   } 
 
-  async command error_t LowestPriorityClient.request() {
-    return call Resource.request[LOWEST_PRIORITY_CLIENT_ID]();
+  async command error_t LowPriorityClient.request() {
+    atomic {
+      if((state == RES_IDLE) && (!hpreq)) {
+        state = RES_GRANTING;
+        reqResId = LOW_PRIORITY_CLIENT_ID;
+        post grantedTask();
+        return SUCCESS;
+      }
+    }
+    return EBUSY;
   }
   
-  async command error_t HighestPriorityClient.request() {
-    return call Resource.request[HIGHEST_PRIORITY_CLIENT_ID]();
+  async command error_t HighPriorityClient.request() {
+    atomic {
+      if (resId == LOW_PRIORITY_CLIENT_ID)  {
+        signal LowPriorityClient.requested();
+      }
+      hpreq = TRUE;
+      if( state == RES_IDLE ) {
+        state = RES_GRANTING;
+        reqResId = HIGH_PRIORITY_CLIENT_ID;
+        post grantedTask();
+      }
+      return SUCCESS;
+    }
   }
   
   /**
@@ -174,12 +184,12 @@ implementation {
     if(ownerId == id) {
       call ResourceConfigure.configure[id]();
       return SUCCESS;
-    } else if( ownerId == LOWEST_PRIORITY_CLIENT_ID ){
+    } else if( ownerId == LOW_PRIORITY_CLIENT_ID ){
       atomic {
         irp = TRUE;     //indicate that immediateRequest is pending
         reqResId = id;  //Id to grant resource to if can
       }  
-      signal LowestPriorityClient.requested();
+      signal LowPriorityClient.requested();
       atomic {
         ownerId = resId;   //See if I have been granted the resource
         irp = FALSE;       //Indicate that immediate request no longer pending
@@ -194,11 +204,11 @@ implementation {
     }
   }
     
-  async command error_t LowestPriorityClient.immediateRequest() {
-    return call Resource.immediateRequest[LOWEST_PRIORITY_CLIENT_ID]();
+  async command error_t LowPriorityClient.immediateRequest() {
+    return call Resource.immediateRequest[LOW_PRIORITY_CLIENT_ID]();
   }
-  async command error_t HighestPriorityClient.immediateRequest() {
-    return call Resource.immediateRequest[HIGHEST_PRIORITY_CLIENT_ID]();
+  async command error_t HighPriorityClient.immediateRequest() {
+    return call Resource.immediateRequest[HIGH_PRIORITY_CLIENT_ID]();
   }
  
   /**
@@ -225,16 +235,16 @@ implementation {
       }
       currentState = state;
     }
-    if(currentState == RES_IDLE) {
-      signal LowestPriorityClient.idle();
-      signal HighestPriorityClient.idle();
+    if (currentState == RES_IDLE)  {
+      signal HighPriorityClient.idle();
+      signal LowPriorityClient.idle();
     }
   } 
-  async command void LowestPriorityClient.release() {
-    call Resource.release[LOWEST_PRIORITY_CLIENT_ID]();
+  async command void LowPriorityClient.release() {
+    call Resource.release[LOW_PRIORITY_CLIENT_ID]();
   }
-  async command void HighestPriorityClient.release() {
-    call Resource.release[HIGHEST_PRIORITY_CLIENT_ID]();
+  async command void HighPriorityClient.release() {
+    call Resource.release[HIGH_PRIORITY_CLIENT_ID]();
   } 
   /**
     Check if the Resource is currently in use
@@ -263,11 +273,11 @@ implementation {
   async command uint8_t Resource.getId[uint8_t id]() {
     return id;
   }
-  async command uint8_t LowestPriorityClient.getId() {
-    return call Resource.getId[LOWEST_PRIORITY_CLIENT_ID]();
+  async command uint8_t LowPriorityClient.getId() {
+    return call Resource.getId[LOW_PRIORITY_CLIENT_ID]();
   }
-  async command uint8_t HighestPriorityClient.getId() {
-    return call Resource.getId[HIGHEST_PRIORITY_CLIENT_ID]();
+  async command uint8_t HighPriorityClient.getId() {
+    return call Resource.getId[HIGH_PRIORITY_CLIENT_ID]();
   }
   
   //Grant a request to the next Pending user
@@ -275,11 +285,11 @@ implementation {
   void grantNextRequest() {
     resId = NO_RES;
     // do not grant, if highest priority client had the resource before 
-    if ( (hpreq) && (resId != HIGHEST_PRIORITY_CLIENT_ID) ) {
+    if ( (hpreq) && (resId != HIGH_PRIORITY_CLIENT_ID) ) {
       atomic {
         hpreq = FALSE;
       }
-      reqResId = HIGHEST_PRIORITY_CLIENT_ID;
+      reqResId = HIGH_PRIORITY_CLIENT_ID;
       state = RES_GRANTING;
       post grantedTask();
     } else {
@@ -319,48 +329,45 @@ implementation {
   //Task for pulling the Resource.granted() signal
     //into synchronous context  
   task void grantedTask() {
+    int i;
     uint8_t tmpId;
     atomic {
       tmpId = resId = reqResId;
       state = RES_BUSY;
     }
-    call ResourceConfigure.configure[tmpId]();
-    signal Resource.granted[tmpId]();
+    if (tmpId == HIGH_PRIORITY_CLIENT_ID) {
+      signal HighPriorityClient.granted();
+      // lets throw pending request at him...
+      atomic {
+        if (qHead != NO_RES) {
+        signal HighPriorityClient.requested(); 
+        }
+      }
+    } else if (tmpId == LOW_PRIORITY_CLIENT_ID) {
+      signal LowPriorityClient.granted(); 
+    } else {
+      call ResourceConfigure.configure[tmpId]();
+      signal Resource.granted[tmpId]();
+    }
   }
 
-  //Task for pulling the ResourceController.requested() signal
-    //into synchronous context  
-  task void requestedTask() {
-    uint8_t tmpId;
-    atomic {
-      tmpId = resId;
-    }
-    if(tmpId == LOWEST_PRIORITY_CLIENT_ID) {
-      signal LowestPriorityClient.requested();
-    }
-  }
-  
   //Default event/command handlers for all of the other
     //potential users/providers of the parameterized interfaces 
     //that have not been connected to.  
   default event void Resource.granted[uint8_t id]() {
-    if (HIGHEST_PRIORITY_CLIENT_ID == id) {
-      signal HighestPriorityClient.granted();
-    } else if (LOWEST_PRIORITY_CLIENT_ID == id) {
-      signal LowestPriorityClient.granted();
-    }
+      signal LowPriorityClient.granted();
   }
-  default event void LowestPriorityClient.granted() {
+  default event void LowPriorityClient.granted() {
   }
-  default async event void LowestPriorityClient.requested() {
+  default async event void LowPriorityClient.requested() {
   }
-  default async event void LowestPriorityClient.idle() {
+  default async event void LowPriorityClient.idle() {
   }
-  default event void HighestPriorityClient.granted() {
+  default event void HighPriorityClient.granted() {
   }
-  default async event void HighestPriorityClient.requested() {
+  default async event void HighPriorityClient.requested() {
   }
-  default async event void HighestPriorityClient.idle() {
+  default async event void HighPriorityClient.idle() {
   }
   default async command void ResourceConfigure.configure[uint8_t id]() {
   }
