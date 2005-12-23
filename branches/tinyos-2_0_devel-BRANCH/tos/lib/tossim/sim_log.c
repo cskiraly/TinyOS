@@ -1,4 +1,4 @@
-// $Id: sim_log.c,v 1.1.2.2 2005-12-19 23:51:20 scipio Exp $
+// $Id: sim_log.c,v 1.1.2.3 2005-12-23 23:30:18 scipio Exp $
 
 /*									tab:4
 * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -66,6 +66,13 @@ static int sim_log_eq(void* key1, void* key2);
 
 // First we count how many outputs there are,
 // then allocate a FILE** large enough and fill it in.
+// This FILE** might be larger than needed, because
+// the outputs of the channels might have redundancies.
+// E.g., if two channels A and B are both to stdout, then
+// you don't want a channel of "A,B" to be doubly printed
+// to stdout. So when the channel's FILE*s are copied
+// into the debug point output array, this checks
+// for redundancies by checking file descriptors.
 static void fillInOutput(int id, char* name) {
   char* termination = name;
   char* namePos = name;
@@ -120,11 +127,22 @@ static void fillInOutput(int id, char* name) {
     
     channel = hashtable_search(channelTable, namePos);
     if (channel != NULL) {
-      int i;
+      int i, j;
       for (i = 0; i < channel->numOutputs; i++) {
+	int duplicate = 0;
 	int outputCount = outputs[id].num;
-	outputs[id].files[outputCount] = channel->outputs[i];
-	outputs[id].num++;
+	// Check if we already have this file descriptor in the output
+	// set, and if so, ignore it.
+	for (j = 0; j < outputCount; j++) {
+	  if (fileno(outputs[id].files[j]) == fileno(channel->outputs[i])) {
+	    duplicate = 1;
+	    j = outputCount;
+	  }
+	}
+	if (!duplicate) {
+	  outputs[id].files[outputCount] = channel->outputs[i];
+	  outputs[id].num++;
+	}
       }
     }
     namePos = termination + 1;
