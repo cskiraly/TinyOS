@@ -61,7 +61,6 @@ for ($i = 0; $i <= $#ARGV; $i++) {
 	}
 	elsif (/^-tossim$/) {
 	    $tossim = 1;
-	    $verbose = 1;
             $strip = 1;
 	}
 	elsif (/^-I/) {
@@ -183,13 +182,22 @@ if (!$nostdinc) {
     push @includes, "%T/system";
 }
 
+
+if ($tossim) {
+  foreach $idir (@includes) {
+    $idir = &idir_subst($idir);
+    push @new_args, "-I$idir/sim";
+  }
+  $tossim_dir = &idir_subst("-I%T/lib/tossim");
+  push @new_args, $tossim_dir;
+}
 foreach $idir (@includes) {
     $idir = &idir_subst($idir);
-    if ($tossim) {
-      push @new_args, "-I$idir/sim";
-    }
     push @new_args, "-I$idir";
 }
+
+
+
 
 print STDERR join(' ', @new_args), "\n" if $verbose;
 

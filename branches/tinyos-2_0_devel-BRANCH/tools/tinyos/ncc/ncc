@@ -10,9 +10,10 @@
 # 94704.  Attention:  Intel License Inquiry.
 
 # Configuration
-$TOSDIR = "/home/dgay/motes/tinyos-1.x/tos";
+$TOSDIR = "/home/pal/src/tinyos-2.x/tos";
 $TOSDIR = $ENV{"TOSDIR"} if defined($ENV{"TOSDIR"});
-$nescc = "/usr/local/bin/nescc";
+$nescc = "/usr/bin/nescc";
+$tossim = 0;
 
 # Support platform directory renaming for 2.x
 if (-d "$TOSDIR/platform") {
@@ -58,6 +59,10 @@ for ($i = 0; $i <= $#ARGV; $i++) {
 	elsif (/^-v$/) {
 	    $verbose = 1;
 	}
+	elsif (/^-tossim$/) {
+	    $tossim = 1;
+            $strip = 1;
+	}
 	elsif (/^-I/) {
 	    ($i, $file) = &extractarg($i);
 	    $strip = 1;
@@ -72,7 +77,7 @@ for ($i = 0; $i <= $#ARGV; $i++) {
 }
 
 if ($print_version) {
-    print "ncc: 1.2pre1\n";
+    print "ncc: 1.2\n";
 }
 
 # Remove trailing / from TOSDIR, if any (it confuses the topdir stuff)
@@ -90,17 +95,31 @@ if ($print_platforms)
     exit 0;
 }
 
+if ($tossim) {
+  push @new_args, "-DTOSSIM";
+}
+
 $target = "mica" if !defined($target);
 
 # First see if the directory for this platform was explicitly specified
 foreach $dir (@includes) {
     if ($dir =~ m!/$target/?$! && -f "$dir/.platform") {
+      if ($tossim) {
+	$platform_def = "$dir/sim/.platform";
+      }
+      else {
 	$platform_def = "$dir/.platform";
+      }
 	last;
     }
 }
 
-$platform_def = "$TOSDIR/$platform/$target/.platform" unless $platform_def;
+if ($tossim) {
+  $platform_def = "$TOSDIR/$platform/$target/sim/.platform" unless $platform_def;
+}
+else {
+  $platform_def = "$TOSDIR/$platform/$target/.platform" unless $platform_def;
+}
 if (!-f $platform_def) {
     print STDERR "Unknown target $target\n";
     print STDERR "Known targets for TinyOS directory $TOSDIR\n";
@@ -163,10 +182,22 @@ if (!$nostdinc) {
     push @includes, "%T/system";
 }
 
+
+if ($tossim) {
+  foreach $idir (@includes) {
+    $idir = &idir_subst($idir);
+    push @new_args, "-I$idir/sim";
+  }
+  $tossim_dir = &idir_subst("-I%T/lib/tossim");
+  push @new_args, $tossim_dir;
+}
 foreach $idir (@includes) {
     $idir = &idir_subst($idir);
     push @new_args, "-I$idir";
 }
+
+
+
 
 print STDERR join(' ', @new_args), "\n" if $verbose;
 
