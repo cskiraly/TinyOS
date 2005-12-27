@@ -4,10 +4,9 @@
 ncc - nesC compiler for TinyOS
 .SH SYNOPSIS
 
-\fBncc\fR [\fB-target=\fIpc|mica|mica2|mica2dot|...\fR] [\fB-print-platforms\fR]
+\fBncc\fR [\fB-target=\fIpc|mica|mica2|mica2dot|...\fR] [\fB-print-platforms\fR] [\fB-print-target\fR]
     [\fB-board=\fImicasb|basicsb|micawb|...\fR]
     [\fB-tosdir=\fIdir\fR] [\fB-print-tosdir\fR] [\fB-nostdinc\fR] 
-    [\fB-docdir=\fIdir\fR] [\fB-topdir=\fIdir\fR] [\fB-graphviz=y\fI|\fBn\fR]
     [\fB-fnesc-nido-tosnodes=\fIn\fR] [\fB-fnesc-cfile=\fIfile\fR] [\fB-fnesc-no-inline\fR]
     [\fB--version\fR] [\fB-fnesc-verbose\fR] [\fB-Wnesc-\fI...\fR]
     [\fB-fnesc-dump=\fIspecification\fR] [\fB-fnesc-dumpfile=\fIfile\fR]
@@ -57,6 +56,10 @@ occurs when \fB-print-tosdir\fR is used.
 Print the valid TinyOS platforms, including those made available by
 explicit \fB-I\fR directives (see \fB-target\fR option).
 .TP
+\fB-print-target\fR
+Print the name of the selected target. Most useful when \fB-target\fR is not
+specified.
+.TP
 \fB-nostdinc\fR
 Do not automatically include the TinyOS directories in the search path. See
 the discussion of search paths below for more details.
@@ -68,22 +71,6 @@ preprocessor symbols. The set of boards is set by the TinyOS distribution
 directory can be made available via an explicit \fB-I\fR directive
 (sensorboard directories are recognised by the presence of a \fB.sensor\fR
 file).
-.TP
-\fB-docdir=\fIdir\fR 
-Generate documentation for the compiled component in directory \fIdir\fR.
-.TP
-\fB-topdir=\fIdir\fR 
-Specify directory paths that should be stripped from the source file names
-when generating "package names" for the documentation files.  The directory
-above \fBTOSDIR\fR is automatically added, so this option is only needed for
-directories outside the main TinyOS distribution.
-.TP
-\fB-graphviz=y\fR|\fBn\fR 
-Explicitly enable or disable the use of the graphviz tool in the generated
-documentation. Without this option, graphviz is enabled iff the \fBdot\fR
-program is found in the current path. Use of graphviz requires \fBdot\fR.  The
-documentation generation tool checks the version of \fBdot\fR, and enables
-client-side image maps, if supported.
 .TP
 \fB-fnesc-nido-tosnodes=\fIn\fR 
 Specify the maximum number of nodes that can be simulated in the tossim
