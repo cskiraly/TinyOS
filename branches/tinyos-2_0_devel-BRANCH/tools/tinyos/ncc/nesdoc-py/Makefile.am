@@ -1,5 +1,4 @@
-#!/bin/sh
-# Copyright (c) 2005 Intel Corporation
+# Copyright (c) 2002-2005 Intel Corporation
 # All rights reserved.
 #
 # This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -7,10 +6,17 @@
 # Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
 # 94704.  Attention:  Intel License Inquiry.
 
+AUTOMAKE_OPTIONS = foreign
 
-prefix="/usr/local";
-exec_prefix="${prefix}";
-exec "/usr/local/bin/nescc-ncg" "-nescc=$exec_prefix/bin/ncc" "$@"
-err=$?
-echo "Couldn't execute /usr/local/bin/nescc-ncg" >&2
-exit $err
+nesdocdir=$(libdir)/tinyos/nesdoc
+
+nesdoc_DATA = 	__init__.py 	\
+		archive.py	\
+		components.py	\
+		generators.py	\
+		genhtml.py	\
+		graph.py	\
+		html.py		\
+		index.py	\
+		interfaces.py	\
+		utils.py

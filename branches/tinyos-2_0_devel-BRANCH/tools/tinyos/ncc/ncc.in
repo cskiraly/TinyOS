@@ -49,6 +49,10 @@ for ($i = 0; $i <= $#ARGV; $i++) {
 	    $print_tosdir = 1;
 	    $strip = 1;
 	}
+	elsif (/^-print-target$/) {
+	    $print_target = 1;
+	    $strip = 1;
+	}
 	elsif (/^-print-platforms$/) {
 	    $print_platforms = 1;
 	    $strip = 1;
@@ -99,7 +103,20 @@ if ($tossim) {
   push @new_args, "-DTOSSIM";
 }
 
-$target = "@default_target@" if !defined($target);
+if (!defined $target) {
+    if (open DEFTARGET, "$TOSDIR/.default-platform") {
+	$target = <DEFTARGET>;
+	chomp $target;
+    }
+    else {
+	$target = "@default_target@";
+    }
+}
+
+if ($print_target) {
+    print $target, "\n";
+    exit 0;
+}
 
 # First see if the directory for this platform was explicitly specified
 foreach $dir (@includes) {
