@@ -26,6 +26,11 @@ if test -z "$pathperl" ; then
   AC_MSG_ERROR(I can't find perl); 
 fi
 
+AC_PATH_PROG(pathpython, python)
+if test -z "$pathpython" ; then
+  AC_MSG_ERROR(I can't find python); 
+fi
+
 if test -z "$NESCC_PREFIX"; then
   AC_PATH_PROG(pathnescc, nescc)
   if test -z "$pathnescc"; then
@@ -39,16 +44,12 @@ nescc_prefix=`(cd $NESCC_PREFIX;pwd)`
 AC_SUBST(nescc_prefix)
 
 
-AC_PATH_PROG(pathperl, perl)
-if test -z "$pathperl" ; then
-  AC_MSG_ERROR(I can't find perl); 
-fi
-
 if test -z "$DEFAULT_TARGET"; then
   DEFAULT_TARGET=mica
 fi
 default_target=$DEFAULT_TARGET
 AC_MSG_NOTICE(Default ncc build target is $default_target)
+AC_MSG_NOTICE(...but using a tos/.default-platform file is a better choice)
 AC_SUBST(default_target)
 
 if test -z "$TOSDIR"; then
@@ -127,4 +128,5 @@ AC_OUTPUT(
 	tinyos/ncc/ncc
 	tinyos/ncc/ncg
 	tinyos/ncc/nesdoc
+	tinyos/ncc/nesdoc-py/Makefile
 )
