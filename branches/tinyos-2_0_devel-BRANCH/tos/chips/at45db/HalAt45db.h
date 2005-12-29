@@ -1,7 +1,7 @@
-// $Id: BlockRead.nc,v 1.1.2.1 2005-02-09 18:34:01 idgay Exp $
+// $Id: HalAt45db.h,v 1.1.2.1 2005-12-29 18:06:54 idgay Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2004 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,21 +19,32 @@
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
+ *
+ * Copyright (c) 2002-2003 Intel Corporation
+ * All rights reserved.
+ *
+ * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * file. If you do not find these files, copies can be found by writing to
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * 94704.  Attention:  Intel License Inquiry.
  */
+#ifndef HALAT45DB_H
+#define HALAT45DB_H
 
-/*
- * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
- */
+// flash characteristics
+enum {
+  AT45_MAX_PAGES = 2048,
+  AT45_PAGE_SIZE = 264,
+  AT45_PAGE_SIZE_LOG2 = 8 // For those who want to ignore the last 8 bytes
+};
 
-includes BlockStorage;
+enum {
+  AT45_ERASE,
+  AT45_DONT_ERASE,
+  AT45_PREVIOUSLY_ERASED
+};
 
-interface BlockRead {
-  command result_t read(block_addr_t addr, uint8_t* buf, block_addr_t len);
-  event   result_t readDone(result_t result);
+typedef uint16_t at45page_t;
+typedef uint16_t at45pageoffset_t; /* 0 to AT45_PAGE_SIZE - 1 */
 
-  command result_t verify();
-  event   result_t verifyDone(result_t result);
-
-  command result_t computeCrc(block_addr_t addr, block_addr_t len);
-  event result_t computeCrcDone(result_t result, uint16_t crc);
-}
+#endif
