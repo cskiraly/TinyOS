@@ -1,4 +1,4 @@
-// $Id: LedsP.nc,v 1.1.2.1 2005-08-07 20:33:56 scipio Exp $
+// $Id: LedsP.nc,v 1.1.2.2 2005-12-29 17:35:54 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -42,8 +42,6 @@ module LedsP {
   }
 }
 implementation {
-  #define dbg(n,msg)
-
   command error_t Init.init() {
     atomic {
       dbg(DBG_BOOT, "LEDS: initialized.\n");
