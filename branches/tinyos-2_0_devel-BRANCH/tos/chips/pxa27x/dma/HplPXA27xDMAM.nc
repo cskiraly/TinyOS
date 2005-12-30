@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xDMAM.nc,v 1.1.2.1 2005-12-14 17:09:37 philipb Exp $ */
+/* $Id: HplPXA27xDMAM.nc,v 1.1.2.2 2005-12-30 19:55:24 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -114,13 +114,13 @@ implementation
 
     while (IntReg) {
       chnl = 31 - _pxa27x_clzui(IntReg);
-      signal HplPXA27xDMAChnl.eventChannel[chnl]();
+      signal HplPXA27xDMAChnl.interruptDMA[chnl]();
       IntReg &= ~(1 << chnl);
     }
     return;
   }
 
-  default async event void HplPXA27xDMAChnl.eventChannel[uint8_t chnl]() {
+  default async event void HplPXA27xDMAChnl.interruptDMA[uint8_t chnl]() {
     call HplPXA27xDMAChnl.setDCMD[chnl](0);
     call HplPXA27xDMAChnl.setDCSR[chnl](DCSR_EORINT | DCSR_ENDINTR
 					| DCSR_STARTINTR | DCSR_BUSERRINTR);
