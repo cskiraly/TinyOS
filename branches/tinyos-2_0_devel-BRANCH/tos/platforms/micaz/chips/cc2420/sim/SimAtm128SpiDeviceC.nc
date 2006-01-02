@@ -39,12 +39,12 @@
 configuration SimAtm128SpiDeviceC {
 
   provides interface Init;
-  provides interface Resource[];
+  provides interface Resource[uint8_t];
   provides interface SPIByte;
   provides interface SPIPacket;
 
-  uses interface Resource[] as SubResource;
-  uses interface ResourceUser;
+  uses interface Resource as SubResource[uint8_t];
+  uses interface ArbiterInfo;
   uses interface McuPowerState;
   
 }
@@ -59,7 +59,7 @@ implementation {
   SPIPacket = SimCC2420C;
 
   SubResource = SimCC2420C.SubSpiResource;
-  ResourceUser = SimCC2420C.SpiUser;
+  ArbiterInfo = SimCC2420C;
   McuPowerState = SimCC2420C;
   
 }

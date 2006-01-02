@@ -36,7 +36,7 @@ module SimCC2420C {
 
   provides {
     interface Init;
-    interface Resource[] as SpiResource;
+    interface Resource[uint8_t] as SpiResource;
     interface SPIByte;
     interface SPIPacket;
     interface GeneralIO as CCA;
@@ -51,8 +51,8 @@ module SimCC2420C {
   }
   
   uses {
-    interface Resource[] as SubSpiResource;
-    interface ResourceUser as SpiUser;
+    interface Resource[uint8_t] as SubSpiResource;
+    interface ArbiterInfo as SpiUser;
     interface McuPowerState;
   }
 
