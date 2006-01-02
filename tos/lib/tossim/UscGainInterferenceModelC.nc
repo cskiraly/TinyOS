@@ -1,4 +1,4 @@
-// $Id: UscGainInterferenceModelC.nc,v 1.1.2.2 2005-12-20 17:13:49 scipio Exp $
+// $Id: UscGainInterferenceModelC.nc,v 1.1.2.3 2006-01-02 19:53:53 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -65,7 +65,7 @@ implementation {
   receive_message_t* outstandingReceptionHead = NULL;
 
   receive_message_t* allocate_receive_message();
-  sim_event_t* allocate_receive_event(sim_time_t time, receive_message_t* m);
+  sim_event_t* allocate_receive_event(sim_time_t t, receive_message_t* m);
 
   /**
    * Heard signal is equal to the signal strength of ambient noise
@@ -116,12 +116,12 @@ implementation {
     return channel < clearThreshold;
   }
 
-  void sim_gain_schedule_ack(int source, sim_time_t time) {
+  void sim_gain_schedule_ack(int source, sim_time_t t) {
     sim_event_t* ackEvent = (sim_event_t*)malloc(sizeof(sim_event_t));
     ackEvent->mote = source;
     ackEvent->force = 0;
     ackEvent->cancelled = 0;
-    ackEvent->time = time;
+    ackEvent->time = t;
     ackEvent->handle = sim_gain_ack_handle;
     ackEvent->cleanup = sim_queue_cleanup_event;
     sim_queue_insert(ackEvent);
