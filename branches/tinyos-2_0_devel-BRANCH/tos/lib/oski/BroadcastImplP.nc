@@ -1,4 +1,4 @@
-// $Id: BroadcastImplP.nc,v 1.1.2.1 2005-08-10 15:54:39 scipio Exp $
+// $Id: BroadcastImplP.nc,v 1.1.2.2 2006-01-02 19:57:04 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -99,7 +99,7 @@ implementation {
   command void Packet.clear(message_t* msg) {
     uint8_t len;
     void* payload = call SubPacket.getPayload(msg, &len);
-    memset(msg, len, 0);
+    memset(payload, len, 0);
   }
 
   command uint8_t Packet.payloadLength(message_t* msg) {
@@ -114,7 +114,9 @@ implementation {
 
   command void* Packet.getPayload(message_t* msg, uint8_t* len) {
     uint8_t* payload = call SubPacket.getPayload(msg, len);
-    *len -= BROADCASTP_OFFSET;
+    if (len != NULL) {
+      *len -= BROADCASTP_OFFSET;
+    }
     return payload + BROADCASTP_OFFSET;
   }
 

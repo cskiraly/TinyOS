@@ -1,4 +1,4 @@
-// $Id: ServiceNotify.nc,v 1.1.2.1 2005-08-10 15:54:39 scipio Exp $
+// $Id: ServiceNotify.nc,v 1.1.2.2 2006-01-02 19:57:04 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,7 +30,7 @@
 
 /**
   * Obtain updates on the running status of a service; this operates
-  * on the whole service, and not its instances.
+  * on the whole service, and not its instances. 
   *
   * @author Philip Levis
   * @date   January 5 2005
@@ -39,7 +39,18 @@
 
 interface ServiceNotify {
 
+  /**
+   * Signaled when the underlying service has started and can now
+   * accept requests. A service accepts requests if and only if
+   * the last ServiceNotify event is signaled is started().
+   */
   event void started();
+
+  /**
+   * Signaled when the underlying service has stopped and will no
+   * longer accept requests. By default (before any events are
+   * signaled), a service is in the stopped state.
+   */
   event void stopped();
   
 }
