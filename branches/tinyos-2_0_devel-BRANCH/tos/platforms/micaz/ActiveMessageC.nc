@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.6 2005-12-05 18:34:59 scipio Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.7 2006-01-02 19:55:48 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,14 +31,14 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.6 2005-12-05 18:34:59 scipio Exp $
+ * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.7 2006-01-02 19:55:48 scipio Exp $
  *
  */
 
 /**
  *
- * The Active Message layer on the mica2 platform. This is a naming wrapper
- * around the CC1000 Active Message layer.
+ * The Active Message layer on the micaZ platform. This is a naming wrapper
+ * around the CC2420 Active Message layer.
  *
  * @author Philip Levis
  * @date June 19 2005
