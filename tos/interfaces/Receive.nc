@@ -1,6 +1,6 @@
-// $Id: Receive.nc,v 1.1.2.5 2005-04-18 17:56:32 gtolle Exp $
+// $Id: Receive.nc,v 1.1.2.6 2006-01-02 19:59:06 scipio Exp $
 /*									tab:4
- * "Copyright (c) 2004 The Regents of the University  of California.  
+ * "Copyright (c) 2004-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -32,7 +32,7 @@
  * The basic message reception interface. Also see Packet and Send.
  *
  * @author Philip Levis
- * @date   November 16 2004
+ * @date   November 16, 2004
  */ 
 
 
@@ -48,7 +48,7 @@ interface Receive {
    * component copies out the data it needs.
    *
    * <b>Note</b> that misuse of this interface is one of the most
-   * common TinyOS bugs. For example, if a component both calls a
+   * common bugs in TinyOS code. For example, if a component both calls a
    * send on the passed message and returns it, then it is possible
    * the buffer will be reused before the send occurs, overwriting
    * the component's data. This would cause the mote to possibly
