@@ -1,4 +1,4 @@
-// $Id: TimerMilliC.nc,v 1.1.2.1 2005-12-02 01:47:04 scipio Exp $
+// $Id: TimerMilliC.nc,v 1.1.2.2 2006-01-02 19:53:53 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -57,8 +57,8 @@ implementation {
 
   void initializeEvent(sim_event_t* evt, uint8_t timerID);
   
-  sim_time_t clockToSim(sim_time_t clock) {
-    return (clock * sim_ticks_per_sec()) / 1024;
+  sim_time_t clockToSim(sim_time_t clockVal) {
+    return (clockVal * sim_ticks_per_sec()) / 1024;
   }
 
   sim_time_t simToClock(sim_time_t sim) {
