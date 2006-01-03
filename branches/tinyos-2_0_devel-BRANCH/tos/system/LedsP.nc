@@ -1,4 +1,4 @@
-// $Id: LedsP.nc,v 1.1.2.2 2005-12-29 17:35:54 idgay Exp $
+// $Id: LedsP.nc,v 1.1.2.3 2006-01-03 02:11:58 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -44,7 +44,7 @@ module LedsP {
 implementation {
   command error_t Init.init() {
     atomic {
-      dbg(DBG_BOOT, "LEDS: initialized.\n");
+      dbg("Init", "LEDS: initialized.\n");
       call Led0.makeOutput();
       call Led1.makeOutput();
       call Led2.makeOutput();
@@ -56,12 +56,12 @@ implementation {
   }
 
   async command void Leds.led0On() {
-    dbg(DBG_LED, "LEDS: Led 1 on.\n");
+    dbg("LedsC", "LEDS: Led 1 on.\n");
     call Led0.clr();
   }
 
   async command void Leds.led0Off() {
-    dbg(DBG_LED, "LEDS: Led 1 off.\n");
+    dbg("LedsC", "LEDS: Led 1 off.\n");
     call Led0.set();
   }
 
@@ -70,45 +70,45 @@ implementation {
     // this should be removed by dead code elimination when compiled for
     // the physical motes
     if (call Led0.get())
-      dbg(DBG_LED, "LEDS: Led 1 off.\n");
+      dbg("LedsC", "LEDS: Led 1 off.\n");
     else
-      dbg(DBG_LED, "LEDS: Led 1 on.\n");
+      dbg("LedsC", "LEDS: Led 1 on.\n");
   }
 
   async command void Leds.led1On() {
-    dbg(DBG_LED, "LEDS: Led 2 on.\n");
+    dbg("LedsC", "LEDS: Led 2 on.\n");
     call Led1.clr();
   }
 
   async command void Leds.led1Off() {
-    dbg(DBG_LED, "LEDS: Led 2 off.\n");
+    dbg("LedsC", "LEDS: Led 2 off.\n");
     call Led1.set();
   }
 
   async command void Leds.led1Toggle() {
     call Led1.toggle();
     if (call Led1.get())
-      dbg(DBG_LED, "LEDS: Led 2 off.\n");
+      dbg("LedsC", "LEDS: Led 2 off.\n");
     else
-      dbg(DBG_LED, "LEDS: Led 2 on.\n");
+      dbg("LedsC", "LEDS: Led 2 on.\n");
   }
 
   async command void Leds.led2On() {
-    dbg(DBG_LED, "LEDS: Led 3 on.\n");
+    dbg("LedsC", "LEDS: Led 3 on.\n");
     call Led2.clr();
   }
 
   async command void Leds.led2Off() {
-    dbg(DBG_LED, "LEDS: Led 3 off.\n");
+    dbg("LedsC", "LEDS: Led 3 off.\n");
     call Led2.set();
   }
 
   async command void Leds.led2Toggle() {
     call Led2.toggle();
     if (call Led2.get())
-      dbg(DBG_LED, "LEDS: Led 3 off.\n");
+      dbg("LedsC", "LEDS: Led 3 off.\n");
     else
-      dbg(DBG_LED, "LEDS: Led 3 on.\n");
+      dbg("LedsC", "LEDS: Led 3 on.\n");
   }
 
   async command uint8_t Leds.get() {

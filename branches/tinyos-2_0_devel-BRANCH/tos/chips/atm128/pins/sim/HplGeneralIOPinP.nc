@@ -1,4 +1,4 @@
-// $Id: HplGeneralIOPinP.nc,v 1.1.2.1 2006-01-02 21:17:14 scipio Exp $
+// $Id: HplGeneralIOPinP.nc,v 1.1.2.2 2006-01-03 02:11:58 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -42,9 +42,9 @@ implementation
 #define port port_addr
 #define ddr  ddr_addr
 
-  inline async command bool IO.get()        { return READ_BIT (pin, bit); }
+  inline async command bool IO.get()        { return READ_BIT (port, bit); }
   inline async command void IO.set()        {
-    printf("Setting bit %i of port %i.\n", (int)bit, (int)port);
+    dbg("Pins", "Setting bit %i of port %i.\n", (int)bit, (int)port);
     SET_BIT  (port, bit);
   }
   inline async command void IO.clr()        { CLR_BIT  (port, bit); }
