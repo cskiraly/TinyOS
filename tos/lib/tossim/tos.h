@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tos.h,v 1.1.2.5 2005-12-19 23:51:20 scipio Exp $
+// $Id: tos.h,v 1.1.2.6 2006-01-03 01:53:32 scipio Exp $
 
 #ifndef TOS_H_INCLUDED
 #define TOS_H_INCLUDED
@@ -83,6 +83,7 @@ extern uint16_t TOS_LOCAL_ADDRESS;
 #include <sim_tossim.c>
 #include <hashtable.c>
 #include <sim_mac.c>
+#include <sim_packet.c>
 #endif
 
 #endif

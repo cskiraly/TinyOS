@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tossim.c,v 1.1.2.4 2005-12-19 23:51:20 scipio Exp $
+// $Id: tossim.c,v 1.1.2.5 2006-01-03 01:53:32 scipio Exp $
 
 
 #include <stdint.h>
@@ -42,6 +42,7 @@
 
 #include <mac.c>
 #include <radio.c>
+#include <packet.c>
 
 uint16_t TOS_LOCAL_ADDRESS = 1;
 
@@ -149,4 +150,8 @@ MAC* Tossim::mac() {
 
 Radio* Tossim::radio() {
   return new Radio();
+}
+
+Packet* Tossim::newPacket() {
+  return new Packet();
 }

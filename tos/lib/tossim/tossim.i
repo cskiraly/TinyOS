@@ -41,6 +41,7 @@
 
 %include mac.i
 %include radio.i
+%include packet.i
 
 %typemap(python,in) FILE * {
   if (!PyFile_Check($input)) {
@@ -92,6 +93,7 @@ class Tossim {
   bool runNextEvent();
   MAC* mac();
   Radio* radio();
+  Packet* newPacket();
 };
 
 
