@@ -1,4 +1,4 @@
-// $Id: TossimActiveMessageP.nc,v 1.1.2.1 2005-12-19 23:51:20 scipio Exp $
+// $Id: TossimActiveMessageP.nc,v 1.1.2.2 2006-01-03 01:53:32 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -81,9 +81,11 @@ implementation {
     memcpy(bufferPointer, msg, sizeof(message_t));
 
     if (call AMPacket.isForMe(msg)) {
+      dbg("AM", "Received active message of type %hhu and length %hhu for me.\n", call AMPacket.type(bufferPointer), len);
       bufferPointer = signal Receive.receive[call AMPacket.type(bufferPointer)](bufferPointer, payload, len);
     }
     else {
+      dbg("AM", "Snooped on active message of type %hhu and length %hhu for %hu.\n", call AMPacket.type(bufferPointer), len, call AMPacket.destination(bufferPointer));
       bufferPointer = signal Snoop.receive[call AMPacket.type(bufferPointer)](bufferPointer, payload, len);
     }
   }
@@ -148,6 +150,39 @@ implementation {
    return;
  }
 
-  
+ default command error_t Model.send(int node, message_t* msg, uint8_t len) {
+   return FAIL;
+ }
 
+ default command error_t Model.cancel(message_t* msg) {
+   return FAIL;
+ }
+
+ default command am_addr_t amAddress() {
+   return 0;
+ }
+  
+ void active_message_deliver_handle(sim_event_t* evt) {
+   message_t* m = (message_t*)evt->data;
+   dbg("Packet", "Delivering packet to %i at %s\n", (int)sim_node(), sim_time_string());
+   signal Model.receive(m);
+ }
+ 
+ sim_event_t* allocate_deliver_event(int node, message_t* msg, sim_time_t t) {
+   sim_event_t* evt = (sim_event_t*)malloc(sizeof(sim_event_t));
+   evt->mote = node;
+   evt->time = t;
+   evt->handle = active_message_deliver_handle;
+   evt->cleanup = sim_queue_cleanup_event;
+   evt->cancelled = 0;
+   evt->force = 0;
+   evt->data = msg;
+   return evt;
+ }
+ 
+ void active_message_deliver(int node, message_t* msg, sim_time_t t) __attribute__ ((C, spontaneous)) {
+   sim_event_t* evt = allocate_deliver_event(node, msg, t);
+   sim_queue_insert(evt);
+ }
+ 
 }

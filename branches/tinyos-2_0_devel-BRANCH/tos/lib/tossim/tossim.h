@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tossim.h,v 1.1.2.4 2005-12-19 23:51:20 scipio Exp $
+// $Id: tossim.h,v 1.1.2.5 2006-01-03 01:53:32 scipio Exp $
 
 #ifndef TOSSIM_H_INCLUDED
 #define TOSSIM_H_INCLUDED
@@ -39,6 +39,7 @@
 #include <tos.h>
 #include <mac.h>
 #include <radio.h>
+#include <packet.h>
 
 class Mote {
  public:
@@ -84,6 +85,7 @@ class Tossim {
 
   MAC* mac();
   Radio* radio();
+  Packet* newPacket();
   
  private:
   char timeBuf[256];

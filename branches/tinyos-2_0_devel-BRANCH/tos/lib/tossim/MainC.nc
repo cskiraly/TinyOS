@@ -32,7 +32,7 @@
  * @date   August 6 2005
  */
 
-// $Id: MainC.nc,v 1.1.2.3 2005-11-22 23:29:13 scipio Exp $
+// $Id: MainC.nc,v 1.1.2.4 2006-01-03 01:53:32 scipio Exp $
 
 includes hardware;
 
@@ -42,7 +42,7 @@ configuration MainC {
 }
 implementation {
   components PlatformC, SimMainP, TinySchedulerC;
-
+  
   // SimMoteP is not referred to by any component here.
   // It is included to make sure nesC loads it, as it
   // includes functionality many other systems depend on.
@@ -54,5 +54,14 @@ implementation {
   // Export the SoftwareInit and Booted for applications
   SoftwareInit = SimMainP.SoftwareInit;
   Boot = SimMainP;
+
+  // This component may not be used by the application, but it must
+  // be included. This is because there are Python calls that deliver
+  // packets, and those python calls must terminate somewhere. If
+  // the application does not wire this up to, e.g., ActiveMessageC,
+  // the default handlers make sure nothing happens when a script
+  // tries to deliver a packet to a node that has no radio stack.
+  components TossimActiveMessageP;
+  
 }
 
