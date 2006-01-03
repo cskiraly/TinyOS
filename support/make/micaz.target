@@ -1,13 +1,10 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: micaz.target,v 1.1.2.1 2005-03-23 19:34:55 cssharp Exp $
+#$Id: micaz.target,v 1.1.2.2 2006-01-03 02:12:51 scipio Exp $
 
 PLATFORM = micaz
 SENSORBOARD ?= micasb
 PROGRAMMER_PART ?= -dpart=ATmega128 --wr_fuse_e=ff
 PFLAGS += -finline-limit=100000
-
-CFLAGS += \
--I$(TOSDIR)/lib/CC2420Radio
 
 ifdef TINYOS_NP
   ifeq ($(TINYOS_NP),BNP)
