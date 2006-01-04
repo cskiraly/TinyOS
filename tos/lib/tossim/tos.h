@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tos.h,v 1.1.2.6 2006-01-03 01:53:32 scipio Exp $
+// $Id: tos.h,v 1.1.2.7 2006-01-04 22:07:23 scipio Exp $
 
 #ifndef TOS_H_INCLUDED
 #define TOS_H_INCLUDED
@@ -58,8 +58,6 @@ typedef uint8_t bool;
 #endif
 
 enum { FALSE = 0, TRUE = 1 };
-
-typedef int8_t nx_bool __attribute__((nx_base(int8)));
 
 extern uint16_t TOS_LOCAL_ADDRESS;
 

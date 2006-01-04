@@ -1,4 +1,4 @@
-// $Id: TossimPacketModelC.nc,v 1.1.2.1 2005-12-19 23:51:20 scipio Exp $
+// $Id: TossimPacketModelC.nc,v 1.1.2.2 2006-01-04 22:07:23 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -152,6 +152,7 @@ implementation {
     if (sending != NULL) {
       return EBUSY;
     }
+    sendingLength = len; 
     sending = msg;
     destNode = dest;
     backoffCount = 0;
