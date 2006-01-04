@@ -1,4 +1,4 @@
-// $Id: TossimActiveMessageP.nc,v 1.1.2.2 2006-01-03 01:53:32 scipio Exp $
+// $Id: TossimActiveMessageP.nc,v 1.1.2.3 2006-01-04 22:07:23 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -61,7 +61,8 @@ implementation {
     tossim_header_t* header = getHeader(amsg);
     header->type = id;
     header->addr = addr;
-    return call Model.send((int)addr, amsg, len);
+    header->length = len;
+    return call Model.send((int)addr, amsg, len + sizeof(tossim_header_t));
   }
 
   command error_t AMSend.cancel[am_id_t id](message_t* msg) {
@@ -81,7 +82,7 @@ implementation {
     memcpy(bufferPointer, msg, sizeof(message_t));
 
     if (call AMPacket.isForMe(msg)) {
-      dbg("AM", "Received active message of type %hhu and length %hhu for me.\n", call AMPacket.type(bufferPointer), len);
+      dbg("AM", "Received active message (%p) of type %hhu and length %hhu for me.\n", bufferPointer, call AMPacket.type(bufferPointer), len);
       bufferPointer = signal Receive.receive[call AMPacket.type(bufferPointer)](bufferPointer, payload, len);
     }
     else {
