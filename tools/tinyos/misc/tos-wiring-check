@@ -1,6 +1,0 @@
-#!/bin/sh
-if [ $# -ne 1 ]; then
-  echo "Usage: $0 <xml wiring file>"
-  exit 2
-fi
-java net.tinyos.nesc.wiring.WiringCheck <$1
