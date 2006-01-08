@@ -134,6 +134,57 @@ class PacketPtr(Packet):
         _swig_setattr(self, Packet,self.__class__,Packet)
 _TOSSIM.Packet_swigregister(PacketPtr)
 
+class var_string_t(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, var_string_t, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, var_string_t, name)
+    __swig_setmethods__["ptr"] = _TOSSIM.var_string_t_ptr_set
+    __swig_getmethods__["ptr"] = _TOSSIM.var_string_t_ptr_get
+    if _newclass:ptr = property(_TOSSIM.var_string_t_ptr_get,_TOSSIM.var_string_t_ptr_set)
+    __swig_setmethods__["len"] = _TOSSIM.var_string_t_len_set
+    __swig_getmethods__["len"] = _TOSSIM.var_string_t_len_get
+    if _newclass:len = property(_TOSSIM.var_string_t_len_get,_TOSSIM.var_string_t_len_set)
+    def __init__(self,*args):
+        _swig_setattr(self, var_string_t, 'this', apply(_TOSSIM.new_var_string_t,args))
+        _swig_setattr(self, var_string_t, 'thisown', 1)
+    def __del__(self, destroy= _TOSSIM.delete_var_string_t):
+        try:
+            if self.thisown: destroy(self)
+        except: pass
+    def __repr__(self):
+        return "<C var_string_t instance at %s>" % (self.this,)
+
+class var_string_tPtr(var_string_t):
+    def __init__(self,this):
+        _swig_setattr(self, var_string_t, 'this', this)
+        if not hasattr(self,"thisown"): _swig_setattr(self, var_string_t, 'thisown', 0)
+        _swig_setattr(self, var_string_t,self.__class__,var_string_t)
+_TOSSIM.var_string_t_swigregister(var_string_tPtr)
+
+class Variable(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, Variable, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, Variable, name)
+    def __init__(self,*args):
+        _swig_setattr(self, Variable, 'this', apply(_TOSSIM.new_Variable,args))
+        _swig_setattr(self, Variable, 'thisown', 1)
+    def __del__(self, destroy= _TOSSIM.delete_Variable):
+        try:
+            if self.thisown: destroy(self)
+        except: pass
+    def getData(*args): return apply(_TOSSIM.Variable_getData,args)
+    def __repr__(self):
+        return "<C Variable instance at %s>" % (self.this,)
+
+class VariablePtr(Variable):
+    def __init__(self,this):
+        _swig_setattr(self, Variable, 'this', this)
+        if not hasattr(self,"thisown"): _swig_setattr(self, Variable, 'thisown', 0)
+        _swig_setattr(self, Variable,self.__class__,Variable)
+_TOSSIM.Variable_swigregister(VariablePtr)
+
 class Mote(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, Mote, name, value)
@@ -154,6 +205,7 @@ class Mote(_object):
     def isOn(*args): return apply(_TOSSIM.Mote_isOn,args)
     def turnOff(*args): return apply(_TOSSIM.Mote_turnOff,args)
     def turnOn(*args): return apply(_TOSSIM.Mote_turnOn,args)
+    def getVariable(*args): return apply(_TOSSIM.Mote_getVariable,args)
     def __repr__(self):
         return "<C Mote instance at %s>" % (self.this,)
 

@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tossim.c,v 1.1.2.5 2006-01-03 01:53:32 scipio Exp $
+// $Id: tossim.c,v 1.1.2.6 2006-01-08 07:14:21 scipio Exp $
 
 
 #include <stdint.h>
@@ -47,6 +47,37 @@
 uint16_t TOS_LOCAL_ADDRESS = 1;
 
 static Mote motes[TOSSIM_MAX_NODES + 1];
+
+Variable::Variable(char* str, int which) {
+  name = str;
+  mote = which;
+
+  if (sim_mote_get_variable_info(mote, name, &ptr, &len) == 0) {
+    data = (char*)malloc(len + 1);
+    data[len] = 0;
+  }
+  else {
+    data = NULL;
+    ptr = NULL;
+  }
+}
+
+Variable::~Variable() {
+  free(data);
+}
+
+var_string_t Variable::getData() {
+  if (data != NULL && ptr != NULL) {
+    memcpy(data, ptr, len);
+    str.ptr = data;
+    str.len = len;
+  }
+  else {
+    str.ptr = "<no such variable>";
+    str.len = strlen("<no such variable>");
+  }
+  return str;
+}
 
 Mote::Mote() {}
 Mote::~Mote(){}
@@ -86,6 +117,10 @@ void Mote::turnOn() {
 
 void Mote::setID(unsigned long val) {
   nodeID = val;
+}
+
+Variable* Mote::getVariable(char* name) {
+  return new Variable(name, nodeID);
 }
 
 Tossim::Tossim() {}

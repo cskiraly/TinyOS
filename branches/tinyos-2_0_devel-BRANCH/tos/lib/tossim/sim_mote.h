@@ -30,7 +30,7 @@
  */
 
 
-// $Id: sim_mote.h,v 1.1.2.3 2005-11-22 23:29:13 scipio Exp $
+// $Id: sim_mote.h,v 1.1.2.4 2006-01-08 07:14:20 scipio Exp $
 
 
 
@@ -51,7 +51,7 @@ void sim_mote_set_start_time(int mote, long long int t);
 bool sim_mote_is_on(int mote);
 void sim_mote_turn_on(int mote);
 void sim_mote_turn_off(int mote);
-
+int sim_mote_get_variable_info(int mote, char* name, void** addr, int* len);
 void sim_mote_enqueue_boot_event(int mote);
 
 #ifdef __cplusplus

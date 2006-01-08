@@ -658,9 +658,11 @@ SWIG_InstallConstants(PyObject *d, swig_const_info constants[]) {
 #define  SWIGTYPE_p_FILE swig_types[1] 
 #define  SWIGTYPE_p_MAC swig_types[2] 
 #define  SWIGTYPE_p_Packet swig_types[3] 
-#define  SWIGTYPE_p_Tossim swig_types[4] 
-#define  SWIGTYPE_p_Mote swig_types[5] 
-static swig_type_info *swig_types[7];
+#define  SWIGTYPE_p_Variable swig_types[4] 
+#define  SWIGTYPE_p_Tossim swig_types[5] 
+#define  SWIGTYPE_p_var_string_t swig_types[6] 
+#define  SWIGTYPE_p_Mote swig_types[7] 
+static swig_type_info *swig_types[9];
 
 /* -------- TYPES TABLE (END) -------- */
 
@@ -1514,6 +1516,176 @@ static PyObject * Packet_swigregister(PyObject *self, PyObject *args) {
     Py_INCREF(obj);
     return Py_BuildValue((char *)"");
 }
+static PyObject *_wrap_var_string_t_ptr_set(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    var_string_t *arg1 = (var_string_t *) 0 ;
+    char *arg2 ;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"Os:var_string_t_ptr_set",&obj0,&arg2)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_var_string_t,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        if (arg1->ptr) delete [] arg1->ptr;
+        if (arg2) {
+            arg1->ptr = (char *) (new char[strlen(arg2)+1]);
+            strcpy((char *) arg1->ptr,arg2);
+        }else {
+            arg1->ptr = 0;
+        }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_var_string_t_ptr_get(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    var_string_t *arg1 = (var_string_t *) 0 ;
+    char *result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:var_string_t_ptr_get",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_var_string_t,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    result = (char *) ((arg1)->ptr);
+    
+    resultobj = result ? PyString_FromString(result) : Py_BuildValue((char*)"");
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_var_string_t_len_set(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    var_string_t *arg1 = (var_string_t *) 0 ;
+    int arg2 ;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"Oi:var_string_t_len_set",&obj0,&arg2)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_var_string_t,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    if (arg1) (arg1)->len = arg2;
+    
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_var_string_t_len_get(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    var_string_t *arg1 = (var_string_t *) 0 ;
+    int result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:var_string_t_len_get",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_var_string_t,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    result = (int) ((arg1)->len);
+    
+    resultobj = PyInt_FromLong((long)result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_new_var_string_t(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    var_string_t *result;
+    
+    if(!PyArg_ParseTuple(args,(char *)":new_var_string_t")) goto fail;
+    result = (var_string_t *)new var_string_t();
+    
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_var_string_t, 1);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_delete_var_string_t(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    var_string_t *arg1 = (var_string_t *) 0 ;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:delete_var_string_t",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_var_string_t,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    delete arg1;
+    
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject * var_string_t_swigregister(PyObject *self, PyObject *args) {
+    PyObject *obj;
+    if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
+    SWIG_TypeClientData(SWIGTYPE_p_var_string_t, obj);
+    Py_INCREF(obj);
+    return Py_BuildValue((char *)"");
+}
+static PyObject *_wrap_new_Variable(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    char *arg1 ;
+    int arg2 ;
+    Variable *result;
+    
+    if(!PyArg_ParseTuple(args,(char *)"si:new_Variable",&arg1,&arg2)) goto fail;
+    result = (Variable *)new Variable(arg1,arg2);
+    
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_Variable, 1);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_delete_Variable(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    Variable *arg1 = (Variable *) 0 ;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:delete_Variable",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_Variable,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    delete arg1;
+    
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_Variable_getData(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    Variable *arg1 = (Variable *) 0 ;
+    var_string_t result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:Variable_getData",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_Variable,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    result = (arg1)->getData();
+    
+    {
+        resultobj = PyString_FromStringAndSize((&result)->ptr, (&result)->len);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject * Variable_swigregister(PyObject *self, PyObject *args) {
+    PyObject *obj;
+    if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
+    SWIG_TypeClientData(SWIGTYPE_p_Variable, obj);
+    Py_INCREF(obj);
+    return Py_BuildValue((char *)"");
+}
 static PyObject *_wrap_new_Mote(PyObject *self, PyObject *args) {
     PyObject *resultobj;
     Mote *result;
@@ -1678,6 +1850,24 @@ static PyObject *_wrap_Mote_turnOn(PyObject *self, PyObject *args) {
     (arg1)->turnOn();
     
     Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_Mote_getVariable(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    Mote *arg1 = (Mote *) 0 ;
+    char *arg2 ;
+    Variable *result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"Os:Mote_getVariable",&obj0,&arg2)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_Mote,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    result = (Variable *)(arg1)->getVariable(arg2);
+    
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_Variable, 0);
     return resultobj;
     fail:
     return NULL;
@@ -2029,6 +2219,17 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"Packet_deliver", _wrap_Packet_deliver, METH_VARARGS },
 	 { (char *)"Packet_deliverNow", _wrap_Packet_deliverNow, METH_VARARGS },
 	 { (char *)"Packet_swigregister", Packet_swigregister, METH_VARARGS },
+	 { (char *)"var_string_t_ptr_set", _wrap_var_string_t_ptr_set, METH_VARARGS },
+	 { (char *)"var_string_t_ptr_get", _wrap_var_string_t_ptr_get, METH_VARARGS },
+	 { (char *)"var_string_t_len_set", _wrap_var_string_t_len_set, METH_VARARGS },
+	 { (char *)"var_string_t_len_get", _wrap_var_string_t_len_get, METH_VARARGS },
+	 { (char *)"new_var_string_t", _wrap_new_var_string_t, METH_VARARGS },
+	 { (char *)"delete_var_string_t", _wrap_delete_var_string_t, METH_VARARGS },
+	 { (char *)"var_string_t_swigregister", var_string_t_swigregister, METH_VARARGS },
+	 { (char *)"new_Variable", _wrap_new_Variable, METH_VARARGS },
+	 { (char *)"delete_Variable", _wrap_delete_Variable, METH_VARARGS },
+	 { (char *)"Variable_getData", _wrap_Variable_getData, METH_VARARGS },
+	 { (char *)"Variable_swigregister", Variable_swigregister, METH_VARARGS },
 	 { (char *)"new_Mote", _wrap_new_Mote, METH_VARARGS },
 	 { (char *)"delete_Mote", _wrap_delete_Mote, METH_VARARGS },
 	 { (char *)"Mote_id", _wrap_Mote_id, METH_VARARGS },
@@ -2039,6 +2240,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"Mote_isOn", _wrap_Mote_isOn, METH_VARARGS },
 	 { (char *)"Mote_turnOff", _wrap_Mote_turnOff, METH_VARARGS },
 	 { (char *)"Mote_turnOn", _wrap_Mote_turnOn, METH_VARARGS },
+	 { (char *)"Mote_getVariable", _wrap_Mote_getVariable, METH_VARARGS },
 	 { (char *)"Mote_swigregister", Mote_swigregister, METH_VARARGS },
 	 { (char *)"new_Tossim", _wrap_new_Tossim, METH_VARARGS },
 	 { (char *)"delete_Tossim", _wrap_delete_Tossim, METH_VARARGS },
@@ -2066,7 +2268,9 @@ static swig_type_info _swigt__p_Radio[] = {{"_p_Radio", 0, "Radio *", 0},{"_p_Ra
 static swig_type_info _swigt__p_FILE[] = {{"_p_FILE", 0, "FILE *", 0},{"_p_FILE"},{0}};
 static swig_type_info _swigt__p_MAC[] = {{"_p_MAC", 0, "MAC *", 0},{"_p_MAC"},{0}};
 static swig_type_info _swigt__p_Packet[] = {{"_p_Packet", 0, "Packet *", 0},{"_p_Packet"},{0}};
+static swig_type_info _swigt__p_Variable[] = {{"_p_Variable", 0, "Variable *", 0},{"_p_Variable"},{0}};
 static swig_type_info _swigt__p_Tossim[] = {{"_p_Tossim", 0, "Tossim *", 0},{"_p_Tossim"},{0}};
+static swig_type_info _swigt__p_var_string_t[] = {{"_p_var_string_t", 0, "var_string_t *", 0},{"_p_var_string_t"},{0}};
 static swig_type_info _swigt__p_Mote[] = {{"_p_Mote", 0, "Mote *", 0},{"_p_Mote"},{0}};
 
 static swig_type_info *swig_types_initial[] = {
@@ -2074,7 +2278,9 @@ _swigt__p_Radio,
 _swigt__p_FILE, 
 _swigt__p_MAC, 
 _swigt__p_Packet, 
+_swigt__p_Variable, 
 _swigt__p_Tossim, 
+_swigt__p_var_string_t, 
 _swigt__p_Mote, 
 0
 };
