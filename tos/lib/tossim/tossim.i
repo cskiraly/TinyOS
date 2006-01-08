@@ -51,6 +51,28 @@
   $1 = PyFile_AsFile($input);
 }
 
+%typemap(python,out) var_string_t {
+  $result = PyString_FromStringAndSize($1.ptr, $1.len);
+}
+
+typedef struct var_string {
+  char* ptr;
+  int len;
+} var_string_t;
+
+class Variable {
+ public:
+  Variable(char* name, int mote);
+  ~Variable();
+  var_string_t getData();
+  
+ private:
+  char* name;
+  int mote;
+  void* ptr;
+  char* data;
+  int len;
+};
 
 class Mote {
  public:
@@ -69,7 +91,8 @@ class Mote {
   bool isOn();
   void turnOff();
   void turnOn();
- 
+  Variable* getVariable(char* name);
+
 };
 
 class Tossim {

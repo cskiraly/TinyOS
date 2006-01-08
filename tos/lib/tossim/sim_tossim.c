@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: sim_tossim.c,v 1.1.2.3 2005-12-19 23:51:20 scipio Exp $
+// $Id: sim_tossim.c,v 1.1.2.4 2006-01-08 07:14:21 scipio Exp $
 
 
 #include <sim_tossim.h>
@@ -90,7 +90,7 @@ void sim_set_time(sim_time_t t) __attribute__ ((C, spontaneous)) {
 }
 
 sim_time_t sim_ticks_per_sec() {
-  return 10000000000;
+  return 10000000000ULL;
 }
 
 unsigned long sim_node() __attribute__ ((C, spontaneous)) {

@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tossim.h,v 1.1.2.5 2006-01-03 01:53:32 scipio Exp $
+// $Id: tossim.h,v 1.1.2.6 2006-01-08 07:14:21 scipio Exp $
 
 #ifndef TOSSIM_H_INCLUDED
 #define TOSSIM_H_INCLUDED
@@ -40,6 +40,26 @@
 #include <mac.h>
 #include <radio.h>
 #include <packet.h>
+
+typedef struct var_string {
+  char* ptr;
+  int len;
+} var_string_t;
+
+class Variable {
+ public:
+  Variable(char* name, int mote);
+  ~Variable();
+  var_string_t getData();
+  
+ private:
+  char* name;
+  int mote;
+  void* ptr;
+  char* data;
+  int len;
+  var_string_t str;
+};
 
 class Mote {
  public:
@@ -59,6 +79,8 @@ class Mote {
   void turnOn();
   void setID(unsigned long id);  
 
+  Variable* getVariable(char* name);
+  
  private:
   unsigned long nodeID;
 };
