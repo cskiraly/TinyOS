@@ -6,6 +6,6 @@ implementation {
 
   HplAt45db = HplAt45dbByteC;
 
-  HplAt45dbByteC.FlashSPI -> HplAt45dbIOC;
-  HplAt45dbByteC.HplAt45dbIO -> HplAt45dbIOC;
+  HplAt45dbByteC.FlashSpi -> HplAt45dbIOC;
+  HplAt45dbByteC.HplAt45dbByte -> HplAt45dbIOC;
 }
