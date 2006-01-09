@@ -1,0 +1,4 @@
+COMPONENT=FormatC
+include $(MAKERULES)
+
+
