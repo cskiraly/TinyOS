@@ -1,4 +1,4 @@
-// $Id: BlockStorage.h,v 1.1.2.1 2005-12-29 17:45:23 idgay Exp $
+// $Id: BlockStorage.h,v 1.1.2.2 2006-01-09 23:23:39 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -27,6 +27,8 @@
 
 #ifndef __BLOCK_STORAGE_H__
 #define __BLOCK_STORAGE_H__
+
+#define UQ_BLOCK_STORAGE "blockstorage.resource"
 
 typedef uint32_t block_addr_t;
 typedef uint8_t blockstorage_t;
