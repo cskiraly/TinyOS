@@ -12,20 +12,28 @@
  * @author David Gay
  */
 
-configuration HALAT45DBC
+#include "HalAt45db.h"
+
+configuration HalAt45dbC
 {
   provides {
-    interface StdControl;
-    interface HALAT45DB;
+    interface HalAt45db;
+    interface Resource[uint8_t client];
+    interface ResourceController;
+    interface ArbiterInfo;
   }
 }
 implementation
 {
-  components HALAT45DBM, HPLAT45DBC;
+  components HalAt45dbP, HplAt45dbC, MainC;
+  components new FcfsArbiterC(UQ_AT45DB) as Arbiter;
 
-  StdControl = HALAT45DBM;
-  StdControl = HPLAT45DBC;
-  HALAT45DBM = HALAT45DBM;
+  HalAt45db = HalAt45dbP;
+  Resource = Arbiter;
+  ResourceController = Arbiter;
+  ArbiterInfo = Arbiter;
 
-  HALAT45DBM.HPLAT45DB -> HPLAT45DBC;
+  MainC.SoftwareInit -> HalAt45dbP;
+  MainC.SoftwareInit -> Arbiter;
+  HalAt45dbP.HplAt45db -> HplAt45dbC;
 }

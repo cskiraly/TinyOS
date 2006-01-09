@@ -1,7 +1,7 @@
-// $Id: HalAt45db.h,v 1.1.2.2 2006-01-09 23:25:10 idgay Exp $
+// $Id: FormatStorage.nc,v 1.1.2.1 2006-01-09 23:25:10 idgay Exp $
 
-/*									tab:4
- * "Copyright (c) 2000-2003 The Regents of the University  of California.  
+/*									tab:2
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,26 +19,22 @@
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
- *
- * Copyright (c) 2002-2003 Intel Corporation
- * All rights reserved.
- *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
- * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
- * 94704.  Attention:  Intel License Inquiry.
  */
-#ifndef HALAT45DB_H
-#define HALAT45DB_H
 
-#define UQ_AT45DB "at45db.resource"
+/*
+ * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
+ */
 
-#include <HplAt45db.h>
+#include "Storage.h"
 
-enum {
-  AT45_ERASE,
-  AT45_DONT_ERASE,
-  AT45_PREVIOUSLY_ERASED
-};
+interface FormatStorage {
 
-#endif
+  command error_t init();
+
+  command error_t allocate(volume_id_t id, storage_addr_t size);
+  command error_t allocateFixed(volume_id_t id, storage_addr_t addr, storage_addr_t size);
+
+  command error_t commit();
+  event void commitDone(storage_result_t result);
+
+}

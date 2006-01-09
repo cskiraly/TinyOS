@@ -1,18 +1,10 @@
 configuration StorageManagerC {
-  provides {
-    interface StdControl;
-    interface Mount[volume_t volume];
-    interface HALAT45DB[volume_t volume];
-  }
+  provides interface At45dbVolume[volume_t clientId];
 }
 implementation {
-  components StorageManagerM, HALAT45DBC, HALAT45DBShare;
+  components StorageManagerP, HalAt45dbC, MainC;
 
-  StdControl = StorageManagerM;
-  StdControl = HALAT45DBC;
-  Mount = StorageManagerM;
-  HALAT45DBC = HALAT45DBShare;
-
-  HALAT45DBShare.ActualAT45 -> HALAT45DBC;
-  HALAT45DBShare.AT45Remap -> StorageManagerM;
+  At45dbVolume = StorageManagerP;
+  MainC.SoftwareInit -> StorageManagerP;
+  StorageManagerP.HalAt45db -> HalAt45dbC;
 }
