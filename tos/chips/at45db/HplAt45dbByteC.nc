@@ -1,10 +1,8 @@
-module HPLAT45DBByte {
-  provides interface HPLAT45DB;
+generic module HplAt45dbByteC() {
+  provides interface HplAt45db;
   uses {
-    interface SlavePin as FlashSelect;
-    interface FastSPI as FlashSPI;
-    interface Resource as FlashIdle;
-    command bool getCompareStatus();
+    interface SPIByte as FlashSpi;
+    interface HplAt45dbByte;
   }
 }
 implementation 
@@ -26,71 +24,67 @@ implementation
   uint8_t status = P_IDLE;
   uint16_t computedCrc;
 
-  event result_t FlashSelect.notifyHigh() {
+  task void complete() {
     uint8_t s = status;
 
     status = P_IDLE;
     switch (s)
       {
-      case P_IDLE: break;
-      case P_WAIT_IDLE:
-	signal HPLAT45DB.waitIdleDone();
-	break;
-      case P_WAIT_COMPARE:
-	signal HPLAT45DB.waitCompareDone(FALSE);
-	break;
-      case P_WAIT_COMPARE_OK:
-	signal HPLAT45DB.waitCompareDone(TRUE);
-	break;
+      default: break;
       case P_READ_CRC:
-	signal HPLAT45DB.crcDone(computedCrc);
+	signal HplAt45db.crcDone(computedCrc);
 	break;
       case P_FILL:
-	signal HPLAT45DB.fillDone();
+	signal HplAt45db.fillDone();
 	break;
       case P_FLUSH:
-	signal HPLAT45DB.flushDone();
+	signal HplAt45db.flushDone();
 	break;
       case P_COMPARE:
-	signal HPLAT45DB.compareDone();
+	signal HplAt45db.compareDone();
 	break;
       case P_ERASE:
-	signal HPLAT45DB.eraseDone();
+	signal HplAt45db.eraseDone();
 	break;
       case P_READ:
-	signal HPLAT45DB.readDone();
+	signal HplAt45db.readDone();
 	break;
       case P_WRITE:
-	signal HPLAT45DB.writeDone();
+	signal HplAt45db.writeDone();
 	break;
       }
-    return SUCCESS;
   }
 
-  event result_t FlashIdle.available() {
-    if (status == P_WAIT_COMPARE && call getCompareStatus())
-      status = P_WAIT_COMPARE_OK;
-    call FlashSelect.high(TRUE);
-    return SUCCESS;
+  event void HplAt45dbByte.idle() {
+    if (status == P_WAIT_COMPARE)
+      {
+	bool cstatus = call HplAt45dbByte.getCompareStatus();
+	call HplAt45dbByte.deselect();
+	signal HplAt45db.waitCompareDone(cstatus);
+      }
+    else
+      {
+	call HplAt45dbByte.deselect();
+	signal HplAt45db.waitIdleDone();
+      }
   }
 
   void requestFlashStatus() {
-    call FlashSelect.low();
-    call FlashSPI.txByte(AT45_C_REQ_STATUS);
-    if (call FlashIdle.wait() == FAIL) // already done
-      signal FlashIdle.available();
+    uint8_t dummy;
+
+    call HplAt45dbByte.select();
+    call FlashSpi.write(AT45_C_REQ_STATUS, &dummy);
+    call HplAt45dbByte.waitIdle();
   }
 
-  command result_t HPLAT45DB.waitIdle() {
+  command void HplAt45db.waitIdle() {
     status = P_WAIT_IDLE;
     requestFlashStatus();
-    return SUCCESS;
   }
 
-  command result_t HPLAT45DB.waitCompare() {
+  command void HplAt45db.waitCompare() {
     status = P_WAIT_COMPARE;
     requestFlashStatus();
-    return SUCCESS;
   }
 
 
@@ -119,7 +113,7 @@ implementation
     ptr = cmd;
     count = 4 + dontCare;
 
-    call FlashSelect.low();
+    call HplAt45dbByte.select();
 
     for (;;)
       {
@@ -163,51 +157,45 @@ implementation
 	else /* P_COMMAND */
 	  break;
 	
-	in = call FlashSPI.txByte(out);
+	call FlashSpi.write(out, &in);
       }
 
-    call FlashSelect.high(TRUE);
+    call HplAt45dbByte.deselect();
+    post complete();
   }
 
-  command result_t HPLAT45DB.fill(uint8_t cmd, at45page_t page) {
+  command void HplAt45db.fill(uint8_t cmd, at45page_t page) {
     execCommand(P_FILL, cmd, 0, page, 0, NULL, 0, 0);
-    return SUCCESS;
   }
 
-  command result_t HPLAT45DB.flush(uint8_t cmd, at45page_t page) {
+  command void HplAt45db.flush(uint8_t cmd, at45page_t page) {
     execCommand(P_FLUSH, cmd, 0, page, 0, NULL, 0, 0);
-    return SUCCESS;
   }
 
-  command result_t HPLAT45DB.compare(uint8_t cmd, at45page_t page) {
+  command void HplAt45db.compare(uint8_t cmd, at45page_t page) {
     execCommand(P_COMPARE, cmd, 0, page, 0, NULL, 0, 0);
-    return SUCCESS;
   }
 
-  command result_t HPLAT45DB.erase(uint8_t cmd, at45page_t page) {
+  command void HplAt45db.erase(uint8_t cmd, at45page_t page) {
     execCommand(P_ERASE, cmd, 0, page, 0, NULL, 0, 0);
-    return SUCCESS;
   }
 
-  command result_t HPLAT45DB.read(uint8_t cmd,
+  command void HplAt45db.read(uint8_t cmd,
 				  at45page_t page, at45pageoffset_t offset,
 				  uint8_t *data, at45pageoffset_t count) {
     execCommand(P_READ, cmd, 2, page, offset, data, count, 0);
-    return SUCCESS;
   }
 
-  command result_t HPLAT45DB.crc(uint8_t cmd,
+  command void HplAt45db.crc(uint8_t cmd,
 				 at45page_t page, at45pageoffset_t offset,
 				 at45pageoffset_t count,
 				 uint16_t baseCrc) {
     execCommand(P_READ_CRC, cmd, 2, page, offset, NULL, count, baseCrc);
-    return SUCCESS;
   }
 
-  command result_t HPLAT45DB.write(uint8_t cmd,
+  command void HplAt45db.write(uint8_t cmd,
 				   at45page_t page, at45pageoffset_t offset,
 				   uint8_t *data, at45pageoffset_t count) {
     execCommand(P_WRITE, cmd, 0, page, offset, data, count, 0);
-    return SUCCESS;
   }
 }

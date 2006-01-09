@@ -1,4 +1,4 @@
-// $Id: HalAt45dbP.nc,v 1.1.2.1 2005-12-29 18:06:54 idgay Exp $
+// $Id: HalAt45dbP.nc,v 1.1.2.2 2006-01-09 23:25:10 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -20,7 +20,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2003 Intel Corporation
+ * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -28,15 +28,17 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
-includes crc;
-includes HALAT45DB;
-module HALAT45DBM {
+
+#include "crc.h"
+#include "HalAt45db.h"
+
+module HalAt45dbP {
   provides {
-    interface StdControl;
-    interface HALAT45DB;
+    interface Init;
+    interface HalAt45db;
   }
   uses {
-    interface HPLAT45DB;
+    interface HplAt45db;
   }
 }
 implementation
@@ -99,7 +101,7 @@ implementation
 #define OPN(n, name) ((n) ? name ## 1 : name ## 2)
 #define OP(name) OPN(selected, name)
 
-  command result_t StdControl.init() {
+  command error_t Init.init() {
     request = IDLE;
     flashBusy = TRUE;
       
@@ -113,19 +115,11 @@ implementation
     return SUCCESS;
   }
   
-  command result_t StdControl.start() {
-    return SUCCESS;
-  }
-
-  command result_t StdControl.stop() {
-    return SUCCESS;
-  }
-
   void flashIdle() {
     flashBusy = buffer[0].busy = buffer[1].busy = FALSE;
   }
 
-  void requestDone(result_t result, uint16_t computedCrc);
+  void requestDone(error_t result, uint16_t computedCrc, uint8_t newState);
   void handleRWRequest();
 
   task void taskSuccess() {
@@ -136,18 +130,28 @@ implementation
   }
 
   void checkBuffer(uint8_t buf) {
-    call HPLAT45DB.compare(OPN(buf, AT45_C_COMPARE_BUFFER), buffer[buf].page);
+    if (flashBusy)
+      {
+	call HplAt45db.waitIdle();
+	return;
+      }
+    call HplAt45db.compare(OPN(buf, AT45_C_COMPARE_BUFFER), buffer[buf].page);
     checking = buf;
   }
 
   void flushBuffer() {
-    call HPLAT45DB.flush(buffer[selected].erased ?
+    if (flashBusy)
+      {
+	call HplAt45db.waitIdle();
+	return;
+      }
+    call HplAt45db.flush(buffer[selected].erased ?
 			 OP(AT45_C_QFLUSH_BUFFER) :
 			 OP(AT45_C_FLUSH_BUFFER), 
 			 buffer[selected].page);
   }
 
-  event result_t HPLAT45DB.waitIdleDone() {
+  event void HplAt45db.waitIdleDone() {
     flashIdle();
     // Eager compare - this steals the current command
 #if 0
@@ -157,10 +161,9 @@ implementation
     else
 #endif
       handleRWRequest();
-    return SUCCESS;
   }
 
-  event result_t HPLAT45DB.waitCompareDone(bool ok) {
+  event void HplAt45db.waitCompareDone(bool ok) {
     flashIdle();
 
     if (ok)
@@ -170,60 +173,53 @@ implementation
     else
       {
 	requestDone(FAIL, 0, BROKEN);
-	return SUCCESS;
+	return;
       }
     handleRWRequest();
-    return SUCCESS;
   }
 
-  event result_t HPLAT45DB.readDone() {
+  event void HplAt45db.readDone() {
     requestDone(SUCCESS, 0, IDLE);
-    return SUCCESS;
   }
 
-  event result_t HPLAT45DB.writeDone() {
+  event void HplAt45db.writeDone() {
     buffer[selected].clean = FALSE;
     buffer[selected].unchecked = 0;
     requestDone(SUCCESS, 0, IDLE);
-    return SUCCESS;
   }
 
-  event result_t HPLAT45DB.crcDone(uint16_t crc) {
+  event void HplAt45db.crcDone(uint16_t crc) {
     requestDone(SUCCESS, crc, IDLE);
-    return SUCCESS;
   }
 
-  event result_t HPLAT45DB.flushDone() {
+  event void HplAt45db.flushDone() {
     flashBusy = TRUE;
     buffer[selected].clean = buffer[selected].busy = TRUE;
     buffer[selected].unchecked++;
     buffer[selected].erased = FALSE;
     handleRWRequest();
-    return SUCCESS;
   }
 
-  event result_t HPLAT45DB.compareDone() {
+  event void HplAt45db.compareDone() {
     flashBusy = TRUE;
     buffer[checking].busy = TRUE;
     // The 10us wait makes old mica motes (Atmega 103) happy, for
     // some mysterious reason (w/o this wait, the first compare
-    // always fail, even though the compare after the rewrite
+    // always fails, even though the compare after the rewrite
     // succeeds...)
-    TOSH_uwait(10);
-    call HPLAT45DB.waitCompare();
-    return SUCCESS;
+    uwait(10);
+    call HplAt45db.waitCompare();
   }
 
-  event result_t HPLAT45DB.fillDone() {
+  event void HplAt45db.fillDone() {
     flashBusy = TRUE;
     buffer[selected].page = reqPage;
     buffer[selected].clean = buffer[selected].busy = TRUE;
     buffer[selected].erased = FALSE;
     handleRWRequest();
-    return SUCCESS;
   }
 
-  event result_t HPLAT45DB.eraseDone() {
+  event void HplAt45db.eraseDone() {
     flashBusy = TRUE;
     // The buffer contains garbage, but we don't care about the state
     // of bits on this page anyway (if we do, we'll perform a 
@@ -232,10 +228,9 @@ implementation
     buffer[selected].clean = TRUE;
     buffer[selected].erased = TRUE;
     requestDone(SUCCESS, 0, IDLE);
-    return SUCCESS;
   }
 
-  result_t syncOrFlushAll(uint8_t newReq);
+  void syncOrFlushAll(uint8_t newReq);
 
   void handleRWRequest() {
     if (reqPage == buffer[selected].page)
@@ -246,9 +241,9 @@ implementation
 	    {
 	    case AT45_ERASE:
 	      if (flashBusy)
-		call HPLAT45DB.waitIdle();
+		call HplAt45db.waitIdle();
 	      else
-		call HPLAT45DB.erase(AT45_C_ERASE_PAGE, reqPage);
+		call HplAt45db.erase(AT45_C_ERASE_PAGE, reqPage);
 	      break;
 	    case AT45_PREVIOUSLY_ERASED:
 	      // We believe the user...
@@ -288,26 +283,26 @@ implementation
 
 	case R_READ:
 	  if (buffer[selected].busy)
-	    call HPLAT45DB.waitIdle();
+	    call HplAt45db.waitIdle();
 	  else
-	    call HPLAT45DB.read(OP(AT45_C_READ_BUFFER), 0, reqOffset,
+	    call HplAt45db.read(OP(AT45_C_READ_BUFFER), 0, reqOffset,
 				reqBuf, reqBytes);
 	  break;
 
 	case R_READCRC:
 	  if (buffer[selected].busy)
-	    call HPLAT45DB.waitIdle();
+	    call HplAt45db.waitIdle();
 	  else
 	    /* Hack: baseCrc was stored in reqBuf */
-	    call HPLAT45DB.crc(OP(AT45_C_READ_BUFFER), 0, reqOffset, reqBytes,
+	    call HplAt45db.crc(OP(AT45_C_READ_BUFFER), 0, reqOffset, reqBytes,
 			       (uint16_t)reqBuf);
 	  break;
 
 	case R_WRITE:
 	  if (buffer[selected].busy)
-	    call HPLAT45DB.waitIdle();
+	    call HplAt45db.waitIdle();
 	  else
-	    call HPLAT45DB.write(OP(AT45_C_WRITE_BUFFER), 0, reqOffset,
+	    call HplAt45db.write(OP(AT45_C_WRITE_BUFFER), 0, reqOffset,
 				 reqBuf, reqBytes);
 	  break;
 	}
@@ -324,38 +319,30 @@ implementation
 	    handleRWRequest();
 	  }
 	else if (flashBusy)
-	  call HPLAT45DB.waitIdle();
+	  call HplAt45db.waitIdle();
 	else
-	  call HPLAT45DB.fill(OP(AT45_C_FILL_BUFFER), reqPage);
+	  call HplAt45db.fill(OP(AT45_C_FILL_BUFFER), reqPage);
       }
   }
 
-  void requestDone(result_t result, uint16_t computedCrc, uint8_t newState) {
+  void requestDone(error_t result, uint16_t computedCrc, uint8_t newState) {
     uint8_t orequest = request;
 
     request = newState;
     switch (orequest)
       {
-      case R_READ: signal HALAT45DB.readDone(result); break;
-      case R_READCRC: signal HALAT45DB.computeCrcDone(result, computedCrc); break;
-      case R_WRITE: signal HALAT45DB.writeDone(result); break;
-      case R_SYNC: case R_SYNCALL: signal HALAT45DB.syncDone(result); break;
-      case R_FLUSH: case R_FLUSHALL: signal HALAT45DB.flushDone(result); break;
-      case R_ERASE: signal HALAT45DB.eraseDone(result); break;
+      case R_READ: signal HalAt45db.readDone(result); break;
+      case R_READCRC: signal HalAt45db.computeCrcDone(result, computedCrc); break;
+      case R_WRITE: signal HalAt45db.writeDone(result); break;
+      case R_SYNC: case R_SYNCALL: signal HalAt45db.syncDone(result); break;
+      case R_FLUSH: case R_FLUSHALL: signal HalAt45db.flushDone(result); break;
+      case R_ERASE: signal HalAt45db.eraseDone(result); break;
       }
   }
 
-  result_t newRequest(uint8_t req, at45page_t page,
+  void newRequest(uint8_t req, at45page_t page,
 		      at45pageoffset_t offset,
 		      void *reqdata, at45pageoffset_t n) {
-#ifdef CHECKARGS
-    if (page >= AT45_MAX_PAGES || offset >= AT45_PAGE_SIZE || n == 0 ||
-	n > AT45_PAGE_SIZE || offset + n > AT45_PAGE_SIZE)
-      return FAIL;
-#endif
-
-    if (request != IDLE)
-      return FAIL;
     request = req;
 
     reqBuf = reqdata;
@@ -370,39 +357,40 @@ implementation
     else
       selected = !selected; // LRU with 2 buffers...
 
-    handleRWRequest();
-    
-    return SUCCESS;
+#ifdef CHECKARGS
+    if (page >= AT45_MAX_PAGES || offset >= AT45_PAGE_SIZE ||
+	n > AT45_PAGE_SIZE || offset + n > AT45_PAGE_SIZE)
+      post taskFail();
+    else
+#endif
+      handleRWRequest();
   }
 
-  command result_t HALAT45DB.read(at45page_t page, at45pageoffset_t offset,
+  command void HalAt45db.read(at45page_t page, at45pageoffset_t offset,
 				   void *reqdata, at45pageoffset_t n) {
-    return newRequest(R_READ, page, offset, reqdata, n);
+    newRequest(R_READ, page, offset, reqdata, n);
   }
 
-  command result_t HALAT45DB.computeCrc(at45page_t page,
+  command void HalAt45db.computeCrc(at45page_t page,
 					at45pageoffset_t offset,
 					at45pageoffset_t n,
 					uint16_t baseCrc) {
     /* This is a hack (store crc in reqBuf), but it saves 2 bytes of RAM */
-    if (request == IDLE)
-      reqBuf = (uint8_t *)baseCrc;
-    return newRequest(R_READCRC, page, offset, NULL, n);
+    reqBuf = (uint8_t *)baseCrc;
+    newRequest(R_READCRC, page, offset, NULL, n);
   }
 
-  command result_t HALAT45DB.write(at45page_t page, at45pageoffset_t offset,
+  command void HalAt45db.write(at45page_t page, at45pageoffset_t offset,
 				    void *reqdata, at45pageoffset_t n) {
-    return newRequest(R_WRITE, page, offset, reqdata, n);
+    newRequest(R_WRITE, page, offset, reqdata, n);
   }
 
 
-  command result_t HALAT45DB.erase(at45page_t page, uint8_t eraseKind) {
-    return newRequest(R_ERASE, page, eraseKind, NULL, 0);
+  command void HalAt45db.erase(at45page_t page, uint8_t eraseKind) {
+    newRequest(R_ERASE, page, eraseKind, NULL, 0);
   }
 
-  result_t syncOrFlush(at45page_t page, uint8_t newReq) {
-    if (request != IDLE)
-      return FAIL;
+  void syncOrFlush(at45page_t page, uint8_t newReq) {
     request = newReq;
 
     if (buffer[0].page == page)
@@ -412,26 +400,22 @@ implementation
     else
       {
 	post taskSuccess();
-	return SUCCESS;
+	return;
       }
 
     buffer[selected].unchecked = 0;
     handleRWRequest();
-
-    return SUCCESS;
   }
 
-  command result_t HALAT45DB.sync(at45page_t page) {
-    return syncOrFlush(page, R_SYNC);
+  command void HalAt45db.sync(at45page_t page) {
+    syncOrFlush(page, R_SYNC);
   }
 
-  command result_t HALAT45DB.flush(at45page_t page) {
-    return syncOrFlush(page, R_FLUSH);
+  command void HalAt45db.flush(at45page_t page) {
+    syncOrFlush(page, R_FLUSH);
   }
 
-  result_t syncOrFlushAll(uint8_t newReq) {
-    if (request != IDLE)
-      return FAIL;
+  void syncOrFlushAll(uint8_t newReq) {
     request = newReq;
 
     if (!buffer[0].clean)
@@ -441,20 +425,18 @@ implementation
     else
       {
 	post taskSuccess();
-	return SUCCESS;
+	return;
       }
 
     buffer[selected].unchecked = 0;
     handleRWRequest();
-
-    return SUCCESS;
   }
 
-  command result_t HALAT45DB.syncAll() {
-    return syncOrFlushAll(R_SYNCALL);
+  command void HalAt45db.syncAll() {
+    syncOrFlushAll(R_SYNCALL);
   }
 
-  command result_t HALAT45DB.flushAll() {
-    return syncOrFlushAll(R_FLUSHALL);
+  command void HalAt45db.flushAll() {
+    syncOrFlushAll(R_FLUSHALL);
   }
 }
