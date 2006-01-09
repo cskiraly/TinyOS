@@ -3,159 +3,233 @@ Resource Arbitration
 ============================
 
 :TEP: 108
-:Group: Core Working Group 
+:Group: Core Working Group
 :Type: Documentary
 :Status: Draft
 :TinyOS-Version: 2.x
-:Authors: David Gay, David Culler, Philip Levis, Kevin Klues
+:Authors: Kevin Klues, Philip Levis, David Gay, David Culler, Vlado Handziski
 
 :Draft-Created: 28-Mar-2005
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2005-10-31 22:16:36 $
-:Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2006-01-09 22:27:12 $
+:Draft-Discuss: TinyOS Developer List <tinyos-devel at  
+mail.millennium.berkeley.edu>
 
 .. Note::
 
-   This memo documents a part of TinyOS for the TinyOS Community, and
-   requests discussion and suggestions for improvements.  Distribution
-   of this memo is unlimited. This memo is in full compliance with
-   TEP 1.
+    This memo documents a part of TinyOS for the TinyOS Community, and
+    requests discussion and suggestions for improvements.  Distribution
+    of this memo is unlimited. This memo is in full compliance with
+    TEP 1.
 
 Abstract
 ====================================================================
 
 This memo documents the general resource sharing mechanisms for TinyOS
 2.x. These mechanisms are used to allow multiple software components to
-arbitrate the use of both hardware buses, software components, etc.
+arbitrate access to shared abstractions.
 
 
 1. Introduction
 ====================================================================
 
-Components that wish to use a shared resource, such as a hardware bus,
-memory or the services offered by another component need a way to arbitrate
-use of these resources. 
+TinyOS 1.x has two mechanisms for managing shared resources:
+virtualization and completion events. A virtualized resource appears
+as an independent instance of an abstraction, such as the Timer
+interface is TimerC. A client of a Timer instance can use it
+independently of the others: TimerC virtualizes the underlying
+hardware clock into N separate timers.
 
-In TinyOS 1.x, this arbitration was performed on a first-come, first-served
-basis by having requests for, e.g., a service X return FAIL if it was
-currently in use. Users of X could monitor service completion events if
-they wished to retry a failed request. This approach has several drawbacks:
+Some abstractions, however, are not well suited to virtualization:
+programs need the control provided by a physical abstraction. For
+example, components in 1.x share a single communication stack,
+GenericComm.  GenericComm can only handle one outgoing packet at a
+time. If a component tries to send a packet when GenericComm is
+already busy, then the call returns FAIL. Therefore, shared use of
+GenericComm follows a first-come, first-served arbitration policy. If
+a component sends a packet but GenericComm is busy, the component
+needs a way to tell when GenericComm is free so it can retry. TinyOS
+1.x provides the mechanism of a global completion event which is
+signalled whenever a packet send completes. Interested components can
+handle this event and retry.
 
-- If you need to make several requests of X, you have to handle the
-  possibility of failure at any stage. This complicates implementations by
-  adding extra internal states.
-- You have no control over timing of a sequence of operations. This is a
-  problem for, e.g., timing-sensitive use of an A/D converter.
+The approach to physical (rather than virtualized) abstractions 
+has several drawbacks:
+
+- If you need to make several requests, you have to handle the
+  possibility of a request returning FAIL at any point. This complicates  
+  implementations by adding internal states.
+
+- You have no control over the timing of a sequence of operations. One
+  example of when this can be a problem is timing-sensitive use of an 
+  A/D converter.
+
 - If a hardware resource supports reservation, you cannot express this
-  via this software interface. For instance, I2C buses have a concept of
-  "repeated start" when doing multiple bus transactions, but it was not
-  clear how to use this in TinyOS 1.x's I2C abstraction.
-- Most TinyOS 1.x services did not provide a very convenient way of 
-  monitoring X's availability for the purpose of retries, nor very
-  clear documentation of which requests could happen simultaneously.
+  via this software interface. For instance, I2C buses have a  
+  concept of "repeated start" when doing multiple bus transactions, 
+  but it is not clear how to use this in TinyOS 1.x's I2C abstraction.
 
-In light of all these problems, TinyOS 2.x introduces resource reservation
-mechanisms for use by components providing access to shared resources.
-
-2. Resource sharing in TinyOS 2.x
-====================================================================
+- Most TinyOS 1.x services do not provide a very convenient way of
+  monitoring an abstractions's availability for the purpose of retries, 
+  nor very clear documentation of which requests could happen simultaneously.
 
 A single approach to resource sharing is not appropriate for all
-circumstances. For instance, requiring resource reservation allows programs
-to have better timing guarantees for access to an A/D converter. But if
-a program does not need precise timing guarantees (e.g., when measuring
+circumstances. For instance, requiring resource reservation allows  
+programs to have better timing guarantees for access to an A/D converter. 
+But if a program does not need precise timing guarantees (e.g., when measuring
 temperature in a biological monitoring application), this extra resource
-reservation step complicates code. 
+reservation step unnecessarily complicates code.
 
-Thus, TinyOS services should offer resource sharing mechanisms appropriate
-to their goals and level of abstraction. However, to preserve simplicity
-and consistency there should only be a few different resource sharing
-approaches, which we outline here.
-
-- Resource reservation: the service must be reserved before use, via the
-  Resource interface. This approach is described in Section 3.  Because many
-  services will have similar approaches to resource sharing (e.g.,
-  round-robin, or priority-based), TinyOS includes default arbiters
-  implementing various resource sharing policies. These arbiters are
-  described in Section 4.
-
-- Request queuing: requests from different clients are queued and handled
-  in some (service-dependent) order. This approach is described in Section 5.
-
-- Resource virtualisation: the service is virtualised so as to support an
-  arbitrary number of clients - a typical example is the Timer service. From 
-  a programming perspective, this behaves similarly to resource queuing and
-  is therefore also described in Section 5.
-
-Note that request queuing and resource virtualisation may need to store
-significant amounts of per-client state. We expect that lower-level
-services will use the resource reservation approach, while higher level
-ones will prefer queuing or virtualisation. These higher-level services
-will typically be built on top of the lower-level, resource-reservation
-based services.
-
-3. Resource Reservation Interface
+2. Resource Classes
 ====================================================================
 
-The resource interface is defined as follows:
+TinyOS 2.x distinguishes between three kinds of abstractions: physical
+and dedicated, physical and shared, and virtual and shared.
+Components offer resource sharing mechanisms appropriate to their
+goals and level of abstraction. As discussed in Section 2.1, access
+control to physical and dedicated abstractions is generally handled
+through nesC interfaces. As discussed in Section 2.2, access control
+to virtualized abstractions is handled through software design
+patterns such as the Service Instance[_sipattern] and/or
+queueing. Section 2.3 addresses with the most complex class of
+abstraction, physical and shared, while Section 3 describes the
+components and interfaces used to arbitrate access to this class.
+
+Hardware Presentation Layer (HPL) components of the HAA[_haa] are always
+physical, as virtualization inevitably requires state. Depending on their
+expected use, HPL abstractions are either physical and dedicated or
+physical and shared. For example, while hardware timers are rarely
+multiplexed between multiple components, buses almost always are.
+Correspondingly, on the MSP430, compare and counter registers are 
+physical and dedicated, while the USARTs are physical and shared.
+
+2.1 Physical and Dedicated
+-------------------------------
+
+An abstraction is *physical and dedicated* if it is a hardware resource
+which a subsystem needs exclusive access to at all times. Examples of
+physical and dedicated abstractions include interrupts and counters.
+Generally, a physical and dedicated abstraction is just an interface 
+which its user wires to. For example, on the Atmega128, Timer 2 is
+presented by the component HplAtm128Timer2C::
+
+module HplAtmTimer2C {
+  provides {
+    interface HplTimer<uint8_t>   as Timer2;
+    interface HplTimerCtrl8       as Timer2Ctrl;
+    interface HplCompare<uint8_t> as Compare2;
+  }
+}
+
+2.2 Virtual and Shared
+-------------------------------
+
+Virtual and shared abstractions hide multiple clients from each other
+through software virtualization. Every client of the resource thinks it
+has its own independent instance of the resource, but these virtualized
+instances are multiplexed on top of a single underlying resource. Because
+the virtualization is in software, there is no upper bound on the number
+of clients of the abstraction, barring memory or efficiency constraints.
+For example, the TimerMilliC component provides a virtual and shared
+abstraction of millisecond precision timers to application 
+components[_tep102]. As virtualization usually requires keeping state
+and that state must scale with the number of virtualized instances,
+virtualized resources often use the Service Instance pattern[_sipattern],
+which is based on a parameterized interface. For example, TimerMilliC::
+
+configuration TimerMilliC {
+  provides interface Init;
+  provides interface Timer<TMilli> as TimerMilli[uint8_t num];
+}
+
+
+Virtualization generally allows a client to use a very simple interface.
+This simplicity comes at a cost of reduced efficiency and an inability to
+precisely control the underlying resource. For example, TimerMilli32C
+introduces CPU overhead from dispatching and maintaining all of the 
+virtual timers as well as jitter from when two timers want to fire at
+the same time.
+
+2.3 Physical and Shared
+-------------------------------
+
+Physical and dedicated abstractions are useful when a resource is
+always controlled by a single component. Virtualized abstractions are
+useful when clients are willing to pay a bit of overhead and sacrifice
+control in order to share a resource in a simple way. There are
+situations, however, when many clients need precise control of a
+resource. Clearly, they can't all have such control at the same time:
+some degree of multiplexing is needed.
+
+In TinyOS 2.x, a resource *arbiter* is responsible for this
+multiplexing. The arbiter determines which client has access to the
+resource. While a client holds a resource, it has complete and
+unfettered control. Arbiters assume that clients are cooperative, only
+acquiring the resource when needed and holding on to it no longer than
+necessary. Clients explicitly release resources: there is no way for
+an arbiter to forcibly reclaim it.
+
+A motivating example of a physical and shared resource is a bus.
+The bus may have multiple peripherals on it, corresponding to 
+different subsystems. For example, on the Telos platform the flash
+chip (storage) and the radio (network) share a bus. The storage and
+network stacks need exclusive access to the bus when using it,
+but they also need to share it with the other subsystem. In this
+case, virtualization is problematic, as the radio stack needs to be
+able to perform a series of operations in quick succession without
+having to reacquire the bus in each case. Having the bus be a
+physical but shared resource allows the radio stack to 
+send a series of operations atomically across to the radio without
+having to buffer them all up in memory beforehand (which would 
+introduce memory pressure).
+
+3. Resource Arbiters
+====================================================================
+
+Physical and shared resources have an *arbiter* to manage which client
+can use the resource at any given time. Because an arbiter is a
+centralized place that knows whether the resource is in use, it also
+provides information useful for a variety of other services, such as
+power management. An arbiter MUST provide a parameterized Resource
+interface as well as an instance of the ArbiterInfo interface. An
+arbiter SHOULD also provide an instance of ResourceController and
+ResourceConfigure interfaces. An arbiter MAY provide additional
+interfaces or instance of interfaces in order to provide a particular
+arbitration policy.
+
+3.1 Resource
+-------------------------------
+
+Clients of a physical and shared resource arbiter request access 
+using the Resource interface:  
 
 |  ``interface Resource {``
-|    ``/**``
-|     ``* Request access to a shared resource. You must call release()``
-|     ``* when you are done with it.``
-|     ``* @return SUCCESS Request accepted. The granted() event will``
-|     ``*           be signaled when you have the resource.``
-|     ``*         EBUSY You have already requested this resource via this``
-|     ``*           interface.``
-|     ``*/``
 |    ``async command error_t request();``
-|
-|    ``/**``
-|     ``* Request immediate access to a shared resource. You must call``
-|     ``* release() when you are done with it.``
-|     ``* @return SUCCESS You now have the resource.``
-|     ``*         EBUSY The resource is busy.``
-|     ``*/``
 |    ``async command error_t immediateRequest();``
-|
-|    ``/**``
-|     ``* You have received access to this resource. Note that this event``
-|     ``* is NOT signaled when immediateRequest() succeeds.``
-|     ``*/``
 |    ``event void granted();``
-|
-|    ``/**``
-|     ``* Release a shared resource you previously acquired.``
-|     ``*/``
 |    ``async command void release();``
-|
-|   ``/**``
-|    ``* Some other component has requested this resource. You might``
-|    ``* want to consider releasing it.``
-|    ``*/``
-|    ``event void requested();``
 |  ``}``
 
-This Resource interface is offered as a parameterised interface by services
-which wish to provide access to a shared resource. The interface's
-parameter represents client ids. A component SomeNameC must #define
-SOME_NAME_RESOURCE to a string which can be passed to the special unique()
-function to obtain a client id. For instance, the I2C service might look
-like this:
+A client lets an arbiter know it needs access to the resource with
+a call to request(). The arbiter signals it the granted() event
+when it gains exclusive access to the resource. A client
+can also acquire the resource with immediateRequest(). The 
+return value of this call determines whether the client was able
+to acquire the resource. If immmediateRequest() does not successfully
+acquire the resource, then it can try to do so in the standard,
+split-phase way with request(). If the call to immediateRequest()
+succeeds, then the arbiter MUST NOT issue a granted() event.
+
+An arbiter MUST provide a parameterized Resource interface,
+where the parameter is a client ID, following the Service
+Instance pattern[_sipattern]. An arbitrated component SomeNameC MUST 
+#define SOME_NAME_RESOURCE to a string which can be passed to unique() 
+to obtain a client id. For instance, an I2C bus might look like this:
 
 |  ``includes I2CPacketC;``
 |  ``configuration I2CPacketC {``
 |    ``provides {``
-|      ``/**``
-|       ``* For reserving the I2C bus. 'id' is the client id, obtained``
-|       ``* via unique(I2C_RESOURCE)``
-|       ``*/``
 |      ``interface Resource[uint8_t id];``
-|
-|      ``/**``
-|       ``* Actual I2C packet interface. 'busId' is the I2C``
-|       ``* bus identifer of the device you wish to use.``
-|       ``*/``
 |      ``interface I2CPacket[uint8_t busId];``
 |    ``}``
 |  ``} ...``
@@ -181,7 +255,7 @@ Clients of the I2C service would use it as follows:
 |    ``uses interface I2CPacket;``
 |  ``} ...``
 |
-|  ``includes I2CPacketC;``
+|  ``#include <I2CPacketC.h>``
 |  ``configuration I2CUserC { }``
 |  ``implementation {``
 |    ``components I2CUserM, I2CPacketC;``
@@ -190,24 +264,157 @@ Clients of the I2C service would use it as follows:
 |    ``I2CUserM.I2CPacket -> I2CPacket.I2CPacket[0x73]; // using I2C device 0x73``
 |  ``}``
 
-A final note: in some cases, resource reservation will correspond to
-hardware resource reservation (e.g., for I2C). In other cases --- where
-there is no hardware, for a bus which cannot be reserved, etc --- resource
-reservation is purely a reservation of the software component itself.
-
-3.1 Cross-component reservation
+3.2 ResourceController
 -------------------------------
 
-In some cases, it is desireable to share reservation of resources across
-components. For example, on the TI MSP 430, the same pins can be used as
-an I2C bus, a UART, or an SPI connection. Clearly, on this chip, a reservation
-of the I2C bus implicitly reserves the corresponding UART and SPI. This can
-be accomplished in the framework described above by:
-1) using the same unique string for all three resources
-2) wiring the three parameterised Resource interfaces to the same arbiter
+An arbiter SHOULD provide one instance of the ResourceController
+interface and MAY provide more than one. The Resource interface is for
+simple and basic use cases, where clients are peers that share the
+resource in some equal fashion. ResourceController is for clients that
+require additional information due to the policies of the arbiter and
+how they use the resource.  The ResourceController interface is based
+on Resource, but introduces two additional events, idle() and
+requested():
 
-This could be done as follows (the UART and SPI components are omitted, they
-are similar to I2CC):
+
+|  ``interface ResourceController {``
+|    ``async command error_t request();``
+|    ``async command error_t immediateRequest();``
+|    ``event void granted();``
+|    ``async command void release();``
+|    ``async event void requested();`` 
+|    ``async event void idle();`` 
+|  ``}``
+
+An arbiter signals the requested event if the client currently has the resource
+and some other client has requested it. It signals the idle() event when 
+no client holds the resource.
+
+ResourceController allows an arbiter to provide a much richer set of
+policies than simple sharing. For example, arbiters that want to
+incorporate a power management policy can provide ResourceController
+for a power management component. The power management component can
+detect when nobody is using the resource with idle(), acquire it
+atomically with immediateRequest(), and power it down. When another
+client requests the resource, the power manager will handle the
+requested() event. It can then power up the resource and release it
+when the power up completes. Note that if power up is a split-phase
+operation (takes a while), then calls by clients to immediateRequest()
+when in powered down state will not return SUCCESS. See TEP 115 for
+details. The default arbiters in TinyOS 2.x (see Section 4) all provide a
+single instance of ResourceController, in order to enable power
+management as described above.
+
+ResourceController can also be used for special case clients: the
+algorithm used to determine when its requests are handled in
+comparison to instances of Resource is arbiter specific. Therefore,
+arbiters MAY provide one or more instances of ResourceController.  For
+example, the FcfsPriorityArbiter has a single high-priority client who
+is always granted access to the resource before any other client.
+Other clients only obtain the resource if the high-priority client has
+not requested it or when the high-priority client releases it.
+
+3.3 ArbiterInfo
+-------------------------------
+
+The ArbiterInfo interface allows a component to query the current 
+status of an arbiter:
+
+| ``interface ArbiterInfo {``
+|   ``async command bool inUse();
+|   ``async command uint8_t userId();
+| ``}``
+
+The ArbiterInfo interface has a variety of uses. For example, the resource 
+implementation can use it to refuse requests from clients that do not
+currently have access. In this case, the abstraction would need to provide
+a parameterized interface for its operations so it could distinguish separate
+clients, and the client ID for its operations would need to be the same
+as the client ID for the arbiter. 
+
+Arbiters MUST provide an instance of the ArbiterInfo interface.
+
+3.4 ResourceConfigure
+-------------------------------
+
+The ResourceConfigure interface provides a mechanism for clients that need
+to use a resource with different configurations. Rather than forcing a 
+client to reconfigure the resource itself, the component representing a
+client can wire to an arbiter's ResourceConfigure interface, which is called
+before the client is granted the resource.
+
+For example, the MSP430 USART0 bus can operate in three modes: SPI, I2C, and
+UART. Using all three concurrently is problematic: only one should be enabled
+at a time. However, different clients of the bus might need different bus
+protocols. For example, Telos sensors use an I2C, while the radio and flash
+chip use SPI. 
+
+Arbiters MAY provide a parameterized ResourceConfigure interface: 
+
+|  ``interface ResourceConfigure {``
+|    ``async command void configure();``
+|  ``}``
+
+
+The parameter is the client ID, and corresponds directly to an instance of
+the Resource interface. For example:
+
+| ``generic component RoundRobinArbiterC {``
+|   ``provides {
+|     ``interface Resource[uint8_t id];``
+|     ``interface ResourceController;``
+|     ``interface ArbiterInfo;``
+|   ``}``
+|   ``uses {``
+|     ``interface ResourceConfigure[uint8_t id];``
+|   ``}``
+| ``}``
+
+If an arbiter uses the ResourceConfigure interface, before it signals the 
+Resource.granted() event and before it returns SUCCESS from a call to 
+Resource.immediateRequest(), it MUST call ResourceConfigure.configure()
+on the granted client ID.
+
+Using a parameterized interface that calls out rather than a decorator
+on the Resource interface simplifies code reuse. Using a decorator
+could lead to a large number of clients all including redundant
+configuration code, while the call out will only have one instance
+of the code. For example, an SPI client might look like this:
+
+| ``generic component Msp430Spi0ClientC {``
+|   ``provides {
+|     ``interface Resource;``
+|     ``interface SPIByte;``
+|     ``interface SPIPacket;``
+|   ``}``
+| ``}``
+| ``implementation {``
+|   ``enum {MSP430_SPI0_CLIENT = unique(MSP430_USART_RESOURCE);``
+|   ``components Msp430Usart0C, Msp430Spi0Configure as Configure;``
+|   `` ``
+|   ``Resource = Msp430Usart0C.Resource[MSP430_SPI0_CLIENT];``
+|   ``Msp430Usart0C.ResourceConfigure[MSP430_SPI0_CLIENT] -> Configure;``
+| ``}``
+
+Arbiters SHOULD provide a parameterized ResourceConfigure interface.
+
+3.5 Cross-component reservation
+-------------------------------
+
+In some cases, it is desirable to share reservation of resources
+across components. For example, on the TI MSP 430, the same pins can
+be used as an I2C bus, a UART, or an SPI connection. Clearly, on this
+chip, a reservation of the I2C bus implicitly reserves the
+corresponding UART and SPI.  This can be accomplished in the framework
+described above by:
+
+1) using the same unique string for all three resources
+
+2) wiring the three parameterised Resource interfaces to the same  
+arbiter
+
+The common way to do this is as follows (the UART and SPI components
+are omitted, they are similar to I2CC):
 
 I2CC.nc (a low-level I2C component):
 
@@ -230,94 +437,49 @@ MspBusC (the arbiter for the MSP bus):
 |   ``provides interface Resource[uint8_t clientId];``
 | ``} ...``
 
+
 4. Default arbiters
 ====================================================================
 
-Each service could provide its own implementation of the Resource
-interface, but this would be a waste of programmer effort and would lead to
-inconsistent resource sharing policies across services. Instead, TinyOS
-includes a number of default resource arbiters, in the form of generic
-components, which implement the Resource interface. All of these arbiters
-also provide a ResourceUser interface which can be interrogated to find the
-current set of resource allocation:
+Because most components use one of a small number of arbitration
+policies, TinyOS includes a number of default resource arbiters, in
+the form of generic components, which all include this signature:
 
-| ``interface ResourceUser {``
-|  ``/**``
-|   ``* Check whether resource is allocated.``
-|   ``* @returns TRUE if the resource is currently allocated, FALSE otherwise.``
-|   ``*/``
-|   ``command bool inUse();``
-| 
-|   ``/**``
-|    ``* Return id of client currently using the resource. Meaningless if``
-|    ``* inUse() returns FALSE.``
-|    ``*/``
-|   ``command uint8_t user();``
-| ``}``
-
-ResourceUser can be used by the service implementation, e.g., to refuse
-requests when it is not allocated. Or to allow implicit per-request
-resource allocation in the style of TinyOS 1.x.
-
-The RoundRobinArbiter provides round-robin arbitration:
-
-| ``generic component RoundRobinArbiter {``
-|   ``provides interface Resource[uin8_t id];``
-|   ``provides interface ResourceUser;``
-| ``}``
-
-There is also a First-Come-First-Served (Fcfs) arbiter. RoundRobin
-grants the resource based on a fixed order (ids), while Fcfs grants it
-based on request order.
-
-5. Request queuing and resource virtualisation
-====================================================================
-
-A service which is queued or provides virtualisation is implemented by
-parameterising the service interface (in contrast, the resource reservation
-approach parameterises the Resource interface). As with Resource, each
-client obtains an id via unique(). The service must support one outstanding
-request for each unique id; a second request (before completion of the
-first) on the same instance of a parameterised interface returns EBUSY.
-
-As an example, the Timer services looks as follows:
-
-| ``configuration TimerMillicC {``
-|   ``provides interface Timer<TMilli>[uint8_t id];``
-| ``} ...``
-
-and clients use it as follows:
-| ``module TimerUserM {``
-|   ``uses interface Timer<TMilli> as MyTimer;``
-| ``} ...``
-
-| ``configuration TimerUserC { }``
-| ``implementation {``
-|   ``components TimerUserM, TimerC;``
-|
-|   ``TimerUserM.MyTimer -> TimerC.Timer[unique(TIMER_SERVICE)];``
-| ``}``
-
-The difference between queuing of requests and virtualisation is only
-in the internal implementation of a service, and is thus beyond the
-scope of this document.
-
-We also note that some queued/virtualised services may wish to also support
-reservation, e.g., an A/D conveter which wants to support low-latency
-requests.  Such components will use the same id for their service and
-resource interfaces, e.g.:
-
-| ``#define ADC_RESOURCE "Adc.resource"``
-| ``#define ADC_SERVICE ADC_RESOURCE``
-| ``configuration ADCC {``
-|   ``provides interface ADC[uint8_t id];``
+| ``generic module ArbiterC {``
 |   ``provides interface Resource[uint8_t id];``
-| ``} ...``
+|   ``provides interface ResourceController;``
+|   ``provides interface ArbiterInfo;``
+|   ``uses interface ResourceConfigure[uint8_t id];``
+| ``}``
 
+For example, RoundRobinArbiterC provides round-robin arbitration. This
+arbiter assigns a fixed order to all clients and grants outstanding
+requests in that order, which is based on client ID. FcfsArbiterC
+provides a FIFO order, where requests are serviced in the order they
+are received. FcfsPriorityArbiterC is similar to FcfsArbiterC, but
+provides an additional ResourceConfigure interface for the
+high-priority client.
 
-6. Author's Address
+5. Author's Address
 ====================================================================
 
+| Kevin Klues
+| Sekr FT5
+| Einsteinufer 25
+| 10587 Berlin
+| GERMANY
+|
+| phone - +49-30-314-23813
+| email - klues@tkn.tu-berlin.de
+|
+| Philip Levis
+| 358 Gates Hall
+| Stanford University
+| Stanford, CA 94305-9030
+|
+| phone - +1 650 725 9046
+| email - pal@cs.stanford.edu
+|
 | David Gay
 | 2150 Shattuck Ave, Suite 1300
 | Intel Research
@@ -330,24 +492,15 @@ resource interfaces, e.g.:
 | 627 Soda Hall
 | UC Berkeley
 | Berkeley, CA 94720
-| 
+|
 | phone - +1 510 643 7572
 | email - culler@cs.berkeley.edu
 |
-| Philip Levis
-| 358 Gates Hall
-| Stanford University
-| Stanford, CA 94305-9030
 |
-| phone - +1 650 725 9046
-| email - pal@cs.stanford.edu
-|
-| Kevin Klues
+| Vlado Handziski
 | Sekr FT5
 | Einsteinufer 25
 | 10587 Berlin
 | GERMANY
 |
-| phone - +49-30-314-23813
-| email - klues@tkn.tu-berlin.de
-
+| email - handzisk@tkn.tu-berlin.de
