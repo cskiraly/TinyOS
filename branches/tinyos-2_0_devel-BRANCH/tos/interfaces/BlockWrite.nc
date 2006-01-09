@@ -1,4 +1,4 @@
-// $Id: BlockWrite.nc,v 1.1.2.1 2005-12-29 17:45:23 idgay Exp $
+// $Id: BlockWrite.nc,v 1.1.2.2 2006-01-09 23:21:23 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -23,20 +23,20 @@
 
 /*
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
+ * @author: David Gay <david.e.gay@intel.com>
  */
 
-includes BlockStorage;
-includes Storage;
+#include "BlockStorage.h"
 
 interface BlockWrite {
 
-  command result_t write(block_addr_t addr, void* buf, block_addr_t len);
+  command error_t write(block_addr_t addr, void* buf, block_addr_t len);
   event void writeDone(storage_result_t result, block_addr_t addr, void* buf, block_addr_t len);
 
-  command result_t erase();
+  command error_t erase();
   event void eraseDone(storage_result_t result);
 
-  command result_t commit();
+  command error_t commit();
   event void commitDone(storage_result_t result);
 
 }

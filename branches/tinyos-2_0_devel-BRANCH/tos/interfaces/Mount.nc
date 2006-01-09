@@ -1,4 +1,4 @@
-// $Id: Mount.nc,v 1.1.2.1 2005-12-29 17:45:24 idgay Exp $
+// $Id: Mount.nc,v 1.1.2.2 2006-01-09 23:21:23 idgay Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -25,9 +25,9 @@
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
 
-includes HALSTM25P;
+#include "Storage.h"
 
 interface Mount {
-  command result_t mount(volume_id_t id);
+  command error_t mount(volume_id_t id);
   event void mountDone(storage_result_t result, volume_id_t id);
 }
