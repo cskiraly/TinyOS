@@ -1,4 +1,4 @@
-// $Id: HalAt45dbP.nc,v 1.1.2.2 2006-01-09 23:25:10 idgay Exp $
+// $Id: HalAt45dbP.nc,v 1.1.2.3 2006-01-10 19:34:09 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,6 +31,7 @@
 
 #include "crc.h"
 #include "HalAt45db.h"
+#include "Timer.h"
 
 module HalAt45dbP {
   provides {
@@ -39,6 +40,7 @@ module HalAt45dbP {
   }
   uses {
     interface HplAt45db;
+    interface BusyWait<TMicro, uint16_t>;
   }
 }
 implementation
@@ -207,7 +209,7 @@ implementation
     // some mysterious reason (w/o this wait, the first compare
     // always fails, even though the compare after the rewrite
     // succeeds...)
-    uwait(10);
+    call BusyWait.wait(10);
     call HplAt45db.waitCompare();
   }
 

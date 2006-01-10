@@ -1,4 +1,4 @@
-// $Id: CC1000CsmaP.nc,v 1.1.2.4 2005-10-11 19:49:10 cssharp Exp $
+// $Id: CC1000CsmaP.nc,v 1.1.2.5 2006-01-10 19:34:09 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -68,6 +68,7 @@ module CC1000CsmaP {
     interface CC1000Squelch;
     interface Random;
     interface Timer<TMilli> as WakeupTimer;
+    interface BusyWait<TMicro, uint16_t>;
 
     interface StdControl as RssiControl;
     interface AcquireDataNow as RssiNoiseFloor;
@@ -147,9 +148,9 @@ implementation
   void radioOn() {
     call RssiControl.start();
     call CC1000Control.coreOn();
-    uwait(2000);
+    call BusyWait.wait(2000);
     call CC1000Control.biasOn();
-    uwait(200);
+    call BusyWait.wait(200);
     atomic call ByteRadio.listen();
   }
 
@@ -289,7 +290,7 @@ implementation
 	    call RssiControl.start();
 	    call CC1000Control.rxMode();
 	    call RssiPulseCheck.getData();
-	    uwait(80);
+	    call BusyWait.wait(80);
 	    return; // don't set wakeup timer
 	  }
 	setWakeup();
@@ -352,7 +353,7 @@ implementation
     else
       {
 	call RssiPulseCheck.getData();
-	uwait(80);
+	call BusyWait.wait(80);
       }
   }
 

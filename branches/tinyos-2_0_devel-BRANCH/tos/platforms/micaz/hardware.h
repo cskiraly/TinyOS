@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.6 2005-08-17 04:32:14 mturon Exp $
+ *  $Id: hardware.h,v 1.1.2.7 2006-01-10 19:34:10 idgay Exp $
  */
 
 #ifndef HARDWARE_H
@@ -53,19 +53,5 @@ enum {
   CHANNEL_GND        = 31,
   ATM128_ADC_PRESCALE = ATM128_ADC_PRESCALE_64  // normal mica2 prescaler value
 };
-
-void inline uwait(int u_sec) {
-    while (u_sec > 0) {
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      asm volatile  ("nop" ::);
-      u_sec--;
-    }
-}
 
 #endif //HARDWARE_H

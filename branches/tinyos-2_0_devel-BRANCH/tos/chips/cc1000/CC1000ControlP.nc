@@ -1,4 +1,4 @@
-/* $Id: CC1000ControlP.nc,v 1.1.2.2 2005-08-13 01:16:31 idgay Exp $
+/* $Id: CC1000ControlP.nc,v 1.1.2.3 2006-01-10 19:34:09 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * @author Philip Buonadonna
  * @author Jaein Jeong
  * @author David Gay
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  */
 
 /**
@@ -39,6 +39,7 @@
  * interface to control CC1000 operation.
  */
 #include "CC1000Const.h"
+#include "Timer.h"
 
 module CC1000ControlP {
   provides {
@@ -46,6 +47,7 @@ module CC1000ControlP {
   }
   uses {
     interface HplCC1000 as CC;
+    interface BusyWait<TMicro, uint16_t>;
   }
 }
 implementation
@@ -251,7 +253,7 @@ implementation
 		  1 << CC1K_FS_PD | 1 << CC1K_BIAS_PD); 
     // clear reset.
     call CC1000Control.coreOn();
-    uwait(2000);        
+    call BusyWait.wait(2000);
 
     // Set default parameter values
     // POWER: 0dbm (~900MHz), 6dbm (~430MHz)
@@ -316,9 +318,9 @@ implementation
 		  1 << CC1K_RESET_N);
     // Set the TX mode VCO Current
     call CC.write(CC1K_CURRENT, txCurrent);
-    uwait(250);
+    call BusyWait.wait(250);
     call CC.write(CC1K_PA_POW, power);
-    uwait(20);
+    call BusyWait.wait(20);
   }
 
   async command void CC1000Control.rxMode() {
@@ -327,7 +329,7 @@ implementation
     call CC.write(CC1K_CURRENT, rxCurrent);
     call CC.write(CC1K_PA_POW, 0); // turn off power amp
     call CC.write(CC1K_MAIN, 1 << CC1K_TX_PD | 1 << CC1K_RESET_N);
-    uwait(125);
+    call BusyWait.wait(125);
   }
 
   async command void CC1000Control.coreOn() {
