@@ -10,8 +10,8 @@ message_t
 :Author: Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2005-12-16 19:18:10 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-01-10 01:46:57 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -151,29 +151,29 @@ level components access their fields through interfaces. Section
 3 discusses this in greater depth.
 
 Every link layer defines its header, footer, and metadata
-structures. These structures MUST be network structs, and all of their
-fields MUST be network types, in order to ensure cross-platform
+structures. These structures MUST be external structs, and all of
+their fields MUST be external types, in order to ensure cross-platform
 compatibility.  For example, the CC1000 radio implementation defines
 its structures in ``CC1000Msg.h``:
 
-|  ``typedef nx_struct CC1KHeader {``
+|  ``typedef nx_struct cc1000_header {``
 |    ``nx_am_addr_t addr;``
 |    ``nx_uint8_t length;``
 |    ``nx_am_group_t group;``
 |    ``nx_am_id_t type;``
-|  ``} CC1KHeader;``
+|  ``} cc1000_header_t;``
 | 
-|  ``typedef nx_struct CC1KFooter {``
+|  ``typedef nx_struct cc1000_footer {``
 |    ``nxle_uint16_t crc;``
-|  ``} CC1KFooter;``
+|  ``} cc1000_footer_t;``
 | 
-|  ``typedef nx_struct CC1KMetadata {``
+|  ``typedef nx_struct cc1000_metadata {``
 |    ``nx_uint16_t strength;``
 |    ``nx_uint8_t ack;``
 |    ``nx_uint16_t time;``
 |    ``nx_uint8_t sendSecurityMode;``
 |    ``nx_uint8_t receiveSecurityMode;``
-|  ``} CC1KMetadata;``
+|  ``} cc1000_metadata_t;
 
 Each link layer defines its structres, but a **platform** is responsible 
 for defining ``TOSRadioHeader``, ``TOSRadioFooter``, and ``TOSRadioMetadata``. 
@@ -183,31 +183,31 @@ in a file in a platform directory named ``RadioTOSMsg.h``.
 The mica2 platform is a simple example, as it has only a CC1000 radio.
 Its RadioTOSMsg.h looks like this:
 
-| ``typedef CC1KHeader TOSRadioHeader;``
-| ``typedef CC1KFooter TOSRadioFooter;``
-| ``typedef CC1KMetadata TOSRadioMetadata;``
+| ``typedef cc1000_header_t message_header_t;``
+| ``typedef cc1000_footer_t message_footer_t;``
+| ``typedef cc1000_metadata_t message_metadata_t;``
 
 For a more complex example, consider a fictional platform named 'megamica' 
 that has both a CC1000 and a CC2420 radio. Its RadioTOSMsg.h looks like this:
 
-|  ``typedef union MegaMicaHeader {``
-|    ``CC1KHeader cc1k;``
-|    ``CC2420Header cc2420;``
-|  ``} MegaMicaHeader;``
+|  ``typedef union mega_mica_header {``
+|    ``cc1000_header_t cc1k;``
+|    ``cc2420_header_t cc2420;``
+|  ``} mega_mica_header_t;``
 |
-|  ``typedef union MegaMicaFooter {``
-|    ``CC1KFooter cc1k;``
-|    ``CC2420Footer cc2420;``
-|  ``} MegaMicaFooter;``
+|  ``typedef union mega_mica_footer {``
+|    ``cc1000_footer_t cc1k;``
+|    ``cc2420_footer_t cc2420;``
+|  ``} mega_mica_footer_t;``
 |
-|  ``typedef union MegaMicaMetadata {``
-|    ``CC1KMetadata cc1k;``
-|    ``CC2420Metadata cc2420;``
-|  ``} MegaMicaMetadata;``
+|  ``typedef union mega_mica_metadata {``
+|    ``cc1000_metadata_t cc1k;``
+|    ``cc2420_metadata_t cc2420;``
+|  ``} mega_mica_metadata_t;``
 | 
-| ``typedef MegaMicaHeader TOSRadioHeader;``
-| ``typedef MegaMicaFooter TOSRadioFooter;``
-| ``typedef MegaMicaMetadata TOSRadioMetadata;``
+| ``typedef mega_mica_header_t message_header_t;``
+| ``typedef mega_mica_footer_t message_footer_t;``
+| ``typedef mega_mica_metadata_t message_metadata_t;``
 
 If a platform has more than one link layer, it SHOULD define each of the
 message_t fields to be a union of the underlying link layer structures.
@@ -219,10 +219,10 @@ This ensures that enough space is allocated for all underlying link layers.
 A TinyOS component MUST NOT access any message_t fields directly besides
 its top-level structures: 
 
-  o TOSRadioHeader
+  o header
   o data
-  o TOSRadioFooter
-  o TOSRadioMetadata
+  o footer
+  o metadata
 
 That is, a TinyOS component MUST NOT access any sub-fields of these
 structures. Components above the link layer MUST access packet fields
@@ -252,20 +252,20 @@ Defining a message_t header as a union of the underlying link layer headers
 means that, in terms of C structures, a packet may not be contiguous. For
 example, consider this case:
 
-|  ``typedef struct HeaderA {``
+|  ``typedef struct header_b {``
 |    ``uint8_t a;``
-|  ``}``
-|  ``typedef struct HeaderB {``
+|  ``} header_a_t;``
+|  ``typedef struct header_b {``
 |    ``uint16_t b;``
-|  ``}``
-|  ``typedef union MyHeader {``
-|    ``HeaderA A;``
-|    ``HeaderB B;``
-|  ``}``
-|  ``typedef MyHeader TOSRadioHeader;``
+|  ``} header_b_t;``
+|  ``typedef union {``
+|    ``header_a_t A;``
+|    ``header_b_t B;``
+|  ``} header_union_t;``
+|  ``typedef header_union_t message_header_t;``
 
-Given nesC nx_struct layout, when TOSRadioHeader is specified as a union
-of HeaderA and HeaderB, there will be a padding byte after ``HeaderA.a``.
+Given nesC nx_struct layout, when message_header_t is specified as a union
+of HeaderA and HeaderB, there will be a padding byte after ``header_a_t.a``.
 However, some radios require that packets passed to them are contiguous.
 
 The packet for a link layer does not necessarily start at the beginning
@@ -274,12 +274,12 @@ data field.  When a link layer component needs to read or write protocol
 header fields, it MUST compute the location of the header as a negative 
 offset from the data field. The padding bytes that C introduces for
 the different sized headers are at the beginning of message_t, not
-between the header and payload. For example, let us suppose that HeaderA
+between the header and payload. For example, let us suppose that header_a
 has an interface ``APacket``, which provides a command ``a`` that 
-returns the field ``a`` of HeaderA. Its code looks like this:
+returns the field ``a``. Its code looks like this:
 
 |  ``command uint8_t APacket.a(message_t* msg) {``
-|    ``HeaderA* hdr = (HeaderA*)(msg->data - sizeof(HeaderA));``
+|    ``header_a_t* hdr = (header_a_t*)(msg->data - sizeof(header_a_t));``
 |    ``return hdr->a;``
 |  ``}``
 
@@ -302,34 +302,35 @@ header structure. It is an example of what components MUST NOT do.
 |  ``}``
 
 
-3.2 TOSRadioFooter
+3.2 message_footer_t
 ----------------------------------------------------------------
 
-The TOSRadioFooter field ensures that message_t has enough space
-to store the footers for all underlying link layers when there
-are MTU-sized packets. Like headers, footers are not necessarily
-stored where the C structs indicate they are: instead, their
-placement is implementation dependent. For example, a link
-layer can store a full packet as a contiguous area of memory. In
-this case, a short packet will store the footer within the ``data``
-field of the structure.
+The message_footer_t field ensures that message_t has enough space to
+store the footers for all underlying link layers when there are
+MTU-sized packets. Like headers, footers are not necessarily stored
+where the C structs indicate they are: instead, their placement is
+implementation dependent. For example, a link layer can store a full
+packet as a contiguous area of memory. In this case, a short packet
+will store the footer within the ``data`` field of the structure.
 
 The placement of the packet footer is implementation dependent.
 
-The footer starts at the start of the footer field, and metadata begins
-at the start of the metadata field. However, data link components MUST 
-NOT directly access these fields, as their structure is platform
-dependent. A component MUST cast these fields to link specific structures. 
+The footer starts at the start of the footer field, and metadata
+begins at the start of the metadata field. However, data link
+components MUST NOT directly access these fields, as their structure
+is platform dependent. A component MUST cast these fields to link
+specific structures.
 
-The basic issue driving these design considerations is that 
-the C naming layout of message_t fields is platform specific. As a
-data link implementation may be used on many platforms, an implementation
-cannot depend on a particular C naming. An implementation can depend on 
-there being enough space for its header and footer in message_t.
+The basic issue driving these design considerations is that the C
+naming layout of message_t fields is platform specific. As a data link
+implementation may be used on many platforms, an implementation cannot
+depend on a particular C naming. An implementation can depend on there
+being enough space for its header and footer in message_t.
 
 Following this approach means that the packet header and data payload
-are contiguous in memory, which allows other communication abstractions
-(such as a UART, see TEP 113[_tep113]) to easily encapsulate a packet.
+are contiguous in memory, which allows other communication
+abstractions (such as a UART, see TEP 113[_tep113]) to easily
+encapsulate a packet.
 
 4. Author's Address
 ====================================================================
