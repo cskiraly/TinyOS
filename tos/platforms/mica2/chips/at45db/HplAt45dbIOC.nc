@@ -7,6 +7,7 @@ configuration HplAt45dbIOC {
 implementation {
   // Wire up byte I/O to At45db
   components HplAt45dbIOP, HplGeneralIOC as Pins, HplInterruptC, PlatformC;
+  components BusyWaitMicroC;
 
   FlashSpi = HplAt45dbIOP;
   HplAt45dbByte = HplAt45dbIOP;
@@ -17,4 +18,5 @@ implementation {
   HplAt45dbIOP.In -> Pins.PortD2;
   HplAt45dbIOP.Out -> Pins.PortD3;
   HplAt45dbIOP.InInterrupt -> HplInterruptC.Int2;
+  HplAt45dbIOP.BusyWait -> BusyWaitMicroC;
 }

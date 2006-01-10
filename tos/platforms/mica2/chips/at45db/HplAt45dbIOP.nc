@@ -1,4 +1,4 @@
-// $Id: HplAt45dbIOP.nc,v 1.1.2.1 2006-01-09 23:28:04 idgay Exp $
+// $Id: HplAt45dbIOP.nc,v 1.1.2.2 2006-01-10 19:34:10 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -40,6 +40,8 @@
  * @author Philip Levis
  */
 
+#include "Timer.h"
+
 module HplAt45dbIOP {
   provides {
     interface Init;
@@ -52,6 +54,7 @@ module HplAt45dbIOP {
     interface GeneralIO as Out;
     interface GeneralIO as In;
     interface HplInterrupt as InInterrupt;
+    interface BusyWait<TMicro, uint16_t>;
   }
 }
 implementation
@@ -134,7 +137,7 @@ implementation
 	// acquisition delay). It's also good to wait a few microseconds
 	// to get the fast ("FAIL") exit from wait (reads are twice as fast
 	// with a 2us delay...)
-	uwait(2);
+	call BusyWait.wait(2);
 
 	if (call In.get())
 	  signal InInterrupt.fired(); // already high

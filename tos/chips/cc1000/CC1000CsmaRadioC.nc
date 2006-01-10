@@ -1,4 +1,4 @@
-/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.10 2005-10-18 20:08:55 klueska Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.11 2006-01-10 19:34:09 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -43,7 +43,7 @@
  *
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.10 $
+ * Revision:  $Revision: 1.1.2.11 $
  */
 
 #include "CC1000Const.h"
@@ -73,7 +73,7 @@ implementation {
   components CC1000ControlP as Control;
   components HplCC1000C as Hpl;
 
-  components RandomC, TimerMilliC, ActiveMessageAddressC;
+  components RandomC, TimerMilliC, ActiveMessageAddressC, BusyWaitMicroC;
 
   Init = Csma;
   Init = Squelch;
@@ -109,7 +109,9 @@ implementation {
   Csma.RssiPulseCheck -> Rssi.Rssi[unique("CC1000RSSI")];
   Csma.cancelRssi -> Rssi;
   Csma.RssiControl -> Hpl.RssiControl;
+  Csma.BusyWait -> BusyWaitMicroC;
 
   Rssi.ActualRssi -> Hpl;
   Control.CC -> Hpl;
+  Control.BusyWait -> BusyWaitMicroC;
 }

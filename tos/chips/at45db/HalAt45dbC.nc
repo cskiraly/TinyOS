@@ -25,7 +25,7 @@ configuration HalAt45dbC
 }
 implementation
 {
-  components HalAt45dbP, HplAt45dbC, MainC;
+  components HalAt45dbP, HplAt45dbC, MainC, BusyWaitMicroC;
   components new FcfsArbiterC(UQ_AT45DB) as Arbiter;
 
   HalAt45db = HalAt45dbP;
@@ -36,4 +36,5 @@ implementation
   MainC.SoftwareInit -> HalAt45dbP;
   MainC.SoftwareInit -> Arbiter;
   HalAt45dbP.HplAt45db -> HplAt45dbC;
+  HalAt45dbP.BusyWait -> BusyWaitMicroC;
 }
