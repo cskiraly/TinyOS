@@ -181,7 +181,8 @@ _type_printers = {
 # starts with a *.
 # The user-friendly representation for this type is head + " " + body
 def typename_full(xmltype, name, quals, isstar):
-  tdef = xml_tag(xmltype, "typedef")
+  # hack around nesC 1.2.1 schema bug (uses typedef, not typename here)
+  tdef = xml_tagset(xmltype, '["typedef", "typename"])
   if tdef:
     return (quals + xml_tag(tdef, "typedef-ref").getAttribute("name"), name)
   else:
