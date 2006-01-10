@@ -1,4 +1,4 @@
-// $Id: sim_log.c,v 1.1.2.3 2005-12-23 23:30:18 scipio Exp $
+// $Id: sim_log.c,v 1.1.2.4 2006-01-10 16:47:53 idgay Exp $
 
 /*									tab:4
 * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -78,7 +78,7 @@ static void fillInOutput(int id, char* name) {
   char* namePos = name;
   int count = 0;
   char* newName = (char*)malloc(strlen(name) + 1);
-  bzero(newName, strlen(name) + 1);
+  memset(newName, 0, strlen(name) + 1);
 
   // Count the outputs
   while (termination != NULL) {
@@ -174,7 +174,7 @@ bool sim_log_add_channel(char* name, FILE* file) {
     channel->numOutputs = 0;
     channel->size = DEFAULT_CHANNEL_SIZE;
     channel->outputs = (FILE**)malloc(sizeof(FILE*) * channel->size);
-    bzero(channel->outputs, sizeof(FILE*) * channel->size);
+    memset(channel->outputs, 0, sizeof(FILE*) * channel->size);
     hashtable_insert(channelTable, name, channel);
   }
 

@@ -1,4 +1,4 @@
-// $Id: TimerMilliC.nc,v 1.1.2.2 2006-01-02 19:53:53 scipio Exp $
+// $Id: TimerMilliC.nc,v 1.1.2.3 2006-01-10 16:47:53 idgay Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -66,7 +66,7 @@ implementation {
   }
   
   command error_t Init.init() {
-    bzero(timers, sizeof(timers));
+    memset(timers, 0, sizeof(timers));
     initTime = sim_time();
     return SUCCESS;
   }
