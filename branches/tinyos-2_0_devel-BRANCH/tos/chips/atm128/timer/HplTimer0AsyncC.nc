@@ -1,4 +1,4 @@
-/// $Id: HplTimer0AsyncC.nc,v 1.1.2.2 2005-11-11 00:29:53 idgay Exp $
+/// $Id: HplTimer0AsyncC.nc,v 1.1.2.3 2006-01-10 19:04:46 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -30,6 +30,7 @@
 module HplTimer0AsyncC
 {
   provides {
+    interface Init @atleastonce();
     // 8-bit Timers
     interface HplTimer<uint8_t>   as Timer0;
     interface HplTimerCtrl8       as Timer0Ctrl;
@@ -39,6 +40,11 @@ module HplTimer0AsyncC
 implementation
 {
   bool inOverflow;
+
+  command error_t Init.init() {
+    SET_BIT(ASSR, AS0);  // set Timer/Counter0 to asynchronous mode
+    return SUCCESS;
+  }
 
   //=== Read the current timer value. ===================================
   async command uint8_t  Timer0.get() { return TCNT0; }
