@@ -1,4 +1,4 @@
-//$Id: BitVectorC.nc,v 1.1.2.1 2005-04-21 08:26:20 cssharp Exp $
+//$Id: BitVectorC.nc,v 1.1.2.2 2006-01-10 16:48:16 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -57,7 +57,7 @@ implementation
 
   async command void BitVector.clearAll()
   {
-    bzero( m_bits, sizeof(m_bits) );
+    memset( m_bits, 0, sizeof(m_bits) );
   }
 
   async command void BitVector.setAll()
