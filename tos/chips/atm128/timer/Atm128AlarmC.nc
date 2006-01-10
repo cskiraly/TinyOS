@@ -1,4 +1,4 @@
-/// $Id: Atm128AlarmC.nc,v 1.1.2.2 2005-12-20 18:09:52 scipio Exp $
+/// $Id: Atm128AlarmC.nc,v 1.1.2.3 2006-01-10 19:04:46 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -29,8 +29,8 @@ generic module Atm128AlarmC(typedef frequency_tag,
 			    uint8_t prescaler,
 			    int mindt)
 {
-  provides interface Init;
-  provides interface Alarm<frequency_tag, timer_size> as Alarm;
+  provides interface Init @atleastonce();
+  provides interface Alarm<frequency_tag, timer_size> as Alarm @atmostonce();
 
   uses interface HplTimer<timer_size>;
   uses interface HplCompare<timer_size>;

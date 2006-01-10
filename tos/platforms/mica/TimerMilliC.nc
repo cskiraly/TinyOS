@@ -1,4 +1,4 @@
-//$Id: TimerMilliC.nc,v 1.1.2.4 2005-10-27 20:31:27 idgay Exp $
+//$Id: TimerMilliC.nc,v 1.1.2.1 2006-01-10 19:04:46 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -32,22 +32,30 @@
 // all platforms, and that this configuration only specifies (implicitly or
 // explicitly) how precisely to use the hardware resources.
 
-includes Timer;
+#include "Timer.h"
+
+#define TIMERMILLIC_SERVICE "TimerMilliC.TimerMilli"
 
 configuration TimerMilliC
 {
   provides interface Init;
   provides interface Timer<TMilli> as TimerMilli[uint8_t num];
+  provides interface LocalTime<TMilli>;
 }
 implementation
 {
-  components AlarmCounterMilliC, new AlarmToTimerC(TMilli),
-    new VirtualizeTimerC(TMilli,uniqueCount("TimerMilliC.TimerMilli"));
+  components AlarmCounterMilliP, new AlarmToTimerC(TMilli),
+    new VirtualizeTimerC(TMilli, uniqueCount(TIMERMILLIC_SERVICE)),
+    new CounterToLocalTimeC(TMilli);
 
-  Init = AlarmCounterMilliC;
+  Init = AlarmCounterMilliP;
+
   TimerMilli = VirtualizeTimerC;
-
   VirtualizeTimerC.TimerFrom -> AlarmToTimerC;
-  AlarmToTimerC.Alarm -> AlarmCounterMilliC;
+  AlarmToTimerC.Alarm -> AlarmCounterMilliP;
+
+  LocalTime = CounterToLocalTimeC;
+  CounterToLocalTimeC.Counter -> AlarmCounterMilliP;
 }
+
 
