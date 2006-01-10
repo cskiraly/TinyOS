@@ -1,4 +1,4 @@
-//$Id: NativeSerial_linux.cpp,v 1.1.2.3 2005-08-26 17:09:10 idgay Exp $
+//$Id: NativeSerial_linux.cpp,v 1.1.2.4 2006-01-10 16:48:48 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -452,7 +452,7 @@ note( "constructor begin" );
     // set default port parmeters
     //struct termios options = get_comm_state();
     struct termios options;
-    bzero( &options, sizeof(options) );
+    memset( &options, 0, sizeof(options) );
 
     // disable rts/cts, no parity bits, one stop bit, clear databits mask
     //local mode, enable receiver, 8 databits
