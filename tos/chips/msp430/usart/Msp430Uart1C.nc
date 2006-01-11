@@ -34,7 +34,10 @@ configuration Msp430Uart1C {
   provides interface SerialByteComm;
 }
 implementation {
-  components new Msp430UartP() as UartP;
+#ifndef DEFAULT_BAUDRATE
+#define DEFAULT_BAUDRATE (115200)
+#endif
+  components new Msp430UartP(DEFAULT_BAUDRATE) as UartP;
   Init = UartP;
   StdControl = UartP;
   SerialByteComm = UartP;
