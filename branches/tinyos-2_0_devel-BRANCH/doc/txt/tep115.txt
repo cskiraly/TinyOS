@@ -1,0 +1,354 @@
+======================================================================
+Power Management of Non-Virtualised Devices
+======================================================================
+
+:TEP: 115
+:Group: Core Working Group
+:Type: Documentary
+:Status: Draft
+:TinyOS-Version: 2.x
+:Author: Vlado Handziski, Kevin Klues, Jan-Hinrich Hauer, Phil Levis
+
+:Draft-Created: 21-Nov-2005
+:Draft-Version: $Revision: 1.1.2.1 $
+:Draft-Modified: $Date: 2006-01-11 20:40:31 $
+:Draft-Discuss: TinyOS Developer List 
+                <tinyos-devel at mail.millennium.berkeley.edu>
+
+.. Note::
+
+   This memo documents a part of TinyOS for the TinyOS Community, and
+   requests discussion and suggestions for improvements.  Distribution
+   of this memo is unlimited. This memo is in full compliance with
+   TEP 1.
+
+Abstract
+======================================================================
+
+This memo documents how TinyOS 2.x manages the power state of
+non-virtualised devices. 
+
+1. Introduction
+======================================================================
+
+The energy resources on a typical TinyOS platform are quite limited,
+so every effort should be made to put the platform devices into the
+lowest power-consumption state allowed by the application
+logic. Depending on the device type, this might be as complex as
+selecting the optimal from several states with different tradeoffs in
+terms of power consumption, fidelity and wake-up latency; or as simple
+as turning the device off when not used by the rest of the system. 
+
+Due to the large differences in the number of supported
+power-consumption states, as well as in the distribution of the state
+information needed for safe execution of the power-control algorithm,
+an unified power management strategy for all devices in the system
+would be overly complex or suboptimal. Because of this, TinyOS 2.x
+offers several different power-management strategies optimized for
+different classes of devices. [TEP112]_, for example, details how
+TinyOS 2.x manages the various power-consumption states of the
+platform microcontroller. This document, in turn, concentrates on the
+support for managing the *physical and dedicated* and *physical and
+shared* classes of resources as defined in [TEP108]_ with only two
+power-consumption states: *on* and *off*.
+
+For these classes of resources, TinyOS 2.x offers two different
+power-management models: *explicit power management* and *implicit
+power management*.
+
+
+
+2. Explicit Power Management
+======================================================================
+
+The *explicit power management* model is primarily useful when the
+controlling information driving the power state selection is external
+to the managed component. It enables explicit control by the client
+when he has "exclusive" rights over the device as in the case of
+*physical and dedicated* resources. It is also a basic primitive that
+can be used for building additional "intelligent" power-management
+policies on top, like the presented *implicit power management* model.
+
+Similarly to TinyOS 1.x, the explicit power control in TinyOS 2.x is
+performed using the *StdControl* interface or one of its derivatives:
+*SplitControl* and *AsyncStdControl*. Every component that wraps a
+hardware device supporting at least the basic *on* and *off* power
+states SHOULD provide one of the above interfaces. The selection of
+the right interface depends on the latencies involved in changing the
+power states as well as the nature of the code (sync or async) that
+executes the power-control commands.
+
+
+2.1 Power Management with StdControl
+----------------------------------------------------------------------
+
+In this scenario, the device is directly powered on and off through a
+call to the start and stop commands of the *StdControl* Interface.
+
+The external component MUST call ``StdControl.start()`` to power the
+device on and ``StdControl.stop()`` to power the device off.  Upon the
+return of a call to ``StdControl.start()``, the device MUST be
+completely powered, and calls to commands of other interfaces
+implemented by this component CAN succeed.
+
+Upon the return of a call to ``StdControl.stop()``, the device MUST be
+completely powered down, and any subsequent calls to the commands of
+other interfaces implemented by this component MUST fail.
+
+This scheme should only be used for devices whose powerup and
+powerdown times are negligible::
+
+   configuration DeviceC {
+     provides {
+       interface Init;
+       interface StdControl;  //For Power Management
+       ....
+     }
+   }
+
+
+2.2 Power Management with SplitControl
+----------------------------------------------------------------------
+
+When the device powerup and powerdown times are NON-negligible, the
+*SplitControl* interface MUST be used in place of the *StdControl*
+interface.
+
+An external component MUST call ``StdControl.start()`` to power the
+device on and ``StdControl.stop()`` to power the device off.  Upon
+receiving the ``SplitControl.startDone()`` event, the device MUST be
+completely powered, and calls to commands of other interfaces
+implemented by this component CAN succeed.
+
+Upon receiving the ``SplitControl.stopDone()`` event, the device MUST
+be completely powered down, and any subsequent calls to the commands
+of other interfaces implemented by this component MUST fail.
+
+The configuration for a device managed using the above scheme would
+look like in the following snippet::
+
+   configuration DeviceC {
+     provides {
+       interface Init;
+       interface SplitControl; \\ For Power Management
+       ....
+     }
+   }
+
+
+2.3 Power Management with AsyncStdControl 
+----------------------------------------------------------------------
+
+The commands and the events of the *StdControl* and the *SplitControl*
+interfaces are synchronous and can not be called from asynchronous
+code (like interrupt service routines, etc.). For the cases when the
+power state of the device is controlled from asynchronous code, the
+*AsyncStdControl* interface MUST be used in place of the
+*StdControl* interface.
+
+The configuration for a device managed using the above scheme would
+look like in the following snippet::
+
+   configuration DeviceC {
+     provides {
+       interface Init;
+       interface AsyncStdControl; \\ For Power Management
+       ....
+     }
+   }
+
+
+3. Power management policies
+======================================================================
+
+While the *explicit power management* model provides the basic means
+for controlling the power state of the device, it is void of any
+*policy* about who, when and how can perform this control. This does
+not represent a large problem for the simple case of a "physical and
+dedicated" resource, but is crucial for the non-trivial cases
+involving complex interdependencies between the controlled resources.
+
+For example, if resource *A* is *using* resource *B* and *C*, what
+happens with *B* and *C* when one calls ``StdControl.stop()`` on the
+top resource *A*? The above problem has its dual in case of shared
+resources. Assuming that resource *A* is shared by resources *B* and
+*C*, the question here is when can resource *A* be powered off?
+
+The complex nature of the problem is evident from the number of
+"unexpected behaviors" in TinyOS 1.x involving StdControl. On several
+platforms, one of the SPI buses is shared between the radio and the
+flash device. On some of them, issuing ``StdControl.stop()`` on the
+radio resulted in a cascaded SPI bus disable, rendering the
+communication with the flash impossible. Of course, the right policy
+would involve tracking the users of the SPI bus and powering it off
+only when there are no users. Conversely, the SPI bus should be
+powered on whenever there is at least one active user.
+
+The selection of the right policy is a complex task that depends on
+the nature of the resources, their interdependency as well as on the
+application requirements. For the cases when some of these features
+are known a-priori or restricted, it is preferable that the system
+provides architectural support for enforcing a meaningful *default*
+power-management policy instead of simply passing the task to the
+application programmer to be solved on a case-by-case basis.
+
+TinyOS 2.x provides two contexts of "restricted" resource
+interdependency where such a default power-management policy can be
+offered.  For high-level resources and services, the default policy
+can be enforced by a *service distribution* as exemplified by the *OR*
+policy of OSKI described in [TEP110]_. For the *physical and shared*
+resources (defined in [TEP108]_) covered by the Hardware Abstraction
+Architecture [TEP2]_, TinyOS 2.x offers a flexible *implicit power
+management* model that is tightly coupled with the *arbiter* concept
+and uses the basic mechanisms offered by the *explicit power
+management* scheme.
+
+
+4 Implicit Power Management for Physical and Shared Resources
+----------------------------------------------------------------------------
+
+The *physical and shared* resource class defined in Section 2.3 of
+[TEP108], provides a well defined component interdependency, where a
+single resource is shared among multiple clients. This relationship
+enables definition of a simple default power-management policy that
+powers the resource off when none of the potential clients are
+requesting the resource. Conversely, the resource is powered on
+whenever a client requests the resource. 
+
+The realization of the power-control policy is delegated to a
+*PowerManager* component that acts as a *lowest-priority client* of
+the shared resource. In contrast to the "normal" clients, the
+*PowerManager* interacts with the resource arbiter using the richer
+*ResourceController* interface::
+
+    interface ResourceController {
+        async command error_t request();
+        async command error_t immediateRequest();
+        event void granted();
+        async command void release();
+        async event void requested(); 
+        async event void idle(); 
+    }
+
+For *powering the resource down*, as a lowest-priority client, the
+*PowerManager* is waiting for the ``ResourceController.idle()`` event
+signaling that the resource is not used anymore, upon which it tries
+to gain ownership over the resource via the
+``ResourceController.immediateRequest()`` command. 
+
+Once it owns the resource, the *PowerManager* is free to execute its
+power-management policy using the mechanisms provided by the resource
+via the *explicit power-management* model. Different managers can
+implement different policies. In the simplest case, this would involve
+an immediate power-down via one of the ``.stop()`` commands. When the
+power-state transition involves non-negligible costs in terms of
+wake-up latency or energy, the *PowerManager* might revert to a more
+intelligent strategy that amortizes these costs involving by using a
+delayed power-down timer that eventually powers-down the resource
+upon expiration unless a normal-priority client requests the device in
+the meantime.
+
+Regardless of the power-off policy, the *PowerManager* remains owner
+of the resource as long as the resource is not requested by a
+normal-priority client, which is signalized to the *PowerManager* by
+the arbiter via the ``ResourceController.requested()`` event. Upon
+receiving this event, the *PowerManager* MUST power the resource
+back on (in case it was powered-off) using the provided *explicit
+power-management* interface. The *PowerManager* can release the
+ownership of the resource (using the ``ResourceController.release()``
+command) ONLY after the resource is fully powered-on.
+
+Using the above model, an *implicitly powered-managed* resource might
+be built like follows::
+
+
+     module MyFlashP {
+       provides {
+	 interface Init;
+	 interface SplitControl;
+	 interface Resource;
+	 ...
+       }
+     }
+     implementation {
+     ...
+     }
+
+     generic module PowerManagerC(uint8_t POWERDOWN_DELAY) {
+       provides {
+	 interface Init;
+       }
+       uses {
+	 interface SplitControl;
+	 interface ResourceController;
+       }
+     }
+     implementation {
+     ...
+     }
+
+     #define MYFLASH_RESOURCE "MyFlash.resource"
+     configuration MyFlashC {
+       provides {
+	 interface Init;
+	 interface Resource;
+       }
+     }
+     implementation {
+       components new PowerManagerC(MYFLASH_POWERDOWN_DELAY)
+		, FcfsArbiter(MYFLASH_RESOURCE)
+		, MyFlashP;
+
+       Init = MyFlashP;
+       Resource = FcfsArbiter; 
+
+       PowerManagerC.ResourceController -> FcfsArbiter;
+       PowerManagerC.SplitControl -> MyFlashP;
+     }
+
+
+5. Author's Address
+====================================================================
+
+| Vlado Handziski
+| Sekr FT5
+| Einsteinufer 25
+| 10587 Berlin
+| GERMANY
+|
+| phone - +49 30 314 23831
+| email - handzisk@tkn.tu-berlin.de
+|
+| Kevin Klues
+| Sekr FT5
+| Einsteinufer 25
+| 10587 Berlin
+| GERMANY
+|
+| phone - +49-30-314-23813
+| email - klues@tkn.tu-berlin.de
+|
+| Jan-Hinrich Hauer
+| Sekr FT5
+| Einsteinufer 25
+| 10587 Berlin
+| GERMANY
+|
+| phone - +49 30 314 23813
+| email - hauer@tkn.tu-berlin.de
+|
+| Philip Levis
+| 358 Gates Hall
+| Stanford University
+| Stanford, CA 94305-9030
+|
+| phone - +1 650 725 9046
+| email - pal@cs.stanford.edu 
+
+6. Citations
+====================================================================
+
+.. [TEP2] TEP 2: Hardware Abstraction Architecture.
+.. [TEP110] TEP 110: Service Distributions.
+.. [TEP108] TEP 108: Resource Arbitration.
+.. [TEP112] TEP 112: Microcontroller Power Management.
