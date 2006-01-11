@@ -1,4 +1,4 @@
-// $Id: TestSerialC.nc,v 1.1.2.4 2005-10-11 21:44:35 cssharp Exp $
+// $Id: TestSerialC.nc,v 1.1.2.5 2006-01-11 17:52:57 bengreenstein Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -66,6 +66,9 @@ implementation {
   message_t packet;
 
   bool locked;
+  bool afap = TRUE;
+  uint32_t interval = 10;
+
   uint16_t counter = 0;
   
   event void Boot.booted() {
@@ -75,6 +78,8 @@ implementation {
   event void MilliTimer.fired() {
     counter++;
     if (locked) {
+      if (afap) call MilliTimer.startPeriodic(interval);
+
       return;
     }
     else {
@@ -92,6 +97,7 @@ implementation {
 
   event message_t* Receive.receive(message_t* bufPtr, 
 				   void* payload, uint8_t len) {
+
     if (len != sizeof(TestSerialMsg)) {return bufPtr;}
     else {
       TestSerialMsg* rcm = (TestSerialMsg*)payload;
@@ -120,12 +126,30 @@ implementation {
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {
     if (&packet == bufPtr) {
       locked = FALSE;
-    }
+      // as fast as possible
+      if (afap){
+        TestSerialMsg* rcm = (TestSerialMsg*)call Packet.getPayload(&packet,NULL);
+        counter++;
+        rcm->counter = counter;
+        call Leds.led0Toggle();
+        if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(TestSerialMsg)) == SUCCESS) {
+          locked = TRUE;
+        }
+        else {
+          call MilliTimer.startOneShot(interval);
+        }
+      }
+    }  
   }
-
+  
   event void Control.startDone(error_t err) {
     if (err == SUCCESS) {
-      call MilliTimer.startPeriodic(1000);
+      if (afap){
+        call MilliTimer.startOneShot(interval);
+      }
+      else {
+        call MilliTimer.startPeriodic(interval);
+      }
     }
   }
   event void Control.stopDone(error_t err) {}

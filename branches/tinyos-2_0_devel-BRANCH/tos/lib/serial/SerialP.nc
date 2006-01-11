@@ -1,4 +1,4 @@
-// $Id: SerialP.nc,v 1.1.2.3 2005-10-02 22:08:02 scipio Exp $
+// $Id: SerialP.nc,v 1.1.2.4 2006-01-11 17:52:57 bengreenstein Exp $
 /*									
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
@@ -35,7 +35,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.3 $
+ * Revision: $Revision: 1.1.2.4 $
  * 
  */
 
@@ -128,10 +128,7 @@ implementation {
 
   typedef struct {
     uint8_t state;
-    uint8_t reserved; // word alignment fwiw
-    uint8_t writePtr;
-    uint8_t readPtr;
-    uint8_t buf[TX_DATA_BUFFER_SIZE+1]; // one wasted byte: writePtr == readPtr means empty    
+    uint8_t buf;    
   } tx_buf_t;
   
   typedef struct {
@@ -171,12 +168,6 @@ implementation {
 
   bool offPending = FALSE;
 
-#ifdef REENTRANT_SERIALM
-  uint8_t RxReentered = 0;
-  uint8_t RxReenteredBuffer;
-  uint8_t TxReentered = 0;
-#endif
-
   // Prototypes
 
   inline void txInit();
@@ -197,23 +188,16 @@ implementation {
   inline uint8_t rx_buffer_top();
   inline uint8_t rx_buffer_pop();
   inline uint16_t rx_current_crc();
-  inline void tx_buffer_init(uint8_t indx);
-  inline bool tx_buffer_is_full(uint8_t indx) ;
-  inline bool tx_buffer_is_empty(uint8_t indx);
-  inline void tx_buffer_push(uint8_t indx, uint8_t data);
-  inline uint8_t tx_buffer_top(uint8_t indx);
-  inline uint8_t tx_buffer_pop(uint8_t indx);
-  inline void tx_buffer_fill(uint8_t indx);
 
   void rx_state_machine(bool isDelimeter, uint8_t data);
   void MaybeScheduleTx();
   task void RunTx();
-
+  
 
 
   inline void txInit(){
     uint8_t i;
-    for (i = 0; i < TX_BUFFER_COUNT; i++) tx_buffer_init(i);
+    atomic for (i = 0; i < TX_BUFFER_COUNT; i++) TxBuf[i].state = BUFFER_AVAILABLE;
     TxState = TXSTATE_IDLE;
     TxByteCnt = 0;
     TxProto = 0;
@@ -249,13 +233,6 @@ implementation {
     rxInit();
     ackInit();
     statsInit();
-
-#ifdef REENTRANT_SERIALM
-    atomic {
-      RxReentered = 0;
-      TxReentered = 0;
-    }
-#endif
 
     return SUCCESS;
   }
@@ -353,65 +330,6 @@ implementation {
     return crc;
   }
 
-  inline void tx_buffer_init(uint8_t i){
-    atomic {
-      TxBuf[i].state = BUFFER_AVAILABLE;
-      TxBuf[i].writePtr = TxBuf[i].readPtr = 0;
-    }
-  }
-  inline bool tx_buffer_is_full(uint8_t i) {
-    uint8_t tmp, tmp2;
-    atomic {
-      tmp = TxBuf[i].writePtr;
-      tmp2 = TxBuf[i].readPtr;
-    }
-    if (++tmp > TX_DATA_BUFFER_SIZE) tmp = 0;
-    return (tmp == tmp2);
-  }
-  inline bool tx_buffer_is_empty(uint8_t i){
-    bool ret;
-    atomic ret = (TxBuf[i].readPtr == TxBuf[i].writePtr);
-    return ret;
-  }
-  inline void tx_buffer_push(uint8_t i, uint8_t data){
-    atomic {
-      TxBuf[i].buf[TxBuf[i].writePtr] = data;
-      if (++(TxBuf[i].writePtr) > TX_DATA_BUFFER_SIZE) TxBuf[i].writePtr = 0;
-    }
-  }
-  inline uint8_t tx_buffer_top(uint8_t i){
-    uint8_t tmp;
-    atomic tmp = TxBuf[i].buf[TxBuf[i].readPtr];
-    return tmp;
-  }
-  inline uint8_t tx_buffer_pop(uint8_t i){
-    uint8_t tmp;
-    atomic {
-      tmp = TxBuf[i].buf[TxBuf[i].readPtr];
-      if (++(TxBuf[i].readPtr) > TX_DATA_BUFFER_SIZE) TxBuf[i].readPtr = 0;
-    }
-    return tmp;
-  }
-
-  inline void tx_buffer_fill(uint8_t i){
-    uint8_t s;
-    uint8_t tmp = 0;
-
-    atomic s = TxBuf[i].state;
-    while (s == BUFFER_FILLING && !tx_buffer_is_full(i)){
-      switch (i){
-      case TX_DATA_INDEX:
-        tmp = signal SendBytePacket.nextByte();
-        break;
-      default:
-      }
-      // how do we guarantee that completeSend is called before another nextByte?
-      atomic s = TxBuf[i].state;
-      if (s != BUFFER_COMPLETE)
-        tx_buffer_push(i,tmp);
-    }
-  }
-
   task void startDoneTask() {
     call SerialControl.start();
     signal SplitControl.startDone(SUCCESS);
@@ -484,27 +402,6 @@ implementation {
 
   void rx_state_machine(bool isDelimeter, uint8_t data){
 
-#ifdef REENTRANT_SERIALM
-    uint8_t abort_reentry=0;
-    uint8_t retry;
-    uint8_t i;
-    uint8_t escaped=0;
-
-    atomic {
-      if (RxReentered > 0) {
-        abort_reentry = 1;
-        /* buffer one byte.. */
-        RxReenteredBuffer=data;
-        RxReentered=2;
-      }
-      else
-        RxReentered=1;
-    }
-    if (abort_reentry) 
-      return SUCCESS;
-  again:
-#endif
-    
     switch (RxState) {
       
     case RXSTATE_NOSYNC: 
@@ -599,18 +496,6 @@ implementation {
     }
     
   done:
-#ifdef REENTRANT_SERIALM
-    atomic {
-      RxReentered--;
-      if (RxReentered > 0) {
-        data = RxReenteredBuffer;
-        retry=1;
-      }
-      else 
-        retry=0;
-    }
-    if (retry) goto again; 
-#endif
   }
 
   
@@ -633,52 +518,46 @@ implementation {
   async command error_t SendBytePacket.completeSend(){
     bool ret = FAIL;
     atomic {
-      if (TxBuf[TX_DATA_INDEX].state == BUFFER_FILLING){
         TxBuf[TX_DATA_INDEX].state = BUFFER_COMPLETE;
         ret = SUCCESS;
-      }
     }
     return ret;
   }
 
   async command error_t SendBytePacket.startSend(uint8_t b){
-    bool sched = FALSE;
+    bool not_busy = FALSE;
     atomic {
       if (TxBuf[TX_DATA_INDEX].state == BUFFER_AVAILABLE){
-        TxBuf[TX_DATA_INDEX].buf[0] = b;
-        TxBuf[TX_DATA_INDEX].writePtr = 1;
-        TxBuf[TX_DATA_INDEX].readPtr = 0;
         TxBuf[TX_DATA_INDEX].state = BUFFER_FILLING;
-        sched = TRUE;
+        TxBuf[TX_DATA_INDEX].buf = b;
+        not_busy = TRUE;
       }
     }
-    if (sched){
-      tx_buffer_fill(TX_DATA_INDEX);
+    if (not_busy) {
       MaybeScheduleTx();
       return SUCCESS;
     }
-    else {
-      return EBUSY;
-    }
-  }
+    return EBUSY;
 
+  }
+  
   task void RunTx() {
     uint8_t idle;
     uint8_t done;
     uint8_t fail;
-
+    
     /*
       the following trigger MaybeScheduleTx, which starts at most one RunTx:
       1) adding an ack to the ack queue (ack_queue_push())
       2) starting to send a packet (SendBytePacket.startSend())
       3) failure to send start delimiter in RunTx
       4) putDone: 
-     */
-
+    */
+    
     error_t result = SUCCESS;
     bool send_completed = FALSE;
     bool start_it = FALSE;
-
+    
     atomic { 
       TxPending = 0;
       idle = (TxState == TXSTATE_IDLE);
@@ -686,10 +565,10 @@ implementation {
       fail = (TxState == TXSTATE_ERROR);
       if (done || fail){ 
         TxState = TXSTATE_IDLE;
-        tx_buffer_init(TxIndex);
+        TxBuf[TxIndex].state = BUFFER_AVAILABLE;
       }
     }
-
+    
     /* if done, call the send done */
     if (done || fail) {
       if (fail) atomic stats.serial_tx_fail++;
@@ -703,37 +582,39 @@ implementation {
       }
       idle = TRUE;
     }
-
+    
     /* if idle, set up next packet to TX */ 
     if (idle) {
       bool goInactive;
       atomic goInactive = offPending;
       if (goInactive) {
-	atomic TxState = TXSTATE_INACTIVE;
+        atomic TxState = TXSTATE_INACTIVE;
       }
       else {
-	/* acks are top priority */
-	uint8_t myAckState;
-	uint8_t myDataState;
-	atomic {
-	  myAckState = TxBuf[TX_ACK_INDEX].state;
-	  myDataState = TxBuf[TX_DATA_INDEX].state;
-	}
-	if (!ack_queue_is_empty() && myAckState == BUFFER_AVAILABLE) {
-	  tx_buffer_push(TX_ACK_INDEX,ack_queue_top());
-	  atomic TxBuf[TX_ACK_INDEX].state = BUFFER_COMPLETE;
-	  TxProto = SERIAL_PROTO_ACK;
-	  TxIndex = TX_ACK_INDEX;
-	  start_it = TRUE;
-	}
-	else if (myDataState == BUFFER_FILLING || myDataState == BUFFER_COMPLETE){
-	  TxProto = SERIAL_PROTO_PACKET_NOACK;
-	  TxIndex = TX_DATA_INDEX;
-	  start_it = TRUE;
-	}
-	else {
-	  /* nothing to send now.. */
-	}
+        /* acks are top priority */
+        uint8_t myAckState;
+        uint8_t myDataState;
+        atomic {
+          myAckState = TxBuf[TX_ACK_INDEX].state;
+          myDataState = TxBuf[TX_DATA_INDEX].state;
+        }
+        if (!ack_queue_is_empty() && myAckState == BUFFER_AVAILABLE) {
+          atomic {
+            TxBuf[TX_ACK_INDEX].state = BUFFER_COMPLETE;
+            TxBuf[TX_ACK_INDEX].buf = ack_queue_top();
+          }
+          TxProto = SERIAL_PROTO_ACK;
+          TxIndex = TX_ACK_INDEX;
+          start_it = TRUE;
+        }
+        else if (myDataState == BUFFER_FILLING || myDataState == BUFFER_COMPLETE){
+          TxProto = SERIAL_PROTO_PACKET_NOACK;
+          TxIndex = TX_DATA_INDEX;
+          start_it = TRUE;
+        }
+        else {
+          /* nothing to send now.. */
+        }
       }
     }
     else {
@@ -743,7 +624,7 @@ implementation {
     if (send_completed){
       signal SendBytePacket.sendCompleted(result);
     }
-
+    
     if (TxState == TXSTATE_INACTIVE) {
       testOff();
       return;
@@ -763,77 +644,56 @@ implementation {
     }
     
   }
-
+  
   async event void SerialFrameComm.putDone() {
-#ifdef REENTRANT_SERIALM
-    uint8_t abort_reentry = 0;
-    
-    atomic {
-      if (TxReentered > 0) {
-        abort_reentry = 1;
-      }
-      TxReentered++;
-    }
-    if (abort_reentry) 
-      return SUCCESS;
-    
-  again:
-#endif
     {
       error_t TxResult = SUCCESS;
-      uint8_t nextByte;
       
-      // ideally, we'd like to know if the last byte was put correctly.
-      // a bool LastByteSuccess passed as a parameter to this function
-      // would do the trick. for now, ignore. TODO
-/*       if (LastByteSuccess != TRUE) { */
-/*         TxState = TXSTATE_ERROR; */
-/*       } */
       switch (TxState) {
         
       case TXSTATE_PROTO:
+
+         TxResult = call SerialFrameComm.putData(TxProto);
 #ifdef NO_TX_SEQNO
         TxState = TXSTATE_INFO;
 #else
         TxState = TXSTATE_SEQNO;
 #endif
         TxCRC = crcByte(TxCRC,TxProto);
-        TxResult = call SerialFrameComm.putData(TxProto);
         break;
         
       case TXSTATE_SEQNO:
+        TxResult = call SerialFrameComm.putData(TxSeqno);
         TxState = TXSTATE_INFO;
         TxCRC = crcByte(TxCRC,TxSeqno);
-        TxResult = call SerialFrameComm.putData(TxSeqno);
         break;
         
       case TXSTATE_INFO:
-        nextByte = tx_buffer_pop(TxIndex);
-        tx_buffer_fill(TxIndex);
-        TxCRC = crcByte(TxCRC,nextByte);
-        TxByteCnt++;
-        if (tx_buffer_is_empty(TxIndex) || TxByteCnt >= SERIAL_MTU) {
+        TxResult = call SerialFrameComm.putData(TxBuf[TxIndex].buf);
+        TxCRC = crcByte(TxCRC,TxBuf[TxIndex].buf);
+        ++TxByteCnt;
+
+        if (TxBuf[TxIndex].state == BUFFER_COMPLETE || TxByteCnt >= SERIAL_MTU){
           TxState = TXSTATE_FCS1;
-        }      
-        TxResult = call SerialFrameComm.putData(nextByte);
-        
+        }
+        else { /* never called on ack b/c ack is BUFFER_COMPLETE initially */
+          TxBuf[TxIndex].buf = signal SendBytePacket.nextByte();
+        }
         break;
         
       case TXSTATE_FCS1:
-        nextByte = (uint8_t)(TxCRC & 0xff); // LSB
+        TxResult = call SerialFrameComm.putData(TxCRC & 0xff);
         TxState = TXSTATE_FCS2;
-        TxResult = call SerialFrameComm.putData(nextByte);
         break;
         
       case TXSTATE_FCS2:
-        nextByte = (uint8_t)((TxCRC >> 8) & 0xff); // MSB
+        TxResult = call SerialFrameComm.putData((TxCRC >> 8) & 0xff);
         TxState = TXSTATE_ENDFLAG;
-        TxResult = call SerialFrameComm.putData(nextByte);
         break;
         
       case TXSTATE_ENDFLAG:
-        TxState = TXSTATE_ENDWAIT;
         TxResult = call SerialFrameComm.putDelimiter();
+        TxState = TXSTATE_ENDWAIT;
         break;
         
       case TXSTATE_ENDWAIT:
@@ -841,27 +701,14 @@ implementation {
       case TXSTATE_FINISH:
       case TXSTATE_ERROR:
       default:
+        TxResult = FAIL; 
         break;
       }
       
       if (TxResult != SUCCESS) {
         TxState = TXSTATE_ERROR;
+        MaybeScheduleTx();
       }
-      
-      MaybeScheduleTx();
-
-#ifdef REENTRANT_SERIALM
-      {
-        uint8_t do_over = 0;
-        atomic {
-          TxReentered--;
-          if (TxReentered > 0) {
-            do_over=1;
-          }
-        }
-        if (do_over) goto again;
-      }
-#endif
     }
   }
 

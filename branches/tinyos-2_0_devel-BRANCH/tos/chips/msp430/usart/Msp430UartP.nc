@@ -29,8 +29,8 @@
  * - Description ----------------------------------------------------------
  * Implementation of UART0 lowlevel functionality - stateless.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-10-29 22:31:45 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-11 17:52:57 $
  * @author Jan Hauer 
  * @author Vlado Handziski
  * @author Joe Polastre
@@ -39,7 +39,7 @@
 
 includes msp430baudrates;
 
-generic module Msp430UartP() {
+generic module Msp430UartP(uint32_t default_baudrate) {
 
   provides interface Init;
   provides interface StdControl;
@@ -57,8 +57,13 @@ implementation {
   command error_t StdControl.start() {
     call HplUsart.setModeUART();
     call HplUsart.setClockSource(SSEL_SMCLK);
-    call HplUsart.setClockRate(UBR_SMCLK_57600, UMCTL_SMCLK_57600);
-
+    if (default_baudrate == 57600){
+      call HplUsart.setClockRate(UBR_SMCLK_57600, UMCTL_SMCLK_57600);
+    } else if (default_baudrate == 115200){
+      call HplUsart.setClockRate(UBR_SMCLK_115200, UMCTL_SMCLK_115200);
+    } else if (default_baudrate == 230400){
+      call HplUsart.setClockRate(UBR_SMCLK_230400, UMCTL_SMCLK_230400);
+    }
     call HplUsart.enableRxIntr();
     call HplUsart.enableTxIntr();
     return SUCCESS;
