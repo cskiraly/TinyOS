@@ -33,8 +33,8 @@
  * state information. I.e. calling <code>tx</done> will transmit a byte of
  * data in the mode (SPI or UART) the USART has been set to before.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-10-29 17:26:27 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-11 20:41:10 $
  * @author Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author Joe Polastre
  * ========================================================================
@@ -183,6 +183,17 @@ interface HplMsp430Usart {
    * TRUE if RX interrupt pending, flag must be cleared explicitly
    */
   async command bool isRxIntrPending();
+
+  /**
+   * Clears RX interrupt pending flag
+  */
+  async command error_t clrRxIntr();
+
+  /**
+   * Clears TX interrupt pending flag
+   */
+  async command error_t clrTxIntr();
+
 
   /** 
    * SUCCESS if the TX buffer is empty and all of the bits have been

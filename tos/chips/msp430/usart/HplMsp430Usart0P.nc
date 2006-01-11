@@ -30,8 +30,8 @@
  * Implementation of USART0 lowlevel functionality - stateless.
  * Setting a mode will by default disable USART-Interrupts.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-10-29 17:26:27 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-11 20:41:10 $
  * @author: Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author: Joe Polastre
  * ========================================================================
@@ -409,6 +409,16 @@ implementation
     return FALSE;
   }
   
+  async command error_t USART.clrTxIntr(){
+    IFG1 &= ~UTXIFG0;
+    return SUCCESS;
+  }
+
+  async command error_t USART.clrRxIntr() {
+    IFG1 &= ~URXIFG0;
+    return SUCCESS;
+  }
+
   async command void USART.disableRxIntr(){
     IE1 &= ~URXIE0;    
   }
