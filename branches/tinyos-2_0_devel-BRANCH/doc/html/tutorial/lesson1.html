@@ -87,7 +87,7 @@ Let's look at concrete examples using the application Blink found in <tt><a
  href="../../apps/Blink">apps/Blink</a></tt> in the TinyOS tree. This
 application simply causes the LED0 to to turn on and off at
 .25Hz, LED1 to turn on and off at .5Hz, and LED2 to turn on and off at
-1Hz.<a href="#leds_footnote>"(1)</a> The effect is as if the three
+1Hz.<a href="#leds_footnote>">(1)</a> The effect is as if the three
 LEDs were displaying a binary count of one to seven every two
 seconds. </p>
 <p>
@@ -138,13 +138,13 @@ configuration. Typical TinyOS applications come with a standard Makefile
 that allows platform selection and invokes ncc with appropriate options
 on the application's top-level configuration. </p>
 <p>
-Let's look at <tt>Blink.nc</tt>, the configuration for this
+Let's look at <tt>BlinkAppC.nc</tt>, the configuration for this
 application first: </p>
 <center>
 <table border="0" cellspacing="2" cellpadding="3" width="80%" hspace="4">
   <tbody>
     <tr bgcolor="#e0e0e0">
-      <td width="100%"><b>Blink.nc</b>
+      <td width="100%"><b>BlinkAppC.nc</b>
       <pre>configuration BlinkAppC {<br>}<br>implementation {<br>&nbsp; components MainC, BlinkC, LedsC;<br>&nbsp; components new OskiTimerMilliC() as Timer0;<br>&nbsp; components new OskiTimerMilliC() as Timer1;<br>&nbsp; components new OskiTimerMilliC() as Timer2;<br><br>&nbsp; BlinkC -&gt; MainC.Boot;<br>&nbsp; MainC.SoftwareInit -&gt; LedsC;<br><br>&nbsp; BlinkC.Timer0 -&gt; Timer0;<br>&nbsp; BlinkC.Timer1 -&gt; Timer1;<br>&nbsp; BlinkC.Timer2 -&gt; Timer2;<br>&nbsp; BlinkC.Leds -&gt; LedsC;<br>}</pre>
       </td>
     </tr>
@@ -196,7 +196,7 @@ BlinkC.nc module</font></nobr></b></td>
 <table border="0" cellspacing="2" cellpadding="3" width="80%" hspace="4">
   <tbody>
     <tr bgcolor="#e0e0e0">
-      <td width="100%"><b>Blink.nc</b>
+      <td width="100%"><b>BlinkC.nc</b>
       <pre>module BlinkC {<br>&nbsp; uses interface Timer&lt;TMilli&gt; as Timer0;<br>&nbsp; uses interface Timer&lt;TMilli&gt; as Timer1;<br>&nbsp; uses interface Timer&lt;TMilli&gt; as Timer2;<br>&nbsp; uses interface Leds;<br>&nbsp; users interface Boot;<br>
 }<br>implementation<br>{<br>&nbsp; // implementation code omitted<br>}</pre>
       </td>
