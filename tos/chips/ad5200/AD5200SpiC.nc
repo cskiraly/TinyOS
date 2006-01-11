@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-30 19:31:40 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-11 20:43:52 $
  * ========================================================================
  */
  
@@ -43,15 +43,13 @@
 
 configuration AD5200SpiC {
     provides {
-		  interface Resource;
-		  interface SPIByte;
-		}
+                  interface Resource;
+                  interface SPIByte;
+                }
 }
 
 implementation {
-    components new SPIC()	as SPI
-						 ;
-					
-    Resource = SPI;						 	 
+  components new Spi0C() as SPI;
+    Resource = SPI;                                                      
     SPIByte = SPI;   
 }
