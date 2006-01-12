@@ -10,8 +10,8 @@ Analog-to-Digital Converters (ADCs)
 :Authors: Jan-Hinrich Hauer, Philip Levis, Vlado Handziski, David Gay
 
 :Draft-Created: 20-Dec-2004
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2006-01-05 14:35:39 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-01-12 18:13:41 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -89,34 +89,34 @@ The rest of this TEP specifies:
   conversion results (`2. Interfaces`_)
 * guidelines on how an ADC's HAL SHOULD should be split into HAL1 and HAL2 and
   how the HAL1 SHOULD expose chip-specific interfaces (`3. HAL1 guidelines`_)
-* what component an ADC's HAL2 MUST implement (`4. HAL2 requirements`_)
+* what components an ADC's HAL2 MUST implement (`4. HAL2 requirements`_)
 * a set of utility components which simplify usage of the HAL2 components
   (`5. Utility components`_)
 
-This TEP ends with appendices documenting, as an example, the msp430
-ADC subsystem implementation.
+This TEP ends with appendices documenting, as an example, the msp430 ADC
+subsystem implementation.
 
 
 2. Interfaces
 ====================================================================
 
 This TEP proposes to adopt the following three generic, source-independent
-data collection interfaces from the SID TEP [_tep?] for the collection of ADC
-conversion results::
+data collection interfaces from the SID TEP [_tep114] for the collection of
+ADC conversion results::
 
   interface Read< size_type >
   interface ReadNow< size_type >
   interface ReadStream< size_type >
 
-Every data collection interface is associated with its individual
-chip-specific configuration settings (e.g. input channel, sample-hold-time,
-etc.).  How this association SHOULD be realized is explained in Section `4.
-HAL2 requirements`_. As the resolution of conversion results is chip-specific,
-the 'size_type' parameter reflects an upper bound for the chip-specific
-resolution of the conversion results - the actual resolution may be smaller,
-depending on the ADC and/or data source (e.g.  uint16_t for a 12-bit ADC). The
-above interfaces are specified in the SID TEP [_tep?], in the following their
-usage is explained with respect to ADCs.
+Every data collection interface is associated with certain chip-specific
+configuration settings (e.g. input channel, sample-hold-time, etc.).  How this
+association can be realized is explained in Section `4.  HAL2 requirements`_.
+As the resolution of conversion results is chip-specific, the 'size_type'
+parameter reflects an upper bound for the chip-specific resolution of the
+conversion results - the actual resolution may be smaller, depending on the
+ADC and/or data source (e.g.  uint16_t for a 12-bit ADC). The above interfaces
+are specified in the SID TEP [_tep114], in the following their usage is
+explained with respect to ADCs.
 
 Read
 --------------------------------------------------------------------
@@ -153,7 +153,7 @@ HAA[_tep2]. Although the HAL1 is chip-specific both in terms of implementation
 and representation, its design SHOULD follow the guidelines described below to
 facilitate the mapping to platform-independent interfaces on the level of HAL2
 and above. Only chip- and platform-dependent clients MAY wire to the HAL1.
-Appendix B shows the HAL1 contents for the TI MSP430 MCU.
+Appendix B shows the HAL1 for the TI MSP430 MCU.
 
 Resource reservation
 --------------------------------------------------------------------
@@ -162,11 +162,10 @@ As the ADC hardware is a shared resource that is multiplexed between several
 clients, it requires access arbitration. Therefore the HAL1 configuration
 component SHOULD provide the 'Init' and a parameterized 'Resource' interface,
 instantiate a generic arbiter component and wire both interfaces to the
-arbiter as described in TEP 108 [_tep108]. The ADC utility components (see
-Section `5.  Utility components`_) use a library of standard TinyOS resource
-management components and assume arbitration of the ADC in round robin
-fashion. Therefore the HAL1 SHOULD instantiate the standard round robin
-arbiter.
+arbiter as described in TEP 108 [_tep108]. To provide a uniform arbitration
+service for all platforms on the level of HAL2 (see `4. HAL2 requirements`_),
+all ADCs should be arbitrated in round robin fashion, i.e. the HAL1 SHOULD
+instantiate the standard round robin arbiter.
 
 Configuration and sampling
 --------------------------------------------------------------------
@@ -180,9 +179,9 @@ to the ADC hardware configuration, start the sampling process and signal
 conversion results. A client wires to an instance of the parameterized
 sampling interface with a unique client identifier. All commands and events
 SHOULD be 'async' to reflect the potential timing requirements of clients. An
-HAL1 MAY provide multiple different parameterized sampling interface,
+HAL1 MAY provide multiple different parameterized sampling interfaces,
 depending the hardware capabilities. This allows to differentiate/group ADC
-functions, for example single vs.  repeated sampling, single channel vs.
+functionality, for example single vs.  repeated sampling, single channel vs.
 multiple channels or low-frequency vs.  high-frequency sampling.  Every
 sampling interface SHOULD allow the client to individually configure the ADC,
 for example by including the configuration settings as parameters in the
@@ -193,84 +192,73 @@ command (see Appendix B for an example).
 For example, the HAL1 for an ADC that supports the sampling of a single and of
 multiple channels may provide two parameterized interfaces, one for
 single-channel access and one to access multiple channels. Each interface
-includes 'getData()' commands which take the configuration settings as a
-parameter and 'dataReady()' events signal conversion results to the respective
-client.
+would include 'getData()' commands which might take the configuration settings
+as a parameter and 'dataReady()' events that signal conversion results to the
+respective client.
 
 
 HAL1 generic wrappers
 --------------------------------------------------------------------
 
 In order to hide wiring complexities and/or export only a subset of all ADC
-functions (e.g. only access to multiple channels) generic ADC wrapper
-components MAY be provided on the level of HAL1 to be instantiated by chip-
-and platform-dependent clients.
+functions generic ADC wrapper components MAY be provided on the level of HAL1
+to be instantiated by chip- and platform-dependent clients.
 
 
 4. HAL2 requirements
 ====================================================================
 
-Every platform with an A/D converter MUST provide a component AdcC::
+Every platform with an ADC MUST provide a module that *provides* the following
+interfaces::
 
-   configuration AdcC {
-     provides {
-       interface Init;
-       interface StdControl;
-       interface Resource[uint8_t client];
-       interface Read< size_type > as Read[uint8_t client];
-       interface ReadNow< size_type > as ReadNow[uint8_t client];
-       interface ReadStream< size_type > as ReadStream[uint8_t client];
-     }
-     uses {
-       // chip-dependent configuration interface
-     }
-   }
+  #define ADCC_SERVICE ...
+  module AdcC {
+    provides {
+      interface Read<uint16_t> as Read[uint8_t client];
+      interface ReadNow<uint16_t> as ReadNow[uint8_t client];
+      interface ReadStream<uint16_t> as ReadStream[uint8_t client];
+    }
+    uses {
+      // chip-specific sampling interface (parameterized)
+      // chip-specific configuration interface (parameterized)
+      // resource reservation interface(s) (parameterized)
+    }
+  }
 
-The chip-dependent 'size_type' parameter represents the maximum possible
-resolution of a conversion result. In its implementation part the AdcC SHOULD
-wire the 'Resource' and 'Init' interfaces to the HAL1 and the data collection
-interfaces to the HAL2 implementation. The AdcC component also needs a way to
-determine a client's ADC settings (the data collection interfaces do not
-include ADC configuration). This is discussed in the following section.
+The name of the module can, but it doesn't have to be AdcC (but for simplicity
+in the following the HAL2 implementation will be referred to as "AdcC"). The
+task of the AdcC is twofold: it translates the chip-specific sampling
+interface(s) provided by the HAL1 to platform independent interfaces for
+data-collection and it abstracts from the 'Resource' interface. Before it uses
+the sampling interface it "pulls" the clients ADC settings via a chip-specific
+configuration interface.
 
-Configuration
---------------------------------------------------------------------
-
-The AdcC component SHOULD *use* a parameterized chip-dependent configuration
-interface to retrieve the ADC configuration settings for a given client. That
-means a client of the HAL2 will not only wire to the 'Resource' and data
-collection interfaces, but it SHOULD also wire the chip-dependent
-configuration interface of the HAL2 to a component that returns the respective
-ADC settings. The client MUST instantiate all interfaces with the same unique
-client id. The configuration interface can, for example, include only a single
-command, which returns the respective client's configuration settings and the
-HAL2 implementation SHOULD call the command to determine the respective ADC
-settings every time the client requests ADC data.  The typical sequence of
-events is as follows: After a client has been granted access to the ADC via
-the 'Resource' interface it may call a data collection command, for example
-Read.read(). The HAL2 implementation will then 'pull' the client's ADC
-configuration settings: it calls the respective command in the chip-dependent
-configuration interface using the client identifier as the interface
-parameter.  With the help of the pulled configuration settings the HAL2
-implementation can translate the Read.read() call to a chip-specific HAL1
-command and forward the conversion result to the client.
+Each client of the AdcC MUST wire the AdcC to a chip-specific sampling and
+'Resource' interface (provided by the HAL1) and to a chip-specific
+configuration interface that returns the client's ADC configuration. Such a
+configuration interface can, for example, include only a single command to
+return the respective client's ADC configuration. The client MUST instantiate
+all interfaces using unique(ADCC_SERVICE) and it MUST ensure that the HAL1 is
+properly initialized. To eliminate wiring errors, a client is recommended to
+not wire to the AdcC directly, but use one of the wrappers presented in '5.
+Utility components'_. From the perspective of the AdcC the typical sequence of
+events is as follows: After a client has requested data the AdcC will request
+access to the HAL1 via the 'Resource' interface.  When it is signalled the
+'granted' event, the AdcC will 'pull' the client's ADC settings via the
+chip-specific configuration interface and translate the read() call to a
+chip-specific HAL1 sampling command. When it is signalled the conversion
+result from HAL1 the AdcC releases the ADC via the 'Resource' interface and
+forwards the formatted conversion result to the client.
 
 Note that, although the *provided* interfaces are platform independent, the
-fact that the HAL2 *uses* a chip-dependent configuration interface and the
-fact that the provided data-collection interfaces are parameterized by a
-client identifier that maps to the respective configuration settings makes the
-HAL2 representation platform dependent. However, separating the ADC
-configuration settings from the data collection interfaces makes it possible
-to provide platform independent interfaces for ADC data collection. It also
-enables utility library components to sit on top of HAL2 and thus simplifies
-sensor driver development.
+fact that the AdcC *uses* a chip-dependent interfaces and the fact that the
+provided interfaces for data-collection  are parameterized by a client
+identifier that maps to the respective configuration settings makes the HAL2
+representation platform dependent. However, separating the ADC configuration
+settings from the data collection interfaces makes it possible to provide
+platform independent interfaces for ADC data collection.
 
-A platform designer is encouraged to write a separate configuration component
-for every device connected to the ADC. This component should provide the
-ADC-dependent configuration interface and return the configuration settings
-for the device.  Appendix C shows an example of how such a component can
-provide multiple different configuration settings for the same device (e.g.
-for high- or low-frequency sampling).
+Appendix B shows the AdcC specification for the TI MSP430 MCU.
 
 5. Utility components
 ====================================================================
@@ -282,34 +270,55 @@ the HAL2 to facilitate access to the ADC system:
 * AdcReadNowClient 
 * AdcReadStreamClient 
 
-These generic components provide single interfaces for data collection and
-hide the arbitration complexities from the client components. A component
-instantiating such a generic component MUST use a unique client identifier
-created with 'unique(ADC_CLIENT)' and establish the mapping between the AdcC
-component and the component that provides the client's ADC configuration
-settings. It MUST use the same client identifier for both (Appendix C shows an
-example).
+Appendix C shows the AdcReadClient for the TI MSP430 MCU and describes how a
+component can provide multiple different configuration settings for the same
+device (e.g. for high- or low-frequency sampling).
+
 
 AdcReadClient
 --------------------------------------------------------------------
+::
 
-generic configuration AdcReadClient( uint8_t client_id, typedef size_type ) {
-  provides interface Read<size_type>;
-}
+  generic configuration AdcReadClient() {
+    provides {
+      interface Init;
+      interface Read< size_type > as Read;
+    }
+    uses {
+      // chip-dependent configuration interface
+    }
+  }
+
 
 AdcReadNowClient
 --------------------------------------------------------------------
+::
 
-generic configuration AdcReadNowClient( uint8_t client_id, typedef size_type ) {
-  provides interface ReadNow<size_type>;
-}
+  generic configuration AdcReadNowClient() {
+    provides {
+      interface Init;
+      interface ReadNow< size_type > as ReadNow;
+    }
+    uses {
+       // chip-dependent configuration interface
+     }
+  }
 
 AdcReadStreamClient
 --------------------------------------------------------------------
+::
 
-generic configuration AdcReadStreamClient( uint8_t client_id, typedef size_type ) {
-  provides interface ReadStream<size_type>;
-}
+  generic configuration AdcReadStreamClient() {
+    provides {
+      interface Init;
+      interface ReadStream< size_type > as ReadStream;
+    }
+    uses {
+       // chip-dependent configuration interface
+     }
+  }
+
+
 
 Appendix A: Hardware differences between platforms
 ====================================================================
@@ -383,7 +392,53 @@ following table compares the characteristics of the two microcontrollers:
 Appendix B: an ADC: MSP430 ADC12
 ====================================================================
 
-(TODO)
+TODO: Add description
+::
+
+  configuration Msp430Adc12C
+  {
+    provides interface Init;
+    provides interface StdControl;
+    provides interface Resource[uint8_t id];
+    provides interface Msp430Adc12SingleChannel as SingleChannel[uint8_t id];
+  }
+
+  interface Msp430Adc12SingleChannel 
+  {   
+    async command msp430adc12_result_t getSingleData(
+        const msp430adc12_channel_config_t *config);
+
+    async command msp430adc12_result_t getSingleDataRepeat( 
+        const msp430adc12_channel_config_t *config, 
+        uint16_t jiffies);
+
+    async command msp430adc12_result_t getMultipleData(
+        const msp430adc12_channel_config_t *config,
+        uint16_t *buf, uint16_t length, uint16_t jiffies);
+
+    async command msp430adc12_result_t getMultipleDataRepeat(
+        const msp430adc12_channel_config_t *config,
+        uint16_t *buf, uint8_t length, uint16_t jiffies);
+
+    async event error_t singleDataReady(uint16_t data);
+
+    async event uint16_t* multipleDataReady(uint16_t *buf, uint16_t length);
+  }
+
+  module AdcC {
+    provides {
+      interface Read<uint16_t> as Read[uint8_t client];
+      interface ReadNow<uint16_t> as ReadNow[uint8_t client];
+      interface ReadStream<uint16_t> as ReadStream[uint8_t client];
+    }
+    uses {
+      interface Msp430Adc12SingleChannel as SingleChannel[uint8_t client];
+      interface Msp430Adc12Config as Config[uint8_t client];
+      interface Resource as ResourceRead[uint8_t client];
+      interface Resource as ResourceReadNow[uint8_t client];
+      interface Resource as ResourceReadStream[uint8_t client];
+    }
+  }
 
 Appendix C: a mote: eyesIFX ADC abstraction
 ====================================================================
@@ -393,7 +448,7 @@ the TI MSP430 MCU). The ADC abstraction ends with utility components located
 on top of HAL2, but for a complete understanding the example shows a component
 graph that includes a sensor driver connected to the ADC stack. Typically the
 layer above the utility components is composed of named sensor components that
-provide interfaces for collecting the sensor data as described in [tep109]_.
+provide interfaces for collecting the sensor data as described in [_tep109].
 
 Component stack
 --------------------------------------------------------------------
@@ -412,23 +467,19 @@ configuration settings).::
                         Read
                           |
                    +--------------------+ 
-                   |  PhotoSensorC      |  
-     Sensor        | (wires AdcC to the |  location: tinyos-2.x/tos/platforms/eyes
-    Wrapper:       |  sensor configu-   |
-                   |  ration component) |
-                   +--------------------+ 
-                          ^
-                          |
-                        Read
-                          |
+    Sensor         |  PhotoSensorC      |  location: tinyos-2.x/tos/platforms/eyes
+   Wrapper:        +--------------------+ 
+                          ^         |
+                          |         |
+                        Read  Msp430Adc12Config
+                          |         v
                    +----------------------------+
-   Utility         |      AdcReadClientC        |
-  component:       |  (using AdcReadArbiterC)   | location: tinyos-2.x/tos/lib/adc
-                   +----------------------------+ 
-                      ^            ^
-                      |            |
-                    Read[]       Resource[]
-                      |            |
+   Utility         |      AdcReadClientC        | location: tinyos-2.x/tos/chips/msp430
+  component:       +----------------------------+ 
+                      ^             | 
+                      |             | 
+                    Read[]    Msp430Adc12Config[]   
+                      |             v
                    +---------------------+
     HAL2:          |       AdcC          | location: tinyos-2.x/tos/chips/msp430
                    +---------------------+
@@ -449,55 +500,85 @@ configuration settings).::
                    +---------------------+
 
 
-Sensor Configuration
+Utility Component
 --------------------------------------------------------------------
 
+TODO: Add description
+::
+
+  generic configuration AdcReadClientC() {
+    provides {
+      interface Init;
+      interface Read<uint16_t> as Read;
+    }
+    uses interface Msp430Adc12Config;
+  } implementation {
+    components new Msp430Adc12ClientC() as Msp430AdcClient, AdcC;
+  
+    enum {
+      CLIENT = unique(ADCC_SERVICE),
+    };
+  
+    Init = Msp430AdcClient;
+    Read = AdcC.Read[CLIENT];
+    Msp430Adc12Config = AdcC.Config[CLIENT];
+    AdcC.SingleChannel[CLIENT] -> Msp430AdcClient.Msp430Adc12SingleChannel;
+    AdcC.ResourceRead[CLIENT] ->  Msp430AdcClient.Resource;
+  }
+
+
+Sensor Wrapper
+--------------------------------------------------------------------
+
+
 The main task of a sensor wrapper component is to provide to the HAL2 the
-sensor's ADC configuration settings.  This is done in the implementation
-section of the sensor wrapper component by wiring the AdcC configuration
-interface to the respective configuration component. An example is shown
-below.::
+sensor's ADC configuration settings.  This is done by wiring the
+AdcReadClientC configuration interface to the respective configuration
+component. An example is shown below.::
 
-
-  configuration PhotoSensorC
+  generic configuration PhotoSensorC()
   {
-    provides interface Read<uint16_t> as Read;
+    provides {
+      interface Init;
+      interface Read<uint16_t> as Read;
+      interface ReadNow<uint16_t> as ReadNow;
+    }
   }
   implementation
   {
-    enum {
-      CLIENT_ID = unique("ADC_CLIENT")
-    };
-  
-    components AdcC, PhotoSensorSettingsM, 
-               new AdcReadClientC(CLIENT_ID, uint16_t) as ReadClient;
-  
-    Read = ReadClient;
-    AdcC.Msp430Adc12Config[CLIENT_ID] -> 
-      PhotoSensorSettingsM.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];
+    components SensorSettingsC as Settings;
+               
+    components new AdcReadClientC() as AdcReadClient;
+    Init = AdcReadClient;
+    Read = AdcReadClient;
+    AdcReadClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];
+    
+    components new AdcReadNowClientC() as AdcReadNowClient;
+    Init = AdcReadNowClient;
+    ReadNow = AdcReadNowClient;
+    AdcReadNowClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];
   }
-
-  module PhotoSensorSettingsM {
+  
+  module SensorSettingsC {
     provides interface Msp430Adc12Config[uint8_t type];  
   }
   implementation
   {
-    async command msp430adc12_channel_config_t 
-      Msp430Adc12Config.getChannelSettings[uint8_t type]()
+    async command msp430adc12_channel_config_t Msp430Adc12Config.getChannelSettings[uint8_t type]()
     {
-      msp430adc12_channel_config_t settings = {
+      msp430adc12_channel_config_t defaultSettings = {INPUT_CHANNEL_NONE,0,0,0,0,0,0,0};
+      switch (type)
+      {
+        case PHOTO_SENSOR_DEFAULT: 
+          {
+            msp430adc12_channel_config_t config = {
                         INPUT_CHANNEL_A2, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
                         SHT_SOURCE_ACLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
                         SAMPCON_SOURCE_ACLK, SAMPCON_CLOCK_DIV_1 };
-      switch (type)
-      {
-        case PHOTO_SENSOR_DEFAULT:
-          break;
-        case PHOTO_SENSOR_HIGH_FREQUENCY:
-          settings.sampcon_ssel = SAMPCON_SOURCE_SMCLK;
-          break;
+            return config;
+          }
+        // ...
       }
-      return settings;
+    // ..
     }
-  }
 
