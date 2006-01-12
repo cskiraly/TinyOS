@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-06 16:25:25 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-12 18:01:46 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -156,7 +156,8 @@ enum inch_enum
    EXTERNAL_REFERENCE_VOLTAGE = 8,          // VeREF+ (input channel 8)
    REFERENCE_VOLTAGE_NEGATIVE_TERMINAL = 9, // VREF-/VeREF- (input channel 9)
    INTERNAL_TEMPERATURE = 10,               // Temperature diode (input channel 10)
-   INTERNAL_VOLTAGE = 11                    // (AVcc-AVss)/2 (input channel 11-15)
+   INTERNAL_VOLTAGE = 11,                   // (AVcc-AVss)/2 (input channel 11-15)
+   INPUT_CHANNEL_NONE = 12                  // illegal (identifies invalid settings)
 };
 
 enum sref_enum
@@ -173,6 +174,7 @@ enum ref2_5v_enum
 {
   REFVOLT_LEVEL_1_5 = 0,                    // reference voltage of 1.5 V
   REFVOLT_LEVEL_2_5 = 1,                    // reference voltage of 2.5 V
+  REFVOLT_LEVEL_NONE = 0,                   // if e.g. AVcc is chosen 
 };
 
 enum adc12ssel_enum
@@ -229,7 +231,10 @@ enum sampcon_id_enum
 };
 
 // The unique string for allocating ADC resource interfaces
-#define ADC_RESOURCE "ADC.resource"
+#define MSP430ADC12_RESOURCE "Msp430Adc12C.Resource"
+
+// The unique string for accessing HAL2
+#define ADCC_SERVICE "AdcC.Service"
 
 typedef struct 
 {
