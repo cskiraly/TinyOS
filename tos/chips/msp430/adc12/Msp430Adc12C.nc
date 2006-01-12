@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-06 16:25:25 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-12 18:01:46 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -48,7 +48,7 @@ implementation
 {
   components Msp430Adc12P, HplAdc12P, MSP430TimerC, 
              Msp430RefVoltGeneratorC, MSP430GeneralIOC,
-             new RoundRobinArbiterC(ADC_RESOURCE) as Arbiter;
+             new RoundRobinArbiterC(MSP430ADC12_RESOURCE) as Arbiter;
 
   Init = Arbiter;
   Init = Msp430Adc12P;
