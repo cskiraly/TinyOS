@@ -1,97 +1,71 @@
 <!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-  <meta http-equiv="Content-Type"
- content="text/html; charset=iso-8859-1">
-  <meta name="GENERATOR"
- content="Mozilla/4.78 [en] (X11; U; Linux 2.4.7-10 i686) [Netscape]">
   <title>TinyOS Tutorial Lesson 1: Getting Started with TinyOS and nesC</title>
+  <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
 </head>
-<body bgcolor="#f8f8ff" link="#005bb7" vlink="#005bb7">
-&nbsp;
-<table border="0" cellspacing="2" cellpadding="3" width="100%"
- hspace="4">
-  <tbody>
-    <tr bgcolor="#e0e0ff">
-      <td width="100%"><b><font face="tahoma,arial,helvetica"><font
- size="-1">Lesson 1: Getting Started with TinyOS and nesC</font></font></b>
-      <p><font face="tahoma,arial,helvetica">Last updated 8 January
-2005</font></p>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<p>This lesson introduces the basic concepts of the component model used
-by TinyOS, and the nesC component sytax.
-<table border="0" cellspacing="2" cellpadding="3" width="100%"
- hspace="4">
-  <tbody>
-    <tr bgcolor="#e0e0ff">
-      <td width="100%"><b><nobr><font face="arial,helvetica">Introduction</font></nobr></b></td>
-    </tr>
-  </tbody>
-</table>
-</p>
-<p>
-TinyOS is written in nesC, an extension of the C language designed to
-support the resource-challenged embedded systems space. 
-nesC's extensions support an efficient yet robust component model,
-and a concurrency model based on run-to-completion tasks and interrupt
-handlers. This lesson introduces the TinyOS/nesC component model, and the next
-lesson introduces the TinyOS/nesC concurrency model.</p>
-<p>
-<p><b>Components and Interfaces</b><br>
-A nesC application consists of one or more&nbsp; <i>components
-</i>assembled, or <i>wired</i>, to form an application
-executable. Components define two scopes: one for their specification
-which contains the names of their <i>interfaces</i>, and one scope for
-their implementation. A component <b>provides</b> and <b>uses</b>
+<body>
+
+<div class="title">Lesson 1: Getting Started with TinyOS and nesC</div>
+<div class="subtitle">Last updated 8 January 2005</div>
+
+<p>This lesson introduces the basic concepts of the component model
+used by TinyOS, and the nesC component sytax.
+
+<h1>Introduction</h1>
+
+<p>TinyOS is written in nesC, an extension of the C language designed
+to support the resource-challenged embedded systems space.  nesC's
+extensions support an efficient yet robust component model, and a
+concurrency model based on run-to-completion tasks and interrupt
+handlers. This lesson introduces the TinyOS/nesC component model, and
+the next lesson introduces the TinyOS/nesC concurrency model.
+
+<h2>Components and Interfaces</h2>
+
+A nesC application consists of one or more <i>components</i>
+assembled, or <i>wired</i>, to form an application executable.
+Components define two scopes: one for their specification which
+contains the names of their <i>interfaces</i>, and one scope for their
+implementation. A component <b>provides</b> and <b>uses</b>
 <i>interfaces</i>. The provided interfaces are intended to represent
 the functionality that the component provides to its user; the used
 interfaces represent the functionality the component needs to perform
-its job.</p>
-<p>
-Interfaces are bidirectional: they specify a set of <i>commands</i>,
-which are functions to be implemented by the interface's provider, and
-a set of <i>events</i> which are functions to be implemented by the
-interface's user. For a component to call the commands in an
-interface, it must implement the events of that interface. A single
-component may use or provide multiple interfaces and multiple
-instances of the same interface. </p>
-<p>
-The set of interfaces which a component provides together with the set
-of interfaces that a component uses is considered that component's
+its job.
+
+<p>Interfaces are bidirectional: they specify a set of
+<i>commands</i>, which are functions to be implemented by the
+interface's provider, and a set of <i>events</i> which are functions
+to be implemented by the interface's user. For a component to call the
+commands in an interface, it must implement the events of that
+interface. A single component may use or provide multiple interfaces
+and multiple instances of the same interface.
+
+<p>The set of interfaces which a component provides together with the
+set of interfaces that a component uses is considered that component's
 <i>signature</i>.
 
-<p><b>Configurations and Modules</b><br>
+<h2>Configurations and Modules</h2>
+
 There are two types of components in nesC: modules and
-configurations. Modules provide the implementations of one or
-more interfaces. Configurations are used to assemble other components
+configurations. Modules provide the implementations of one or more
+interfaces. Configurations are used to assemble other components
 together, connecting interfaces used by components to interfaces
-provided by others. This is called <i>wiring</i>. Every nesC application is
-described by a top-level configuration that wires together the
-components inside.
-<p>
-<table border="0" cellspacing="2" cellpadding="3" width="100%"
- hspace="4">
-  <tbody>
-    <tr bgcolor="#e0e0ff">
-      <td width="100%"><b><nobr><font face="arial,helvetica">An example
-application: Blink</font></nobr></b></td>
-    </tr>
-  </tbody>
-</table>
-</p>
-<p>
-Let's look at concrete examples using the application Blink found in <tt><a
- href="../../apps/Blink">apps/Blink</a></tt> in the TinyOS tree. This
-application simply causes the LED0 to to turn on and off at
+provided by others. This is called <i>wiring</i>. Every nesC
+application is described by a top-level configuration that wires
+together the components inside.
+
+<h1>Blink: An Example Application</h1>
+
+<p>Let's look at concrete examples using the application Blink found
+in <tt><a href="../../../apps/Blink">apps/Blink</a></tt> in the TinyOS
+tree. This application simply causes the LED0 to to turn on and off at
 .25Hz, LED1 to turn on and off at .5Hz, and LED2 to turn on and off at
-1Hz.<a href="#leds_footnote>">(1)</a> The effect is as if the three
+1Hz.<a href="#leds_footnote">(1)</a> The effect is as if the three
 LEDs were displaying a binary count of one to seven every two
 seconds. </p>
-<p>
-Blink is composed of two <b>components</b>: a <b>module</b>, called
+
+<p>Blink is composed of two <b>components</b>: a <b>module</b>, called
 "<tt>BlinkC.nc</tt>", and a <b>configuration</b>, called
 "<tt>BlinkAppC.nc</tt>".  Remember that all applications require a
 top-level configuration file, which is typically named after the
@@ -99,164 +73,179 @@ application itself. In this case <tt>BlinkApp.nc</tt> is the
 configuration for the Blink application and the source file that the
 nesC compiler uses to generate an executable file. <tt>BlinkC.nc</tt>,
 on the other hand, actually provides the <i>implementation</i> of the
-Blink application. As you might guess, <tt>BlinkAppC.nc</tt> is used to
-wire the <tt>BlinkC.nc</tt> module to other components that the Blink
-application requires. </p>
-<p>
-The reason for the distinction between modules and configurations is
-to allow a system designer to quickly "snap together" applications. For
-example, a designer could provide a configuration that simply wires
-together one or more modules, none of which she actually designed.
-Likewise, another developer can provide a new set of "library" modules
-that can be used in a range of applications. </p>
+Blink application. As you might guess, <tt>BlinkAppC.nc</tt> is used
+to wire the <tt>BlinkC.nc</tt> module to other components that the
+Blink application requires. </p>
+
+<p>The reason for the distinction between modules and configurations
+is to allow a system designer to quickly "snap together"
+applications. For example, a designer could provide a configuration
+that simply wires together one or more modules, none of which she
+actually designed.  Likewise, another developer can provide a new set
+of "library" modules that can be used in a range of applications. </p>
 
 <!-- 
-<p>Sometimes (as is the case with <tt>BlinkAppC</tt> and <tt>BlinkC</tt>)
-you will have a configuration and a module that go together. When this
-is the case, the convention used in the TinyOS source tree is that <tt>Foo.nc</tt>
-represents a configuration and <tt>FooM.nc</tt> represents the
-corresponding module. While you could name an application's
-implementation module and associated top-level configuration anything,
-to keep things simple we suggest that you adopt this convention in your
-own code. There are several other naming conventions used in TinyOS
-code; a <a href="naming.html">summary</a> is provided. 
--->
+<p>Sometimes (as is the case with <tt>BlinkAppC</tt> and
+<tt>BlinkC</tt>) you will have a configuration and a module that go
+together. When this is the case, the convention used in the TinyOS
+source tree is that <tt>Foo.nc</tt> represents a configuration and
+<tt>FooM.nc</tt> represents the corresponding module. While you could
+name an application's implementation module and associated top-level
+configuration anything, to keep things simple we suggest that you
+adopt this convention in your own code. There are several other naming
+conventions used in TinyOS code; a <a href="naming.html">summary</a>
+is provided.  -->
 
-<table border="0" cellspacing="2" cellpadding="3" width="100%"
- hspace="4">
-  <tbody>
-    <tr bgcolor="#e0e0ff">
-      <td width="100%"><b><nobr><font face="arial,helvetica">The
-BlinkAppC.nc configuration</font></nobr></b></td>
-    </tr>
-  </tbody>
-</table>
-</p>
-<p>The nesC compiler compiles a
-nesC application when given the file containing the top-level
-configuration. Typical TinyOS applications come with a standard Makefile
-that allows platform selection and invokes ncc with appropriate options
-on the application's top-level configuration. </p>
-<p>
-Let's look at <tt>BlinkAppC.nc</tt>, the configuration for this
-application first: </p>
-<center>
-<table border="0" cellspacing="2" cellpadding="3" width="80%" hspace="4">
-  <tbody>
-    <tr bgcolor="#e0e0e0">
-      <td width="100%"><b>BlinkAppC.nc</b>
-      <pre>configuration BlinkAppC {<br>}<br>implementation {<br>&nbsp; components MainC, BlinkC, LedsC;<br>&nbsp; components new OskiTimerMilliC() as Timer0;<br>&nbsp; components new OskiTimerMilliC() as Timer1;<br>&nbsp; components new OskiTimerMilliC() as Timer2;<br><br>&nbsp; BlinkC -&gt; MainC.Boot;<br>&nbsp; MainC.SoftwareInit -&gt; LedsC;<br><br>&nbsp; BlinkC.Timer0 -&gt; Timer0;<br>&nbsp; BlinkC.Timer1 -&gt; Timer1;<br>&nbsp; BlinkC.Timer2 -&gt; Timer2;<br>&nbsp; BlinkC.Leds -&gt; LedsC;<br>}</pre>
-      </td>
-    </tr>
-  </tbody>
-</table>
-</center>
-<p>
-The first thing to notice is the key word <tt>configuration</tt>,
-which indicates that this is a configuration file. The first two lines, </p>
-<pre>&nbsp; configuration BlinkAppC {<br>&nbsp; }</pre>
+<h1>The BlinkAppC.nc Configuration</h1>
+
+<p>The nesC compiler compiles a nesC application when given the file
+containing the top-level configuration. Typical TinyOS applications
+come with a standard Makefile that allows platform selection and
+invokes ncc with appropriate options on the application's top-level
+configuration.
+
+<p>Let's look at <tt>BlinkAppC.nc</tt>, the configuration for this
+application first:
+
+<pre>
+configuration BlinkAppC {
+}
+implementation {  
+  components MainC, BlinkC, LedsC;
+  components new OskiTimerMilliC() as Timer0;
+  components new OskiTimerMilliC() as Timer1;
+  components new OskiTimerMilliC() as Timer2;
+
+  BlinkC -> MainC.Boot;
+  MainC.SoftwareInit -> LedsC;
+  BlinkC.Timer0 -> Timer0;
+  BlinkC.Timer1 -> Timer1;
+  BlinkC.Timer2 -> Timer2;
+  BlinkC.Leds -> LedsC;
+}
+</pre>
+
+<p>The first thing to notice is the key word <tt>configuration</tt>,
+which indicates that this is a configuration file. The first two
+lines,
+<pre>
+configuration BlinkAppC {
+}
+</pre>
+
 simply state that this is a configuration called <tt>BlinkAppC</tt>.
 Within the empty braces here it is possible to specify <tt>uses</tt>
 and <tt>provides</tt> clauses, as with a module. This is important to
 keep in mind: a configuration can use and provide interfaces. Said
 another way, not all configurations are top-level applications.
-<p>
+
 <p>The actual configuration is implemented within the pair of curly
-brackets following the key word <tt>implementation </tt>. The <tt>components</tt>lines
-specify the set of components that this configuration references, in
-this case <tt>Main</tt>, <tt>BlinkC</tt>, <tt>LedsC</tt>, and three instances 
-of a timer component called <tt>OskiTimerMilliC</tt>.<a href="oskitimermillic_footnote">
-which will be referenced as Timer0, Timer1, and Timer2.
-(2)</a> As we continue reviewing the BlinkAppC application, keep in mind that
-the BlinkAppC component is not the same as the BlinkC component. Rather, the 
-BlinkAppC component is composed of the BlinkC component along with MainC and LedsC. 
-<p>
-The remainder of the BlinkAppC configuration consists of connecting
+brackets following the key word <tt>implementation </tt>. The
+<tt>components</tt>lines specify the set of components that this
+configuration references, in this case <tt>Main</tt>, <tt>BlinkC</tt>,
+<tt>LedsC</tt>, and three instances of a timer component called
+<tt>OskiTimerMilliC</tt> which will be referenced as Timer0, Timer1,
+and Timer2.  <a href="#oskitimermillic_footnote">(2)</a> As we
+continue reviewing the BlinkAppC application, keep in mind that the
+BlinkAppC component is not the same as the BlinkC component. Rather,
+the BlinkAppC component is composed of the BlinkC component along with
+MainC and LedsC.
+
+<p>The remainder of the BlinkAppC configuration consists of connecting
 interfaces used by components to interfaces provided by others. The
 <tt>MainC.Boot</tt> and <tt>MainC.SoftwareInit</tt> interfaces are
-part of TinyOS's boot sequence and will be
-covered in detail in Lesson 3. Suffice it to say that these
-wirings enable the LEDs and Timers to be initialized.
-<p>
-The last four lines wire interfaces that the BlinkC component <i>uses</i> to interfaces that
-the OskiTimerMilliC and LedsC components <i>provide</i>. To fully understand the semantics
-of these wirings, it is helpful to look at the BlinkC module's
-definition and implementation.
-<table border="0" cellspacing="2" cellpadding="3" width="100%"
- hspace="4">
-  <tbody>
-    <tr bgcolor="#e0e0ff">
-      <td width="100%"><b><nobr><font face="arial,helvetica">The
-BlinkC.nc module</font></nobr></b></td>
-    </tr>
-  </tbody>
-</table>
+part of TinyOS's boot sequence and will be covered in detail in Lesson
+3. Suffice it to say that these wirings enable the LEDs and Timers to
+be initialized.
 
-<center>
-<table border="0" cellspacing="2" cellpadding="3" width="80%" hspace="4">
-  <tbody>
-    <tr bgcolor="#e0e0e0">
-      <td width="100%"><b>BlinkC.nc</b>
-      <pre>module BlinkC {<br>&nbsp; uses interface Timer&lt;TMilli&gt; as Timer0;<br>&nbsp; uses interface Timer&lt;TMilli&gt; as Timer1;<br>&nbsp; uses interface Timer&lt;TMilli&gt; as Timer2;<br>&nbsp; uses interface Leds;<br>&nbsp; users interface Boot;<br>
-}<br>implementation<br>{<br>&nbsp; // implementation code omitted<br>}</pre>
-      </td>
-    </tr>
-  </tbody>
-</table>
-</center>
-<p>
-The first part of the module code states that this is a module called <tt>BlinkC</tt>and
-declares the interfaces it provides and uses.&nbsp; The <tt>BlinkC</tt>&nbsp;
-module <b>uses</b> three instances of the interface <tt>Timer&lt;TMilli&gt;</tt>
-using the names Timer0, Timer1 and Timer2 (the <tt>&lt;TMilli&gt;</tt> 
-syntax simply supplies the generic Timer component with the required 
-timer precision; more about Timers in Lesson 3). Lastly, the <tt>BlinkC</tt> module also 
-uses the Leds and Boot interfaces. This means that
-BlinkC may call any command declared in the interfaces it uses and must
-also implement any events declared in those interfaces. 
-<p>
-After reviewing the interfaces used by the <tt>BlinkC</tt> component, the semantics 
-of the last four lines in <tt>BlinkAppC.nc</tt> should become clearer. 
-The line 
-<tt>BlinkC.Timer0 -&gt; Timer0</tt> wires the three <tt>Timer&lt;TMilli&gt;</tt>
-interface used by <tt>BlinkC</tt> to the <tt>Timer&lt;TMilli&gt;</tt> interface provided
-the three <tt>OskiTimerMilliC</tt> component. The <tt>BlinkC.Leds -&gt; LedsC</tt>
-line wires the <tt>Leds</tt> interface used by the <tt>BlinkC</tt> component to the <tt>Leds</tt>
-interface provided by the <tt>LedsC</tt> component.
-<p>
-You may have surmised that nesC uses arrows to determine relationships
+<p>The last four lines wire interfaces that the BlinkC component
+<i>uses</i> to interfaces that the OskiTimerMilliC and LedsC
+components <i>provide</i>. To fully understand the semantics of these
+wirings, it is helpful to look at the BlinkC module's definition and
+implementation.
+
+<h1>The BlinkC.nc Module</h1>
+
+<pre>
+module BlinkC {
+  uses interface Timer<TMilli> as Timer0;
+  uses interface Timer<TMilli> as Timer1;
+  uses interface Timer<TMilli> as Timer2;
+  uses interface Leds;
+  users interface Boot;
+}
+implementation
+{
+  // implementation code omitted
+}
+</pre>
+
+<p>The first part of the module code states that this is a module
+called <tt>BlinkC</tt>and declares the interfaces it provides and
+uses.&nbsp; The <tt>BlinkC</tt>&nbsp; module <b>uses</b> three
+instances of the interface <tt>Timer&lt;TMilli&gt;</tt> using the
+names Timer0, Timer1 and Timer2 (the <tt>&lt;TMilli&gt;</tt> syntax
+simply supplies the generic Timer component with the required timer
+precision; more about Timers in Lesson 3). Lastly, the <tt>BlinkC</tt>
+module also uses the Leds and Boot interfaces. This means that BlinkC
+may call any command declared in the interfaces it uses and must also
+implement any events declared in those interfaces.
+
+<p>After reviewing the interfaces used by the <tt>BlinkC</tt>
+component, the semantics of the last four lines in
+<tt>BlinkAppC.nc</tt> should become clearer.  The line
+<tt>BlinkC.Timer0 -&gt; Timer0</tt> wires the three
+<tt>Timer&lt;TMilli&gt;</tt> interface used by <tt>BlinkC</tt> to the
+<tt>Timer&lt;TMilli&gt;</tt> interface provided the three
+<tt>OskiTimerMilliC</tt> component. The <tt>BlinkC.Leds -&gt;
+LedsC</tt> line wires the <tt>Leds</tt> interface used by the
+<tt>BlinkC</tt> component to the <tt>Leds</tt> interface provided by
+the <tt>LedsC</tt> component.
+
+<p>You may have surmised that nesC uses arrows to determine relationships
 between interfaces.  Think of the right arrow (<tt>-&gt;</tt>) as
 "binds to". The left side of the arrow binds an interface to an
 implementation on the right side.  In other words, the component that
 <b>uses</b> an interface is on the left, and the component <b>provides
-</b>the interface is on the right. </p> It follows, then, that the line 
-<pre>&nbsp; BlinkC.Timer -&gt; Timer0;</pre>, <tt>BlinkC.Timer</tt>
-on the left side of the arrow is referring to the <i>interface</i> called
-Timer (<tt>tos/lib/timer/Timer.nc</tt>), while <tt>Timer0</tt> on
-the right side of the arrow is referring to the <i>implementation </i>of
-Timer</tt>. Remember that the arrow always binds interfaces (on the
-left) to implementations (on the right).
-<p>
-<tt>BlinkAppC</tt> also illustrates that wirings can be implicit. For example, </p>
-<pre>&nbsp; BlinkC.Leds -&gt; LedsC;</pre>
-is really shorthand for
-<pre>&nbsp; BlinkC.Leds -&gt; LedsC.Leds;</pre>
+</b>the interface is on the right. </p>
+
+It follows, then, that on the line:
+
+<pre>
+  BlinkC.Timer -> Timer0;
+</pre>
+
+<tt>BlinkC.Timer</tt> on the left side of the arrow is referring to
+the <i>interface</i> called Timer (<tt>tos/lib/timer/Timer.nc</tt>),
+while <tt>Timer0</tt> on the right side of the arrow is referring to
+the <i>implementation </i>of Timer</tt>. Remember that the arrow
+always binds interfaces (on the left) to implementations (on the
+right).
+
+<p><tt>BlinkAppC</tt> also illustrates that wirings can be
+implicit. For example:
+
+<pre>
+  BlinkC.Leds -> LedsC;
+</pre>
+
+is really shorthand for:
+
+<pre>
+  BlinkC.Leds -> LedsC.Leds;
+</pre>
+
 If no interface name is given on the right side of the arrow, the nesC
 compiler by default tries to bind to the same interface as on the left
-side of the arrow. <br>
-<p>
-<table border="0" cellspacing="2" cellpadding="3" width="100%"
- hspace="4">
-  <tbody>
-    <tr bgcolor="#e0e0ff">
-      <td width="100%"><b><nobr><font face="arial,helvetica">Conclusion</font></nobr></b></td>
-    </tr>
-  </tbody>
-</table>
+side of the arrow.
 
-<p>
-This lesson has introduced the concepts of the TinyOS component model: configurations, modules, interfaces
-and wiring.  The next lesson expands on the nesC/TinyOS concurrency model and continues our look at Blink.
+<h1>Conclusion</h1>
+
+<p>This lesson has introduced the concepts of the TinyOS component
+model: configurations, modules, interfaces and wiring.  The next
+lesson expands on the nesC/TinyOS concurrency model and continues our
+look at Blink.
+
 <p>
 <a name=#related_docs>
 <p><b>Related Documentation</b><br>
@@ -272,22 +261,22 @@ and wiring.  The next lesson expands on the nesC/TinyOS concurrency model and co
 </ul>
 
 <hr>
-<p>
-<a name=#leds_footnote>(1)</a>
-Unlike in tinyos-1.x, LEDs in 2.x are not labeled by color but instead
-by number to reflect the fact that different platforms have different
-colored LEDs. In telos, the mapping (LED0,LED1,LED2) to
-(Red,Green,Blue), and in mica motes the mapping is (LED0,LED1,LED2) to
-(Red,Green,Yellow).
-<p>
-<a name="oskitimermillic_footnote">(2)</a>
-The OskiTimerMilliC component is a <i>generic component</i> which means 
-that, unlike non-generic components, it can be instantiated more than once. 
-Generic components can take typed arguments and in this case, that typed 
-argument defines the timer's required precision.
-A full explanation of generic components is outside this document's scope, but
-you can read about them in <a href="../../nesc/user/generics-1.2.txt">nesc
-generic component documentation</a>. 
+
+<p><a name="leds_footnote">(1)</a> Unlike in tinyos-1.x, LEDs in 2.x
+are not labeled by color but instead by number to reflect the fact
+that different platforms have different colored LEDs. In telos, the
+mapping (LED0,LED1,LED2) to (Red,Green,Blue), and in mica motes the
+mapping is (LED0,LED1,LED2) to (Red,Green,Yellow).
+
+<p><a name="oskitimermillic_footnote">(2)</a> The OskiTimerMilliC
+component is a <i>generic component</i> which means that, unlike
+non-generic components, it can be instantiated more than once.
+Generic components can take typed arguments and in this case, that
+typed argument defines the timer's required precision.  A full
+explanation of generic components is outside this document's scope,
+but you can read about them in <a
+href="../../nesc/user/generics-1.2.txt">nesc generic component
+documentation</a>.
 
 <p>
 <b><a href="lesson2.html">Next Lesson &gt;</a></b> |&nbsp; <b><a
