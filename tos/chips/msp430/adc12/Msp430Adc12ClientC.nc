@@ -27,22 +27,24 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-06 16:25:25 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-12 18:00:58 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
  
 generic configuration Msp430Adc12ClientC()
 {
+  provides interface Init;
   provides interface Resource;
   provides interface Msp430Adc12SingleChannel;
 } implementation {
   components Msp430Adc12C;
    
   enum {
-    ID = unique(ADC_RESOURCE),
+    ID = unique(MSP430ADC12_RESOURCE),
   };
+  Init = Msp430Adc12C.Init;
   Resource = Msp430Adc12C.Resource[ID];
   Msp430Adc12SingleChannel = Msp430Adc12C.SingleChannel[ID];
 }
