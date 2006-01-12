@@ -13,20 +13,20 @@ demonstate it. This is pretty exhaustive. We could do something
 simpler/shorter. I'm sure I must have missed something, so everyone feel
 free to chip in.
 
-Tutorial I: Interfaces and Configurations
+Tutorial I: Interfaces and Configurations (Kristin)
   - Components interact through well-defined interfaces.
   - Component signatures, provides and uses
   - Interface descriptions
   - Wiring two components together
   - Exporting a wiring
 
-Tutorial II: Modules
+Tutorial II: Modules (Kristin)
   - Executable logic.
   - Events vs. commands.
   - Defaults.
   - Storage and ownership.
    
-Tutorial III: An Application
+Tutorial III: An Application (Kristin)
   - Boot.booted()
   - Init()
   - Twiddling the LEDs.
@@ -34,36 +34,37 @@ Tutorial III: An Application
   - Timers.
   - Tasks to defer processing.
 
-Tutorial IV: Acquiring Data
+Tutorial IV: Acquiring Data (Kristin)
   - Sampling a sensor.
   - Periodically sampling the sensors and twiddling the LEDs.
   - Handling error conditions.
 
-Tutorial V: Communication
+Tutorial V: Communication (Prabal)
   - Message buffers.
   - Sending a buffer.
   - Receiving a buffer: swapping vs. copying.
   - Making a send queue.
   - Getting packet metadata (Packet, AMPacket interfaces).
 
-Tutorial VI: Storage
+Tutorial VI: Storage (Kristin)
   - Storing small things: nodeID.
   - Storing a big chunk of things: data from another node (generated,
 e.g., with Random), reliable protocol.xa
   - Storing a stream: logging.
 
-Tutorial VI: Power management
+Tutorial VII: Power management (Vlado)
   - Turning components on/off.
   - Resource managers and power policies.
 
-Tutorial VII: Concurrency
+Tutorial VIII: Concurrency (Kristin)
   - Tasks, revisited.
   - Async code vs. sync code (until now all has been sync)
   - Scheduler.
 
-Tutorial VIII: Platforms
+Tutorial IX: Platforms (PhilB)
   - chips vs. platforms
   - Telescoping abstractions
   - Sensorboards
 
-Phil
+Tutorial X: TOSSIM (PhilL)
+
