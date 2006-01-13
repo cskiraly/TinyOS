@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-12 18:01:46 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-13 18:37:00 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -235,6 +235,10 @@ enum sampcon_id_enum
 
 // The unique string for accessing HAL2
 #define ADCC_SERVICE "AdcC.Service"
+
+// The unique string for accessing HAL2 via ReadStream
+#define ADCC_READ_STREAM_SERVICE "AdcC.ReadStream.Client"
+
 
 typedef struct 
 {
