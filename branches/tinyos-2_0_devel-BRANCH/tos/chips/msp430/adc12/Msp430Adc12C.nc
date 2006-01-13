@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-12 18:01:46 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-13 18:38:13 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -68,8 +68,8 @@ implementation
   Msp430Adc12P.Port66 -> MSP430GeneralIOC.Port66;
   Msp430Adc12P.Port67 -> MSP430GeneralIOC.Port67;
 
+  // exclusive access to TimerA expected
   Msp430Adc12P.TimerA -> MSP430TimerC.TimerA;
-  //Msp430Adc12P.TimerAResource -> MSP430TimerC.TimerAResource;
   Msp430Adc12P.ControlA0 -> MSP430TimerC.ControlA0;
   Msp430Adc12P.ControlA1 -> MSP430TimerC.ControlA1;
   Msp430Adc12P.CompareA0 -> MSP430TimerC.CompareA0;
