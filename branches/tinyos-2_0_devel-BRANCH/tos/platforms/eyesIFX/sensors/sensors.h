@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-12 18:08:22 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-13 18:43:20 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -40,6 +40,7 @@ enum {
   PHOTO_SENSOR_LOW_FREQ,
   PHOTO_SENSOR_HIGH_FREQ,
   PHOTO_SENSOR_DEFAULT,
+  PHOTO_SENSOR_VCC,
   
   TEMP_SENSOR_LOW_FREQ,
   TEMP_SENSOR_HIGH_FREQ,

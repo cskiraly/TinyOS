@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-12 18:08:22 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-13 18:43:20 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -66,10 +66,18 @@ implementation
                       SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
           return config;
         }
+      case PHOTO_SENSOR_VCC:
+        {
+          msp430adc12_channel_config_t config = {
+                      INPUT_CHANNEL_A2, REFERENCE_AVcc_AVss, REFVOLT_LEVEL_NONE,
+                      SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
+                      SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
+          return config;
+        }        
       case TEMP_SENSOR_LOW_FREQ:
         {
           msp430adc12_channel_config_t config = {
-                      INPUT_CHANNEL_A0, REFERENCE_AVcc_AVss, REFVOLT_LEVEL_1_5,
+                      INPUT_CHANNEL_A0, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
                       SHT_SOURCE_ACLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
                       SAMPCON_SOURCE_ACLK, SAMPCON_CLOCK_DIV_1 };
           return config;
@@ -78,7 +86,7 @@ implementation
       case TEMP_SENSOR_DEFAULT:
         {
           msp430adc12_channel_config_t config = {
-                      INPUT_CHANNEL_A0, REFERENCE_AVcc_AVss, REFVOLT_LEVEL_1_5,
+                      INPUT_CHANNEL_A0, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
                       SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
                       SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
           return config;
@@ -87,7 +95,7 @@ implementation
       case RSSI_SENSOR_VCC:
         {
           msp430adc12_channel_config_t config = {
-                      INPUT_CHANNEL_A3, REFERENCE_AVcc_AVss, REFVOLT_LEVEL_1_5,
+                      INPUT_CHANNEL_A3, REFERENCE_AVcc_AVss, REFVOLT_LEVEL_NONE,
                       SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
                       SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
           return config;
