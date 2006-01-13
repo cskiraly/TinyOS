@@ -37,6 +37,195 @@
 %{
 #include <memory.h>
 #include <tossim.h>
+
+enum {
+  PRIMITIVE_INTEGER      = 0,
+  PRIMITIVE_FLOAT   = 1,
+  PRIMITIVE_UNKNOWN = 2
+};
+
+int lengthOfType(char* type) {
+  if (strcmp(type, "uint8_t") == 0) {
+    return sizeof(uint8_t);
+  }
+  else if (strcmp(type, "uint16_t") == 0) {
+    return sizeof(uint16_t);
+  }
+  else if (strcmp(type, "uint32_t") == 0) {
+    return sizeof(uint32_t);
+  }
+  else if (strcmp(type, "int8_t") == 0) {
+    return sizeof(int8_t);
+  }
+  else if (strcmp(type, "int16_t") == 0) {
+    return sizeof(int16_t);
+  }
+  else if (strcmp(type, "int32_t") == 0) {
+    return sizeof(int32_t);
+  }
+  else if (strcmp(type, "char") == 0) {
+    return sizeof(char);
+  }
+  else if (strcmp(type, "short") == 0) {
+    return sizeof(short);
+  }
+  else if (strcmp(type, "int") == 0) {
+    return sizeof(int);
+  }
+  else if (strcmp(type, "long") == 0) {
+    return sizeof(long);
+  }
+  else if (strcmp(type, "unsigned char") == 0) {
+    return sizeof(unsigned char);
+  }
+  else if (strcmp(type, "unsigned short") == 0) {
+    return sizeof(unsigned short);
+  }
+  else if (strcmp(type, "unsigned int") == 0) {
+    return sizeof(unsigned int);
+  }
+  else if (strcmp(type, "unsigned long") == 0) {
+    return sizeof(unsigned long);
+  }
+  else if (strcmp(type, "float") == 0) {
+    return sizeof(float);
+  }
+  else if (strcmp(type, "double") == 0) {
+    return sizeof(double);
+  }
+  else {
+    return 1;
+  }
+}
+
+int memoryToPrimitive(char* type, char* ptr, long* lval, double* dval) {
+  if (strcmp(type, "uint8_t") == 0) {
+    uint8_t val;
+    memcpy(&val, ptr, sizeof(uint8_t));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "uint16_t") == 0) {
+    uint16_t val;
+    memcpy(&val, ptr, sizeof(uint16_t));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "uint32_t") == 0) {
+    uint32_t val;
+    memcpy(&val, ptr, sizeof(uint32_t));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "int8_t") == 0) {
+    int8_t val;
+    memcpy(&val, ptr, sizeof(int8_t));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "int16_t") == 0) {
+    int16_t val;
+    memcpy(&val, ptr, sizeof(int16_t));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "int32_t") == 0) {
+    int32_t val;
+    memcpy(&val, ptr, sizeof(int32_t));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "char") == 0) {
+    long val;
+    memcpy(&val, ptr, sizeof(char));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "short") == 0) {
+    short val;
+    memcpy(&val, ptr, sizeof(short));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "int") == 0) {
+    int val;
+    memcpy(&val, ptr, sizeof(int));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "long") == 0) {
+    long val;
+    memcpy(&val, ptr, sizeof(long));
+    *lval = val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "unsigned char") == 0) {
+    unsigned char val;
+    memcpy(&val, ptr, sizeof(unsigned char));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "unsigned short") == 0) {
+    unsigned short val;
+    memcpy(&val, ptr, sizeof(unsigned short));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "unsigned int") == 0) {
+    unsigned int val;
+    memcpy(&val, ptr, sizeof(unsigned int));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "unsigned long") == 0) {
+    unsigned long val;
+    memcpy(&val, ptr, sizeof(unsigned long));
+    *lval = (long)val;
+    return PRIMITIVE_INTEGER;
+  }
+  else if (strcmp(type, "float") == 0) {
+    float val;
+    memcpy(&val, ptr, sizeof(float));
+    *dval = (double)val;
+    return PRIMITIVE_FLOAT;
+  }
+  else if (strcmp(type, "double") == 0) {
+    double val;
+    memcpy(&val, ptr, sizeof(double));
+    *dval = val;
+    return PRIMITIVE_FLOAT;
+  }
+  else {
+    return PRIMITIVE_UNKNOWN;
+  }
+}
+
+PyObject* valueFromScalar(char* type, char* ptr, int len) {
+  long lval;
+  double dval;
+  int rval = memoryToPrimitive(type, ptr, &lval, &dval);
+  switch(rval) {
+    case PRIMITIVE_INTEGER:
+      return PyInt_FromLong(lval);
+    case PRIMITIVE_FLOAT:
+      return PyFloat_FromDouble(dval);
+    case PRIMITIVE_UNKNOWN:
+    default:
+      return PyString_FromStringAndSize(ptr, len);
+  }
+}
+
+PyObject* listFromArray(char* type, char* ptr, int len) {
+  long lval;
+  double dval;
+  int elementLen = lengthOfType(type);
+  PyObject* list = PyList_New(0);
+  printf("Generating list of %s\n", type);
+  for (char* tmpPtr = ptr; tmpPtr < ptr + len; tmpPtr += elementLen) {
+    PyList_Append(list, valueFromScalar(type, tmpPtr, elementLen));    
+  }
+  return list;
+}
 %}
 
 %include mac.i
@@ -51,32 +240,97 @@
   $1 = PyFile_AsFile($input);
 }
 
-%typemap(python,out) var_string_t {
-  $result = PyString_FromStringAndSize($1.ptr, $1.len);
+%typemap(python,out) variable_string_t {
+  if ($1.isArray) {
+    printf("Generating array %s\n", $1.type);
+    $result = listFromArray  ($1.type, $1.ptr, $1.len);
+  }
+  else {
+    printf("Generating scalar %s\n", $1.type);
+    $result = valueFromScalar($1.type, $1.ptr, $1.len);
+  }
+  if ($result == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "Error generating Python type from TinyOS variable.");
+  }
+}
+
+
+%typemap(python,in) nesc_app_t* {
+  if (!PyList_Check($input)) {
+    PyErr_SetString(PyExc_TypeError, "Requires a list as a parameter.");
+    return NULL;
+  }
+  else {
+    int size = PyList_Size($input);
+    int i = 0;
+    nesc_app_t* app;
+
+    if (size % 3 != 0) {
+      PyErr_SetString(PyExc_RuntimeError, "List must have 2*N elements.");
+      return NULL;
+    }
+
+    app = (nesc_app_t*)malloc(sizeof(nesc_app_t));
+
+    app->numVariables = size / 3;
+    app->variableNames = (char**)malloc(sizeof(char*) * app->numVariables);
+    app->variableTypes = (char**)malloc(sizeof(char*) * app->numVariables);
+    app->variableArray = (int*)malloc(sizeof(int) * app->numVariables);
+
+    memset(app->variableNames, 0, sizeof(char*) * app->numVariables);
+    memset(app->variableTypes, 0, sizeof(char*) * app->numVariables);
+    memset(app->variableArray, 0, sizeof(int) * app->numVariables);
+
+    for (i = 0; i < app->numVariables; i++) {
+      PyObject* name = PyList_GetItem($input, 3 * i);
+      PyObject* array = PyList_GetItem($input, (3 * i) + 1);
+      PyObject* format = PyList_GetItem($input, (3 * i) + 2);
+      if (PyString_Check(name) && PyString_Check(format)) {
+        app->variableNames[i] = PyString_AsString(name);
+        app->variableTypes[i] = PyString_AsString(format);
+        if (strcmp(PyString_AsString(array), "array") == 0) {
+          app->variableArray[i] = 1;
+          printf("%s is an array\n", PyString_AsString(name));
+        }
+        else {
+          app->variableArray[i] = 0;
+          printf("%s is a scalar\n", PyString_AsString(name));
+        }
+      }
+      else {
+        app->variableNames[i] = "<bad string>";
+        app->variableTypes[i] = "<bad string>";
+      }
+    }
+
+    $1 = app;
+  }
 }
 
 typedef struct var_string {
+  char* type;
   char* ptr;
   int len;
-} var_string_t;
+  int isArray;
+} variable_string_t;
+
+typedef struct nesc_app {
+  int numVariables;
+  char** variableNames;
+  char** variableTypes;
+  int* variableArray;
+} nesc_app_t;
 
 class Variable {
  public:
-  Variable(char* name, int mote);
+  Variable(char* name, char* format, int array, int mote);
   ~Variable();
-  var_string_t getData();
-  
- private:
-  char* name;
-  int mote;
-  void* ptr;
-  char* data;
-  int len;
+  variable_string_t getData();  
 };
 
 class Mote {
  public:
-  Mote();
+  Mote(nesc_app_t* app);
   ~Mote();
 
   unsigned long id();
@@ -97,7 +351,7 @@ class Mote {
 
 class Tossim {
  public:
-  Tossim();
+  Tossim(nesc_app_t* app);
   ~Tossim();
   
   void init();

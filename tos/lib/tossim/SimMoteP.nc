@@ -32,7 +32,7 @@
  * @date   August 19 2005
  */
 
-// $Id: SimMoteP.nc,v 1.1.2.4 2006-01-08 07:14:20 scipio Exp $
+// $Id: SimMoteP.nc,v 1.1.2.5 2006-01-13 18:52:52 scipio Exp $
 
 module SimMoteP {
   provides interface SimMote;
@@ -57,7 +57,7 @@ implementation {
     return isOn;
   }
 
-  async command int SimMote.getVariableInfo(char* name, void** addr, int* size) {
+  async command int SimMote.getVariableInfo(char* name, void** addr, size_t* size) {
     return __nesc_nido_resolve(sim_node(), name, (uintptr_t*)addr, (size_t*)size);
   }
 
@@ -104,12 +104,12 @@ implementation {
     return result;
   }
 
-  int sim_mote_get_variable_info(int mote, char* name, void** ptr, int* len) __attribute__ ((C, spontaneous)) {
+  int sim_mote_get_variable_info(int mote, char* name, void** ptr, size_t* len) __attribute__ ((C, spontaneous)) {
     int result;
     int tmpID = sim_node();
     sim_set_node(mote);
     result = call SimMote.getVariableInfo(name, ptr, len);
-    dbg("SimMoteP", "Fetched %s of %i to be %p with len %i\n", name, mote, *ptr, *len);
+    dbg("SimMoteP", "Fetched %s of %i to be %p with len %i (result %i)\n", name, mote, *ptr, *len, result);
     sim_set_node(tmpID);
     return result;
   }

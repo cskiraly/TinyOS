@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tos.h,v 1.1.2.7 2006-01-04 22:07:23 scipio Exp $
+// $Id: tos.h,v 1.1.2.8 2006-01-13 18:52:52 scipio Exp $
 
 #ifndef TOS_H_INCLUDED
 #define TOS_H_INCLUDED
@@ -61,6 +61,8 @@ enum { FALSE = 0, TRUE = 1 };
 
 extern uint16_t TOS_LOCAL_ADDRESS;
 
+#define PROGMEM
+
 #ifndef TOSSIM_MAX_NODES
 #define TOSSIM_MAX_NODES 1000
 #endif
@@ -75,6 +77,11 @@ extern uint16_t TOS_LOCAL_ADDRESS;
 // build process means that this is the only really good place to put
 // them.
 #ifdef TOSSIM
+
+struct @atmostonce { };
+struct @atleastonce { };
+struct @exactlyonce { };
+
 #include <sim_log.c>
 #include <heap.c>
 #include <sim_event_queue.c>
