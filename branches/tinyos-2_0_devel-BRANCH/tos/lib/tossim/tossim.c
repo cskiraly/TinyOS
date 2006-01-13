@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tossim.c,v 1.1.2.6 2006-01-08 07:14:21 scipio Exp $
+// $Id: tossim.c,v 1.1.2.7 2006-01-13 18:52:52 scipio Exp $
 
 
 #include <stdint.h>
@@ -46,17 +46,31 @@
 
 uint16_t TOS_LOCAL_ADDRESS = 1;
 
-static Mote motes[TOSSIM_MAX_NODES + 1];
-
-Variable::Variable(char* str, int which) {
+Variable::Variable(char* str, char* formatStr, int array, int which) {
   name = str;
+  format = formatStr;
+  isArray = array;
   mote = which;
+  
+  int sLen = strlen(name);
+  realName = (char*)malloc(sLen + 1);
+  memcpy(realName, name, sLen + 1);
+  realName[sLen] = 0;
 
-  if (sim_mote_get_variable_info(mote, name, &ptr, &len) == 0) {
+  for (int i = 0; i < sLen; i++) {
+    if (realName[i] == '.') {
+      realName[i] = '$';
+    }
+  }
+
+  printf("Creating %s realName: %s format: %s %s\n", name, realName, formatStr, array? "[]":"");
+
+  if (sim_mote_get_variable_info(mote, realName, &ptr, &len) == 0) {
     data = (char*)malloc(len + 1);
     data[len] = 0;
   }
   else {
+    printf("Could not find variable %s\n", realName);
     data = NULL;
     ptr = NULL;
   }
@@ -66,20 +80,27 @@ Variable::~Variable() {
   free(data);
 }
 
-var_string_t Variable::getData() {
+variable_string_t Variable::getData() {
   if (data != NULL && ptr != NULL) {
-    memcpy(data, ptr, len);
     str.ptr = data;
+    str.type = format;
     str.len = len;
+    str.isArray = isArray;
+    printf("Getting %s %s %s\n", format, isArray? "[]":"", name);
+    memcpy(data, ptr, len);
   }
   else {
     str.ptr = "<no such variable>";
+    str.type = "<no such variable>";
     str.len = strlen("<no such variable>");
+    str.isArray = 0;
   }
   return str;
 }
 
-Mote::Mote() {}
+Mote::Mote(nesc_app_t* n) {
+  app = n;
+}
 Mote::~Mote(){}
 
 unsigned long Mote::id() {
@@ -120,10 +141,28 @@ void Mote::setID(unsigned long val) {
 }
 
 Variable* Mote::getVariable(char* name) {
-  return new Variable(name, nodeID);
+  char* typeStr = "";
+  int isArray;
+  // Could hash this for greater efficiency,
+  // but that would either require transformation
+  // in Tossim class or a more complex typemap.
+  if (app != NULL) {
+    for (int i = 0; i < app->numVariables; i++) {
+      if(strcmp(name, app->variableNames[i]) == 0) {
+	typeStr = app->variableTypes[i];
+	isArray = app->variableArray[i];
+	break;
+      }
+    }
+  }
+  printf("Getting variable %s of type %s %s\n", name, typeStr, isArray? "[]" : "");
+  return new Variable(name, typeStr, isArray, nodeID);
 }
 
-Tossim::Tossim() {}
+Tossim::Tossim(nesc_app_t* n) {
+  app = n;
+  init();
+}
 
 Tossim::~Tossim() {
   sim_end();
@@ -131,9 +170,8 @@ Tossim::~Tossim() {
 
 void Tossim::init() {
   sim_init();
-  for (int i = 0; i <= TOSSIM_MAX_NODES; i++) {
-    motes[i].setID(i);
-  }
+  motes = (Mote**)malloc(sizeof(Mote*) * (TOSSIM_MAX_NODES + 1));
+  memset(motes, 0, sizeof(Mote*) * TOSSIM_MAX_NODES);
 }
 
 long long int Tossim::time() {
@@ -155,11 +193,20 @@ Mote* Tossim::currentNode() {
 
 Mote* Tossim::getNode(unsigned long nodeID) {
   if (nodeID > TOSSIM_MAX_NODES) {
+    nodeID = TOSSIM_MAX_NODES;
     // log an error, asked for an invalid node
-    return motes + TOSSIM_MAX_NODES;
   }
   else {
-    return motes + nodeID;
+    if (motes[nodeID] == NULL) {
+      motes[nodeID] = new Mote(app);
+      if (nodeID == TOSSIM_MAX_NODES) {
+	motes[nodeID]->setID(0xffff);
+      }
+      else {
+	motes[nodeID]->setID(nodeID);
+      }
+    }
+    return motes[nodeID];
   }
 }
 

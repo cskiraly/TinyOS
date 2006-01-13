@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tossim.h,v 1.1.2.6 2006-01-08 07:14:21 scipio Exp $
+// $Id: tossim.h,v 1.1.2.7 2006-01-13 18:52:52 scipio Exp $
 
 #ifndef TOSSIM_H_INCLUDED
 #define TOSSIM_H_INCLUDED
@@ -41,29 +41,41 @@
 #include <radio.h>
 #include <packet.h>
 
-typedef struct var_string {
+typedef struct variable_string {
+  char* type;
   char* ptr;
   int len;
-} var_string_t;
+  int isArray;
+} variable_string_t;
+
+typedef struct nesc_app {
+  int numVariables;
+  char** variableNames;
+  char** variableTypes;
+  int* variableArray;
+} nesc_app_t;
 
 class Variable {
  public:
-  Variable(char* name, int mote);
+  Variable(char* name, char* format, int array, int mote);
   ~Variable();
-  var_string_t getData();
+  variable_string_t getData();
   
  private:
   char* name;
+  char* realName;
+  char* format;
   int mote;
   void* ptr;
   char* data;
-  int len;
-  var_string_t str;
+  size_t len;
+  int isArray;
+  variable_string_t str;
 };
 
 class Mote {
  public:
-  Mote();
+  Mote(nesc_app_t* app);
   ~Mote();
 
   unsigned long id();
@@ -83,11 +95,12 @@ class Mote {
   
  private:
   unsigned long nodeID;
+  nesc_app_t* app;
 };
 
 class Tossim {
  public:
-  Tossim();
+  Tossim(nesc_app_t* app);
   ~Tossim();
   
   void init();
@@ -108,9 +121,11 @@ class Tossim {
   MAC* mac();
   Radio* radio();
   Packet* newPacket();
-  
+
  private:
   char timeBuf[256];
+  nesc_app_t* app;
+  Mote** motes;
 };
 
 

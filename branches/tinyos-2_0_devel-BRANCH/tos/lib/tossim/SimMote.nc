@@ -29,14 +29,14 @@
  * @date   Nov 22 2005
  */
 
-// $Id: SimMote.nc,v 1.1.2.4 2006-01-08 07:14:19 scipio Exp $
+// $Id: SimMote.nc,v 1.1.2.5 2006-01-13 18:52:52 scipio Exp $
 
 interface SimMote {
   async command long long int getEuid();
   async command void setEuid(long long int euid);
   async command long long int getStartTime();
   async command bool isOn();
-  async command int getVariableInfo(char* name, void** ptr, int* len);
+  async command int getVariableInfo(char* name, void** ptr, size_t* len);
   command void turnOn();
   async command void turnOff();
 }
