@@ -27,78 +27,91 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-06 16:25:25 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-13 18:35:55 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
   
-  /* Interface for ADC12 on MSP430. See also TEP 101. */  
-
 includes Msp430Adc12;
 interface Msp430Adc12SingleChannel 
 {   
 
-  /*
-   * Starts a single conversion. If successful, an event singleDataReady() will
-   * be signalled with the conversion result. Check MSP430ADC12.h for
-   * msp430adc12_result_t definition.  
+  /** 
+   * 
+   * Samples an ADC channel. If MSP430ADC12_SUCCESS or MSP430ADC12_DELAYED is
+   * returned, an event singleDataReady() will be signalled with the conversion
+   * result. Otherwise singleDataReady() will not be signalled.
+   *
+   * @return Whether the request succeeded.
    */
-  async command msp430adc12_result_t getSingleData(
-      const msp430adc12_channel_config_t *config);
+  async command msp430adc12_result_t getSingleData( const
+      msp430adc12_channel_config_t *config);
 
-  /*
-   * Starts a single conversion in repeat mode. If successful the event 
-   * singleDataReady() will be signalled repeatedly with the conversion results,
-   * until the application returns FAIL in the event handler.
-   * Successive conversions are performed as quickly as possible if
-   * <code>jiffies</code> equals zero. Otherwise <code>jiffies</code> 
-   * define the time between successive conversions in terms of 
-   * clock ticks of "clockSourceSAMPCON" and input divider 
-   * "clockDivSAMPCON" specified in msp430adc12_channel_config_t
-   * (see <code>getConfigurationData()</code> above).
-   * Check MSP430ADC12.h for msp430adc12_result_t definition.  
+  /**
+   * 
+   * Samples an ADC channel in repeat mode. If MSP430ADC12_SUCCESS or
+   * MSP430ADC12_DELAYED is returned, an event singleDataReady() will be
+   * signalled repeatedly with the conversion results, until the client returns
+   * FAIL in the event handler. Otherwise singleDataReady() will not be
+   * signalled. Successive conversions are performed as quickly as possible if
+   * <code>jiffies</code> equals zero. Otherwise <code>jiffies</code> define
+   * the time between successive conversions in terms of clock ticks of
+   * "clockSourceSAMPCON" and input divider "clockDivSAMPCON" as specified in
+   * the <code>config</code> parameter.
+   * 
+   * @return Whether the request succeeded.
    */
-  async command msp430adc12_result_t getSingleDataRepeat( 
-      const msp430adc12_channel_config_t *config, 
+  async command msp430adc12_result_t getSingleDataRepeat( const
+      msp430adc12_channel_config_t *config, uint16_t jiffies);
+
+ /** 
+  *
+  * Starts multiple successive conversions for the same ADC channel.  The
+  * number of requested samples must match and is only bounded by the size of
+  * the buffer.  If MSP430ADC12_SUCCESS or MSP430ADC12_DELAYED is returned, the
+  * event <code>multipleDataReady</code> is signalled after the buffer is
+  * filled with conversion results. Otherwise <code>multipleDataReady()</code>
+  * will not be signalled.  Successive conversions are performed as quickly as
+  * possible if <code>jiffies</code> equals zero.  Otherwise
+  * <code>jiffies</code> define the time between successive conversions in
+  * terms of clock ticks of "clockSourceSAMPCON" and input divider
+  * "clockDivSAMPCON" as specified in the <code>config</code> parameter.
+  *
+  * @return Whether the request succeeded.
+  */ 
+  async command msp430adc12_result_t getMultipleData( const
+      msp430adc12_channel_config_t *config, uint16_t *buf, uint16_t length,
       uint16_t jiffies);
 
- /**
-   * Starts a series of, i.e. multiple successive conversions. 
-   * The size of a series must match and is only bounded by the 
-   * size of the buffer. The event <code>multipleDataReady</code>
-   * is signalled after the buffer is filled with conversion results. 
-   * Successive conversions are performed as quickly as possible if
-   * <code>jiffies</code> equals zero. Otherwise <code>jiffies</code> 
-   * define the time between successive conversions in terms of 
-   * clock ticks of "clockSourceSAMPCON" and input divider 
-   * "clockDivSAMPCON" specified in msp430adc12_channel_config_t
-   * (see <code>getConfigurationData()</code> above).
-   * Check MSP430ADC12.h for msp430adc12_result_t definition. 
+ /** 
+  *
+  * Starts multiple successive conversions in repeat mode. The number of
+  * requested samples must be <= 16.   If MSP430ADC12_SUCCESS or
+  * MSP430ADC12_DELAYED is returned, the event <code>multipleDataReady</code>
+  * is signalled with conversion results per series until the application
+  * returns a null pointer in the event handler. Otherwise
+  * <code>multipleDataReady()</code> will not be signalled. Successive
+  * conversions are performed as quickly as possible if <code>jiffies</code>
+  * equals zero.  Otherwise <code>jiffies</code> define the time between
+  * successive conversions in terms of clock ticks of "clockSourceSAMPCON" and
+  * input divider "clockDivSAMPCON" as specified in the <code>config</code>
+  * parameter.
+  *
+  * @return Whether the request succeeded.
   */ 
-  async command msp430adc12_result_t getMultipleData(
-      const msp430adc12_channel_config_t *config,
-      uint16_t *buf, uint16_t length, uint16_t jiffies);
+  async command msp430adc12_result_t getMultipleDataRepeat( const
+      msp430adc12_channel_config_t *config, uint16_t *buf, uint8_t length,
+      uint16_t jiffies);
+           
+  /** 
+   * Stops a request, if the sampling has not yet started (MSP430ADC12_DELAYED
+   * was returned).
+   * 
+   * @return Whether the request succeeded.
+   */  
+  async command error_t stop();
 
- /**
-   * Starts a series of, i.e. multiple successive conversions in
-   * repeat mode. The size of a series, <code>length</code>,
-   * must be <= 16. 
-   * The event <code>multipleDataReady</code> is signalled 
-   * with conversion results per series until the application 
-   * returns a null pointer in the event handler.
-   * Successive conversions are performed as quickly as possible if
-   * <code>jiffies</code> equals zero. Otherwise <code>jiffies</code> 
-   * define the time between successive conversions in terms of 
-   * clock ticks of "clockSourceSAMPCON" and input divider 
-   * "clockDivSAMPCON" specified in msp430adc12_channel_config_t
-   * (see <code>getConfigurationData()</code> above).
-   * Check MSP430ADC12.h for msp430adc12_result_t definition. 
-  */ 
-  async command msp430adc12_result_t getMultipleDataRepeat(
-      const msp430adc12_channel_config_t *config,
-      uint16_t *buf, uint8_t length, uint16_t jiffies);
-                      
  /**
    * Data from call to getSingleData() or getSingleDataRepeat() 
    * is ready. In the first case the return value is ignored,
@@ -111,7 +124,7 @@ interface Msp430Adc12SingleChannel
    * Data from call to getMultipleData() or getMultipleDataRepeat() 
    * is ready. In the first case the return value is ignored,
    * in the second it points to a buffer of size <code>length</code>
-   * to store the next <code>length</code> results.
+   * to store the next conversion results.
    */    
   async event uint16_t* multipleDataReady(uint16_t *buf, uint16_t length);
 }
