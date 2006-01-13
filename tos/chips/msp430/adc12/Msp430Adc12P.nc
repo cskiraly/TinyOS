@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-06 16:25:25 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-13 18:36:15 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -46,7 +46,6 @@ module Msp430Adc12P
     interface Msp430RefVoltGenerator as RefVoltGenerator;
 	  interface HplAdc12;
     interface MSP430Timer as TimerA;
-    //interface Resource as TimerAResource;
     interface MSP430TimerControl as ControlA0;
     interface MSP430TimerControl as ControlA1;
     interface MSP430Compare as CompareA0;
@@ -74,6 +73,8 @@ implementation
     ADC_BUSY = 1,               /* request pending */
     TIMERA_USED = 2,            /* TimerA used for SAMPCON signal */
     VREF_USED = 4,              /* VREF generator in use */
+    DELAYED = 8,                /* waiting for VREF generator to become stable */
+    CANCELLED = 16,             /* conversion stopped by client */
   };
 
   uint16_t *resultBuffer;        /* result buffer */
@@ -81,6 +82,7 @@ implementation
   uint16_t resultBufferIndex;    /* offset into buffer */
   uint8_t clientID;              /* ID of interface that issued current request */
   uint8_t flags;                 /* current state, see above */
+
   // norace is safe, because Resource interface resolves conflicts  
   norace uint8_t conversionMode; /* current conversion conversionMode, see above */
 
@@ -100,15 +102,13 @@ implementation
   
   msp430adc12_result_t clientAccessRequest(uint8_t id)
   {
-    uint8_t oldFlags;
     if (call ADCArbiterInfo.userId() == id){
       atomic {
-        oldFlags = flags;
-        flags |= ADC_BUSY;
+        if (flags & ADC_BUSY)
+          return MSP430ADC12_FAIL_BUSY;
+        flags = ADC_BUSY;
+        clientID = id;
       }
-      if (oldFlags & ADC_BUSY)
-        return MSP430ADC12_FAIL_BUSY;
-      atomic clientID = id;
       return MSP430ADC12_SUCCESS;
     }
     return MSP430ADC12_FAIL_NOT_RESERVED;
@@ -116,7 +116,7 @@ implementation
 
   inline void clientAccessFinished()
   {
-    atomic flags &= ~ADC_BUSY;
+    atomic flags = 0;
   }
 
   msp430adc12_result_t enableReferenceVoltage(uint8_t sref, uint8_t ref2_5v)
@@ -133,9 +133,10 @@ implementation
         return MSP430ADC12_FAIL_VREF;
       else {
         atomic flags |= VREF_USED;
-        if (call RefVoltGenerator.getVoltageLevel() == REFERENCE_UNSTABLE)
+        if (call RefVoltGenerator.getVoltageLevel() == REFERENCE_UNSTABLE){
+          atomic flags |= DELAYED;
           return MSP430ADC12_DELAYED;
-        else
+        } else
           return MSP430ADC12_SUCCESS;
       }
     } else {
@@ -225,21 +226,25 @@ implementation
 
   event void RefVoltGenerator.isStable(uint8_t voltageLevel)
   {
-    uint8_t flagsTemp;
-    atomic flagsTemp = flags;
-    if (flagsTemp & VREF_USED){
-      call HplAdc12.startConversion();
-      if (flagsTemp & TIMERA_USED)
-        startTimerA(); // go!
+    uint8_t useTimerA = 0;
+    atomic {
+      if (flags & CANCELLED){
+        clientAccessFinished();
+        return;
+      }
+      flags &= ~DELAYED;
+      useTimerA = (flags & TIMERA_USED);
     }
+    call HplAdc12.startConversion();
+    if (useTimerA)
+        startTimerA(); // go!
   }
     
-  void stopConversion()
+  void stopConversionSingleChannel()
   {
     adc12memctl_t memctl = call HplAdc12.getMCtl(0);
     if (flags & TIMERA_USED){
       call TimerA.setMode(MSP430TIMER_STOP_MODE);
-      // TODO: release TimerA through arbitration
     }
     resetAdcPin( memctl.inch );
     call HplAdc12.stopConversion();
@@ -351,7 +356,6 @@ implementation
         call HplAdc12.setMCtl(0, memctl);
         call HplAdc12.setIEFlags(0x01);
         if (jiffies){
-          // TODO: request TimerA by arbitration
           atomic flags |= TIMERA_USED;   
           prepareTimerA(jiffies, config->sampcon_ssel, config->sampcon_id);
         }     
@@ -425,7 +429,6 @@ implementation
         call HplAdc12.setIEFlags(mask << i);        
         
         if (jiffies){
-          // TODO: request TimerA by arbitration
           atomic flags |= TIMERA_USED;
           prepareTimerA(jiffies, config->sampcon_ssel, config->sampcon_id);
         }      
@@ -499,7 +502,6 @@ implementation
         call HplAdc12.setIEFlags(mask << i);        
         
         if (jiffies){
-          // TODO: request TimerA by arbitration
           atomic flags |= TIMERA_USED;
           prepareTimerA(jiffies, config->sampcon_ssel, config->sampcon_id);
         }      
@@ -514,6 +516,19 @@ implementation
     return result;
   }
 
+  async command error_t SingleChannel.stop[uint8_t id]()
+  {
+    error_t stopped = FAIL;
+    if (call ADCArbiterInfo.userId() == id)
+      atomic {
+        if (flags & DELAYED){
+          flags |= CANCELLED;
+          stopped = SUCCESS;
+        }
+      }
+    return stopped;
+  }
+
   async event void TimerA.overflow(){}
   async event void CompareA0.fired(){}
   async event void CompareA1.fired(){}
@@ -524,7 +539,7 @@ implementation
     switch (conversionMode) 
     { 
       case SINGLE_DATA:
-        stopConversion();
+        stopConversionSingleChannel();
         signal SingleChannel.singleDataReady[clientID](call HplAdc12.getMem(0));
         break;
       case SINGLE_DATA_REPEAT:
@@ -533,7 +548,7 @@ implementation
           repeatContinue = signal SingleChannel.singleDataReady[clientID](
                 call HplAdc12.getMem(0));
           if (repeatContinue == FAIL)
-            stopConversion();
+            stopConversionSingleChannel();
           break;
         }
       case MULTIPLE_DATA:
@@ -555,7 +570,7 @@ implementation
             memctl.eos = 1;
             call HplAdc12.setMCtl(resultBufferLength - resultBufferIndex, memctl);
           } else {
-            stopConversion();
+            stopConversionSingleChannel();
             signal SingleChannel.multipleDataReady[clientID](
                 resultBuffer - resultBufferLength, resultBufferLength);
           }
@@ -572,7 +587,7 @@ implementation
               resultBuffer-resultBufferLength,
                     resultBufferLength);
           if (!resultBuffer)  
-            stopConversion();
+            stopConversionSingleChannel();
           break;
         }
       } // switch
