@@ -28,4 +28,4 @@
 #
 # Author: Geoffrey Mainland <mainland@eecs.harvard.edu>
 #
-__all__ = ["message"]
+__all__ = ["message", "tossim"]
