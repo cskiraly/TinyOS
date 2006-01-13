@@ -10,8 +10,8 @@ Resource Arbitration
 :Authors: Kevin Klues, Philip Levis, David Gay, David Culler, Vlado Handziski
 
 :Draft-Created: 28-Mar-2005
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2006-01-09 22:27:12 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-01-13 11:49:13 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at  
 mail.millennium.berkeley.edu>
 
@@ -464,13 +464,12 @@ high-priority client.
 ====================================================================
 
 | Kevin Klues
-| Sekr FT5
-| Einsteinufer 25
-| 10587 Berlin
-| GERMANY
+| 503 Bryan Hall
+| Washington University
+| St. Louis, MO 63130
 |
-| phone - +49-30-314-23813
-| email - klues@tkn.tu-berlin.de
+| phone - +1-314-935-6355
+| email - klueska@cs.wustl.edu
 |
 | Philip Levis
 | 358 Gates Hall
