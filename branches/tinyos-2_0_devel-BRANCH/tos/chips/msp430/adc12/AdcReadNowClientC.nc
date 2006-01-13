@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-12 18:05:58 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-13 18:41:37 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -47,10 +47,11 @@ generic configuration AdcReadNowClientC() {
     CLIENT = unique(ADCC_SERVICE),
   };
 
+  Init = AdcC;
   Init = Msp430AdcClient;
   ReadNow = AdcC.ReadNow[CLIENT];
   Msp430Adc12Config = AdcC.Config[CLIENT];
   AdcC.SingleChannel[CLIENT] -> Msp430AdcClient.Msp430Adc12SingleChannel;
-  AdcC.ResourceReadNow[CLIENT] ->  Msp430AdcClient.Resource;
+  AdcC.Resource[CLIENT] ->  Msp430AdcClient.Resource;
 }
 
