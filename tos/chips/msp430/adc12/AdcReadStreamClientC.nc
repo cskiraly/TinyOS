@@ -27,30 +27,30 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-01-13 18:41:37 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 #include <Msp430Adc12.h>
-generic configuration AdcReadClientC() {
+generic configuration AdcReadStreamClientC() {
   provides {
     interface Init;
-    interface Read<uint16_t> as Read;
+    interface ReadStream<uint16_t> as ReadStream;
   }
   uses interface Msp430Adc12Config;
 } implementation {
   components new Msp430Adc12ClientC() as Msp430AdcClient, AdcC;
 
   enum {
-    CLIENT = unique(ADCC_SERVICE),
+    RSCLIENT = unique(ADCC_READ_STREAM_SERVICE),
   };
 
   Init = AdcC;
   Init = Msp430AdcClient;
-  Read = AdcC.Read[CLIENT];
-  Msp430Adc12Config = AdcC.Config[CLIENT];
-  AdcC.SingleChannel[CLIENT] -> Msp430AdcClient.Msp430Adc12SingleChannel;
-  AdcC.Resource[CLIENT] ->  Msp430AdcClient.Resource;
+  ReadStream = AdcC.ReadStream[RSCLIENT];
+  Msp430Adc12Config = AdcC.ConfigReadStream[RSCLIENT];
+  AdcC.SingleChannelReadStream[RSCLIENT] -> Msp430AdcClient.Msp430Adc12SingleChannel;
+  AdcC.ResourceReadStream[RSCLIENT] -> Msp430AdcClient.Resource;
 }
   
