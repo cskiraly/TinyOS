@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2005-12-06 22:58:17 $ 
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-01-14 09:04:20 $ 
  * ======================================================================== 
  */
  
@@ -39,6 +39,8 @@
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
+includes Timer;
+
 module TestArbiterC {
   uses {
     interface Boot;  
@@ -46,57 +48,47 @@ module TestArbiterC {
     interface Resource as Resource0;
     interface Resource as Resource1;
     interface Resource as Resource2;  
-    interface ResourceRequested as ResourceRequested0;
-    interface ResourceRequested as ResourceRequested1;
-    interface ResourceRequested as ResourceRequested2;
+    interface Timer<TMilli> as Timer0;
+    interface Timer<TMilli> as Timer1;
+    interface Timer<TMilli> as Timer2;
   }
 }
 implementation {
 
-  //Function for inserting delay so that you can see
-  //  Leds as they flash
-  void delay() {
-    uint16_t i, j;
-    for (i= 0; i < 5; i++) {
-      for (j = 0; j < 30000; j++) {}
-    }
-  }
+  #define HOLD_PERIOD 250
   
   //All resources try to gain access
   event void Boot.booted() {
     call Resource0.request();
-    delay();
     call Resource2.request();
-    delay();
     call Resource1.request();
   }
   
   //If granted the resource, turn on an LED  
   event void Resource0.granted() {
+    call Timer0.startOneShot(HOLD_PERIOD);
     call Leds.led0Toggle();      
   }  
   event void Resource1.granted() {
+    call Timer1.startOneShot(HOLD_PERIOD);
     call Leds.led1Toggle();     
   }  
   event void Resource2.granted() {
+    call Timer2.startOneShot(HOLD_PERIOD);
     call Leds.led2Toggle();  
   }  
   
-  //If detect that someone else wants the resource,
-  //  release it
-  async event void ResourceRequested0.requested() {
+  //After the hold period release the resource
+  event void Timer0.fired() {
     call Resource0.release();
-    delay();
     call Resource0.request();
   }
-  async event void ResourceRequested1.requested() {
+  event void Timer1.fired() {
     call Resource1.release();
-    delay();
     call Resource1.request();
   }
-  async event void ResourceRequested2.requested() {
+  event void Timer2.fired() {
     call Resource2.release();
-    delay();
     call Resource2.request();
   }
 }

@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-12-06 22:58:17 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-14 09:04:20 $ 
  * ======================================================================== 
  */
  
@@ -44,8 +44,11 @@ configuration TestArbiterAppC{
 }
 implementation {
   components MainC, TestArbiterC,LedsC,
-     new RoundRobinArbiterC(TEST_ARBITER_RESOURCE) as Arbiter; 
-     //new FcfsArbiterC(TEST_ARBITER_RESOURCE) as Arbiter;
+     new OskiTimerMilliC() as Timer0,
+     new OskiTimerMilliC() as Timer1,
+     new OskiTimerMilliC() as Timer2,
+//      new RoundRobinArbiterC(TEST_ARBITER_RESOURCE) as Arbiter; 
+     new FcfsArbiterC(TEST_ARBITER_RESOURCE) as Arbiter;
 
   enum {
     RESOURCE0_ID = unique(TEST_ARBITER_RESOURCE),
@@ -57,12 +60,12 @@ implementation {
   MainC.SoftwareInit -> LedsC;
   MainC.SoftwareInit -> Arbiter;
  
-  TestArbiterC.ResourceRequested0 -> Arbiter.ResourceRequested[RESOURCE0_ID];  
-  TestArbiterC.ResourceRequested1 -> Arbiter.ResourceRequested[RESOURCE1_ID];  
-  TestArbiterC.ResourceRequested2 -> Arbiter.ResourceRequested[RESOURCE2_ID];  
   TestArbiterC.Resource0 -> Arbiter.Resource[RESOURCE0_ID];
   TestArbiterC.Resource1 -> Arbiter.Resource[RESOURCE1_ID];
   TestArbiterC.Resource2 -> Arbiter.Resource[RESOURCE2_ID];
+  TestArbiterC.Timer0 -> Timer0;
+  TestArbiterC.Timer1 -> Timer1;
+  TestArbiterC.Timer2 -> Timer2;
   
   TestArbiterC.Leds -> LedsC;
 }
