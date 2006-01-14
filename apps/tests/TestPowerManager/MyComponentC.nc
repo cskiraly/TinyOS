@@ -20,8 +20,8 @@
  * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2005-12-08 03:20:39 $ 
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-01-14 08:48:36 $ 
  * ======================================================================== 
  *
  */
@@ -43,17 +43,21 @@ implementation {
   components MyComponentP, LedsC, 
              new OskiTimerMilliC() as StartTimer, new OskiTimerMilliC() as StopTimer,
              new FcfsArbiterC(MYCOMPONENT_RESOURCE) as Arbiter,
-             new PowerManagerC() as PowerManager;
-//              new DeferredPowerManagerC(750) as PowerManager;
+//              new AsyncStdControlPowerManagerC() as PowerManager;
+//              new AsyncStdControlDeferredPowerManagerC(750) as PowerManager;
+//              new StdControlPowerManagerC() as PowerManager;
+//              new StdControlDeferredPowerManagerC(750) as PowerManager;
+//              new SplitControlPowerManagerC() as PowerManager;
+             new SplitControlDeferredPowerManagerC(750) as PowerManager;
 
   Init = Arbiter;
   Init = PowerManager;
   Init = LedsC;
   Resource = Arbiter;
- 
-//   PowerManager.StdControl -> MyComponentP.StdControl; 
-//   PowerManager.SplitControl -> MyComponentP.SplitControl;  
-  PowerManager.AsyncSplitControl -> MyComponentP.AsyncSplitControl;  
+
+//   PowerManager.AsyncStdControl -> MyComponentP.AsyncStdControl;  
+//   PowerManager.StdControl -> MyComponentP.StdControl;
+  PowerManager.SplitControl -> MyComponentP.SplitControl;
   PowerManager.ArbiterInit -> Arbiter.Init;  
   PowerManager.ResourceController -> Arbiter.ResourceController;
   PowerManager.ArbiterInfo -> Arbiter.ArbiterInfo;
