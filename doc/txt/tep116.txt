@@ -10,8 +10,8 @@ Packet Protocols
 :Author: Philip Levis
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2006-01-13 19:14:06 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2006-01-14 00:41:42 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -303,7 +303,7 @@ interface Send {
   event void sendDone(message_t* msg, error_t error);
 
   command uint8_t maxPayloadLength();
-  command void* getPayload(message_t* msg, uint8_t* len);
+  command void* getPayload(message_t* msg);
 }
 
 while this is the AMSend interface::
@@ -314,7 +314,7 @@ interface AMSend {
   event void sendDone(message_t* msg, error_t error);
 
   command uint8_t maxPayloadLength();
-  command void* getPayload(message_t* msg, uint8_t* len);
+  command void* getPayload(message_t* msg);
 }
 
 Sending interfaces MUST include these four commands and one event.
@@ -370,7 +370,104 @@ basic packet abstraction to the hardware underneath. Approaches
 include choosing one radio or having some form of address-based
 dispatch.
 
-4. HAL Requirements
+
+4. Services: AMSenderC, AMReceiverC, AMSnooperC, AMSnoopingReceiverC
+====================================================================
+
+TinyOS 2.x provides four component virtualizations to applications:
+AMReceiverC, AMSnooperC, AMSnoopingReceiverC, and AMSenderC. Each is a
+generic component that takes an active message ID as a
+parameter. These components assume the existence of ActiveMessageC.
+
+4.1 AMReceiverC
+--------------------------------------------------------------------
+
+AMReceiverC has the following signature::
+
+generic configuration AMReceiverC(am_id_t t) {
+  provides{
+    interface Receive;
+    interface Packet;
+    interface AMPacket;
+  }
+}
+
+AMReceiver.Receive.receive is signalled whenever the packet layer
+receives an active message of the corresponding AM type whose
+destination address is the local address or the broadcast
+address. Note that since Receive.receive swaps buffers, a program MUST
+NOT instantiate two AMReceivers with the same am_id_t and MUST NOT
+instantiate an AMReceiver and an AMSnoopingReceiver with the same
+am_id_t.
+
+4.2 AMSnooperC
+--------------------------------------------------------------------
+
+AMSnooper has an identical signature to AMReceiver::
+
+generic configuration AMSnooperC(am_id_t t) {
+  provides{
+    interface Receive;
+    interface Packet;
+    interface AMPacket;
+  }
+}
+
+AMSnooper.Receive.receive is signalled whenever the packet layer
+receives an active message of the corresponding AM type whose
+destination address is neither to the local address nor the broadcast
+address. Note that since Receive.receive swaps buffers, a program MUST
+NOT instantiate two AMSnoopers with the same am_id_t and MUST NOT
+instantiate an AMSnooper and an AMSnoopingReceiver with the same
+am_id_t.
+
+4.3 AMSnoopingReceiverC
+--------------------------------------------------------------------
+
+AMSnoopingReceiver has an identical signature to AMReceiver::
+
+generic configuration AMSnoopingReceiverC(am_id_t t) {
+  provides{
+    interface Receive;
+    interface Packet;
+    interface AMPacket;
+  }
+}
+
+AMSnoopingReceiver.Receive.receive is signalled whenever the packet
+layer receives an active message of the corresponding AM type,
+regardless of destination address. Note that since Receive.receive
+swaps buffers, a program that instantiates an AMSnoopingReceiver with
+a certain am_id_t MUST NOT instantiate another AMSnoopingReceiver,
+AMSnooper, or AMReceiver with the same am_id_t.
+
+4.4 AMSender 
+--------------------------------------------------------------------
+
+AMSender has the following signature::
+
+generic configuration AMSenderC(am_id_t AMId) {
+  provides {
+    interface AMSend;
+    interface Packet;
+    interface AMPacket;
+    interface PacketAcknowledgements as Acks;
+  }
+}
+
+Because this is a send virtualization, AMSenderC.AMSend.send returns
+EBUSY only if there is a send request outstanding on this particular
+AMSenderC. That is, each AMSenderC has a queue of depth one. The exact
+order in which pending AMSenderC requests are serviced is undefined,
+but it MUST be fair queueing.
+
+4.5 Power Management
+--------------------------------------------------------------------
+
+The communication virtualizations do not support power management.
+That is left to components interacting directly with ActiveMessageC.
+
+5. HAL Requirements
 ====================================================================
 
 A radio chip **X** MUST have a packet abstraction with the following
@@ -390,7 +487,7 @@ The component SHOULD be named **X**ActiveMessageC, where **X** is
 the name of the radio chip. The component MAY have additional interfaces. 
 These interfaces can either be chip-specific or chip-independent. 
 
-5. message_t
+6. message_t
 ====================================================================
 
 Active messages are a basic single-hop packet abstraction. Therefore,
@@ -419,7 +516,7 @@ type field, however, has been added to the header structure in order
 to support AM dispatch.
 
 
-6. Author's Address
+7. Author's Address
 ====================================================================
 
 | Philip Levis
