@@ -20,8 +20,8 @@
  * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-12-08 03:21:45 $ 
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-01-14 08:48:02 $ 
  * ======================================================================== 
  *
  */
@@ -32,14 +32,12 @@
  * @author Kevin Klues <klueska@cs.wustl.edu>
  */
  
-generic module PowerManagerC() {
+generic module AsyncPowerManagerP() {
   provides {
     interface Init;
   }
   uses {
-    interface StdControl;
-    interface SplitControl;
-    interface AsyncSplitControl;
+    interface AsyncStdControl;
 
     interface PowerDownCleanup;
     interface Init as ArbiterInit;
@@ -50,85 +48,41 @@ generic module PowerManagerC() {
 implementation {
 
   norace struct {
-   uint8_t stopping :1;
-   uint8_t requested :1;
+    uint8_t stopping :1;
+    uint8_t requested :1;
   } f; //for flags
-
-  task void startTask() { 
-    call StdControl.start();
-    call SplitControl.start();
-  }
-  task void stopTask() { 
-    call StdControl.stop(); 
-    call SplitControl.stop(); 
-  }
-
+  
   command error_t Init.init() {
-    f.stopping = FALSE;
-    f.requested = FALSE;
     call ArbiterInit.init();
     call ResourceController.immediateRequest();
     return SUCCESS;
   }
 
   async event void ResourceController.requested() {
-    if(f.stopping == FALSE)
-      call AsyncSplitControl.start();
-    else atomic f.requested = TRUE;
-  }
-
-  default async command error_t AsyncSplitControl.start() {
-    post startTask();
-    return SUCCESS;
-  }
-  default command error_t StdControl.start() {
-    return SUCCESS;
-  }
-  default command error_t SplitControl.start() {
-    signal SplitControl.startDone(SUCCESS);
-    return SUCCESS;
-  }
-
-  async event void AsyncSplitControl.startDone(error_t error) {
-    call ResourceController.release();
-  }
-  event void SplitControl.startDone(error_t error) {
-    call ResourceController.release();
+    if(f.stopping == FALSE) {
+      call AsyncStdControl.start();
+      call ResourceController.release();
+    }
+    else atomic f.requested = TRUE;    
   }
 
   async event void ResourceController.idle() {
     if(call ResourceController.immediateRequest() == SUCCESS) {
-      f.stopping = TRUE;
+      atomic f.stopping = TRUE;
       call PowerDownCleanup.cleanup();
-      call AsyncSplitControl.stop();
+      call AsyncStdControl.stop();
     }
-  }
-
-  async event void AsyncSplitControl.stopDone(error_t error) {
-    if(f.requested == TRUE)
-      call AsyncSplitControl.start();
+    if(f.requested == TRUE) {
+      call AsyncStdControl.start();
+      call ResourceController.release();
+    }
     atomic {
-      f.requested = FALSE;
       f.stopping = FALSE;
+      f.requested = FALSE;
     }
-  }
-  event void SplitControl.stopDone(error_t error) {
-    signal AsyncSplitControl.stopDone(error);
   }
 
   event void ResourceController.granted() {
-  }
-
-  default async command error_t AsyncSplitControl.stop() {
-    post stopTask();
-    return SUCCESS;
-  }
-  default command error_t StdControl.stop() {
-    return SUCCESS;
-  }
-  default command error_t SplitControl.stop() {
-    signal SplitControl.stopDone(SUCCESS);
-    return SUCCESS;
   }
 
   default async command void PowerDownCleanup.cleanup() {

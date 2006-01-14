@@ -20,7 +20,7 @@
  * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-01-14 08:48:02 $ 
  * ======================================================================== 
  *
@@ -32,7 +32,7 @@
  * @author Kevin Klues <klueska@cs.wustl.edu>
  */
  
-generic module DeferredPowerManagerP(uint32_t delay) {
+generic module PowerManagerP() {
   provides {
     interface Init;
   }
@@ -44,7 +44,6 @@ generic module DeferredPowerManagerP(uint32_t delay) {
     interface Init as ArbiterInit;
     interface ResourceController;
     interface ArbiterInfo;
-    interface Timer<TMilli> as TimerMilli;
   }
 }
 implementation {
@@ -58,8 +57,9 @@ implementation {
     call StdControl.start();
     call SplitControl.start();
   }
-  task void timerTask() { 
-    call TimerMilli.startOneShot(delay); 
+  task void stopTask() { 
+    call StdControl.stop(); 
+    call SplitControl.stop(); 
   }
 
   command error_t Init.init() {
@@ -75,7 +75,7 @@ implementation {
       post startTask();
     else atomic f.requested = TRUE;
   }
-
+  
   default command error_t StdControl.start() {
     return SUCCESS;
   }
@@ -87,18 +87,12 @@ implementation {
   event void SplitControl.startDone(error_t error) {
     call ResourceController.release();
   }
-
+  
   async event void ResourceController.idle() {
-    if(!(call ArbiterInfo.inUse()))
-      post timerTask();
-  }
-
-  event void TimerMilli.fired() {
     if(call ResourceController.immediateRequest() == SUCCESS) {
       f.stopping = TRUE;
       call PowerDownCleanup.cleanup();
-      call StdControl.stop();
-      call SplitControl.stop();
+      post stopTask();
     }
   }
 

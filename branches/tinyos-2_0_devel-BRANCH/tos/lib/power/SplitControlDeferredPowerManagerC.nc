@@ -20,8 +20,8 @@
  * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-12-08 03:21:45 $ 
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-01-14 08:48:02 $ 
  * ======================================================================== 
  *
  */
@@ -32,14 +32,12 @@
  * @author Kevin Klues (klueska@cs.wustl.edu)
  */
  
-generic configuration DeferredPowerManagerC(uint32_t delay) {
+generic configuration SplitControlDeferredPowerManagerC(uint32_t delay) {
   provides {
     interface Init;
   }
   uses {
-    interface StdControl;
     interface SplitControl;
-    interface AsyncSplitControl;
 
     interface PowerDownCleanup;
     interface Init as ArbiterInit;
@@ -53,9 +51,7 @@ implementation {
 
   Init = PowerManager;
  
-  PowerManager.StdControl = StdControl;
   PowerManager.SplitControl = SplitControl;
-  PowerManager.AsyncSplitControl = AsyncSplitControl;
 
   PowerManager.PowerDownCleanup = PowerDownCleanup;
  
