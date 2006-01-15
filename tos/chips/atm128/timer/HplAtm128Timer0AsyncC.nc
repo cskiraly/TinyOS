@@ -1,4 +1,4 @@
-/// $Id: HplTimer0AsyncC.nc,v 1.1.2.3 2006-01-10 19:04:46 idgay Exp $
+/// $Id: HplAtm128Timer0AsyncC.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -27,14 +27,14 @@
 
 #include <Atm128Timer.h>
 
-module HplTimer0AsyncC
+module HplAtm128Timer0AsyncC
 {
   provides {
     interface Init @atleastonce();
     // 8-bit Timers
-    interface HplTimer<uint8_t>   as Timer0;
-    interface HplTimerCtrl8       as Timer0Ctrl;
-    interface HplCompare<uint8_t> as Compare0;
+    interface HplAtm128Timer<uint8_t>   as Timer0;
+    interface HplAtm128TimerCtrl8       as Timer0Ctrl;
+    interface HplAtm128Compare<uint8_t> as Compare0;
   }
 }
 implementation

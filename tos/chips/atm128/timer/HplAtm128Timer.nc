@@ -1,4 +1,4 @@
-/// $Id: HplTimer.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: HplAtm128Timer.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -41,7 +41,7 @@
  *      3) Control of Overflow Interrupt: start/stop/clear...
  *      4) Timer Initialization: turn on/off clock source
  */
-interface HplTimer<timer_size>
+interface HplAtm128Timer<timer_size>
 {
   /// Timer value register: Direct access
   async command timer_size get();

@@ -1,6 +1,6 @@
-//$Id: InterruptC.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+//$Id: HplAtm128Interrupt.nc,v 1.1.2.1 2006-01-15 23:44:52 scipio Exp $
 
-/* "Copyright (c) 2000-2005 The Regents of the University of California.  
+/* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -25,42 +25,39 @@
  * @author Martin Turon
  */
 
-generic module InterruptC() {
-  provides interface Interrupt;
-  uses interface HplInterrupt;
-}
-implementation {
-  /**
-   * enable an edge interrupt on the Interrupt pin
+interface HplAtm128Interrupt
+{
+  /** 
+   * Enables ATmega128 hardware interrupt on a particular port
    */
-  async command error_t Interrupt.startWait(bool low_to_high) {
-    atomic {
-      call HplInterrupt.disable();
-      call HplInterrupt.clear();
-      call HplInterrupt.edge(low_to_high);
-      call HplInterrupt.enable();
-    }
-    return SUCCESS;
-  }
+  async command void enable();
+
+  /** 
+   * Disables ATmega128 hardware interrupt on a particular port
+   */
+  async command void disable();
+
+  /** 
+   * Clears the ATmega128 Interrupt Pending Flag for a particular port
+   */
+  async command void clear();
+
+  /** 
+   * Gets the current value of the input voltage of a port
+   *
+   * @return TRUE if the pin is set high, FALSE if it is set low
+   */
+  async command bool getValue();
+
+  /** 
+   * Sets whether the edge should be high to low or low to high.
+   * @param TRUE if the interrupt should be triggered on a low to high
+   *        edge transition, false for interrupts on a high to low transition
+   */
+  async command void edge(bool low_to_high);
 
   /**
-   * disables Interrupt interrupts
+   * Signalled when an interrupt occurs on a port
    */
-  async command error_t Interrupt.disable() {
-    atomic {
-      call HplInterrupt.disable();
-      call HplInterrupt.clear();
-    }
-    return SUCCESS;
-  }
-
-  /**
-   * Event fired by lower level interrupt dispatch for Interrupt
-   */
-  async event void HplInterrupt.fired() {
-    call HplInterrupt.clear();
-    signal Interrupt.fired();
-  }
-
-  default async event void Interrupt.fired() { }
+  async event void fired();
 }

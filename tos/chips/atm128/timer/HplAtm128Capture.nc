@@ -1,4 +1,4 @@
-// $Id: PlatformLedsC.nc,v 1.1.2.4 2006-01-15 23:44:55 scipio Exp $
+/// $Id: HplAtm128Capture.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,19 +24,22 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-includes hardware;
+interface HplAtm128Capture<size_type>
+{
+  /// Capture value register: Direct access
+  async command size_type get();
+  async command void      set(size_type t);
 
-configuration PlatformLedsC
-{
-  provides interface GeneralIO as Led0;
-  provides interface GeneralIO as Led1;
-  provides interface GeneralIO as Led2;
+  /// Interrupt signals
+  async event void captured(size_type t);  //<! Signalled on capture interrupt
+
+  /// Interrupt flag utilites: Bit level set/clr  
+  async command void reset();          //<! Clear the capture interrupt flag
+  async command void start();          //<! Enable the capture interrupt
+  async command void stop();           //<! Turn off capture interrupts
+  async command bool test();           //<! Did capture interrupt occur?
+  async command bool isOn();           //<! Is capture interrupt on?
+
+  async command void setEdge(bool up); //<! True = detect rising edge
 }
-implementation
-{
-  components HplAtm128GeneralIOC as IO;
-    
-  Led0 = IO.PortA2;  // Pin A2 = Red LED
-  Led1 = IO.PortA1;  // Pin A1 = Green LED
-  Led2 = IO.PortA0;  // Pin A0 = Yellow LED
-}
+

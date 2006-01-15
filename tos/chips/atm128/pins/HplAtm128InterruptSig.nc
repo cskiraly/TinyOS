@@ -24,14 +24,14 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: HplInterruptSig.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+ *  $Id: HplAtm128InterruptSig.nc,v 1.1.2.1 2006-01-15 23:44:52 scipio Exp $
  */
 
 /**
  * Exposes just the interrupt vector routine for 
  * easy linking to generic components.
  */
-interface HplInterruptSig
+interface HplAtm128InterruptSig
 {
   /**
    * Signalled when an interrupt occurs on a pin

@@ -1,4 +1,4 @@
-// $Id: HplInterruptPinP.nc,v 1.1.2.2 2006-01-09 23:25:40 idgay Exp $
+// $Id: HplAtm128InterruptPinP.nc,v 1.1.2.1 2006-01-15 23:44:52 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -27,13 +27,13 @@
 /**
  * Interrupt interface access for interrupt capable GPIO pins.
  */
-generic module HplInterruptPinP (uint8_t ctrl_addr, 
+generic module HplAtm128InterruptPinP (uint8_t ctrl_addr, 
 				 uint8_t edge0bit, 
 				 uint8_t edge1bit, 
 				 uint8_t bit)
 {
-  provides interface HplInterrupt as Irq;
-  uses interface HplInterruptSig as IrqSignal;
+  provides interface HplAtm128Interrupt as Irq;
+  uses interface HplAtm128InterruptSig as IrqSignal;
 }
 implementation
 {

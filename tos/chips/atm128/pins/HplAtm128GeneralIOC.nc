@@ -1,4 +1,4 @@
-// $Id: HplGeneralIOC.nc,v 1.1.2.2 2005-12-20 18:09:51 scipio Exp $
+// $Id: HplAtm128GeneralIOC.nc,v 1.1.2.1 2006-01-15 23:44:52 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -30,7 +30,7 @@
 
 #include <atm128hardware.h>
 
-configuration HplGeneralIOC
+configuration HplAtm128GeneralIOC
 {
   // provides all the ports as raw ports
   provides {
@@ -99,30 +99,30 @@ configuration HplGeneralIOC
 implementation
 {
   components 
-  new HplGeneralIOPortP((uint8_t)&PORTA, (uint8_t)&DDRA, (uint8_t)&PINA) as PortA,
-    new HplGeneralIOPortP((uint8_t)&PORTB, (uint8_t)&DDRB, (uint8_t)&PINB) as PortB,
-    new HplGeneralIOPortP((uint8_t)&PORTC, (uint8_t)&DDRC, (uint8_t)&PINC) as PortC,
-    new HplGeneralIOPortP((uint8_t)&PORTD, (uint8_t)&DDRD, (uint8_t)&PIND) as PortD,
-    new HplGeneralIOPortP((uint8_t)&PORTE, (uint8_t)&DDRE, (uint8_t)&PINE) as PortE,
-    new HplGeneralIOPortP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF) as PortF,
+  new HplAtm128GeneralIOPortP((uint8_t)&PORTA, (uint8_t)&DDRA, (uint8_t)&PINA) as PortA,
+    new HplAtm128GeneralIOPortP((uint8_t)&PORTB, (uint8_t)&DDRB, (uint8_t)&PINB) as PortB,
+    new HplAtm128GeneralIOPortP((uint8_t)&PORTC, (uint8_t)&DDRC, (uint8_t)&PINC) as PortC,
+    new HplAtm128GeneralIOPortP((uint8_t)&PORTD, (uint8_t)&DDRD, (uint8_t)&PIND) as PortD,
+    new HplAtm128GeneralIOPortP((uint8_t)&PORTE, (uint8_t)&DDRE, (uint8_t)&PINE) as PortE,
+    new HplAtm128GeneralIOPortP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF) as PortF,
 
   // PortF cannot use sbi, cbi
-    new HplGeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 0) as F0,
-    new HplGeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 1) as F1,
-    new HplGeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 2) as F2,
-    new HplGeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 3) as F3,
-    new HplGeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 4) as F4,
-    new HplGeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 5) as F5,
-    new HplGeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 6) as F6,
-    new HplGeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 7) as F7,
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 0) as F0,
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 1) as F1,
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 2) as F2,
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 3) as F3,
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 4) as F4,
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 5) as F5,
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 6) as F6,
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF, 7) as F7,
 
 
   // PortG only exposes 5 bits and cannot use sbi, cbi
-    new HplGeneralIOSlowPinP((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 0) as G0,
-    new HplGeneralIOSlowPinP((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 1) as G1,
-    new HplGeneralIOSlowPinP((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 2) as G2,
-    new HplGeneralIOSlowPinP((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 3) as G3,
-    new HplGeneralIOSlowPinP((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 4) as G4
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 0) as G0,
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 1) as G1,
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 2) as G2,
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 3) as G3,
+    new HplAtm128GeneralIOSlowPinP((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING, 4) as G4
     ;
 
   PortA0 = PortA.Pin0;

@@ -45,7 +45,7 @@
  * Configuration encapsulating the basic SPI HPL for the atm128.
  *
  * <pre>
- * $Id: HplAtm128SpiC.nc,v 1.1.2.1 2005-10-30 00:43:39 scipio Exp $
+ * $Id: HplAtm128SpiC.nc,v 1.1.2.2 2006-01-15 23:44:53 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -58,7 +58,7 @@ configuration HplAtm128SpiC {
 }
 implementation
 {
-    components HplGeneralIOC as IO, HplAtm128SpiP as HplSpi;
+    components HplAtm128GeneralIOC as IO, HplAtm128SpiP as HplSpi;
     
     SpiBus = HplSpi;
 

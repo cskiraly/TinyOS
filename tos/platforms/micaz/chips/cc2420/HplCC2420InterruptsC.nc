@@ -44,15 +44,15 @@ configuration HplCC2420InterruptsC {
 
 implementation {
 
-  components new GpioCaptureC() as CaptureSFDC;
-  components HplTimer1C;
+  components new Atm128GpioCaptureC() as CaptureSFDC;
+  components HplAtm128Timer1C as Timer1C;
   CaptureSFD = CaptureSFDC;
-  CaptureSFDC.Atm128Capture -> HplTimer1C.Capture1;
+  CaptureSFDC.Atm128Capture -> Timer1C.Capture1;
 
-  components new GpioInterruptC() as InterruptFIFOPC;
-  components HplInterruptC;
+  components new Atm128GpioInterruptC() as InterruptFIFOPC;
+  components HplAtm128InterruptC as Interrupts;
   InterruptFIFOP = InterruptFIFOPC;
-  InterruptFIFOPC.Atm128Interrupt -> HplInterruptC.Int6;
+  InterruptFIFOPC.Atm128Interrupt -> Interrupts.Int6;
 
   components HplCC2420InterruptsP, HplCC2420PinsC, TimerMilliC;
   InterruptCCA   = HplCC2420InterruptsP.CCA;

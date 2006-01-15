@@ -1,4 +1,4 @@
-/// $Id: HplTimer1C.nc,v 1.1.2.2 2005-10-27 20:31:27 idgay Exp $
+// $Id: HplAtm128GeneralIOPinP.nc,v 1.1.2.1 2006-01-15 23:44:52 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,29 +23,31 @@
  */
 
 /// @author Martin Turon <mturon@xbow.com>
+/// @author David Gay <dgay@intel-research.net>
 
-configuration HplTimer1C
+/**
+ * Generic pin access for pins mapped into I/O space (for which the sbi, cbi
+ * instructions give atomic updates). This can be used for ports A-E.
+ */
+generic module HplAtm128GeneralIOPinP (uint8_t port_addr, 
+				 uint8_t ddr_addr, 
+				 uint8_t pin_addr,
+				 uint8_t bit)
 {
-  provides {
-    // 16-bit Timers
-    interface HplTimer<uint16_t>   as Timer1;
-    interface HplTimerCtrl16       as Timer1Ctrl;
-    interface HplCapture<uint16_t> as Capture1;
-    interface HplCompare<uint16_t> as Compare1A;
-    interface HplCompare<uint16_t> as Compare1B;
-    interface HplCompare<uint16_t> as Compare1C;
-  }
+  provides interface GeneralIO as IO;
 }
 implementation
 {
-  components HplTimer0AsyncC, HplTimer1P;
+#define pin (*(volatile uint8_t *)pin_addr)
+#define port (*(volatile uint8_t *)port_addr)
+#define ddr (*(volatile uint8_t *)ddr_addr)
 
-  Timer1 = HplTimer1P;
-  Timer1Ctrl = HplTimer1P;
-  Capture1 = HplTimer1P;
-  Compare1A = HplTimer1P.Compare1A;
-  Compare1B = HplTimer1P.Compare1B;
-  Compare1C = HplTimer1P.Compare1C;
-
-  HplTimer1P.Timer0Ctrl -> HplTimer0AsyncC;
+  inline async command bool IO.get()        { return READ_BIT (pin, bit); }
+  inline async command void IO.set()        { SET_BIT  (port, bit); }
+  inline async command void IO.clr()        { CLR_BIT  (port, bit); }
+  inline async command void IO.toggle()     { atomic FLIP_BIT (port, bit); }
+    
+  inline async command void IO.makeInput()  { CLR_BIT  (ddr, bit);  }
+  inline async command void IO.makeOutput() { SET_BIT  (ddr, bit);  }
 }
+

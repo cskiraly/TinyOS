@@ -1,4 +1,4 @@
-//$Id: Atm128CounterC.nc,v 1.1.2.1 2005-10-27 20:31:27 idgay Exp $
+//$Id: Atm128CounterC.nc,v 1.1.2.2 2006-01-15 23:44:54 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -29,7 +29,7 @@ generic module Atm128CounterC(typedef frequency_tag,
 			      typedef timer_size @integer())
 {
   provides interface Counter<frequency_tag,timer_size> as Counter;
-  uses interface HplTimer<timer_size> as Timer;
+  uses interface HplAtm128Timer<timer_size> as Timer;
 }
 implementation
 {

@@ -1,4 +1,4 @@
-/// $Id: HplTimer3C.nc,v 1.1.2.1 2005-10-11 22:14:49 idgay Exp $
+/// $Id: HplAtm128Timer3C.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -26,15 +26,15 @@
 
 #include <Atm128Timer.h>
 
-module HplTimer3C
+module HplAtm128Timer3C
 {
   provides {
-    interface HplTimer<uint16_t>   as Timer3;
-    interface HplTimerCtrl16       as Timer3Ctrl;
-    interface HplCapture<uint16_t> as Capture3;
-    interface HplCompare<uint16_t> as Compare3A;
-    interface HplCompare<uint16_t> as Compare3B;
-    interface HplCompare<uint16_t> as Compare3C;
+    interface HplAtm128Timer<uint16_t>   as Timer3;
+    interface HplAtm128TimerCtrl16       as Timer3Ctrl;
+    interface HplAtm128Capture<uint16_t> as Capture3;
+    interface HplAtm128Compare<uint16_t> as Compare3A;
+    interface HplAtm128Compare<uint16_t> as Compare3B;
+    interface HplAtm128Compare<uint16_t> as Compare3C;
   }
 }
 implementation

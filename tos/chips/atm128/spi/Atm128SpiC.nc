@@ -50,7 +50,7 @@
  * The HAL of the SPI bus on the atm128.
  *
  * <pre>
- *  $Id: Atm128SpiC.nc,v 1.1.2.5 2005-12-08 03:21:00 klueska Exp $
+ *  $Id: Atm128SpiC.nc,v 1.1.2.6 2006-01-15 23:44:53 scipio Exp $
  * </pre>
  *
  *
@@ -68,7 +68,7 @@ configuration Atm128SpiC {
 }
 implementation {
   components Atm128SpiP as SpiMaster, HplAtm128SpiC as HplSpi;
-  components HplGeneralIOC as IO;
+  components HplAtm128GeneralIOC as IO;
   components new FcfsArbiterC("Atm128SpiC.Resource") as Arbiter;
   components McuSleepC;
   

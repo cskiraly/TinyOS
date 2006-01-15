@@ -1,6 +1,5 @@
-// $Id: HplCC1000InitP.nc,v 1.1.2.2 2006-01-15 23:44:55 scipio Exp $
-/*									tab:4
- * "Copyright (c) 2004-2005 The Regents of the University  of California.  
+/* $Id: platform_message.h,v 1.1.2.1 2006-01-15 23:44:55 scipio Exp $
+ * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,7 +18,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2004-2005 Intel Corporation
+ * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -27,25 +26,34 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+
 /**
- * @author David Gay
+ * Defining the platform-independently named packet structures to be the
+ * chip-specific CC1000 packet structures.
+ *
+ * @author Philip Levis
+ * @date   May 16 2005
+ * Revision:  $Revision: 1.1.2.1 $
  */
-configuration HplCC1000InitP {
-  provides interface Init as PlatformInit;
-}
-implementation {
-  components HplCC1000P, HplCC1000SpiP, HplAtm128GeneralIOC as IO;
 
-  PlatformInit = HplCC1000P;
-  PlatformInit = HplCC1000SpiP;
 
-  HplCC1000P.CHP_OUT -> IO.PortA6;
-  HplCC1000P.PALE -> IO.PortD4;
-  HplCC1000P.PCLK -> IO.PortD6;
-  HplCC1000P.PDATA -> IO.PortD7;
+#ifndef PLATFORM_MESSAGE_H
+#define PLATFORM_MESSAGE_H
 
-  HplCC1000SpiP.SpiSck -> IO.PortB1;
-  HplCC1000SpiP.SpiMiso -> IO.PortB3;
-  HplCC1000SpiP.SpiMosi -> IO.PortB2;
-  HplCC1000SpiP.OC1C -> IO.PortB7;
-}
+#include "CC2420.h"
+#include "Serial.h"
+
+typedef union message_header {
+  cc2420_header_t cc2420;
+  serial_header_t serial;
+} message_header_t;
+
+typedef union message_footer {
+  cc2420_footer_t cc2420;
+} message_footer_t;
+
+typedef union message_metadata {
+  cc2420_metadata_t cc2420;
+} message_metadata_t;
+
+#endif

@@ -1,4 +1,4 @@
-// $Id: HplInterruptSigP.nc,v 1.1.2.3 2005-10-30 00:33:19 scipio Exp $
+// $Id: HplAtm128InterruptSigP.nc,v 1.1.2.1 2006-01-15 23:44:52 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -29,16 +29,16 @@
  * Exposes just the interrupt vector routine for 
  * easy linking to generic components.
  */
-module HplInterruptSigP
+module HplAtm128InterruptSigP
 {
-  provides interface HplInterruptSig as IntSig0;
-  provides interface HplInterruptSig as IntSig1;
-  provides interface HplInterruptSig as IntSig2;
-  provides interface HplInterruptSig as IntSig3;
-  provides interface HplInterruptSig as IntSig4;
-  provides interface HplInterruptSig as IntSig5;
-  provides interface HplInterruptSig as IntSig6;
-  provides interface HplInterruptSig as IntSig7;
+  provides interface HplAtm128InterruptSig as IntSig0;
+  provides interface HplAtm128InterruptSig as IntSig1;
+  provides interface HplAtm128InterruptSig as IntSig2;
+  provides interface HplAtm128InterruptSig as IntSig3;
+  provides interface HplAtm128InterruptSig as IntSig4;
+  provides interface HplAtm128InterruptSig as IntSig5;
+  provides interface HplAtm128InterruptSig as IntSig6;
+  provides interface HplAtm128InterruptSig as IntSig7;
 }
 implementation
 {

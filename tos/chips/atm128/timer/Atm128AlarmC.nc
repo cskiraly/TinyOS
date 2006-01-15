@@ -1,4 +1,4 @@
-/// $Id: Atm128AlarmC.nc,v 1.1.2.3 2006-01-10 19:04:46 idgay Exp $
+/// $Id: Atm128AlarmC.nc,v 1.1.2.4 2006-01-15 23:44:54 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -32,47 +32,47 @@ generic module Atm128AlarmC(typedef frequency_tag,
   provides interface Init @atleastonce();
   provides interface Alarm<frequency_tag, timer_size> as Alarm @atmostonce();
 
-  uses interface HplTimer<timer_size>;
-  uses interface HplCompare<timer_size>;
+  uses interface HplAtm128Timer<timer_size>;
+  uses interface HplAtm128Compare<timer_size>;
 }
 implementation
 {
   command error_t Init.init() {
     atomic {
-      call HplCompare.stop();
-      call HplTimer.set(0);
-      call HplTimer.start();
-      call HplTimer.setScale(prescaler);
+      call HplAtm128Compare.stop();
+      call HplAtm128Timer.set(0);
+      call HplAtm128Timer.start();
+      call HplAtm128Timer.setScale(prescaler);
     }
     return SUCCESS;
   }
   
   async command timer_size Alarm.getNow() {
-    return call HplTimer.get();
+    return call HplAtm128Timer.get();
   }
 
   async command timer_size Alarm.getAlarm() {
-    return call HplCompare.get();
+    return call HplAtm128Compare.get();
   }
 
   async command bool Alarm.isRunning() {
-    return call HplCompare.isOn();
+    return call HplAtm128Compare.isOn();
   }
 
   async command void Alarm.stop() {
-    call HplCompare.stop();
+    call HplAtm128Compare.stop();
   }
 
   async command void Alarm.start( timer_size dt ) 
   {
-    call Alarm.startAt( call HplTimer.get(), dt);
+    call Alarm.startAt( call HplAtm128Timer.get(), dt);
   }
 
   async command void Alarm.startAt( timer_size t0, timer_size dt ) {
     timer_size now;
     timer_size expires, guardedExpires;
 
-    now = call HplTimer.get();
+    now = call HplAtm128Timer.get();
     dbg("Atm128AlarmC", "   starting timer at %llu with dt %llu\n", (uint64_t)t0, (uint64_t) dt);
     /* We require dt >= mindt to avoid setting an interrupt which is in
        the past by the time we actually set it. mindt should always be
@@ -99,29 +99,29 @@ implementation
 	   guardedExpires <= now in wrap-around arithmetic). */
 	if (guardedExpires >= t0 && // if it wraps, it's > now
 	    guardedExpires <= now) 
-	  call HplCompare.set(call HplTimer.get() + mindt);
+	  call HplAtm128Compare.set(call HplAtm128Timer.get() + mindt);
 	else
-	  call HplCompare.set(expires);
+	  call HplAtm128Compare.set(expires);
       }
     else
       {
 	/* again, guardedExpires <= now in wrap-around arithmetic */
 	if (guardedExpires >= t0 || // didn't wrap so < now
 	    guardedExpires <= now)
-	  call HplCompare.set(call HplTimer.get() + mindt);
+	  call HplAtm128Compare.set(call HplAtm128Timer.get() + mindt);
 	else
-	  call HplCompare.set(expires);
+	  call HplAtm128Compare.set(expires);
       }
-    call HplCompare.reset();
-    call HplCompare.start();
+    call HplAtm128Compare.reset();
+    call HplAtm128Compare.start();
   }
 
-  async event void HplCompare.fired() {
-    call HplCompare.stop();
+  async event void HplAtm128Compare.fired() {
+    call HplAtm128Compare.stop();
     dbg("Atm128AlarmC", " Compare fired, signal alarm above.\n");
     signal Alarm.fired();
   }
 
-  async event void HplTimer.overflow() {
+  async event void HplAtm128Timer.overflow() {
   }
 }
