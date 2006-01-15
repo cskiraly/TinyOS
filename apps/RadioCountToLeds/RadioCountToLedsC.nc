@@ -1,4 +1,4 @@
-// $Id: RadioCountToLedsC.nc,v 1.1.2.4 2005-11-01 01:00:44 idgay Exp $
+// $Id: RadioCountToLedsC.nc,v 1.1.2.5 2006-01-15 22:31:34 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -67,6 +67,7 @@ implementation {
   
   event void MilliTimer.fired() {
     counter++;
+    dbg("RadioCountToLedsC", "RadioCountToLedsC: timer fired, counter is %hu.\n", counter);
     if (locked) {
       return;
     }
@@ -85,6 +86,7 @@ implementation {
 
   event message_t* Receive.receive(message_t* bufPtr, 
 				   void* payload, uint8_t len) {
+    dbg("RadioCountToLedsC", "Received packet of length %hhu.\n", len);
     if (len != sizeof(RadioCountMsg)) {return bufPtr;}
     else {
       RadioCountMsg* rcm = (RadioCountMsg*)payload;

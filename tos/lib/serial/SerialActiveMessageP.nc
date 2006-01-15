@@ -1,4 +1,4 @@
-//$Id: SerialActiveMessageP.nc,v 1.1.2.7 2005-10-31 19:53:52 scipio Exp $
+//$Id: SerialActiveMessageP.nc,v 1.1.2.8 2006-01-15 22:31:32 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -29,7 +29,8 @@
  *
  */
 
-includes Serial;
+#include <Serial.h>
+
 generic module SerialActiveMessageP () {
   provides {
     interface AMSend[am_id_t id];
@@ -44,14 +45,14 @@ generic module SerialActiveMessageP () {
 }
 implementation {
 
-  SerialAMHeader* getHeader(message_t* msg) {
-    return (SerialAMHeader*)(msg->data - sizeof(SerialAMHeader));
+  serial_header_t* getHeader(message_t* msg) {
+    return (serial_header_t*)(msg->data - sizeof(serial_header_t));
   }
   
   command error_t AMSend.send[am_id_t id](am_addr_t dest,
 					  message_t* msg,
 					  uint8_t len) {
-    SerialAMHeader* header = getHeader(msg);
+    serial_header_t* header = getHeader(msg);
     header->addr = dest;
     header->type = id;
     header->length = len;
@@ -84,7 +85,7 @@ implementation {
   }
 
   command uint8_t Packet.payloadLength(message_t* msg) {
-    SerialAMHeader* header = getHeader(msg);    
+    serial_header_t* header = getHeader(msg);    
     return header->length;
   }
 
@@ -104,7 +105,7 @@ implementation {
   }
 
   command am_addr_t AMPacket.destination(message_t* amsg) {
-    SerialAMHeader* header = getHeader(amsg);
+    serial_header_t* header = getHeader(amsg);
     return header->addr;
   }
 
@@ -113,7 +114,7 @@ implementation {
   }
 
   command am_id_t AMPacket.type(message_t* amsg) {
-    SerialAMHeader* header = getHeader(amsg);
+    serial_header_t* header = getHeader(amsg);
     return header->type;
   }
 }

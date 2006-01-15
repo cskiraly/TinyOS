@@ -1,4 +1,4 @@
-/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.11 2006-01-10 19:34:09 idgay Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.12 2006-01-15 22:31:31 scipio Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -43,11 +43,11 @@
  *
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.11 $
+ * Revision:  $Revision: 1.1.2.12 $
  */
 
 #include "CC1000Const.h"
-#include "TOSMsg.h"
+#include "message.h"
 
 configuration CC1000CsmaRadioC {
   provides {

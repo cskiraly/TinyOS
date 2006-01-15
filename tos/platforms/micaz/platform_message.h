@@ -1,4 +1,4 @@
-/* $Id: RadioTOSMsg.h,v 1.1.2.2 2006-01-15 22:31:32 scipio Exp $
+/* $Id: platform_message.h,v 1.1.2.1 2006-01-15 22:31:33 scipio Exp $
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -28,19 +28,32 @@
  */
 
 /**
- * Placehoder for old file to trigger a warning.
+ * Defining the platform-independently named packet structures to be the
+ * chip-specific CC1000 packet structures.
  *
  * @author Philip Levis
  * @date   May 16 2005
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.1 $
  */
 
 
-#ifndef RADIO_TOS_MSG_H
-#define RADIO_TOS_MSG_H
+#ifndef PLATFORM_MESSAGE_H
+#define PLATFORM_MESSAGE_H
 
+#include "CC2420.h"
+#include "Serial.h"
 
-#warning "RadioTOSMsg.h has been replaced by platform_message.h. Please update your code to include the latter."
-#include "platform_message.h"
+typedef union message_header {
+  cc2420_header_t cc2420;
+  serial_header_t serial;
+} message_header_t;
+
+typedef union message_footer {
+  cc2420_footer_t cc2420;
+} message_footer_t;
+
+typedef union message_metadata {
+  cc2420_metadata_t cc2420;
+} message_metadata_t;
 
 #endif

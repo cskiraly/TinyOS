@@ -1,4 +1,4 @@
-/* $Id: RadioTOSMsg.h,v 1.1.2.2 2005-12-01 17:46:33 phihup Exp $
+/* $Id: RadioTOSMsg.h,v 1.1.2.3 2006-01-15 22:31:32 scipio Exp $
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -34,17 +34,14 @@
  * @author Philip Levis
  * @author Vlado Handziski (TDA5250 Modifications)
  * @date   May 16 2005
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  */
 
 
 #ifndef RADIO_TOS_MSG_H
 #define RADIO_TOS_MSG_H
 
-#include "TDA5250Msg.h"
-
-typedef TDA5250Header message_radio_header_t;
-typedef TDA5250Footer message_radio_footer_t;
-typedef TDA5250Metadata message_radio_metadata_t;
+#warning "RadioTOSMsg.h has been replaced by platform_message.h. Please update your code to include the latter."
+#include "platform_message.h"
 
 #endif

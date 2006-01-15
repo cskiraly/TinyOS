@@ -1,4 +1,4 @@
-// $Id: TestCC2420NullM.nc,v 1.1.2.2 2005-05-21 01:56:42 jpolastre Exp $
+// $Id: TestCC2420NullM.nc,v 1.1.2.3 2006-01-15 22:31:34 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -25,7 +25,7 @@
 /**
  * @author Joe Polastre
  */
-includes TOSMsg;
+#include <message.h>
 
 module TestCC2420NullM {
   uses interface Boot;

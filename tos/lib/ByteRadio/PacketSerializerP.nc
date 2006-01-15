@@ -27,8 +27,8 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.4 $
-* $Date: 2005-12-01 17:46:32 $
+* $Revision: 1.1.2.5 $
+* $Date: 2006-01-15 22:31:32 $
 * ========================================================================
 */
 
@@ -36,8 +36,7 @@
 
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // dirty hack for now
-#include "PlatformTOSMsg.h"
-#include "RadioTOSMsg.h"
+#include <message.h>
 
 /**
 * PacketSerializerP module

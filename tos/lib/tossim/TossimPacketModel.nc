@@ -1,4 +1,4 @@
-// $Id: TossimPacketModel.nc,v 1.1.2.1 2005-12-19 23:51:20 scipio Exp $
+// $Id: TossimPacketModel.nc,v 1.1.2.2 2006-01-15 22:31:32 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -31,8 +31,8 @@
  */ 
 
 
-includes TinyError;
-includes TOSMsg;
+#include <TinyError.h>
+#include <message.h>
 
 interface TossimPacketModel {
 
