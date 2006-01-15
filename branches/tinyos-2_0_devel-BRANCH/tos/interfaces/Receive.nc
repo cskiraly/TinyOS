@@ -1,4 +1,4 @@
-// $Id: Receive.nc,v 1.1.2.6 2006-01-02 19:59:06 scipio Exp $
+// $Id: Receive.nc,v 1.1.2.7 2006-01-15 22:31:32 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -36,8 +36,8 @@
  */ 
 
 
-includes TinyError;
-includes TOSMsg;
+#include <TinyError.h>
+#include <message.h>
 
 interface Receive {
 

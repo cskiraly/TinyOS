@@ -1,4 +1,4 @@
-// $Id: TinyError.h,v 1.1.2.11 2005-10-31 19:34:02 scipio Exp $
+// $Id: TinyError.h,v 1.1.2.12 2006-01-15 22:31:33 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -23,10 +23,13 @@
 /**
  * @author Phil Levis
  * @author David Gay
- * Revision:  $Revision: 1.1.2.11 $
+ * Revision:  $Revision: 1.1.2.12 $
  *
  * Defines global error codes for error_t in TinyOS.
  */
+
+#ifndef TINY_ERROR_H_INCLUDED
+#define TINY_ERROR_H_INCLUDED
 
 enum {
   SUCCESS        = 0,          
@@ -49,3 +52,5 @@ error_t ecombine(error_t r1, error_t r2)
 {
   return r1 == r2 ? r1 : FAIL;
 }
+
+#endif

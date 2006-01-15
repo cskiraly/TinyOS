@@ -37,7 +37,7 @@
 #ifndef __CC2420_H__
 #define __CC2420_H__
 
-#include "RadioTOSMsg.h"
+//#include "message.h"
 
 typedef uint8_t cc2420_status_t;
 

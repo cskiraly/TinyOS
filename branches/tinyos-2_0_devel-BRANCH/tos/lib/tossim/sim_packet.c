@@ -30,10 +30,10 @@
  * @date   Jan 2 2006
  */
 
-// $Id: sim_packet.c,v 1.1.2.1 2006-01-03 01:53:32 scipio Exp $
+// $Id: sim_packet.c,v 1.1.2.2 2006-01-15 22:31:32 scipio Exp $
 
 #include <sim_packet.h>
-#include <TOSMsg.h>
+#include <message.h>
 
 // NOTE: This function is defined in lib/tossim/ActiveMessageC. It
 // has to be predeclared here because it is defined within that component.

@@ -30,8 +30,8 @@
 *
 **/
 
-includes Timer;
-includes TOSMsg;
+#include <Timer.h>
+#include <message.h>
 
 configuration TestBasicMacC {
 }

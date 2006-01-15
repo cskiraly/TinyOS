@@ -1,4 +1,4 @@
-// $Id: CC1000CsmaP.nc,v 1.1.2.5 2006-01-10 19:34:09 idgay Exp $
+// $Id: CC1000CsmaP.nc,v 1.1.2.6 2006-01-15 22:31:31 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -44,7 +44,7 @@
  * @author David Gay
  */
   
-#include "TOSMsg.h"
+#include "message.h"
 #include "crc.h"
 #include "CC1000Const.h"
 #include "Timer.h"

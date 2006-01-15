@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.9 2005-10-31 19:53:52 scipio Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.10 2006-01-15 22:31:31 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -47,7 +47,7 @@
  * @author David Gay
  */
   
-#include "TOSMsg.h"
+#include "message.h"
 #include "crc.h"
 #include "CC1000Const.h"
 #include "Timer.h"
@@ -163,7 +163,7 @@ implementation
     CC1KHeader* header = getHeader(rxBufPtr);
     radioState = RX_STATE;
     header->length = sizeof rxBufPtr->data;
-    count = sizeof(TOSRadioHeader) - sizeof(CC1KHeader);
+    count = sizeof(message_header_t) - sizeof(CC1KHeader);
     runningCrc = 0;
   }
 
@@ -192,7 +192,7 @@ implementation
     // The count increment happens before the first byte is read from the
     // packet, so we subtract one from the real packet start point to
     // compensate.
-    count = (sizeof(TOSRadioHeader) - sizeof(CC1KHeader)) -1; 
+    count = (sizeof(message_header_t) - sizeof(CC1KHeader)) -1; 
   }
 
   void enterTxCrcState() {
@@ -298,7 +298,7 @@ implementation
     CC1KHeader* txHeader = getHeader(txBufPtr);
     sendNextByte();
     
-    if (count < txHeader->length + sizeof(TOSRadioHeader))
+    if (count < txHeader->length + sizeof(message_header_t))
       {
 	nextTxByte = ((uint8_t *)txBufPtr)[count];
 	runningCrc = crcByte(runningCrc, nextTxByte);

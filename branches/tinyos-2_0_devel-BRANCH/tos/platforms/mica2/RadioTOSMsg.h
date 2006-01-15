@@ -1,4 +1,4 @@
-/* $Id: RadioTOSMsg.h,v 1.1.2.2 2005-10-09 16:35:35 scipio Exp $
+/* $Id: RadioTOSMsg.h,v 1.1.2.3 2006-01-15 22:31:33 scipio Exp $
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -33,27 +33,14 @@
  *
  * @author Philip Levis
  * @date   May 16 2005
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  */
 
 
 #ifndef RADIO_TOS_MSG_H
 #define RADIO_TOS_MSG_H
 
-#include "CC1000Msg.h"
-#include "Serial.h"
-
-typedef union TOSRadioHeader {
-  CC1KHeader cc1k;
-  SerialAMHeader serial;
-} TOSRadioHeader;
-
-typedef union TOSRadioFooter {
-  CC1KFooter cc1k;
-} TOSRadioFooter;
-
-typedef union TOSRadioMetadata {
-  CC1KMetadata cc1k;
-} TOSRadioMetadata;
+#warning "RadioTOSMsg.h has been replaced by platform_message.h. Please update your code to include the latter."
+#include "platform_message.h"
 
 #endif

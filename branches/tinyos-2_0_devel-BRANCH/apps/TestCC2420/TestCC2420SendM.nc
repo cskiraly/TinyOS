@@ -1,4 +1,4 @@
-// $Id: TestCC2420SendM.nc,v 1.1.2.2 2005-10-11 21:44:34 cssharp Exp $
+// $Id: TestCC2420SendM.nc,v 1.1.2.3 2006-01-15 22:31:34 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -25,9 +25,9 @@
 /**
  * @author Joe Polastre
  */
-includes TOSMsg;
-includes CountMsg;
-includes Timer;
+#include <message.h>
+#include <CountMsg.h>
+#include <Timer.h>
 
 module TestCC2420SendM {
   uses interface Boot;

@@ -22,19 +22,20 @@
 /*
  *
  * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.3 $
+ * Date last modified:  $Revision: 1.1.2.4 $
  *
  * The RadioPacket interface allows link-layer dependent packet layout
- * but hardware independent access to the fields of a message_t.
- * By passing a message_t to the RadioPacket interface, you can extract 
- * (and reuse) common message_t fields.  For applications that are built
- * for only a single platform, they may use the message_t.header,
- * message_t.footer, and message_t.metadata definitions instead with the specific
- * header, footer, and metadata definitions for that radio chip.
+ * but hardware independent access to the fields of a message_t.  By
+ * passing a message_t to the RadioPacket interface, you can extract
+ * (and reuse) common message_t fields.  For applications that are
+ * built for only a single platform, they may use the
+ * message_t.header, message_t.footer, and message_t.metadata
+ * definitions instead with the specific header, footer, and metadata
+ * definitions for that radio chip.
  */
 
-includes TOSMsg;
-includes TinyError;
+#include <message.h>
+#include <TinyError.h>
 
 /**
  * Radio packet interface for reading packet data in a platform

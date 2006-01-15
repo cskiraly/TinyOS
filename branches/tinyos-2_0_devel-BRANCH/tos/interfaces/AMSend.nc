@@ -1,4 +1,4 @@
-// $Id: AMSend.nc,v 1.1.2.3 2005-03-14 03:54:19 jpolastre Exp $
+// $Id: AMSend.nc,v 1.1.2.4 2006-01-15 22:31:32 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -36,9 +36,9 @@
   */ 
 
 
-includes TinyError;
-includes TOSMsg;
-includes AM;
+#include <TinyError.h>
+#include <message.h>
+#include <AM.h>
 
 interface AMSend {
 
