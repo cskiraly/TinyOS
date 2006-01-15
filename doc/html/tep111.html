@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-01-15 20:07:27 $
-:version: $Revision: 1.1.2.2 $
+:date: $Date: 2006-01-15 20:13:00 $
+:version: $Revision: 1.1.2.3 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -299,9 +299,9 @@ ul.auto-toc {
 <td>Philip Levis</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">11-Jul-2005</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.3</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.4</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-01-10</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-01-15</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -427,10 +427,10 @@ complexities make specifying the format of TOS_Msg very difficult.</p>
 message_t structure is defined in <tt class="docutils literal"><span class="pre">tos/types/message.h</span></tt>:</p>
 <pre class="literal-block">
 typedef nx_struct message_t {
-  uint8_t header[sizeof(message_header_t)];
+  nx_uint8_t header[sizeof(message_header_t)];
   nx_uint8_t data[TOSH_DATA_LENGTH];
-  uint8_t footer[sizeof(message_header_t)];
-  uint8_t metadata[sizeof(message_metadata_t)];
+  nx_uint8_t footer[sizeof(message_header_t)];
+  nx_uint8_t metadata[sizeof(message_metadata_t)];
 } message_t;
 </pre>
 <p>This format keeps data at a fixed offset, which is important when
@@ -539,11 +539,11 @@ means that, in terms of C structures, a packet may not be contiguous. For
 example, consider this case:</p>
 <pre class="literal-block">
 typedef struct header_b {
-  uint8_t a;
+  nx_uint8_t a;
 } header_a_t;
 
 typedef struct header_b {
-  uint16_t b;
+  nx_uint16_t b;
 } header_b_t;
 
 typedef union {

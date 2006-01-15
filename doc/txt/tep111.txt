@@ -10,8 +10,8 @@ message_t
 :Author: Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.4 $
-:Draft-Modified: $Date: 2006-01-15 20:07:27 $
+:Draft-Version: $Revision: 1.1.2.5 $
+:Draft-Modified: $Date: 2006-01-15 20:13:00 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -134,10 +134,10 @@ In TinyOS 2.x, the standard message buffer is ``message_t``. The
 message_t structure is defined in ``tos/types/message.h``::
 
   typedef nx_struct message_t {
-    uint8_t header[sizeof(message_header_t)];
+    nx_uint8_t header[sizeof(message_header_t)];
     nx_uint8_t data[TOSH_DATA_LENGTH];
-    uint8_t footer[sizeof(message_header_t)];
-    uint8_t metadata[sizeof(message_metadata_t)];
+    nx_uint8_t footer[sizeof(message_header_t)];
+    nx_uint8_t metadata[sizeof(message_metadata_t)];
   } message_t;
 
 This format keeps data at a fixed offset, which is important when
@@ -255,11 +255,11 @@ means that, in terms of C structures, a packet may not be contiguous. For
 example, consider this case::
 
   typedef struct header_b {
-    uint8_t a;
+    nx_uint8_t a;
   } header_a_t;
 
   typedef struct header_b {
-    uint16_t b;
+    nx_uint16_t b;
   } header_b_t;
 
   typedef union {
