@@ -10,8 +10,8 @@ message_t
 :Author: Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.3 $
-:Draft-Modified: $Date: 2006-01-10 01:46:57 $
+:Draft-Version: $Revision: 1.1.2.4 $
+:Draft-Modified: $Date: 2006-01-15 20:07:27 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -131,83 +131,85 @@ complexities make specifying the format of TOS_Msg very difficult.
 ====================================================================
 
 In TinyOS 2.x, the standard message buffer is ``message_t``. The
-message_t structure is defined in ``tos/types/TOSMsg.h``:
+message_t structure is defined in ``tos/types/message.h``::
 
-|  ``typedef nx_struct message_t {``
-|    ``TOSRadioHeader header;``
-|    ``nx_uint8_t data[TOSH_DATA_LENGTH];``
-|    ``TOSRadioFooter footer;``
-|    ``TOSRadioMetadata metadata;``
-|  ``} message_t;``
+  typedef nx_struct message_t {
+    uint8_t header[sizeof(message_header_t)];
+    nx_uint8_t data[TOSH_DATA_LENGTH];
+    uint8_t footer[sizeof(message_header_t)];
+    uint8_t metadata[sizeof(message_metadata_t)];
+  } message_t;
 
 This format keeps data at a fixed offset, which is important when
-passing a message buffer between two different link layers. If
-the data payload is at different offsets for different link layers,
-then passing a packet between two link layers requires a ``memmove(3)``
+passing a message buffer between two different link layers. If the
+data payload is at different offsets for different link layers, then
+passing a packet between two link layers requires a ``memmove(3)``
 operation (essentially, a copy).
 
-The header, footer, and metadata fields are all opaque. Higher
-level components access their fields through interfaces. Section
-3 discusses this in greater depth.
+The header, footer, and metadata fields are all opaque. Higher level
+components access their fields through interfaces. Section 3 discusses
+this in greater depth.
 
 Every link layer defines its header, footer, and metadata
 structures. These structures MUST be external structs, and all of
 their fields MUST be external types, in order to ensure cross-platform
 compatibility.  For example, the CC1000 radio implementation defines
-its structures in ``CC1000Msg.h``:
+its structures in ``CC1000Msg.h``::
 
-|  ``typedef nx_struct cc1000_header {``
-|    ``nx_am_addr_t addr;``
-|    ``nx_uint8_t length;``
-|    ``nx_am_group_t group;``
-|    ``nx_am_id_t type;``
-|  ``} cc1000_header_t;``
-| 
-|  ``typedef nx_struct cc1000_footer {``
-|    ``nxle_uint16_t crc;``
-|  ``} cc1000_footer_t;``
-| 
-|  ``typedef nx_struct cc1000_metadata {``
-|    ``nx_uint16_t strength;``
-|    ``nx_uint8_t ack;``
-|    ``nx_uint16_t time;``
-|    ``nx_uint8_t sendSecurityMode;``
-|    ``nx_uint8_t receiveSecurityMode;``
-|  ``} cc1000_metadata_t;
+  typedef nx_struct cc1000_header {
+    nx_am_addr_t addr;
+    nx_uint8_t length;
+    nx_am_group_t group;
+    nx_am_id_t type;
+  } cc1000_header_t;
 
-Each link layer defines its structres, but a **platform** is responsible 
-for defining ``TOSRadioHeader``, ``TOSRadioFooter``, and ``TOSRadioMetadata``. 
-This is because a platform may have multiple link layers, and so only
-it can resolve which structures are needed. These definitions MUST be
-in a file in a platform directory named ``RadioTOSMsg.h``.
-The mica2 platform is a simple example, as it has only a CC1000 radio.
-Its RadioTOSMsg.h looks like this:
+  typedef nx_struct cc1000_footer {
+    nxle_uint16_t crc;
+  } cc1000_footer_t;
 
-| ``typedef cc1000_header_t message_header_t;``
-| ``typedef cc1000_footer_t message_footer_t;``
-| ``typedef cc1000_metadata_t message_metadata_t;``
+  typedef nx_struct cc1000_metadata {
+    nx_uint16_t strength;
+    nx_uint8_t ack;
+    nx_uint16_t time;
+    nx_uint8_t sendSecurityMode;
+    nx_uint8_t receiveSecurityMode;
+  } cc1000_metadata_t;
 
-For a more complex example, consider a fictional platform named 'megamica' 
-that has both a CC1000 and a CC2420 radio. Its RadioTOSMsg.h looks like this:
+Each link layer defines its structres, but a **platform** is
+responsible for defining ``message_header_t``, ``message_footer_t``,
+and ``message_metadata_t``. This is because a platform may have
+multiple link layers, and so only it can resolve which structures are
+needed. These definitions MUST be in a file in a platform directory
+named ``platform_message.h``.  The mica2 platform is a simple example,
+as it has only a CC1000 radio.  Its platform_message.h looks like this::
 
-|  ``typedef union mega_mica_header {``
-|    ``cc1000_header_t cc1k;``
-|    ``cc2420_header_t cc2420;``
-|  ``} mega_mica_header_t;``
-|
-|  ``typedef union mega_mica_footer {``
-|    ``cc1000_footer_t cc1k;``
-|    ``cc2420_footer_t cc2420;``
-|  ``} mega_mica_footer_t;``
-|
-|  ``typedef union mega_mica_metadata {``
-|    ``cc1000_metadata_t cc1k;``
-|    ``cc2420_metadata_t cc2420;``
-|  ``} mega_mica_metadata_t;``
-| 
-| ``typedef mega_mica_header_t message_header_t;``
-| ``typedef mega_mica_footer_t message_footer_t;``
-| ``typedef mega_mica_metadata_t message_metadata_t;``
+  typedef cc1000_header_t message_header_t;
+  typedef cc1000_footer_t message_footer_t;
+  typedef cc1000_metadata_t message_metadata_t;
+
+
+For a more complex example, consider a fictional platform named
+'megamica' that has both a CC1000 and a CC2420 radio. Its
+platform_message.h looks like this::
+
+  typedef union mega_mica_header {
+    cc1000_header_t cc1k;
+    cc2420_header_t cc2420;
+  } mega_mica_header_t;
+
+  typedef union mega_mica_footer {
+    cc1000_footer_t cc1k;
+    cc2420_footer_t cc2420;
+  } mega_mica_footer_t;
+
+  typedef union mega_mica_metadata {
+    cc1000_metadata_t cc1k;
+    cc2420_metadata_t cc2420;
+  } mega_mica_metadata_t;
+ 
+  typedef mega_mica_header_t message_header_t;
+  typedef mega_mica_footer_t message_footer_t;
+  typedef mega_mica_metadata_t message_metadata_t;
 
 If a platform has more than one link layer, it SHOULD define each of the
 message_t fields to be a union of the underlying link layer structures.
@@ -231,7 +233,7 @@ named ``AMPacket`` which provides access commands to AM fields. In
 TinyOS 1.x, a component would directly access ``TOS_Msg.addr``;
 in TinyOS 2.x, a component calls ``AMPacket.getAddress(msg)``.
 
-3.1 TOSRadioHeader
+3.1 message_header_t
 ----------------------------------------------------------------
 
 Link layer components MAY handle packet fields differently than other 
@@ -250,19 +252,24 @@ Second, although the structures ensure that enough space is allocated,
 C's placement of the structures is not necessarily correct.
 Defining a message_t header as a union of the underlying link layer headers
 means that, in terms of C structures, a packet may not be contiguous. For
-example, consider this case:
+example, consider this case::
 
-|  ``typedef struct header_b {``
-|    ``uint8_t a;``
-|  ``} header_a_t;``
-|  ``typedef struct header_b {``
-|    ``uint16_t b;``
-|  ``} header_b_t;``
-|  ``typedef union {``
-|    ``header_a_t A;``
-|    ``header_b_t B;``
-|  ``} header_union_t;``
-|  ``typedef header_union_t message_header_t;``
+  typedef struct header_b {
+    uint8_t a;
+  } header_a_t;
+
+  typedef struct header_b {
+    uint16_t b;
+  } header_b_t;
+
+  typedef union {
+    header_a_t A;
+    header_b_t B;
+  } header_union_t;
+
+  typedef header_union_t message_header_t;
+
+
 
 Given nesC nx_struct layout, when message_header_t is specified as a union
 of HeaderA and HeaderB, there will be a padding byte after ``header_a_t.a``.
@@ -276,30 +283,24 @@ offset from the data field. The padding bytes that C introduces for
 the different sized headers are at the beginning of message_t, not
 between the header and payload. For example, let us suppose that header_a
 has an interface ``APacket``, which provides a command ``a`` that 
-returns the field ``a``. Its code looks like this:
+returns the field ``a``. Its code looks like this::
 
-|  ``command uint8_t APacket.a(message_t* msg) {``
-|    ``header_a_t* hdr = (header_a_t*)(msg->data - sizeof(header_a_t));``
-|    ``return hdr->a;``
-|  ``}``
+  command uint8_t APacket.a(message_t* msg) {
+    header_a_t* hdr = (header_a_t*)(msg->data - sizeof(header_a_t));
+    return hdr->a;
+  }
+
 
 We can trust the C compiler to optimize the call into a static offset
 memory load.
 
 The following code is incorrect, as it directly casts the header field.
-It is an example of what components MUST NOT do:
+It is an example of what components MUST NOT do::
 
-|  ``command uint8_t APacket.a(message_t* msg) {``
-|    ``HeaderA* hdr = (HeaderA*)(msg->header);``
-|    ``return hdr->a;``
-|  ``}``
-
-The following example is also incorrect, as it directly accesses the
-header structure. It is an example of what components MUST NOT do.
-
-|  ``command uint8_t APacket.a(message_t* msg) {``
-|    ``return msg->header.A.a;``
-|  ``}``
+  command uint8_t APacket.a(message_t* msg) {
+    HeaderA* hdr = (HeaderA*)(msg->header);
+    return hdr->a; 
+  }  
 
 
 3.2 message_footer_t

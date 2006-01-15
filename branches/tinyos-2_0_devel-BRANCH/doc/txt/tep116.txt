@@ -10,8 +10,8 @@ Packet Protocols
 :Author: Philip Levis
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2006-01-14 00:41:42 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-01-15 20:07:27 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -44,17 +44,17 @@ components built on top of this abstraction.
 In TinyOS 1.x, the component GenericComm provides interfaces for
 transmitting and receiving active messages::
 
-configuration GenericComm {
-  provides {
-    interface StdControl as Control;
-    interface SendMsg[uint8_t id];
-    interface ReceiveMsg[uint8_t id];
-    command uint16_t activity();
+  configuration GenericComm {
+    provides {
+      interface StdControl as Control;
+      interface SendMsg[uint8_t id];
+      interface ReceiveMsg[uint8_t id];
+      command uint16_t activity();
+    }
+    uses {
+      event result_t sendDone();
+    }
   }
-  uses {
-    event result_t sendDone();
-  }
-}
 
 This component, while simple, has several issues. First, it has the
 activity() event, which does not have a single caller in the entire
@@ -114,12 +114,12 @@ introduce. Therefore, in order to be able to find out where
 it can put its data, it must query the components below it.
 The Packet interface defines this mechanism::
 
-interface Packet {
-  command void clear(message_t* msg);
-  command uint8_t payloadLength(message_t* msg);
-  command uint8_t maxPayloadLength();
-  command void* getPayload(message_t* msg, uint8_t* len);
-}
+  interface Packet {
+    command void clear(message_t* msg);
+    command uint8_t payloadLength(message_t* msg);
+    command uint8_t maxPayloadLength();
+    command void* getPayload(message_t* msg, uint8_t* len);
+  }
 
 A component can obtain a pointer to its data region within
 a packet by calling ``getPayload()`` the optional ``len`` argument
@@ -146,41 +146,41 @@ component below it. The one exception to this is the data link
 layer. For example, if there is a network that introduces
 16-bit sequence numbers to packets, it might look like this::
 
-generic module SequenceNumber {
-  provides interface Packet;
-  uses interface Packet as SubPacket;
-}
-implementation {
-  typedef nx_struct seq_header {
-    nx_uint16_t seqNo;
-  } seq_header_t;
+  generic module SequenceNumber {
+    provides interface Packet;
+    uses interface Packet as SubPacket;
+  }
+  implementation {
+    typedef nx_struct seq_header {
+      nx_uint16_t seqNo;
+    } seq_header_t;
 
-  enum {
-    SEQNO_OFFSET = sizeof(seq_header_t),
-  };
+    enum {
+      SEQNO_OFFSET = sizeof(seq_header_t),
+    };
  
-  command void Packet.clear(message_t* msg) {
-    uint8_t len;
-    void* payload = call SubPacket.getPayload(msg, &len);
-    memset(payload, len, 0);
-  }
-
-  command uint8_t Packet.payloadLength(message_t* msg) {
-    return SubPacket.payloadLength(msg) - SEQNO_OFFSET;
-  }
-
-  command uint8_t Packet.maxPayloadLength() {
-    return SubPacket.maxPayloadLength(msg) - SEQNO_OFFSET;
-  }
-
-  command void* Packet.getPayload(message_t* msg, uint8_t* len) {
-    uint8_t* payload = call SubPacket.getPayload(msg, len);
-    if (len != NULL) {
-      *len -= SEQNO_OFFSET;
+    command void Packet.clear(message_t* msg) {
+      uint8_t len;
+      void* payload = call SubPacket.getPayload(msg, &len);
+      memset(payload, len, 0);
     }
-    return payload + SEQNO_OFFSET; 
+
+    command uint8_t Packet.payloadLength(message_t* msg) {
+      return SubPacket.payloadLength(msg) - SEQNO_OFFSET;
+    }
+
+    command uint8_t Packet.maxPayloadLength() {
+      return SubPacket.maxPayloadLength(msg) - SEQNO_OFFSET;
+    }
+
+    command void* Packet.getPayload(message_t* msg, uint8_t* len) {
+      uint8_t* payload = call SubPacket.getPayload(msg, len);
+      if (len != NULL) {
+        *len -= SEQNO_OFFSET;
+      }
+      return payload + SEQNO_OFFSET; 
+    } 
   }
-}
 
 
 The above example is incomplete: it does not include the code for
@@ -204,12 +204,12 @@ describes the communication layer. For example, active message components
 provide both the Packet interface and the AMPacket interface. The latter
 has this signature::
 
-interface AMPacket {
-  command am_addr_t address();
-  command am_addr_t destination(message_t* amsg);
-  command bool isForMe(message_t* amsg);
-  command am_id_t type(message_t* amsg);
-}
+  interface AMPacket {
+    command am_addr_t address();
+    command am_addr_t destination(message_t* amsg);
+    command bool isForMe(message_t* amsg);
+    command am_id_t type(message_t* amsg);
+  }
 
 
 The command address() returns the local AM address of the node. AMPacket
@@ -222,9 +222,9 @@ sending call path (see Section 2.3).
 
 Receive is the interface for receiving packets. It has this signature::
 
-interface Receive {
-  event message_t* receive(message_t* msg, void* payload, uint8_t len);
-}
+  interface Receive {
+    event message_t* receive(message_t* msg, void* payload, uint8_t len);
+  }
 
 The ``payload`` parameter MUST be identical to what a call to 
 ``Packet.getPayload()`` would return, and the ``len`` parameter MUST
@@ -257,29 +257,29 @@ handles a receive event:
 
 These are simple code examples of the three cases::
 
-// Case 1
-message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
-  return msg;
-}
+  // Case 1
+  message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
+    return msg; 
+  }  
 
-// Case 2
-uint16_t value;
-message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
-  if (len >= sizeof(uint16_t)) {
-    nx_uint16_t* nval = (nx_uint16_t*)payload;
-    value = *nval;
+  // Case 2
+  uint16_t value;
+  message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
+    if (len >= sizeof(uint16_t)) {
+      nx_uint16_t* nval = (nx_uint16_t*)payload;
+      value = *nval;
+    }
+    return msg;
   }
-  return msg;
-}
 
-//Case 3
-message_t* ptr;
-message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
-  message_t* tmp = ptr;
-  ptr = msg;
-  post processTask();
-  return tmp;
-}
+  //Case 3
+  message_t* ptr;
+  message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
+    message_t* tmp = ptr;
+    ptr = msg;
+    post processTask();
+    return tmp;
+  }
 
 
 Because of case 3), a lower layer MUST respect the buffer swap semantics
@@ -297,25 +297,25 @@ message communication has a destination of an AM address, so
 it provides the ``AMSend`` interface.  This, for example, is the 
 basic, address-free Send interface::
 
-interface Send {
-  command error_t send(message_t* msg, uint8_t len);
-  command error_t cancel(message_t* msg);
-  event void sendDone(message_t* msg, error_t error);
+  interface Send {
+    command error_t send(message_t* msg, uint8_t len);
+    command error_t cancel(message_t* msg);
+    event void sendDone(message_t* msg, error_t error);  
 
-  command uint8_t maxPayloadLength();
-  command void* getPayload(message_t* msg);
-}
+    command uint8_t maxPayloadLength();
+    command void* getPayload(message_t* msg);
+  }
 
 while this is the AMSend interface::
 
-interface AMSend {
-  command error_t send(am_addr_t addr, message_t* msg, uint8_t len);
-  command error_t cancel(message_t* msg);
-  event void sendDone(message_t* msg, error_t error);
+  interface AMSend {
+    command error_t send(am_addr_t addr, message_t* msg, uint8_t len);
+    command error_t cancel(message_t* msg);
+    event void sendDone(message_t* msg, error_t error);
 
-  command uint8_t maxPayloadLength();
-  command void* getPayload(message_t* msg);
-}
+    command uint8_t maxPayloadLength();
+    command void* getPayload(message_t* msg); 
+  }
 
 Sending interfaces MUST include these four commands and one event.
 The duplication of some of the commands in Packet is solely
@@ -335,20 +335,20 @@ single-hop communication abstraction.  Every active message has a
 destination address, ``AM_BROADCAST_ADDR``, which has the value 
 of ``0xffff``. ActiveMessageC has the following signature::
 
-configuration ActiveMessageC {
-  provides {
-    interface Init;
-    interface SplitControl;
+  configuration ActiveMessageC {
+    provides {
+      interface Init;
+      interface SplitControl;  
 
-    interface AMSend[uint8_t id];
-    interface Receive[uint8_t id];
-    interface Receive as Snoop[uint8_t id];
-
-    interface Packet;
-    interface AMPacket;
-    interface PacketAcknowledgements;
+      interface AMSend[uint8_t id];
+      interface Receive[uint8_t id];
+      interface Receive as Snoop[uint8_t id];
+ 
+      interface Packet;
+      interface AMPacket;
+      interface PacketAcknowledgements;
+    }
   }
-}
 
 The Receive interface is for packets destined to the node, while 
 the Snoop interface is for packets destined to other nodes. A 
@@ -384,13 +384,13 @@ parameter. These components assume the existence of ActiveMessageC.
 
 AMReceiverC has the following signature::
 
-generic configuration AMReceiverC(am_id_t t) {
-  provides{
-    interface Receive;
-    interface Packet;
-    interface AMPacket;
+  generic configuration AMReceiverC(am_id_t t) {
+    provides{
+      interface Receive;
+      interface Packet;
+      interface AMPacket;
+    }
   }
-}
 
 AMReceiver.Receive.receive is signalled whenever the packet layer
 receives an active message of the corresponding AM type whose
@@ -405,13 +405,13 @@ am_id_t.
 
 AMSnooper has an identical signature to AMReceiver::
 
-generic configuration AMSnooperC(am_id_t t) {
-  provides{
-    interface Receive;
-    interface Packet;
-    interface AMPacket;
+  generic configuration AMSnooperC(am_id_t t) {
+    provides{
+      interface Receive;
+      interface Packet;
+      interface AMPacket;
+    }
   }
-}
 
 AMSnooper.Receive.receive is signalled whenever the packet layer
 receives an active message of the corresponding AM type whose
@@ -426,13 +426,13 @@ am_id_t.
 
 AMSnoopingReceiver has an identical signature to AMReceiver::
 
-generic configuration AMSnoopingReceiverC(am_id_t t) {
-  provides{
-    interface Receive;
-    interface Packet;
-    interface AMPacket;
+  generic configuration AMSnoopingReceiverC(am_id_t t) {
+    provides{
+      interface Receive;
+      interface Packet;
+      interface AMPacket;
+    }
   }
-}
 
 AMSnoopingReceiver.Receive.receive is signalled whenever the packet
 layer receives an active message of the corresponding AM type,
@@ -446,14 +446,14 @@ AMSnooper, or AMReceiver with the same am_id_t.
 
 AMSender has the following signature::
 
-generic configuration AMSenderC(am_id_t AMId) {
-  provides {
-    interface AMSend;
-    interface Packet;
-    interface AMPacket;
-    interface PacketAcknowledgements as Acks;
+  generic configuration AMSenderC(am_id_t AMId) {
+    provides {
+      interface AMSend;
+      interface Packet;
+      interface AMPacket;
+      interface PacketAcknowledgements as Acks;
+    }
   }
-}
 
 Because this is a send virtualization, AMSenderC.AMSend.send returns
 EBUSY only if there is a send request outstanding on this particular
@@ -500,15 +500,15 @@ include all data needed for AM fields, which might introduce headers
 in addition to those of the data link. For example, this is the 
 structure of the CC2420 header::
 
-typedef nx_struct cc2420_header_t {
-  nx_uint8_t length;
-  nx_uint16_t fcf;
-  nx_uint8_t dsn;
-  nx_uint16_t destpan;
-  nx_uint16_t dest;
-  nx_uint16_t src;
-  nx_uint8_t type;
-} cc2420_header_t;
+  typedef nx_struct cc2420_header_t {
+    nx_uint8_t length;
+    nx_uint16_t fcf;
+    nx_uint8_t dsn;
+    nx_uint16_t destpan;
+    nx_uint16_t dest;
+    nx_uint16_t src;
+    nx_uint8_t type;
+  } cc2420_header_t;
 
 
 The first six fields (length through src) are all 802.15.4 headers. The

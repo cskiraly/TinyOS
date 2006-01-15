@@ -10,10 +10,9 @@ Resource Arbitration
 :Authors: Kevin Klues, Philip Levis, David Gay, David Culler, Vlado Handziski
 
 :Draft-Created: 28-Mar-2005
-:Draft-Version: $Revision: 1.1.2.3 $
-:Draft-Modified: $Date: 2006-01-13 11:49:13 $
-:Draft-Discuss: TinyOS Developer List <tinyos-devel at  
-mail.millennium.berkeley.edu>
+:Draft-Version: $Revision: 1.1.2.4 $
+:Draft-Modified: $Date: 2006-01-15 20:07:27 $
+:Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
 
@@ -113,13 +112,13 @@ Generally, a physical and dedicated abstraction is just an interface
 which its user wires to. For example, on the Atmega128, Timer 2 is
 presented by the component HplAtm128Timer2C::
 
-module HplAtmTimer2C {
-  provides {
-    interface HplTimer<uint8_t>   as Timer2;
-    interface HplTimerCtrl8       as Timer2Ctrl;
-    interface HplCompare<uint8_t> as Compare2;
+  module HplAtmTimer2C {
+    provides {
+      interface HplTimer<uint8_t>   as Timer2;
+      interface HplTimerCtrl8       as Timer2Ctrl;
+      interface HplCompare<uint8_t> as Compare2;
+    }
   }
-}
 
 2.2 Virtual and Shared
 -------------------------------
@@ -137,10 +136,10 @@ and that state must scale with the number of virtualized instances,
 virtualized resources often use the Service Instance pattern[_sipattern],
 which is based on a parameterized interface. For example, TimerMilliC::
 
-configuration TimerMilliC {
-  provides interface Init;
-  provides interface Timer<TMilli> as TimerMilli[uint8_t num];
-}
+  configuration TimerMilliC {
+    provides interface Init;
+    provides interface Timer<TMilli> as TimerMilli[uint8_t num];
+  }
 
 
 Virtualization generally allows a client to use a very simple interface.
@@ -201,14 +200,14 @@ arbitration policy.
 -------------------------------
 
 Clients of a physical and shared resource arbiter request access 
-using the Resource interface:  
+using the Resource interface::
 
-|  ``interface Resource {``
-|    ``async command error_t request();``
-|    ``async command error_t immediateRequest();``
-|    ``event void granted();``
-|    ``async command void release();``
-|  ``}``
+  interface Resource {
+    async command error_t request();
+    async command error_t immediateRequest();
+    event void granted();
+    async command void release();
+  }
 
 A client lets an arbiter know it needs access to the resource with
 a call to request(). The arbiter signals it the granted() event
@@ -224,45 +223,46 @@ An arbiter MUST provide a parameterized Resource interface,
 where the parameter is a client ID, following the Service
 Instance pattern[_sipattern]. An arbitrated component SomeNameC MUST 
 #define SOME_NAME_RESOURCE to a string which can be passed to unique() 
-to obtain a client id. For instance, an I2C bus might look like this:
+to obtain a client id. For instance, an I2C bus might look like this::
 
-|  ``includes I2CPacketC;``
-|  ``configuration I2CPacketC {``
-|    ``provides {``
-|      ``interface Resource[uint8_t id];``
-|      ``interface I2CPacket[uint8_t busId];``
-|    ``}``
-|  ``} ...``
+  includes I2CPacketC;
+  configuration I2CPacketC {
+    provides {
+      interface Resource[uint8_t id];
+      interface I2CPacket[uint8_t busId];
+    }
+  } ...
 
-where I2CPacketC.h contains the #define for the resource:
 
-|  ``#ifndef I2CPACKETC_H``
-|  ``#define I2CPACKETC_H``
-|
-|  ``#define I2CPACKET_RESOURCE "I2CPacket.Resource"``
-|
-|  ``#endif``
+where I2CPacketC.h contains the #define for the resource::
+
+
+  #ifndef I2CPACKETC_H
+  #define I2CPACKETC_H
+  #define I2CPACKET_RESOURCE "I2CPacket.Resource"
+  #endif
+
 
 The #define for the unique string must be placed in a separate file
 because of the way nesC files are preprocessed: referring to I2CPacketC
 isn't enough to ensure that macros #define'd in I2CPacketC are visible
 in the referring component.
 
-Clients of the I2C service would use it as follows:
+Clients of the I2C service would use it as follows::
 
-|  ``module I2CUserM {``
-|    ``uses interface Resource as I2CResource;``
-|    ``uses interface I2CPacket;``
-|  ``} ...``
-|
-|  ``#include <I2CPacketC.h>``
-|  ``configuration I2CUserC { }``
-|  ``implementation {``
-|    ``components I2CUserM, I2CPacketC;``
-|
-|    ``I2CUserM.I2CResource -> I2CPacketC.Resource[unique(I2C_RESOURCE)];``
-|    ``I2CUserM.I2CPacket -> I2CPacket.I2CPacket[0x73]; // using I2C device 0x73``
-|  ``}``
+  module I2CUserM {
+    uses interface Resource as I2CResource;
+    uses interface I2CPacket;
+  } ...
+
+  #include <I2CPacketC.h>
+  configuration I2CUserC { }
+  implementation {
+    components I2CUserM, I2CPacketC;
+
+    I2CUserM.I2CResource -> I2CPacketC.Resource[unique(I2C_RESOURCE)];
+    I2CUserM.I2CPacket -> I2CPacket.I2CPacket[0x73]; // using I2C device 0x73
+  }
 
 3.2 ResourceController
 -------------------------------
@@ -274,17 +274,17 @@ resource in some equal fashion. ResourceController is for clients that
 require additional information due to the policies of the arbiter and
 how they use the resource.  The ResourceController interface is based
 on Resource, but introduces two additional events, idle() and
-requested():
+requested()::
 
+  interface ResourceController {
+    async command error_t request();
+    async command error_t immediateRequest();
+    event void granted();
+    async command void release();
+    async event void requested(); 
+    async event void idle(); 
+  }
 
-|  ``interface ResourceController {``
-|    ``async command error_t request();``
-|    ``async command error_t immediateRequest();``
-|    ``event void granted();``
-|    ``async command void release();``
-|    ``async event void requested();`` 
-|    ``async event void idle();`` 
-|  ``}``
 
 An arbiter signals the requested event if the client currently has the resource
 and some other client has requested it. It signals the idle() event when 
@@ -318,12 +318,13 @@ not requested it or when the high-priority client releases it.
 -------------------------------
 
 The ArbiterInfo interface allows a component to query the current 
-status of an arbiter:
+status of an arbiter::
 
-| ``interface ArbiterInfo {``
-|   ``async command bool inUse();
-|   ``async command uint8_t userId();
-| ``}``
+  interface ArbiterInfo {
+    async command bool inUse();
+    async command uint8_t userId();
+  }
+
 
 The ArbiterInfo interface has a variety of uses. For example, the resource 
 implementation can use it to refuse requests from clients that do not
@@ -349,26 +350,27 @@ at a time. However, different clients of the bus might need different bus
 protocols. For example, Telos sensors use an I2C, while the radio and flash
 chip use SPI. 
 
-Arbiters MAY provide a parameterized ResourceConfigure interface: 
+Arbiters MAY provide a parameterized ResourceConfigure interface::
 
-|  ``interface ResourceConfigure {``
-|    ``async command void configure();``
-|  ``}``
+  interface ResourceConfigure {
+    async command void configure();
+  }
 
 
 The parameter is the client ID, and corresponds directly to an instance of
-the Resource interface. For example:
+the Resource interface. For example::
 
-| ``generic component RoundRobinArbiterC {``
-|   ``provides {
-|     ``interface Resource[uint8_t id];``
-|     ``interface ResourceController;``
-|     ``interface ArbiterInfo;``
-|   ``}``
-|   ``uses {``
-|     ``interface ResourceConfigure[uint8_t id];``
-|   ``}``
-| ``}``
+  generic component RoundRobinArbiterC {
+    provides {
+      interface Resource[uint8_t id];
+      interface ResourceController;
+      interface ArbiterInfo;
+    }
+    uses {
+      interface ResourceConfigure[uint8_t id];
+    }
+  }
+
 
 If an arbiter uses the ResourceConfigure interface, before it signals the 
 Resource.granted() event and before it returns SUCCESS from a call to 
@@ -379,22 +381,23 @@ Using a parameterized interface that calls out rather than a decorator
 on the Resource interface simplifies code reuse. Using a decorator
 could lead to a large number of clients all including redundant
 configuration code, while the call out will only have one instance
-of the code. For example, an SPI client might look like this:
+of the code. For example, an SPI client might look like this::
 
-| ``generic component Msp430Spi0ClientC {``
-|   ``provides {
-|     ``interface Resource;``
-|     ``interface SPIByte;``
-|     ``interface SPIPacket;``
-|   ``}``
-| ``}``
-| ``implementation {``
-|   ``enum {MSP430_SPI0_CLIENT = unique(MSP430_USART_RESOURCE);``
-|   ``components Msp430Usart0C, Msp430Spi0Configure as Configure;``
-|   `` ``
-|   ``Resource = Msp430Usart0C.Resource[MSP430_SPI0_CLIENT];``
-|   ``Msp430Usart0C.ResourceConfigure[MSP430_SPI0_CLIENT] -> Configure;``
-| ``}``
+  generic component Msp430Spi0ClientC {
+    provides {
+      interface Resource;
+      interface SPIByte;
+      interface SPIPacket;
+    }
+  }
+  implementation {
+    enum {MSP430_SPI0_CLIENT = unique(MSP430_USART_RESOURCE);
+    components Msp430Usart0C, Msp430Spi0Configure as Configure;
+    
+    Resource = Msp430Usart0C.Resource[MSP430_SPI0_CLIENT];
+    Msp430Usart0C.ResourceConfigure[MSP430_SPI0_CLIENT] -> Configure;
+  }
+
 
 Arbiters SHOULD provide a parameterized ResourceConfigure interface.
 
@@ -414,28 +417,26 @@ described above by:
 arbiter
 
 The common way to do this is as follows (the UART and SPI components
-are omitted, they are similar to I2CC):
+are omitted, they are similar to I2CC,  low-level I2C component)::
 
-I2CC.nc (a low-level I2C component):
+  #define I2C_RESOURCE MSP_BUS_RESOURCE
+  configuration I2CC {
+    provides interface Resource[uint8_t clientId];
+    provides interface I2C;
+  }
+  implementation {
+    components MspBusC, I2CM;
 
-| ``#define I2C_RESOURCE MSP_BUS_RESOURCE``
-| ``configuration I2CC {``
-|    ``provides interface Resource[uint8_t clientId];``
-|    ``provides interface I2C;``
-| ``}``
-| ``implementation {``
-|  ``components MspBusC, I2CM;``
-|
-|  ``Resource = MspBusC.Resource;``
-|  ``I2C = I2CM.I2C;``
-| ``}``
+    Resource = MspBusC.Resource;
+    I2C = I2CM.I2C;
+  }
 
-MspBusC (the arbiter for the MSP bus):
+MspBusC (the arbiter for the MSP bus)::
 
-| ``#define MSP_BUS_RESOURCE "MspBus.Resource"``
-| ``configuration {``
-|   ``provides interface Resource[uint8_t clientId];``
-| ``} ...``
+  #define MSP_BUS_RESOURCE "MspBus.Resource"
+  configuration {
+    provides interface Resource[uint8_t clientId];
+  } ...
 
 
 4. Default arbiters
@@ -443,14 +444,15 @@ MspBusC (the arbiter for the MSP bus):
 
 Because most components use one of a small number of arbitration
 policies, TinyOS includes a number of default resource arbiters, in
-the form of generic components, which all include this signature:
+the form of generic components, which all include this signature::
 
-| ``generic module ArbiterC {``
-|   ``provides interface Resource[uint8_t id];``
-|   ``provides interface ResourceController;``
-|   ``provides interface ArbiterInfo;``
-|   ``uses interface ResourceConfigure[uint8_t id];``
-| ``}``
+  generic module ArbiterC {
+    provides interface Resource[uint8_t id];
+    provides interface ResourceController;
+    provides interface ArbiterInfo;
+    uses interface ResourceConfigure[uint8_t id];
+  }
+
 
 For example, RoundRobinArbiterC provides round-robin arbitration. This
 arbiter assigns a fixed order to all clients and grants outstanding
