@@ -26,7 +26,7 @@
  *  @author Matt Miller, Crossbow <mmiller@xbow.com>
  *  @author Martin Turon, Crossbow <mturon@xbow.com>
  *
- *  $Id: Atm128CaptureC.nc,v 1.1.2.1 2005-10-27 20:31:27 idgay Exp $
+ *  $Id: Atm128CaptureC.nc,v 1.1.2.2 2006-01-15 23:44:54 scipio Exp $
  */
 
 /**
@@ -46,8 +46,8 @@ generic module Atm128CaptureP ()
     interface Capture as CapturePin;
   }
   uses {
-    interface HplCapture<uint16_t>;
-    // interface HplTimer<uint16_t> as Timer;
+    interface HplAtm128Capture<uint16_t>;
+    // interface HplAtm128Timer<uint16_t> as Timer;
     // interface GeneralIO as PinToCapture;       // implicit to timer used
   }
 }
@@ -61,39 +61,39 @@ implementation
    * Configure Atmega128 TIMER to capture edge input of CapturePin signal.
    * This will cause an interrupt and save TIMER count.
    * TIMER Timebase is set by stdControl.start
-   *  -- see HplCapture interface and HplTimerM implementation
+   *  -- see HplAtm128Capture interface and HplAtm128TimerM implementation
    */
   async command error_t CapturePin.enableCapture(bool low_to_high) {
     atomic {
-      call HplCapture.stop();  // clear any capture interrupt
-      call HplCapture.setEdge(low_to_high);
-      call HplCapture.reset();
-      call HplCapture.start();
+      call HplAtm128Capture.stop();  // clear any capture interrupt
+      call HplAtm128Capture.setEdge(low_to_high);
+      call HplAtm128Capture.reset();
+      call HplAtm128Capture.start();
     }
     return SUCCESS;
   }
     
   async command error_t CapturePin.disable() {
-    call HplCapture.stop();
+    call HplAtm128Capture.stop();
     return SUCCESS;
   }
     
   /**
-   * Handle signal from HplCapture interface indicating an external 
+   * Handle signal from HplAtm128Capture interface indicating an external 
    * event has been timestamped. 
    * Signal client with time and disable capture timer if nolonger needed.
    */
-  async event void HplCapture.captured(uint16_t time) {
+  async event void HplAtm128Capture.captured(uint16_t time) {
     // first, signal client
     error_t val = signal CapturePin.captured(time);     
 
     if (val == FAIL) {
       // if client returns failure, stop time capture
-      call HplCapture.stop();
+      call HplAtm128Capture.stop();
     } else { 
       // otherwise, time capture keeps running, reset if needed
-      if (call HplCapture.test()) 
-	call HplCapture.reset();
+      if (call HplAtm128Capture.test()) 
+	call HplAtm128Capture.reset();
     }         
   }
 }

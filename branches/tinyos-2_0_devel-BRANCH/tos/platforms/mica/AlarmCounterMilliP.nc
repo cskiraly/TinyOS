@@ -11,7 +11,7 @@ configuration AlarmCounterMilliP
 }
 implementation
 {
-  components HplTimer0AsyncC, PlatformC,
+  components HplAtm128Timer0AsyncC as Timer0, PlatformC,
     new Atm128AlarmC(TMilli, uint8_t, ATM128_CLK8_DIVIDE_32, 2) as MilliAlarm,
     new Atm128CounterC(TMilli, uint8_t) as MilliCounter, 
     new TransformAlarmCounterC(TMilli, uint32_t, TMilli, uint8_t, 0, uint32_t)
@@ -23,10 +23,10 @@ implementation
 
   // Strap in low-level hardware timer (Timer0Async)
   Init = MilliAlarm;
-  MilliAlarm.HplTimer -> HplTimer0AsyncC.Timer0;
-  MilliAlarm.HplCompare -> HplTimer0AsyncC.Compare0;
-  MilliCounter.Timer -> HplTimer0AsyncC.Timer0;
-  PlatformC.SubInit -> HplTimer0AsyncC;
+  MilliAlarm.HplAtm128Timer -> Timer0.Timer0;
+  MilliAlarm.HplAtm128Compare -> Timer0.Compare0;
+  MilliCounter.Timer -> Timer0.Timer0;
+  PlatformC.SubInit -> Timer0;
 
   // Alarm Transform Wiring
   Transform32.AlarmFrom -> MilliAlarm;

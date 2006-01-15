@@ -1,4 +1,4 @@
-// $Id: HplGeneralIOPortP.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+// $Id: HplAtm128GeneralIOPortP.nc,v 1.1.2.1 2006-01-15 23:44:52 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,7 +24,7 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-generic configuration HplGeneralIOPortP (uint8_t port_addr, uint8_t ddr_addr, uint8_t pin_addr)
+generic configuration HplAtm128GeneralIOPortP (uint8_t port_addr, uint8_t ddr_addr, uint8_t pin_addr)
 {
   // provides all the ports as raw ports
   provides {
@@ -41,14 +41,14 @@ generic configuration HplGeneralIOPortP (uint8_t port_addr, uint8_t ddr_addr, ui
 implementation
 {
   components 
-  new HplGeneralIOPinP (port_addr, ddr_addr, pin_addr, 0) as Bit0,
-    new HplGeneralIOPinP (port_addr, ddr_addr, pin_addr, 1) as Bit1,
-    new HplGeneralIOPinP (port_addr, ddr_addr, pin_addr, 2) as Bit2,
-    new HplGeneralIOPinP (port_addr, ddr_addr, pin_addr, 3) as Bit3,
-    new HplGeneralIOPinP (port_addr, ddr_addr, pin_addr, 4) as Bit4,
-    new HplGeneralIOPinP (port_addr, ddr_addr, pin_addr, 5) as Bit5,
-    new HplGeneralIOPinP (port_addr, ddr_addr, pin_addr, 6) as Bit6,
-    new HplGeneralIOPinP (port_addr, ddr_addr, pin_addr, 7) as Bit7;
+  new HplAtm128GeneralIOPinP (port_addr, ddr_addr, pin_addr, 0) as Bit0,
+    new HplAtm128GeneralIOPinP (port_addr, ddr_addr, pin_addr, 1) as Bit1,
+    new HplAtm128GeneralIOPinP (port_addr, ddr_addr, pin_addr, 2) as Bit2,
+    new HplAtm128GeneralIOPinP (port_addr, ddr_addr, pin_addr, 3) as Bit3,
+    new HplAtm128GeneralIOPinP (port_addr, ddr_addr, pin_addr, 4) as Bit4,
+    new HplAtm128GeneralIOPinP (port_addr, ddr_addr, pin_addr, 5) as Bit5,
+    new HplAtm128GeneralIOPinP (port_addr, ddr_addr, pin_addr, 6) as Bit6,
+    new HplAtm128GeneralIOPinP (port_addr, ddr_addr, pin_addr, 7) as Bit7;
 
   Pin0 = Bit0;
   Pin1 = Bit1;

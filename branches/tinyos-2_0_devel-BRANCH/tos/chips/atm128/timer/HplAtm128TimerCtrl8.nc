@@ -1,4 +1,4 @@
-// $Id: HplGeneralIOSlowPinP.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: HplAtm128TimerCtrl8.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,31 +23,20 @@
  */
 
 /// @author Martin Turon <mturon@xbow.com>
-/// @author David Gay <dgay@intel-research.net>
 
-/**
- * Generic pin access for pins not mapped into I/O space (for which the
- * sbi, cbi instructions cannot be used). This can be used for ports F-G.
- */
+#include <Atm128Timer.h>
 
-generic module HplGeneralIOSlowPinP (uint8_t port_addr, 
-				     uint8_t ddr_addr, 
-				     uint8_t pin_addr,
-				     uint8_t bit)
+interface HplAtm128TimerCtrl8
 {
-  provides interface GeneralIO as IO;
-}
-implementation
-{
-#define pin (*(volatile uint8_t *)pin_addr)
-#define port (*(volatile uint8_t *)port_addr)
-#define ddr (*(volatile uint8_t *)ddr_addr)
+  /// Timer control register: Direct access
+  async command Atm128TimerControl_t getControl();
+  async command void setControl( Atm128TimerControl_t control );
 
-  inline async command bool IO.get()        { return READ_BIT (pin, bit); }
-  inline async command void IO.set()        { atomic SET_BIT  (port, bit); }
-  inline async command void IO.clr()        { atomic CLR_BIT  (port, bit); }
-  inline async command void IO.toggle()     { atomic FLIP_BIT (port, bit); }
-    
-  inline async command void IO.makeInput()  { atomic CLR_BIT  (ddr, bit);  }
-  inline async command void IO.makeOutput() { atomic SET_BIT  (ddr, bit);  }
+  /// Interrupt mask register: Direct access
+  async command Atm128_TIMSK_t getInterruptMask();
+  async command void setInterruptMask( Atm128_TIMSK_t mask);
+
+  /// Interrupt flag register: Direct access
+  async command Atm128_TIFR_t getInterruptFlag();
+  async command void setInterruptFlag( Atm128_TIFR_t flags );
 }

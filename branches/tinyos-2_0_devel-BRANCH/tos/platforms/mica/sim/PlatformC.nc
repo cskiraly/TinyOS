@@ -1,4 +1,4 @@
-/// $Id: HplTimerCtrl16.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: PlatformC.nc,v 1.1.2.1 2006-01-15 23:44:55 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,25 +24,19 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-#include <Atm128Timer.h>
+includes hardware;
 
-interface HplTimerCtrl16
+configuration PlatformC {
+  provides interface Init;
+  uses interface Init as SubInit;
+}
+implementation
 {
-  /// Timer control registers: Direct access
-  async command Atm128TimerCtrlCompare_t getCtrlCompare();
-  async command Atm128TimerCtrlCapture_t getCtrlCapture();
-  async command Atm128TimerCtrlClock_t   getCtrlClock();
+  components PlatformP, MotePlatformC;
+  
+  Init = PlatformP;
+  PlatformP.MoteInit -> MotePlatformC;
+  MotePlatformC.SubInit = SubInit;
 
-  async command void setCtrlCompare( Atm128TimerCtrlCompare_t control );
-  async command void setCtrlCapture( Atm128TimerCtrlCapture_t control );
-  async command void setCtrlClock  ( Atm128TimerCtrlClock_t   control );
-
-  /// Interrupt mask register: Direct access
-  async command Atm128_ETIMSK_t getInterruptMask();
-  async command void setInterruptMask( Atm128_ETIMSK_t mask);
-
-  /// Interrupt flag register: Direct access
-  async command Atm128_ETIFR_t getInterruptFlag();
-  async command void setInterruptFlag( Atm128_ETIFR_t flags );
 }
 

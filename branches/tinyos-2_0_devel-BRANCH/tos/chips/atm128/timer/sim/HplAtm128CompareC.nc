@@ -1,4 +1,4 @@
-/// $Id: HplAtm128CompareC.nc,v 1.1.2.3 2005-12-20 18:09:52 scipio Exp $
+/// $Id: HplAtm128CompareC.nc,v 1.1.2.4 2006-01-15 23:44:54 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: HplAtm128CompareC.nc,v 1.1.2.3 2005-12-20 18:09:52 scipio Exp $
+// $Id: HplAtm128CompareC.nc,v 1.1.2.4 2006-01-15 23:44:54 scipio Exp $
 
 #include <Atm128Timer.h>
 
@@ -42,11 +42,11 @@ generic module HplAtm128CompareC(typedef width_t @integer(),
 {
   provides {
     // 8-bit Timers
-    interface HplCompare<width_t> as Compare;
+    interface HplAtm128Compare<width_t> as Compare;
   }
   uses {
-    interface HplTimer<width_t>   as Timer;
-    interface HplTimerCtrl8       as TimerCtrl;
+    interface HplAtm128Timer<width_t>   as Timer;
+    interface HplAtm128TimerCtrl8       as TimerCtrl;
     interface HplAtm128TimerNotify as Notify;
   }
 }

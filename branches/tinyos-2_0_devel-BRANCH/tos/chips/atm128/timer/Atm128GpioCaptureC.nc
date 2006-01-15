@@ -1,8 +1,8 @@
 
-generic module GpioCaptureC() {
+generic module Atm128GpioCaptureC() {
 
   provides interface GpioCapture as Capture;
-  uses interface HplCapture<uint16_t> as Atm128Capture;
+  uses interface HplAtm128Capture<uint16_t> as Atm128Capture;
 
 }
 

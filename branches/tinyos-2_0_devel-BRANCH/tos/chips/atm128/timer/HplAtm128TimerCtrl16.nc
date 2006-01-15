@@ -1,4 +1,4 @@
-// $Id: HplGeneralIOPinP.nc,v 1.1.2.2 2006-01-03 02:11:58 scipio Exp $
+/// $Id: HplAtm128TimerCtrl16.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,34 +23,26 @@
  */
 
 /// @author Martin Turon <mturon@xbow.com>
-/// @author David Gay <dgay@intel-research.net>
 
-/**
- * Generic pin access for pins mapped into I/O space (for which the sbi, cbi
- * instructions give atomic updates). This can be used for ports A-E.
- */
-generic module HplGeneralIOPinP (uint8_t port_addr, 
-				 uint8_t ddr_addr, 
-				 uint8_t pin_addr,
-				 uint8_t bit)
-{
-  provides interface GeneralIO as IO;
-}
-implementation
-{
-#define pin  pin_addr
-#define port port_addr
-#define ddr  ddr_addr
+#include <Atm128Timer.h>
 
-  inline async command bool IO.get()        { return READ_BIT (port, bit); }
-  inline async command void IO.set()        {
-    dbg("Pins", "Setting bit %i of port %i.\n", (int)bit, (int)port);
-    SET_BIT  (port, bit);
-  }
-  inline async command void IO.clr()        { CLR_BIT  (port, bit); }
-  inline async command void IO.toggle()     { atomic FLIP_BIT (port, bit); }
-    
-  inline async command void IO.makeInput()  { CLR_BIT  (ddr, bit);  }
-  inline async command void IO.makeOutput() { SET_BIT  (ddr, bit);  }
+interface HplAtm128TimerCtrl16
+{
+  /// Timer control registers: Direct access
+  async command Atm128TimerCtrlCompare_t getCtrlCompare();
+  async command Atm128TimerCtrlCapture_t getCtrlCapture();
+  async command Atm128TimerCtrlClock_t   getCtrlClock();
+
+  async command void setCtrlCompare( Atm128TimerCtrlCompare_t control );
+  async command void setCtrlCapture( Atm128TimerCtrlCapture_t control );
+  async command void setCtrlClock  ( Atm128TimerCtrlClock_t   control );
+
+  /// Interrupt mask register: Direct access
+  async command Atm128_ETIMSK_t getInterruptMask();
+  async command void setInterruptMask( Atm128_ETIMSK_t mask);
+
+  /// Interrupt flag register: Direct access
+  async command Atm128_ETIFR_t getInterruptFlag();
+  async command void setInterruptFlag( Atm128_ETIFR_t flags );
 }
 

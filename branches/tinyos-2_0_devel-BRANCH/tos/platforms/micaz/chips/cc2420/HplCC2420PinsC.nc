@@ -54,7 +54,7 @@
  * 14-15 of the CC2420 datasheet (rev 1.2).
  *
  * <pre>
- * $Id: HplCC2420PinsC.nc,v 1.1.2.4 2005-10-29 17:36:18 jwhui Exp $
+ * $Id: HplCC2420PinsC.nc,v 1.1.2.5 2006-01-15 23:44:56 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -75,7 +75,7 @@ configuration HplCC2420PinsC {
 
 implementation {
 
-  components HplGeneralIOC as IO;
+  components HplAtm128GeneralIOC as IO;
   
   CCA    = IO.PortD6;
   CSN    = IO.PortB0;

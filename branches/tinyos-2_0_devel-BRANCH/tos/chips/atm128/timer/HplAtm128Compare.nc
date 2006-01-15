@@ -1,4 +1,4 @@
-/// $Id: HplCompare.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: HplAtm128Compare.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,7 +24,7 @@
 
 /// @author Martin Turon <mturon@xbow.com>
 
-interface HplCompare<size_type>
+interface HplAtm128Compare<size_type>
 {
   /// Compare value register: Direct access
   async command size_type get();

@@ -1,8 +1,8 @@
 
-generic module GpioInterruptC() {
+generic module Atm128GpioInterruptC() {
 
   provides interface GpioInterrupt as Interrupt;
-  uses interface HplInterrupt as Atm128Interrupt;
+  uses interface HplAtm128Interrupt as Atm128Interrupt;
 
 }
 

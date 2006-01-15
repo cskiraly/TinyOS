@@ -1,4 +1,4 @@
-/// $Id: HplTimer1P.nc,v 1.1.2.1 2005-10-11 22:14:49 idgay Exp $
+/// $Id: HplAtm128Timer1P.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -26,18 +26,18 @@
 
 #include <Atm128Timer.h>
 
-module HplTimer1P
+module HplAtm128Timer1P
 {
   provides {
     // 16-bit Timers
-    interface HplTimer<uint16_t>   as Timer1;
-    interface HplTimerCtrl16       as Timer1Ctrl;
-    interface HplCapture<uint16_t> as Capture1;
-    interface HplCompare<uint16_t> as Compare1A;
-    interface HplCompare<uint16_t> as Compare1B;
-    interface HplCompare<uint16_t> as Compare1C;
+    interface HplAtm128Timer<uint16_t>   as Timer1;
+    interface HplAtm128TimerCtrl16       as Timer1Ctrl;
+    interface HplAtm128Capture<uint16_t> as Capture1;
+    interface HplAtm128Compare<uint16_t> as Compare1A;
+    interface HplAtm128Compare<uint16_t> as Compare1B;
+    interface HplAtm128Compare<uint16_t> as Compare1C;
   }
-  uses interface HplTimerCtrl8     as Timer0Ctrl;
+  uses interface HplAtm128TimerCtrl8     as Timer0Ctrl;
 }
 implementation
 {

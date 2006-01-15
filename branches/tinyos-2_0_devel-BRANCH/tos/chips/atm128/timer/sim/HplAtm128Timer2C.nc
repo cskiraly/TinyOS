@@ -35,34 +35,34 @@
  * @author David Gay <dgay@intel-research.net>
  */
 
-// $Id: HplTimer2C.nc,v 1.1.2.2 2005-11-23 00:25:44 scipio Exp $/// $Id: HplTimer2C.nc,
+// $Id: HplAtm128Timer2C.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $/// $Id: HplAtm128Timer2C.nc,
 
 
 #include <Atm128Timer.h>
 
-configuration HplTimer2C
+configuration HplAtm128Timer2C
 {
   provides {
     // 8-bit Timers
-    interface HplTimer<uint8_t>   as Timer2;
-    interface HplTimerCtrl8       as Timer2Ctrl;
-    interface HplCompare<uint8_t> as Compare2;
+    interface HplAtm128Timer<uint8_t>   as Timer2;
+    interface HplAtm128TimerCtrl8       as Timer2Ctrl;
+    interface HplAtm128Compare<uint8_t> as Compare2;
   }
 }
 implementation {
-  components HplCounter0C, new HplAtm128CompareC(uint8_t,
+  components HplAtm128Counter0C, new HplAtm128CompareC(uint8_t,
 						 ATM128_OCR2,
 						 ATM128_TIMSK,
 						 OCIE2,
 						 ATM128_TIFR,
 						 OCF2);
 
-  Timer2 = HplCounter2C;
-  Timer2Ctrl = HplCounter2C;
+  Timer2 = HplAtm128Counter2C;
+  Timer2Ctrl = HplAtm128Counter2C;
   Compare2 = HplAtm128CompareC;
 
-  HplAtm128CompareC.Timer -> HplCounter2C;
-  HplAtm128CompareC.TimerCtrl -> HplCounter2C;
-  HplAtm128CompareC.Notify -> HplCounter2C;
+  HplAtm128CompareC.Timer -> HplAtm128Counter2C;
+  HplAtm128CompareC.TimerCtrl -> HplAtm128Counter2C;
+  HplAtm128CompareC.Notify -> HplAtm128Counter2C;
   
 }

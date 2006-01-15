@@ -1,4 +1,4 @@
-/// $Id: HplCapture.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+// $Id: HplAtm128GeneralIOSlowPinP.nc,v 1.1.2.1 2006-01-15 23:44:52 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,23 +23,31 @@
  */
 
 /// @author Martin Turon <mturon@xbow.com>
+/// @author David Gay <dgay@intel-research.net>
 
-interface HplCapture<size_type>
+/**
+ * Generic pin access for pins not mapped into I/O space (for which the
+ * sbi, cbi instructions cannot be used). This can be used for ports F-G.
+ */
+
+generic module HplAtm128GeneralIOSlowPinP (uint8_t port_addr, 
+				     uint8_t ddr_addr, 
+				     uint8_t pin_addr,
+				     uint8_t bit)
 {
-  /// Capture value register: Direct access
-  async command size_type get();
-  async command void      set(size_type t);
-
-  /// Interrupt signals
-  async event void captured(size_type t);  //<! Signalled on capture interrupt
-
-  /// Interrupt flag utilites: Bit level set/clr  
-  async command void reset();          //<! Clear the capture interrupt flag
-  async command void start();          //<! Enable the capture interrupt
-  async command void stop();           //<! Turn off capture interrupts
-  async command bool test();           //<! Did capture interrupt occur?
-  async command bool isOn();           //<! Is capture interrupt on?
-
-  async command void setEdge(bool up); //<! True = detect rising edge
+  provides interface GeneralIO as IO;
 }
+implementation
+{
+#define pin (*(volatile uint8_t *)pin_addr)
+#define port (*(volatile uint8_t *)port_addr)
+#define ddr (*(volatile uint8_t *)ddr_addr)
 
+  inline async command bool IO.get()        { return READ_BIT (pin, bit); }
+  inline async command void IO.set()        { atomic SET_BIT  (port, bit); }
+  inline async command void IO.clr()        { atomic CLR_BIT  (port, bit); }
+  inline async command void IO.toggle()     { atomic FLIP_BIT (port, bit); }
+    
+  inline async command void IO.makeInput()  { atomic CLR_BIT  (ddr, bit);  }
+  inline async command void IO.makeOutput() { atomic SET_BIT  (ddr, bit);  }
+}
