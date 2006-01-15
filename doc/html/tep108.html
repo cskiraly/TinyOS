@@ -3,19 +3,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.3.6: http://docutils.sourceforge.net/" />
 <title>Resource Arbitration</title>
+<meta name="author" content="Kevin Klues" />
+<meta name="author" content="Philip Levis" />
 <meta name="author" content="David Gay" />
 <meta name="author" content="David Culler" />
-<meta name="author" content="Philip Levis" />
-<meta name="author" content="Kevin Klues" />
+<meta name="author" content="Vlado Handziski" />
 <style type="text/css">
 
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2005-10-31 22:16:36 $
-:version: $Revision: 1.1.2.1 $
+:date: $Date: 2006-01-15 20:07:27 $
+:version: $Revision: 1.1.2.2 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -283,7 +284,6 @@ ul.auto-toc {
 </style>
 </head>
 <body>
-<div class="document" id="resource-arbitration">
 <h1 class="title">Resource Arbitration</h1>
 <table class="docinfo" frame="void" rules="none">
 <col class="docinfo-name" />
@@ -300,23 +300,26 @@ ul.auto-toc {
 <tr class="field"><th class="docinfo-name">TinyOS-Version:</th><td class="field-body">2.x</td>
 </tr>
 <tr><th class="docinfo-name">Author:</th>
+<td>Kevin Klues</td></tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Philip Levis</td></tr>
+<tr><th class="docinfo-name">Author:</th>
 <td>David Gay</td></tr>
 <tr><th class="docinfo-name">Author:</th>
 <td>David Culler</td></tr>
 <tr><th class="docinfo-name">Author:</th>
-<td>Philip Levis</td></tr>
-<tr><th class="docinfo-name">Author:</th>
-<td>Kevin Klues</td></tr>
+<td>Vlado Handziski</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">28-Mar-2005</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.6</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.3</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2005-07-06</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-01-13</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
 </tbody>
 </table>
+<div class="document" id="resource-arbitration">
 <div class="note">
 <p class="first admonition-title">Note</p>
 <p class="last">This memo documents a part of TinyOS for the TinyOS Community, and
@@ -328,328 +331,423 @@ TEP 1.</p>
 <h1><a name="abstract">Abstract</a></h1>
 <p>This memo documents the general resource sharing mechanisms for TinyOS
 2.x. These mechanisms are used to allow multiple software components to
-arbitrate the use of both hardware buses, software components, etc.</p>
+arbitrate access to shared abstractions.</p>
 </div>
 <div class="section" id="introduction">
 <h1><a name="introduction">1. Introduction</a></h1>
-<p>Components that wish to use a shared resource, such as a hardware bus,
-memory or the services offered by another component need a way to arbitrate
-use of these resources.</p>
-<p>In TinyOS 1.x, this arbitration was performed on a first-come, first-served
-basis by having requests for, e.g., a service X return FAIL if it was
-currently in use. Users of X could monitor service completion events if
-they wished to retry a failed request. This approach has several drawbacks:</p>
+<p>TinyOS 1.x has two mechanisms for managing shared resources:
+virtualization and completion events. A virtualized resource appears
+as an independent instance of an abstraction, such as the Timer
+interface is TimerC. A client of a Timer instance can use it
+independently of the others: TimerC virtualizes the underlying
+hardware clock into N separate timers.</p>
+<p>Some abstractions, however, are not well suited to virtualization:
+programs need the control provided by a physical abstraction. For
+example, components in 1.x share a single communication stack,
+GenericComm.  GenericComm can only handle one outgoing packet at a
+time. If a component tries to send a packet when GenericComm is
+already busy, then the call returns FAIL. Therefore, shared use of
+GenericComm follows a first-come, first-served arbitration policy. If
+a component sends a packet but GenericComm is busy, the component
+needs a way to tell when GenericComm is free so it can retry. TinyOS
+1.x provides the mechanism of a global completion event which is
+signalled whenever a packet send completes. Interested components can
+handle this event and retry.</p>
+<p>The approach to physical (rather than virtualized) abstractions 
+has several drawbacks:</p>
 <ul class="simple">
-<li>If you need to make several requests of X, you have to handle the
-possibility of failure at any stage. This complicates implementations by
-adding extra internal states.</li>
-<li>You have no control over timing of a sequence of operations. This is a
-problem for, e.g., timing-sensitive use of an A/D converter.</li>
+<li>If you need to make several requests, you have to handle the
+possibility of a request returning FAIL at any point. This complicates  
+implementations by adding internal states.</li>
+<li>You have no control over the timing of a sequence of operations. One
+example of when this can be a problem is timing-sensitive use of an 
+A/D converter.</li>
 <li>If a hardware resource supports reservation, you cannot express this
-via this software interface. For instance, I2C buses have a concept of
-&quot;repeated start&quot; when doing multiple bus transactions, but it was not
-clear how to use this in TinyOS 1.x's I2C abstraction.</li>
-<li>Most TinyOS 1.x services did not provide a very convenient way of 
-monitoring X's availability for the purpose of retries, nor very
-clear documentation of which requests could happen simultaneously.</li>
+via this software interface. For instance, I2C buses have a  
+concept of &quot;repeated start&quot; when doing multiple bus transactions, 
+but it is not clear how to use this in TinyOS 1.x's I2C abstraction.</li>
+<li>Most TinyOS 1.x services do not provide a very convenient way of
+monitoring an abstractions's availability for the purpose of retries, 
+nor very clear documentation of which requests could happen simultaneously.</li>
 </ul>
-<p>In light of all these problems, TinyOS 2.x introduces resource reservation
-mechanisms for use by components providing access to shared resources.</p>
-</div>
-<div class="section" id="resource-sharing-in-tinyos-2-x">
-<h1><a name="resource-sharing-in-tinyos-2-x">2. Resource sharing in TinyOS 2.x</a></h1>
 <p>A single approach to resource sharing is not appropriate for all
-circumstances. For instance, requiring resource reservation allows programs
-to have better timing guarantees for access to an A/D converter. But if
-a program does not need precise timing guarantees (e.g., when measuring
+circumstances. For instance, requiring resource reservation allows  
+programs to have better timing guarantees for access to an A/D converter. 
+But if a program does not need precise timing guarantees (e.g., when measuring
 temperature in a biological monitoring application), this extra resource
-reservation step complicates code.</p>
-<p>Thus, TinyOS services should offer resource sharing mechanisms appropriate
-to their goals and level of abstraction. However, to preserve simplicity
-and consistency there should only be a few different resource sharing
-approaches, which we outline here.</p>
-<ul class="simple">
-<li>Resource reservation: the service must be reserved before use, via the
-Resource interface. This approach is described in Section 3.  Because many
-services will have similar approaches to resource sharing (e.g.,
-round-robin, or priority-based), TinyOS includes default arbiters
-implementing various resource sharing policies. These arbiters are
-described in Section 4.</li>
-<li>Request queuing: requests from different clients are queued and handled
-in some (service-dependent) order. This approach is described in Section 5.</li>
-<li>Resource virtualisation: the service is virtualised so as to support an
-arbitrary number of clients - a typical example is the Timer service. From 
-a programming perspective, this behaves similarly to resource queuing and
-is therefore also described in Section 5.</li>
-</ul>
-<p>Note that request queuing and resource virtualisation may need to store
-significant amounts of per-client state. We expect that lower-level
-services will use the resource reservation approach, while higher level
-ones will prefer queuing or virtualisation. These higher-level services
-will typically be built on top of the lower-level, resource-reservation
-based services.</p>
+reservation step unnecessarily complicates code.</p>
 </div>
-<div class="section" id="resource-reservation-interface">
-<h1><a name="resource-reservation-interface">3. Resource Reservation Interface</a></h1>
-<p>The resource interface is defined as follows:</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">Resource</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">/**</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">Request</span> <span class="pre">access</span> <span class="pre">to</span> <span class="pre">a</span> <span class="pre">shared</span> <span class="pre">resource.</span> <span class="pre">You</span> <span class="pre">must</span> <span class="pre">call</span> <span class="pre">release()</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">when</span> <span class="pre">you</span> <span class="pre">are</span> <span class="pre">done</span> <span class="pre">with</span> <span class="pre">it.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">&#64;return</span> <span class="pre">SUCCESS</span> <span class="pre">Request</span> <span class="pre">accepted.</span> <span class="pre">The</span> <span class="pre">granted()</span> <span class="pre">event</span> <span class="pre">will</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="pre">be</span> <span class="pre">signaled</span> <span class="pre">when</span> <span class="pre">you</span> <span class="pre">have</span> <span class="pre">the</span> <span class="pre">resource.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="pre">EBUSY</span> <span class="pre">You</span> <span class="pre">have</span> <span class="pre">already</span> <span class="pre">requested</span> <span class="pre">this</span> <span class="pre">resource</span> <span class="pre">via</span> <span class="pre">this</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="pre">interface.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*/</span></tt></div>
+<div class="section" id="resource-classes">
+<h1><a name="resource-classes">2. Resource Classes</a></h1>
+<p>TinyOS 2.x distinguishes between three kinds of abstractions: physical
+and dedicated, physical and shared, and virtual and shared.
+Components offer resource sharing mechanisms appropriate to their
+goals and level of abstraction. As discussed in Section 2.1, access
+control to physical and dedicated abstractions is generally handled
+through nesC interfaces. As discussed in Section 2.2, access control
+to virtualized abstractions is handled through software design
+patterns such as the Service Instance[_sipattern] and/or
+queueing. Section 2.3 addresses with the most complex class of
+abstraction, physical and shared, while Section 3 describes the
+components and interfaces used to arbitrate access to this class.</p>
+<p>Hardware Presentation Layer (HPL) components of the HAA[_haa] are always
+physical, as virtualization inevitably requires state. Depending on their
+expected use, HPL abstractions are either physical and dedicated or
+physical and shared. For example, while hardware timers are rarely
+multiplexed between multiple components, buses almost always are.
+Correspondingly, on the MSP430, compare and counter registers are 
+physical and dedicated, while the USARTs are physical and shared.</p>
+<div class="section" id="physical-and-dedicated">
+<h2><a name="physical-and-dedicated">2.1 Physical and Dedicated</a></h2>
+<p>An abstraction is <em>physical and dedicated</em> if it is a hardware resource
+which a subsystem needs exclusive access to at all times. Examples of
+physical and dedicated abstractions include interrupts and counters.
+Generally, a physical and dedicated abstraction is just an interface 
+which its user wires to. For example, on the Atmega128, Timer 2 is
+presented by the component HplAtm128Timer2C:</p>
+<pre class="literal-block">
+module HplAtmTimer2C {
+  provides {
+    interface HplTimer&lt;uint8_t&gt;   as Timer2;
+    interface HplTimerCtrl8       as Timer2Ctrl;
+    interface HplCompare&lt;uint8_t&gt; as Compare2;
+  }
+}
+</pre>
 </div>
-<div class="line"><tt class="docutils literal"><span class="pre">async</span> <span class="pre">command</span> <span class="pre">error_t</span> <span class="pre">request();</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">/**</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">Request</span> <span class="pre">immediate</span> <span class="pre">access</span> <span class="pre">to</span> <span class="pre">a</span> <span class="pre">shared</span> <span class="pre">resource.</span> <span class="pre">You</span> <span class="pre">must</span> <span class="pre">call</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">release()</span> <span class="pre">when</span> <span class="pre">you</span> <span class="pre">are</span> <span class="pre">done</span> <span class="pre">with</span> <span class="pre">it.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">&#64;return</span> <span class="pre">SUCCESS</span> <span class="pre">You</span> <span class="pre">now</span> <span class="pre">have</span> <span class="pre">the</span> <span class="pre">resource.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="pre">EBUSY</span> <span class="pre">The</span> <span class="pre">resource</span> <span class="pre">is</span> <span class="pre">busy.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*/</span></tt></div>
+<div class="section" id="virtual-and-shared">
+<h2><a name="virtual-and-shared">2.2 Virtual and Shared</a></h2>
+<p>Virtual and shared abstractions hide multiple clients from each other
+through software virtualization. Every client of the resource thinks it
+has its own independent instance of the resource, but these virtualized
+instances are multiplexed on top of a single underlying resource. Because
+the virtualization is in software, there is no upper bound on the number
+of clients of the abstraction, barring memory or efficiency constraints.
+For example, the TimerMilliC component provides a virtual and shared
+abstraction of millisecond precision timers to application 
+components[_tep102]. As virtualization usually requires keeping state
+and that state must scale with the number of virtualized instances,
+virtualized resources often use the Service Instance pattern[_sipattern],
+which is based on a parameterized interface. For example, TimerMilliC:</p>
+<pre class="literal-block">
+configuration TimerMilliC {
+  provides interface Init;
+  provides interface Timer&lt;TMilli&gt; as TimerMilli[uint8_t num];
+}
+</pre>
+<p>Virtualization generally allows a client to use a very simple interface.
+This simplicity comes at a cost of reduced efficiency and an inability to
+precisely control the underlying resource. For example, TimerMilli32C
+introduces CPU overhead from dispatching and maintaining all of the 
+virtual timers as well as jitter from when two timers want to fire at
+the same time.</p>
 </div>
-<div class="line"><tt class="docutils literal"><span class="pre">async</span> <span class="pre">command</span> <span class="pre">error_t</span> <span class="pre">immediateRequest();</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">/**</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">You</span> <span class="pre">have</span> <span class="pre">received</span> <span class="pre">access</span> <span class="pre">to</span> <span class="pre">this</span> <span class="pre">resource.</span> <span class="pre">Note</span> <span class="pre">that</span> <span class="pre">this</span> <span class="pre">event</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">is</span> <span class="pre">NOT</span> <span class="pre">signaled</span> <span class="pre">when</span> <span class="pre">immediateRequest()</span> <span class="pre">succeeds.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*/</span></tt></div>
+<div class="section" id="physical-and-shared">
+<h2><a name="physical-and-shared">2.3 Physical and Shared</a></h2>
+<p>Physical and dedicated abstractions are useful when a resource is
+always controlled by a single component. Virtualized abstractions are
+useful when clients are willing to pay a bit of overhead and sacrifice
+control in order to share a resource in a simple way. There are
+situations, however, when many clients need precise control of a
+resource. Clearly, they can't all have such control at the same time:
+some degree of multiplexing is needed.</p>
+<p>In TinyOS 2.x, a resource <em>arbiter</em> is responsible for this
+multiplexing. The arbiter determines which client has access to the
+resource. While a client holds a resource, it has complete and
+unfettered control. Arbiters assume that clients are cooperative, only
+acquiring the resource when needed and holding on to it no longer than
+necessary. Clients explicitly release resources: there is no way for
+an arbiter to forcibly reclaim it.</p>
+<p>A motivating example of a physical and shared resource is a bus.
+The bus may have multiple peripherals on it, corresponding to 
+different subsystems. For example, on the Telos platform the flash
+chip (storage) and the radio (network) share a bus. The storage and
+network stacks need exclusive access to the bus when using it,
+but they also need to share it with the other subsystem. In this
+case, virtualization is problematic, as the radio stack needs to be
+able to perform a series of operations in quick succession without
+having to reacquire the bus in each case. Having the bus be a
+physical but shared resource allows the radio stack to 
+send a series of operations atomically across to the radio without
+having to buffer them all up in memory beforehand (which would 
+introduce memory pressure).</p>
 </div>
-<div class="line"><tt class="docutils literal"><span class="pre">event</span> <span class="pre">void</span> <span class="pre">granted();</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">/**</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">Release</span> <span class="pre">a</span> <span class="pre">shared</span> <span class="pre">resource</span> <span class="pre">you</span> <span class="pre">previously</span> <span class="pre">acquired.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*/</span></tt></div>
 </div>
-<div class="line"><tt class="docutils literal"><span class="pre">async</span> <span class="pre">command</span> <span class="pre">void</span> <span class="pre">release();</span></tt></div>
-<div class="line"><br /></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">/**</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">Some</span> <span class="pre">other</span> <span class="pre">component</span> <span class="pre">has</span> <span class="pre">requested</span> <span class="pre">this</span> <span class="pre">resource.</span> <span class="pre">You</span> <span class="pre">might</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">want</span> <span class="pre">to</span> <span class="pre">consider</span> <span class="pre">releasing</span> <span class="pre">it.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*/</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">event</span> <span class="pre">void</span> <span class="pre">requested();</span></tt></div>
-</div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
-<p>This Resource interface is offered as a parameterised interface by services
-which wish to provide access to a shared resource. The interface's
-parameter represents client ids. A component SomeNameC must #define
-SOME_NAME_RESOURCE to a string which can be passed to the special unique()
-function to obtain a client id. For instance, the I2C service might look
-like this:</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">includes</span> <span class="pre">I2CPacketC;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">I2CPacketC</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">/**</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">For</span> <span class="pre">reserving</span> <span class="pre">the</span> <span class="pre">I2C</span> <span class="pre">bus.</span> <span class="pre">'id'</span> <span class="pre">is</span> <span class="pre">the</span> <span class="pre">client</span> <span class="pre">id,</span> <span class="pre">obtained</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">via</span> <span class="pre">unique(I2C_RESOURCE)</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*/</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">Resource[uint8_t</span> <span class="pre">id];</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">/**</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">Actual</span> <span class="pre">I2C</span> <span class="pre">packet</span> <span class="pre">interface.</span> <span class="pre">'busId'</span> <span class="pre">is</span> <span class="pre">the</span> <span class="pre">I2C</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">bus</span> <span class="pre">identifer</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">device</span> <span class="pre">you</span> <span class="pre">wish</span> <span class="pre">to</span> <span class="pre">use.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*/</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">I2CPacket[uint8_t</span> <span class="pre">busId];</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">...</span></tt></div>
-</div>
+<div class="section" id="resource-arbiters">
+<h1><a name="resource-arbiters">3. Resource Arbiters</a></h1>
+<p>Physical and shared resources have an <em>arbiter</em> to manage which client
+can use the resource at any given time. Because an arbiter is a
+centralized place that knows whether the resource is in use, it also
+provides information useful for a variety of other services, such as
+power management. An arbiter MUST provide a parameterized Resource
+interface as well as an instance of the ArbiterInfo interface. An
+arbiter SHOULD also provide an instance of ResourceController and
+ResourceConfigure interfaces. An arbiter MAY provide additional
+interfaces or instance of interfaces in order to provide a particular
+arbitration policy.</p>
+<div class="section" id="resource">
+<h2><a name="resource">3.1 Resource</a></h2>
+<p>Clients of a physical and shared resource arbiter request access 
+using the Resource interface:</p>
+<pre class="literal-block">
+interface Resource {
+  async command error_t request();
+  async command error_t immediateRequest();
+  event void granted();
+  async command void release();
+}
+</pre>
+<p>A client lets an arbiter know it needs access to the resource with
+a call to request(). The arbiter signals it the granted() event
+when it gains exclusive access to the resource. A client
+can also acquire the resource with immediateRequest(). The 
+return value of this call determines whether the client was able
+to acquire the resource. If immmediateRequest() does not successfully
+acquire the resource, then it can try to do so in the standard,
+split-phase way with request(). If the call to immediateRequest()
+succeeds, then the arbiter MUST NOT issue a granted() event.</p>
+<p>An arbiter MUST provide a parameterized Resource interface,
+where the parameter is a client ID, following the Service
+Instance pattern[_sipattern]. An arbitrated component SomeNameC MUST 
+#define SOME_NAME_RESOURCE to a string which can be passed to unique() 
+to obtain a client id. For instance, an I2C bus might look like this:</p>
+<pre class="literal-block">
+includes I2CPacketC;
+configuration I2CPacketC {
+  provides {
+    interface Resource[uint8_t id];
+    interface I2CPacket[uint8_t busId];
+  }
+} ...
+</pre>
 <p>where I2CPacketC.h contains the #define for the resource:</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">#ifndef</span> <span class="pre">I2CPACKETC_H</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">#define</span> <span class="pre">I2CPACKETC_H</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">#define</span> <span class="pre">I2CPACKET_RESOURCE</span> <span class="pre">&quot;I2CPacket.Resource&quot;</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">#endif</span></tt></div>
-</div>
+<pre class="literal-block">
+#ifndef I2CPACKETC_H
+#define I2CPACKETC_H
+#define I2CPACKET_RESOURCE &quot;I2CPacket.Resource&quot;
+#endif
+</pre>
 <p>The #define for the unique string must be placed in a separate file
 because of the way nesC files are preprocessed: referring to I2CPacketC
 isn't enough to ensure that macros #define'd in I2CPacketC are visible
 in the referring component.</p>
 <p>Clients of the I2C service would use it as follows:</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">module</span> <span class="pre">I2CUserM</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">uses</span> <span class="pre">interface</span> <span class="pre">Resource</span> <span class="pre">as</span> <span class="pre">I2CResource;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uses</span> <span class="pre">interface</span> <span class="pre">I2CPacket;</span></tt></div>
+<pre class="literal-block">
+module I2CUserM {
+  uses interface Resource as I2CResource;
+  uses interface I2CPacket;
+} ...
+
+#include &lt;I2CPacketC.h&gt;
+configuration I2CUserC { }
+implementation {
+  components I2CUserM, I2CPacketC;
+
+  I2CUserM.I2CResource -&gt; I2CPacketC.Resource[unique(I2C_RESOURCE)];
+  I2CUserM.I2CPacket -&gt; I2CPacket.I2CPacket[0x73]; // using I2C device 0x73
+}
+</pre>
 </div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">...</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">includes</span> <span class="pre">I2CPacketC;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">I2CUserC</span> <span class="pre">{</span> <span class="pre">}</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">implementation</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">components</span> <span class="pre">I2CUserM,</span> <span class="pre">I2CPacketC;</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">I2CUserM.I2CResource</span> <span class="pre">-&gt;</span> <span class="pre">I2CPacketC.Resource[unique(I2C_RESOURCE)];</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">I2CUserM.I2CPacket</span> <span class="pre">-&gt;</span> <span class="pre">I2CPacket.I2CPacket[0x73];</span> <span class="pre">//</span> <span class="pre">using</span> <span class="pre">I2C</span> <span class="pre">device</span> <span class="pre">0x73</span></tt></div>
+<div class="section" id="resourcecontroller">
+<h2><a name="resourcecontroller">3.2 ResourceController</a></h2>
+<p>An arbiter SHOULD provide one instance of the ResourceController
+interface and MAY provide more than one. The Resource interface is for
+simple and basic use cases, where clients are peers that share the
+resource in some equal fashion. ResourceController is for clients that
+require additional information due to the policies of the arbiter and
+how they use the resource.  The ResourceController interface is based
+on Resource, but introduces two additional events, idle() and
+requested():</p>
+<pre class="literal-block">
+interface ResourceController {
+  async command error_t request();
+  async command error_t immediateRequest();
+  event void granted();
+  async command void release();
+  async event void requested(); 
+  async event void idle(); 
+}
+</pre>
+<p>An arbiter signals the requested event if the client currently has the resource
+and some other client has requested it. It signals the idle() event when 
+no client holds the resource.</p>
+<p>ResourceController allows an arbiter to provide a much richer set of
+policies than simple sharing. For example, arbiters that want to
+incorporate a power management policy can provide ResourceController
+for a power management component. The power management component can
+detect when nobody is using the resource with idle(), acquire it
+atomically with immediateRequest(), and power it down. When another
+client requests the resource, the power manager will handle the
+requested() event. It can then power up the resource and release it
+when the power up completes. Note that if power up is a split-phase
+operation (takes a while), then calls by clients to immediateRequest()
+when in powered down state will not return SUCCESS. See TEP 115 for
+details. The default arbiters in TinyOS 2.x (see Section 4) all provide a
+single instance of ResourceController, in order to enable power
+management as described above.</p>
+<p>ResourceController can also be used for special case clients: the
+algorithm used to determine when its requests are handled in
+comparison to instances of Resource is arbiter specific. Therefore,
+arbiters MAY provide one or more instances of ResourceController.  For
+example, the FcfsPriorityArbiter has a single high-priority client who
+is always granted access to the resource before any other client.
+Other clients only obtain the resource if the high-priority client has
+not requested it or when the high-priority client releases it.</p>
 </div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+<div class="section" id="arbiterinfo">
+<h2><a name="arbiterinfo">3.3 ArbiterInfo</a></h2>
+<p>The ArbiterInfo interface allows a component to query the current 
+status of an arbiter:</p>
+<pre class="literal-block">
+interface ArbiterInfo {
+  async command bool inUse();
+  async command uint8_t userId();
+}
+</pre>
+<p>The ArbiterInfo interface has a variety of uses. For example, the resource 
+implementation can use it to refuse requests from clients that do not
+currently have access. In this case, the abstraction would need to provide
+a parameterized interface for its operations so it could distinguish separate
+clients, and the client ID for its operations would need to be the same
+as the client ID for the arbiter.</p>
+<p>Arbiters MUST provide an instance of the ArbiterInfo interface.</p>
 </div>
-<p>A final note: in some cases, resource reservation will correspond to
-hardware resource reservation (e.g., for I2C). In other cases --- where
-there is no hardware, for a bus which cannot be reserved, etc --- resource
-reservation is purely a reservation of the software component itself.</p>
+<div class="section" id="resourceconfigure">
+<h2><a name="resourceconfigure">3.4 ResourceConfigure</a></h2>
+<p>The ResourceConfigure interface provides a mechanism for clients that need
+to use a resource with different configurations. Rather than forcing a 
+client to reconfigure the resource itself, the component representing a
+client can wire to an arbiter's ResourceConfigure interface, which is called
+before the client is granted the resource.</p>
+<p>For example, the MSP430 USART0 bus can operate in three modes: SPI, I2C, and
+UART. Using all three concurrently is problematic: only one should be enabled
+at a time. However, different clients of the bus might need different bus
+protocols. For example, Telos sensors use an I2C, while the radio and flash
+chip use SPI.</p>
+<p>Arbiters MAY provide a parameterized ResourceConfigure interface:</p>
+<pre class="literal-block">
+interface ResourceConfigure {
+  async command void configure();
+}
+</pre>
+<p>The parameter is the client ID, and corresponds directly to an instance of
+the Resource interface. For example:</p>
+<pre class="literal-block">
+generic component RoundRobinArbiterC {
+  provides {
+    interface Resource[uint8_t id];
+    interface ResourceController;
+    interface ArbiterInfo;
+  }
+  uses {
+    interface ResourceConfigure[uint8_t id];
+  }
+}
+</pre>
+<p>If an arbiter uses the ResourceConfigure interface, before it signals the 
+Resource.granted() event and before it returns SUCCESS from a call to 
+Resource.immediateRequest(), it MUST call ResourceConfigure.configure()
+on the granted client ID.</p>
+<p>Using a parameterized interface that calls out rather than a decorator
+on the Resource interface simplifies code reuse. Using a decorator
+could lead to a large number of clients all including redundant
+configuration code, while the call out will only have one instance
+of the code. For example, an SPI client might look like this:</p>
+<pre class="literal-block">
+generic component Msp430Spi0ClientC {
+  provides {
+    interface Resource;
+    interface SPIByte;
+    interface SPIPacket;
+  }
+}
+implementation {
+  enum {MSP430_SPI0_CLIENT = unique(MSP430_USART_RESOURCE);
+  components Msp430Usart0C, Msp430Spi0Configure as Configure;
+  
+  Resource = Msp430Usart0C.Resource[MSP430_SPI0_CLIENT];
+  Msp430Usart0C.ResourceConfigure[MSP430_SPI0_CLIENT] -&gt; Configure;
+}
+</pre>
+<p>Arbiters SHOULD provide a parameterized ResourceConfigure interface.</p>
+</div>
 <div class="section" id="cross-component-reservation">
-<h2><a name="cross-component-reservation">3.1 Cross-component reservation</a></h2>
-<p>In some cases, it is desireable to share reservation of resources across
-components. For example, on the TI MSP 430, the same pins can be used as
-an I2C bus, a UART, or an SPI connection. Clearly, on this chip, a reservation
-of the I2C bus implicitly reserves the corresponding UART and SPI. This can
-be accomplished in the framework described above by:
-1) using the same unique string for all three resources
-2) wiring the three parameterised Resource interfaces to the same arbiter</p>
-<p>This could be done as follows (the UART and SPI components are omitted, they
-are similar to I2CC):</p>
-<p>I2CC.nc (a low-level I2C component):</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">#define</span> <span class="pre">I2C_RESOURCE</span> <span class="pre">MSP_BUS_RESOURCE</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">I2CC</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">Resource[uint8_t</span> <span class="pre">clientId];</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">I2C;</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">implementation</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">components</span> <span class="pre">MspBusC,</span> <span class="pre">I2CM;</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">Resource</span> <span class="pre">=</span> <span class="pre">MspBusC.Resource;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">I2C</span> <span class="pre">=</span> <span class="pre">I2CM.I2C;</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
+<h2><a name="cross-component-reservation">3.5 Cross-component reservation</a></h2>
+<p>In some cases, it is desirable to share reservation of resources
+across components. For example, on the TI MSP 430, the same pins can
+be used as an I2C bus, a UART, or an SPI connection. Clearly, on this
+chip, a reservation of the I2C bus implicitly reserves the
+corresponding UART and SPI.  This can be accomplished in the framework
+described above by:</p>
+<ol class="arabic simple">
+<li>using the same unique string for all three resources</li>
+</ol>
+<p>2) wiring the three parameterised Resource interfaces to the same  
+arbiter</p>
+<p>The common way to do this is as follows (the UART and SPI components
+are omitted, they are similar to I2CC,  low-level I2C component):</p>
+<pre class="literal-block">
+#define I2C_RESOURCE MSP_BUS_RESOURCE
+configuration I2CC {
+  provides interface Resource[uint8_t clientId];
+  provides interface I2C;
+}
+implementation {
+  components MspBusC, I2CM;
+
+  Resource = MspBusC.Resource;
+  I2C = I2CM.I2C;
+}
+</pre>
 <p>MspBusC (the arbiter for the MSP bus):</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">#define</span> <span class="pre">MSP_BUS_RESOURCE</span> <span class="pre">&quot;MspBus.Resource&quot;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">Resource[uint8_t</span> <span class="pre">clientId];</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">...</span></tt></div>
-</div>
+<pre class="literal-block">
+#define MSP_BUS_RESOURCE &quot;MspBus.Resource&quot;
+configuration {
+  provides interface Resource[uint8_t clientId];
+} ...
+</pre>
 </div>
 </div>
 <div class="section" id="default-arbiters">
 <h1><a name="default-arbiters">4. Default arbiters</a></h1>
-<p>Each service could provide its own implementation of the Resource
-interface, but this would be a waste of programmer effort and would lead to
-inconsistent resource sharing policies across services. Instead, TinyOS
-includes a number of default resource arbiters, in the form of generic
-components, which implement the Resource interface. All of these arbiters
-also provide a ResourceUser interface which can be interrogated to find the
-current set of resource allocation:</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">ResourceUser</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">/**</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">Check</span> <span class="pre">whether</span> <span class="pre">resource</span> <span class="pre">is</span> <span class="pre">allocated.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">&#64;returns</span> <span class="pre">TRUE</span> <span class="pre">if</span> <span class="pre">the</span> <span class="pre">resource</span> <span class="pre">is</span> <span class="pre">currently</span> <span class="pre">allocated,</span> <span class="pre">FALSE</span> <span class="pre">otherwise.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*/</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">command</span> <span class="pre">bool</span> <span class="pre">inUse();</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">/**</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">Return</span> <span class="pre">id</span> <span class="pre">of</span> <span class="pre">client</span> <span class="pre">currently</span> <span class="pre">using</span> <span class="pre">the</span> <span class="pre">resource.</span> <span class="pre">Meaningless</span> <span class="pre">if</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*</span> <span class="pre">inUse()</span> <span class="pre">returns</span> <span class="pre">FALSE.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">*/</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">command</span> <span class="pre">uint8_t</span> <span class="pre">user();</span></tt></div>
-</div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
-<p>ResourceUser can be used by the service implementation, e.g., to refuse
-requests when it is not allocated. Or to allow implicit per-request
-resource allocation in the style of TinyOS 1.x.</p>
-<p>The RoundRobinArbiter provides round-robin arbitration:</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">generic</span> <span class="pre">component</span> <span class="pre">RoundRobinArbiter</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">Resource[uin8_t</span> <span class="pre">id];</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">ResourceUser;</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
-<p>There is also a First-Come-First-Served (Fcfs) arbiter. RoundRobin
-grants the resource based on a fixed order (ids), while Fcfs grants it
-based on request order.</p>
-</div>
-<div class="section" id="request-queuing-and-resource-virtualisation">
-<h1><a name="request-queuing-and-resource-virtualisation">5. Request queuing and resource virtualisation</a></h1>
-<p>A service which is queued or provides virtualisation is implemented by
-parameterising the service interface (in contrast, the resource reservation
-approach parameterises the Resource interface). As with Resource, each
-client obtains an id via unique(). The service must support one outstanding
-request for each unique id; a second request (before completion of the
-first) on the same instance of a parameterised interface returns EBUSY.</p>
-<p>As an example, the Timer services looks as follows:</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">TimerMillicC</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">Timer&lt;TMilli&gt;[uint8_t</span> <span class="pre">id];</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">...</span></tt></div>
-</div>
-<p>and clients use it as follows:
-| <tt class="docutils literal"><span class="pre">module</span> <span class="pre">TimerUserM</span> <span class="pre">{</span></tt>
-|   <tt class="docutils literal"><span class="pre">uses</span> <span class="pre">interface</span> <span class="pre">Timer&lt;TMilli&gt;</span> <span class="pre">as</span> <span class="pre">MyTimer;</span></tt>
-| <tt class="docutils literal"><span class="pre">}</span> <span class="pre">...</span></tt></p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">TimerUserC</span> <span class="pre">{</span> <span class="pre">}</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">implementation</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">components</span> <span class="pre">TimerUserM,</span> <span class="pre">TimerC;</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">TimerUserM.MyTimer</span> <span class="pre">-&gt;</span> <span class="pre">TimerC.Timer[unique(TIMER_SERVICE)];</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
-<p>The difference between queuing of requests and virtualisation is only
-in the internal implementation of a service, and is thus beyond the
-scope of this document.</p>
-<p>We also note that some queued/virtualised services may wish to also support
-reservation, e.g., an A/D conveter which wants to support low-latency
-requests.  Such components will use the same id for their service and
-resource interfaces, e.g.:</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">#define</span> <span class="pre">ADC_RESOURCE</span> <span class="pre">&quot;Adc.resource&quot;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">#define</span> <span class="pre">ADC_SERVICE</span> <span class="pre">ADC_RESOURCE</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">ADCC</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">ADC[uint8_t</span> <span class="pre">id];</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">Resource[uint8_t</span> <span class="pre">id];</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">...</span></tt></div>
-</div>
+<p>Because most components use one of a small number of arbitration
+policies, TinyOS includes a number of default resource arbiters, in
+the form of generic components, which all include this signature:</p>
+<pre class="literal-block">
+generic module ArbiterC {
+  provides interface Resource[uint8_t id];
+  provides interface ResourceController;
+  provides interface ArbiterInfo;
+  uses interface ResourceConfigure[uint8_t id];
+}
+</pre>
+<p>For example, RoundRobinArbiterC provides round-robin arbitration. This
+arbiter assigns a fixed order to all clients and grants outstanding
+requests in that order, which is based on client ID. FcfsArbiterC
+provides a FIFO order, where requests are serviced in the order they
+are received. FcfsPriorityArbiterC is similar to FcfsArbiterC, but
+provides an additional ResourceConfigure interface for the
+high-priority client.</p>
 </div>
 <div class="section" id="author-s-address">
-<h1><a name="author-s-address">6. Author's Address</a></h1>
+<h1><a name="author-s-address">5. Author's Address</a></h1>
 <div class="line-block">
+<div class="line">Kevin Klues</div>
+<div class="line">503 Bryan Hall</div>
+<div class="line">Washington University</div>
+<div class="line">St. Louis, MO 63130</div>
+<div class="line"><br /></div>
+<div class="line">phone - +1-314-935-6355</div>
+<div class="line">email - <a class="reference" href="mailto:klueska&#64;cs.wustl.edu">klueska&#64;cs.wustl.edu</a></div>
+<div class="line"><br /></div>
+<div class="line">Philip Levis</div>
+<div class="line">358 Gates Hall</div>
+<div class="line">Stanford University</div>
+<div class="line">Stanford, CA 94305-9030</div>
+<div class="line"><br /></div>
+<div class="line">phone - +1 650 725 9046</div>
+<div class="line">email - <a class="reference" href="mailto:pal&#64;cs.stanford.edu">pal&#64;cs.stanford.edu</a></div>
+<div class="line"><br /></div>
 <div class="line">David Gay</div>
 <div class="line">2150 Shattuck Ave, Suite 1300</div>
 <div class="line">Intel Research</div>
@@ -666,22 +764,14 @@ resource interfaces, e.g.:</p>
 <div class="line">phone - +1 510 643 7572</div>
 <div class="line">email - <a class="reference" href="mailto:culler&#64;cs.berkeley.edu">culler&#64;cs.berkeley.edu</a></div>
 <div class="line"><br /></div>
-<div class="line">Philip Levis</div>
-<div class="line">358 Gates Hall</div>
-<div class="line">Stanford University</div>
-<div class="line">Stanford, CA 94305-9030</div>
 <div class="line"><br /></div>
-<div class="line">phone - +1 650 725 9046</div>
-<div class="line">email - <a class="reference" href="mailto:pal&#64;cs.stanford.edu">pal&#64;cs.stanford.edu</a></div>
-<div class="line"><br /></div>
-<div class="line">Kevin Klues</div>
+<div class="line">Vlado Handziski</div>
 <div class="line">Sekr FT5</div>
 <div class="line">Einsteinufer 25</div>
 <div class="line">10587 Berlin</div>
 <div class="line">GERMANY</div>
 <div class="line"><br /></div>
-<div class="line">phone - +49-30-314-23813</div>
-<div class="line">email - <a class="reference" href="mailto:klues&#64;tkn.tu-berlin.de">klues&#64;tkn.tu-berlin.de</a></div>
+<div class="line">email - <a class="reference" href="mailto:handzisk&#64;tkn.tu-berlin.de">handzisk&#64;tkn.tu-berlin.de</a></div>
 </div>
 </div>
 </div>
