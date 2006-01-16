@@ -7,11 +7,11 @@ Coding Standard
 :Type: Best Current Practice
 :Status: Draft
 :TinyOS-Version: 2.x
-:Author: Ion Yannopoulos
+:Author: Ion Yannopoulos, David Gay
 
 :Draft-Created: 31-Dec-2004
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2006-01-16 19:05:11 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -231,14 +231,121 @@ Other languages
 
   - No established conventions.
 
-
-Author's Address
+TinyOS Conventions
 ========================================================================
 
-| Ion Yannopoulos
-| 410 Soda Hall
-| UC Berkeley
-| Berkeley, CA 94720
+TinyOS also follows a number of higher-level programming conventions,
+mostly designed to provide a consistent "look" to TinyOS interfaces and
+components, and to increase software reliability.
+
+Error returns
+-------------
+
+TinyOS defines a standard error return type, error_t, similar to Unix's
+error returns, except that error codes are positive:
+
+  enum {
+    SUCCESS        = 0,          
+    FAIL           = 1,
+    ESIZE          = 2, // Parameter passed in was too big.
+    ...
+  };
+
+SUCCESS represents successful execution of an operation, and FAIL
+represents some undescribed failure. Operations can also return more
+descriptive failure results using one of the Exxx constants, see the
+tos/types/TinyError.h file for the current list of errors.
+
+The error_t type has a combining function to support multiple wiring
+of commands or events retuning error_t, defined as follows:
+
+  error_t ecombine(error_t r1, error_t r2) { return r1 == r2 ? r1 : FAIL; }
+
+This function returns SUCCESS if both error returns are SUCCESS, an error
+code if they both return the same error, and FAIL otherwise.
+
+Commands that initiate a split-phase operation SHOULD return error_t if
+the operation may be refused (i.e., the split-phase event may not be 
+signaled under some conditions). With such functions, the split-phase
+event will be signaled iff the split-phase command returns SUCCESS.
+
+
+Passing pointers between components
+-----------------------------------
+
+Sharing data across components can easily lead to bugs such as data races,
+overwriting data, etc. To minimise the likelyhood of these occurrences,
+we discourage the use of pointers in TinyOS interfaces.
+
+However, there are circumstances where pointers are necessary for
+efficiency or convenience, for instance when receiving messages, reading
+data from a flash chip, returning multiple results, etc.  Thus we allow the
+use of pointers within interfaces as long as use of those pointers follows
+an "ownership" model: at any time, only one component may refer to the
+object referenced by the pointer. We distinguish two cases:
+
+* Ownership transferred for the duration of a call: in the following command:
+
+    command void getSomething(uint16_t *value1, uint32_t *value2);
+
+  we are using pointers to return multiple results. The component implementing
+  getSomething MAY read/write *value1 or *value2 during the call and MUST NOT
+  access these pointers after getSomething returns.
+
+* Permanent ownership transfer: in the following split-phase interface:
+
+    interface Send {
+      command void send(message_t *PASS msg);
+      event void sendDone(message_t *PASS msg);
+    }
+
+  components calling send or signaling sendDone relinquish ownership of the
+  message buffer. For example, take a program where component A uses the
+  Send interface and B provides it. If A calls send with a pointer to
+  message_t x, then ownership of x passes to B and A MUST NOT access x
+  while B MAY access x. Later, when B signals the sendDone event with 
+  a pointer to x as parameter, ownership of x returns to A and A MAY
+  access x, while B MUST NOT access x.
+
+  If an interface with "PASS" parameters has a return type of error_t,
+  then ownership is transferred iff the result is SUCCESS. For instance, in
+
+    interface ESend {
+      command error_t esend(message_t *PASS msg);
+      event void esendDone(message_t *PASS msg, error_t sendResult);
+    }
+
+  ownership is transferred only if esend returns SUCCESS, while ownership
+  is always transferred with esendDone. This convention matches the rule
+  for signaling split-phase completion events discussed above.
+
+  PASS is a do-nothing macro defined as follows:
+
+    #define PASS
+  
+In the future, some tool may check that programs respect these ownership
+transfer rules.
+
+Usage of wiring annotations
+---------------------------
+
+TinyOS checks constraints on a program's wiring graph specified by
+annotations on a component's interfaces. Wiring constraints are specified
+by placing @atmostonce(), @atleastonce() and @exactlyonce() attributes on
+the relevant interfaces. For instance, writing
+
+  module Fun {
+    provides interface Init @atleastonce();
+  ...
+
+ensures that programs using module Fun must wire its Init interface at
+least once.
+
+The @atleastonce() and @exactlyonce() annotations SHOULD be used sparingly,
+as they can easily prevent modularising subsystem implementations, which is
+undesirable. However, the @atleastonce() annotation SHOULD be used on
+initialisation interfaces (typically, the Init interface) in modules, to
+prevent the common bug of forgetting to wire initialisation code.
 
 
 Citations
