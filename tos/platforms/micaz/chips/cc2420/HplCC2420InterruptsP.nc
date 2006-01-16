@@ -52,7 +52,7 @@
  * MicaZ implementation of the CC2420 interrupts. FIFOP is a real
  * interrupt, while CCA and FIFO are emulated through timer polling.
  * <pre>
- *  $Id: HplCC2420InterruptsP.nc,v 1.1.2.1 2005-10-30 00:34:42 scipio Exp $
+ *  $Id: HplCC2420InterruptsP.nc,v 1.1.2.2 2006-01-16 00:13:32 scipio Exp $
  * <pre>
  *
  * @author Philip Levis
@@ -72,8 +72,8 @@ module HplCC2420InterruptsP {
   }
 }
 implementation {
-  norace uint8_t CCAWaitForState;
-  norace uint8_t CCALastState;
+  norace uint8_t ccaWaitForState;
+  norace uint8_t ccaLastState;
   bool ccaTimerDisabled = FALSE;
   // Add stdcontrol.init/.start to setup TimerCapture timebase
 
@@ -92,17 +92,17 @@ implementation {
   }
   
   async command error_t CCA.enableRisingEdge() { 
-    atomic CCAWaitForState = TRUE; //save the state we are waiting for
+    atomic ccaWaitForState = TRUE; //save the state we are waiting for
     atomic ccaTimerDisabled = FALSE;
-    CCALastState = call CC_CCA.get(); //get current state
+    ccaLastState = call CC_CCA.get(); //get current state
     post CCATask();
     return SUCCESS;
   }
 
   async command error_t CCA.enableFallingEdge() { 
-    atomic CCAWaitForState = FALSE; //save the state we are waiting for
+    atomic ccaWaitForState = FALSE; //save the state we are waiting for
     atomic ccaTimerDisabled = FALSE;
-    CCALastState = call CC_CCA.get(); //get current state
+    ccaLastState = call CC_CCA.get(); //get current state
     post CCATask();
     return SUCCESS;
   }
@@ -136,11 +136,11 @@ implementation {
     //check CCA state
     CCAState = call CC_CCA.get(); //get current state
     //here if waiting for an edge
-    if ((CCALastState != CCAWaitForState) && (CCAState==CCAWaitForState)) {
+    if ((ccaLastState != ccaWaitForState) && (CCAState == ccaWaitForState)) {
       signal CCA.fired();
     }//if CCA Pin is correct and edge found
     //restart timer and try again
-    CCALastState = CCAState;
+    ccaLastState = CCAState;
     post CCATask();
     return;
   }//CCATimer.fired
