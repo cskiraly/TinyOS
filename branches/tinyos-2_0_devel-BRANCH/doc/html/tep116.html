@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-01-15 20:07:27 $
-:version: $Revision: 1.1.2.1 $
+:date: $Date: 2006-01-16 00:27:01 $
+:version: $Revision: 1.1.2.2 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -299,9 +299,9 @@ ul.auto-toc {
 <td>Philip Levis</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">10-Dec-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.2</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.3</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-01-14</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-01-15</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -401,16 +401,21 @@ The Packet interface defines this mechanism:</p>
 interface Packet {
   command void clear(message_t* msg);
   command uint8_t payloadLength(message_t* msg);
+  command void setPayLoadLength(message_t* msg, uint8_t len);
   command uint8_t maxPayloadLength();
   command void* getPayload(message_t* msg, uint8_t* len);
 }
 </pre>
-<p>A component can obtain a pointer to its data region within
-a packet by calling <tt class="docutils literal"><span class="pre">getPayload()</span></tt> the optional <tt class="docutils literal"><span class="pre">len</span></tt> argument
-is for also obtaining the size of the data region. A provider
-of a Packet interface MUST check if <tt class="docutils literal"><span class="pre">len</span></tt> is NULL and ignore it
-if it is. A component can also obtain the size of the data region
-with a call to <tt class="docutils literal"><span class="pre">payloadLength</span></tt>.</p>
+<p>A component can obtain a pointer to its data region within a packet by
+calling <tt class="docutils literal"><span class="pre">getPayload()</span></tt> the optional <tt class="docutils literal"><span class="pre">len</span></tt> argument is for also
+obtaining the size of the data region. A provider of a Packet
+interface MUST check if <tt class="docutils literal"><span class="pre">len</span></tt> is NULL and ignore it if it is. A
+component can also obtain the size of the data region with a call to
+<tt class="docutils literal"><span class="pre">payloadLength</span></tt>. A component can set the payload length with
+<tt class="docutils literal"><span class="pre">setPayLoadLength.</span></tt> As Send interfaces always include a length
+parameter in their send call, this command is not required for
+sending. Instead, it is a way for queues to be able to store the full
+state of a packet without using additional state.</p>
 <p>The distinction between <tt class="docutils literal"><span class="pre">payloadLength</span></tt> and <tt class="docutils literal"><span class="pre">maxPayloadLength</span></tt>
 comes from whether the packet is being received or sent. In the former
 case, determining the size of the existing data payload is needed;
@@ -450,6 +455,10 @@ implementation {
     return SubPacket.payloadLength(msg) - SEQNO_OFFSET;
   }
 
+  command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
+    SubPacket.setPayloadLength(msg, len + SEQNO_OFFSET);
+  }
+
   command uint8_t Packet.maxPayloadLength() {
     return SubPacket.maxPayloadLength(msg) - SEQNO_OFFSET;
   }
@@ -485,6 +494,7 @@ has this signature:</p>
 interface AMPacket {
   command am_addr_t address();
   command am_addr_t destination(message_t* amsg);
+  command void setDestination(message_t* amsg, am_addr_t addr);
   command bool isForMe(message_t* amsg);
   command am_id_t type(message_t* amsg);
 }
@@ -492,7 +502,8 @@ interface AMPacket {
 <p>The command address() returns the local AM address of the node. AMPacket
 provides accessors for its two fields, destination and type. It does
 not provide commands to set these fields, as they are set in the 
-sending call path (see Section 2.3).</p>
+sending call path (see Section 2.3). The <tt class="docutils literal"><span class="pre">setDestination</span></tt> command
+fulfills a similar purpose to <tt class="docutils literal"><span class="pre">Packet.setLength</span></tt>.</p>
 </div>
 <div class="section" id="receive-interface">
 <h2><a name="receive-interface">2.2 Receive interface</a></h2>
@@ -500,14 +511,18 @@ sending call path (see Section 2.3).</p>
 <pre class="literal-block">
 interface Receive {
   event message_t* receive(message_t* msg, void* payload, uint8_t len);
+  command void* getPayload(message_t* msg, uint8_t* len);
 }
 </pre>
-<p>The <tt class="docutils literal"><span class="pre">payload</span></tt> parameter MUST be identical to what a call to 
-<tt class="docutils literal"><span class="pre">Packet.getPayload()</span></tt> would return, and the <tt class="docutils literal"><span class="pre">len</span></tt> parameter MUST
-be identical to the length that a call to <tt class="docutils literal"><span class="pre">Packet.getPayload()</span></tt>
-would return. These parameters are for convenience, as they are commonly 
-used by receive handlers, and their presence removes the need for
-a call to <tt class="docutils literal"><span class="pre">Packet.getPayload()</span></tt>.</p>
+<p>A call to <tt class="docutils literal"><span class="pre">Receive.getPayload()</span></tt> MUST behave identically to a call
+to <tt class="docutils literal"><span class="pre">Packet.getPayload()</span></tt>. The <tt class="docutils literal"><span class="pre">receive()</span></tt> event's <tt class="docutils literal"><span class="pre">payload</span></tt>
+parameter MUST be identical to what a call to <tt class="docutils literal"><span class="pre">getPayload()</span></tt> would
+return, and the <tt class="docutils literal"><span class="pre">len</span></tt> parameter MUST be identical to the length that
+a call to <tt class="docutils literal"><span class="pre">getPayload</span></tt> would return. These parameters are for
+convenience, as they are commonly used by receive handlers, and their
+presence removes the need for a call to <tt class="docutils literal"><span class="pre">getPayload()</span></tt>, while
+<tt class="docutils literal"><span class="pre">getPayload()</span></tt> is a convenience so a component does not have to wire
+to <tt class="docutils literal"><span class="pre">Packet.</span></tt></p>
 <p>Receive has a <em>buffer-swap</em> policy. The handler of the event MUST return
 a pointer to a valid message buffer for the signaler to use. This
 approach enforces an equilibrium between upper and lower packet 
