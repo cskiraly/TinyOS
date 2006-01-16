@@ -10,8 +10,8 @@ Packet Protocols
 :Author: Philip Levis
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.3 $
-:Draft-Modified: $Date: 2006-01-15 20:07:27 $
+:Draft-Version: $Revision: 1.1.2.4 $
+:Draft-Modified: $Date: 2006-01-16 00:27:01 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -117,16 +117,21 @@ The Packet interface defines this mechanism::
   interface Packet {
     command void clear(message_t* msg);
     command uint8_t payloadLength(message_t* msg);
+    command void setPayLoadLength(message_t* msg, uint8_t len);
     command uint8_t maxPayloadLength();
     command void* getPayload(message_t* msg, uint8_t* len);
   }
 
-A component can obtain a pointer to its data region within
-a packet by calling ``getPayload()`` the optional ``len`` argument
-is for also obtaining the size of the data region. A provider
-of a Packet interface MUST check if ``len`` is NULL and ignore it
-if it is. A component can also obtain the size of the data region
-with a call to ``payloadLength``. 
+A component can obtain a pointer to its data region within a packet by
+calling ``getPayload()`` the optional ``len`` argument is for also
+obtaining the size of the data region. A provider of a Packet
+interface MUST check if ``len`` is NULL and ignore it if it is. A
+component can also obtain the size of the data region with a call to
+``payloadLength``. A component can set the payload length with
+``setPayLoadLength.`` As Send interfaces always include a length
+parameter in their send call, this command is not required for
+sending. Instead, it is a way for queues to be able to store the full
+state of a packet without using additional state.
 
 The distinction between ``payloadLength`` and ``maxPayloadLength``
 comes from whether the packet is being received or sent. In the former
@@ -169,6 +174,10 @@ layer. For example, if there is a network that introduces
       return SubPacket.payloadLength(msg) - SEQNO_OFFSET;
     }
 
+    command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
+      SubPacket.setPayloadLength(msg, len + SEQNO_OFFSET);
+    }
+
     command uint8_t Packet.maxPayloadLength() {
       return SubPacket.maxPayloadLength(msg) - SEQNO_OFFSET;
     }
@@ -207,6 +216,7 @@ has this signature::
   interface AMPacket {
     command am_addr_t address();
     command am_addr_t destination(message_t* amsg);
+    command void setDestination(message_t* amsg, am_addr_t addr);
     command bool isForMe(message_t* amsg);
     command am_id_t type(message_t* amsg);
   }
@@ -215,7 +225,8 @@ has this signature::
 The command address() returns the local AM address of the node. AMPacket
 provides accessors for its two fields, destination and type. It does
 not provide commands to set these fields, as they are set in the 
-sending call path (see Section 2.3).
+sending call path (see Section 2.3). The ``setDestination`` command
+fulfills a similar purpose to ``Packet.setLength``.
 
 2.2 Receive interface
 --------------------------------------------------------------------
@@ -224,14 +235,18 @@ Receive is the interface for receiving packets. It has this signature::
 
   interface Receive {
     event message_t* receive(message_t* msg, void* payload, uint8_t len);
+    command void* getPayload(message_t* msg, uint8_t* len);
   }
 
-The ``payload`` parameter MUST be identical to what a call to 
-``Packet.getPayload()`` would return, and the ``len`` parameter MUST
-be identical to the length that a call to ``Packet.getPayload()``
-would return. These parameters are for convenience, as they are commonly 
-used by receive handlers, and their presence removes the need for
-a call to ``Packet.getPayload()``.
+A call to ``Receive.getPayload()`` MUST behave identically to a call
+to ``Packet.getPayload()``. The ``receive()`` event's ``payload``
+parameter MUST be identical to what a call to ``getPayload()`` would
+return, and the ``len`` parameter MUST be identical to the length that
+a call to ``getPayload`` would return. These parameters are for
+convenience, as they are commonly used by receive handlers, and their
+presence removes the need for a call to ``getPayload()``, while
+``getPayload()`` is a convenience so a component does not have to wire
+to ``Packet.``
 
 Receive has a *buffer-swap* policy. The handler of the event MUST return
 a pointer to a valid message buffer for the signaler to use. This
