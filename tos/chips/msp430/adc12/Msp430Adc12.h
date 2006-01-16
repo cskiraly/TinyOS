@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-13 18:37:00 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-16 16:01:29 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -153,10 +153,10 @@ enum inch_enum
    INPUT_CHANNEL_A5 = 5,                    // input channel A5
    INPUT_CHANNEL_A6 = 6,                    // input channel A6
    INPUT_CHANNEL_A7 = 7,                    // input channel A7
-   EXTERNAL_REFERENCE_VOLTAGE = 8,          // VeREF+ (input channel 8)
-   REFERENCE_VOLTAGE_NEGATIVE_TERMINAL = 9, // VREF-/VeREF- (input channel 9)
-   INTERNAL_TEMPERATURE = 10,               // Temperature diode (input channel 10)
-   INTERNAL_VOLTAGE = 11,                   // (AVcc-AVss)/2 (input channel 11-15)
+   EXTERNAL_REF_VOLTAGE_CHANNEL = 8,        // VeREF+ (input channel 8)
+   REF_VOLTAGE_NEG_TERMINAL_CHANNEL = 9,    // VREF-/VeREF- (input channel 9)
+   TEMPERATURE_DIODE_CHANNEL = 10,          // Temperature diode (input channel 10)
+   SUPPLY_VOLTAGE_HALF_CHANNEL = 11,        // (AVcc-AVss)/2 (input channel 11-15)
    INPUT_CHANNEL_NONE = 12                  // illegal (identifies invalid settings)
 };
 
