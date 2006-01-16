@@ -35,7 +35,7 @@ configuration Msp430Uart1C {
 }
 implementation {
 #ifndef DEFAULT_BAUDRATE
-#define DEFAULT_BAUDRATE (115200)
+#define DEFAULT_BAUDRATE (115200ul)
 #endif
   components new Msp430UartP(DEFAULT_BAUDRATE) as UartP;
   Init = UartP;
