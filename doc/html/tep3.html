@@ -3,16 +3,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.6: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
 <title>Coding Standard</title>
-<meta name="author" content="Ion Yannopoulos" />
+<meta name="author" content="Ion Yannopoulos, David Gay" />
 <style type="text/css">
 
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-01-15 20:07:27 $
-:version: $Revision: 1.1.2.2 $
+:date: $Date: 2006-01-16 19:28:23 $
+:version: $Revision: 1.1.2.3 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -280,6 +280,7 @@ ul.auto-toc {
 </style>
 </head>
 <body>
+<div class="document" id="coding-standard">
 <h1 class="title">Coding Standard</h1>
 <table class="docinfo" frame="void" rules="none">
 <col class="docinfo-name" />
@@ -296,18 +297,17 @@ ul.auto-toc {
 <tr class="field"><th class="docinfo-name">TinyOS-Version:</th><td class="field-body">2.x</td>
 </tr>
 <tr><th class="docinfo-name">Author:</th>
-<td>Ion Yannopoulos</td></tr>
+<td>Ion Yannopoulos, David Gay</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">31-Dec-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.1</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.2</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2005-10-31</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-01-16</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
 </tbody>
 </table>
-<div class="document" id="coding-standard">
 <div class="note">
 <p class="first admonition-title">Note</p>
 <p class="last">This document specifies a Best Current Practices for the
@@ -339,8 +339,13 @@ is in full compliance with <a class="citation-reference" href="#tep-1" id="id1" 
 <li><a class="reference" href="#other-languages" id="id19" name="id19">4.4&nbsp;&nbsp;&nbsp;Other languages</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#author-s-address" id="id20" name="id20">5&nbsp;&nbsp;&nbsp;Author's Address</a></li>
-<li><a class="reference" href="#citations" id="id21" name="id21">6&nbsp;&nbsp;&nbsp;Citations</a></li>
+<li><a class="reference" href="#tinyos-conventions" id="id20" name="id20">5&nbsp;&nbsp;&nbsp;TinyOS Conventions</a><ul class="auto-toc">
+<li><a class="reference" href="#error-returns" id="id21" name="id21">5.1&nbsp;&nbsp;&nbsp;Error returns</a></li>
+<li><a class="reference" href="#passing-pointers-between-components" id="id22" name="id22">5.2&nbsp;&nbsp;&nbsp;Passing pointers between components</a></li>
+<li><a class="reference" href="#usage-of-wiring-annotations" id="id23" name="id23">5.3&nbsp;&nbsp;&nbsp;Usage of wiring annotations</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#citations" id="id24" name="id24">6&nbsp;&nbsp;&nbsp;Citations</a></li>
 </ul>
 </div>
 <div class="section" id="introduction">
@@ -602,17 +607,119 @@ should be followed.</li>
 </blockquote>
 </div>
 </div>
-<div class="section" id="author-s-address">
-<h1><a class="toc-backref" href="#id20" name="author-s-address">5&nbsp;&nbsp;&nbsp;Author's Address</a></h1>
-<div class="line-block">
-<div class="line">Ion Yannopoulos</div>
-<div class="line">410 Soda Hall</div>
-<div class="line">UC Berkeley</div>
-<div class="line">Berkeley, CA 94720</div>
+<div class="section" id="tinyos-conventions">
+<h1><a class="toc-backref" href="#id20" name="tinyos-conventions">5&nbsp;&nbsp;&nbsp;TinyOS Conventions</a></h1>
+<p>TinyOS also follows a number of higher-level programming conventions,
+mostly designed to provide a consistent &quot;look&quot; to TinyOS interfaces and
+components, and to increase software reliability.</p>
+<div class="section" id="error-returns">
+<h2><a class="toc-backref" href="#id21" name="error-returns">5.1&nbsp;&nbsp;&nbsp;Error returns</a></h2>
+<p>TinyOS defines a standard error return type, <tt class="docutils literal"><span class="pre">error_t</span></tt>, similar to Unix's
+error returns, except that error codes are positive:</p>
+<pre class="literal-block">
+enum {
+  SUCCESS        = 0,          
+  FAIL           = 1,
+  ESIZE          = 2, // Parameter passed in was too big.
+  ...
+};
+</pre>
+<p><tt class="docutils literal"><span class="pre">SUCCESS</span></tt> represents successful execution of an operation, and <tt class="docutils literal"><span class="pre">FAIL</span></tt>
+represents some undescribed failure. Operations can also return more
+descriptive failure results using one of the Exxx constants, see the
+<tt class="docutils literal"><span class="pre">tos/types/TinyError.h</span></tt> file for the current list of errors.</p>
+<p>The <tt class="docutils literal"><span class="pre">error_t</span></tt> type has a combining function to support multiple wiring
+of commands or events retuning <tt class="docutils literal"><span class="pre">error_t</span></tt>, defined as follows:</p>
+<pre class="literal-block">
+error_t ecombine(error_t r1, error_t r2) { return r1 == r2 ? r1 : FAIL; }
+</pre>
+<p>This function returns <tt class="docutils literal"><span class="pre">SUCCESS</span></tt> if both error returns are <tt class="docutils literal"><span class="pre">SUCCESS</span></tt>, an
+error code if they both return the same error, and <tt class="docutils literal"><span class="pre">FAIL</span></tt> otherwise.</p>
+<p>Commands that initiate a split-phase operation SHOULD return <tt class="docutils literal"><span class="pre">error_t</span></tt> if
+the operation may be refused (i.e., the split-phase event may not be
+signaled under some conditions). With such functions, the split-phase event
+will be signaled iff the split-phase command returns <tt class="docutils literal"><span class="pre">SUCCESS</span></tt>.</p>
+</div>
+<div class="section" id="passing-pointers-between-components">
+<h2><a class="toc-backref" href="#id22" name="passing-pointers-between-components">5.2&nbsp;&nbsp;&nbsp;Passing pointers between components</a></h2>
+<p>Sharing data across components can easily lead to bugs such as data races,
+overwriting data, etc. To minimise the likelyhood of these occurrences,
+we discourage the use of pointers in TinyOS interfaces.</p>
+<p>However, there are circumstances where pointers are necessary for
+efficiency or convenience, for instance when receiving messages, reading
+data from a flash chip, returning multiple results, etc.  Thus we allow the
+use of pointers within interfaces as long as use of those pointers follows
+an &quot;ownership&quot; model: at any time, only one component may refer to the
+object referenced by the pointer. We distinguish two cases:</p>
+<ul>
+<li><p class="first">Ownership transferred for the duration of a call: in the following command:</p>
+<pre class="literal-block">
+command void getSomething(uint16_t *value1, uint32_t *value2);
+</pre>
+<p>we are using pointers to return multiple results. The component
+implementing getSomething MAY read/write <tt class="docutils literal"><span class="pre">*value1</span></tt> or <tt class="docutils literal"><span class="pre">*value2</span></tt>
+during the call and MUST NOT access these pointers after getSomething
+returns.</p>
+</li>
+<li><p class="first">Permanent ownership transfer: in the following split-phase interface:</p>
+<pre class="literal-block">
+interface Send {
+  command void send(message_t *PASS msg);
+  event void sendDone(message_t *PASS msg);
+}
+</pre>
+<p>components calling send or signaling <tt class="docutils literal"><span class="pre">sendDone</span></tt> relinquish ownership of
+the message buffer. For example, take a program where component A uses
+the <tt class="docutils literal"><span class="pre">Send</span></tt> interface and B provides it. If A calls <tt class="docutils literal"><span class="pre">send</span></tt> with a
+pointer to <tt class="docutils literal"><span class="pre">message_t</span></tt> <em>x</em>, then ownership of <em>x</em> passes to B and A
+MUST NOT access <em>x</em> while B MAY access <em>x</em>. Later, when B signals the
+<tt class="docutils literal"><span class="pre">sendDone</span></tt> event with a pointer to <em>x</em> as parameter, ownership of <em>x</em>
+returns to A and A MAY access <em>x</em>, while B MUST NOT access <em>x</em>.</p>
+<p>If an interface with <tt class="docutils literal"><span class="pre">PASS</span></tt> parameters has a return type of
+<tt class="docutils literal"><span class="pre">error_t</span></tt>, then ownership is transferred iff the result is
+<tt class="docutils literal"><span class="pre">SUCCESS</span></tt>. For instance, in</p>
+<pre class="literal-block">
+interface ESend {
+  command error_t esend(message_t *PASS msg);
+  event void esendDone(message_t *PASS msg, error_t sendResult);
+}
+</pre>
+<p>ownership is transferred only if <tt class="docutils literal"><span class="pre">esend</span></tt> returns <tt class="docutils literal"><span class="pre">SUCCESS</span></tt>, while
+ownership is always transferred with <tt class="docutils literal"><span class="pre">esendDone</span></tt>. This convention
+matches the rule for signaling split-phase completion events discussed
+above.</p>
+<p><tt class="docutils literal"><span class="pre">PASS</span></tt> is a do-nothing macro defined as follows:</p>
+<pre class="literal-block">
+#define PASS
+</pre>
+</li>
+</ul>
+<p>In the future, some tool may check that programs respect these ownership
+transfer rules.</p>
+</div>
+<div class="section" id="usage-of-wiring-annotations">
+<h2><a class="toc-backref" href="#id23" name="usage-of-wiring-annotations">5.3&nbsp;&nbsp;&nbsp;Usage of wiring annotations</a></h2>
+<p>TinyOS checks constraints on a program's wiring graph specified by
+annotations on a component's interfaces. Wiring constraints are specified
+by placing <tt class="docutils literal"><span class="pre">&#64;atmostonce()</span></tt>, <tt class="docutils literal"><span class="pre">&#64;atleastonce()</span></tt> and <tt class="docutils literal"><span class="pre">&#64;exactlyonce()</span></tt>
+attributes on the relevant interfaces. For instance, writing</p>
+<pre class="literal-block">
+module Fun {
+  provides interface Init &#64;atleastonce();
+...
+</pre>
+<p>ensures that programs using module <tt class="docutils literal"><span class="pre">Fun</span></tt> must wire its <tt class="docutils literal"><span class="pre">Init</span></tt> interface
+at least once.</p>
+<p>The <tt class="docutils literal"><span class="pre">&#64;atleastonce()</span></tt> and <tt class="docutils literal"><span class="pre">&#64;exactlyonce()</span></tt> annotations SHOULD be used
+sparingly, as they can easily prevent modularising subsystem
+implementations, which is undesirable. However, the <tt class="docutils literal"><span class="pre">&#64;atleastonce()</span></tt>
+annotation SHOULD be used on initialisation interfaces (typically, the
+<tt class="docutils literal"><span class="pre">Init</span></tt> interface) in modules, to prevent the common bug of forgetting to
+wire initialisation code.</p>
 </div>
 </div>
 <div class="section" id="citations">
-<h1><a class="toc-backref" href="#id21" name="citations">6&nbsp;&nbsp;&nbsp;Citations</a></h1>
+<h1><a class="toc-backref" href="#id24" name="citations">6&nbsp;&nbsp;&nbsp;Citations</a></h1>
 <table class="docutils citation" frame="void" id="tep-1" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
