@@ -1,4 +1,4 @@
-// $Id: SerialP.nc,v 1.1.2.4 2006-01-11 17:52:57 bengreenstein Exp $
+// $Id: SerialP.nc,v 1.1.2.5 2006-01-16 01:24:11 bengreenstein Exp $
 /*									
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
@@ -35,7 +35,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.4 $
+ * Revision: $Revision: 1.1.2.5 $
  * 
  */
 
@@ -139,16 +139,16 @@ implementation {
 
   /* Buffers */
 
-  rx_buf_t RxBuf;
-  tx_buf_t TxBuf[TX_BUFFER_COUNT];
+  rx_buf_t rxBuf;
+  tx_buf_t txBuf[TX_BUFFER_COUNT];
 
   /* Receive State */
 
-  uint8_t  RxState;
-  uint8_t  RxByteCnt;
-  uint8_t  RxProto;
-  uint8_t  RxSeqno;
-  uint16_t RxCRC;
+  uint8_t  rxState;
+  uint8_t  rxByteCnt;
+  uint8_t  rxProto;
+  uint8_t  rxSeqno;
+  uint16_t rxCRC;
 
   /* Transmit State */
 
@@ -197,7 +197,7 @@ implementation {
 
   inline void txInit(){
     uint8_t i;
-    atomic for (i = 0; i < TX_BUFFER_COUNT; i++) TxBuf[i].state = BUFFER_AVAILABLE;
+    atomic for (i = 0; i < TX_BUFFER_COUNT; i++) txBuf[i].state = BUFFER_AVAILABLE;
     TxState = TXSTATE_IDLE;
     TxByteCnt = 0;
     TxProto = 0;
@@ -208,12 +208,12 @@ implementation {
   }
 
   inline void rxInit(){
-    RxBuf.writePtr = RxBuf.readPtr = 0;
-    RxState = RXSTATE_NOSYNC;
-    RxByteCnt = 0;
-    RxProto = 0;
-    RxSeqno = 0;
-    RxCRC = 0;
+    rxBuf.writePtr = rxBuf.readPtr = 0;
+    rxState = RXSTATE_NOSYNC;
+    rxByteCnt = 0;
+    rxProto = 0;
+    rxSeqno = 0;
+    rxCRC = 0;
   }
 
   inline void ackInit(){
@@ -295,38 +295,38 @@ implementation {
    */
 
   inline void rx_buffer_init(){
-    RxBuf.writePtr = RxBuf.readPtr = 0;
+    rxBuf.writePtr = rxBuf.readPtr = 0;
   }
   inline bool rx_buffer_is_full() {
-    uint8_t tmp = RxBuf.writePtr;
+    uint8_t tmp = rxBuf.writePtr;
     if (++tmp > RX_DATA_BUFFER_SIZE) tmp = 0;
-    return (tmp == RxBuf.readPtr);
+    return (tmp == rxBuf.readPtr);
   }
   inline bool rx_buffer_is_empty(){
-    return (RxBuf.readPtr == RxBuf.writePtr);
+    return (rxBuf.readPtr == rxBuf.writePtr);
   }
   inline void rx_buffer_push(uint8_t data){
-    RxBuf.buf[RxBuf.writePtr] = data;
-    if (++(RxBuf.writePtr) > RX_DATA_BUFFER_SIZE) RxBuf.writePtr = 0;
+    rxBuf.buf[rxBuf.writePtr] = data;
+    if (++(rxBuf.writePtr) > RX_DATA_BUFFER_SIZE) rxBuf.writePtr = 0;
   }
   inline uint8_t rx_buffer_top(){
-    uint8_t tmp = RxBuf.buf[RxBuf.readPtr];
+    uint8_t tmp = rxBuf.buf[rxBuf.readPtr];
     return tmp;
   }
   inline uint8_t rx_buffer_pop(){
-    uint8_t tmp = RxBuf.buf[RxBuf.readPtr];
-    if (++(RxBuf.readPtr) > RX_DATA_BUFFER_SIZE) RxBuf.readPtr = 0;
+    uint8_t tmp = rxBuf.buf[rxBuf.readPtr];
+    if (++(rxBuf.readPtr) > RX_DATA_BUFFER_SIZE) rxBuf.readPtr = 0;
     return tmp;
   }
   
   inline uint16_t rx_current_crc(){
     uint16_t crc;
-    uint8_t tmp = RxBuf.writePtr;
+    uint8_t tmp = rxBuf.writePtr;
     tmp = (tmp == 0 ? RX_DATA_BUFFER_SIZE : tmp - 1);
-    crc = RxBuf.buf[tmp] & 0x00ff;
+    crc = rxBuf.buf[tmp] & 0x00ff;
     crc = (crc << 8) & 0xFF00;
     tmp = (tmp == 0 ? RX_DATA_BUFFER_SIZE : tmp - 1);
-    crc |= (RxBuf.buf[tmp] & 0x00FF);
+    crc |= (rxBuf.buf[tmp] & 0x00FF);
     return crc;
   }
 
@@ -349,7 +349,7 @@ implementation {
     bool turnOff = FALSE;
     atomic {
       if (TxState == TXSTATE_INACTIVE &&
-	  RxState == RXSTATE_INACTIVE) {
+	  rxState == RXSTATE_INACTIVE) {
 	turnOff = TRUE;
       }
     }
@@ -364,8 +364,8 @@ implementation {
     
   command error_t SplitControl.stop() {
     atomic {
-      if (RxState == RXSTATE_NOSYNC) {
-	RxState = RXSTATE_INACTIVE;
+      if (rxState == RXSTATE_NOSYNC) {
+	rxState = RXSTATE_INACTIVE;
       }
     }
     atomic {
@@ -402,24 +402,24 @@ implementation {
 
   void rx_state_machine(bool isDelimeter, uint8_t data){
 
-    switch (RxState) {
+    switch (rxState) {
       
     case RXSTATE_NOSYNC: 
       if (isDelimeter) {
         rxInit();
-        RxState = RXSTATE_PROTO;
+        rxState = RXSTATE_PROTO;
       }
       break;
       
     case RXSTATE_PROTO:
       if (!isDelimeter){
-        RxCRC = crcByte(RxCRC,data);
-        RxState = RXSTATE_TOKEN;
-        RxProto = data;
-        if (!valid_rx_proto(RxProto))
+        rxCRC = crcByte(rxCRC,data);
+        rxState = RXSTATE_TOKEN;
+        rxProto = data;
+        if (!valid_rx_proto(rxProto))
           goto nosync;
         // only supports serial proto packet ack
-        if (RxProto != SERIAL_PROTO_PACKET_ACK){
+        if (rxProto != SERIAL_PROTO_PACKET_ACK){
           goto nosync;
         }
         if (signal ReceiveBytePacket.startPacket() != SUCCESS){
@@ -434,19 +434,19 @@ implementation {
         goto nosync;
       }
       else {
-        RxSeqno = data;
-        RxCRC = crcByte(RxCRC,RxSeqno);
-        RxState = RXSTATE_INFO;
+        rxSeqno = data;
+        rxCRC = crcByte(rxCRC,rxSeqno);
+        rxState = RXSTATE_INFO;
       }
       break;
       
     case RXSTATE_INFO:
-      if (RxByteCnt < SERIAL_MTU){ 
+      if (rxByteCnt < SERIAL_MTU){ 
         if (isDelimeter) { /* handle end of frame */
-          if (RxByteCnt >= 2) {
-            if (rx_current_crc() == RxCRC) {
+          if (rxByteCnt >= 2) {
+            if (rx_current_crc() == rxCRC) {
               signal ReceiveBytePacket.endPacket(SUCCESS);
-              ack_queue_push(RxSeqno);
+              ack_queue_push(rxSeqno);
               goto nosync;
             }
             else {
@@ -460,12 +460,12 @@ implementation {
           }
 	}
         else { /* handle new bytes to save */
-          if (RxByteCnt >= 2){ 
+          if (rxByteCnt >= 2){ 
             signal ReceiveBytePacket.byteReceived(rx_buffer_top());
-            RxCRC = crcByte(RxCRC,rx_buffer_pop());
+            rxCRC = crcByte(rxCRC,rx_buffer_pop());
           }
 	  rx_buffer_push(data);
-          RxByteCnt++;
+          rxByteCnt++;
         }
       }
       
@@ -487,12 +487,12 @@ implementation {
     call SerialFrameComm.resetReceive();
     signal ReceiveBytePacket.endPacket(FAIL);
     if (offPending) {
-      RxState = RXSTATE_INACTIVE;
+      rxState = RXSTATE_INACTIVE;
       testOff();
     }
     /* if this was a flag, start in proto state.. */
     else if (isDelimeter) {
-      RxState = RXSTATE_PROTO;
+      rxState = RXSTATE_PROTO;
     }
     
   done:
@@ -518,7 +518,7 @@ implementation {
   async command error_t SendBytePacket.completeSend(){
     bool ret = FAIL;
     atomic {
-        TxBuf[TX_DATA_INDEX].state = BUFFER_COMPLETE;
+        txBuf[TX_DATA_INDEX].state = BUFFER_COMPLETE;
         ret = SUCCESS;
     }
     return ret;
@@ -527,9 +527,9 @@ implementation {
   async command error_t SendBytePacket.startSend(uint8_t b){
     bool not_busy = FALSE;
     atomic {
-      if (TxBuf[TX_DATA_INDEX].state == BUFFER_AVAILABLE){
-        TxBuf[TX_DATA_INDEX].state = BUFFER_FILLING;
-        TxBuf[TX_DATA_INDEX].buf = b;
+      if (txBuf[TX_DATA_INDEX].state == BUFFER_AVAILABLE){
+        txBuf[TX_DATA_INDEX].state = BUFFER_FILLING;
+        txBuf[TX_DATA_INDEX].buf = b;
         not_busy = TRUE;
       }
     }
@@ -565,7 +565,7 @@ implementation {
       fail = (TxState == TXSTATE_ERROR);
       if (done || fail){ 
         TxState = TXSTATE_IDLE;
-        TxBuf[TxIndex].state = BUFFER_AVAILABLE;
+        txBuf[TxIndex].state = BUFFER_AVAILABLE;
       }
     }
     
@@ -595,13 +595,13 @@ implementation {
         uint8_t myAckState;
         uint8_t myDataState;
         atomic {
-          myAckState = TxBuf[TX_ACK_INDEX].state;
-          myDataState = TxBuf[TX_DATA_INDEX].state;
+          myAckState = txBuf[TX_ACK_INDEX].state;
+          myDataState = txBuf[TX_DATA_INDEX].state;
         }
         if (!ack_queue_is_empty() && myAckState == BUFFER_AVAILABLE) {
           atomic {
-            TxBuf[TX_ACK_INDEX].state = BUFFER_COMPLETE;
-            TxBuf[TX_ACK_INDEX].buf = ack_queue_top();
+            txBuf[TX_ACK_INDEX].state = BUFFER_COMPLETE;
+            txBuf[TX_ACK_INDEX].buf = ack_queue_top();
           }
           TxProto = SERIAL_PROTO_ACK;
           TxIndex = TX_ACK_INDEX;
@@ -669,15 +669,17 @@ implementation {
         break;
         
       case TXSTATE_INFO:
-        TxResult = call SerialFrameComm.putData(TxBuf[TxIndex].buf);
-        TxCRC = crcByte(TxCRC,TxBuf[TxIndex].buf);
-        ++TxByteCnt;
-
-        if (TxBuf[TxIndex].state == BUFFER_COMPLETE || TxByteCnt >= SERIAL_MTU){
-          TxState = TXSTATE_FCS1;
-        }
-        else { /* never called on ack b/c ack is BUFFER_COMPLETE initially */
-          TxBuf[TxIndex].buf = signal SendBytePacket.nextByte();
+        atomic {          
+          TxResult = call SerialFrameComm.putData(txBuf[TxIndex].buf);
+          TxCRC = crcByte(TxCRC,txBuf[TxIndex].buf);
+          ++TxByteCnt;
+          
+          if (txBuf[TxIndex].state == BUFFER_COMPLETE || TxByteCnt >= SERIAL_MTU){
+            TxState = TXSTATE_FCS1;
+          }
+          else { /* never called on ack b/c ack is BUFFER_COMPLETE initially */
+            txBuf[TxIndex].buf = signal SendBytePacket.nextByte();
+          }
         }
         break;
         
