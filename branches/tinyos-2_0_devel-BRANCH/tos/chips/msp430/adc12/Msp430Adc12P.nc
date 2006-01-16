@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-13 18:36:15 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-16 16:02:41 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -223,22 +223,6 @@ implementation
     }
 #endif
   }
-
-  event void RefVoltGenerator.isStable(uint8_t voltageLevel)
-  {
-    uint8_t useTimerA = 0;
-    atomic {
-      if (flags & CANCELLED){
-        clientAccessFinished();
-        return;
-      }
-      flags &= ~DELAYED;
-      useTimerA = (flags & TIMERA_USED);
-    }
-    call HplAdc12.startConversion();
-    if (useTimerA)
-        startTimerA(); // go!
-  }
     
   void stopConversionSingleChannel()
   {
@@ -254,6 +238,47 @@ implementation
     clientAccessFinished();
   }
   
+  event void RefVoltGenerator.isStable(uint8_t voltageLevel)
+  {
+    uint8_t useTimerA = 0;
+    atomic {
+      if (flags & CANCELLED){
+        stopConversionSingleChannel();
+        return;
+      } else {
+        flags &= ~DELAYED;
+        useTimerA = (flags & TIMERA_USED);
+      }
+    }
+    call HplAdc12.startConversion();
+    if (useTimerA)
+        startTimerA(); // go!
+  }
+
+  void task cancelRefVoltGenerator()
+  {
+    atomic {
+      if (flags & DELAYED)
+        stopConversionSingleChannel();
+    }
+  }
+  
+  async command error_t SingleChannel.stop[uint8_t id]()
+  {
+    error_t stopped = FAIL;
+    if (call ADCArbiterInfo.userId() == id)
+      atomic {
+        if (flags & DELAYED){
+          flags |= CANCELLED;
+          stopped = SUCCESS;
+        }
+      }
+    if (stopped == SUCCESS)
+      post cancelRefVoltGenerator();
+    return stopped;
+  }
+
+
   async command msp430adc12_result_t SingleChannel.getSingleData[uint8_t id](
       const msp430adc12_channel_config_t *config)
   {
@@ -514,19 +539,6 @@ implementation
       }
     }
     return result;
-  }
-
-  async command error_t SingleChannel.stop[uint8_t id]()
-  {
-    error_t stopped = FAIL;
-    if (call ADCArbiterInfo.userId() == id)
-      atomic {
-        if (flags & DELAYED){
-          flags |= CANCELLED;
-          stopped = SUCCESS;
-        }
-      }
-    return stopped;
   }
 
   async event void TimerA.overflow(){}
