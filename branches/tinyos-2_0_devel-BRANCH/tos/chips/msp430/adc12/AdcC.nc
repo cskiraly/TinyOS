@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-13 18:41:37 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-16 16:03:54 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -62,7 +62,6 @@ implementation
   struct list_entry_t {
     uint16_t count;
     struct list_entry_t *next;
-    uint32_t usPeriod;
   };
   
   // Resource interface makes norace safe
@@ -72,19 +71,12 @@ implementation
   norace bool ignore;
   norace uint16_t *resultBuf;
   struct list_entry_t *streamBuf[uniqueCount(ADCC_READ_STREAM_SERVICE)];
-  
-  // I currently don't see another way...
   uint32_t usPeriod[uniqueCount(ADCC_READ_STREAM_SERVICE)];
     
   void task failReadStreamRequest();
   void task signalBufferDone();
   void nextReadStreamRequest(uint8_t rsClient);
 
-  command error_t Read.read[uint8_t client]()
-  {
-    return call Resource.request[client]();
-  }
-  
   command error_t Init.init()
   {
     uint16_t i;
@@ -94,6 +86,11 @@ implementation
     }
     ignore = FALSE;
     state = owner = value = 0;
+  }
+  
+  command error_t Read.read[uint8_t client]()
+  {
+    return call Resource.request[client]();
   }
   
   async command error_t ReadNow.read[uint8_t client]()
