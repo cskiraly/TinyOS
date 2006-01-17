@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: avr.rules,v 1.1.2.3 2006-01-17 23:30:46 idgay Exp $
+#$Id: avr.rules,v 1.1.2.4 2006-01-17 23:32:14 idgay Exp $
 
 define AVR_HELP
 
@@ -59,12 +59,12 @@ $(if $(PROGRAM),,$(call TOSMake_include,avr/$(DEFAULT_PROGRAM).extra))
 
 # Build storage file if volumes.xml present
 ifneq ($(wildcard $(VOLUMEFILE)), )
-exe0: StorageVolumes.h
+exe0: $(BUILDDIR)/StorageVolumes.h
 
-StorageVolumes.h: $(VOLUMEFILE)
+$(BUILDDIR)/StorageVolumes.h: $(VOLUMEFILE)
 	tos-storage-at45db <$(VOLUMEFILE) >$@
 
-PFLAGS += -I.
+PFLAGS += -I$(BUILDDIR)
 endif
 
 ifndef BUILD_DEPS
