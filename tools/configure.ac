@@ -122,6 +122,7 @@ AC_OUTPUT(
 	tinyos/misc/tos-install-jni
 	tinyos/misc/tos-set-symbols
 	tinyos/misc/tos-write-image
+	tinyos/misc/tos-storage-at45db
 	tinyos/misc/Makefile
 	tinyos/ncc/Makefile
 	tinyos/ncc/mig
