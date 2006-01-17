@@ -1,4 +1,0 @@
-COMPONENT=FormatC
-include $(MAKERULES)
-
-

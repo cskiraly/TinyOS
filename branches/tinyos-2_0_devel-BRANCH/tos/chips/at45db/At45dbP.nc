@@ -1,4 +1,4 @@
-// $Id: HalAt45dbP.nc,v 1.1.2.3 2006-01-10 19:34:09 idgay Exp $
+// $Id: At45dbP.nc,v 1.1.2.1 2006-01-17 19:03:16 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -30,13 +30,13 @@
  */
 
 #include "crc.h"
-#include "HalAt45db.h"
+#include "At45db.h"
 #include "Timer.h"
 
-module HalAt45dbP {
+module At45dbP {
   provides {
     interface Init;
-    interface HalAt45db;
+    interface At45db;
   }
   uses {
     interface HplAt45db;
@@ -333,12 +333,12 @@ implementation
     request = newState;
     switch (orequest)
       {
-      case R_READ: signal HalAt45db.readDone(result); break;
-      case R_READCRC: signal HalAt45db.computeCrcDone(result, computedCrc); break;
-      case R_WRITE: signal HalAt45db.writeDone(result); break;
-      case R_SYNC: case R_SYNCALL: signal HalAt45db.syncDone(result); break;
-      case R_FLUSH: case R_FLUSHALL: signal HalAt45db.flushDone(result); break;
-      case R_ERASE: signal HalAt45db.eraseDone(result); break;
+      case R_READ: signal At45db.readDone(result); break;
+      case R_READCRC: signal At45db.computeCrcDone(result, computedCrc); break;
+      case R_WRITE: signal At45db.writeDone(result); break;
+      case R_SYNC: case R_SYNCALL: signal At45db.syncDone(result); break;
+      case R_FLUSH: case R_FLUSHALL: signal At45db.flushDone(result); break;
+      case R_ERASE: signal At45db.eraseDone(result); break;
       }
   }
 
@@ -368,12 +368,12 @@ implementation
       handleRWRequest();
   }
 
-  command void HalAt45db.read(at45page_t page, at45pageoffset_t offset,
+  command void At45db.read(at45page_t page, at45pageoffset_t offset,
 				   void *reqdata, at45pageoffset_t n) {
     newRequest(R_READ, page, offset, reqdata, n);
   }
 
-  command void HalAt45db.computeCrc(at45page_t page,
+  command void At45db.computeCrc(at45page_t page,
 					at45pageoffset_t offset,
 					at45pageoffset_t n,
 					uint16_t baseCrc) {
@@ -382,13 +382,13 @@ implementation
     newRequest(R_READCRC, page, offset, NULL, n);
   }
 
-  command void HalAt45db.write(at45page_t page, at45pageoffset_t offset,
+  command void At45db.write(at45page_t page, at45pageoffset_t offset,
 				    void *reqdata, at45pageoffset_t n) {
     newRequest(R_WRITE, page, offset, reqdata, n);
   }
 
 
-  command void HalAt45db.erase(at45page_t page, uint8_t eraseKind) {
+  command void At45db.erase(at45page_t page, uint8_t eraseKind) {
     newRequest(R_ERASE, page, eraseKind, NULL, 0);
   }
 
@@ -409,11 +409,11 @@ implementation
     handleRWRequest();
   }
 
-  command void HalAt45db.sync(at45page_t page) {
+  command void At45db.sync(at45page_t page) {
     syncOrFlush(page, R_SYNC);
   }
 
-  command void HalAt45db.flush(at45page_t page) {
+  command void At45db.flush(at45page_t page) {
     syncOrFlush(page, R_FLUSH);
   }
 
@@ -434,11 +434,11 @@ implementation
     handleRWRequest();
   }
 
-  command void HalAt45db.syncAll() {
+  command void At45db.syncAll() {
     syncOrFlushAll(R_SYNCALL);
   }
 
-  command void HalAt45db.flushAll() {
+  command void At45db.flushAll() {
     syncOrFlushAll(R_FLUSHALL);
   }
 }
