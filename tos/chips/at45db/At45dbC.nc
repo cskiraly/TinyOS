@@ -12,12 +12,12 @@
  * @author David Gay
  */
 
-#include "HalAt45db.h"
+#include "At45db.h"
 
-configuration HalAt45dbC
+configuration At45dbC
 {
   provides {
-    interface HalAt45db;
+    interface At45db;
     interface Resource[uint8_t client];
     interface ResourceController;
     interface ArbiterInfo;
@@ -25,16 +25,16 @@ configuration HalAt45dbC
 }
 implementation
 {
-  components HalAt45dbP, HplAt45dbC, MainC, BusyWaitMicroC;
+  components At45dbP, HplAt45dbC, MainC, BusyWaitMicroC;
   components new FcfsArbiterC(UQ_AT45DB) as Arbiter;
 
-  HalAt45db = HalAt45dbP;
+  At45db = At45dbP;
   Resource = Arbiter;
   ResourceController = Arbiter;
   ArbiterInfo = Arbiter;
 
-  MainC.SoftwareInit -> HalAt45dbP;
+  MainC.SoftwareInit -> At45dbP;
   MainC.SoftwareInit -> Arbiter;
-  HalAt45dbP.HplAt45db -> HplAt45dbC;
-  HalAt45dbP.BusyWait -> BusyWaitMicroC;
+  At45dbP.HplAt45db -> HplAt45dbC;
+  At45dbP.BusyWait -> BusyWaitMicroC;
 }

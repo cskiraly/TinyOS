@@ -1,4 +1,4 @@
-// $Id: HalAt45db.nc,v 1.1.2.2 2006-01-09 23:25:10 idgay Exp $
+// $Id: At45db.nc,v 1.1.2.1 2006-01-17 19:03:16 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -29,9 +29,9 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-#include "HalAt45db.h"
+#include "At45db.h"
 
-interface HalAt45db {
+interface At45db {
   command void write(at45page_t page, at45pageoffset_t offset,
 		     void *data, at45pageoffset_t n);
   event void writeDone(error_t error);

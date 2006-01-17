@@ -1,4 +1,4 @@
-// $Id: HplAt45dbIOP.nc,v 1.1.2.2 2006-01-10 19:34:10 idgay Exp $
+// $Id: HplAt45dbIOP.nc,v 1.1.2.3 2006-01-17 19:03:17 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -53,7 +53,7 @@ module HplAt45dbIOP {
     interface GeneralIO as Clk;
     interface GeneralIO as Out;
     interface GeneralIO as In;
-    interface HplInterrupt as InInterrupt;
+    interface HplAtm128Interrupt as InInterrupt;
     interface BusyWait<TMicro, uint16_t>;
   }
 }

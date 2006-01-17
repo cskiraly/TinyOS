@@ -1,4 +1,4 @@
-// $Id: BlockStorageP.nc,v 1.1.2.1 2006-01-09 23:25:10 idgay Exp $
+// $Id: BlockStorageP.nc,v 1.1.2.2 2006-01-17 19:03:16 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -20,7 +20,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2005 Intel Corporation
+ * Copyright (c) 2002-2006 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -39,12 +39,11 @@
 
 module BlockStorageP {
   provides {
-    interface Mount[blockstorage_t blockId];
     interface BlockWrite[blockstorage_t blockId];
     interface BlockRead[blockstorage_t blockId];
   }
   uses {
-    interface HalAt45db;
+    interface At45db;
     interface At45dbVolume[blockstorage_t blockId];
     interface Resource[blockstorage_t blockId];
   }
@@ -52,9 +51,7 @@ module BlockStorageP {
 implementation 
 {
   enum {
-    S_UNMOUNTED = 0,
     S_IDLE,
-    S_MOUNT,
     S_WRITE,
     S_ERASE,
     S_COMMIT, S_COMMIT2, S_COMMIT3,
@@ -73,7 +70,7 @@ implementation
   uint16_t crc;
 
   /* The requests */
-  uint8_t state[N]; /* automatically initialised to S_UNMOUNTED */
+  uint8_t state[N]; /* automatically initialised to S_IDLE */
   uint8_t *bufPtr[N];
   block_addr_t curAddr[N], requestedLength[N];
 
@@ -143,13 +140,6 @@ implementation
       case S_VERIFY: case S_VERIFY2: 
 	signal BlockRead.verifyDone[c](result);
 	break;
-      case S_MOUNT:
-	if (result == STORAGE_OK)
-	  maxAddr[c] = 0;
-	else
-	  state[c] = S_UNMOUNTED;
-	signal Mount.mountDone[c](result, requestedLength[c]);
-	break;
       }
   }
 
@@ -199,23 +189,19 @@ implementation
     switch (state[client])
       {
       case S_WRITE:
-	call HalAt45db.write(page, offset, buf, count);
+	call At45db.write(page, offset, buf, count);
 	break;
       case S_READ:
-	call HalAt45db.read(page, offset, buf, count);
+	call At45db.read(page, offset, buf, count);
 	break;
       case S_CRC: case S_COMMIT: case S_VERIFY2:
-	call HalAt45db.computeCrc(page, offset, count, crc);
+	call At45db.computeCrc(page, offset, count, crc);
 	break;
       case S_ERASE:
-	call HalAt45db.erase(page, AT45_ERASE);
+	call At45db.erase(page, AT45_ERASE);
 	break;
       case S_VERIFY:
-	call HalAt45db.read(page, 1 << AT45_PAGE_SIZE_LOG2, sig, sizeof sig);
-	break;
-      case S_MOUNT:
-	if (call At45dbVolume.mount[client](requestedLength[client]) != SUCCESS)
-	  actualSignal(STORAGE_FAIL);
+	call At45db.read(page, 1 << AT45_PAGE_SIZE_LOG2, sig, sizeof sig);
 	break;
       }
   }
@@ -250,14 +236,14 @@ implementation
     state[client] = S_COMMIT2;
     /* Note: bytesRemaining is 0, so multipageDone will go straight to
        signalDone */
-    call HalAt45db.write(call At45dbVolume.remap[client](0),
+    call At45db.write(call At45dbVolume.remap[client](0),
 			 1 << AT45_PAGE_SIZE_LOG2, sig, sizeof sig);
   }
 
   /* Called once signature written. Ensure writes complete. */
   void commitSync() {
     state[client] = S_COMMIT3;
-    call HalAt45db.syncAll();
+    call At45db.syncAll();
   }
 
   command uint32_t BlockRead.getSize[blockstorage_t blockId]() {
@@ -289,50 +275,38 @@ implementation
     return newRequest(S_CRC, id, addr, NULL, len);
   }
 
-  command error_t Mount.mount[blockstorage_t id](volume_id_t volid) {
-    if (state[id] != S_UNMOUNTED)
-      return FAIL;
-    state[id] = S_IDLE;
-
-    return newRequest(S_MOUNT, id, 0, NULL, volid);
-  }
-
   void multipageDone(error_t result) {
-    if (client != NO_CLIENT && state[client] != S_MOUNT)
+    if (client != NO_CLIENT)
       if (bytesRemaining == 0 || result == FAIL)
 	signalDone(result);
       else
 	continueRequest();
   }
 
-  event void HalAt45db.writeDone(error_t result) {
+  event void At45db.writeDone(error_t result) {
     multipageDone(result);
   }
 
-  event void HalAt45db.readDone(error_t result) {
+  event void At45db.readDone(error_t result) {
     multipageDone(result);
   }
 
-  event void HalAt45db.computeCrcDone(error_t result, uint16_t newCrc) {
+  event void At45db.computeCrcDone(error_t result, uint16_t newCrc) {
     crc = newCrc;
     multipageDone(result);
   }
 
-  event void HalAt45db.eraseDone(error_t result) {
+  event void At45db.eraseDone(error_t result) {
     if (client != NO_CLIENT)
       signalDone(result);
   }
 
-  event void HalAt45db.syncDone(error_t result) {
+  event void At45db.syncDone(error_t result) {
     if (client != NO_CLIENT)
       signalDone(result);
   }
 
-  event void HalAt45db.flushDone(error_t result) {
-  }
-
-  event void At45dbVolume.mountDone[blockstorage_t id](storage_result_t result, volume_id_t volid) {
-    actualSignal(result);
+  event void At45db.flushDone(error_t result) {
   }
 
   default event void BlockWrite.writeDone[uint8_t id](storage_result_t result, block_addr_t addr, void* buf, block_addr_t len) { }
@@ -342,9 +316,6 @@ implementation
   default event void BlockRead.verifyDone[uint8_t id](storage_result_t result) { }
   default event void BlockRead.computeCrcDone[uint8_t id](storage_result_t result, uint16_t x, block_addr_t addr, block_addr_t len) { }
   
-  default event void Mount.mountDone[blockstorage_t blockId](storage_result_t result, volume_id_t id) { }
-
-  default command error_t At45dbVolume.mount[blockstorage_t id](volume_id_t volid) { return STORAGE_FAIL; }
   default command at45page_t At45dbVolume.remap[blockstorage_t id](at45page_t volumePage) { return 0; }
   default command storage_addr_t At45dbVolume.volumeSize[blockstorage_t id]() { return 0; }
   default async command error_t Resource.request[blockstorage_t id]() { return FAIL; }
