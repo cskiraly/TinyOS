@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: avr.rules,v 1.1.2.2 2005-08-08 19:09:29 idgay Exp $
+#$Id: avr.rules,v 1.1.2.3 2006-01-17 23:30:46 idgay Exp $
 
 define AVR_HELP
 
@@ -35,6 +35,7 @@ MAIN_EXE = $(BUILDDIR)/main.exe
 MAIN_SREC = $(BUILDDIR)/main.srec
 MAIN_IHEX = $(BUILDDIR)/main.ihex
 INSTALL_SREC = $(MAIN_SREC).out$(if $(NODEID),-$(NODEID),)
+VOLUMEFILE = volumes-at45db.xml
 
 PFLAGS += -Wall -Wshadow -DDEF_TOS_AM_GROUP=$(DEFAULT_LOCAL_GROUP) $(NESC_FLAGS)
 PFLAGS += -target=$(PLATFORM) -fnesc-cfile=$(BUILDDIR)/app.c -board=$(SENSORBOARD)
@@ -48,9 +49,23 @@ endif
 
 BUILDLESS_DEPS += bytes
 
+ifndef NOWIRING
+include $(TINYOS_MAKE_PATH)/wiring.extra
+endif
+
 # Use the 'if' function instead of the 'ifdef' construct because ifdef freaks
 # out with call in there.  I don't know why.
 $(if $(PROGRAM),,$(call TOSMake_include,avr/$(DEFAULT_PROGRAM).extra))
+
+# Build storage file if volumes.xml present
+ifneq ($(wildcard $(VOLUMEFILE)), )
+exe0: StorageVolumes.h
+
+StorageVolumes.h: $(VOLUMEFILE)
+	tos-storage-at45db <$(VOLUMEFILE) >$@
+
+PFLAGS += -I.
+endif
 
 ifndef BUILD_DEPS
   ifeq ($(filter $(BUILDLESS_DEPS),$(GOALS)),)
@@ -78,7 +93,10 @@ exe: exe0 bytes FORCE
 
 exe0: builddir $(BUILD_EXTRA_DEPS) FORCE
 	@echo "    compiling $(COMPONENT) to a $(PLATFORM) binary"
-	$(NCC) -o $(MAIN_EXE) $(OPTFLAGS) $(PFLAGS) $(CFLAGS) $(COMPONENT).nc $(LIBS) $(LDFLAGS)
+	$(NCC) -o $(MAIN_EXE) $(OPTFLAGS) $(PFLAGS) $(CFLAGS) $(WIRING_CHECK_FLAGS) $(COMPONENT).nc $(LIBS) $(LDFLAGS)
+ifdef WIRING_CHECK_FILE
+	@nescc-wiring $(WIRING_CHECK_FILE)
+endif
 	@echo "    compiled $(COMPONENT) to $(MAIN_EXE)"
 
 builddir: FORCE
