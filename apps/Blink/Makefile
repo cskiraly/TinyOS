@@ -1,6 +1,4 @@
-COMPONENT = BlinkAppC
-CFLAGS += -I$(TOSDIR)/lib/oski  
-
+COMPONENT=BlinkAppC
 
 include $(MAKERULES)
 
