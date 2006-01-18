@@ -20,8 +20,8 @@
  * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-12-01 05:10:14 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-18 22:29:27 $ 
  * ======================================================================== 
  *
  */
@@ -37,13 +37,13 @@
 configuration TestPowerManagerAppC{
 }
 implementation {
-  components MainC, TestPowerManagerC, MyComponentC, LedsC, new OskiTimerMilliC();
+  components MainC, TestPowerManagerC, MyComponentC, LedsC, new TimerMilliC();
 
   TestPowerManagerC -> MainC.Boot;
   MainC.SoftwareInit -> LedsC;
   MainC.SoftwareInit -> MyComponentC;
   
-  TestPowerManagerC.TimerMilli -> OskiTimerMilliC;
+  TestPowerManagerC.TimerMilli -> TimerMilliC;
   TestPowerManagerC.Resource0 -> MyComponentC.Resource[unique("MyComponent.Resource")];
   TestPowerManagerC.Resource1 -> MyComponentC.Resource[unique("MyComponent.Resource")];
   
