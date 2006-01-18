@@ -1,4 +1,4 @@
-// $Id: Storage.h,v 1.1.2.2 2006-01-09 23:23:39 idgay Exp $
+// $Id: Storage.h,v 1.1.2.3 2006-01-18 00:21:04 idgay Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -50,7 +50,6 @@ enum {
   STORAGE_INVALID_ADDR = (uint32_t)0xffff,
 };
 
-typedef uint8_t volume_t;
 typedef uint8_t volume_id_t;
 typedef uint8_t storage_result_t;
 
