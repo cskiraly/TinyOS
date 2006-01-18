@@ -1,4 +1,4 @@
-// $Id: TossimActiveMessageP.nc,v 1.1.2.3 2006-01-04 22:07:23 scipio Exp $
+// $Id: TossimActiveMessageP.nc,v 1.1.2.4 2006-01-18 22:39:48 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -30,6 +30,8 @@
  * @author Philip Levis
  * @date December 2 2005
  */
+
+#include <AM.h>
 
 module TossimActiveMessageP {
   provides {
