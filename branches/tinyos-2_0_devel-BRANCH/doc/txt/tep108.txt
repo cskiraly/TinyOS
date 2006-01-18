@@ -10,8 +10,8 @@ Resource Arbitration
 :Authors: Kevin Klues, Philip Levis, David Gay, David Culler, Vlado Handziski
 
 :Draft-Created: 28-Mar-2005
-:Draft-Version: $Revision: 1.1.2.4 $
-:Draft-Modified: $Date: 2006-01-15 20:07:27 $
+:Draft-Version: $Revision: 1.1.2.5 $
+:Draft-Modified: $Date: 2006-01-18 05:40:16 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -89,12 +89,12 @@ goals and level of abstraction. As discussed in Section 2.1, access
 control to physical and dedicated abstractions is generally handled
 through nesC interfaces. As discussed in Section 2.2, access control
 to virtualized abstractions is handled through software design
-patterns such as the Service Instance[_sipattern] and/or
+patterns such as the Service Instance [sipattern]_ and/or
 queueing. Section 2.3 addresses with the most complex class of
 abstraction, physical and shared, while Section 3 describes the
 components and interfaces used to arbitrate access to this class.
 
-Hardware Presentation Layer (HPL) components of the HAA[_haa] are always
+Hardware Presentation Layer (HPL) components of the HAA [TEP2]_ are always
 physical, as virtualization inevitably requires state. Depending on their
 expected use, HPL abstractions are either physical and dedicated or
 physical and shared. For example, while hardware timers are rarely
@@ -131,9 +131,9 @@ the virtualization is in software, there is no upper bound on the number
 of clients of the abstraction, barring memory or efficiency constraints.
 For example, the TimerMilliC component provides a virtual and shared
 abstraction of millisecond precision timers to application 
-components[_tep102]. As virtualization usually requires keeping state
+components [TEP102]_. As virtualization usually requires keeping state
 and that state must scale with the number of virtualized instances,
-virtualized resources often use the Service Instance pattern[_sipattern],
+virtualized resources often use the Service Instance pattern[sipattern]_,
 which is based on a parameterized interface. For example, TimerMilliC::
 
   configuration TimerMilliC {
@@ -221,7 +221,7 @@ succeeds, then the arbiter MUST NOT issue a granted() event.
 
 An arbiter MUST provide a parameterized Resource interface,
 where the parameter is a client ID, following the Service
-Instance pattern[_sipattern]. An arbitrated component SomeNameC MUST 
+Instance pattern[sipattern]_. An arbitrated component SomeNameC MUST 
 #define SOME_NAME_RESOURCE to a string which can be passed to unique() 
 to obtain a client id. For instance, an I2C bus might look like this::
 
@@ -416,6 +416,7 @@ described above by:
 2) wiring the three parameterised Resource interfaces to the same  
 arbiter
 
+
 The common way to do this is as follows (the UART and SPI components
 are omitted, they are similar to I2CC,  low-level I2C component)::
 
@@ -459,7 +460,7 @@ arbiter assigns a fixed order to all clients and grants outstanding
 requests in that order, which is based on client ID. FcfsArbiterC
 provides a FIFO order, where requests are serviced in the order they
 are received. FcfsPriorityArbiterC is similar to FcfsArbiterC, but
-provides an additional ResourceConfigure interface for the
+provides an additional ResourceController interface for the
 high-priority client.
 
 5. Author's Address
@@ -505,3 +506,10 @@ high-priority client.
 | GERMANY
 |
 | email - handzisk@tkn.tu-berlin.de
+
+6. Citations
+====================================================================
+
+.. [TEP2] TEP 2: Hardware Abstraction Architecture. 
+.. [TEP102] TEP 102: Timers. 
+.. [sipattern] TEP XXX: Service Instance Pattern. 
