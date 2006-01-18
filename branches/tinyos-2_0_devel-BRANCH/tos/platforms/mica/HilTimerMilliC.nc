@@ -1,4 +1,4 @@
-//$Id: TimerMilliC.nc,v 1.1.2.1 2006-01-10 19:04:46 idgay Exp $
+//$Id: HilTimerMilliC.nc,v 1.1.2.1 2006-01-18 22:11:20 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -34,18 +34,19 @@
 
 #include "Timer.h"
 
-#define TIMERMILLIC_SERVICE "TimerMilliC.TimerMilli"
-
-configuration TimerMilliC
-{
+configuration HilTimerMilliC {
   provides interface Init;
   provides interface Timer<TMilli> as TimerMilli[uint8_t num];
   provides interface LocalTime<TMilli>;
 }
-implementation
-{
+implementation {
+
+  enum {
+    TIMER_COUNT = uniqueCount(UQ_TIMER_MILLI)
+  };
+
   components AlarmCounterMilliP, new AlarmToTimerC(TMilli),
-    new VirtualizeTimerC(TMilli, uniqueCount(TIMERMILLIC_SERVICE)),
+    new VirtualizeTimerC(TMilli, TIMER_COUNT),
     new CounterToLocalTimeC(TMilli);
 
   Init = AlarmCounterMilliP;

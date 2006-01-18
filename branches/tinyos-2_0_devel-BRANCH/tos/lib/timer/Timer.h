@@ -1,4 +1,4 @@
-//$Id: Timer.h,v 1.1.2.1 2005-05-18 11:21:19 cssharp Exp $
+//$Id: Timer.h,v 1.1.2.2 2006-01-18 22:11:20 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -29,6 +29,10 @@
 typedef struct { } TMilli;
 typedef struct { } T32khz;
 typedef struct { } TMicro;
+
+#define UQ_TIMER_MILLI "HilTimerMilliC.Timer"
+#define UQ_TIMER_32KHZ "HilTimer32khzC.Timer"
+#define UQ_TIMER_MICRO "HilTimerMicroC.Timer"
 
 #endif
 
