@@ -111,10 +111,17 @@ void sim_gain_set_noise_floor(int node, double mean, double range) __attribute__
   noise[node].range = range;
 }
 
+double sim_gain_noise_mean(int node) {
+  return noise[node].mean;
+}
+
+double sim_gain_noise_range(int node) {
+  return noise[node].range;
+}
 
 // Pick a number a number from the uniform distribution of
 // [mean-range, mean+range].
-double sim_gain_noise(int node)  __attribute__ ((C, spontaneous)) {
+double sim_gain_sample_noise(int node)  __attribute__ ((C, spontaneous)) {
   double val = noise[node].mean;
   double adjust = (sim_random() % 2000000);
   adjust /= 1000000.0;

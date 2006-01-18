@@ -1,4 +1,4 @@
-// $Id: TimerMilliC.nc,v 1.1.2.3 2006-01-10 16:47:53 idgay Exp $
+// $Id: HilTimerMilliC.nc,v 1.1.2.1 2006-01-18 22:53:53 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -34,14 +34,14 @@
 
 #include <Timer.h>
 
-module TimerMilliC {
+module HilTimerMilliC {
   provides interface Init;
   provides interface Timer<TMilli> as TimerMilli[uint8_t num];
 }
 implementation {
 
   enum {
-    TIMER_COUNT = uniqueCount("TimerMilliC.TimerMilli")
+    TIMER_COUNT = uniqueCount("UQ_TIMER_MILLI")
   };
 
   typedef struct tossim_timer {
