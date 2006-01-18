@@ -20,8 +20,8 @@
  * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-14 08:48:02 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-18 22:14:20 $ 
  * ======================================================================== 
  *
  */
@@ -47,7 +47,7 @@ generic configuration AsyncStdControlDeferredPowerManagerC(uint32_t delay)
   }
 }
 implementation {
-  components new OskiTimerMilliC(),
+  components new TimerMilliC(),
              new AsyncDeferredPowerManagerP(delay) as PowerManager;
 
   Init = PowerManager;
@@ -60,6 +60,6 @@ implementation {
   PowerManager.ResourceController = ResourceController;
   PowerManager.ArbiterInfo = ArbiterInfo;
 
-  PowerManager.TimerMilli -> OskiTimerMilliC;
+  PowerManager.TimerMilli -> TimerMilliC;
 }
 
