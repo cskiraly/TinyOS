@@ -1,4 +1,4 @@
-//$Id: TimerMilliC.nc,v 1.1.2.6 2005-10-11 22:14:50 idgay Exp $
+//$Id: HilTimerMilliC.nc,v 1.1.2.1 2006-01-18 22:11:20 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -31,17 +31,17 @@
 // all platforms, and that this configuration only specifies (implicitly or
 // explicitly) how precisely to use the hardware resources.
 
-configuration TimerMilliC
+#include "Timer.h"
+
+configuration HilTimerMilliC
 {
   provides interface Init;
   provides interface Timer<TMilli> as TimerMilli[ uint8_t num ];
 }
 implementation
 {
-  components new AlarmMilliC()
-	   , new AlarmToTimerC(TMilli)
-	   , new VirtualizeTimerC(TMilli,uniqueCount("TimerMilliC.TimerMilli"))
-	   ;
+  components new AlarmMilliC(), new AlarmToTimerC(TMilli),
+             new VirtualizeTimerC(TMilli,uniqueCount(UQ_TIMER_MILLI));
 
   Init = AlarmMilliC;
   TimerMilli = VirtualizeTimerC;

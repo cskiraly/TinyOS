@@ -32,6 +32,8 @@
  *
  */
 
+#include "Timer.h"
+
 configuration TimerMilliC
 {
   provides interface Init;
@@ -40,7 +42,7 @@ configuration TimerMilliC
 
 implementation
 {
-  components new VirtualizeTimerC(TMilli,16) as VirtTimersMilli32;
+  components new VirtualizeTimerC(TMilli,uniqueCount(UQ_TIMER_MILLI)) as VirtTimersMilli32;
   components new AlarmToTimerC(TMilli) as AlarmToTimerMilli32;
   components new HalPXA27xAlarmM(TMilli,2) as PhysAlarmMilli32;
   components HalPXA27xOSTimerMapC;
