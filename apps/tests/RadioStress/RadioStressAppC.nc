@@ -1,4 +1,4 @@
-// $Id: RadioStressAppC.nc,v 1.1.2.1 2005-09-14 15:13:57 scipio Exp $
+// $Id: RadioStressAppC.nc,v 1.1.2.2 2006-01-18 22:24:16 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -44,7 +44,7 @@ implementation {
   components MainC, RadioStressC as App, LedsC;
   components new AMSenderC(AM_RADIOCOUNTMSG);
   components new AMReceiverC(AM_RADIOCOUNTMSG);
-  components new OskiTimerMilliC();
+  components new TimerMilliC();
   components new AMServiceC();
   components new AMServiceNotifierC();
   
@@ -59,7 +59,7 @@ implementation {
   App.ServiceNotify -> AMServiceNotifierC;
   App.Packet -> AMSenderC;
   App.Acks -> AMSenderC;
-  App.Timer -> OskiTimerMilliC;
+  App.Timer -> TimerMilliC;
 }
 
 

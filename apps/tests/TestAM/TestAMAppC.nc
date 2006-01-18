@@ -1,4 +1,4 @@
-// $Id: TestAMAppC.nc,v 1.1.2.1 2005-08-10 15:57:13 scipio Exp $
+// $Id: TestAMAppC.nc,v 1.1.2.2 2006-01-18 22:24:55 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -42,7 +42,7 @@ configuration TestAMAppC {}
 implementation {
   components MainC, TestAMC as App, LedsC;
   components ActiveMessageC;
-  components new OskiTimerMilliC();
+  components new TimerMilliC();
   
   MainC.SoftwareInit -> LedsC;
   MainC.SoftwareInit -> ActiveMessageC;
@@ -53,7 +53,7 @@ implementation {
   App.AMSend -> ActiveMessageC.AMSend[240];
   App.SplitControl -> ActiveMessageC;
   App.Leds -> LedsC;
-  App.MilliTimer -> OskiTimerMilliC;
+  App.MilliTimer -> TimerMilliC;
 }
 
 
