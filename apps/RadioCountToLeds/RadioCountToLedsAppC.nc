@@ -1,4 +1,4 @@
-// $Id: RadioCountToLedsAppC.nc,v 1.1.2.1 2005-08-10 16:00:43 scipio Exp $
+// $Id: RadioCountToLedsAppC.nc,v 1.1.2.2 2006-01-18 22:20:46 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -44,7 +44,7 @@ implementation {
   components MainC, RadioCountToLedsC as App, LedsC;
   components new AMSenderC(AM_RADIOCOUNTMSG);
   components new AMReceiverC(AM_RADIOCOUNTMSG);
-  components new OskiTimerMilliC();
+  components new TimerMilliC();
   components new AMServiceC();
   
   MainC.SoftwareInit -> LedsC;
@@ -55,7 +55,7 @@ implementation {
   App.AMSend -> AMSenderC;
   App.Service -> AMServiceC;
   App.Leds -> LedsC;
-  App.MilliTimer -> OskiTimerMilliC;
+  App.MilliTimer -> TimerMilliC;
   App.Packet -> AMSenderC;
 }
 
