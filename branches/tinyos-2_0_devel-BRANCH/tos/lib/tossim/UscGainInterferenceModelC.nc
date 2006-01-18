@@ -1,4 +1,4 @@
-// $Id: UscGainInterferenceModelC.nc,v 1.1.2.3 2006-01-02 19:53:53 scipio Exp $
+// $Id: UscGainInterferenceModelC.nc,v 1.1.2.4 2006-01-18 22:53:55 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -48,6 +48,7 @@ implementation {
 
   message_t* outgoing;
   bool requestAck;
+  bool receiving = 0;
   struct receive_message;
   typedef struct receive_message receive_message_t;
   
@@ -75,7 +76,7 @@ implementation {
   
   double heardSignal() {
     receive_message_t* current = outstandingReceptionHead;
-    double localNoise = sim_gain_noise(sim_node());
+    double localNoise = sim_gain_sample_noise(sim_node());
     double sig = pow(10.0, localNoise / 10.0);
     dbg("Gain", "Computing noise @ %s: %0.2f", sim_time_string(), localNoise);
     while (current != NULL) {
@@ -95,6 +96,7 @@ implementation {
     if (outgoing != NULL && requestAck) {
       signal Model.acked(outgoing);
     }
+    receiving = 0;
   }
 
   sim_event_t receiveEvent;
@@ -163,6 +165,9 @@ implementation {
       if (mine->ack && signal Model.shouldAck(mine->msg)) {
 	sim_gain_schedule_ack(mine->source, sim_time()); 
       }
+      else { // If we scheduled an ack, receiving = 0 when it completes
+	receiving = 0;
+      }
     }
     else {
       dbg_clear("Gain", "  -packet was lost.\n");
@@ -181,9 +186,12 @@ implementation {
     rcv->end = endTime;
     rcv->power = power;
     rcv->msg = msg;
-    rcv->lost = (heardSignal() + sim_gain_sensitivity()) >= power;
+    rcv->lost = (heardSignal() + sim_gain_sensitivity()) >= power || receiving;
+    if (power >= sim_gain_noise_mean(sim_node()) + sim_gain_noise_range(sim_node())) {
+      receiving = 1;
+    }
     rcv->next = outstandingReceptionHead;
-
+    
     outstandingReceptionHead = rcv;
     evt = allocate_receive_event(endTime, rcv);
     sim_queue_insert(evt);

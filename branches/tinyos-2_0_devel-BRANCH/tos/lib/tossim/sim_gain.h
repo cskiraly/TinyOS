@@ -30,7 +30,7 @@
  */
 
 
-// $Id: sim_gain.h,v 1.1.2.1 2005-12-19 23:51:20 scipio Exp $
+// $Id: sim_gain.h,v 1.1.2.2 2006-01-18 22:53:55 scipio Exp $
 
 
 
@@ -53,7 +53,9 @@ double sim_gain_value(int src, int dest);
 bool sim_gain_connected(int src, int dest);
 void sim_gain_remove(int src, int dest);
 void sim_gain_set_noise_floor(int node, double mean, double range);
-double sim_gain_noise(int node);
+double sim_gain_sample_noise(int node);
+double sim_gain_noise_mean(int node);
+double sim_gain_noise_range(int node);
 
 void sim_gain_set_sensitivity(double value);
 double sim_gain_sensitivity();
