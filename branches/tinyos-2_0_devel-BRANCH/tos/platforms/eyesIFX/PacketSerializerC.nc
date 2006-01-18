@@ -46,13 +46,12 @@ configuration PacketSerializerC {
   }
 }
 implementation {
-	components TimerMilliC;
-	components TDA5250RadioC;
+        components new TimerMilliC();
+        components TDA5250RadioC;
 	components UARTPhyP;
 	components BasicMacP;
 	components PacketSerializerP;
 	
-        Init = TimerMilliC.Init;
 	Init = BasicMacP.Init;
 	Init = TDA5250RadioC.Init;
 	Init = UARTPhyP.Init;
@@ -75,7 +74,7 @@ implementation {
 	BasicMacP.TDA5250RadioByteComm -> UARTPhyP.SerializerRadioByteComm;
 	BasicMacP.TDA5250PhyPacketTx -> UARTPhyP.PhyPacketTx;
 	BasicMacP.TDA5250PhyPacketRx -> UARTPhyP.PhyPacketRx;     
-        BasicMacP.RxTimeoutTimer -> TimerMilliC.TimerMilli[unique("TimerMilliC.TimerMilli")];
+        BasicMacP.RxTimeoutTimer -> TimerMilliC;
 	BasicMacP.RadioSplitControl -> TDA5250RadioC.SplitControl;    
   
 	UARTPhyP.RadioByteComm -> TDA5250RadioC.RadioByteComm;

@@ -20,8 +20,8 @@
  * MODIFICATIONS."
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-01-14 08:48:36 $ 
+ * $Revision: 1.1.2.7 $
+ * $Date: 2006-01-18 22:29:27 $ 
  * ======================================================================== 
  *
  */
@@ -41,7 +41,7 @@ configuration MyComponentC{
 }
 implementation {
   components MyComponentP, LedsC, 
-             new OskiTimerMilliC() as StartTimer, new OskiTimerMilliC() as StopTimer,
+             new TimerMilliC() as StartTimer, new TimerMilliC() as StopTimer,
              new FcfsArbiterC(MYCOMPONENT_RESOURCE) as Arbiter,
 //              new AsyncStdControlPowerManagerC() as PowerManager;
 //              new AsyncStdControlDeferredPowerManagerC(750) as PowerManager;

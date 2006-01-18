@@ -1,4 +1,4 @@
-// $Id: TestSerialAppC.nc,v 1.1.2.3 2005-10-02 22:08:02 scipio Exp $
+// $Id: TestSerialAppC.nc,v 1.1.2.4 2006-01-18 22:30:13 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -53,7 +53,7 @@ configuration TestSerialAppC {}
 implementation {
   components TestSerialC as App, LedsC, MainC;
   components SerialActiveMessageC as AM;
-  components new OskiTimerMilliC();
+  components new TimerMilliC();
 
   
   MainC.SoftwareInit -> LedsC;
@@ -64,7 +64,7 @@ implementation {
   App.Receive -> AM.Receive[AM_TESTSERIALMSG];
   App.AMSend -> AM.AMSend[AM_TESTSERIALMSG];
   App.Leds -> LedsC;
-  App.MilliTimer -> OskiTimerMilliC;
+  App.MilliTimer -> TimerMilliC;
   App.Packet -> AM;
 }
 

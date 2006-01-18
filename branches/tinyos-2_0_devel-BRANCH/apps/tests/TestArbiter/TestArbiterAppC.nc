@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-14 09:04:20 $ 
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-01-18 22:28:17 $ 
  * ======================================================================== 
  */
  
@@ -44,9 +44,9 @@ configuration TestArbiterAppC{
 }
 implementation {
   components MainC, TestArbiterC,LedsC,
-     new OskiTimerMilliC() as Timer0,
-     new OskiTimerMilliC() as Timer1,
-     new OskiTimerMilliC() as Timer2,
+     new TimerMilliC() as Timer0,
+     new TimerMilliC() as Timer1,
+     new TimerMilliC() as Timer2,
 //      new RoundRobinArbiterC(TEST_ARBITER_RESOURCE) as Arbiter; 
      new FcfsArbiterC(TEST_ARBITER_RESOURCE) as Arbiter;
 

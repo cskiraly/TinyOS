@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-12-22 12:53:58 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-18 22:28:17 $ 
  * ======================================================================== 
  */
  
@@ -48,9 +48,9 @@ implementation {
               TestPriorityArbiterC,
               LedsC,
               new FcfsPriorityArbiterC("Test.Arbiter.Resource") as Arbiter,
-              new OskiTimerMilliC() as TimerHigh,
-              new OskiTimerMilliC() as TimerClient1,
-              new OskiTimerMilliC() as TimerClient2;
+              new TimerMilliC() as TimerHigh,
+              new TimerMilliC() as TimerClient1,
+              new TimerMilliC() as TimerClient2;
 
  
 

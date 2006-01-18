@@ -1,4 +1,4 @@
-// $Id: TestAMOnOffAppC.nc,v 1.1.2.1 2005-08-10 15:57:14 scipio Exp $
+// $Id: TestAMOnOffAppC.nc,v 1.1.2.2 2006-01-18 22:25:36 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -52,7 +52,7 @@ implementation {
   components new AMReceiverC(240) as PowerReceive;
   components new AMSenderC(241) as DataSend;
   components new AMReceiverC(241) as DataReceive;
-  components new OskiTimerMilliC();
+  components new TimerMilliC();
   components new AMServiceNotifierC();
   components new AMServiceC();
   components new AMServiceC() as SecondServiceC;
@@ -70,7 +70,7 @@ implementation {
   App.SecondService -> SecondServiceC;
   App.ServiceNotify -> AMServiceNotifierC;
   App.Leds -> LedsC;
-  App.MilliTimer -> OskiTimerMilliC;
+  App.MilliTimer -> TimerMilliC;
   
 }
 
