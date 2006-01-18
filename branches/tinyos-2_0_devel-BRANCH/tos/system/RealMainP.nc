@@ -1,4 +1,4 @@
-// $Id: RealMainP.nc,v 1.1.2.2 2005-10-27 18:45:52 idgay Exp $
+// $Id: RealMainP.nc,v 1.1.2.3 2006-01-18 22:36:17 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: RealMainP.nc,v 1.1.2.2 2005-10-27 18:45:52 idgay Exp $
+ * Date last modified:  $Id: RealMainP.nc,v 1.1.2.3 2006-01-18 22:36:17 scipio Exp $
  *
  */
 
@@ -82,6 +82,11 @@ implementation {
 
     /* Spin in the Scheduler */       
     call Scheduler.taskLoop();
+
+    /* We should never reach this point, but some versions of
+     * gcc don't realize that and issue a warning if we return
+     * void from a non-void function. So include this. */
+    return -1;
   }
 
   default command error_t PlatformInit.init() { return SUCCESS; }
