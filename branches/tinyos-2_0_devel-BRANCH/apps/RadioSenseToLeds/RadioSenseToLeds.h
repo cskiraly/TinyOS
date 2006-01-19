@@ -1,3 +1,6 @@
+#ifndef RADIO_SENSE_TO_LEDS_H
+#define RADIO_SENSE_TO_LEDS_H
+
 typedef nx_struct RadioSenseMsg {
   nx_uint16_t error;
   nx_uint16_t data;
@@ -6,3 +9,5 @@ typedef nx_struct RadioSenseMsg {
 enum {
   AM_RADIOSENSEMSG = 6,
 };
+
+#endif
