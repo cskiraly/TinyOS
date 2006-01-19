@@ -1,4 +1,4 @@
-// $Id: TestSerialC.nc,v 1.1.2.6 2006-01-16 01:22:49 bengreenstein Exp $
+// $Id: TestSerialC.nc,v 1.1.2.7 2006-01-19 18:47:36 philipb Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -65,7 +65,7 @@ implementation {
 
   message_t packet;
 
-  bool locked;
+  bool locked = FALSE;
   uint16_t counter = 0;
   
   event void Boot.booted() {
