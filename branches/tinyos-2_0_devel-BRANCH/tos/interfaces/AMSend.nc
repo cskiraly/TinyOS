@@ -1,4 +1,4 @@
-// $Id: AMSend.nc,v 1.1.2.4 2006-01-15 22:31:32 scipio Exp $
+// $Id: AMSend.nc,v 1.1.2.5 2006-01-19 00:35:05 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -75,4 +75,26 @@ interface AMSend {
 
   event void sendDone(message_t* msg, error_t error);
 
+
+   /**
+   * Return the maximum payload length that this communication layer
+   * can provide. This command behaves identically to
+   * <tt>Packet.maxPayloadLength</tt> and is included in this
+   * interface as a convenience.
+   */
+
+  
+  command uint8_t maxPayloadLength();
+
+
+   /**
+    * Return a pointer to a protocol's payload region in a packet.
+    * The length of this region is maxPayloadLength(). This command
+    * behaves similarly to <tt>Packet.getPayload</tt> (minus the
+    * length parameter) and is included in this interface
+    * as a convenience.
+    */
+  command void* getPayload(message_t* msg);
+
+  
 }

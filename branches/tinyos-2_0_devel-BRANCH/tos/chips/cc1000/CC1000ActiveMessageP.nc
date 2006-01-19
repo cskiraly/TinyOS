@@ -1,4 +1,4 @@
-// $Id: CC1000ActiveMessageP.nc,v 1.1.2.2 2005-08-10 15:54:38 scipio Exp $
+// $Id: CC1000ActiveMessageP.nc,v 1.1.2.3 2006-01-19 00:35:03 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: CC1000ActiveMessageP.nc,v 1.1.2.2 2005-08-10 15:54:38 scipio Exp $
+ * Date last modified:  $Id: CC1000ActiveMessageP.nc,v 1.1.2.3 2006-01-19 00:35:03 scipio Exp $
  *
  */
 
@@ -50,6 +50,7 @@ module CC1000ActiveMessageP {
   uses {
     interface Send as SubSend;
     interface Receive as SubReceive;
+    interface Packet as Packet;
     command am_addr_t amAddress();
   }
 }
@@ -77,6 +78,14 @@ implementation {
     signal AMSend.sendDone[call AMPacket.type(msg)](msg, result);
   }
 
+  command uint8_t AMSend.maxPayloadLength[am_id_t id]() {
+    return call Packet.maxPayloadLength();
+  }
+
+  command void* AMSend.getPayload[am_id_t id](message_t* m) {
+    return call Packet.getPayload(m, NULL);
+  }
+
   /* Receiving a packet */
 
   event message_t* SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
@@ -88,6 +97,22 @@ implementation {
     }
   }
   
+  command void* Receive.getPayload[am_id_t id](message_t* m, uint8_t* len) {
+    return call Packet.getPayload(m, len);
+  }
+
+  command uint8_t Receive.payloadLength[am_id_t id](message_t* m) {
+    return call Packet.payloadLength(m);
+  }
+  
+  command void* Snoop.getPayload[am_id_t id](message_t* m, uint8_t* len) {
+    return call Packet.getPayload(m, len);
+  }
+
+  command uint8_t Snoop.payloadLength[am_id_t id](message_t* m) {
+    return call Packet.payloadLength(m);
+  }
+
   command am_addr_t AMPacket.address() {
     return call amAddress();
   }
@@ -97,6 +122,11 @@ implementation {
     return header->addr;
   }
 
+  command void AMPacket.setDestination(message_t* amsg, am_addr_t addr) {
+    CC1KHeader* header = getHeader(amsg);
+    header->addr = addr;
+  }
+  
   command bool AMPacket.isForMe(message_t* amsg) {
     return (call AMPacket.destination(amsg) == call AMPacket.address() ||
 	    call AMPacket.destination(amsg) == AM_BROADCAST_ADDR);
@@ -107,6 +137,11 @@ implementation {
     return header->type;
   }
 
+  command void AMPacket.setType(message_t* amsg, am_id_t type) {
+    CC1KHeader* header = getHeader(amsg);
+    header->type = type;
+  }
+  
   //command am_group_t AMPacket.group(message_t* amsg) {
   //  return amsg->header.group;
   //}
