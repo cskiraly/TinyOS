@@ -1,4 +1,4 @@
-// $Id: RadioSenseToLedsAppC.nc,v 1.1.2.4 2006-01-18 22:55:53 scipio Exp $
+// $Id: RadioSenseToLedsAppC.nc,v 1.1.2.5 2006-01-19 20:30:16 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -40,11 +40,10 @@ includes RadioSenseToLeds;
 configuration RadioSenseToLedsAppC {}
 implementation {
   components MainC, RadioSenseToLedsC as App, LedsC, DemoSensorC;
+  components ActiveMessageC;
   components new AMSenderC(AM_RADIOSENSEMSG);
   components new AMReceiverC(AM_RADIOSENSEMSG);
   components new TimerMilliC();
-  components new AMServiceC();
-  components new AMServiceNotifierC();
 
   MainC.SoftwareInit -> LedsC;
   
@@ -52,8 +51,7 @@ implementation {
   
   App.Receive -> AMReceiverC;
   App.AMSend -> AMSenderC;
-  App.Service -> AMServiceC;
-  App.ServiceNotify -> AMServiceNotifierC;
+  App.RadioControl -> ActiveMessageC;
   App.Leds -> LedsC;
   App.MilliTimer -> TimerMilliC;
   App.Packet -> AMSenderC;

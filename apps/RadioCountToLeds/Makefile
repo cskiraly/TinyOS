@@ -10,7 +10,6 @@ RadioCountMsg.class: RadioCountMsg.java
 RadioCountMsg.java: RadioCountToLeds.h
 	mig java -target=$(PLATFORM) $(CFLAGS) -java-classname=RadioCountMsg RadioCountToLeds.h RadioCountMsg -o $@
 
-PFLAGS += -I%T/lib/oski 
 
 include $(MAKERULES)
 

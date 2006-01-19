@@ -1,4 +1,4 @@
-// $Id: RadioCountToLedsC.nc,v 1.1.2.5 2006-01-15 22:31:34 scipio Exp $
+// $Id: RadioCountToLedsC.nc,v 1.1.2.6 2006-01-19 20:30:16 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -49,7 +49,7 @@ module RadioCountToLedsC {
     interface Receive;
     interface AMSend;
     interface Timer<TMilli> as MilliTimer;
-    interface Service;
+    interface SplitControl as AMControl;
     interface Packet;
   }
 }
@@ -61,8 +61,20 @@ implementation {
   uint16_t counter = 0;
   
   event void Boot.booted() {
-    call Service.start();
-    call MilliTimer.startPeriodic(1000);
+    call AMControl.start();
+  }
+
+  event void AMControl.startDone(error_t err) {
+    if (err == SUCCESS) {
+      call MilliTimer.startPeriodic(1000);
+    }
+    else {
+      call AMControl.start();
+    }
+  }
+
+  event void AMControl.stopDone(error_t err) {
+    // do nothing
   }
   
   event void MilliTimer.fired() {
@@ -79,6 +91,7 @@ implementation {
 
       rcm->counter = counter;
       if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(RadioCountMsg)) == SUCCESS) {
+	dbg("RadioCountToLedsC", "RadioCountToLedsC: packet sent.\n", counter);	
 	locked = TRUE;
       }
     }
