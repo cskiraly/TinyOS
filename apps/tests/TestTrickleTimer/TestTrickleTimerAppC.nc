@@ -1,4 +1,4 @@
-// $Id: TestTrickleTimerAppC.nc,v 1.1.2.1 2006-01-07 23:43:51 scipio Exp $
+// $Id: TestTrickleTimerAppC.nc,v 1.1.2.2 2006-01-19 21:32:47 scipio Exp $
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -32,23 +32,26 @@ configuration TestTrickleTimerAppC {
 }
 implementation {
   components TestTrickleTimerAppP, MainC, RandomC;
-  components new TrickleTimerImplP(1, 120, 2, 1) as Timer;
-  components new OskiTimerMilliC();
+  components new TestTrickleTimerC() as TimerA;
+  components new TestTrickleTimerC() as TimerB;
+  components new TestTrickleTimerC() as TimerC;
+  components new TestTrickleTimerC() as TimerD;
+  components new TimerMilliC();
   components new BitVectorC(1) as PendingVector;
   components new BitVectorC(1) as ChangeVector;
 
-  Timer.Timer -> OskiTimerMilliC;
-  Timer.Random -> RandomC;
-  Timer.Changed -> ChangeVector;
-  Timer.Pending -> PendingVector;
+  //  Timer.Timer -> TimerMilliC;
+  //Timer.Random -> RandomC;
+  //Timer.Changed -> ChangeVector;
+  //Timer.Pending -> PendingVector;
   
   MainC.SoftwareInit -> TestTrickleTimerAppP;
   TestTrickleTimerAppP.Boot -> MainC.Boot;
   
-  TestTrickleTimerAppP.TimerA -> Timer.TrickleTimer[0];
-  //  TestTrickleTimerAppP.TimerB -> TimerB;
-  // TestTrickleTimerAppP.TimerC -> TimerC;
-  //TestTrickleTimerAppP.TimerD -> TimerD;
+  TestTrickleTimerAppP.TimerA -> TimerA;
+  TestTrickleTimerAppP.TimerB -> TimerB;
+  TestTrickleTimerAppP.TimerC -> TimerC;
+  TestTrickleTimerAppP.TimerD -> TimerD;
   
 }
 
