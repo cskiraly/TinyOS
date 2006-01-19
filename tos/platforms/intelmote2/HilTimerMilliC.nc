@@ -34,7 +34,7 @@
 
 #include "Timer.h"
 
-configuration TimerMilliC
+configuration HilTimerMilliC
 {
   provides interface Init;
   provides interface Timer<TMilli> as TimerMilli[ uint8_t num ];
