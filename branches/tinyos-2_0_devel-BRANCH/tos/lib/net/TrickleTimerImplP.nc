@@ -1,4 +1,4 @@
-// $Id: TrickleTimerImplP.nc,v 1.1.2.2 2006-01-19 00:35:03 scipio Exp $
+// $Id: TrickleTimerImplP.nc,v 1.1.2.3 2006-01-19 21:31:46 scipio Exp $
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -149,8 +149,8 @@ implementation {
       atomic {
 	if (call Pending.get(i)) {
 	  call Pending.clear(i);
+	  fire = TRUE;
 	}
-	fire = TRUE;
       }
       if (fire) {
 	dbg("Trickle", "Firing trickle timer %hhu @ %s\n", i, sim_time_string());
@@ -240,7 +240,8 @@ implementation {
    */
   void generateTime(uint8_t id) {
     uint32_t time;
-
+    uint16_t rval;
+    
     if (trickles[id].time != 0) {
       trickles[id].period *= 2;
       if (trickles[id].period > high) {
@@ -251,12 +252,14 @@ implementation {
     trickles[id].time = trickles[id].remainder;
     
     time = trickles[id].period;
-    time = time << (scale - 1); 
-    time += call Random.rand16() % (trickles[id].period << (scale - 1));
+    time = time << (scale - 1);
 
+    rval = call Random.rand16() % (trickles[id].period << (scale - 1));
+    time += rval;
+    
     trickles[id].remainder = (trickles[id].period << scale) - time;
     trickles[id].time += time;
-    dbg("Trickle", "Generated time for %hhu with period %hu (%hhu) is %hhu\n", id, trickles[id].period, (uint32_t)trickles[id].period << scale, trickles[id].time);
+    dbg("Trickle,TrickleTimes", "Generated time for %hhu with period %hu (%u) is %u (%i + %hu)\n", id, trickles[id].period, (uint32_t)trickles[id].period << scale, trickles[id].time, (trickles[id].period << (scale - 1)), rval);
   }
 
  default event void TrickleTimer.fired[uint8_t id]() {
