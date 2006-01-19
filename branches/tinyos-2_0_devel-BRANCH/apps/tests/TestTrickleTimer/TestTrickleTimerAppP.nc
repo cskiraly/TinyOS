@@ -1,4 +1,4 @@
-// $Id: TestTrickleTimerAppP.nc,v 1.1.2.1 2006-01-07 23:43:51 scipio Exp $
+// $Id: TestTrickleTimerAppP.nc,v 1.1.2.2 2006-01-19 21:32:47 scipio Exp $
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -33,9 +33,9 @@ module TestTrickleTimerAppP {
   uses {
     interface Boot;
     interface TrickleTimer as TimerA;
-    //    interface TrickleTimer as TimerB;
-    // interface TrickleTimer as TimerC;
-    //interface TrickleTimer as TimerD;
+    interface TrickleTimer as TimerB;
+    interface TrickleTimer as TimerC;
+    interface TrickleTimer as TimerD;
   }
 }
 implementation {
@@ -54,17 +54,19 @@ implementation {
   }
 
   event void TimerA.fired() {
+    dbg("TestTrickle", "   Timer A fired at %s\n", sim_time_string());
     if (!b) {
-      //      call TimerB.reset();
-      //call TimerB.start();
+      call TimerB.reset();
+      call TimerB.start();
       b = 1;
     }
   }
-  /*
+  
 
   event void TimerB.fired() {
+    dbg("TestTrickle", "  Timer B fired at %s\n", sim_time_string());
     if (!c) {
-      call TimerC.reset();
+    call TimerC.reset();
       call TimerC.start();
       b = 1;
     }
@@ -72,6 +74,7 @@ implementation {
   
   
   event void TimerC.fired() {
+    dbg("TestTrickle", " Timer C fired at %s\n", sim_time_string());
     if (!d) {
       call TimerD.reset();
       call TimerD.start();
@@ -81,14 +84,15 @@ implementation {
 
   uint8_t i = 0;
   event void TimerD.fired() {
+    dbg("TestTrickle", "Timer D fired at %s\n", sim_time_string());
     i++;
     i = i % 3;
     switch (i) {
     case 0:
-      call TimerA.reset();
+      //      call TimerA.reset();
       break;
     case 1:
-      call TimerB.reset();
+      //      call TimerB.reset();
       break;
     case 2:
       call TimerC.reset();
@@ -99,7 +103,7 @@ implementation {
     }
   }
 
-  */  
+  
   
 }
 
