@@ -1,4 +1,4 @@
-// $Id: Packet.nc,v 1.1.2.7 2006-01-15 22:31:32 scipio Exp $
+// $Id: Packet.nc,v 1.1.2.8 2006-01-19 00:35:05 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -60,23 +60,35 @@ interface Packet {
 
   command uint8_t payloadLength(message_t* msg);
 
+  /**
+    * Set the length field of the packet. This value is not checked
+    * for validity (e.g., if it is larger than the maximum payload
+    * size). This command is not used when sending packets, as calls
+    * to send include a length parameter. Rather, it is used by
+    * components, such as queues, that need to buffer requests to
+    * send.  This command allows the component to store the length
+    * specified in the request and later recover it when actually
+    * sending.
+    */
+
+  command void setPayloadLength(message_t* msg, uint8_t len);
+
  /**
    * Return the maximum payload length that this communication layer
-   * can provide. Note that, depending on protocol fields, a
-   * given request to send a packet may not be able to send the
-   * maximum payload length (e.g., if there are variable length
-   * fields). Protocols may provide specialized interfaces
-   * for these circumstances.
+   * can provide. Note that, depending on protocol fields, a given
+   * request to send a packet may not be able to send the maximum
+   * payload length (e.g., if there are variable length
+   * fields). Protocols may provide specialized interfaces for these
+   * circumstances.
    */
   command uint8_t maxPayloadLength();
 
  /**
-   * Return point to a protocol's payload region in a packet.
-   * If len is not NULL, getPayload will return the length of
-   * the payload in it, which is the same as the return value
-   * from payloadLength(). If a protocol does not support
-   * variable length packets, then *len is equal to 
-   * maxPayloadLength().
+   * Return a pointer to a protocol's payload region in a packet.  If
+   * len is not NULL, getPayload will return the length of the payload
+   * in it, which is the same as the return value from
+   * payloadLength(). If a protocol does not support variable length
+   * packets, then *len is equal to maxPayloadLength().
    */
   command void* getPayload(message_t* msg, uint8_t* len);
 

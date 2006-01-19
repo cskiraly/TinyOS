@@ -1,4 +1,4 @@
-// $Id: TrickleTimerImplP.nc,v 1.1.2.1 2006-01-07 23:42:57 scipio Exp $
+// $Id: TrickleTimerImplP.nc,v 1.1.2.2 2006-01-19 00:35:03 scipio Exp $
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -43,10 +43,11 @@
 generic module TrickleTimerImplP(uint16_t low,
 				 uint16_t high,
 				 uint8_t k,
-				 uint8_t count) {
+				 uint8_t count,
+				 uint8_t scale) {
   provides {
     interface Init;
-    interface TrickleTimer[uint8_t];
+    interface TrickleTimer[uint8_t id];
   }
   uses {
     interface Timer<TMilli>;
@@ -59,8 +60,8 @@ implementation {
 
   typedef struct {
     uint16_t period;
-    uint16_t time;
-    uint16_t remainder;
+    uint32_t time;
+    uint32_t remainder;
     uint8_t count;
   } trickle_t;
 
@@ -99,6 +100,7 @@ implementation {
       call Changed.set(id);
     }
     adjustTimer();
+    dbg("Trickle", "Starting trickle timer %hhu @ %s\n", id, sim_time_string());
     return SUCCESS;
   }
 
@@ -109,6 +111,7 @@ implementation {
     trickles[id].time = 0;
     trickles[id].period = high;
     adjustTimer();
+    dbg("Trickle", "Stopping trickle timer %hhu @ %s\n", id, sim_time_string());
   }
 
   /**
@@ -119,12 +122,16 @@ implementation {
     trickles[id].period = low;
     trickles[id].count = 0;
     if (trickles[id].time != 0) {
+      dbg("Trickle", "Resetting running trickle timer %hhu @ %s\n", id, sim_time_string());
       atomic {
 	call Changed.set(id);
       }
       trickles[id].time = 0;
       generateTime(id);
       adjustTimer();
+    }
+    else {
+      dbg("Trickle", "Resetting  trickle timer %hhu @ %s\n", id, sim_time_string());
     }
   }
 
@@ -146,6 +153,7 @@ implementation {
 	fire = TRUE;
       }
       if (fire) {
+	dbg("Trickle", "Firing trickle timer %hhu @ %s\n", i, sim_time_string());
 	signal TrickleTimer.fired[i]();
 	post timerTask();
 	return;
@@ -189,17 +197,17 @@ implementation {
   // This is where all of the work is done!
   void adjustTimer() {
     uint8_t i;
-    uint16_t lowest = 0;
+    uint32_t lowest = 0;
     bool set = FALSE;
 
     // How much time has elapsed on the current timer
     // since it was scheduled? This value is needed because
     // the time remaining of a running timer is its time
     // value minus tiem elapsed.
-    uint16_t elapsed = (call Timer.getNow() - call Timer.gett0()) >> 10;
+    uint32_t elapsed = (call Timer.getNow() - call Timer.gett0());
 	
     for (i = 0; i < count; i++) {
-      uint16_t time = trickles[i].time;
+      uint32_t time = trickles[i].time;
       if (time != 0) {
 	atomic {
 	  if (!call Changed.get(i)) {
@@ -218,7 +226,8 @@ implementation {
     }
     if (set) {
       uint32_t timerVal = lowest;
-      timerVal = timerVal << 10;
+      timerVal = timerVal;
+      dbg("Trickle", "Starting time with time %u.\n", timerVal);
       call Timer.startOneShot(timerVal);
     }
     else {
@@ -230,7 +239,7 @@ implementation {
    * running (time != 0), then double the period.
    */
   void generateTime(uint8_t id) {
-    uint16_t time;
+    uint32_t time;
 
     if (trickles[id].time != 0) {
       trickles[id].period *= 2;
@@ -241,11 +250,13 @@ implementation {
     
     trickles[id].time = trickles[id].remainder;
     
-    time = trickles[id].period / 2;
-    time += call Random.rand16() % (trickles[id].period / 2);
+    time = trickles[id].period;
+    time = time << (scale - 1); 
+    time += call Random.rand16() % (trickles[id].period << (scale - 1));
 
-    trickles[id].remainder = trickles[id].period - time;
+    trickles[id].remainder = (trickles[id].period << scale) - time;
     trickles[id].time += time;
+    dbg("Trickle", "Generated time for %hhu with period %hu (%hhu) is %hhu\n", id, trickles[id].period, (uint32_t)trickles[id].period << scale, trickles[id].time);
   }
 
  default event void TrickleTimer.fired[uint8_t id]() {

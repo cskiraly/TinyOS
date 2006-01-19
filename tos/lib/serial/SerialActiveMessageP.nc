@@ -1,4 +1,4 @@
-//$Id: SerialActiveMessageP.nc,v 1.1.2.8 2006-01-15 22:31:32 scipio Exp $
+//$Id: SerialActiveMessageP.nc,v 1.1.2.9 2006-01-19 00:35:04 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -64,6 +64,14 @@ implementation {
     return call SubSend.cancel(msg);
   }
 
+  command uint8_t AMSend.maxPayloadLength[am_id_t id]() {
+    return call Packet.maxPayloadLength();
+  }
+
+  command void* AMSend.getPayload[am_id_t id](message_t* m) {
+    return call Packet.getPayload(m, NULL);
+  }
+  
   event void SubSend.sendDone(message_t* msg, error_t result) {
     signal AMSend.sendDone[call AMPacket.type(msg)](msg, result);
   }
@@ -75,6 +83,15 @@ implementation {
  default event message_t* Receive.receive[uint8_t id](message_t* msg, void* payload, uint8_t len) {
    return msg;
  }
+ 
+  
+  command void* Receive.getPayload[am_id_t id](message_t* m, uint8_t* len) {
+    return call Packet.getPayload(m, len);
+  }
+
+  command uint8_t Receive.payloadLength[am_id_t id](message_t* m) {
+    return call Packet.payloadLength(m);
+  }
   
   event message_t* SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
     return signal Receive.receive[call AMPacket.type(msg)](msg, msg->data, len);
@@ -89,6 +106,10 @@ implementation {
     return header->length;
   }
 
+  command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
+    getHeader(msg)->length  = len;
+  }
+  
   command uint8_t Packet.maxPayloadLength() {
     return TOSH_DATA_LENGTH;
   }
@@ -109,6 +130,11 @@ implementation {
     return header->addr;
   }
 
+  command void AMPacket.setDestination(message_t* amsg, am_addr_t addr) {
+    serial_header_t* header = getHeader(amsg);
+    header->addr = addr;
+  }
+  
   command bool AMPacket.isForMe(message_t* amsg) {
     return TRUE;
   }
@@ -117,4 +143,10 @@ implementation {
     serial_header_t* header = getHeader(amsg);
     return header->type;
   }
+
+  command void AMPacket.setType(message_t* amsg, am_id_t type) {
+    serial_header_t* header = getHeader(amsg);
+    header->type = type;
+  }
+
 }

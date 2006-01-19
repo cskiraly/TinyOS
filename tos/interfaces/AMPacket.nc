@@ -1,4 +1,4 @@
-// $Id: AMPacket.nc,v 1.1.2.7 2006-01-15 22:31:32 scipio Exp $
+// $Id: AMPacket.nc,v 1.1.2.8 2006-01-19 00:35:05 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -33,7 +33,7 @@
   * functionality for querying packlets. Also see the Packet interface.
   *
   * @author Philip Levis
-  * @date   January 5 2005
+  * @date   January 18 2005
   */ 
 
 
@@ -58,6 +58,18 @@ interface AMPacket {
   command am_addr_t destination(message_t* amsg);
 
   /**
+   * Set the AM address of the destination field of the AM packet.  As
+   * the AM address is set as part of sending with the AMSend
+   * interface, this command is not used for sending packets.  Rather,
+   * it is used when a component, such as a queue, needs to buffer a
+   * request to send. The component can save the destination address
+   * and then recover it when actually sending. If <tt>amsg</tt> is
+   * not an AM packet, the results of this command are undefined.
+   */
+
+  command void setDestination(message_t* amsg, am_addr_t addr);
+
+  /**
    * Return whether <tt>amsg</tt> is destined for this mote. This is
    * partially a shortcut for testing whether the return value of
    * <tt>destination</tt> and <tt>address</tt> are the same. It
@@ -77,12 +89,16 @@ interface AMPacket {
   
   command am_id_t type(message_t* amsg);
 
-  /**
-   * Return the AM local group of the AM packet.
-   * If <tt>amsg</tt> is not an AM packet, the results of this command
-   * are undefined.
+  /*
+   * Set the AM type of the AM packet.  As the AM type is set as part
+   * of sending with the AMSend interface, this command is not used
+   * for sending packets. Instead, it is used when a component, such
+   * as a queue, needs to buffer a request to send. The component can
+   * save the AM type in the packet then recover it when actually
+   * sending. If <tt>amsg</tt> is not an AM packet, the results of
+   * this command are undefined.
    */
   
-  //  command am_group_t group(message_t* amsg);
+  command void setType(message_t* amsg, am_id_t t);
 
 }

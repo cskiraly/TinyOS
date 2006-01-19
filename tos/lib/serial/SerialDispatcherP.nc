@@ -1,4 +1,4 @@
-//$Id: SerialDispatcherP.nc,v 1.1.2.4 2005-10-11 23:54:35 idgay Exp $
+//$Id: SerialDispatcherP.nc,v 1.1.2.5 2006-01-19 00:35:04 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -120,6 +120,25 @@ implementation {
       sendState = SEND_STATE_IDLE;
       return FAIL;
     }
+  }
+
+  command uint8_t Send.maxPayloadLength[uint8_t id]() {
+    return (sizeof(message_t));
+  }
+
+  command void* Send.getPayload[uint8_t id](message_t* m) {
+    return m;
+  }
+
+  command void* Receive.getPayload[uint8_t id](message_t* m, uint8_t* len) {
+    if (len != NULL) {
+      *len = 0;
+    }
+    return m;
+  }
+
+  command uint8_t Receive.payloadLength[uint8_t id](message_t* m) {
+    return 0;
   }
 
   task void signalSendDone(){

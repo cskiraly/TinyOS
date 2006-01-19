@@ -1,4 +1,4 @@
-// $Id: TossimActiveMessageP.nc,v 1.1.2.4 2006-01-18 22:39:48 scipio Exp $
+// $Id: TossimActiveMessageP.nc,v 1.1.2.5 2006-01-19 00:35:04 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -70,7 +70,31 @@ implementation {
   command error_t AMSend.cancel[am_id_t id](message_t* msg) {
     return call Model.cancel(msg);
   }
+  
+  command uint8_t AMSend.maxPayloadLength[am_id_t id]() {
+    return call Packet.maxPayloadLength();
+  }
 
+  command void* AMSend.getPayload[am_id_t id](message_t* m) {
+    return call Packet.getPayload(m, NULL);
+  }
+
+  command void* Receive.getPayload[am_id_t id](message_t* m, uint8_t* len) {
+    return call Packet.getPayload(m, len);
+  }
+
+  command uint8_t Receive.payloadLength[am_id_t id](message_t* m) {
+    return call Packet.payloadLength(m);
+  }
+  
+  command void* Snoop.getPayload[am_id_t id](message_t* m, uint8_t* len) {
+    return call Packet.getPayload(m, len);
+  }
+
+  command uint8_t Snoop.payloadLength[am_id_t id](message_t* m) {
+    return call Packet.payloadLength(m);
+  }
+  
   event void Model.sendDone(message_t* msg, error_t result) {
     signal AMSend.sendDone[call AMPacket.type(msg)](msg, result);
   }
@@ -110,6 +134,11 @@ implementation {
     return header->addr;
   }
 
+  command void AMPacket.setDestination(message_t* amsg, am_addr_t addr) {
+    tossim_header_t* header = getHeader(amsg);
+    header->addr = addr;
+  }
+
   command bool AMPacket.isForMe(message_t* amsg) {
     return (call AMPacket.destination(amsg) == call AMPacket.address() ||
 	    call AMPacket.destination(amsg) == AM_BROADCAST_ADDR);
@@ -119,11 +148,20 @@ implementation {
     tossim_header_t* header = getHeader(amsg);
     return header->type;
   }
+
+  command void AMPacket.setType(message_t* amsg, am_id_t t) {
+    tossim_header_t* header = getHeader(amsg);
+    header->type = t;
+  }
  
   command void Packet.clear(message_t* msg) {}
   
   command uint8_t Packet.payloadLength(message_t* msg) {
     return getHeader(msg)->length;
+  }
+  
+  command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
+    getHeader(msg)->length = len;
   }
   
   command uint8_t Packet.maxPayloadLength() {

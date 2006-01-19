@@ -1,4 +1,4 @@
-/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.12 2006-01-15 22:31:31 scipio Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.13 2006-01-19 00:35:03 scipio Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -43,7 +43,7 @@
  *
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.12 $
+ * Revision:  $Revision: 1.1.2.13 $
  */
 
 #include "CC1000Const.h"
@@ -73,11 +73,10 @@ implementation {
   components CC1000ControlP as Control;
   components HplCC1000C as Hpl;
 
-  components RandomC, TimerMilliC, ActiveMessageAddressC, BusyWaitMicroC;
+  components RandomC, new TimerMilliC(), ActiveMessageAddressC, BusyWaitMicroC;
 
   Init = Csma;
   Init = Squelch;
-  Init = TimerMilliC;
   Init = RandomC;
 
   SplitControl = Csma;
@@ -94,7 +93,7 @@ implementation {
   Csma.CC1000Control -> Control;
   Csma.Random -> RandomC;
   Csma.CC1000Squelch -> Squelch;
-  Csma.WakeupTimer -> TimerMilliC.TimerMilli[unique("TimerMilliC.TimerMilli")];
+  Csma.WakeupTimer -> TimerMilliC;
   Csma.ByteRadio -> SendReceive;
   Csma.ByteRadioInit -> SendReceive;
   Csma.ByteRadioControl -> SendReceive;

@@ -1,4 +1,4 @@
-// $Id: TrickleTimerMilliC.nc,v 1.1.2.1 2006-01-07 23:42:57 scipio Exp $
+// $Id: TrickleTimerMilliC.nc,v 1.1.2.2 2006-01-19 00:35:03 scipio Exp $
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -47,13 +47,13 @@ generic configuration TrickleTimerMilliC(uint16_t low,
   provides interface TrickleTimer[uint8_t];
 }
 implementation {
-  components new TrickleTimerImplP(low, high, k, count), MainC, RandomC;
-  components new OskiTimerMilliC();
+  components new TrickleTimerImplP(low, high, k, count, 10), MainC, RandomC;
+  components new TimerMilliC();
   components new BitVectorC(count) as PendingVector;
   components new BitVectorC(count) as ChangeVector;
   TrickleTimer = TrickleTimerImplP;
 
-  TrickleTimerImplP.Timer -> OskiTimerMilliC;
+  TrickleTimerImplP.Timer -> TimerMilliC;
   TrickleTimerImplP.Random -> RandomC;
   TrickleTimerImplP.Changed -> ChangeVector;
   TrickleTimerImplP.Pending -> PendingVector;

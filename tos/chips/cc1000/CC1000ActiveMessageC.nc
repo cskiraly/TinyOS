@@ -1,4 +1,4 @@
-// $Id: CC1000ActiveMessageC.nc,v 1.1.2.4 2005-10-09 16:29:19 scipio Exp $
+// $Id: CC1000ActiveMessageC.nc,v 1.1.2.5 2006-01-19 00:35:03 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: CC1000ActiveMessageC.nc,v 1.1.2.4 2005-10-09 16:29:19 scipio Exp $
+ * Date last modified:  $Id: CC1000ActiveMessageC.nc,v 1.1.2.5 2006-01-19 00:35:03 scipio Exp $
  *
  */
 
@@ -77,4 +77,5 @@ implementation {
   AM.SubSend    -> Radio.Send;
   AM.SubReceive -> Radio.Receive;
   AM.amAddress -> Address;
+  AM.Packet     -> Radio;
 }

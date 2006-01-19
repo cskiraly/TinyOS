@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.10 2006-01-15 22:31:31 scipio Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.11 2006-01-19 00:35:03 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -625,6 +625,10 @@ implementation
     return header->length;
   }
  
+  command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
+    getHeader(msg)->length  = len;
+  }
+  
   command uint8_t Packet.maxPayloadLength() {
     return TOSH_DATA_LENGTH;
   }
@@ -647,6 +651,22 @@ implementation
     CC1KMetadata* md = getMetadata(msg);
     md->ack = 1;
     return SUCCESS;
+  }
+
+  command void* Receive.getPayload(message_t* m, uint8_t* len) {
+    call Packet.getPayload(m, len);
+  }
+
+  command uint8_t Receive.payloadLength(message_t* m) {
+    return call Packet.payloadLength(m);
+  }
+
+  command uint8_t Send.maxPayloadLength() {
+    return call Packet.maxPayloadLength();
+  }
+
+  command void* Send.getPayload(message_t* m) {
+    return call Packet.getPayload(m, NULL);
   }
 
   async command bool PacketAcknowledgements.wasAcked(message_t* msg) {
