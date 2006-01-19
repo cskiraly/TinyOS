@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: docs.extra,v 1.1.2.1 2005-03-23 19:34:52 cssharp Exp $
+#$Id: docs.extra,v 1.1.2.2 2006-01-19 18:30:35 jpolastre Exp $
 
 # configure the base for the app dirs.  This is used to generate more
 # useful package names in the documentation.
@@ -12,9 +12,13 @@ ifeq ($(DOCDIR)_x, _x)
 DOCDIR := $(BASEDIR)/doc/nesdoc
 endif
 
+ifeq ($(DOCS),here)
+DOCDIR = doc
+endif
+
 BUILD_DEPS = docs_
 
 docs_: FORCE
 	@echo "    Making documentation for $(COMPONENT) on $(PLATFORM)"
-	nesdoc $(DOCDIR)/$(PLATFORM) -fnesc-is-app $(NESDOC_FLAGS) $(PFLAGS) $(CFLAGS) $(COMPONENT).nc
+	nesdoc -o $(DOCDIR) -fnesc-is-app $(NESDOC_FLAGS) $(PFLAGS) $(CFLAGS) $(COMPONENT).nc
 
