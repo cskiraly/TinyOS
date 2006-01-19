@@ -10,8 +10,8 @@ Packet Protocols
 :Author: Philip Levis
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.4 $
-:Draft-Modified: $Date: 2006-01-16 00:27:01 $
+:Draft-Version: $Revision: 1.1.2.5 $
+:Draft-Modified: $Date: 2006-01-19 00:40:37 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -219,14 +219,16 @@ has this signature::
     command void setDestination(message_t* amsg, am_addr_t addr);
     command bool isForMe(message_t* amsg);
     command am_id_t type(message_t* amsg);
+    command void setType(message_t* amsg, am_id_t t);
   }
 
 
-The command address() returns the local AM address of the node. AMPacket
-provides accessors for its two fields, destination and type. It does
-not provide commands to set these fields, as they are set in the 
-sending call path (see Section 2.3). The ``setDestination`` command
-fulfills a similar purpose to ``Packet.setLength``.
+The command address() returns the local AM address of the
+node. AMPacket provides accessors for its two fields, destination and
+type. It does not provide commands to set these fields, as they are
+set in the sending call path (see Section 2.3). The ``setDestination``
+and ``setType`` commands fulfill a similar purpose to
+``Packet.setLength``.
 
 2.2 Receive interface
 --------------------------------------------------------------------
@@ -236,6 +238,7 @@ Receive is the interface for receiving packets. It has this signature::
   interface Receive {
     event message_t* receive(message_t* msg, void* payload, uint8_t len);
     command void* getPayload(message_t* msg, uint8_t* len);
+    command uint8_t payloadLength(message_t* msg);
   }
 
 A call to ``Receive.getPayload()`` MUST behave identically to a call
@@ -246,7 +249,8 @@ a call to ``getPayload`` would return. These parameters are for
 convenience, as they are commonly used by receive handlers, and their
 presence removes the need for a call to ``getPayload()``, while
 ``getPayload()`` is a convenience so a component does not have to wire
-to ``Packet.``
+to ``Packet.`` The command ``payloadLength`` has a similar motivation
+and the same semantics as its twin in ``Packet``.
 
 Receive has a *buffer-swap* policy. The handler of the event MUST return
 a pointer to a valid message buffer for the signaler to use. This
@@ -333,12 +337,13 @@ while this is the AMSend interface::
   }
 
 Sending interfaces MUST include these four commands and one event.
-The duplication of some of the commands in Packet is solely
-for ease of use: ``maxPayloadLength`` and ``getPayload`` MUST
-behave identically as ``Packet.maxPayloadLength`` and
-``Packet.getPayload``. Their inclusion is so that components
-do not have to wire to both Packet and the sending interface for
-basic use cases.
+The duplication of some of the commands in Packet is solely for ease
+of use: ``maxPayloadLength`` and ``getPayload`` MUST behave
+identically as ``Packet.maxPayloadLength`` and ``Packet.getPayload``,
+with the exception that the latter has no length parameter (it should
+behave as if the length parameter of the ``Packet`` call were
+NULL). Their inclusion is so that components do not have to wire to
+both Packet and the sending interface for basic use cases.
 
 3. HIL: ActiveMessageC
 ====================================================================

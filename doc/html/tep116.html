@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.6: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
 <title>Packet Protocols</title>
 <meta name="author" content="Philip Levis" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-01-16 00:27:01 $
-:version: $Revision: 1.1.2.2 $
+:date: $Date: 2006-01-19 00:40:37 $
+:version: $Revision: 1.1.2.3 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -280,6 +280,7 @@ ul.auto-toc {
 </style>
 </head>
 <body>
+<div class="document" id="packet-protocols">
 <h1 class="title">Packet Protocols</h1>
 <table class="docinfo" frame="void" rules="none">
 <col class="docinfo-name" />
@@ -299,15 +300,14 @@ ul.auto-toc {
 <td>Philip Levis</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">10-Dec-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.3</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.4</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-01-15</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-01-16</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
 </tbody>
 </table>
-<div class="document" id="packet-protocols">
 <div class="note">
 <p class="first admonition-title">Note</p>
 <p class="last">This memo documents a part of TinyOS for the TinyOS Community, and
@@ -497,13 +497,15 @@ interface AMPacket {
   command void setDestination(message_t* amsg, am_addr_t addr);
   command bool isForMe(message_t* amsg);
   command am_id_t type(message_t* amsg);
+  command void setType(message_t* amsg, am_id_t t);
 }
 </pre>
-<p>The command address() returns the local AM address of the node. AMPacket
-provides accessors for its two fields, destination and type. It does
-not provide commands to set these fields, as they are set in the 
-sending call path (see Section 2.3). The <tt class="docutils literal"><span class="pre">setDestination</span></tt> command
-fulfills a similar purpose to <tt class="docutils literal"><span class="pre">Packet.setLength</span></tt>.</p>
+<p>The command address() returns the local AM address of the
+node. AMPacket provides accessors for its two fields, destination and
+type. It does not provide commands to set these fields, as they are
+set in the sending call path (see Section 2.3). The <tt class="docutils literal"><span class="pre">setDestination</span></tt>
+and <tt class="docutils literal"><span class="pre">setType</span></tt> commands fulfill a similar purpose to
+<tt class="docutils literal"><span class="pre">Packet.setLength</span></tt>.</p>
 </div>
 <div class="section" id="receive-interface">
 <h2><a name="receive-interface">2.2 Receive interface</a></h2>
@@ -512,6 +514,7 @@ fulfills a similar purpose to <tt class="docutils literal"><span class="pre">Pac
 interface Receive {
   event message_t* receive(message_t* msg, void* payload, uint8_t len);
   command void* getPayload(message_t* msg, uint8_t* len);
+  command uint8_t payloadLength(message_t* msg);
 }
 </pre>
 <p>A call to <tt class="docutils literal"><span class="pre">Receive.getPayload()</span></tt> MUST behave identically to a call
@@ -522,7 +525,8 @@ a call to <tt class="docutils literal"><span class="pre">getPayload</span></tt> 
 convenience, as they are commonly used by receive handlers, and their
 presence removes the need for a call to <tt class="docutils literal"><span class="pre">getPayload()</span></tt>, while
 <tt class="docutils literal"><span class="pre">getPayload()</span></tt> is a convenience so a component does not have to wire
-to <tt class="docutils literal"><span class="pre">Packet.</span></tt></p>
+to <tt class="docutils literal"><span class="pre">Packet.</span></tt> The command <tt class="docutils literal"><span class="pre">payloadLength</span></tt> has a similar motivation
+and the same semantics as its twin in <tt class="docutils literal"><span class="pre">Packet</span></tt>.</p>
 <p>Receive has a <em>buffer-swap</em> policy. The handler of the event MUST return
 a pointer to a valid message buffer for the signaler to use. This
 approach enforces an equilibrium between upper and lower packet 
@@ -605,12 +609,13 @@ interface AMSend {
 }
 </pre>
 <p>Sending interfaces MUST include these four commands and one event.
-The duplication of some of the commands in Packet is solely
-for ease of use: <tt class="docutils literal"><span class="pre">maxPayloadLength</span></tt> and <tt class="docutils literal"><span class="pre">getPayload</span></tt> MUST
-behave identically as <tt class="docutils literal"><span class="pre">Packet.maxPayloadLength</span></tt> and
-<tt class="docutils literal"><span class="pre">Packet.getPayload</span></tt>. Their inclusion is so that components
-do not have to wire to both Packet and the sending interface for
-basic use cases.</p>
+The duplication of some of the commands in Packet is solely for ease
+of use: <tt class="docutils literal"><span class="pre">maxPayloadLength</span></tt> and <tt class="docutils literal"><span class="pre">getPayload</span></tt> MUST behave
+identically as <tt class="docutils literal"><span class="pre">Packet.maxPayloadLength</span></tt> and <tt class="docutils literal"><span class="pre">Packet.getPayload</span></tt>,
+with the exception that the latter has no length parameter (it should
+behave as if the length parameter of the <tt class="docutils literal"><span class="pre">Packet</span></tt> call were
+NULL). Their inclusion is so that components do not have to wire to
+both Packet and the sending interface for basic use cases.</p>
 </div>
 </div>
 <div class="section" id="hil-activemessagec">
