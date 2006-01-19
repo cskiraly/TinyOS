@@ -29,7 +29,7 @@
  * of the data payload.
  *
  * <pre>
- *   $Id: CC2420ActiveMessageP.nc,v 1.1.2.5 2005-10-31 19:34:02 scipio Exp $
+ *   $Id: CC2420ActiveMessageP.nc,v 1.1.2.6 2006-01-19 00:09:40 scipio Exp $
  * </pre>
 
  * @author Philip Levis
@@ -75,6 +75,30 @@ implementation {
     return call SubSend.cancel(msg);
   }
 
+  command uint8_t AMSend.maxPayloadLength[am_id_t id]() {
+    return call Packet.maxPayloadLength();
+  }
+
+  command void* AMSend.getPayload[am_id_t id](message_t* m) {
+    return call Packet.getPayload(m, NULL);
+  }
+
+  command void* Receive.getPayload[am_id_t id](message_t* m, uint8_t* len) {
+    return call Packet.getPayload(m, len);
+  }
+
+  command uint8_t Receive.payloadLength[am_id_t id](message_t* m) {
+    return call Packet.payloadLength(m);
+  }
+  
+  command void* Snoop.getPayload[am_id_t id](message_t* m, uint8_t* len) {
+    return call Packet.getPayload(m, len);
+  }
+
+  command uint8_t Snoop.payloadLength[am_id_t id](message_t* m) {
+    return call Packet.payloadLength(m);
+  }
+  
   event void SubSend.sendDone(message_t* msg, error_t result) {
     signal AMSend.sendDone[call AMPacket.type(msg)](msg, result);
   }
@@ -99,6 +123,11 @@ implementation {
     return header->dest;
   }
 
+  command void AMPacket.setDestination(message_t* amsg, am_addr_t addr) {
+    cc2420_header_t* header = getHeader(amsg);
+    header->dest = addr;
+  }
+
   //command void AMPacket.setDestination(am_addr_t dest, message_t* amsg){
   //  cc2420_header_t* header = getHeader(amsg);
   //  header->dest = dest;
@@ -112,6 +141,11 @@ implementation {
   command am_id_t AMPacket.type(message_t* amsg) {
     cc2420_header_t* header = getHeader(amsg);
     return header->type;
+  }
+
+  command void AMPacket.setType(message_t* amsg, am_id_t type) {
+    cc2420_header_t* header = getHeader(amsg);
+    header->type = type;
   }
 
   default event message_t* Receive.receive[am_id_t id](message_t* msg, void* payload, uint8_t len) {
@@ -133,10 +167,11 @@ implementation {
    return getHeader(msg)->length - CC2420_SIZE;
  }
 
- //command void Packet.setPayloadLength(message_t* msg, uint8_t length){
- //  getHeader(msg)->length = CC2420_SIZE + length;
- // }
- 
+
+ command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
+   getHeader(msg)->length  = len + CC2420_SIZE;
+ }
+
  command uint8_t Packet.maxPayloadLength() {
    return TOSH_DATA_LENGTH;
  }

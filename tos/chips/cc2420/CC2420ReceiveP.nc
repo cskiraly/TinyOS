@@ -274,5 +274,17 @@ implementation {
     
   }
 
+  command void* Receive.getPayload(message_t* m, uint8_t* len) {
+    if (len != NULL) {
+      *len = TOSH_DATA_LENGTH;
+    }
+    return m->data;
+  }
+
+  command uint8_t Receive.payloadLength(message_t* m) {
+    uint8_t* buf = (uint8_t*)getHeader( m_p_rx_buf );
+    return buf[0];
+  }
+
   async event void RXFIFO.writeDone( uint8_t* tx_buf, uint8_t tx_len, error_t error ) {}  
 }

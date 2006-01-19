@@ -200,6 +200,14 @@ implementation {
 
   }
 
+  command void* Send.getPayload(message_t* m) {
+    return m->data;
+  }
+
+  command uint8_t Send.maxPayloadLength() {
+    return TOSH_DATA_LENGTH;
+  }
+
   async event uint16_t CSMABackoff.initial( message_t* m ) {
     return ( call Random.rand16() & 0x1f ) + 1;
   }
