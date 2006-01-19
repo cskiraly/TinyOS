@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: docs.extra,v 1.1.2.2 2006-01-19 18:30:35 jpolastre Exp $
+#$Id: docs.extra,v 1.1.2.3 2006-01-19 23:19:03 jpolastre Exp $
 
 # configure the base for the app dirs.  This is used to generate more
 # useful package names in the documentation.
@@ -20,5 +20,8 @@ BUILD_DEPS = docs_
 
 docs_: FORCE
 	@echo "    Making documentation for $(COMPONENT) on $(PLATFORM)"
+        # first generate the xml files
 	nesdoc -o $(DOCDIR) -fnesc-is-app $(NESDOC_FLAGS) $(PFLAGS) $(CFLAGS) $(COMPONENT).nc
+        # generate html from the xml files
+	nesdoc -o $(DOCDIR) -fnesc-is-app -html $(NESDOC_FLAGS) $(PFLAGS) $(CFLAGS) $(COMPONENT).nc
 
