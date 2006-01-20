@@ -39,11 +39,12 @@ $libprogs = "@libdir@/tinyos";
 $python = "@pathpython@";
 
 $tosdir = `ncc -print-tosdir`;
+chomp($tosdir);
 
 # If using a TinyOS 1.x tree, assume old-style nesdoc except if there is a
 # -new argument somewhere.
 if (-d "$tosdir/platform" && !grep /^-new$/, @ARGV) {
-    # nesdoc for TinyOS 1.x
+    # nesdoc for TinyOS 1.x, support old style docs
     if ($#ARGV < 1) {
 	&fail("Usage: nesdoc <documentation directory> <options and nesC files>");
     }
