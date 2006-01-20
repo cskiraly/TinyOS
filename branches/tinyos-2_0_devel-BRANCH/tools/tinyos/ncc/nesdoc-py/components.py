@@ -58,6 +58,11 @@ def generate_speclist(ht, name, elems):
         ht.popln()
     ht.popln()
 
+def interface_compare(x, y):
+  if cmp(x.getAttribute("qname").lower(), y.getAttribute("qname").lower()) == 0 :
+    return cmp(x.getAttribute("name").lower(), y.getAttribute("name").lower())
+  return cmp(x.getAttribute("qname").lower(), y.getAttribute("qname").lower())
+
 def generate_component(comp):
   nicename = comp.getAttribute("nicename")
   ht = Html("chtml/%s.html" % nicename )
@@ -93,6 +98,11 @@ def generate_component(comp):
   spec = interfaces + functions
   provided = filter(lambda (x): x.getAttribute("provided") == "1", spec)
   used = filter(lambda (x): x.getAttribute("provided") == "0", spec)
+
+  # sort arrays
+  provided.sort(cmp = interface_compare)
+  used.sort(cmp = interface_compare)
+
   generate_speclist(ht, "Provides", provided)
   generate_speclist(ht, "Uses", used)
 

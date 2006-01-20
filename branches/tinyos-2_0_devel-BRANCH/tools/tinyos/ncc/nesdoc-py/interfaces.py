@@ -76,6 +76,8 @@ def generate_interface(intf):
   functions = intf.getElementsByTagName("function")
   commands = filter(lambda (x): x.hasAttribute("command"), functions)
   events = filter(lambda (x): x.hasAttribute("event"), functions)
+  commands.sort(lambda x, y: cmp(x.getAttribute("name").lower(), y.getAttribute("name").lower()));
+  events.sort(lambda x, y: cmp(x.getAttribute("name").lower(), y.getAttribute("name").lower()));
   generate_fnlist_short(ht, "Commands", commands)
   generate_fnlist_short(ht, "Events", events)
   generate_fnlist_long(ht, "Commands", commands)
