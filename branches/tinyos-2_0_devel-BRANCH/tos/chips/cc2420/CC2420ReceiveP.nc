@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $ Revision: $
- * $ Date: $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-01-20 01:35:45 $
  */
 
 module CC2420ReceiveP {
@@ -135,9 +135,6 @@ implementation {
   }
 
   async event void InterruptFIFOP.fired() {
-#ifdef PLATFORM_MICAZ
-    call InterruptFIFOP.disable();
-#endif
     if ( m_state == S_STARTED )
       beginReceive();
     else
@@ -168,20 +165,10 @@ implementation {
     cc2420_metadata_t* metadata = getMetadata( m_p_rx_buf );
     uint8_t* buf = (uint8_t*)header;
     uint8_t length = buf[ 0 ];
-    bool too_big;
 
-#ifdef PLATFORM_MICAZ
-    call InterruptFIFOP.enableRisingEdge();
-#endif
-    
     if ( m_state == S_RX_HEADER ) {
       m_state = S_RX_PAYLOAD;
-
-      too_big = ( length + 1 > m_bytes_left );
-      if ( !call FIFO.get() && !call FIFOP.get() )
-	m_bytes_left -= length + 1;
-
-      if ( too_big ) {
+      if ( length + 1 > m_bytes_left ) {
 	reset_state();
 	call CSN.set();
 	call CSN.clr();
@@ -190,11 +177,13 @@ implementation {
 	call CSN.set();
 	call SpiResource.release();
 	waitForNextPacket();
-	return;
       }
-      
-      call RXFIFO.continueRead( (length <= MAC_PACKET_SIZE) ? buf + 1 : NULL,
-				length );
+      else {
+	if ( !call FIFO.get() && !call FIFOP.get() )
+	  m_bytes_left -= length + 1;
+	call RXFIFO.continueRead( (length <= MAC_PACKET_SIZE) ? buf + 1 : NULL,
+				  length );
+      }
     }
 
     else {
@@ -240,9 +229,6 @@ implementation {
     uint8_t* buf = (uint8_t*)header;
     uint8_t length = buf[ 0 ];
     
-    header->dest = flipBytes( header->dest );
-    header->destpan = flipBytes( header->destpan );
-    header->src = flipBytes( header->src );
     metadata->crc = buf[ length ] >> 7;
     metadata->strength = buf[ length - 1 ];
     metadata->lqi = buf[ length ] & 0x7f;
@@ -254,8 +240,7 @@ implementation {
   }
 
   void waitForNextPacket() {
-    
-    bool keep_receiving = FALSE;
+
     atomic {
       if ( m_state == S_STOPPED )
 	return;
@@ -263,7 +248,6 @@ implementation {
       if ( ( m_missed_packets && call FIFO.get() ) || !call FIFOP.get() ) {
 	if ( m_missed_packets )
 	  m_missed_packets--;
-	keep_receiving = TRUE;
 	beginReceive();
       }
       else {
