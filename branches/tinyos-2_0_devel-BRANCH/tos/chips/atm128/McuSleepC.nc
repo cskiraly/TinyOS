@@ -28,7 +28,7 @@
  * Szewczyk's 1.x code in HPLPowerManagementM.nc.
  *
  * <pre>
- *  $Id: McuSleepC.nc,v 1.1.2.2 2005-10-30 00:33:19 scipio Exp $
+ *  $Id: McuSleepC.nc,v 1.1.2.3 2006-01-20 17:15:46 idgay Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -55,7 +55,7 @@ implementation {
    * Look at atm128hardware.h and page 42 of the ATmeg128
    * manual (figure 17).*/
   // NOTE: This table should be in progmem.
-  const uint8_t atm128PowerBits[ATM128_POWER_DOWN + 1] = {
+  const_uint8_t atm128PowerBits[ATM128_POWER_DOWN + 1] = {
     0,
     (1 << SM0),
     (1 << SM2) | (1 << SM1) | (1 << SM0),
@@ -65,8 +65,13 @@ implementation {
     
   mcu_power_t getPowerState() {
     uint8_t diff;
+    // Note: we go to sleep even if timer 1, 2, or 3's overflow interrupt
+    // is enabled - this allows using these timers as TinyOS "Alarm"s
+    // while still having power management.
+
     // Are external timers running?  
-    if (TIMSK & ~((1 << OCIE0) | ( 1 << TOIE0))) {
+    if (TIMSK & ~(1 << OCIE0 | 1 << TOIE0 | 1 << TOIE1 | 1 << TOIE2) ||
+	ETIMSK & ~(1 << TOIE3)) {
       return ATM128_POWER_IDLE;
     }
     // SPI (Radio stack on mica/micaZ
@@ -74,10 +79,10 @@ implementation {
       return ATM128_POWER_IDLE;
     }
     // UARTs are active
-    else if (UCSR0B & ((1 << TXCIE) | (1 << RXCIE))) { // UART
+    else if (UCSR0B & (1 << TXCIE | 1 << RXCIE)) { // UART
       return ATM128_POWER_IDLE;
     }
-    else if (UCSR1B & ((1 << TXCIE) | (1 << RXCIE))) { // UART
+    else if (UCSR1B & (1 << TXCIE | 1 << RXCIE)) { // UART
       return ATM128_POWER_IDLE;
     }
     // ADC is enbaled
@@ -85,7 +90,7 @@ implementation {
       return ATM128_POWER_ADC_NR;
     }
     // How soon for the timer to go off?
-    else if (TIMSK & ((1<<OCIE0) | (1<<TOIE0))) {
+    else if (TIMSK & (1<<OCIE0 | 1<<TOIE0)) {
       diff = OCR0 - TCNT0;
       if (diff < 16) 
 	return ATM128_POWER_IDLE;
@@ -108,7 +113,7 @@ implementation {
       //dirty = 0;
       temp = MCUCR;
       temp &= 0xe3;
-      temp |= atm128PowerBits[powerState] | (1 << SE);
+      temp |= read_uint8_t(&atm128PowerBits[powerState]) | (1 << SE);
       MCUCR = temp;
     }
     sei();
