@@ -61,7 +61,7 @@
  *
  *
  * <pre>
- *  $Id: Atm128SpiP.nc,v 1.1.2.3 2005-12-20 18:09:52 scipio Exp $
+ *  $Id: Atm128SpiP.nc,v 1.1.2.4 2006-01-20 01:12:21 jwhui Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -87,8 +87,8 @@ module Atm128SpiP {
 implementation {
   uint8_t* txBuffer;
   uint8_t* rxBuffer;
-  uint8_t len;
-  uint8_t pos;
+  uint16_t len;
+  uint16_t pos;
   
   enum {
     SPI_IDLE,
@@ -159,8 +159,8 @@ implementation {
    */
    
   error_t sendNextPart() {
-    uint8_t end;
-    uint8_t tmpPos;
+    uint16_t end;
+    uint16_t tmpPos;
     uint8_t* tx;
     uint8_t* rx;
     
@@ -215,7 +215,7 @@ implementation {
   
   async command error_t SPIPacket.send(uint8_t* writeBuf, 
 				       uint8_t* readBuf, 
-				       uint8_t  bufLen) {
+				       uint16_t  bufLen) {
     uint8_t discard;
     atomic {
       txBuffer = writeBuf;
@@ -231,7 +231,7 @@ implementation {
 
  default async event void SPIPacket.sendDone
       (uint8_t* _txbuffer, uint8_t* _rxbuffer, 
-       uint8_t _length, error_t _success) { }
+       uint16_t _length, error_t _success) { }
 
  async event void Spi.dataReady(uint8_t data) {
    bool again;
@@ -255,7 +255,7 @@ implementation {
    else {
      uint8_t* rx;
      uint8_t* tx;
-     uint8_t  myLen;
+     uint16_t  myLen;
      uint8_t discard;
      
      atomic {
@@ -268,7 +268,7 @@ implementation {
        pos = 0;
      }
      discard = call Spi.read();
-	 
+
      signal SPIPacket.sendDone(tx, rx, myLen, SUCCESS);
    }
  }

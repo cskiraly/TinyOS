@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * $ Revision: $
- * $ Date: $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-20 01:11:27 $
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  */
@@ -56,8 +56,8 @@ implementation {
   
   norace uint8_t* m_tx_buf;
   norace uint8_t* m_rx_buf;
-  norace uint8_t m_len;
-  norace uint8_t m_pos;
+  norace uint16_t m_len;
+  norace uint16_t m_pos;
   norace uint8_t client;
 
   void signalDone();
@@ -129,7 +129,7 @@ implementation {
 
   async command error_t SPIPacket.send[ uint8_t id ]( uint8_t* tx_buf, 
 						      uint8_t* rx_buf, 
-						      uint8_t len ) {
+						      uint16_t len ) {
 
     client = id;
     m_tx_buf = tx_buf;
@@ -173,6 +173,6 @@ implementation {
   
   async event void HplUsart.txDone() {}
 
-  default async event void SPIPacket.sendDone[ uint8_t id ]( uint8_t* tx_buf, uint8_t* rx_buf, uint8_t len, error_t error ) {}
+  default async event void SPIPacket.sendDone[ uint8_t id ]( uint8_t* tx_buf, uint8_t* rx_buf, uint16_t len, error_t error ) {}
 
 }
