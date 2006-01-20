@@ -1,4 +1,4 @@
-/// $Id: VoltageC.nc,v 1.1.2.6 2005-08-13 02:46:49 scipio Exp $
+/// $Id: VoltageC.nc,v 1.1.2.7 2006-01-20 23:17:43 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -26,13 +26,15 @@
 configuration VoltageC
 {
   provides interface StdControl;	
-  provides interface AcquireData;
+  provides interface Read<uint16_t>;
 }
 implementation
 {
-  components VoltageP, new AdcChannelC(CHANNEL_BATTERY) as VoltageChannel, HplGeneralIOC;
+  components VoltageP, new AdcReadClientC() as VoltageChannel,
+    HplAtm128GeneralIOC as Pins;
   
   StdControl  = VoltageP;  
-  AcquireData = VoltageChannel;
-  VoltageP.BAT_MON -> HplGeneralIOC.PortA5;
+  Read = VoltageChannel;
+  VoltageChannel.Atm128AdcConfig -> VoltageP;
+  VoltageP.BAT_MON -> Pins.PortA5;
 }
