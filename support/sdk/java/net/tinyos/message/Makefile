@@ -1,6 +1,6 @@
 # Top-level Makefile for tools/java 
 
-SUBDIRS = avrmote
+SUBDIRS = avrmote telos
 
 ROOT = ../../..
 include $(ROOT)/Makefile.include

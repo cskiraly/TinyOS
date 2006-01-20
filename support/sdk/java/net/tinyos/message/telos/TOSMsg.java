@@ -2,41 +2,39 @@ package net.tinyos.message.telos;
 
 public class TOSMsg extends net.tinyos.message.TOSMsg
 {
-    public message_t radioHeader;
-    public ActiveMsg amHeader;
+    public SerialAMPacket packet;
 
     protected void init(byte[] data, int base_offset, int data_length) {
 	super.init(data, base_offset, data_length);
 	// Alias structures representing the radio and AM structures onto our data
-	radioHeader = new message_t(dataGet());
-	amHeader = new ActiveMsg(dataGet(), radioHeader.offset_data(0));
+	packet = new SerialAMPacket(dataGet());
     }
 
     public int get_addr() {
-	return radioHeader.get_header_addr();
+	return packet.get_header_addr();
     }
 
     public void set_addr(int value) {
-	radioHeader.set_header_addr(value);
+	packet.set_header_addr((short) (value & 0xffff));
     }
 
     public short get_type() {
-	return amHeader.get_type();
+	return packet.get_header_type();
     }
 
     public void set_type(short value) {
-	amHeader.set_type(value);
+	packet.set_header_type((byte) (value & 0xff));
     }
 
     public short get_length() {
-	return radioHeader.get_header_length();
+	return packet.get_header_length();
     }
 
     public void set_length(short value) {
-	radioHeader.set_header_length(value);
+	packet.set_header_length((byte) (value & 0xff));
     }
 
     public int offset_data(int index1) {
-	return amHeader.offset_data(index1) + amHeader.baseOffset();
+	return packet.offset_data(index1);
     }
 }

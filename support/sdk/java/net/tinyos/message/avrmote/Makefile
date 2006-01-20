@@ -13,7 +13,7 @@ ROOT = ../../../..
 include $(ROOT)/Makefile.include
 
 SerialAMPacket.java: $(TOSMsg)
-	$(MIG) -target=mica2 -java-classname=$(PACKAGE).avrmote.SerialAMPacket  $(TOSMsg) SerialAMPacket -o $@
+	$(MIG) -target=mica2 -java-classname=$(PACKAGE).avrmote.SerialAMPacket  $(TOSMsg) serial_packet -o $@
 
 cleanmig:
 	rm -f $(MSGS)

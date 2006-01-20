@@ -4,20 +4,17 @@ PACKAGE = net.tinyos.message
 MIG = mig java
 
 AM=$(TOS)/types/AM.h
-TOSMsg=$(TOS)/types/TOSMsg.h
+TOSMsg=$(TOS)/lib/serial/Serial.h
 
-MSGS = message_t.java ActiveMsg.java
+MSGS = SerialAMPacket.java
 INITIAL_TARGETS = $(MSGS)
 OTHER_CLEAN = cleanmig
 
 ROOT = ../../../..
 include $(ROOT)/Makefile.include
 
-message_t.java: $(TOSMsg)
-	$(MIG) -target=telos -java-classname=$(PACKAGE).telos.message_t  $(TOSMsg) message_t -o $@
-
-ActiveMsg.java: $(AM)
-	$(MIG) -target=telos -java-classname=$(PACKAGE).telos.ActiveMsg  $(AM) ActiveMsg -o $@
+SerialAMPacket.java: $(TOSMsg)
+	$(MIG) -target=telosb -java-classname=$(PACKAGE).telos.SerialAMPacket  $(TOSMsg) serial_packet -o $@
 
 cleanmig:
 	rm -f $(MSGS)
