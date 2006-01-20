@@ -1,4 +1,4 @@
-/// $Id: DemoSensorC.nc,v 1.1.2.2 2006-01-20 23:34:22 idgay Exp $
+/// $Id: DemoSensorC.nc,v 1.1.2.3 2006-01-20 23:34:41 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,8 +22,6 @@
  * MODIFICATIONS.
  */
 /**
- * The micaZ Voltage sensor seems to have a few issues, so the default
- * micaZ sensor returns a constant value of 0xbeef.
  *
  * @author Philip Levis
  * @author Hu Siquan <husq@xbow.com>
