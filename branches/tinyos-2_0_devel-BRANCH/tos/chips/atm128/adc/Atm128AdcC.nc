@@ -1,4 +1,4 @@
-/// $Id: Atm128AdcC.nc,v 1.1.2.4 2005-11-01 01:23:10 scipio Exp $
+/// $Id: Atm128AdcC.nc,v 1.1.2.5 2006-01-20 23:08:13 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -34,13 +34,11 @@
  * @author David Gay
  */
 
-includes Atm128Adc;
+#include "Atm128Adc.h"
 
 configuration Atm128AdcC
 {
   provides {
-    interface Init;
-    interface StdControl;
     interface Resource[uint8_t client];
     interface Atm128AdcSingle[uint8_t channel];
     interface Atm128AdcMultiple;
@@ -48,16 +46,21 @@ configuration Atm128AdcC
 }
 implementation
 {
-  components Atm128AdcP, HplAtm128AdcC,
-    new RoundRobinArbiterC(ADC_RESOURCE) as AdcArbiter;
-
-  Init = Atm128AdcP;
-  Init = AdcArbiter;
-  StdControl = Atm128AdcP;
+  components Atm128AdcP, HplAtm128AdcC, PlatformC, MainC,
+    new RoundRobinArbiterC(UQ_ATM128ADC_RESOURCE) as AdcArbiter,
+    new StdControlPowerManagerC() as PM;
 
   Resource = AdcArbiter;
   Atm128AdcSingle = Atm128AdcP;
   Atm128AdcMultiple = Atm128AdcP;
 
+  PlatformC.SubInit -> Atm128AdcP;
+
   Atm128AdcP.HplAtm128Adc -> HplAtm128AdcC;
+
+  PM.Init <- MainC;
+  PM.StdControl -> Atm128AdcP;
+  PM.ArbiterInit -> AdcArbiter;
+  PM.ResourceController -> AdcArbiter;
+  PM.ArbiterInfo -> AdcArbiter;
 }

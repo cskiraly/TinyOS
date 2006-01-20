@@ -1,4 +1,4 @@
-// $Id: CC1000CsmaP.nc,v 1.1.2.6 2006-01-15 22:31:31 scipio Exp $
+// $Id: CC1000CsmaP.nc,v 1.1.2.7 2006-01-20 23:08:13 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -70,10 +70,9 @@ module CC1000CsmaP {
     interface Timer<TMilli> as WakeupTimer;
     interface BusyWait<TMicro, uint16_t>;
 
-    interface StdControl as RssiControl;
-    interface AcquireDataNow as RssiNoiseFloor;
-    interface AcquireDataNow as RssiCheckChannel;
-    interface AcquireDataNow as RssiPulseCheck;
+    interface ReadNow<uint16_t> as RssiNoiseFloor;
+    interface ReadNow<uint16_t> as RssiCheckChannel;
+    interface ReadNow<uint16_t> as RssiPulseCheck;
     async command void cancelRssi();
   }
 }
@@ -146,7 +145,6 @@ implementation
   /* Basic radio power control */
 
   void radioOn() {
-    call RssiControl.start();
     call CC1000Control.coreOn();
     call BusyWait.wait(2000);
     call CC1000Control.biasOn();
@@ -157,7 +155,6 @@ implementation
   void radioOff() {
     call ByteRadio.off();
     call CC1000Control.off();
-    call RssiControl.stop();
   }
 
   /* LPL preamble length and sleep time computation */
@@ -275,7 +272,7 @@ implementation
 	    if (!call ByteRadio.syncing())
 	      {
 		call cancelRssi();
-		call RssiNoiseFloor.getData();
+		call RssiNoiseFloor.read();
 	      }
 	    break;
 
@@ -287,9 +284,8 @@ implementation
 
 	  case PULSECHECK_STATE:
 	    // Switch to RX mode and get RSSI output
-	    call RssiControl.start();
 	    call CC1000Control.rxMode();
-	    call RssiPulseCheck.getData();
+	    call RssiPulseCheck.read();
 	    call BusyWait.wait(80);
 	    return; // don't set wakeup timer
 	  }
@@ -327,7 +323,14 @@ implementation
 
   task void adjustSquelch();
 
-  async event void RssiPulseCheck.dataReady(uint16_t data) {
+  async event void RssiPulseCheck.readDone(error_t result, uint16_t data) {
+    if (result != SUCCESS)
+      {
+	/* Just give up on this interval. */
+	post sleepCheck();
+	return;
+      }
+
     /* We got some RSSI data for our LPL check. Decide whether to:
        - go back to sleep (quiet)
        - wake up (channel active)
@@ -352,14 +355,9 @@ implementation
       }
     else
       {
-	call RssiPulseCheck.getData();
+	call RssiPulseCheck.read();
 	call BusyWait.wait(80);
       }
-  }
-
-  event void RssiPulseCheck.error(uint16_t info) {
-    /* Just give up on this interval. */
-    post sleepCheck();
   }
 
   /* CSMA */
@@ -397,12 +395,19 @@ implementation
 	  {
 	    call cancelRssi();
 	    count = 0;
-	    call RssiCheckChannel.getData();
+	    call RssiCheckChannel.read();
 	  }
       }
   }
 
-  async event void RssiCheckChannel.dataReady(uint16_t data) {
+  async event void RssiCheckChannel.readDone(error_t result, uint16_t data) {
+    if (result != SUCCESS)
+      {
+	/* We'll retry the transmission at the next SPI event. */
+	atomic macDelay = 1;
+	return;
+      }
+
     count++;
     if (data > call CC1000Squelch.get() + CC1K_SquelchBuffer)
       clearCount++;
@@ -418,12 +423,7 @@ implementation
     else if (count == CC1K_MaxRSSISamples)
       congestion();
     else 
-      call RssiCheckChannel.getData();
-  }
-
-  event void RssiCheckChannel.error(uint16_t info) {
-    /* We'll retry the transmission at the next SPI event. */
-    atomic macDelay = 1;
+      call RssiCheckChannel.read();
   }
 
   /* Message being received. We basically just go inactive. */
@@ -447,14 +447,16 @@ implementation
     call CC1000Squelch.adjust(squelchData);
   }
 
-  async event void RssiNoiseFloor.dataReady(uint16_t data) {
+  async event void RssiNoiseFloor.readDone(error_t result, uint16_t data) {
+    if (result != SUCCESS)
+      {
+	/* We just ignore failed noise floor measurements */
+	post sleepCheck();
+	return;
+      }
+
     rssiForSquelch = data;
     post adjustSquelch();
-    post sleepCheck();
-  }
-
-  event void RssiNoiseFloor.error(uint16_t info) {
-    /* We just ignore failed noise floor measurements */
     post sleepCheck();
   }
 

@@ -1,4 +1,4 @@
-/* $Id: CC1000RssiP.nc,v 1.1.2.1 2005-08-07 22:42:34 scipio Exp $
+/* $Id: CC1000RssiP.nc,v 1.1.2.2 2006-01-20 23:08:13 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -44,10 +44,10 @@
 module CC1000RssiP
 {
   provides {
-    interface AcquireDataNow as Rssi[uint8_t reason];
+    interface ReadNow<uint16_t> as Rssi[uint8_t reason];
     async command void cancel();
   }
-  uses interface AcquireDataNow as ActualRssi;
+  uses interface Read<uint16_t> as ActualRssi;
 }
 implementation
 {
@@ -65,29 +65,33 @@ implementation
       currentOp = CANCELLED;
   }
 
-  async command error_t Rssi.getData[uint8_t reason]() {
+  void startNextOp() {
+    if (nextOp != IDLE)
+      {
+	currentOp = nextOp;
+	nextOp = IDLE;
+	call ActualRssi.read();
+      }
+    else
+      currentOp = IDLE;
+  }
+
+  task void startOpTask() {
+    atomic startNextOp();
+  }
+
+  async command error_t Rssi.read[uint8_t reason]() {
     if (currentOp == IDLE)
       {
-	currentOp = reason;
-	call ActualRssi.getData();
+	nextOp = reason;
+	post startOpTask();
       }
     else // We should only come here with currentOp = CANCELLED
       nextOp = reason;
     return SUCCESS;
   }
 
-  void startNextOp() {
-    if (nextOp != IDLE)
-      {
-	currentOp = nextOp;
-	nextOp = IDLE;
-	call ActualRssi.getData();
-      }
-    else
-      currentOp = IDLE;
-  }
-
-  async event void ActualRssi.dataReady(uint16_t data) {
+  event void ActualRssi.readDone(error_t result, uint16_t data) {
     atomic
       {
 	uint8_t op = currentOp;
@@ -97,21 +101,9 @@ implementation
 	data >>= 6;
 	startNextOp();
 
-	signal Rssi.dataReady[op](data);
+	signal Rssi.readDone[op](result, data);
       }
   }
 
-  event void ActualRssi.error(uint16_t info) {
-    uint8_t op;
-
-    atomic
-      {
-	op = currentOp;
-	startNextOp();
-      }
-    signal Rssi.error[op](info);
-  }
-
-  default event void Rssi.error[uint8_t reason](uint16_t info) { }
-  default async event void Rssi.dataReady[uint8_t reason](uint16_t data) { }
+  default async event void Rssi.readDone[uint8_t reason](error_t result, uint16_t data) { }
 }

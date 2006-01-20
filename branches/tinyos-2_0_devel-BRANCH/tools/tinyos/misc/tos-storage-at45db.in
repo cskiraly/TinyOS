@@ -112,11 +112,25 @@ if lastbase + lastsize > flash_size:
         ((lastbase + lastsize) * sector_size, flash_size * sector_size))
 
 # print some code
+print "#ifndef STORAGE_VOLUMES_H"
+print "#define STORAGE_VOLUMES_H"
+print
+print "enum {"
 for (vname, vbase, vsize) in volmap:
-  print "VN(VOLUME_%s)" % vname
+  print "  VOLUME_%s, " % vname
+print "};"
+print
+print "#endif"
 
+print "#if defined(VS)"
 for (vname, vbase, vsize) in volmap:
   print "VS(VOLUME_%s, %d)" % (vname, vsize)
+print "#undef VS"
+print "#endif"
 
+print "#if defined(VB)"
 for (vname, vbase, vsize) in volmap:
   print "VB(VOLUME_%s, %d)" % (vname, vbase)
+print "#undef VB"
+print "#endif"
+
