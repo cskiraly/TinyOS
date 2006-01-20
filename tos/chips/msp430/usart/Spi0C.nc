@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * $ Revision: $
- * $ Date: $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-20 01:11:27 $
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  */

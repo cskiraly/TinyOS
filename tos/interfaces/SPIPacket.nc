@@ -1,4 +1,4 @@
-// $Id: SPIPacket.nc,v 1.1.2.3 2005-10-31 19:32:12 scipio Exp $
+// $Id: SPIPacket.nc,v 1.1.2.4 2006-01-20 01:10:49 jwhui Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
@@ -38,7 +38,7 @@
  * @author Philip Levis
  * @author Jonathan Hui
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.3 $
+ * Revision:  $Revision: 1.1.2.4 $
  */
 interface SPIPacket {
 
@@ -56,7 +56,7 @@ interface SPIPacket {
    *
    * @return SUCCESS if the request was accepted for transfer
    */
-  async command error_t send( uint8_t* txBuf, uint8_t* rxBuf, uint8_t len );
+  async command error_t send( uint8_t* txBuf, uint8_t* rxBuf, uint16_t len );
   
   /**
    * Notification that the send command has completed.
@@ -68,7 +68,7 @@ interface SPIPacket {
    * @param error  SUCCESS if the operation completed successfully, FAIL 
    *               otherwise
    */
-  async event void sendDone( uint8_t* txBuf, uint8_t* rxBuf, uint8_t len, 
+  async event void sendDone( uint8_t* txBuf, uint8_t* rxBuf, uint16_t len, 
 			     error_t error );
 
 }
