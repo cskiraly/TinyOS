@@ -28,5 +28,7 @@ enum {
   TOS_AM_ADDRESS = DEFINED_TOS_AM_ADDRESS
 };
 
+#define UQ_AMQUEUE_SEND "amqueue.send"
+
 #endif
 
