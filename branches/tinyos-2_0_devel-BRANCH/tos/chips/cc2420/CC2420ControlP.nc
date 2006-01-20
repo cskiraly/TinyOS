@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $ Revision: $
- * $ Date: $
+ * $Revision: 1.1.2.12 $
+ * $Date: 2006-01-20 01:36:05 $
  */
 
 includes Timer;
@@ -60,6 +60,7 @@ module CC2420ControlP {
   uses interface CC2420Strobe as SRFOFF;
   uses interface CC2420Strobe as SXOSCOFF;
   uses interface CC2420Strobe as SXOSCON;
+  uses interface AMPacket;
 
   uses interface Leds;
 
@@ -78,7 +79,6 @@ implementation {
   uint8_t m_channel = CC2420_DEF_CHANNEL;
   uint8_t m_tx_power = 31;
   uint16_t m_pan = TOS_AM_GROUP;
-  uint16_t m_short_addr;
 
   norace error_t m_have_resource = FAIL;
   norace cc2420_control_state_t m_state = S_VREG_STOPPED;
@@ -87,7 +87,6 @@ implementation {
     call CSN.makeOutput();
     call RSTN.makeOutput();
     call VREN.makeOutput();
-    m_short_addr = TOS_LOCAL_ADDRESS;
     return SUCCESS;
   }
 
@@ -182,8 +181,10 @@ implementation {
   }
 
   async event void InterruptCCA.fired() {
-    uint16_t id[ 2 ] = { m_pan, m_short_addr };
+    nx_uint16_t id[ 2 ];
     m_state = S_XOSC_STARTED;
+    id[ 0 ] = m_pan;
+    id[ 1 ] = call AMPacket.address();
     call InterruptCCA.disable();
     call IOCFG1.write( 0 );
     call PANID.write( 0, (uint8_t*)&id, 4 );
@@ -225,21 +226,6 @@ implementation {
 	call FSCTRL.write( ( 1 << CC2420_FSCTRL_LOCK_THR ) |
 			   ( ( (channel - 11)*5+357 ) 
 			     << CC2420_FSCTRL_FREQ ) );
-      }
-    }
-    return m_have_resource;
-  }
-
-  async command error_t CC2420Config.setPanAndShortAddr( uint16_t pan, 
-							 uint16_t addr ) {
-    m_pan = pan;
-    m_short_addr = addr;
-    atomic {
-      if ( m_state == S_XOSC_STARTED && m_have_resource == SUCCESS ) {
-	uint16_t id[ 2 ] = { pan, addr };
-	call PANID.write( 0, (uint8_t*)&id, 4 );
-	call CSN.set();
-	call CSN.clr();
       }
     }
     return m_have_resource;
