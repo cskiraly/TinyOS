@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-12-22 12:53:58 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-20 20:12:16 $ 
  * ======================================================================== 
  */
  
@@ -251,11 +251,10 @@ implementation {
   */    
   async command bool ArbiterInfo.inUse() {
     atomic {
-      if ( state == RES_BUSY ) {
-        return TRUE;
-      }
+      if ( state == RES_IDLE )
+        return FALSE;
     }
-    return FALSE;
+    return TRUE;
   }
 
   /**
