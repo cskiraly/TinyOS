@@ -1,4 +1,4 @@
-/* $Id: AdcC.nc,v 1.1.2.2 2005-11-01 01:23:10 scipio Exp $
+/* $Id: AdcC.nc,v 1.1.2.3 2006-01-20 23:08:13 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -14,28 +14,29 @@
  * @author David Gay
  */
 
-includes Atm128Adc;
+#include "Atm128Adc.h"
 
 configuration AdcC {
   provides {
-    interface Init;
-    interface StdControl;
-    interface Resource[uint8_t client];
-    interface AcquireData[uint8_t port];
-    interface AcquireDataNow[uint8_t port];
+    interface Read<uint16_t>[uint8_t client];
+    interface ReadNow<uint16_t>[uint8_t client];
+    //interface ReadStream<uint16_t>[uint8_t client];
   }
-  uses interface Atm128AdcConfig[uint8_t port];
+  uses {
+    interface Atm128AdcConfig[uint8_t client];
+    interface Resource[uint8_t client];
+  }
 }
 implementation {
-  components Atm128AdcC, AdcP;
+  components Atm128AdcC, AdcP, Atm128AdcChannelArbiterP;
 
-  Init = Atm128AdcC;
-  StdControl = Atm128AdcC;
-  Resource = Atm128AdcC;
-
-  AcquireData = AdcP;
-  AcquireDataNow = AdcP;
+  Resource = Atm128AdcChannelArbiterP;
+  Read = Atm128AdcChannelArbiterP;
+  ReadNow = Atm128AdcChannelArbiterP;
   Atm128AdcConfig = AdcP;
+
+  Atm128AdcChannelArbiterP.ActualRead -> AdcP;
+  Atm128AdcChannelArbiterP.ActualReadNow -> AdcP;
 
   AdcP.Atm128AdcSingle -> Atm128AdcC;
 }

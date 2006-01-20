@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.11 2006-01-19 00:35:03 scipio Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.12 2006-01-20 23:08:13 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -68,7 +68,7 @@ module CC1000SendReceiveP {
     interface CC1000Control;
     interface HplCC1000Spi;
 
-    interface AcquireDataNow as RssiRx;
+    interface ReadNow<uint16_t> as RssiRx;
     async command am_addr_t amAddress();
   }
 }
@@ -459,7 +459,7 @@ implementation
 		signal ByteRadio.rx();
 		f.rxBitOffset = 7 - i;
 		signal RadioTimeStamping.receivedSFD(0);
-		call RssiRx.getData();
+		call RssiRx.read();
 	      }
 	  }
       }
@@ -467,14 +467,13 @@ implementation
       enterListenState();
   }
   
-  async event void RssiRx.dataReady(uint16_t data) {
+  async event void RssiRx.readDone(error_t result, uint16_t data) {
     CC1KMetadata* rxMetadata = getMetadata(rxBufPtr);
-    rxMetadata->strength = data;
-  }
 
-  event void RssiRx.error(uint16_t info) {
-    CC1KMetadata* rxMetadata = getMetadata(rxBufPtr);
-    rxMetadata->strength = 0;
+    if (result != SUCCESS)
+      rxMetadata->strength = 0;
+    else
+      rxMetadata->strength = data;
   }
 
   void rxData(uint8_t in) {

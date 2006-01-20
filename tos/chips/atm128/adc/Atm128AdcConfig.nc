@@ -1,4 +1,4 @@
-/* $Id: Atm128AdcConfig.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/* $Id: Atm128AdcConfig.nc,v 1.1.2.2 2006-01-20 23:08:13 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -17,12 +17,17 @@
  */
 interface Atm128AdcConfig {
   /**
-   * Return the reference voltage to use for this channel
+   * Return the A/D port voltage to use for this client
+   */
+  async command uint8_t getPort();
+
+  /**
+   * Return the reference voltage to use for this client
    */
   async command uint8_t getRefVoltage();
 
   /**
-   * Return the prescaler value to use for this channel
+   * Return the prescaler value to use for this client
    */
   async command uint8_t getPrescaler();
 }

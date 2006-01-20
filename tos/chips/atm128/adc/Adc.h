@@ -1,4 +1,4 @@
-/* $Id: Adc.h,v 1.1.2.2 2005-10-31 18:24:25 scipio Exp $
+/* $Id: Adc.h,v 1.1.2.3 2006-01-20 23:08:13 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -13,7 +13,8 @@
 #ifndef ADC_H
 #define ADC_H
 
-// The unique string for allocating ADC resource interfaces
-#include <Atm128Adc.h>
+/* Read and ReadNow share client ids */
+#define UQ_ADC_READ "adc.read"
+#define UQ_ADC_READNOW UQ_ADC_READ
 
 #endif
