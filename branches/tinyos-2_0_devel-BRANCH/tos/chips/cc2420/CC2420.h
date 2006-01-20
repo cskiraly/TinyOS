@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-20 01:36:05 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-20 02:01:13 $
  */
 
 #ifndef __CC2420_H__
@@ -42,13 +42,13 @@
 typedef uint8_t cc2420_status_t;
 
 typedef nx_struct cc2420_header_t {
-  nx_uint8_t length;
-  nx_uint16_t fcf;
-  nx_uint8_t dsn;
-  nx_uint16_t destpan;
-  nx_uint16_t dest;
-  nx_uint16_t src;
-  nx_uint8_t type;
+  nxle_uint8_t length;
+  nxle_uint16_t fcf;
+  nxle_uint8_t dsn;
+  nxle_uint16_t destpan;
+  nxle_uint16_t dest;
+  nxle_uint16_t src;
+  nxle_uint8_t type;
 } cc2420_header_t;
 
 typedef nx_struct cc2420_footer_t {
