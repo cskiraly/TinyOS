@@ -45,18 +45,17 @@ def spec_signature_html(ht, elem):
 # If elems list is empty, do nothing.
 def generate_speclist(ht, name, elems):
   if len(elems) > 0:
+    ht.tag("p")
     ht.heading(name)
-    ht.pushln("ul");
     for elem in elems:
-      ht.tag("p")
-      ht.tag("li")
+      ht.func_sig_start();
       spec_signature_html(ht, elem)
       doc = nd_doc_short(elem)
       if doc != None:
         ht.push("menu")
         ht.pln(doc)
         ht.popln()
-    ht.popln()
+      ht.func_sig_stop();
 
 def interface_compare(x, y):
   if cmp(x.getAttribute("qname").lower(), y.getAttribute("qname").lower()) == 0 :
@@ -108,12 +107,14 @@ def generate_component(comp):
 
   # wiring graph for configurations
   if xml_tag(comp, "configuration"):
+    ht.tag("p")
     ht.heading("Wiring")
+    ht.tag("p")
     ht.pushln("map", 'name="comp"')
     cmap = file("chtml/%s.cmap" % nicename)
     for line in cmap.readlines():
       ht.pln(line)
     cmap.close()
     ht.popln()
-    ht.tag("img", 'src="%s.gif"' % nicename, 'usemap="#comp"')
+    ht.tag("img", 'src="%s.gif"' % nicename, 'usemap="#comp"', 'id=imgwiring')
   ht.close()

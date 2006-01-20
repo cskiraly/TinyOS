@@ -29,18 +29,28 @@ from nesdoc.graph import generate_graph
 from nesdoc.index import generate_indices
 from sys import *
 from re import search
+from shutil import copyfile
+import os
 
 # Generate HTML files, and a global index for all interfaces and components
 # in the specified repository
 repository = argv[1]
 try:
   chdir(repository)
+  
+  # set up directories
   nmkdir("ihtml")
   nmkdir("chtml")
   nmkdir("index")
 
+  # copy stylesheet
+  pathname = os.path.abspath(os.path.dirname(argv[0]))
+  copyfile(pathname + "/nesdoc.css", "chtml/nesdoc.css")
+  copyfile(pathname + "/nesdoc.css", "ihtml/nesdoc.css")
+
   compfiles = listdir("components")
   intffiles = listdir("interfaces")
+  
 except OSError:
   nfail("Couldn't access nesdoc repository " + repository)
 

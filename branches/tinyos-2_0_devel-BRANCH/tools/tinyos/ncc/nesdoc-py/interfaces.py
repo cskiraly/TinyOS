@@ -18,22 +18,22 @@ __all__ = [ "generate_interface" ]
 # long description
 def generate_fnlist_short(ht, name, fns):
   if len(fns) > 0:
+    ht.tag("p")
     ht.heading(name)
-    ht.pushln("ul");
     for fn in fns:
-      ht.tag("p")
-      ht.tag("li")
+      ht.func_sig_start();
       ht.pfnsig(fn, lambda (name): '<a href="#%s">%s</a>' % (name, name))
       doc = nd_doc_short(fn)
       if doc != None:
         ht.push("menu")
         ht.pln(doc)
         ht.popln()
-    ht.popln()
+      ht.func_sig_stop();
 
 # A list of all functions with their long description
 def generate_fnlist_long(ht, name, fns):
   if len(fns) > 0:
+    ht.tag("p")
     ht.heading(name + " - Details")
     first = True
     for fn in fns:
