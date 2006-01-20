@@ -1,4 +1,4 @@
-/// $Id: DemoSensorC.nc,v 1.1.2.2 2005-10-31 19:34:02 scipio Exp $
+/// $Id: DemoSensorC.nc,v 1.1.2.3 2006-01-20 23:32:32 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -32,13 +32,13 @@
 configuration DemoSensorC
 {
   provides interface StdControl;	
-  provides interface AcquireData;
+  provides interface Read<uint16_t>;
 }
 implementation
 {
-  components new ConstantSensorC(0xbeef) as DemoChannel;
+  components new ConstantSensorC(uint16_t, 0xbeef) as DemoChannel;
 
   StdControl  = DemoChannel;    
-  AcquireData = DemoChannel;
+  Read = DemoChannel;
 }
 
