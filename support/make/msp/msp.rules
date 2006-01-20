@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: msp.rules,v 1.1.2.3 2006-01-17 23:30:46 idgay Exp $
+#$Id: msp.rules,v 1.1.2.4 2006-01-20 01:14:41 jwhui Exp $
 
 define MSP_HELP
 
@@ -51,6 +51,16 @@ BUILDLESS_DEPS += bytes
 # Use the 'if' function instead of the 'ifdef' construct because ifdef freaks
 # out with call in there.  I don't know why.
 $(if $(PROGRAM),,$(call TOSMake_include,msp/$(DEFAULT_PROGRAM).extra))
+
+# Build storage file if volumes.xml present
+ifneq ($(wildcard $(VOLUME_FILE)), )
+exe0: $(BUILDDIR)/StorageVolumes.h
+
+$(BUILDDIR)/StorageVolumes.h: $(VOLUME_FILE)
+	$(VOLUME_ALLOCATOR) <$(VOLUME_FILE) >$@
+
+PFLAGS += -I$(BUILDDIR)
+endif
 
 ifndef BUILD_DEPS
   ifeq ($(filter $(BUILDLESS_DEPS),$(GOALS)),)
