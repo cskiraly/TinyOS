@@ -30,21 +30,21 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-20 01:36:05 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-20 02:01:13 $
  */
 
 #ifndef __IEEE802154_H__
 #define __IEEE802154_H__
 
 enum ieee154_fcf_enums {
-  IEEE154_FCF_FRAME_TYPE = 8,
-  IEEE154_FCF_SECURITY_ENABLED = 11,
-  IEEE154_FCF_FRAME_PENDING = 12,
-  IEEE154_FCF_ACK_REQ = 13,
-  IEEE154_FCF_INTRAPAN = 14,
-  IEEE154_FCF_DEST_ADDR_MODE = 2,
-  IEEE154_FCF_SRC_ADDR_MODE = 6,
+  IEEE154_FCF_FRAME_TYPE = 0,
+  IEEE154_FCF_SECURITY_ENABLED = 3,
+  IEEE154_FCF_FRAME_PENDING = 4,
+  IEEE154_FCF_ACK_REQ = 5,
+  IEEE154_FCF_INTRAPAN = 6,
+  IEEE154_FCF_DEST_ADDR_MODE = 10,
+  IEEE154_FCF_SRC_ADDR_MODE = 14,
 };
 
 enum ieee154_fcf_type_enums {

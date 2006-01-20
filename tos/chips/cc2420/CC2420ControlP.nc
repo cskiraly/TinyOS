@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $Revision: 1.1.2.12 $
- * $Date: 2006-01-20 01:36:05 $
+ * $Revision: 1.1.2.13 $
+ * $Date: 2006-01-20 02:01:13 $
  */
 
 includes Timer;
@@ -181,7 +181,7 @@ implementation {
   }
 
   async event void InterruptCCA.fired() {
-    nx_uint16_t id[ 2 ];
+    nxle_uint16_t id[ 2 ];
     m_state = S_XOSC_STARTED;
     id[ 0 ] = m_pan;
     id[ 1 ] = call AMPacket.address();
