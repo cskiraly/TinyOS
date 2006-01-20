@@ -1,4 +1,4 @@
-/// $Id: HplAtm128Timer3C.nc,v 1.1.2.2 2006-01-20 16:47:33 idgay Exp $
+/// $Id: Atm128TimerInitC.nc,v 1.1.2.1 2006-01-20 16:47:33 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -25,25 +25,22 @@
 /// @author Martin Turon <mturon@xbow.com>
 /// @author David Gay <david.e.gay@intel.com>
 
-configuration HplAtm128Timer3C
+generic module Atm128TimerInitC(typedef timer_size @integer(), uint8_t prescaler)
 {
-  provides {
-    // 16-bit Timers
-    interface HplAtm128Timer<uint16_t>   as Timer;
-    interface HplAtm128TimerCtrl16       as TimerCtrl;
-    interface HplAtm128Capture<uint16_t> as Capture;
-    interface HplAtm128Compare<uint16_t> as Compare[uint8_t id];
-  }
+  provides interface Init @atleastonce();
+  uses interface HplAtm128Timer<timer_size> as Timer;
 }
 implementation
 {
-  components HplAtm128Timer3P;
+  command error_t Init.init() {
+    atomic {
+      call Timer.set(0);
+      call Timer.start();
+      call Timer.setScale(prescaler);
+    }
+    return SUCCESS;
+  }
 
-  Timer = HplAtm128Timer3P;
-  TimerCtrl = HplAtm128Timer3P;
-  Capture = HplAtm128Timer3P;
-
-  Compare[0] = HplAtm128Timer3P.CompareA; 
-  Compare[1] = HplAtm128Timer3P.CompareB;
-  Compare[2] = HplAtm128Timer3P.CompareC;
+  async event void Timer.overflow() {
+  }
 }

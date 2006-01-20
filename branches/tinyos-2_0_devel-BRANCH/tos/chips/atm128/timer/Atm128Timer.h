@@ -1,4 +1,4 @@
-/// $Id: Atm128Timer.h,v 1.1.2.2 2005-09-22 00:46:26 scipio Exp $
+/// $Id: Atm128Timer.h,v 1.1.2.3 2006-01-20 16:47:33 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -313,6 +313,10 @@ typedef union
     uint8_t rsvd  : 2; //!< Reserved
   } bits;
 } Atm128_ETIFR_t;
+
+/* Resource strings for timer 1 and 3 compare registers */
+#define UQ_TIMER1_COMPARE "atm128.timer1"
+#define UQ_TIMER3_COMPARE "atm128.timer3"
 
 #endif //_H_Atm128Timer_h
 

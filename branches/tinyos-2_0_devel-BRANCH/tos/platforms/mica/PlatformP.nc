@@ -1,4 +1,4 @@
-/// $Id: PlatformP.nc,v 1.1.2.1 2005-08-07 22:27:03 scipio Exp $
+/// $Id: PlatformP.nc,v 1.1.2.2 2006-01-20 16:47:33 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -30,6 +30,7 @@ module PlatformP
 {
   provides interface Init;
   uses interface Init as MoteInit;
+  uses interface Init as MeasureClock;
 }
 implementation
 {
@@ -42,7 +43,11 @@ implementation
 
   command error_t Init.init()
   {
-    error_t ok = call MoteInit.init();
+    error_t ok;
+
+    /* First thing is to measure the clock frequency */
+    ok = call MeasureClock.init();
+    ok = ecombine(ok, call MoteInit.init());
 
     if (ok != SUCCESS)
       return ok;

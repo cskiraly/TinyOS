@@ -1,4 +1,4 @@
-/// $Id: HplAtm128Timer0AsyncC.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $
+/// $Id: HplAtm128Timer0AsyncC.nc,v 1.1.2.2 2006-01-20 16:47:33 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -32,9 +32,9 @@ module HplAtm128Timer0AsyncC
   provides {
     interface Init @atleastonce();
     // 8-bit Timers
-    interface HplAtm128Timer<uint8_t>   as Timer0;
-    interface HplAtm128TimerCtrl8       as Timer0Ctrl;
-    interface HplAtm128Compare<uint8_t> as Compare0;
+    interface HplAtm128Timer<uint8_t>   as Timer;
+    interface HplAtm128TimerCtrl8       as TimerCtrl;
+    interface HplAtm128Compare<uint8_t> as Compare;
   }
 }
 implementation
@@ -47,36 +47,36 @@ implementation
   }
 
   //=== Read the current timer value. ===================================
-  async command uint8_t  Timer0.get() { return TCNT0; }
+  async command uint8_t  Timer.get() { return TCNT0; }
 
   //=== Set/clear the current timer value. ==============================
-  async command void Timer0.set(uint8_t t)  { TCNT0 = t; }
+  async command void Timer.set(uint8_t t)  { TCNT0 = t; }
 
   //=== Read the current timer scale. ===================================
-  async command uint8_t Timer0.getScale() { return TCCR0 & 0x7; }
+  async command uint8_t Timer.getScale() { return TCCR0 & 0x7; }
 
   //=== Turn off the timers. ============================================
-  async command void Timer0.off() { call Timer0.setScale(AVR_CLOCK_OFF); }
+  async command void Timer.off() { call Timer.setScale(AVR_CLOCK_OFF); }
 
   //=== Write a new timer scale. ========================================
-  async command void Timer0.setScale(uint8_t s)  { 
-    Atm128TimerControl_t x = call Timer0Ctrl.getControl();
+  async command void Timer.setScale(uint8_t s)  { 
+    Atm128TimerControl_t x = call TimerCtrl.getControl();
     x.bits.cs = s;
-    call Timer0Ctrl.setControl(x);  
+    call TimerCtrl.setControl(x);  
   }
 
   //=== Read the control registers. =====================================
-  async command Atm128TimerControl_t Timer0Ctrl.getControl() { 
+  async command Atm128TimerControl_t TimerCtrl.getControl() { 
     return *(Atm128TimerControl_t*)&TCCR0; 
   }
 
   //=== Write the control registers. ====================================
-  async command void Timer0Ctrl.setControl( Atm128TimerControl_t x ) { 
+  async command void TimerCtrl.setControl( Atm128TimerControl_t x ) { 
     TCCR0 = x.flat; 
   }
 
   //=== Read the interrupt mask. =====================================
-  async command Atm128_TIMSK_t Timer0Ctrl.getInterruptMask() { 
+  async command Atm128_TIMSK_t TimerCtrl.getInterruptMask() { 
     return *(Atm128_TIMSK_t*)&TIMSK; 
   }
 
@@ -84,12 +84,12 @@ implementation
   DEFINE_UNION_CAST(TimerMask8_2int, Atm128_TIMSK_t, uint8_t);
   DEFINE_UNION_CAST(TimerMask16_2int, Atm128_ETIMSK_t, uint8_t);
 
-  async command void Timer0Ctrl.setInterruptMask( Atm128_TIMSK_t x ) { 
+  async command void TimerCtrl.setInterruptMask( Atm128_TIMSK_t x ) { 
     TIMSK = TimerMask8_2int(x); 
   }
 
   //=== Read the interrupt flags. =====================================
-  async command Atm128_TIFR_t Timer0Ctrl.getInterruptFlag() { 
+  async command Atm128_TIFR_t TimerCtrl.getInterruptFlag() { 
     return *(Atm128_TIFR_t*)&TIFR; 
   }
 
@@ -97,17 +97,17 @@ implementation
   DEFINE_UNION_CAST(TimerFlags8_2int, Atm128_TIFR_t, uint8_t);
   DEFINE_UNION_CAST(TimerFlags16_2int, Atm128_ETIFR_t, uint8_t);
 
-  async command void Timer0Ctrl.setInterruptFlag( Atm128_TIFR_t x ) { 
+  async command void TimerCtrl.setInterruptFlag( Atm128_TIFR_t x ) { 
     TIFR = TimerFlags8_2int(x); 
   }
 
   //=== Timer 8-bit implementation. ====================================
-  async command void Timer0.reset() { TIFR = 1 << TOV0; }
-  async command void Timer0.start() { SET_BIT(TIMSK, TOIE0); }
-  async command void Timer0.stop()  { CLR_BIT(TIMSK, TOIE0); }
+  async command void Timer.reset() { TIFR = 1 << TOV0; }
+  async command void Timer.start() { SET_BIT(TIMSK, TOIE0); }
+  async command void Timer.stop()  { CLR_BIT(TIMSK, TOIE0); }
 
   bool overflowed() {
-    return (call Timer0Ctrl.getInterruptFlag()).bits.tov0; 
+    return (call TimerCtrl.getInterruptFlag()).bits.tov0; 
   }
 
   inline void stabiliseOverflow() {
@@ -130,28 +130,28 @@ implementation
 	;
   }
 
-  async command bool Timer0.test()  { 
+  async command bool Timer.test()  { 
     stabiliseOverflow();
     return overflowed();
   }
-  async command bool Timer0.isOn()  { 
-    return (call Timer0Ctrl.getInterruptMask()).bits.toie0; 
+  async command bool Timer.isOn()  { 
+    return (call TimerCtrl.getInterruptMask()).bits.toie0; 
   }
-  async command void Compare0.reset() { TIFR = 1 << OCF0; }
-  async command void Compare0.start() { SET_BIT(TIMSK,OCIE0); }
-  async command void Compare0.stop()  { CLR_BIT(TIMSK,OCIE0); }
-  async command bool Compare0.test()  { 
-    return (call Timer0Ctrl.getInterruptFlag()).bits.ocf0; 
+  async command void Compare.reset() { TIFR = 1 << OCF0; }
+  async command void Compare.start() { SET_BIT(TIMSK,OCIE0); }
+  async command void Compare.stop()  { CLR_BIT(TIMSK,OCIE0); }
+  async command bool Compare.test()  { 
+    return (call TimerCtrl.getInterruptFlag()).bits.ocf0; 
   }
-  async command bool Compare0.isOn()  { 
-    return (call Timer0Ctrl.getInterruptMask()).bits.ocie0; 
+  async command bool Compare.isOn()  { 
+    return (call TimerCtrl.getInterruptMask()).bits.ocie0; 
   }
 
   //=== Read the compare registers. =====================================
-  async command uint8_t Compare0.get()   { return OCR0; }
+  async command uint8_t Compare.get()   { return OCR0; }
 
   //=== Write the compare registers. ====================================
-  async command void Compare0.set(uint8_t t)   { 
+  async command void Compare.set(uint8_t t)   { 
     atomic
       {
 	/* Setting the compare register while the timer is = 0 on async timers
@@ -171,15 +171,15 @@ implementation
   }
 
   //=== Timer interrupts signals ========================================
-  default async event void Compare0.fired() { }
+  default async event void Compare.fired() { }
   AVR_NONATOMIC_HANDLER(SIG_OUTPUT_COMPARE0) {
-    signal Compare0.fired();
+    signal Compare.fired();
   }
 
-  default async event void Timer0.overflow() { }
+  default async event void Timer.overflow() { }
   AVR_ATOMIC_HANDLER(SIG_OVERFLOW0) {
     inOverflow = TRUE;
-    signal Timer0.overflow();
+    signal Timer.overflow();
     inOverflow = FALSE;
   }
 }

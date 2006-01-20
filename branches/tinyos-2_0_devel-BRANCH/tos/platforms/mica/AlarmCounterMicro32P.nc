@@ -24,7 +24,7 @@ implementation
 
   // Strap in low-level hardware timer (Timer0Async)
   Init = MilliInit;
-  MilliInit.Timer -> Timer0.Timer;
+  MilliInit.HplAtm128Timer -> Timer0.Timer;
   MilliAlarm.HplAtm128Timer -> Timer0.Timer;
   MilliAlarm.HplAtm128Compare -> Timer0.Compare;
   MilliCounter.Timer -> Timer0.Timer;
