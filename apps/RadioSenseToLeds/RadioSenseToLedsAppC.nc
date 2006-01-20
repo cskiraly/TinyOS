@@ -1,4 +1,4 @@
-// $Id: RadioSenseToLedsAppC.nc,v 1.1.2.5 2006-01-19 20:30:16 scipio Exp $
+// $Id: RadioSenseToLedsAppC.nc,v 1.1.2.6 2006-01-20 23:16:58 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -55,6 +55,6 @@ implementation {
   App.Leds -> LedsC;
   App.MilliTimer -> TimerMilliC;
   App.Packet -> AMSenderC;
-  App.AcquireData -> DemoSensorC;
+  App.Read -> DemoSensorC;
   App.SensorControl -> DemoSensorC;
 }

@@ -1,4 +1,4 @@
-// $Id: RadioSenseToLedsC.nc,v 1.1.2.4 2006-01-19 20:30:16 scipio Exp $
+// $Id: RadioSenseToLedsC.nc,v 1.1.2.5 2006-01-20 23:16:58 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -52,7 +52,7 @@ module RadioSenseToLedsC {
     interface AMSend;
     interface Timer<TMilli> as MilliTimer;
     interface Packet;
-    interface AcquireData;
+    interface Read<uint16_t>;
     interface StdControl as SensorControl;
     interface SplitControl as RadioControl;
   }
@@ -77,16 +77,14 @@ implementation {
     if (call SensorControl.start() != SUCCESS) {
       return;
     }
-    signal AcquireData.dataReady(0);
-    return;
     
-    if (call AcquireData.getData() != SUCCESS) {
+    if (call Read.read() != SUCCESS) {
       call SensorControl.stop();
       return;
     }
   }
 
-  event void AcquireData.dataReady(uint16_t data) {
+  event void Read.readDone(error_t result, uint16_t data) {
     call SensorControl.stop();
     if (locked) {
       return;
@@ -98,31 +96,13 @@ implementation {
       if (call Packet.maxPayloadLength() < sizeof(RadioSenseMsg)) {
 	return;
       }
-      rsm->error = 0;
+      rsm->error = result;
       rsm->data = data;
       if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(RadioSenseMsg)) == SUCCESS) {
 	locked = TRUE;
       }
     }
   }
-
-  event void AcquireData.error(uint16_t err) {
-    uint8_t len;
-    RadioSenseMsg* rsm;
-    if (locked) {
-      return;
-    }
-    
-    rsm = (RadioSenseMsg*)call Packet.getPayload(&packet, &len);
-    if (call Packet.maxPayloadLength() < sizeof(RadioSenseMsg)) {
-      return;
-    }
-    rsm->error = err;
-    if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(RadioSenseMsg)) == SUCCESS) {
-      locked = TRUE;
-    }
-  }
-
 
   event message_t* Receive.receive(message_t* bufPtr, 
 				   void* payload, uint8_t len) {
@@ -155,7 +135,3 @@ implementation {
   }
 
 }
-
-
-
-
