@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.2 2006-01-17 19:02:30 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.3 2006-01-20 01:16:52 jwhui Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -17,7 +17,7 @@ implementation {
   components RandRW, new BlockStorageC(VOLUME_BLOCKTEST), MainC, LedsC, PlatformC;
 
   MainC.Boot <- RandRW;
-  PlatformC.SubInit -> LedsC;
+  MainC.SoftwareInit -> LedsC;
   RandRW.BlockRead -> BlockStorageC.BlockRead;
   RandRW.BlockWrite -> BlockStorageC.BlockWrite;
   RandRW.Leds -> LedsC;

@@ -1,4 +1,4 @@
-/* $Id: RandRW.nc,v 1.1.2.2 2006-01-17 19:02:30 idgay Exp $
+/* $Id: RandRW.nc,v 1.1.2.3 2006-01-20 01:16:52 jwhui Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -35,7 +35,7 @@ implementation {
 
   enum {
     SIZE = 1024L * 256,
-    NWRITES = SIZE / 4096
+    NWRITES = SIZE / 4096,
   };
 
   uint16_t shiftReg;
@@ -70,10 +70,10 @@ implementation {
   uint32_t addr, len;
   uint16_t offset;
 
-  bool scheck(storage_result_t r) __attribute__((noinline)) {
-    if (r != STORAGE_OK)
+  bool scheck(error_t r) __attribute__((noinline)) {
+    if (r != SUCCESS)
       call Leds.led0On();
-    return r == STORAGE_OK;
+    return r == SUCCESS;
   }
 
   bool rcheck(error_t r) {
@@ -143,12 +143,12 @@ implementation {
       }
   }
 
-  event void BlockWrite.writeDone(storage_result_t result, block_addr_t x, void* buf, block_addr_t y) {
+  event void BlockWrite.writeDone(storage_addr_t x, void* buf, storage_len_t y, error_t result) {
     if (scheck(result))
       nextWrite();
   }
 
-  event void BlockWrite.eraseDone(storage_result_t result) {
+  event void BlockWrite.eraseDone(error_t result) {
     if (scheck(result))
       {
 	call Leds.led2Toggle();
@@ -159,7 +159,7 @@ implementation {
       }
   }
 
-  event void BlockWrite.commitDone(storage_result_t result) {
+  event void BlockWrite.commitDone(error_t result) {
     if (scheck(result))
       {
 	if (TOS_LOCAL_ADDRESS & 2)
@@ -173,13 +173,13 @@ implementation {
       }
   }
 
-  event void BlockRead.readDone(storage_result_t result, block_addr_t x, void* buf, block_addr_t rlen) __attribute__((noinline)) {
+  event void BlockRead.readDone(storage_addr_t x, void* buf, storage_len_t rlen, error_t result) __attribute__((noinline)) {
     if (scheck(result) && bcheck(x == addr && rlen == len && buf == rdata &&
 				 memcmp(data + offset, rdata, rlen) == 0))
       nextRead();
   }
 
-  event void BlockRead.verifyDone(storage_result_t result) {
+  event void BlockRead.verifyDone(error_t result) {
     if (scheck(result))
       {
 	call Leds.led2Toggle();
@@ -190,6 +190,6 @@ implementation {
       }
   }
 
-  event void BlockRead.computeCrcDone(storage_result_t result, uint16_t z, block_addr_t x, block_addr_t y) {
+  event void BlockRead.computeCrcDone(storage_addr_t x, storage_len_t y, uint16_t z, error_t result) {
   }
 }
