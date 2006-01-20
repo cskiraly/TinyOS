@@ -1,4 +1,4 @@
-/// $Id: HplAtm128Timer1C.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $
+/// $Id: HplAtm128Timer1C.nc,v 1.1.2.2 2006-01-20 16:47:33 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,29 +23,29 @@
  */
 
 /// @author Martin Turon <mturon@xbow.com>
+/// @author David Gay <david.e.gay@intel.com>
 
 configuration HplAtm128Timer1C
 {
   provides {
     // 16-bit Timers
-    interface HplAtm128Timer<uint16_t>   as Timer1;
-    interface HplAtm128TimerCtrl16       as Timer1Ctrl;
-    interface HplAtm128Capture<uint16_t> as Capture1;
-    interface HplAtm128Compare<uint16_t> as Compare1A;
-    interface HplAtm128Compare<uint16_t> as Compare1B;
-    interface HplAtm128Compare<uint16_t> as Compare1C;
+    interface HplAtm128Timer<uint16_t>   as Timer;
+    interface HplAtm128TimerCtrl16       as TimerCtrl;
+    interface HplAtm128Capture<uint16_t> as Capture;
+    interface HplAtm128Compare<uint16_t> as Compare[uint8_t id];
   }
 }
 implementation
 {
   components HplAtm128Timer0AsyncC, HplAtm128Timer1P;
 
-  Timer1 = HplAtm128Timer1P;
-  Timer1Ctrl = HplAtm128Timer1P;
-  Capture1 = HplAtm128Timer1P;
-  Compare1A = HplAtm128Timer1P.Compare1A;
-  Compare1B = HplAtm128Timer1P.Compare1B;
-  Compare1C = HplAtm128Timer1P.Compare1C;
+  Timer = HplAtm128Timer1P;
+  TimerCtrl = HplAtm128Timer1P;
+  Capture = HplAtm128Timer1P;
+
+  Compare[0] = HplAtm128Timer1P.CompareA; 
+  Compare[1] = HplAtm128Timer1P.CompareB;
+  Compare[2] = HplAtm128Timer1P.CompareC;
 
   HplAtm128Timer1P.Timer0Ctrl -> HplAtm128Timer0AsyncC;
 }

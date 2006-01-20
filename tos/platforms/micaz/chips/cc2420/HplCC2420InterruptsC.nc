@@ -47,7 +47,7 @@ implementation {
   components new Atm128GpioCaptureC() as CaptureSFDC;
   components HplAtm128Timer1C as Timer1C;
   CaptureSFD = CaptureSFDC;
-  CaptureSFDC.Atm128Capture -> Timer1C.Capture1;
+  CaptureSFDC.Atm128Capture -> Timer1C.Capture;
 
   components new Atm128GpioInterruptC() as InterruptFIFOPC;
   components HplAtm128InterruptC as Interrupts;

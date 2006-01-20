@@ -1,4 +1,4 @@
-/// $Id: PlatformC.nc,v 1.1.2.3 2005-09-26 18:08:46 scipio Exp $
+/// $Id: PlatformC.nc,v 1.1.2.4 2006-01-20 16:47:33 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -32,9 +32,10 @@ configuration PlatformC {
 }
 implementation
 {
-  components PlatformP, MotePlatformC;
+  components PlatformP, MotePlatformC, MeasureClockC;
   
   Init = PlatformP;
+  PlatformP.MeasureClock -> MeasureClockC;
   PlatformP.MoteInit -> MotePlatformC;
   MotePlatformC.SubInit = SubInit;
 

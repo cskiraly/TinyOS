@@ -1,4 +1,4 @@
-/// $Id: Atm128AlarmC.nc,v 1.1.2.4 2006-01-15 23:44:54 scipio Exp $
+/// $Id: Atm128AlarmC.nc,v 1.1.2.5 2006-01-20 16:47:33 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,13 +23,12 @@
  */
 
 /// @author Martin Turon <mturon@xbow.com>
+/// @author David Gay <david.e.gay@intel.com>
 
 generic module Atm128AlarmC(typedef frequency_tag, 
 			    typedef timer_size @integer(),
-			    uint8_t prescaler,
 			    int mindt)
 {
-  provides interface Init @atleastonce();
   provides interface Alarm<frequency_tag, timer_size> as Alarm @atmostonce();
 
   uses interface HplAtm128Timer<timer_size>;
@@ -37,16 +36,6 @@ generic module Atm128AlarmC(typedef frequency_tag,
 }
 implementation
 {
-  command error_t Init.init() {
-    atomic {
-      call HplAtm128Compare.stop();
-      call HplAtm128Timer.set(0);
-      call HplAtm128Timer.start();
-      call HplAtm128Timer.setScale(prescaler);
-    }
-    return SUCCESS;
-  }
-  
   async command timer_size Alarm.getNow() {
     return call HplAtm128Timer.get();
   }
