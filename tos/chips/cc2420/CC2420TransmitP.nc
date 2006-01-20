@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $ Revision: $
- * $ Date: $
+ * $Revision: 1.1.2.8 $
+ * $Date: 2006-01-20 01:36:05 $
  */
 
 module CC2420TransmitP {
@@ -107,7 +107,7 @@ implementation {
   void stopBackoffTimer() {
     call BackoffTimer.stop();
   }
-  
+
   error_t acquireSpiResource() {
     error_t error = call SpiResource.immediateRequest();
     if ( error != SUCCESS )
@@ -190,11 +190,11 @@ implementation {
     else if ( acquireSpiResource() == SUCCESS ) {
       attemptSend();
     }
-
+    
     return SUCCESS;
-
+  
   }
-
+  
   async command error_t Send.resendCCA() {
     return resend( TRUE );
   }
@@ -349,13 +349,13 @@ implementation {
 	
       case S_SFD:
 	call CaptureSFD.captureFallingEdge();
+	signal TimeStamp.transmittedSFD( time, m_msg );
 	releaseSpiResource();
 	stopBackoffTimer();
 	m_state = S_EFD;
 	if ( ( ( getHeader( m_msg )->fcf >> IEEE154_FCF_FRAME_TYPE ) & 7 ) == 
 	     IEEE154_TYPE_DATA )
 	  getMetadata( m_msg )->time = time;
-	signal TimeStamp.transmittedSFD( time, m_msg );
 	if ( call SFD.get() )
 	  break;
 	

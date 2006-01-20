@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $ Revision: $
- * $ Date: $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-20 01:36:05 $
  */
 
 includes CC2420;
@@ -42,6 +42,8 @@ configuration CC2420ControlC {
   provides interface Init;
   provides interface Resource;
   provides interface CC2420Config;
+
+  uses interface AMPacket;
 
 }
 
@@ -58,6 +60,7 @@ implementation {
   Init = Spi;
   Resource = CC2420ControlP;
   CC2420Config = CC2420ControlP;
+  AMPacket = CC2420ControlP;
 
   CC2420ControlP.StartupTimer -> Alarm;
 

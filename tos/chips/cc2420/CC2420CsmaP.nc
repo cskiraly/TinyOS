@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $ Revision: $
- * $ Date: $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-01-20 01:36:05 $
  */
 
 module CC2420CsmaP {
@@ -47,6 +47,7 @@ module CC2420CsmaP {
   uses interface CC2420Transmit;
   uses interface CSMABackoff;
   uses interface Random;
+  uses interface AMPacket;
   uses interface Leds;
 
 }
@@ -70,10 +71,6 @@ implementation {
   task void startDone_task();
   task void stopDone_task();
   task void sendDone_task();
-
-  uint16_t flipBytes( uint16_t x ) {
-    return ( x << 8 ) | ( x >> 8 );
-  }
 
   cc2420_header_t* getHeader( message_t* msg ) {
     return (cc2420_header_t*)( msg->data - sizeof( cc2420_header_t ) );
@@ -186,9 +183,7 @@ implementation {
                     ( IEEE154_ADDR_SHORT << IEEE154_FCF_SRC_ADDR_MODE ) );
     if ( header->dest != AM_BROADCAST_ADDR )
       header->fcf |= 1 << IEEE154_FCF_ACK_REQ;
-    header->dest = flipBytes( header->dest );
-    header->destpan = flipBytes( header->destpan );
-    header->src = flipBytes( TOS_LOCAL_ADDRESS );
+    header->src = call AMPacket.address();
     metadata->ack = FALSE;
     metadata->strength = 0;
     metadata->lqi = 0;

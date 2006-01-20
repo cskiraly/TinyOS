@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $ Revision: $
- * $ Date: $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-20 01:36:05 $
  */
 
 module CC2420SpiImplP {
@@ -103,13 +103,12 @@ implementation {
   }
 
   async event void SPIPacket.sendDone( uint8_t* tx_buf, uint8_t* rx_buf, 
-				       uint8_t len, error_t error ) {
+				       uint16_t len, error_t error ) {
     if ( m_addr & 0x40 )
       signal Fifo.readDone[ m_addr & ~0x40 ]( rx_buf, len, error );
     else
       signal Fifo.writeDone[ m_addr ]( tx_buf, len, error );
   }
-
 
   async command cc2420_status_t Ram.write[ uint16_t addr ]( uint8_t offset,
 							    uint8_t* data, 

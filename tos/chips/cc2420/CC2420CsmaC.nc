@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $ Revision: $
- * $ Date: $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-20 01:36:05 $
  */
 
 includes CC2420;
@@ -46,6 +46,8 @@ configuration CC2420CsmaC {
   provides interface Receive;
   provides interface PacketAcknowledgements as Acks;
 
+  uses interface AMPacket;
+
 }
 
 implementation {
@@ -57,9 +59,11 @@ implementation {
   SplitControl = CsmaP;
   Send = CsmaP;
   Acks = CsmaP;
+  AMPacket = CsmaP;
 
   components CC2420ControlC;
   Init = CC2420ControlC;
+  AMPacket = CC2420ControlC;
   CsmaP.Resource -> CC2420ControlC;
   CsmaP.CC2420Config -> CC2420ControlC;
 

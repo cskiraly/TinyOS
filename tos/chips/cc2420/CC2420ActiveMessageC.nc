@@ -34,7 +34,7 @@
  * @date August 28 2005
 
  * <pre>
- *  $Id: CC2420ActiveMessageC.nc,v 1.1.2.5 2005-10-29 17:31:36 jwhui Exp $
+ *  $Id: CC2420ActiveMessageC.nc,v 1.1.2.6 2006-01-20 01:36:05 jwhui Exp $
  * </pre>
  */
 
@@ -74,5 +74,6 @@ implementation {
   AM.SubSend    -> Radio.Send;
   AM.SubReceive -> Radio.Receive;
   AM.amAddress -> Address;
+  Radio.AMPacket -> AM;
 
 }
