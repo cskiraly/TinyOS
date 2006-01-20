@@ -65,8 +65,8 @@ public class Platform {
 	    p.setProperty("mica","avrmote,1,19200");
 	    p.setProperty("mica2dot","avrmote,1,19200");
 	    p.setProperty("mica2", "avrmote,1,57600");
-	    p.setProperty("telos","telos,2,57600");
-	    p.setProperty("tmote","telos,2,57600");
+	    p.setProperty("telos","telos,2,115200");
+	    p.setProperty("tmote","telos,2,115200");
 	    p.setProperty("micaz","micaz,3,57600");
 	    p.setProperty("eyes","eyes,4,19200");
 	    if (propsSpecified) {

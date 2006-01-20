@@ -4,7 +4,7 @@
  * message type.
  */
 
-package net.tinyos.message.avrmote;
+package net.tinyos.message.telos;
 
 public class SerialAMPacket extends net.tinyos.message.Message {
 

@@ -15,7 +15,7 @@ public class TOSMsg extends net.tinyos.message.TOSMsg
     }
 
     public void set_addr(int value) {
-	packet.set_header_addr(value);
+	packet.set_header_addr((short) (value & 0xffff));
     }
 
     public short get_type() {
@@ -23,7 +23,7 @@ public class TOSMsg extends net.tinyos.message.TOSMsg
     }
 
     public void set_type(short value) {
-	packet.set_header_type(value);
+	packet.set_header_type((byte) (value & 0xff));
     }
 
     public short get_length() {
@@ -31,7 +31,7 @@ public class TOSMsg extends net.tinyos.message.TOSMsg
     }
 
     public void set_length(short value) {
-	packet.set_header_length(value);
+	packet.set_header_length((byte) (value & 0xff));
     }
 
     public int offset_data(int index1) {
