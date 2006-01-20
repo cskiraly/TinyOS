@@ -19,4 +19,5 @@ nesdoc_DATA = 	__init__.py 	\
 		html.py		\
 		index.py	\
 		interfaces.py	\
-		utils.py
+		utils.py	\
+                nesdoc.css

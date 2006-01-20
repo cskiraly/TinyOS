@@ -21,6 +21,8 @@ class Html:
     self.at0 = True
     self.pushln("html");
     self.pushln("head");
+    # include stylesheet
+    self.tag("LINK", "rel=\"stylesheet\"", "href=\"nesdoc.css\"", "type=\"text/css\"", "media=\"screen\"")
 
   # end of html generation. cleanup and close the underlying file.
   def close(self):
@@ -133,13 +135,20 @@ class Html:
 
   # print a nice fancy heading
   def heading(self, s):
-    self.push("table", 'border="1"', 'cellpadding="3"', 'cellspacing="0"', 'width="100%"')
-    self.push("tr", 'bgcolor="#CCCCFF"'); self.push("td"); self.push("h3")
+    self.push("div", "id=heading")
     self.pq(s)
-    self.pop(); self.pop(); self.pop(); self.pop()
+    self.pop();
+
+  def func_sig_start(self) :
+    self.push("div", "id=funcsig")
+
+  def func_sig_stop(self) :
+    self.pop();
 
   # print a function signature. namedecorator is called with the function
   # name as argument so that you can decorate the actual function name
   # (e.g., bold, a link)
   def pfnsig(self, fn, namedecorator):
+    self.push("span", "id=funcnameshort")
     self.pln(function_signature_str(fn, namedecorator))
+    self.pop()
