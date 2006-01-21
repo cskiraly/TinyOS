@@ -1,4 +1,4 @@
-/* $Id: Adc.h,v 1.1.2.3 2006-01-20 23:08:13 idgay Exp $
+/* $Id: Adc.h,v 1.1.2.4 2006-01-21 01:31:40 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -16,5 +16,6 @@
 /* Read and ReadNow share client ids */
 #define UQ_ADC_READ "adc.read"
 #define UQ_ADC_READNOW UQ_ADC_READ
+#define UQ_ADC_READSTREAM "adc.readstream"
 
 #endif

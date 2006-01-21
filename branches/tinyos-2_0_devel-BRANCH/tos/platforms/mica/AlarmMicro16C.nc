@@ -2,6 +2,8 @@
  * @author David Gay <dgay@intel-research.net>
  */
 
+#include "Atm128Timer.h"
+
 generic configuration AlarmMicro16C()
 {
   provides interface Alarm<TMicro, uint16_t>;

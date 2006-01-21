@@ -1,4 +1,4 @@
-/// $Id: VoltageP.nc,v 1.1.2.2 2006-01-20 23:17:43 idgay Exp $
+/// $Id: VoltageP.nc,v 1.1.2.3 2006-01-21 01:31:40 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -43,7 +43,7 @@ implementation {
     return SUCCESS;
   }	
 
-  async command uint8_t VoltageConfig.getPort() {
+  async command uint8_t VoltageConfig.getChannel() {
     return CHANNEL_BATTERY;
   }
 

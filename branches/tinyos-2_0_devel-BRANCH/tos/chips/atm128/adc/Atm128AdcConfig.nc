@@ -1,4 +1,4 @@
-/* $Id: Atm128AdcConfig.nc,v 1.1.2.2 2006-01-20 23:08:13 idgay Exp $
+/* $Id: Atm128AdcConfig.nc,v 1.1.2.3 2006-01-21 01:31:40 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -17,9 +17,9 @@
  */
 interface Atm128AdcConfig {
   /**
-   * Return the A/D port voltage to use for this client
+   * Return the A/D channel to use for this client
    */
-  async command uint8_t getPort();
+  async command uint8_t getChannel();
 
   /**
    * Return the reference voltage to use for this client
