@@ -1,4 +1,4 @@
-// $Id: HplCC1000P.nc,v 1.1.2.2 2006-01-20 23:08:13 idgay Exp $
+// $Id: HplCC1000P.nc,v 1.1.2.3 2006-01-21 01:31:41 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Jaein Jeong, Philip Buonadonna
- * Date last modified:  $Revision: 1.1.2.2 $
+ * Date last modified:  $Revision: 1.1.2.3 $
  *
  */
 
@@ -187,7 +187,7 @@ implementation
     return call CHP_OUT.get();
   }
 
-  async command uint8_t RssiConfig.getPort() {
+  async command uint8_t RssiConfig.getChannel() {
     return CHANNEL_RSSI;
   }
 

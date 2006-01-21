@@ -12,5 +12,5 @@ implementation
     new Atm128CounterC(TMicro, uint16_t) as NCounter;
   
   Counter = NCounter;
-  NCounter.HplAtm128Timer -> HWTimer.Timer;
+  NCounter.Timer -> HWTimer;
 }
