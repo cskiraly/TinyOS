@@ -1,4 +1,4 @@
-// $Id: TestI2CC.nc,v 1.1.1.1 2005-11-05 16:38:03 kristinwright Exp $
+// $Id: TestI2CC.nc,v 1.1.1.1.2.1 2006-01-22 07:00:44 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -32,7 +32,7 @@ implementation
 {
   components 
       MainC, TestI2CM, LedsC, 
-      new OskiTimerMilliC() as Timer0,
+      new TimerMilliC() as Timer0,
       HplI2CBusC as I2C;
       //new HalI2CMasterC(0x58) as I2CPot;  // ad5242 for mag on MTS310
 
@@ -42,6 +42,5 @@ implementation
   TestI2CM.Timer0 -> Timer0;
   TestI2CM.Leds -> LedsC;  
   TestI2CM.I2C -> I2C;
-  I2C.Leds -> LedsC;
 }
 
