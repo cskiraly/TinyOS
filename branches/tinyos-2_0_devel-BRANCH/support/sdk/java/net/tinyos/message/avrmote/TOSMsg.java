@@ -19,7 +19,7 @@ public class TOSMsg extends net.tinyos.message.TOSMsg
     }
 
     public short get_type() {
-	return packet.get_header_type();
+      return (short)(packet.get_header_type() & 0xff);
     }
 
     public void set_type(short value) {
@@ -27,7 +27,7 @@ public class TOSMsg extends net.tinyos.message.TOSMsg
     }
 
     public short get_length() {
-	return packet.get_header_length();
+      return (short)(packet.get_header_length() & 0xff);
     }
 
     public void set_length(short value) {
