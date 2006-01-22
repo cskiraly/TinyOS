@@ -24,7 +24,7 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: HalI2CMasterP.nc,v 1.1.2.1 2005-09-13 06:25:07 mturon Exp $
+ *  $Id: HalI2CMasterP.nc,v 1.1.2.2 2006-01-22 07:01:35 mturon Exp $
  */
 
 #include "Atm128I2C.h"
@@ -90,13 +90,15 @@ implementation {
 			} else {
 			    // otherwise, complete with success
 			    call I2C.end();
-			    i2cMode = I2C_READY;
-			    
+	    
 			    if (i2cMode == I2C_PING) {	
-				signal I2CDevice.pingDone(SUCCESS);
+				    signal I2CDevice.pingDone(SUCCESS);
 			    } else {
-				signal I2CDevice.readDone();   
+				    
+					signal I2CDevice.readDone();   
 			    }
+
+			    i2cMode = I2C_READY;
 			}
 			break;
 			
