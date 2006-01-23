@@ -28,6 +28,11 @@ def generate_indices(compfiles, intffiles):
         to[package] = []
       to[package].append((package, entity))
       all.append((package, entity))
+    else:
+      fmatch = match("^(.*)\\.xml$", filename)
+      if fmatch:
+        entity = fmatch.group(1)
+        all.append(('', entity))
 
   # start a list (of interfaces, components or packages)
   def tableforlist_start(ht):
@@ -44,17 +49,30 @@ def generate_indices(compfiles, intffiles):
   # output a list (l) of interfaces or components (kind)
   def entitylist(ht, l, kind):
     tableforlist_start(ht)
+    ht.push('div', 'id="heading"')
     ht.p(capitalize(kind))
-    l.sort(lambda x, y: cmp(x[1], y[1]))
+    ht.pop();
+    l.sort(lambda x, y: cmp(x[1].lower(), y[1].lower()))
+    ht.push('span', 'id="funcnameshort"')
     for x in l:
-      ht.tagln("br")
-      ht.push("a", 'href="../%shtml/%s.%s.html"' % (kind[0], x[0], x[1]),
-              'target="bodyFrame"')
+      if (x[0] != ''):
+        ht.push("a", 'href="../%shtml/%s.%s.html"' % (kind[0], x[0], x[1]),
+                'target="bodyFrame"')
+      else:
+        ht.push("a", 'href="../%shtml/%s.html"' % (kind[0], x[1]),
+                'target="bodyFrame"')
       ht.p(x[1])
       ht.pop()
       ht.pln("")
+      ht.tagln("br")
+    ht.pop()
     ht.tag("p")
     tableforlist_end(ht)
+
+  # Per-package index
+  def pkglist(l, pkg, kind):
+    if l.has_key(pkg):
+      entitylist(pkgfile, l[pkg], kind)
 
   # collect packages
   allcomponents = []
@@ -65,8 +83,8 @@ def generate_indices(compfiles, intffiles):
   for x in compfiles: add_page(x, components, allcomponents)
   for x in intffiles: add_page(x, interfaces, allinterfaces)
   packages = packages.keys()
-  packages.sort()
-
+  packages.sort(lambda x, y: cmp(x.lower(), y.lower()))
+    
   # Package index
   idxfile = Html("index/packages.html")
   idxfile.title("Package overview")
@@ -85,11 +103,6 @@ def generate_indices(compfiles, intffiles):
     idxfile.pln("")
   tableforlist_end(idxfile)
   idxfile.close()
-
-  # Per-package index
-  def pkglist(l, pkg, kind):
-    if l.has_key(pkg):
-      entitylist(pkgfile, l[pkg], kind)
 
   for pkg in packages:
     pkgfile = Html("index/%s.html" % pkg)
@@ -120,6 +133,7 @@ def generate_indices(compfiles, intffiles):
   frame.tagln("frame", 'src="index/all-.html"', 'name="packageFrame"',
               'title="All interfaces and components"')
   frame.popln()
+  # start on the main application
   frame.tagln("frame", 'src="initial.html"', 'name="bodyFrame"',
               'title="Summary"', 'scrolling="yes"')
   frame.pushln("noframes")

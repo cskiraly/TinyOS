@@ -47,6 +47,8 @@ try:
   pathname = os.path.abspath(os.path.dirname(argv[0]))
   copyfile(pathname + "/nesdoc.css", "chtml/nesdoc.css")
   copyfile(pathname + "/nesdoc.css", "ihtml/nesdoc.css")
+  copyfile(pathname + "/nesdoc.css", "index/nesdoc.css")
+  copyfile(pathname + "/nesdoc.css", "nesdoc.css")
 
   compfiles = listdir("components")
   intffiles = listdir("interfaces")
