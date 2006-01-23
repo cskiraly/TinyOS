@@ -1,4 +1,4 @@
-/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.14 2006-01-20 23:08:13 idgay Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.15 2006-01-23 22:24:44 scipio Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -43,7 +43,7 @@
  *
  * @author Joe Polastre
  * @author David Gay
- * Revision:  $Revision: 1.1.2.14 $
+ * Revision:  $Revision: 1.1.2.15 $
  */
 
 #include "CC1000Const.h"
@@ -77,7 +77,6 @@ implementation {
 
   Init = Csma;
   Init = Squelch;
-  Init = RandomC;
 
   SplitControl = Csma;
   Send = SendReceive;
