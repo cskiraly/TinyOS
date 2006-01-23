@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSpiDMAM.nc,v 1.1.2.1 2005-12-07 23:10:40 philipb Exp $ */
+/* $Id: HalPXA27xSpiDMAM.nc,v 1.1.2.2 2006-01-23 21:15:57 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -42,7 +42,7 @@
  * @author Phil Buonadonna
  */
 
-generic module HalPXA27xSpiDMAM(uint8_t valSCR, uint8_t valDSS) 
+generic module HalPXA27xSpiDMAM(uint8_t valFRF, uint8_t valSCR, uint8_t valDSS, bool enableRWOT) 
 {
   provides {
     interface Init;
@@ -75,15 +75,13 @@ implementation
 
     call SSP.setSSCR1((SSCR1_TRAIL | SSCR1_RFT(8) | SSCR1_TFT(8)));
     call SSP.setSSTO(96*8);
-    call SSP.setSSCR0(SSCR0_SCR(/*1*/ valSCR) | SSCR0_SSE | SSCR0_FRF(0) | SSCR0_DSS(/*0x7*/ valDSS) );
+    call SSP.setSSCR0(SSCR0_SCR(valSCR) | SSCR0_SSE | SSCR0_FRF(valFRF) | SSCR0_DSS(valDSS) );
 
     call TxDMA.setMap(call SSPTxDMAInfo.getMapIndex());
     call RxDMA.setMap(call SSPRxDMAInfo.getMapIndex());
     call TxDMA.setDALGNbit(TRUE);
     call RxDMA.setDALGNbit(TRUE);
 
-    //call RxDMA.setDSADR(call SSPRxDMAInfo.getAddr());
-    //call TxDMA.setDTADR(call SSPTxDMAInfo.getAddr());
     return SUCCESS;
   }
 
@@ -167,7 +165,7 @@ implementation
     return error;
   }
   
-  async event void RxDMA.eventChannel() {
+  async event void RxDMA.interruptDMA() {
     uint8_t *txBuf,*rxBuf;
     uint8_t instance;
     uint32_t len;
@@ -187,7 +185,7 @@ implementation
     return;
   }
 
-  async event void TxDMA.eventChannel() {
+  async event void TxDMA.interruptDMA() {
     // The transmit side should NOT generate an interrupt. 
     call TxDMA.setDCMD(0);
     call TxDMA.setDCSR(DCSR_EORINT | DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERRINTR);
