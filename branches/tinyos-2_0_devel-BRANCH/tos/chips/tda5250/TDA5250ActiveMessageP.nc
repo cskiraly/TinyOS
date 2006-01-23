@@ -1,4 +1,4 @@
-// $Id: TDA5250ActiveMessageP.nc,v 1.1.2.1 2005-11-22 12:10:47 phihup Exp $
+// $Id: TDA5250ActiveMessageP.nc,v 1.1.2.2 2006-01-23 00:54:44 vlahan Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: TDA5250ActiveMessageP.nc,v 1.1.2.1 2005-11-22 12:10:47 phihup Exp $
+ * Date last modified:  $Id: TDA5250ActiveMessageP.nc,v 1.1.2.2 2006-01-23 00:54:44 vlahan Exp $
  *
  */
 
@@ -51,19 +51,20 @@ module TDA5250ActiveMessageP {
   uses {
     interface Send as SubSend;
     interface Receive as SubReceive;
+    interface Packet as Packet;
     command am_addr_t amAddress();
   }
 }
 implementation {
 
-  TDA5250Header* getHeader( message_t* msg ) {
-		return (TDA5250Header*)( msg->data - sizeof(TDA5250Header) );
+  tda5250_header_t* getHeader( message_t* msg ) {
+                return (tda5250_header_t*)( msg->data - sizeof(tda5250_header_t) );
   }
-	
+        
   command error_t AMSend.send[am_id_t id](am_addr_t addr,
                                           message_t* msg,
                                           uint8_t len) {
-    TDA5250Header* header = getHeader(msg);		  
+    tda5250_header_t* header = getHeader(msg);            
     header->type = id;
     header->addr = addr;
     header->group = TOS_AM_GROUP;
@@ -78,6 +79,14 @@ implementation {
     signal AMSend.sendDone[call AMPacket.type(msg)](msg, result);
   }
 
+  command uint8_t AMSend.maxPayloadLength[am_id_t id]() {
+    return call Packet.maxPayloadLength();
+  }
+
+  command void* AMSend.getPayload[am_id_t id](message_t* m) {
+    return call Packet.getPayload(m, NULL);
+  }
+
   /* Receiving a packet */
 
   event message_t* SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
@@ -88,14 +97,35 @@ implementation {
       return signal Snoop.receive[call AMPacket.type(msg)](msg, payload, len);
     }
   }
+
+  command void* Receive.getPayload[am_id_t id](message_t* m, uint8_t* len) {
+    return call Packet.getPayload(m, len);
+  }
+
+  command uint8_t Receive.payloadLength[am_id_t id](message_t* m) {
+    return call Packet.payloadLength(m);
+  }
   
+  command void* Snoop.getPayload[am_id_t id](message_t* m, uint8_t* len) {
+    return call Packet.getPayload(m, len);
+  }
+
+  command uint8_t Snoop.payloadLength[am_id_t id](message_t* m) {
+    return call Packet.payloadLength(m);
+  }
+
   command am_addr_t AMPacket.address() {
     return call amAddress();
   }
  
   command am_addr_t AMPacket.destination(message_t* amsg) {
-    TDA5250Header* header = getHeader(amsg);
+    tda5250_header_t* header = getHeader(amsg);
     return header->addr;
+  }
+
+  command void AMPacket.setDestination(message_t* amsg, am_addr_t addr) {
+    tda5250_header_t* header = getHeader(amsg);
+    header->addr = addr;
   }
 
   command bool AMPacket.isForMe(message_t* amsg) {
@@ -104,10 +134,15 @@ implementation {
   }
 
   command am_id_t AMPacket.type(message_t* amsg) {
-    TDA5250Header* header = getHeader(amsg);
+    tda5250_header_t* header = getHeader(amsg);
     return header->type;
   }
-
+  
+  command void AMPacket.setType(message_t* amsg, am_id_t type) {
+    tda5250_header_t* header = getHeader(amsg);
+    header->type = type;
+  }
+  
   //command am_group_t AMPacket.group(message_t* amsg) {
   //  return amsg->header.group;
   //}
