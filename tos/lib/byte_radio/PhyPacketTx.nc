@@ -27,22 +27,24 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-11-22 12:15:11 $
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-01-23 01:01:40 $
  * ========================================================================
  */
- 
+
 /**
- * PhyPacketRx Interface
- * Commands and event provided by the Radio Interface
+ * PhyPacketTx Interface
+ * Commands and event provided by the Physical Layer
  * to communicate with upper layers about the status of a 
- * received packet
+ * packet that is being transmitted
  *
- * @author Kevin Klues <klues@tkn.tu-berlin.de>
- */ 
-interface PhyPacketRx {
-  async command void recvHeader();
-  async event void recvHeaderDone();
-  async command void recvFooter();
-  async event void recvFooterDone(bool error);
+ * @author Kevin Klues <klues@tkn.tu-berlin.de)>
+ */  
+ 
+interface PhyPacketTx {
+  async command error_t cancel();
+  async command void sendHeader();
+  async event void sendHeaderDone(error_t error);
+  async command void sendFooter();
+  async event void sendFooterDone(error_t error);  
 }
