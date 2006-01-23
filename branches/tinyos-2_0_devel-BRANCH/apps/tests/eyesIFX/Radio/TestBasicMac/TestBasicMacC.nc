@@ -36,44 +36,46 @@
 configuration TestBasicMacC {
 }
 implementation {
-	components MainC, TestBasicMacP
-		, new AlarmMilliC() as SendTimer
-		, new OSKITimerMilliC() as RxTimeoutTimer
-		, LedsC
-		, TDA5250RadioC
-		, RandomLfsrC
-		, UARTPhyP
-		, PacketSerializerP
-		, BasicMacP
-	;
+        components MainC, TestBasicMacP
+                , new AlarmMilliC() as SendTimer
+                , new AlarmMilliC() as RxTimeoutTimer
+                , LedsC
+                , TDA5250RadioC
+                , RandomLfsrC
+                , UartPhyP
+                , PacketSerializerP
+                , BasicMacP
+        ;
 
-	MainC.SoftwareInit -> TDA5250RadioC.Init;
-	MainC.SoftwareInit -> RandomLfsrC.Init;
-	MainC.SoftwareInit -> LedsC.Init;
-	MainC.SoftwareInit -> UARTPhyP.Init;
-	MainC.SoftwareInit -> PacketSerializerP.Init;
-	MainC.SoftwareInit -> BasicMacP.Init;
-	TestBasicMacP -> MainC.Boot;
+        MainC.SoftwareInit -> TDA5250RadioC.Init;
+        MainC.SoftwareInit -> RandomLfsrC.Init;
+        MainC.SoftwareInit -> LedsC.Init;
+        MainC.SoftwareInit -> UartPhyP.Init;
+        MainC.SoftwareInit -> PacketSerializerP.Init;
+        MainC.SoftwareInit -> BasicMacP.Init;
+        TestBasicMacP -> MainC.Boot;
 
-	TestBasicMacP.Random -> RandomLfsrC.Random;
-	TestBasicMacP.SendTimer -> SendTimer;
-	TestBasicMacP.Leds  -> LedsC;
-	TestBasicMacP.Send -> PacketSerializerP.Send; 
-	TestBasicMacP.Receive -> PacketSerializerP.Receive; 
-	TestBasicMacP.MacSplitControl -> BasicMacP.SplitControl; 
+        TestBasicMacP.Random -> RandomLfsrC.Random;
+        TestBasicMacP.SendTimer -> SendTimer;
+        TestBasicMacP.Leds  -> LedsC;
+        TestBasicMacP.Send -> PacketSerializerP.Send;
+        TestBasicMacP.Receive -> PacketSerializerP.Receive;
+        TestBasicMacP.MacSplitControl -> BasicMacP.SplitControl;
 
-	PacketSerializerP.RadioByteComm -> BasicMacP.RadioByteComm;
-	PacketSerializerP.PhyPacketTx -> BasicMacP.PhyPacketTx;
-	PacketSerializerP.PhyPacketRx -> BasicMacP.PhyPacketRx;    
+        PacketSerializerP.RadioByteComm -> BasicMacP.RadioByteComm;
+        PacketSerializerP.PhyPacketTx -> BasicMacP.PhyPacketTx;
+        PacketSerializerP.PhyPacketRx -> BasicMacP.PhyPacketRx;
+        PacketSerializerP.Leds -> LedsC;
 
-	BasicMacP.TDA5250Control -> TDA5250RadioC.TDA5250Control; 
-	BasicMacP.TDA5250RadioByteComm -> UARTPhyP.SerializerRadioByteComm;
-	BasicMacP.TDA5250PhyPacketTx -> UARTPhyP.PhyPacketTx;
-	BasicMacP.TDA5250PhyPacketRx -> UARTPhyP.PhyPacketRx;     
-	BasicMacP.RxTimeoutTimer -> RxTimeoutTimer;  
-	BasicMacP.RadioSplitControl -> TDA5250RadioC.SplitControl;    
 
-	UARTPhyP.RadioByteComm -> TDA5250RadioC.RadioByteComm;    
+        BasicMacP.TDA5250Control -> TDA5250RadioC.TDA5250Control;
+        BasicMacP.TDA5250RadioByteComm -> UartPhyP.SerializerRadioByteComm;
+        BasicMacP.TDA5250PhyPacketTx -> UartPhyP.PhyPacketTx;
+        BasicMacP.TDA5250PhyPacketRx -> UartPhyP.PhyPacketRx;
+        BasicMacP.RxTimeoutTimer -> RxTimeoutTimer;
+        BasicMacP.RadioSplitControl -> TDA5250RadioC.SplitControl;
+
+        UartPhyP.RadioByteComm -> TDA5250RadioC.RadioByteComm;
 }
 
 
