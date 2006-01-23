@@ -35,7 +35,9 @@ configuration RandomC {
 }
 
 implementation {
-  components RandomMlcgC;
+  components RandomMlcgC, MainC;
+  
+  MainC.SoftwareInit -> RandomMlcgC;
 
   Init = RandomMlcgC;
   SeedInit = RandomMlcgC;
