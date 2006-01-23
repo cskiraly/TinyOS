@@ -69,6 +69,7 @@ public class Platform {
 	    p.setProperty("tmote","telos,2,115200");
 	    p.setProperty("micaz","micaz,3,57600");
 	    p.setProperty("eyesIFX","eyesIFX,4,115200");
+	    p.setProperty("intelmote2","intelmote2,5,115200");
 	    if (propsSpecified) {
 		System.err.println("Could not locate the platform property file "+
 				   propsName);
