@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-20 01:36:05 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-23 22:24:44 $
  */
 
 includes CC2420;
@@ -55,7 +55,6 @@ implementation {
   components CC2420CsmaP as CsmaP;
 
   Init = CsmaP;
-  Init = RandomC;
   SplitControl = CsmaP;
   Send = CsmaP;
   Acks = CsmaP;
