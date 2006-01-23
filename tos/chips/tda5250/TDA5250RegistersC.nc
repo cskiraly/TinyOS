@@ -26,8 +26,8 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.5 $
-* $Date: 2005-11-22 12:07:46 $ 
+* $Revision: 1.1.2.6 $
+* $Date: 2006-01-23 00:54:44 $ 
 * ======================================================================== 
 */
 
@@ -39,54 +39,54 @@
 
 configuration TDA5250RegistersC {
 provides {
-	interface Init;
-	interface Resource;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_CONFIG>      as CONFIG;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_FSK>         as FSK;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_XTAL_TUNING> as XTAL_TUNING;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_LPF>         as LPF;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_ON_TIME>     as ON_TIME;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_OFF_TIME>    as OFF_TIME;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_COUNT_TH1>   as COUNT_TH1;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_COUNT_TH2>   as COUNT_TH2;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_RSSI_TH3>    as RSSI_TH3;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_RF_POWER>    as RF_POWER;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_CLK_DIV>     as CLK_DIV;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_XTAL_CONFIG> as XTAL_CONFIG;
-	interface TDA5250WriteReg<TDA5250_REG_TYPE_BLOCK_PD>    as BLOCK_PD;
-	interface TDA5250ReadReg<TDA5250_REG_TYPE_STATUS>       as STATUS;
-	interface TDA5250ReadReg<TDA5250_REG_TYPE_ADC>          as ADC;
+        interface Init;
+        interface Resource;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_CONFIG>      as CONFIG;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_FSK>         as FSK;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_XTAL_TUNING> as XTAL_TUNING;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_LPF>         as LPF;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_ON_TIME>     as ON_TIME;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_OFF_TIME>    as OFF_TIME;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_COUNT_TH1>   as COUNT_TH1;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_COUNT_TH2>   as COUNT_TH2;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_RSSI_TH3>    as RSSI_TH3;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_RF_POWER>    as RF_POWER;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_CLK_DIV>     as CLK_DIV;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_XTAL_CONFIG> as XTAL_CONFIG;
+        interface TDA5250WriteReg<TDA5250_REG_TYPE_BLOCK_PD>    as BLOCK_PD;
+        interface TDA5250ReadReg<TDA5250_REG_TYPE_STATUS>       as STATUS;
+        interface TDA5250ReadReg<TDA5250_REG_TYPE_ADC>          as ADC;
 }
 }
 implementation {
-	components TDA5250RegistersP
-			, TDA5250RadioIO
-			, TDA5250RegCommC
-			, PotC
-	;
+        components TDA5250RegistersP
+                        , TDA5250RadioIO
+                        , TDA5250RegCommC
+        ;
 
-	Init = TDA5250RegistersP;
-	Init = TDA5250RegCommC;
-	Resource = TDA5250RegCommC;
-	
-	CONFIG = TDA5250RegistersP.CONFIG;
-	FSK = TDA5250RegistersP.FSK;  
-	XTAL_TUNING = TDA5250RegistersP.XTAL_TUNING;
-	LPF = TDA5250RegistersP.LPF;     
-	ON_TIME = TDA5250RegistersP.ON_TIME; 
-	OFF_TIME = TDA5250RegistersP.OFF_TIME;
-	COUNT_TH1 = TDA5250RegistersP.COUNT_TH1;
-	COUNT_TH2 = TDA5250RegistersP.COUNT_TH2;
-	RSSI_TH3 = TDA5250RegistersP.RSSI_TH3;
-	RF_POWER = TDA5250RegistersP.RF_POWER;
-	CLK_DIV = TDA5250RegistersP.CLK_DIV; 
-	XTAL_CONFIG = TDA5250RegistersP.XTAL_CONFIG;
-	BLOCK_PD = TDA5250RegistersP.BLOCK_PD;
-	STATUS = TDA5250RegistersP.STATUS;  
-	ADC = TDA5250RegistersP.ADC;
-	
-	TDA5250RegistersP.TDA5250RegComm -> TDA5250RegCommC;
-	TDA5250RegistersP.Pot -> PotC;
-	TDA5250RegistersP.ENTDA -> TDA5250RadioIO.TDA5250RadioENTDA;	
+        Init = TDA5250RegistersP;
+        Init = TDA5250RegCommC;
+        Resource = TDA5250RegCommC;
+        
+        CONFIG = TDA5250RegistersP.CONFIG;
+        FSK = TDA5250RegistersP.FSK;  
+        XTAL_TUNING = TDA5250RegistersP.XTAL_TUNING;
+        LPF = TDA5250RegistersP.LPF;     
+        ON_TIME = TDA5250RegistersP.ON_TIME; 
+        OFF_TIME = TDA5250RegistersP.OFF_TIME;
+        COUNT_TH1 = TDA5250RegistersP.COUNT_TH1;
+        COUNT_TH2 = TDA5250RegistersP.COUNT_TH2;
+        RSSI_TH3 = TDA5250RegistersP.RSSI_TH3;
+        RF_POWER = TDA5250RegistersP.RF_POWER;
+        CLK_DIV = TDA5250RegistersP.CLK_DIV; 
+        XTAL_CONFIG = TDA5250RegistersP.XTAL_CONFIG;
+        BLOCK_PD = TDA5250RegistersP.BLOCK_PD;
+        STATUS = TDA5250RegistersP.STATUS;  
+        ADC = TDA5250RegistersP.ADC;
+
+        TDA5250RegistersP.Pot -> TDA5250RegCommC;
+        TDA5250RegistersP.TDA5250RegComm -> TDA5250RegCommC;
+
+        TDA5250RegistersP.ENTDA -> TDA5250RadioIO.TDA5250RadioENTDA;    
 }
 

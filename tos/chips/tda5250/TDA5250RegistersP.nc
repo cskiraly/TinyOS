@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-11-22 12:10:47 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-23 00:54:44 $ 
  * ======================================================================== 
  */
  
@@ -57,9 +57,9 @@ module TDA5250RegistersP {
     interface TDA5250ReadReg<TDA5250_REG_TYPE_ADC>          as ADC;
   }
   uses {  
-	interface TDA5250RegComm; 
-	interface Pot;
-	interface GeneralIO as ENTDA;
+        interface TDA5250RegComm; 
+        interface Pot;
+        interface GeneralIO as ENTDA;
   }  
 }
 implementation {
@@ -91,10 +91,9 @@ implementation {
      call ENTDA.makeOutput();
      
      // initializing pin values
-     call ENTDA.set();  
-		    
-		 call Pot.init(255); 
-     return SUCCESS;
+     call ENTDA.set();
+
+    return SUCCESS;
    }   
 
    async command error_t CONFIG.set(uint16_t data) {
