@@ -8,10 +8,10 @@ push( @includes, qw(
 
   %T/platforms/eyesIFX/eyesIFXv2
   %T/platforms/eyesIFX
-  %T/platforms/eyesIFX/chips/at45db			
+  %T/platforms/eyesIFX/chips/at45db                     
   %T/platforms/eyesIFX/chips/tda5250  
-  %T/platforms/eyesIFX/chips/ad5200			
-  %T/platforms/eyesIFX/sensors			
+  %T/platforms/eyesIFX/chips/ad5200                     
+  %T/platforms/eyesIFX/sensors                  
   %T/chips/at45db
   %T/chips/tda5250 
   %T/chips/tda5250/mac
@@ -24,7 +24,7 @@ push( @includes, qw(
   %T/lib/timer  
   %T/lib/serial
   %T/lib/adc
-  %T/lib/ByteRadio  
+  %T/lib/byte_radio  
 ) );
 
 @opts = qw(
