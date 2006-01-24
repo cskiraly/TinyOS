@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-06 16:15:31 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-24 16:06:04 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -39,14 +39,15 @@ configuration Msp430RefVoltGeneratorC
 
 implementation
 {
-  components Msp430RefVoltGeneratorP, TimerMilliC, HplAdc12P;
+  components Msp430RefVoltGeneratorP, 
+             new TimerMilliC() as SwitchOnDelayTimer, 
+             new TimerMilliC() as SwitchOffDelayTimer, 
+             HplAdc12P;
 
-  enum { TIMER_ID = unique("TimerMilliC.TimerMilli") };
-  
   Msp430RefVoltGenerator = Msp430RefVoltGeneratorP;
   
-  Msp430RefVoltGeneratorP.SwitchOnTimer -> TimerMilliC.TimerMilli[TIMER_ID];
-  Msp430RefVoltGeneratorP.SwitchOffTimer -> TimerMilliC.TimerMilli[TIMER_ID];
+  Msp430RefVoltGeneratorP.SwitchOnTimer -> SwitchOnDelayTimer;
+  Msp430RefVoltGeneratorP.SwitchOffTimer -> SwitchOffDelayTimer;
   Msp430RefVoltGeneratorP.HplAdc12 -> HplAdc12P;
 }
 
