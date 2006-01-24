@@ -1,4 +1,4 @@
-/// $Id: Atm128AdcSingle.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: Atm128AdcSingle.nc,v 1.1.2.2 2006-01-24 18:47:16 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -35,6 +35,7 @@ interface Atm128AdcSingle
   /**
    * Initiates an ADC conversion on a given channel.
    *
+   * @param channel A/D conversion channel.
    * @param refVoltage Select reference voltage for A/D conversion. See
    *   the ATM128_ADC_VREF_xxx constants in Atm128ADC.h
    * @param leftJustify TRUE to place A/D result in high-order bits 
@@ -47,8 +48,8 @@ interface Atm128AdcSingle
    *   imprecise (due to a change in refernce voltage, or switching to a
    *   differential input channel)
    */
-  async command bool getData(uint8_t refVoltage, bool leftJustify,
-			     uint8_t prescaler);
+  async command bool getData(uint8_t channel, uint8_t refVoltage,
+			     bool leftJustify, uint8_t prescaler);
   
   /**
    * Indicates a sample has been recorded by the ADC as the result

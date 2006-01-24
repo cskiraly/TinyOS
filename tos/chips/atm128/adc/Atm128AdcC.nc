@@ -1,4 +1,4 @@
-/// $Id: Atm128AdcC.nc,v 1.1.2.5 2006-01-20 23:08:13 idgay Exp $
+/// $Id: Atm128AdcC.nc,v 1.1.2.6 2006-01-24 18:47:16 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -40,7 +40,7 @@ configuration Atm128AdcC
 {
   provides {
     interface Resource[uint8_t client];
-    interface Atm128AdcSingle[uint8_t channel];
+    interface Atm128AdcSingle;
     interface Atm128AdcMultiple;
   }
 }

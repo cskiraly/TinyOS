@@ -1,4 +1,4 @@
-/* $Id: AdcP.nc,v 1.1.2.3 2006-01-21 01:31:40 idgay Exp $
+/* $Id: AdcP.nc,v 1.1.2.4 2006-01-24 18:47:16 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -43,12 +43,13 @@
  */
 module AdcP {
   provides {
+    interface Init @atleastonce();
     interface Read<uint16_t>[uint8_t client];
     interface ReadNow<uint16_t>[uint8_t client];
     interface ReadStream<uint16_t>[uint8_t client];
   }
   uses {
-    interface Atm128AdcSingle[uint8_t port];
+    interface Atm128AdcSingle;
     interface Atm128AdcConfig[uint8_t client];
     command uint32_t calibrateMicro(uint32_t n);
     interface Alarm<TMicro, uint32_t>;
@@ -56,10 +57,15 @@ module AdcP {
 }
 implementation {
   enum {
+    IDLE,
     ACQUIRE_DATA,
     ACQUIRE_DATA_NOW,
     ACQUIRE_DATA_STREAM
   };
+  enum {
+    NSTREAM = uniqueCount(UQ_ADC_READSTREAM)
+  };
+
   /* Resource reservation is required, and it's incorrect to call getData
      again before dataReady is signaled, so there are no races in correct
      programs */
@@ -72,11 +78,22 @@ implementation {
     uint16_t count;
     struct list_entry_t *next;
   };
-  
-  struct list_entry_t *streamBuf[uniqueCount(UQ_ADC_READSTREAM)];
-  norace uint16_t *buffer, *pos, count;
+  struct list_entry_t *bufferQueue[NSTREAM];
+  struct list_entry_t **bufferQueueEnd[NSTREAM];
   uint16_t *lastBuffer, lastCount;
+
+  norace uint16_t *buffer, *pos, count;
   norace uint32_t now, period;
+
+
+  command error_t Init.init() {
+    uint8_t i;
+
+    for (i = 0; i != NSTREAM; i++)
+      bufferQueueEnd[i] = &bufferQueue[i];
+    
+    return SUCCESS;
+  }
 
   uint8_t channel() {
     return call Atm128AdcConfig.getChannel[client]();
@@ -91,7 +108,7 @@ implementation {
   }
 
   void sample() {
-    call Atm128AdcSingle.getData[channel()](refVoltage(), TRUE, prescaler());
+    call Atm128AdcSingle.getData(channel(), refVoltage(), TRUE, prescaler());
   }
 
   error_t startGet(uint8_t newState, uint8_t newClient) {
@@ -112,25 +129,47 @@ implementation {
   }
 
   task void acquiredData() {
+    state = IDLE;
     signal Read.readDone[client](SUCCESS, val);
   }
 
-  command error_t ReadStream.postBuffer[uint8_t c](uint16_t *buf, uint16_t n) 
-  {
+  command error_t ReadStream.postBuffer[uint8_t c](uint16_t *buf, uint16_t n) {
     atomic
       {
 	struct list_entry_t *newEntry = (struct list_entry_t *)buf;
 
-	newEntry->count = n;
-	newEntry->next = streamBuf[c];
-	streamBuf[c] = newEntry;
-      }
+	if (!bufferQueueEnd[c]) // Can't post right now.
+	  return FAIL;
 
+	newEntry->count = n;
+	newEntry->next = NULL;
+	*bufferQueueEnd[c] = newEntry;
+	bufferQueueEnd[c] = &newEntry->next;
+      }
     return SUCCESS;
   }
 
-  task void readDone() {
+  task void readStreamDone() {
+    state = IDLE;
     signal ReadStream.readDone[client](SUCCESS);
+  }
+
+  task void readStreamFail() {
+    /* By now, the pending bufferDone has been signaled (see readStream). */
+    struct list_entry_t *entry;
+
+    atomic entry = bufferQueue[client];
+    for (; entry; entry = entry->next)
+
+	signal ReadStream.bufferDone[client](FAIL, (uint16_t *)entry, entry->count);
+
+    atomic
+      {
+	bufferQueue[client] = NULL;
+	bufferQueueEnd[client] = &bufferQueue[client];
+      }
+
+    signal ReadStream.readDone[client](FAIL);
   }
 
   task void bufferDone() {
@@ -139,6 +178,7 @@ implementation {
       {
 	b = lastBuffer;
 	c = lastCount;
+	lastBuffer = NULL;
       }
 
     signal ReadStream.bufferDone[client](SUCCESS, b, c);
@@ -162,18 +202,22 @@ implementation {
     startGet(ACQUIRE_DATA_STREAM, c);
   }
 
-  void nextBuffer()
-  {
+  void nextBuffer() {
     atomic
       {
-	struct list_entry_t *entry = streamBuf[client];
+	struct list_entry_t *entry = bufferQueue[client];
 
 	if (!entry)
-	  // all done
-	  post readDone();
+	  {
+	    // all done
+	    bufferQueueEnd[client] = NULL; // prevent post
+	    post readStreamDone();
+	  }
 	else
 	  {
-	    streamBuf[client] = entry->next;
+	    bufferQueue[client] = entry->next;
+	    if (!bufferQueue[client])
+	      bufferQueueEnd[client] = &bufferQueue[client];
 	    pos = buffer = (uint16_t *)entry;
 	    count = entry->count;
 	    nextAlarm();
@@ -181,8 +225,7 @@ implementation {
       }
   }
 
-  void streamData(uint16_t data) 
-  {
+  void streamData(uint16_t data) {
     if (count == 0)
       {
 	now = call Alarm.getNow();
@@ -195,8 +238,18 @@ implementation {
 	  {
 	    atomic
 	      {
-		lastBuffer = buffer;
-		lastCount = pos - buffer;
+		if (lastBuffer)
+		  {
+		    /* We failed to signal bufferDone in time. Fail. */
+		    bufferQueueEnd[client] = NULL; // prevent post
+		    post readStreamFail();
+		    return;
+		  }
+		else
+		  {
+		    lastBuffer = buffer;
+		    lastCount = pos - buffer;
+		  }
 	      }
 	    post bufferDone();
 	    nextBuffer();
@@ -206,7 +259,7 @@ implementation {
       }       
   }
 
-  async event void Atm128AdcSingle.dataReady[uint8_t port](uint16_t data, bool precise) {
+  async event void Atm128AdcSingle.dataReady(uint16_t data, bool precise) {
     switch (state)
       {
       case ACQUIRE_DATA_STREAM:
@@ -227,7 +280,13 @@ implementation {
 	if (!precise)
 	  sample();
 	else
-	  signal ReadNow.readDone[client](SUCCESS, data);
+	  {
+	    state = IDLE;
+	    signal ReadNow.readDone[client](SUCCESS, data);
+	  }
+	break;
+
+      default:
 	break;
       }
   }

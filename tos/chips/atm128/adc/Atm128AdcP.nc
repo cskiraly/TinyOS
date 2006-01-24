@@ -1,4 +1,4 @@
-/* $Id: Atm128AdcP.nc,v 1.1.2.2 2005-10-31 19:34:02 scipio Exp $
+/* $Id: Atm128AdcP.nc,v 1.1.2.3 2006-01-24 18:47:16 idgay Exp $
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -61,7 +61,7 @@ module Atm128AdcP
   provides {
     interface Init;
     interface StdControl;
-    interface Atm128AdcSingle[uint8_t channel];
+    interface Atm128AdcSingle;
     interface Atm128AdcMultiple;
   }
   uses {
@@ -133,7 +133,7 @@ implementation
 	/* A single sample. Disable the ADC interrupt to avoid starting
 	   a new sample at the next "sleep" instruction. */
 	call HplAtm128Adc.disableInterruption();
-	signal Atm128AdcSingle.dataReady[channel](data, precise);
+	signal Atm128AdcSingle.dataReady(data, precise);
       }
     else
       {
@@ -199,8 +199,8 @@ implementation
     call HplAtm128Adc.setAdcsra(adcsr);
   }
 
-  async command bool Atm128AdcSingle.getData[uint8_t channel](uint8_t refVoltage, bool leftJustify,
-							      uint8_t prescaler) {
+  async command bool Atm128AdcSingle.getData(uint8_t channel, uint8_t refVoltage,
+					     bool leftJustify, uint8_t prescaler) {
     atomic
       {
 	f.multiple = FALSE;
@@ -210,13 +210,10 @@ implementation
       }
   }
 
-  async command bool Atm128AdcSingle.cancel[uint8_t channel]() {
+  async command bool Atm128AdcSingle.cancel() {
     /* There is no Atm128AdcMultiple.cancel, for reasons discussed in that
        interface */
     return call HplAtm128Adc.cancel();
-  }
-
-  default async event void Atm128AdcSingle.dataReady[uint8_t channel](uint16_t data, bool precise) {
   }
 
   async command bool Atm128AdcMultiple.getData(uint8_t channel, uint8_t refVoltage,
@@ -231,6 +228,9 @@ implementation
 
 	return f.precise;
       }
+  }
+
+  default async event void Atm128AdcSingle.dataReady(uint16_t data, bool precise) {
   }
 
   default async event bool Atm128AdcMultiple.dataReady(uint16_t data, bool precise, uint8_t channel,
