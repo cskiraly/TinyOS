@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $Revision: 1.1.2.13 $
- * $Date: 2006-01-20 02:01:13 $
+ * $Revision: 1.1.2.14 $
+ * $Date: 2006-01-24 01:04:50 $
  */
 
 includes Timer;
@@ -79,6 +79,7 @@ implementation {
   uint8_t m_channel = CC2420_DEF_CHANNEL;
   uint8_t m_tx_power = 31;
   uint16_t m_pan = TOS_AM_GROUP;
+  uint16_t m_short_addr;
 
   norace error_t m_have_resource = FAIL;
   norace cc2420_control_state_t m_state = S_VREG_STOPPED;
@@ -87,6 +88,7 @@ implementation {
     call CSN.makeOutput();
     call RSTN.makeOutput();
     call VREN.makeOutput();
+    m_short_addr = call AMPacket.address();
     return SUCCESS;
   }
 
@@ -184,7 +186,7 @@ implementation {
     nxle_uint16_t id[ 2 ];
     m_state = S_XOSC_STARTED;
     id[ 0 ] = m_pan;
-    id[ 1 ] = call AMPacket.address();
+    id[ 1 ] = m_short_addr;
     call InterruptCCA.disable();
     call IOCFG1.write( 0 );
     call PANID.write( 0, (uint8_t*)&id, 4 );
