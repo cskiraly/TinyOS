@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-01-24 16:10:03 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-01-24 17:43:31 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -70,8 +70,9 @@ implementation
   norace uint16_t value;
   norace bool ignore;
   norace uint16_t *resultBuf;
-  struct list_entry_t *streamBuf[uniqueCount(ADCC_READ_STREAM_SERVICE)];
-  uint32_t usPeriod[uniqueCount(ADCC_READ_STREAM_SERVICE)];
+  // atomic section in postBuffer() makes norace safe
+  norace struct list_entry_t *streamBuf[uniqueCount(ADCC_READ_STREAM_SERVICE)];
+  norace uint32_t usPeriod[uniqueCount(ADCC_READ_STREAM_SERVICE)];
   msp430adc12_channel_config_t streamSettings;
     
   void task finishStreamRequest();
@@ -193,25 +194,28 @@ implementation
   {
     struct list_entry_t *newEntry = (struct list_entry_t *) buf;
     
-    if (!streamBuf[rsClient])
-      streamBuf[rsClient] = newEntry;
-    else {
-      struct list_entry_t *tmp = streamBuf[rsClient];
-      while (tmp->next)
-        tmp = tmp->next;
-      tmp->next = newEntry;
-    }
     newEntry->count = count;
     newEntry->next = 0;
+    atomic {
+      if (!streamBuf[rsClient])
+        streamBuf[rsClient] = newEntry;
+      else {
+        struct list_entry_t *tmp = streamBuf[rsClient];
+        while (tmp->next)
+          tmp = tmp->next;
+        tmp->next = newEntry;
+      }
+    }
     return SUCCESS;
   }
   
   command error_t ReadStream.read[uint8_t rsClient]( uint32_t _usPeriod )
   {
-    if (!streamBuf[rsClient])
-      return EINVAL;
+    error_t requested = call ResourceReadStream.request[rsClient]();
+    if (requested != SUCCESS || !streamBuf[rsClient])
+      return FAIL;
     usPeriod[rsClient] = _usPeriod;
-    return call ResourceReadStream.request[rsClient]();
+    return SUCCESS;
   }
   
   event void ResourceReadStream.granted[uint8_t rsClient]() 
@@ -269,7 +273,7 @@ implementation
       if (!streamBuf[rsClient])
         post finishStreamRequest();
       else {
-        // fill next buffer
+        // fill next buffer (this is the only async code dealing with buffers)
         struct list_entry_t *entry = streamBuf[rsClient];
         streamBuf[rsClient] = streamBuf[rsClient]->next;
         nextRequest = call SingleChannelReadStream.getMultipleData[rsClient](
