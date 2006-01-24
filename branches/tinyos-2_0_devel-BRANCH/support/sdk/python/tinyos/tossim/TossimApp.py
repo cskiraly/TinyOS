@@ -86,7 +86,6 @@ class NescVariables(object) :
           varTypes = variable.getElementsByTagName("type-int")
 
         if (len(variable.getElementsByTagName("type-array")) > 0):
-          print name, variable.getElementsByTagName("type-array")
           isArray = 1
           
         if (len(varTypes) > 0):
@@ -101,7 +100,6 @@ class NescVariables(object) :
           else:
             self._vars.append("simple")
           self._vars.append(str(varType))
-    print self._vars
              
   def __str__(self) :
     """ Print all available variables."""
