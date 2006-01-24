@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-16 16:03:54 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-01-24 16:10:03 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -72,8 +72,9 @@ implementation
   norace uint16_t *resultBuf;
   struct list_entry_t *streamBuf[uniqueCount(ADCC_READ_STREAM_SERVICE)];
   uint32_t usPeriod[uniqueCount(ADCC_READ_STREAM_SERVICE)];
+  msp430adc12_channel_config_t streamSettings;
     
-  void task failReadStreamRequest();
+  void task finishStreamRequest();
   void task signalBufferDone();
   void nextReadStreamRequest(uint8_t rsClient);
 
@@ -86,6 +87,7 @@ implementation
     }
     ignore = FALSE;
     state = owner = value = 0;
+    resultBuf = 0;
   }
   
   command error_t Read.read[uint8_t client]()
@@ -154,10 +156,8 @@ implementation
   
   void task readDone()
   {
-    volatile uint16_t valueTmp = value;
     call Resource.release[owner]();
-    // "value" might change here
-    signal Read.readDone[owner](SUCCESS, valueTmp);
+    signal Read.readDone[owner](SUCCESS, value);
   }
 
   async event error_t SingleChannel.singleDataReady[uint8_t client](uint16_t data)
@@ -192,9 +192,17 @@ implementation
   command error_t ReadStream.postBuffer[uint8_t rsClient]( uint16_t* buf, uint16_t count )
   {
     struct list_entry_t *newEntry = (struct list_entry_t *) buf;
+    
+    if (!streamBuf[rsClient])
+      streamBuf[rsClient] = newEntry;
+    else {
+      struct list_entry_t *tmp = streamBuf[rsClient];
+      while (tmp->next)
+        tmp = tmp->next;
+      tmp->next = newEntry;
+    }
     newEntry->count = count;
-    newEntry->next = streamBuf[rsClient];
-    streamBuf[rsClient] = newEntry;
+    newEntry->next = 0;
     return SUCCESS;
   }
   
@@ -208,66 +216,83 @@ implementation
   
   event void ResourceReadStream.granted[uint8_t rsClient]() 
   {
-    owner = rsClient;
-    nextReadStreamRequest(rsClient);
-  }
-
-  void nextReadStreamRequest(uint8_t rsClient)
-  {
-    msp430adc12_channel_config_t settings;
     msp430adc12_result_t hal1request;
     struct list_entry_t *entry = streamBuf[rsClient];
-
-    if (!entry){
-      // all done
+    msp430adc12_channel_config_t settings = 
+      call ConfigReadStream.getChannelSettings[rsClient]();
+    
+    if (!entry || settings.inch == INPUT_CHANNEL_NONE){
+      // no buffers available
       call ResourceReadStream.release[rsClient]();
-      signal ReadStream.readDone[rsClient]( SUCCESS );
+      signal ReadStream.readDone[rsClient]( FAIL );
       return;
     }
-    settings = call ConfigReadStream.getChannelSettings[rsClient]();
-    if (settings.inch == INPUT_CHANNEL_NONE){
-      // settings are invalid (ConfigReadStream not wired?) 
-      post failReadStreamRequest();
-      return;
-    }
+    owner = rsClient;
+    streamSettings = settings;
+    streamSettings.sampcon_ssel = SAMPCON_SOURCE_SMCLK; // assumption: SMCLK runs at 1 MHz
+    streamSettings.sampcon_id = SAMPCON_CLOCK_DIV_1; 
     streamBuf[rsClient] = entry->next;
-    settings.sampcon_ssel = SAMPCON_SOURCE_SMCLK; // assumption: SMCLK runs at 1 MHz
-    settings.sampcon_id = SAMPCON_CLOCK_DIV_1; 
     hal1request = call SingleChannelReadStream.getMultipleData[rsClient](
-      &settings, (uint16_t *) entry, entry->count, usPeriod[rsClient]);
+      &streamSettings, (uint16_t *) entry, entry->count, usPeriod[rsClient]);
     if (hal1request != MSP430ADC12_SUCCESS && hal1request != MSP430ADC12_DELAYED){
-      post failReadStreamRequest();
+      streamBuf[rsClient] = entry;
+      post finishStreamRequest();
       return;
     }
   }
 
-  void task failReadStreamRequest()
+  void task finishStreamRequest()
   {
-    // return client's buffers and signal readDone with FAIL 
-    struct list_entry_t *nextEntry = streamBuf[owner], *entry;
-    while ((entry = nextEntry)){
-      nextEntry = entry->next;
-      signal ReadStream.bufferDone[owner]( EINVAL, (uint16_t *) entry, entry->count);
-    }
-    streamBuf[owner] = 0;
-    signal ReadStream.readDone[owner]( EINVAL );
     call ResourceReadStream.release[owner]();
-    return;
+    if (!streamBuf[owner])
+      // all posted buffers were filled
+      signal ReadStream.readDone[owner]( SUCCESS );
+    else {
+      // not all buffers were filled
+      do {
+        signal ReadStream.bufferDone[owner]( FAIL, (uint16_t *) streamBuf[owner], 0);
+        streamBuf[owner] = streamBuf[owner]->next;
+      } while (streamBuf[owner]);
+      signal ReadStream.readDone[owner]( FAIL );
+    }
   }
 
   async event uint16_t* SingleChannelReadStream.multipleDataReady[uint8_t rsClient](
       uint16_t *buf, uint16_t length)
   {
-    value = length;
-    resultBuf = buf;
-    post signalBufferDone();
+    msp430adc12_result_t nextRequest;
+    
+    if (!resultBuf){
+      value = length;
+      resultBuf = buf;
+      post signalBufferDone();
+      if (!streamBuf[rsClient])
+        post finishStreamRequest();
+      else {
+        // fill next buffer
+        struct list_entry_t *entry = streamBuf[rsClient];
+        streamBuf[rsClient] = streamBuf[rsClient]->next;
+        nextRequest = call SingleChannelReadStream.getMultipleData[rsClient](
+          &streamSettings, (uint16_t *) entry, entry->count, usPeriod[rsClient]);
+        if (nextRequest != MSP430ADC12_SUCCESS && nextRequest != MSP430ADC12_DELAYED){
+          streamBuf[owner] = entry;
+          post finishStreamRequest();
+        }
+      }
+    } else {
+      // overflow: can't signal data fast enough
+      struct list_entry_t *entry = (struct list_entry_t *) buf;
+      entry->next = streamBuf[rsClient];
+      streamBuf[rsClient] = entry; // what a waste
+      post finishStreamRequest();
+    }
     return 0;
   }
 
   void task signalBufferDone()
   {
     signal ReadStream.bufferDone[owner]( SUCCESS, resultBuf, value);
-    nextReadStreamRequest(owner);
+    resultBuf = 0;
   }
   
   async event error_t SingleChannelReadStream.singleDataReady[uint8_t rsClient](uint16_t data)
