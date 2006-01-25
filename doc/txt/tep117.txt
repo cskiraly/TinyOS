@@ -10,8 +10,8 @@ Pins and Buses
 :Author: Phil Buonadonna
 
 :Draft-Created: 23-Jan-2006
-:Draft-Version: $Revision: 1.1.2.3 $
-:Draft-Modified: $Date: 2006-01-25 18:08:08 $
+:Draft-Version: $Revision: 1.1.2.4 $
+:Draft-Modified: $Date: 2006-01-25 18:13:43 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -41,7 +41,7 @@ communication protocol formats. The two buses covered in this
 document are the Serial Peripheral Interface (SPI) and the
 Inter-Integrated Circuit (I2c) or Two-Wire interface. While there are
 likely other bus formats, we presume SPI and I2C to have the largest
-coverage. While the UART interface is also in this category, it's is
+coverage. While the UART interface is also in this category, it is
 covered separately in [tep113].
 
 This memo documents the interfaces used for pins and the two buses.
@@ -199,7 +199,7 @@ also known as a two-wire interface.
 
 The I2CPacket interface provides for asynchronous Master mode communication on an
 I2C with application framed packets.  It supports only single
-transfers with a start-stop condition after each transfer.
+transfers with a start-stop condition around each transfer.
 
 Platforms providing I2C capability MUST provide this interface. ::
 
