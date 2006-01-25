@@ -8,6 +8,7 @@ bin_SCRIPTS = tos-ident-flags \
 	      tos-set-symbols \
 	      tos-write-image \
 	      tos-check-env \
+	      tos-storage-stm25p \
 	      tos-storage-at45db
 	      
 
