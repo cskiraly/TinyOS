@@ -1,5 +1,5 @@
 ============================
-Pins and Busses
+Pins and Buses
 ============================
 
 :TEP: 117
@@ -10,8 +10,8 @@ Pins and Busses
 :Author: Phil Buonadonna
 
 :Draft-Created: 23-Jan-2006
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2006-01-25 00:45:33 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-01-25 18:08:08 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -25,31 +25,31 @@ Abstract
 ====================================================================
 
 The memo documents the TinyOS 2.x interfaces used for controlling
-digital IO functionality and digitial interfaces other than serial
+digital IO functionality and digital interfaces other than serial
 communication covered in [tep113].
 
 
 1. Introduction
 ====================================================================
 
-The canonical tinyos device is likely to have a variety of digital
+The canonical TinyOS device is likely to have a variety of digital
 interfaces. These interfaces may be divided into two broad
-categories. The first are general purpose digitial I/O lines (pins)
+categories. The first are general purpose digital I/O lines (pins)
 for individual digital signals at physical pins on a chip or
-platform. The second are digitial I/O interfaces that have predefined
-communication protocol formats. The two busses covered in this
+platform. The second are digital I/O interfaces that have predefined
+communication protocol formats. The two buses covered in this
 document are the Serial Peripheral Interface (SPI) and the
 Inter-Integrated Circuit (I2c) or Two-Wire interface. While there are
 likely other bus formats, we presume SPI and I2C to have the largest
 coverage. While the UART interface is also in this category, it's is
 covered separately in [tep113].
 
-This memo documents the interfaces used for pins and the two busses.
+This memo documents the interfaces used for pins and the two buses.
 
 2. Pins
 ====================================================================
 
-General Purpose I/O (GPIO) pins are single, versatile digitial I/O signals
+General Purpose I/O (GPIO) pins are single, versatile digital I/O signals
 individually controllable on a particular chip or platform. Each GPIO
 can be placed into either an input mode or an output mode. On
 some platforms a third 'tri-state' mode may exist, but this
@@ -135,7 +135,7 @@ with a GPIO event. Platforms MAY provide this interface.
 Some platforms may have hardware support for such a feature. Other
 platforms may emulate this capability using the SoftCaptureC
 component. The interface makes not declaration of the precision or
-accurarcy of the timestamp with respect to the associated GPIO event. ::
+accuracy of the timestamp with respect to the associated GPIO event. ::
 
  interface GpioCapture {
  
@@ -147,7 +147,7 @@ accurarcy of the timestamp with respect to the associated GPIO event. ::
  }
 
 
-3. Busses
+3. Buses
 ====================================================================
 
 Bus operations may be divided into two categories: data and
@@ -160,7 +160,7 @@ interfaces at the HIL level that are expected to be provided.
 
 The Serial Peripheral Interface (SPI) is part of a larger class of
 Synchronous Serial Protocols.  The term SPI typically refers to the
-Motorola SPI protocls. Other protocols include the National
+Motorola SPI protocols. Other protocols include the National
 Semiconductor Microwire, the TI Synchronous Serial Protocol and the
 Programmable Serial Protocol. The dataside interfaces here were
 developed for the Motorola SPI format, but may work for others.
@@ -173,7 +173,7 @@ interfaces and implementations.
 
 
 The interface is split into a synchronous byte level and an
-asynchronous packet level interface. The byte leve interface is
+asynchronous packet level interface. The byte level interface is
 intended for short transactions (3-4 bytes) on the SPI bus. ::
 
  interface SPIByte {
@@ -216,7 +216,7 @@ Platforms providing I2C capability MUST provide this interface. ::
 ====================================================================
 
 | Phil Buonadonna
-| Arched Rock Coroporation
+| Arched Rock Corporation
 | 657 Mission St. Ste 600
 | San Francisco, CA 94105-4120
 |
@@ -226,5 +226,3 @@ Platforms providing I2C capability MUST provide this interface. ::
 ====================================================================
 
 .. [tep113] TEP 113: Serial Communication.
-
- 
