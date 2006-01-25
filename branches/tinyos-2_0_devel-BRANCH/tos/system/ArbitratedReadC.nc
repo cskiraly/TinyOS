@@ -1,4 +1,4 @@
-/* $Id: ArbitratedReadC.nc,v 1.1.2.2 2006-01-21 01:31:41 idgay Exp $
+/* $Id: ArbitratedReadC.nc,v 1.1.2.3 2006-01-25 01:32:46 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -35,7 +35,7 @@ implementation {
   }
 
   default async command error_t Resource.request[uint8_t client]() { 
-    return SUCCESS; 
+    return FAIL; 
   }
   default async command void Resource.release[uint8_t client]() { }
   default event void Read.readDone[uint8_t client](error_t result, width_t data) { }
