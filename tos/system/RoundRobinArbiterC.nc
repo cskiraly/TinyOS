@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.8 $
- * $Date: 2006-01-20 20:12:16 $ 
+ * $Revision: 1.1.2.9 $
+ * $Date: 2006-01-25 01:32:46 $ 
  * ======================================================================== 
  */
  
@@ -47,7 +47,7 @@
  
 generic module RoundRobinArbiterC(char resourceName[]) {
   provides {
-    interface Init;
+    interface Init @atleastonce();
     interface Resource[uint8_t id];
     interface ResourceController;
     interface ArbiterInfo;

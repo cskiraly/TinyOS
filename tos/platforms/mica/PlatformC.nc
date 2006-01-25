@@ -1,4 +1,4 @@
-/// $Id: PlatformC.nc,v 1.1.2.5 2006-01-21 01:31:40 idgay Exp $
+/// $Id: PlatformC.nc,v 1.1.2.6 2006-01-25 01:32:46 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -38,6 +38,8 @@ implementation
   components PlatformP, MotePlatformC, MeasureClockC;
   
   Init = PlatformP;
+  calibrateMicro = MeasureClockC;
+
   PlatformP.MeasureClock -> MeasureClockC;
   PlatformP.MoteInit -> MotePlatformC;
   MotePlatformC.SubInit = SubInit;

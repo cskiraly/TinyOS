@@ -1,4 +1,4 @@
-/* $Id: Adc.h,v 1.1.2.4 2006-01-21 01:31:40 idgay Exp $
+/* $Id: Adc.h,v 1.1.2.5 2006-01-25 01:32:46 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -12,6 +12,8 @@
  */
 #ifndef ADC_H
 #define ADC_H
+
+#include "Atm128Adc.h"
 
 /* Read and ReadNow share client ids */
 #define UQ_ADC_READ "adc.read"

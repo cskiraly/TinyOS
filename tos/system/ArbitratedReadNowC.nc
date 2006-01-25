@@ -1,4 +1,4 @@
-/* $Id: ArbitratedReadNowC.nc,v 1.1.2.1 2006-01-20 23:08:13 idgay Exp $
+/* $Id: ArbitratedReadNowC.nc,v 1.1.2.2 2006-01-25 01:32:46 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -36,6 +36,9 @@ implementation {
     signal ReadNow.readDone[client](result, data);
   }
 
+  default async command error_t Resource.immediateRequest[uint8_t client]() { 
+    return FAIL; 
+  }
   default async command void Resource.release[uint8_t client]() { }
   default async event void ReadNow.readDone[uint8_t client](error_t result, width_t data) { }
   default async command error_t Service.read[uint8_t client]() {
