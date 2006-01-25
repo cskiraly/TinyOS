@@ -10,8 +10,8 @@ Pins and Busses
 :Author: Phil Buonadonna
 
 :Draft-Created: 23-Jan-2006
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2006-01-24 21:48:22 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2006-01-25 00:45:33 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -38,11 +38,11 @@ categories. The first are general purpose digitial I/O lines (pins)
 for individual digital signals at physical pins on a chip or
 platform. The second are digitial I/O interfaces that have predefined
 communication protocol formats. The two busses covered in this
-document are the Serial Peripheral Interface (SPI) and the I2C or
-Two-Wire interface. While there are likely other bus formats, we
-presume SPI and I2C to have the largest coverage. While the UART
-interface is also in this category, it's is covered separately in
-[tep113].
+document are the Serial Peripheral Interface (SPI) and the
+Inter-Integrated Circuit (I2c) or Two-Wire interface. While there are
+likely other bus formats, we presume SPI and I2C to have the largest
+coverage. While the UART interface is also in this category, it's is
+covered separately in [tep113].
 
 This memo documents the interfaces used for pins and the two busses.
 
@@ -67,8 +67,7 @@ distill down to a basis that may be expected on most platforms.
 
 In input mode, we assume the following capabilities:
  * The ability to arbitrarily sample the pin
- * The ability to generate an interrupt/event from either a rising edge
- or falling edge digital signal.
+ * The ability to generate an interrupt/event from either a rising edge or falling edge digital signal.
  
 In output mode, we assume the following capabilities:
  * An I/O may be individually cleared (low) or set (hi)
@@ -93,7 +92,7 @@ output state to the opposite of what it currently is.
  
 Platforms with GPIO functionality MUST provide this interface. It
 SHOULD be provided in a component named GeneralIOC, but MAY be
-provided in other components as needed.
+provided in other components as needed. ::
 
  interface GeneralIO
  {
@@ -115,9 +114,7 @@ GPIO pin. It provides a mechanism to detect a rising edge OR a falling
 edge. Note that calls to enableRisingEdge and enableFallingEdge are
 NOT cumulative and only one edge may be detected at a time. There may
 be other edge events supported by the platform which MAY be exported
-through a platform specific HAL interface.
-
-
+through a platform specific HAL interface. ::
  
  interface GpioInterrupt {
  
@@ -129,9 +126,16 @@ through a platform specific HAL interface.
  }
 
 
-
 2.3 GpioCapture
 --------------------------------------------------------------------
+
+The GpioCapture interface provides a means of associating a timestamp
+with a GPIO event. Platforms MAY provide this interface.
+
+Some platforms may have hardware support for such a feature. Other
+platforms may emulate this capability using the SoftCaptureC
+component. The interface makes not declaration of the precision or
+accurarcy of the timestamp with respect to the associated GPIO event. ::
 
  interface GpioCapture {
  
@@ -154,9 +158,30 @@ interfaces at the HIL level that are expected to be provided.
 3.1 Serial Peripheral Interface
 --------------------------------------------------------------------
 
+The Serial Peripheral Interface (SPI) is part of a larger class of
+Synchronous Serial Protocols.  The term SPI typically refers to the
+Motorola SPI protocls. Other protocols include the National
+Semiconductor Microwire, the TI Synchronous Serial Protocol and the
+Programmable Serial Protocol. The dataside interfaces here were
+developed for the Motorola SPI format, but may work for others.
+
+Platforms supporting SPI MUST provide these interfaces.
+
+Of note, the interfaces DO NOT define the behavior of any chip select
+or framing signals. These SHOULD determined by platform specific HAL
+interfaces and implementations.
+
+
+The interface is split into a synchronous byte level and an
+asynchronous packet level interface. The byte leve interface is
+intended for short transactions (3-4 bytes) on the SPI bus. ::
+
  interface SPIByte {
    async command error_t write( uint8_t tx, uint8_t* rx );
  }
+
+The packet level interface is for larger bus transactions. The
+pointer/length interface permits use of hardware assist such as DMA. ::
 
  interface SPIPacket {
  
@@ -168,6 +193,16 @@ interfaces at the HIL level that are expected to be provided.
 3.2 I2C
 --------------------------------------------------------------------
 
+The Inter-Integrated Circuit (I2C) interface is another type of
+digital bus that is often used for chip-to-chip communication. It is
+also known as a two-wire interface. 
+
+The I2CPacket interface provides for asynchronous Master mode communication on an
+I2C with application framed packets.  It supports only single
+transfers with a start-stop condition after each transfer.
+
+Platforms providing I2C capability MUST provide this interface. ::
+
  interface I2CPacket {
    async command result_t readPacket(uint16_t _addr, uint8_t _length, uint8_t* _data);
    async command result_t writePacket(uint16_t _addr, uint8_t _length, uint8_t* _data);
@@ -177,7 +212,7 @@ interfaces at the HIL level that are expected to be provided.
 
 
 
-5. Author's Address
+4. Author's Address
 ====================================================================
 
 | Phil Buonadonna
@@ -187,7 +222,7 @@ interfaces at the HIL level that are expected to be provided.
 |
 | phone - +1 415 692-0828 x2833
 
-6. Citations
+5. Citations
 ====================================================================
 
 .. [tep113] TEP 113: Serial Communication.
