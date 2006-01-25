@@ -30,11 +30,11 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
 
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-20 01:10:25 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-25 17:08:49 $
  */
 
-includes Storage;
+#include "Storage.h"
 
 interface BlockWrite {
   

@@ -1,4 +1,4 @@
-// $Id: BlockStorageC.nc,v 1.1.2.3 2006-01-17 19:03:16 idgay Exp $
+// $Id: BlockStorageC.nc,v 1.1.2.4 2006-01-25 17:08:48 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -9,7 +9,7 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-#include "BlockStorage.h"
+#include "Storage.h"
 
 generic configuration BlockStorageC(volume_id_t volid) {
   provides {

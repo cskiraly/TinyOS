@@ -1,4 +1,4 @@
-// $Id: BlockStorageP.nc,v 1.1.2.2 2006-01-17 19:03:16 idgay Exp $
+// $Id: BlockStorageP.nc,v 1.1.2.3 2006-01-25 17:08:49 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -35,7 +35,6 @@
  */
 
 #include "Storage.h"
-#include "BlockStorage.h"
 
 module BlockStorageP {
   provides {
@@ -66,15 +65,15 @@ implementation
   };
 
   uint8_t client = NO_CLIENT;
-  block_addr_t bytesRemaining;
+  storage_addr_t bytesRemaining;
   uint16_t crc;
 
   /* The requests */
   uint8_t state[N]; /* automatically initialised to S_IDLE */
   uint8_t *bufPtr[N];
-  block_addr_t curAddr[N], requestedLength[N];
+  storage_addr_t curAddr[N], requestedLength[N];
 
-  block_addr_t maxAddr[N];
+  storage_addr_t maxAddr[N];
   uint8_t sig[8];
 
   void verifySignature();
@@ -83,7 +82,7 @@ implementation
   void continueRequest();
 
   void setupRequest(uint8_t newState, blockstorage_t id,
-		    block_addr_t addr, uint8_t* buf, block_addr_t len) {
+		    storage_addr_t addr, uint8_t* buf, storage_len_t len) {
     state[id] = newState;
     curAddr[id] = addr;
     bufPtr[id] = buf;
@@ -91,7 +90,7 @@ implementation
   }
 
   error_t newRequest(uint8_t newState, blockstorage_t id,
-		       block_addr_t addr, uint8_t* buf, block_addr_t len) {
+		       storage_addr_t addr, uint8_t* buf, storage_len_t len) {
     if (state[id] != S_IDLE)
       return FAIL;
 
@@ -109,11 +108,11 @@ implementation
     continueRequest();
   }
 
-  void actualSignal(storage_result_t result) {
+  void actualSignal(error_t result) {
     blockstorage_t c = client;
     uint8_t tmpState = state[c];
-    block_addr_t actualLength = requestedLength[c] - bytesRemaining;
-    block_addr_t addr = curAddr[c] - actualLength;
+    storage_addr_t actualLength = requestedLength[c] - bytesRemaining;
+    storage_addr_t addr = curAddr[c] - actualLength;
     void *ptr = bufPtr[c] - actualLength;
     
     client = NO_CLIENT;
@@ -123,16 +122,16 @@ implementation
     switch(tmpState)
       {
       case S_READ:
-	signal BlockRead.readDone[c](result, addr, ptr, actualLength);
+	signal BlockRead.readDone[c](addr, ptr, actualLength, result);
 	break;
       case S_WRITE:
-	signal BlockWrite.writeDone[c](result, addr, ptr, actualLength);
+	signal BlockWrite.writeDone[c](addr, ptr, actualLength, result);
 	break;
       case S_ERASE:
 	signal BlockWrite.eraseDone[c](result);
 	break;
       case S_CRC:
-	signal BlockRead.computeCrcDone[c](result, crc, addr, actualLength);
+	signal BlockRead.computeCrcDone[c](addr, actualLength, crc, result);
 	break;
       case S_COMMIT: case S_COMMIT2: case S_COMMIT3:
 	signal BlockWrite.commitDone[c](result);
@@ -143,9 +142,9 @@ implementation
       }
   }
 
-  task void signalSuccess() { actualSignal(STORAGE_OK); }
+  task void signalSuccess() { actualSignal(SUCCESS); }
   
-  task void signalFail() { actualSignal(STORAGE_FAIL); }
+  task void signalFail() { actualSignal(FAIL); }
 
   void signalDone(error_t result) {
     if (result == SUCCESS)
@@ -156,9 +155,9 @@ implementation
 	case S_VERIFY: verifySignature(); break;
 	case S_VERIFY2: 
 	  if (crc == (sig[0] | (uint16_t)sig[1] << 8))
-	    actualSignal(STORAGE_OK);
+	    actualSignal(SUCCESS);
 	  else
-	    actualSignal(STORAGE_INVALID_CRC);
+	    actualSignal(FAIL);
 	  break;
 	default: post signalSuccess(); break;
 	}
@@ -166,7 +165,7 @@ implementation
       post signalFail();
   }
 
-  void calcRequest(block_addr_t addr, at45page_t *page,
+  void calcRequest(storage_addr_t addr, at45page_t *page,
 		   at45pageoffset_t *offset, at45pageoffset_t *count) {
     *page = call At45dbVolume.remap[client](addr >> AT45_PAGE_SIZE_LOG2);
     *offset = addr & ((1 << AT45_PAGE_SIZE_LOG2) - 1);
@@ -206,7 +205,7 @@ implementation
       }
   }
 
-  command error_t BlockWrite.write[blockstorage_t id](block_addr_t addr, void* buf, block_addr_t len) {
+  command error_t BlockWrite.write[blockstorage_t id](storage_addr_t addr, void* buf, storage_len_t len) {
     error_t ok = newRequest(S_WRITE, id, addr, buf, len);
 
     if (ok == SUCCESS && addr + len > maxAddr[id])
@@ -246,11 +245,13 @@ implementation
     call At45db.syncAll();
   }
 
+#if 0
   command uint32_t BlockRead.getSize[blockstorage_t blockId]() {
     return call At45dbVolume.volumeSize[blockId]();
   }
+#endif
 
-  command error_t BlockRead.read[blockstorage_t id](block_addr_t addr, void* buf, block_addr_t len) {
+  command error_t BlockRead.read[blockstorage_t id](storage_addr_t addr, void* buf, storage_len_t len) {
     return newRequest(S_READ, id, addr, buf, len);
   }
 
@@ -268,10 +269,10 @@ implementation
 	signal Resource.granted[client]();
       }
     else
-      actualSignal(STORAGE_INVALID_SIGNATURE);
+      actualSignal(FAIL);
   }
 
-  command error_t BlockRead.computeCrc[blockstorage_t id](block_addr_t addr, block_addr_t len) {
+  command error_t BlockRead.computeCrc[blockstorage_t id](storage_addr_t addr, storage_len_t len) {
     return newRequest(S_CRC, id, addr, NULL, len);
   }
 
@@ -309,12 +310,12 @@ implementation
   event void At45db.flushDone(error_t result) {
   }
 
-  default event void BlockWrite.writeDone[uint8_t id](storage_result_t result, block_addr_t addr, void* buf, block_addr_t len) { }
-  default event void BlockWrite.eraseDone[uint8_t id](storage_result_t result) { }
-  default event void BlockWrite.commitDone[uint8_t id](storage_result_t result) { }
-  default event void BlockRead.readDone[uint8_t id](storage_result_t result, block_addr_t addr, void* buf, block_addr_t len) { }
-  default event void BlockRead.verifyDone[uint8_t id](storage_result_t result) { }
-  default event void BlockRead.computeCrcDone[uint8_t id](storage_result_t result, uint16_t x, block_addr_t addr, block_addr_t len) { }
+  default event void BlockWrite.writeDone[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t result) { }
+  default event void BlockWrite.eraseDone[uint8_t id](error_t result) { }
+  default event void BlockWrite.commitDone[uint8_t id](error_t result) { }
+  default event void BlockRead.readDone[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t result) { }
+  default event void BlockRead.verifyDone[uint8_t id](error_t result) { }
+  default event void BlockRead.computeCrcDone[uint8_t id](storage_addr_t addr, storage_len_t len, uint16_t x, error_t result) { }
   
   default command at45page_t At45dbVolume.remap[blockstorage_t id](at45page_t volumePage) { return 0; }
   default command storage_addr_t At45dbVolume.volumeSize[blockstorage_t id]() { return 0; }

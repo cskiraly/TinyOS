@@ -1,4 +1,4 @@
-// $Id: Storage.h,v 1.1.2.4 2006-01-20 01:08:46 jwhui Exp $
+// $Id: Storage.h,v 1.1.2.5 2006-01-25 17:08:49 idgay Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -34,12 +34,9 @@
  * @author: David Gay <david.e.gay@intel.com>
  */
 
-#ifndef __STORAGE_H__
-#define __STORAGE_H__
+#ifndef STORAGE_H
+#define STORAGE_H
 
-#define UQ_STORAGE_VOLUME "storage.resource"
-
-typedef uint8_t storage_volume_t;
 typedef uint8_t volume_id_t;
 typedef uint32_t storage_addr_t;
 typedef uint16_t storage_len_t;

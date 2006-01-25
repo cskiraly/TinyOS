@@ -1,10 +1,11 @@
-// $Id: Storage_chip.h,v 1.1.2.2 2006-01-17 19:03:16 idgay Exp $
+// $Id: Storage_chip.h,v 1.1.2.3 2006-01-25 17:08:49 idgay Exp $
 
-#ifndef __HALAT45DB_H__
-#define __HALAT45DB_H__
+#ifndef STORAGE_CHIP_H
+#define STORAGE_CHIP_H
 
 #include "At45db.h"
 
-typedef uint32_t storage_addr_t;
+#define UQ_BLOCK_STORAGE "BlockStorageP.BlockRead"
+typedef uint8_t blockstorage_t;
 
 #endif
