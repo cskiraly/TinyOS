@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-23 22:24:44 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-01-26 21:11:40 $
  */
 
 includes CC2420;
@@ -70,7 +70,7 @@ implementation {
   Init = CC2420TransmitC;
   CsmaP.SubControl -> CC2420TransmitC;
   CsmaP.CC2420Transmit -> CC2420TransmitC;
-  CsmaP.CSMABackoff -> CC2420TransmitC;
+  CsmaP.CsmaBackoff -> CC2420TransmitC;
 
   components CC2420ReceiveC;
   Init = CC2420ReceiveC;

@@ -1,4 +1,4 @@
-// $Id: AcquireData.nc,v 1.1.2.1 2005-05-10 18:37:28 idgay Exp $
+// $Id: HplAt45db_chip.h,v 1.1.2.1 2006-01-26 21:11:40 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -20,7 +20,7 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2005 Intel Corporation
+ * Copyright (c) 2002-2006 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -28,32 +28,18 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
-/**
- * Data acquisition interface. See TEP 101.
- * 
- * @author Jason Hill
- * @author David Gay
- * @author Philip Levis
- */
 
-interface AcquireData { // similar to previous Sensor proposal
-  /** Start data acquisition
-   *  @return SUCCESS if request accepted, EBUSY if it is refused
-   *    'dataReady' or 'error' will be signaled if SUCCESS is returned
-   */
-  command error_t getData();
+#ifndef HPLAT45DB_CHIP_H
+#define HPLAT45DB_CHIP_H
 
-  /** Data has been acquired.
-   * @param data Acquired value
-   *   Values are "left-justified" within each 16-bit integer, i.e., if
-   *   the data is acquired with n bits of precision, each value is 
-   *   shifted left by 16-n bits.
-   */
-  event void dataReady(uint16_t data);
+// flash characteristics
+enum {
+  AT45_MAX_PAGES = 2048,
+  AT45_PAGE_SIZE = 264,
+  AT45_PAGE_SIZE_LOG2 = 8 // For those who want to ignore the last 8 bytes
+};
 
-  /** Signal that the data acquisition failed
-   * @param info error information
-   */
-  event void error(uint16_t info);
-}
+typedef uint16_t at45page_t;
+typedef uint16_t at45pageoffset_t; /* must fit 0 to AT45_PAGE_SIZE - 1 */
 
+#endif

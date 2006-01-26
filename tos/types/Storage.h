@@ -1,4 +1,4 @@
-// $Id: Storage.h,v 1.1.2.5 2006-01-25 17:08:49 idgay Exp $
+// $Id: Storage.h,v 1.1.2.6 2006-01-26 21:11:40 idgay Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -39,7 +39,7 @@
 
 typedef uint8_t volume_id_t;
 typedef uint32_t storage_addr_t;
-typedef uint16_t storage_len_t;
+typedef uint32_t storage_len_t;
 
 #include "Storage_chip.h"
 

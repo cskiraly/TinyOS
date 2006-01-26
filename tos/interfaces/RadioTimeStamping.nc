@@ -20,10 +20,8 @@
  *
  */
 /**
- *
  * Interface for receiving time stamp information from the radio.
- * This information is generally embedded in packet metadata, so it's
- * not clear if it's needed.
+ * This information is also embedded in packet metadata.
  *
  * @author Jonathan Hui
  * @author Philip Levis

@@ -1,4 +1,4 @@
-/* $Id: CC1000Squelch.nc,v 1.1.2.1 2005-05-24 21:26:01 idgay Exp $
+/* $Id: CC1000Squelch.nc,v 1.1.2.2 2006-01-26 21:11:40 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -26,11 +26,29 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+
+/**
+ * CC1000 internal noise floor (aka squelch value) interface
+ * @author David Gay
+ */
 interface CC1000Squelch
 {
+  /**
+   * Adjust noise floor based on new noise measurement
+   * @param data noise measurement
+   */
   command void adjust(uint16_t data);
 
+  /**
+   * Return current estimated noise floor
+   * @return Noise floor value
+   */
   async command uint16_t get();
 
+  /**
+   * Check if noise floor estimate is considered stable (typically after
+   * some number of measurements)
+   * @return TRUE if noise floor estimate considered stable, FALSE otherwise
+   */
   command bool settled();
 }

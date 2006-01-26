@@ -19,21 +19,26 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
  */
-/*
- *
- * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.3 $
- *
- * Interface for Mac Backoff values from the radio stack.
- * Allows application to change the backoff on a per packet basis.
- * Only used if CCA is enabled.
- */
-
 /**
- * Mac Backoff Interface
+ * Interface for MAC Backoff values from the radio stack.
+ * Allows application to change the backoff on a per packet basis.
+ * Only used if congestion control is enabled.
+ *
+ * @author Joe Polastre
  */
-interface CSMABackoff
+interface CsmaBackoff
 {
+  /**
+   * Return initial backoff time before attempting to send message m. The
+   * units are radio dependent.
+   * @return Initial backoff time
+   */
   async event uint16_t initial(message_t* m);
+
+  /**
+   * Return backoff time after message m could not be send due to congestion.
+   * The units are raio dependent.
+   * @return Backoff time after congestion
+   */
   async event uint16_t congestion(message_t* m);
 }
