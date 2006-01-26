@@ -444,7 +444,7 @@ class LowLevel:
         else:
             self.serialport.setDTR(level)
         if self.slowmode:
-            time.sleep(0.010)
+            time.sleep(0.040)
 
     def SetRTS(self, level, invert):
         """Controls RTS pin (0: GND; 1: VCC; unless inverted flag is set)"""
@@ -453,7 +453,7 @@ class LowLevel:
         else:
             self.serialport.setRTS(level)
         if self.slowmode:
-            time.sleep(0.010)
+            time.sleep(0.040)
 
     def SetRSTpin(self, level=1):
         """Controls RST/NMI pin (0: GND; 1: VCC; unless inverted flag is set)"""
