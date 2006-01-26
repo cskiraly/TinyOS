@@ -21,24 +21,20 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
  */
-/*
- * Authors:		Joe Polastre
- * Date last modified:  $Revision: 1.1.2.1 $
- *
- * Low Power Listening
- */
-
 /**
  * Low Power Listening control interface
+ *
+ * @author Joe Polastre
  */
 interface LowPowerListening
 {
   /**
    * Set the current Low Power Listening mode.
    * Setting the LPL mode sets both the check interval and preamble length.
+   * The listening mode can only be set while the radio is stopped.
    *
    * Modes include:
-   *  0 = Radio full on
+   *  0 = Radio fully on
    *  1 = 10ms check interval
    *  2 = 25ms check interval
    *  3 = 50ms check interval
@@ -49,7 +45,7 @@ interface LowPowerListening
    *  8 = 1600ms check interval
    *
    * @param mode the mode number
-   * @return SUCCESS if the mode was successfully changed
+   * @return SUCCESS if the mode was successfully changed, FAIL otherwise
    */
   async command error_t setListeningMode(uint8_t mode);
 
@@ -65,7 +61,7 @@ interface LowPowerListening
    * Use SetListeningMode first, then change the mode with SetTransmitMode.
    *
    * @param mode mode number (see SetListeningMode)
-   * @return SUCCESS if the mode was successfully changed
+   * @return SUCCESS if the mode was successfully changed, FAIL otherwise
    */
   async command error_t setTransmitMode(uint8_t mode);
 
@@ -76,10 +72,12 @@ interface LowPowerListening
   async command uint8_t getTransmitMode();
 
   /**
-   * Set the preamble length of outgoing packets
+   * Set the preamble length of outgoing packets. Note that this overrides
+   * the value set by setListeningMode or setTransmitMode.
    *
    * @param bytes length of the preamble in bytes
-   * @return SUCCESS if the preamble length was successfully changed
+   * @return SUCCESS if the preamble length was successfully changed, FAIL
+   *   otherwise
    */
   async command error_t setPreambleLength(uint16_t bytes);
 
@@ -92,10 +90,13 @@ interface LowPowerListening
 
   /**
    * Set the check interval (time between waking up and sampling
-   * the radio for activity in low power listening)
+   * the radio for activity in low power listening). The sleep time
+   * can only be changed if low-power-listening is enabled 
+   * (setListeningMode called with a non-zero value).
    *
    * @param ms check interval in milliseconds
-   * @return SUCCESS if the check interval was successfully changed
+   * @return SUCCESS if the check interval was successfully changed,
+   *   FAIL otherwise.
    */
   async command error_t setCheckInterval(uint16_t ms);
 

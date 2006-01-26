@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $Revision: 1.1.2.6 $
- * $Date: 2006-01-20 01:36:05 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2006-01-26 21:11:40 $
  */
 
 module CC2420CsmaP {
@@ -45,7 +45,7 @@ module CC2420CsmaP {
   uses interface CC2420Config;
   uses interface AsyncControl as SubControl;
   uses interface CC2420Transmit;
-  uses interface CSMABackoff;
+  uses interface CsmaBackoff;
   uses interface Random;
   uses interface AMPacket;
   uses interface Leds;
@@ -203,11 +203,11 @@ implementation {
     return TOSH_DATA_LENGTH;
   }
 
-  async event uint16_t CSMABackoff.initial( message_t* m ) {
+  async event uint16_t CsmaBackoff.initial( message_t* m ) {
     return ( call Random.rand16() & 0x1f ) + 1;
   }
 
-  async event uint16_t CSMABackoff.congestion( message_t* m ) {
+  async event uint16_t CsmaBackoff.congestion( message_t* m ) {
     return ( call Random.rand16() & 0x7 ) + 1;
   }
 

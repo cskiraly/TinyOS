@@ -1,4 +1,4 @@
-/* $Id: CC1000Control.nc,v 1.1.2.3 2005-06-02 23:19:36 idgay Exp $
+/* $Id: CC1000Control.nc,v 1.1.2.4 2006-01-26 21:11:40 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -27,11 +27,8 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
+ * CC1000 internal radio control interface.
  * @author Philip Buonadonna, Jaein Jeong
- * Revision:  $Revision: 1.1.2.3 $
- */
-/**
- * CC1000 Radio Control interface.
  */
 interface CC1000Control
 {
@@ -47,8 +44,6 @@ interface CC1000Control
    * 
    * @param freq The index into the CC1K_Params table that holds the
    * desired preset frequency parameters.
-   * 
-   * @return Status of the Tune operation.
    */
   command void tunePreset(uint8_t freq); 
 
@@ -73,15 +68,11 @@ interface CC1000Control
 
   /**
    * Shift the CC1000 Radio into transmit mode.
-   *
-   * @return SUCCESS if the radio was successfully switched to TX mode.
    */
   async command void txMode();
 
   /**
    * Shift the CC1000 Radio in receive mode.
-   *
-   * @return SUCCESS if the radio was successfully switched to RX mode.
    */
   async command void rxMode();
 
@@ -89,8 +80,6 @@ interface CC1000Control
    * Turn off the bias power on the CC1000 radio, but leave the core and
    * crystal oscillator powered.  This will result in approximately a 750
    * uA power savings.
-   *
-   * @return SUCCESS when the bias powered is shutdown.
    */
   async command void coreOn();			
 
@@ -99,8 +88,6 @@ interface CC1000Control
    * either rxMode() or txMode() to place the radio in a recieve/transmit
    * state respectively. There is approximately a 200us delay when
    * restoring bias power.
-   *
-   * @return SUCCESS when bias power has been restored.
    */
   async command void biasOn();
 
@@ -111,15 +98,13 @@ interface CC1000Control
    * consumption values.
    *
    * @param power A power index between 1 and 255.
-   * 
-   * @result SUCCESS if the radio power was adequately set.
    */
   command void setRFPower(uint8_t power);	
 
   /**
    * Get the present RF power index.
    *
-   * @result The power index value.
+   * @return The power index value.
    */
   command uint8_t getRFPower();		
 
@@ -128,8 +113,6 @@ interface CC1000Control
    * the CC1000 data sheet for the available signals.
    * 
    * @param LockVal The index of the signal to monitor at the CHP_OUT pin
-   * 
-   * @result SUCCESS if the selected signal was programmed into the CC1000
    */
   command void selectLock(uint8_t LockVal); 
 
@@ -137,7 +120,7 @@ interface CC1000Control
    * Get the binary value from the CHP_OUT pin.  Analog signals cannot be
    * read using function.
    *
-   * @result 1 - Pin is high or 0 - Pin is low
+   * @return 1 - Pin is high or 0 - Pin is low
    */
   command uint8_t getLock();
 
@@ -146,7 +129,7 @@ interface CC1000Control
    * injection or not.  This information is used to determine if the data
    * from the CC1000 needs to be inverted or not.
    *
-   * @result TRUE if high-side LO injection is being used (i.e. data does NOT need to be inverted
+   * @return TRUE if high-side LO injection is being used (i.e. data does NOT need to be inverted
    * at the receiver.
    */
   command bool getLOStatus();

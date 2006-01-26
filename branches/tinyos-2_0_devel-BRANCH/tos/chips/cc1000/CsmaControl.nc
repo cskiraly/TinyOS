@@ -1,7 +1,5 @@
-// $Id: HplAt45db.h,v 1.1.2.1 2006-01-09 23:28:04 idgay Exp $
-
 /*									tab:4
- * "Copyright (c) 2000-2003 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -20,26 +18,24 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2006 Intel Corporation
- * All rights reserved.
- *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
- * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
- * 94704.  Attention:  Intel License Inquiry.
  */
+/**
+ * Interface for activating/deactivating congestion control.
+ *
+ * @author Philip Levis
+ * @author Joe Polastre
+ * @date   August 31 2005
+ */
+interface CsmaControl {
+  /**
+   * Enable congestion control.
+   * @return SUCCESS if congestion control enabled, FAIL otherwise.
+   */
+  async command error_t enableCca();
 
-#ifndef HPLAT45DB_H
-#define HPLAT45DB_H
-
-// flash characteristics
-enum {
-  AT45_MAX_PAGES = 2048,
-  AT45_PAGE_SIZE = 264,
-  AT45_PAGE_SIZE_LOG2 = 8 // For those who want to ignore the last 8 bytes
-};
-
-typedef uint16_t at45page_t;
-typedef uint16_t at45pageoffset_t; /* must fit 0 to AT45_PAGE_SIZE - 1 */
-
-#endif
+  /**
+   * Disable congestion control.
+   * @return SUCCESS if congestion control disabled, FAIL otherwise.
+   */
+  async command error_t disableCca();
+}

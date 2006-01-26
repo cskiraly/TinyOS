@@ -8,6 +8,11 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
+#ifndef HPLAT45DB_H
+#define HPLAT45DB_H
+
+#include "HplAt45db_chip.h"
+
 enum { // commands we're executing (all SPI Mode 0 or 3)
   AT45_C_READ_BUFFER1 = 0xd4,
   AT45_C_READ_BUFFER2 = 0xd6,
@@ -22,7 +27,8 @@ enum { // commands we're executing (all SPI Mode 0 or 3)
   AT45_C_COMPARE_BUFFER1 = 0x60,
   AT45_C_COMPARE_BUFFER2 = 0x61,
   AT45_C_REQ_STATUS = 0xd7,
-  AT45_C_ERASE_PAGE = 0x81
+  AT45_C_ERASE_PAGE = 0x81,
 };
 
 
+#endif

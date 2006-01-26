@@ -21,7 +21,7 @@ implementation {
       }
   }
 
-  command storage_addr_t At45dbVolume.volumeSize[volume_id_t volid]() {
+  command storage_len_t At45dbVolume.volumeSize[volume_id_t volid]() {
     switch (volid)
       {
 #define VS(id, size) case id: return (storage_addr_t)size << AT45_PAGE_SIZE_LOG2;

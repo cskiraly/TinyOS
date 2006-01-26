@@ -1,4 +1,4 @@
-// $Id: CC1000CsmaP.nc,v 1.1.2.7 2006-01-20 23:08:13 idgay Exp $
+// $Id: CC1000CsmaP.nc,v 1.1.2.8 2006-01-26 21:11:40 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -54,8 +54,8 @@ module CC1000CsmaP {
     interface Init;
     interface SplitControl;
     interface TransmitControl;
-    interface CSMAControl;
-    interface CSMABackoff;
+    interface CsmaControl;
+    interface CsmaBackoff;
     interface LowPowerListening;
   }
   uses {
@@ -371,7 +371,7 @@ implementation
 	if (radioState == POWERDOWN_STATE)
 	  post sleepCheck();
 	if (!f.ccaOff)
-	  macDelay = signal CSMABackoff.initial(call ByteRadio.getTxMessage());
+	  macDelay = signal CsmaBackoff.initial(call ByteRadio.getTxMessage());
 	else
 	  macDelay = 1;
       }
@@ -383,7 +383,7 @@ implementation
   }
 
   void congestion() {
-    macDelay = signal CSMABackoff.congestion(call ByteRadio.getTxMessage());
+    macDelay = signal CsmaBackoff.congestion(call ByteRadio.getTxMessage());
   }
 
   async event void ByteRadio.idleByte(bool preamble) {
@@ -468,12 +468,12 @@ implementation
     return NULL;
   }
 
-  async command error_t CSMAControl.enableCCA() {
+  async command error_t CsmaControl.enableCca() {
     atomic f.ccaOff = FALSE;
     return SUCCESS;
   }
 
-  async command error_t CSMAControl.disableCCA() {
+  async command error_t CsmaControl.disableCca() {
     atomic f.ccaOff = TRUE;
     return SUCCESS;
   }
@@ -486,8 +486,7 @@ implementation
       {
 	if (radioState != DISABLED_STATE)
 	  return FAIL;
-	if (lplRxPower == lplTxPower)
-	  lplTxPower = power;
+	lplTxPower = power;
 	lplRxPower = power;
       }
     return SUCCESS;
@@ -523,7 +522,13 @@ implementation
   }
 
   async command error_t LowPowerListening.setCheckInterval(uint16_t ms) {
-    atomic sleepTime = ms;
+    atomic 
+      {
+	if (lplRxPower == 0)
+	  return FAIL;
+
+	sleepTime = ms;
+      }
     return SUCCESS;
   }
 
@@ -534,12 +539,12 @@ implementation
   /* Default MAC backoff parameters */
   /*--------------------------------*/
 
-  default async event uint16_t CSMABackoff.initial(message_t *m) { 
+  default async event uint16_t CsmaBackoff.initial(message_t *m) { 
     // initially back off [1,32] bytes (approx 2/3 packet)
     return (call Random.rand16() & 0x1F) + 1;
   }
 
-  default async event uint16_t CSMABackoff.congestion(message_t *m) { 
+  default async event uint16_t CsmaBackoff.congestion(message_t *m) { 
     return (call Random.rand16() & 0xF) + 1;
   }
 }

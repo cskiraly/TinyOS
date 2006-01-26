@@ -10,9 +10,22 @@
 
 #include "At45db.h"
 
+/**
+ * Internal AT45DB interface for managing flash volumes.
+ *
+ * @author David Gay
+ */
 interface At45dbVolume {
-  /* Returns AT45_MAX_PAGES for invalid request (out of volume) */
+  /**
+   * Map a volume page to the corresponding page in the whole flash
+   * @return What flash page this volume page maps to, or 
+   *   AT45_MAX_PAGES for invalid requests (out of volume)
+   */
   command at45page_t remap(at45page_t volumePage);
 
-  command storage_addr_t volumeSize();
+  /**
+   * Find the flash volume size
+   * @return Flash volume size in bytes
+   */
+  command storage_len_t volumeSize();
 }

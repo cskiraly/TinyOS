@@ -30,16 +30,16 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
 
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-25 17:08:49 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-01-26 21:11:40 $
  */
 
 #include "Storage.h"
 
 interface BlockWrite {
   
-  command error_t write( storage_addr_t addr, void* buf, storage_len_t len );
-  event void writeDone( storage_addr_t addr, void* buf, storage_len_t len, 
+  command error_t write( storage_addr_t addr, void* buf, uint16_t len );
+  event void writeDone( storage_addr_t addr, void* buf, uint16_t len, 
 			error_t error );
   
   command error_t erase();

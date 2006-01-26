@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  *
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-20 01:36:05 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-26 21:11:40 $
  */
 
 configuration CC2420TransmitC {
@@ -39,7 +39,7 @@ configuration CC2420TransmitC {
   provides interface Init;
   provides interface AsyncControl;
   provides interface CC2420Transmit;
-  provides interface CSMABackoff;
+  provides interface CsmaBackoff;
   provides interface RadioTimeStamping;
 
 }
@@ -60,7 +60,7 @@ implementation {
   Init = CC2420TransmitP;
   AsyncControl = CC2420TransmitP;
   CC2420Transmit = CC2420TransmitP;
-  CSMABackoff = CC2420TransmitP;
+  CsmaBackoff = CC2420TransmitP;
   RadioTimeStamping = CC2420TransmitP;
 
   CC2420TransmitP.BackoffTimer -> Alarm;
