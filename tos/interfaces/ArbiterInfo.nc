@@ -19,6 +19,7 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
  */
+ 
 /*
  * Copyright (c) 2004, Technische Universitat Berlin
  * All rights reserved.
@@ -46,36 +47,42 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+*/
+
+/*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-12-08 03:20:05 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-26 21:44:51 $ 
  * ======================================================================== 
  */
  
- /**
- * ArbiterInfo interface.  
- * This interface is to be used for seeing if a resource protected by the
- * Resource interface is currently allocated to anyone. This interface
- * should only be implemented in conjunction with a paramaterized 
- * implementation of the Resource interface.
+/**
+ * Please refer to TEP 108 for more information about this interface and its
+ * intended use.<br><br>
+ *
+ * The ArbiterInfo interface allows a component to query the current 
+ * status of an arbiter.  It must be provided by ALL arbiter implementations,
+ * and can be used for a variety of different purposes.  Normally it will be
+ * used in conjunction with the Resource interface for performing run time
+ * checks on access rights to a particular shared resource.
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
  */
 
 interface ArbiterInfo {
   /**
-   * Check whether the resource is currently allocated.
+   * Check whether a resource is currently allocated.
    *
-   * @returns TRUE  If the resource is currently allocated
-   *          FALSE Otherwise.
+   * @return TRUE If the resource being arbitrated is currently allocated
+   *              to any of its users<br>
+   *         FALSE Otherwise.
    */
   async command bool inUse();
 
   /**
-   * Get the id of the client currently using the resource.
+   * Get the id of the client currently using a resource.
    * 
-   * @return id of the current owner of the resource
+   * @return Id of the current owner of the resource<br>
    *         0xFF if no one currently owns the resource
    */
   async command uint8_t userId();
