@@ -1,4 +1,4 @@
-/// $Id: PlatformC.nc,v 1.1.2.1 2006-01-15 23:44:55 scipio Exp $
+/// $Id: PlatformC.nc,v 1.1.2.2 2006-01-26 04:01:22 scipio Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -27,16 +27,20 @@
 includes hardware;
 
 configuration PlatformC {
-  provides interface Init;
+  provides {
+    interface Init;
+    command uint32_t calibrateMicro(uint32_t n);
+  }
   uses interface Init as SubInit;
 }
 implementation
 {
-  components PlatformP, MotePlatformC;
+  components PlatformP, MotePlatformC, MeasureClockC;
   
   Init = PlatformP;
   PlatformP.MoteInit -> MotePlatformC;
   MotePlatformC.SubInit = SubInit;
+  PlatformP.MeasureClock -> MeasureClockC;
 
 }
 
