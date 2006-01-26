@@ -1,4 +1,4 @@
-/* $Id: Atm128AdcConfig.nc,v 1.1.2.3 2006-01-21 01:31:40 idgay Exp $
+/* $Id: Atm128AdcConfig.nc,v 1.1.2.4 2006-01-26 21:39:39 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -8,26 +8,32 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Convert ATmega128 HAL A/D interface to the HIL interfaces.
+ * Clients of the higher-level A/D system must implement this interface to
+ * specify which channel to sample, and with what parameters.
+ *
  * @author David Gay
  */
-/**
- * Configure ADC channels which need a reference voltage and/or a prescaler
- * different from the default of ATM128_ADC_VREF_OFF and ATM128_ADC_PRESCALE
- */
+#include "Atm128Adc.h"
+
 interface Atm128AdcConfig {
   /**
-   * Return the A/D channel to use for this client
+   * Obtain channel.
+   * @return The A/D channel to use. Must be one of the ATM128_ADC_SNGL_xxx
+   *   or ATM128_ADC_DIFF_xxx values from Atm128Adc.h.
    */
   async command uint8_t getChannel();
 
   /**
-   * Return the reference voltage to use for this client
+   * Obtain reference voltage
+   * @return The reference voltage to use. Must be one of the 
+   *   ATM128_ADC_VREF_xxx values from Atm128Adc.h.
    */
   async command uint8_t getRefVoltage();
 
   /**
-   * Return the prescaler value to use for this client
+   * Obtain prescaler value.
+   * @return The prescaler value to use. Must be one of the 
+   *   ATM128_ADC_PRESCALE_xxx values from Atm128Adc.h.
    */
   async command uint8_t getPrescaler();
 }

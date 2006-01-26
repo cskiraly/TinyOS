@@ -1,6 +1,6 @@
-/// $Id: Atm128AdcMultiple.nc,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: Atm128AdcMultiple.nc,v 1.1.2.2 2006-01-26 21:39:39 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -20,12 +20,16 @@
  * ON AN "AS IS" BASIS, AND NEITHER CROSSBOW NOR ANY LICENSOR HAS ANY 
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR 
  * MODIFICATIONS.
+ *
+ * Copyright (c) 2002-2005 Intel Corporation
+ * All rights reserved.
+ *
+ * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * file. If you do not find these files, copies can be found by writing to
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * 94704.  Attention:  Intel License Inquiry.
  */
 
-/// @author Hu Siquan <husq@xbow.com>
-/// @author David Gay
-/// @author Jason Hill
-/// @author Philip Levis
 /**
  * Hardware Abstraction Layer interface of Atmega128 for acquiring data
  * from multiple channels using the ATmega128's free-running mode.
@@ -50,7 +54,13 @@
  *       *newChannel
  *    3. the data passed to the ith dataReady event is for channel Ci-1
  *       (the data from the first dataReady event is ignored)
+ *
+ * @author Hu Siquan <husq@xbow.com>
+ * @author David Gay
  */        
+
+#include "Atm128Adc.h"
+
 interface Atm128AdcMultiple
 {
   /**
