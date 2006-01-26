@@ -19,31 +19,32 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
  *
+ 
+/*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-12-01 04:51:32 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-26 21:44:51 $ 
  * ======================================================================== 
  *
  */
  
  /**
- * ResourceConfigure interface.  
- * Resource arbiters provide this interface and call the 
- * ResourceConfigure.configure() command for a user that has requested the 
- * resource just before granting them access to it. 
- * A resource user can implement this command if it needs to 
- * reconfigure a resource before using it.
+ * Please refer to TEP 108 for more information about this interface and its
+ * intended use.<br><br>
+ * 
+ * This interface is provided by a Resource arbiter in order to allow
+ * users of a shared resource to configure that resource just before being
+ * granted access to it.  It will always be parameterized along side 
+ * a parameterized Resource interface, with the ids from one mapping directly
+ * onto the ids of the other.
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
  */
 
 interface ResourceConfigure {
   /**
-   * Called by a resource arbiter for the user that has 
-   * requested a resource just before granting them access 
-   * to it.
-   * Should be implemented by a resource user in order to 
-   * reconfigure a resource before using it.
+   * Used to configure a resource just before being granted access to it.
+   * Must always be used in conjuntion with the Resource interface.
    */
   async command void configure();
 } 
