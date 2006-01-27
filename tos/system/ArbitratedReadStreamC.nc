@@ -1,4 +1,4 @@
-/* $Id: ArbitratedReadStreamC.nc,v 1.1.2.1 2006-01-21 01:31:41 idgay Exp $
+/* $Id: ArbitratedReadStreamC.nc,v 1.1.2.2 2006-01-27 22:19:17 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -8,8 +8,15 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Implement arbitrated access to an Read interface, based on an
+ * Implement arbitrated access to a Read interface, based on an
  * underlying arbitrated Resource interface.
+ *
+ * Note that this code does not deal with unexpected events: it assumes
+ * that all events it receives are in response to commands that it
+ * made. See tos/chips/atm128/adc for an example of using
+ * ArbitratedReadStreamC in a safe way.
+ *
+ * @param width_t Width of the underlying ReadStream interface.
  *
  * @author David Gay
  */
