@@ -1,5 +1,2 @@
 COMPONENT=RandRWAppC
 include $(MAKERULES)
-
-
-
