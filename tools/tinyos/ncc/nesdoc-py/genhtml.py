@@ -47,6 +47,7 @@ def return_doctag(val):
   return ("returns", val)
   
 register_doctag("param", param_doctag)
+register_doctag("return", return_doctag)
 
 # Generate HTML files, and a global index for all interfaces and components
 # in the specified repository

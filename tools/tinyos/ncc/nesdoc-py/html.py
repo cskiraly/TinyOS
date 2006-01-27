@@ -135,19 +135,21 @@ class Html:
   def pdoc(self, docstr):
     (base, tags) = nd_docstring(docstr)
     self.pln(self.escape_email(base))
-    self.pushln("dl")
-    lasttag = None
-    for (tag, val) in tags:
-      if _doctags.has_key(tag):
-        (tag, val) = _doctags[tag](val)
-      if tag != lasttag:
-        self.tag("dt");
-        self.push("b"); self.pq(capitalize(tag) + ":"); self.pop()
-      self.pushln("dd");
-      self.p(self.escape_email(val))
-      self.popln() #dd
-      lasttag = tag
-    self.popln() #dl
+    if tags:
+      self.tag("p")
+      self.pushln("dl")
+      lasttag = None
+      for (tag, val) in tags:
+        if _doctags.has_key(tag):
+          (tag, val) = _doctags[tag](val)
+        if tag != lasttag:
+          self.tag("dt");
+          self.push("b"); self.pq(capitalize(tag) + ":"); self.pop()
+        self.pushln("dd");
+        self.p(self.escape_email(val))
+        self.popln() #dd
+        lasttag = tag
+      self.popln() #dl
 
   # print a nice fancy heading
   def heading(self, s):
