@@ -1,6 +1,6 @@
-//$Id: MSP430InterruptPort2C.nc,v 1.1.2.2 2005-05-18 17:11:46 jpolastre Exp $
+//$Id: HplMsp430Interrupt.nc,v 1.1.2.1 2006-01-27 23:28:12 jwhui Exp $
 
-/* "Copyright (c) 2000-2005 The Regents of the University of California.  
+/* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -23,31 +23,42 @@
 /**
  * @author Joe Polastre
  */
-configuration MSP430InterruptPort2C
-{
-#ifdef __msp430_have_port2
-  provides interface MSP430Interrupt as Port20;
-  provides interface MSP430Interrupt as Port21;
-  provides interface MSP430Interrupt as Port22;
-  provides interface MSP430Interrupt as Port23;
-  provides interface MSP430Interrupt as Port24;
-  provides interface MSP430Interrupt as Port25;
-  provides interface MSP430Interrupt as Port26;
-  provides interface MSP430Interrupt as Port27;
-#endif
-}
-implementation
-{
-  components MSP430InterruptPort2M as MSP430InterruptM;
 
-#ifdef __msp430_have_port2
-  Port20 = MSP430InterruptM.Port20;
-  Port21 = MSP430InterruptM.Port21;
-  Port22 = MSP430InterruptM.Port22;
-  Port23 = MSP430InterruptM.Port23;
-  Port24 = MSP430InterruptM.Port24;
-  Port25 = MSP430InterruptM.Port25;
-  Port26 = MSP430InterruptM.Port26;
-  Port27 = MSP430InterruptM.Port27;
-#endif
+interface HplMsp430Interrupt
+{
+  /** 
+   * Enables MSP430 hardware interrupt on a particular port.
+   */
+  async command void enable();
+
+  /** 
+   * Disables MSP430 hardware interrupt on a particular port.
+   */
+  async command void disable();
+
+  /** 
+   * Clears the MSP430 Interrupt Pending Flag for a particular port.
+   */
+  async command void clear();
+
+  /** 
+   * Gets the current value of the input voltage of a port.
+   *
+   * @return TRUE if the pin is set high, FALSE if it is set low.
+   */
+  async command bool getValue();
+
+  /** 
+   * Sets whether the edge should be high to low or low to high.
+   *
+   * @param TRUE if the interrupt should be triggered on a low to high
+   *        edge transition, false for interrupts on a high to low transition.
+   */
+  async command void edge(bool low_to_high);
+
+  /**
+   * Signalled when an interrupt occurs on a port.
+   */
+  async event void fired();
 }
+

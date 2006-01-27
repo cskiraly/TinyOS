@@ -1,4 +1,4 @@
-//$Id: MSP430InterruptNMIC.nc,v 1.1.2.2 2005-05-18 17:11:46 jpolastre Exp $
+//$Id: HplMsp430InterruptNMIC.nc,v 1.1.2.1 2006-01-27 23:28:12 jwhui Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -21,19 +21,22 @@
  */
 
 /**
+ * HPL for the TI MSP430 family of microprocessors. This provides an
+ * abstraction for non-maskable interrupts.
+ *
  * @author Joe Polastre
  */
-configuration MSP430InterruptNMIC
+configuration HplMsp430InterruptNMIC
 {
-  provides interface MSP430Interrupt as NMI;
-  provides interface MSP430Interrupt as OF;
-  provides interface MSP430Interrupt as ACCV;
+  provides interface HplMsp430Interrupt as NMI;
+  provides interface HplMsp430Interrupt as OF;
+  provides interface HplMsp430Interrupt as ACCV;
 }
 implementation
 {
-  components MSP430InterruptNMIM as MSP430InterruptM;
+  components HplMsp430InterruptNMIP as HplInterruptP;
 
-  NMI = MSP430InterruptM.NMI;
-  OF = MSP430InterruptM.OF;
-  ACCV = MSP430InterruptM.ACCV;
+  NMI = HplInterruptP.NMI;
+  OF = HplInterruptP.OF;
+  ACCV = HplInterruptP.ACCV;
 }

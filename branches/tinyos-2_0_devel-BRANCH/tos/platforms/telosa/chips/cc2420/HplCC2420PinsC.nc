@@ -48,22 +48,22 @@ configuration HplCC2420PinsC {
 
 implementation {
 
-  components MSP430GeneralIOC;
-  components new GpioC() as CCAM;
-  components new GpioC() as CSNM;
-  components new GpioC() as FIFOM;
-  components new GpioC() as FIFOPM;
-  components new GpioC() as RSTNM;
-  components new GpioC() as SFDM;
-  components new GpioC() as VRENM;
+  components HplMsp430GeneralIOC as GeneralIOC;
+  components new Msp430GpioC() as CCAM;
+  components new Msp430GpioC() as CSNM;
+  components new Msp430GpioC() as FIFOM;
+  components new Msp430GpioC() as FIFOPM;
+  components new Msp430GpioC() as RSTNM;
+  components new Msp430GpioC() as SFDM;
+  components new Msp430GpioC() as VRENM;
 
-  CCAM -> MSP430GeneralIOC.Port14;
-  CSNM -> MSP430GeneralIOC.Port42;
-  FIFOM -> MSP430GeneralIOC.Port13;
-  FIFOPM -> MSP430GeneralIOC.Port10;
-  RSTNM -> MSP430GeneralIOC.Port46;
-  SFDM -> MSP430GeneralIOC.Port41;
-  VRENM -> MSP430GeneralIOC.Port45;
+  CCAM -> GeneralIOC.Port14;
+  CSNM -> GeneralIOC.Port42;
+  FIFOM -> GeneralIOC.Port13;
+  FIFOPM -> GeneralIOC.Port10;
+  RSTNM -> GeneralIOC.Port46;
+  SFDM -> GeneralIOC.Port41;
+  VRENM -> GeneralIOC.Port45;
 
   CCA = CCAM;
   CSN = CSNM;
@@ -72,6 +72,6 @@ implementation {
   RSTN = RSTNM;
   SFD = SFDM;
   VREN = VRENM;
-
+  
 }
 

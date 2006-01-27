@@ -1,4 +1,4 @@
-//$Id: MSP430InterruptNMIM.nc,v 1.1.2.1 2005-03-15 23:26:48 jpolastre Exp $
+//$Id: HplMsp430InterruptNMIP.nc,v 1.1.2.1 2006-01-27 23:28:12 jwhui Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -23,11 +23,11 @@
 /**
  * @author Joe Polastre
  */
-module MSP430InterruptNMIM
+module HplMsp430InterruptNMIP
 {
-  provides interface MSP430Interrupt as NMI;
-  provides interface MSP430Interrupt as OF;
-  provides interface MSP430Interrupt as ACCV;
+  provides interface HplMsp430Interrupt as NMI;
+  provides interface HplMsp430Interrupt as OF;
+  provides interface HplMsp430Interrupt as ACCV;
 }
 implementation
 {
