@@ -1,6 +1,6 @@
-/// $Id: HplAtm128Timer1P.nc,v 1.1.2.2 2006-01-20 16:47:33 idgay Exp $
+/// $Id: HplAtm128Timer1P.nc,v 1.1.2.3 2006-01-27 17:56:06 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,7 +22,11 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+/**
+ * Internal component of the HPL interface to Atmega128 timer 1.
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ */
 
 #include <Atm128Timer.h>
 

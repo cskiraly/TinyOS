@@ -1,4 +1,4 @@
-// $Id: At45dbP.nc,v 1.1.2.1 2006-01-17 19:03:16 idgay Exp $
+// $Id: At45dbP.nc,v 1.1.2.2 2006-01-27 17:56:05 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -32,6 +32,12 @@
 #include "crc.h"
 #include "At45db.h"
 #include "Timer.h"
+
+/**
+ * Private componenent for the Atmel's AT45DB HAL.
+ *
+ * @author David Gay
+ */
 
 module At45dbP {
   provides {

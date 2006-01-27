@@ -1,6 +1,6 @@
-/// $Id: HplAtm128Capture.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $
+/// $Id: HplAtm128Capture.nc,v 1.1.2.2 2006-01-27 17:56:06 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,7 +22,12 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+/**
+ * HPL Interface to Atmega128 capture capabilities.
+ * @param size_type Integer type of capture register
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ */
 
 interface HplAtm128Capture<size_type>
 {
@@ -42,4 +47,3 @@ interface HplAtm128Capture<size_type>
 
   async command void setEdge(bool up); //<! True = detect rising edge
 }
-

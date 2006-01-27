@@ -1,6 +1,6 @@
-/// $Id: Atm128TimerInitC.nc,v 1.1.2.1 2006-01-20 16:47:33 idgay Exp $
+/// $Id: Atm128TimerInitC.nc,v 1.1.2.2 2006-01-27 17:56:06 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,8 +22,15 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
-/// @author David Gay <david.e.gay@intel.com>
+/**
+ * Initialise an Atmega128 timer to a particular prescaler. Expected to be
+ * used at boot time.
+ * @param timer_size Integer type of the timer
+ * @param prescaler Desired prescaler value
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ * @author David Gay <david.e.gay@intel.com>
+ */
 
 generic module Atm128TimerInitC(typedef timer_size @integer(), uint8_t prescaler)
 {

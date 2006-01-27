@@ -1,6 +1,6 @@
-/// $Id: Atm128AlarmC.nc,v 1.1.2.5 2006-01-20 16:47:33 idgay Exp $
+/// $Id: Atm128AlarmC.nc,v 1.1.2.6 2006-01-27 17:56:06 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,8 +22,22 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
-/// @author David Gay <david.e.gay@intel.com>
+/**
+ * Build a TEP102 Alarm from an Atmega128 hardware timer and one of its
+ * compare registers.
+ * @param frequency_tag The frequency tag for this Alarm
+ * @param timer_size The width of this Alarm
+ * @param mindt The shortest time in the future this Alarm can be set
+ *   (in its own time units). Has to be at least 2, as setting a compare
+ *   register one above the current counter value is unreliable. Has to be
+ *   large enough that the Alarm time does not pass between the computation
+ *   of <code>expires</code> and actually setting the compare register.
+ *   Check this (for high-frequency timers) by inspecting the generated
+ *   assembly code...
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ * @author David Gay <david.e.gay@intel.com>
+ */
 
 generic module Atm128AlarmC(typedef frequency_tag, 
 			    typedef timer_size @integer(),
