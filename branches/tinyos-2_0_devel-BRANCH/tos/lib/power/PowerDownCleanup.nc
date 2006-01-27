@@ -19,25 +19,35 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
  *
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-12-06 22:53:04 $ 
- * ======================================================================== 
- *
  */
  
- /**
- * PowerDownCleanup interface
+/*
+ * - Revision -------------------------------------------------------------
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-27 02:38:05 $ 
+ * ======================================================================== 
+ */
+ 
+/**
+ * Please refer to TEP 115 for more information about this interface and its
+ * intended use.<br><br>
+ *
+ * This interface exists to allow a Resource user to cleanup any state
+ * information before a shared Resource is shutdown.  It should be provided
+ * by the user of a shared Resource, and used by the
+ * power managment component for that Resource.  The <code>cleanup()</code>
+ * command will be called by the power manager just before powering down
+ * the shared resource.
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
  */
 
 interface PowerDownCleanup {
   /**
-   * Implemented by a resource provider that is connected to a
-   * PowerManager component implementing automatic shutdown
+   * This command will be called by the power management component of
+   * a shared Resource.  The implementation of this command defines
+   * what must be done just before that shared Resource is shut off.
    *
-   * Should run any cleanup code for the resource before powering down
    */
   async command void cleanup();
 } 
