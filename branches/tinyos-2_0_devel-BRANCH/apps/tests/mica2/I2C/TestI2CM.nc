@@ -24,7 +24,7 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: TestI2CM.nc,v 1.1.1.1 2005-11-05 16:38:03 kristinwright Exp $
+ *  $Id: TestI2CM.nc,v 1.1.1.1.2.1 2006-01-27 22:20:33 mturon Exp $
  */
 
 /**
@@ -51,7 +51,7 @@ module TestI2CM
   uses interface Timer<TMilli> as Timer0;
   uses interface Leds;
   uses interface Boot;
-  uses interface HplI2CBus    as I2C;
+  uses interface HplAtm128I2CBus    as I2C;
 }
 implementation
 {
