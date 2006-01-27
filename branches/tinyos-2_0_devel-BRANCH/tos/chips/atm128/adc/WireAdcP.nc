@@ -1,4 +1,4 @@
-/* $Id: AdcC.nc,v 1.1.2.6 2006-01-25 01:32:46 idgay Exp $
+/* $Id: WireAdcP.nc,v 1.1.2.1 2006-01-27 19:35:31 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -8,17 +8,14 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * HIL A/D converter interface (TEP101).  Clients must use the Resource
- * interface to allocate the A/D before use (see TEP108).  
+ * Support component for AdcReadClientC and AdcReadNowClientC.
  *
  * @author David Gay
  */
 
-#include "Adc.h"
-
-configuration AdcC {
+configuration WireAdcP {
   provides {
-    interface Read<uint16_t>[uint8_t client];
+    interface Read<uint16_t>[uint8_t client]; 
     interface ReadNow<uint16_t>[uint8_t client];
   }
   uses {
@@ -28,17 +25,13 @@ configuration AdcC {
 }
 implementation {
   components Atm128AdcC, AdcP,
-    new ArbitratedReadC(uint16_t) as ArbitrateRead,
-    new ArbitratedReadNowC(uint16_t) as ArbitrateReadNow;
+    new ArbitratedReadC(uint16_t) as ArbitrateRead;
 
-  Resource = ArbitrateRead.Resource;
-  Resource = ArbitrateReadNow.Resource;
   Read = ArbitrateRead;
-  ReadNow = ArbitrateReadNow;
+  ReadNow = AdcP;
+  Resource = ArbitrateRead.Resource;
   Atm128AdcConfig = AdcP;
 
-  ArbitrateRead.Service -> AdcP;
-  ArbitrateReadNow.Service -> AdcP;
-
+  ArbitrateRead.Service -> AdcP.Read;
   AdcP.Atm128AdcSingle -> Atm128AdcC;
 }
