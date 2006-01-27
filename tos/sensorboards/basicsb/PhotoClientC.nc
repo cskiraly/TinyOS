@@ -1,5 +1,5 @@
-/* $Id: PhotoClientC.nc,v 1.1.2.1 2006-01-25 01:32:46 idgay Exp $
- * Copyright (c) 2005 Intel Corporation
+/* $Id: PhotoClientC.nc,v 1.1.2.2 2006-01-27 19:53:15 idgay Exp $
+ * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -8,8 +8,7 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Provide arbitrated access to the Read interface of the AdcC
- * component for a particular port.
+ * Photodiode of the basicsb sensor board.
  * 
  * @author David Gay
  */
@@ -18,32 +17,27 @@
 
 generic configuration PhotoClientC() {
   provides interface Read<uint16_t>;
-  provides interface ReadNow<uint16_t>;
   provides interface ReadStream<uint16_t>;
 }
 implementation {
   components PhotoP, PhotoDeviceArbiterP,
     new AdcReadClientC() as ReadG,
-    new AdcReadNowClientC() as ReadNowG,
     new AdcReadStreamClientC() as ReadStreamG;
 
   enum {
-    ID = unique(UQ_TEMPDEVICE),
-    ID_FOR_STREAM = unique(UQ_TEMPDEVICE),
-    STREAM_ID = unique(UQ_TEMPDEVICE_STREAM)
+    ID = unique(UQ_PHOTODEVICE),
+    ID_FOR_STREAM = unique(UQ_PHOTODEVICE),
+    STREAM_ID = unique(UQ_PHOTODEVICE_STREAM)
   };
 
   Read = PhotoDeviceArbiterP.Read[ID];
-  ReadNow = PhotoDeviceArbiterP.ReadNow[ID];
   ReadStream = PhotoDeviceArbiterP.ReadStream[STREAM_ID];
   
   PhotoDeviceArbiterP.ActualRead[ID] -> ReadG;
-  PhotoDeviceArbiterP.ActualReadNow[ID] -> ReadNowG;
   PhotoDeviceArbiterP.ActualReadStream[STREAM_ID] -> ReadStreamG;
   PhotoDeviceArbiterP.ReadResource[ID] -> PhotoDeviceArbiterP.Resource[ID];
   PhotoDeviceArbiterP.StreamResource[STREAM_ID] -> PhotoDeviceArbiterP.Resource[ID_FOR_STREAM];
 
   ReadG.Atm128AdcConfig -> PhotoP;
-  ReadNowG.Atm128AdcConfig -> PhotoP;
   ReadStreamG.Atm128AdcConfig -> PhotoP;
 }

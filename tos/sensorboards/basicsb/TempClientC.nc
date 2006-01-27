@@ -1,4 +1,4 @@
-/* $Id: TempClientC.nc,v 1.1.2.1 2006-01-25 01:32:46 idgay Exp $
+/* $Id: TempClientC.nc,v 1.1.2.2 2006-01-27 19:53:15 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -8,8 +8,7 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Provide arbitrated access to the Read interface of the AdcC
- * component for a particular port.
+ * Thermistor of the basicsb sensor board.
  * 
  * @author David Gay
  */
@@ -18,13 +17,11 @@
 
 generic configuration TempClientC() {
   provides interface Read<uint16_t>;
-  provides interface ReadNow<uint16_t>;
   provides interface ReadStream<uint16_t>;
 }
 implementation {
   components TempP, TempDeviceArbiterP,
     new AdcReadClientC() as ReadG,
-    new AdcReadNowClientC() as ReadNowG,
     new AdcReadStreamClientC() as ReadStreamG;
 
   enum {
@@ -34,16 +31,13 @@ implementation {
   };
 
   Read = TempDeviceArbiterP.Read[ID];
-  ReadNow = TempDeviceArbiterP.ReadNow[ID];
   ReadStream = TempDeviceArbiterP.ReadStream[STREAM_ID];
   
   TempDeviceArbiterP.ActualRead[ID] -> ReadG;
-  TempDeviceArbiterP.ActualReadNow[ID] -> ReadNowG;
   TempDeviceArbiterP.ActualReadStream[STREAM_ID] -> ReadStreamG;
   TempDeviceArbiterP.ReadResource[ID] -> TempDeviceArbiterP.Resource[ID];
   TempDeviceArbiterP.StreamResource[STREAM_ID] -> TempDeviceArbiterP.Resource[ID_FOR_STREAM];
 
   ReadG.Atm128AdcConfig -> TempP;
-  ReadNowG.Atm128AdcConfig -> TempP;
   ReadStreamG.Atm128AdcConfig -> TempP;
 }
