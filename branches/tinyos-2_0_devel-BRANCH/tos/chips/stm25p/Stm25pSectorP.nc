@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
 
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-20 01:07:24 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-27 06:56:19 $
  */
 
 includes Stm25p;
@@ -156,7 +156,7 @@ implementation {
   }
 
   async event void Spi.readDone( stm25p_addr_t addr, uint8_t* buf, 
-				 uint16_t len, error_t error ) {
+				 stm25p_len_t len, error_t error ) {
     signalDone( error );
   }
 

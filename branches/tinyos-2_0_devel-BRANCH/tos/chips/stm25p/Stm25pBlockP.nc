@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
 
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-20 01:07:24 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-27 06:56:19 $
  */
 
 module Stm25pBlockP {
@@ -104,7 +104,7 @@ implementation {
   
   command error_t Write.write[ storage_block_t b ]( storage_addr_t addr, 
 						    void* buf, 
-						    storage_len_t len ) {
+						    uint16_t len ) {
     m_req.req = S_WRITE;
     m_req.addr = addr;
     m_req.buf = buf;
@@ -161,16 +161,16 @@ implementation {
 
   }
   
-  event void Sector.readDone[ storage_block_t b ]( storage_addr_t addr, 
+  event void Sector.readDone[ storage_block_t b ]( stm25p_addr_t addr, 
 						   uint8_t* buf, 
-						   storage_len_t len, 
+						   stm25p_len_t len, 
 						   error_t error ) {
     signalDone( b, 0, error );
   }
   
-  event void Sector.writeDone[ storage_block_t b ]( storage_addr_t addr, 
+  event void Sector.writeDone[ storage_block_t b ]( stm25p_addr_t addr, 
 						    uint8_t* buf, 
-						    storage_len_t len, 
+						    stm25p_len_t len, 
 						    error_t error ) {
     signalDone( b, 0, error );
   }
@@ -181,8 +181,8 @@ implementation {
     signalDone( b, 0, error );
   }
   
-  event void Sector.computeCrcDone[ storage_block_t b ]( storage_addr_t addr, 
-							 storage_len_t len,
+  event void Sector.computeCrcDone[ storage_block_t b ]( stm25p_addr_t addr, 
+							 stm25p_len_t len,
 							 uint16_t crc,
 							 error_t error ) {
     signalDone( b, crc, error );
@@ -224,17 +224,17 @@ implementation {
 
   }
 
-  default event void Read.readDone[ storage_block_t b ]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {}
+  default event void Read.readDone[ storage_block_t b ]( storage_addr_t addr, void* buf, uint16_t len, error_t error ) {}
   default event void Read.computeCrcDone[ storage_block_t b ]( storage_addr_t addr, storage_len_t len, uint16_t crc, error_t error ) {}
   default event void Read.verifyDone[ storage_block_t b ]( error_t error ) {}
-  default event void Write.writeDone[ storage_block_t b ]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {}
+  default event void Write.writeDone[ storage_block_t b ]( storage_addr_t addr, void* buf, uint16_t len, error_t error ) {}
   default event void Write.eraseDone[ storage_block_t b ]( error_t error ) {}
   default event void Write.commitDone[ storage_block_t b ]( error_t error ) {}
 
   default command storage_addr_t Sector.getPhysicalAddress[ storage_block_t b ]( storage_addr_t addr ) { return 0xffffffff; }
   default command uint8_t Sector.getNumSectors[ storage_block_t b ]() { return 0; }
-  default command error_t Sector.read[ storage_block_t b ]( storage_addr_t addr, uint8_t* buf, storage_len_t len ) { return FAIL; }
-  default command error_t Sector.write[ storage_block_t b ]( storage_addr_t addr, uint8_t* buf, storage_len_t len ) { return FAIL; }
+  default command error_t Sector.read[ storage_block_t b ]( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len ) { return FAIL; }
+  default command error_t Sector.write[ storage_block_t b ]( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len ) { return FAIL; }
   default command error_t Sector.erase[ storage_block_t b ]( uint8_t sector, uint8_t num_sectors ) { return FAIL; }
   default command error_t Sector.computeCrc[ storage_block_t b ]( uint16_t crc, storage_addr_t addr, storage_len_t len ) { return FAIL; }
   default async command error_t ClientResource.request[ storage_block_t b ]() { return FAIL; }
