@@ -29,31 +29,24 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
 
-/** 
- * DemoSensorC is a generic sensor device that provides a 16-bit
- * value. The platform author chooses which sensor actually sits
- * behind DemoSensorC, and though it's probably Voltage, Light, or
- * Temperature, there are no guarantees.
+/**
+ * VoltageC is a common name for the Msp430InternalVoltageC voltage
+ * sensor available on the telosb platform.
  *
- * This particular DemoSensorC on the telosb platform provides a
- * voltage reading, using VoltageC. 
- *
- * To convert from ADC counts to actual voltage, divide this reading
- * by 4096 and multiply by 3.
+ * To convert from ADC counts to actual voltage, divide by 4096 and
+ * multiply by 3.
  *
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-01-27 23:53:40 $
- * 
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-01-27 23:53:40 $
  */
 
-generic configuration DemoSensorC()
-{
+generic configuration VoltageC() {
   provides interface Read<uint16_t>;
   provides interface ReadStream<uint16_t>;
 }
-implementation
-{
-  components new VoltageC() as DemoSensor;
-  Read = DemoSensor;
-  ReadStream = DemoSensor;
+implementation {
+  components new Msp430InternalVoltageC();
+  Read = Msp430InternalVoltageC.Read;
+  ReadStream = Msp430InternalVoltageC.ReadStream;
 }
+
