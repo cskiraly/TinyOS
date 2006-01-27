@@ -1,6 +1,6 @@
-/// $Id: HplAtm128Timer.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $
+/// $Id: HplAtm128Timer.nc,v 1.1.2.2 2006-01-27 17:56:06 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
