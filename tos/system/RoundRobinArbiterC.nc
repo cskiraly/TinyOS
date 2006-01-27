@@ -1,4 +1,26 @@
 /*
+ * "Copyright (c) 2005 Washington University in St. Louis.
+ * All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation for any purpose, without fee, and without written agreement is
+ * hereby granted, provided that the above copyright notice, the following
+ * two paragraphs and the author appear in all copies of this software.
+ *
+ * IN NO EVENT SHALL WASHINGTON UNIVERSITY IN ST. LOUIS BE LIABLE TO ANY PARTY 
+ * FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING 
+ * OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF WASHINGTON 
+ * UNIVERSITY IN ST. LOUIS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * WASHINGTON UNIVERSITY IN ST. LOUIS SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND WASHINGTON UNIVERSITY IN ST. LOUIS HAS NO 
+ * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
+ * MODIFICATIONS."
+ */
+ 
+/*
  * Copyright (c) 2004, Technische Universitat Berlin
  * All rights reserved.
  *
@@ -25,24 +47,33 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+/*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.9 $
- * $Date: 2006-01-25 01:32:46 $ 
+ * $Revision: 1.1.2.10 $
+ * $Date: 2006-01-27 03:40:40 $ 
  * ======================================================================== 
  */
  
- /**
- * RoundRobinArbiter generic module
- * The RoundRobinArbiter component provides the Resource and Arbiter 
- * interfaces.  It provides arbitration to a shared resource in a round 
- * robin fashion.  An array keeps track of which users have put in 
- * requests for the resource.  Upon the release of the resource, this
- * array is checked and the next user (in round robin order) that has 
- * a pending request will ge granted the resource.  If there are no 
- * pending reequests, then the resource is released and any user can 
- * put in a request and immediately receive access to the bus.
+/**
+ * Please refer to TEP 108 for more information about this component and its
+ * intended use.<br><br>
+ *
+ * This component provides the Resource, ArbiterInfo, and Resource Controller
+ * interfaces and uses the ResourceConfigure interface as described in TEP 108.
+ * It provides arbitration to a shared resource in a round robin fashion.  An array
+ * is used to keep track of which users have put in requests for the resource.
+ * Upon the release of the resource by one of these users, the array is checked
+ * and the next user (in round robin order) that has a pending request will ge granted
+ * control of the resource.  If there are no pending requests, then the resource
+ * becomes idle and any user can put in a request and immediately receive access to the
+round robin order * Resource.
+ *
+ * @param <b>resourceName</b> -- The name of the Resource being shared
  * 
- * @author Kevin Klues <klues@tkn.tu-berlin.de>
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
+ * @author Philip Levis
  */
  
 generic module RoundRobinArbiterC(char resourceName[]) {

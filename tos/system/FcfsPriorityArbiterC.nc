@@ -1,4 +1,26 @@
 /*
+ * "Copyright (c) 2005 Washington University in St. Louis.
+ * All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation for any purpose, without fee, and without written agreement is
+ * hereby granted, provided that the above copyright notice, the following
+ * two paragraphs and the author appear in all copies of this software.
+ *
+ * IN NO EVENT SHALL WASHINGTON UNIVERSITY IN ST. LOUIS BE LIABLE TO ANY PARTY 
+ * FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING 
+ * OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF WASHINGTON 
+ * UNIVERSITY IN ST. LOUIS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * WASHINGTON UNIVERSITY IN ST. LOUIS SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND WASHINGTON UNIVERSITY IN ST. LOUIS HAS NO 
+ * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
+ * MODIFICATIONS."
+ */
+ 
+/*
  * Copyright (c) 2004, Technische Universitat Berlin
  * All rights reserved.
  *
@@ -9,7 +31,7 @@
  *   this list of conditions and the following disclaimer.
  * - Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
-//  *   documentation and/or other materials provided with the distribution.
+ *   documentation and/or other materials provided with the distribution.
  * - Neither the name of the Technische Universitat Berlin nor the names
  *   of its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
@@ -25,33 +47,36 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+/*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-20 20:12:16 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-27 03:40:40 $ 
  * ======================================================================== 
  */
  
- /**
- * FcfsPriorityArbiter generic module
- * The FcfsPriorityArbiter component provides the Resource and Arbiter 
- * interfaces.  It provides arbitration to a shared resource on a first 
- * come first served basis.  An array keeps track of which users have put in 
- * requests for the resource.  Upon the release of the resource, this
- * array is checked and the next user (in FCFS order) that has 
- * a pending request will ge granted the resource if there is no request 
- * from the highest priority user. If the highest priority user requested 
- * the resource it is always served after a release.
- * If there are no pending requests, then the resource is released and any 
- * user can put in a request and immediately receive access to the bus.
+/**
+ * Please refer to TEP 108 for more information about this component and its
+ * intended use.<br><br>
  *
- * The code for implementing the FCFS scheme has been borrowed from the 
- * SchedulerBasic component written by Philip Levis and Cory Sharp
+ * This component provides the Resource, ArbiterInfo, and Resource Controller
+ * interfaces and uses the ResourceConfigure interface as described in TEP 108.
+ * An additional ResourceController interface is provided to allow clients of
+ * differing Priorities to control the Resource according to some policy implemented
+ * in an external component. This component provides arbitration to a shared resource in an
+ * FCFS fashion.  An array is used to keep track of which users have put in requests
+ * for the resource.  Upon the release of the resource by one of these users, the
+ * array is checked and the next user (in first-come first-served order) that has a
+ * pending request will ge granted control of the resource.  If there are no pending
+ * requests, then the resource becomes idle and any user can put in a request and
+ * immediately receive access to the Resource.
  *
+ * @param <b>resourceName</b> -- The name of the Resource being shared
  * 
- *
- * @author Kevin Klues <klueska@cs.wustl.edu>
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * @author Philip Levis
- * @author Philipp Huppertz
+ * @author Philipp Huppertz 
  */
  
 generic module FcfsPriorityArbiterC(char resourceName[]) {
