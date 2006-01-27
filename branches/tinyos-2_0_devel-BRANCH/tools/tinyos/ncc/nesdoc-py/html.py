@@ -13,6 +13,11 @@ from string import *
 from nesdoc.generators import *
 from re import search
 
+_doctags = {}
+
+def register_doctag(name, handler):
+  _doctags[name] = handler
+
 class Html:
   # create a new HTML output file in filename
   def __init__(self, filename):
@@ -127,15 +132,14 @@ class Html:
     return s
 
   # print a nesdoc string. @ entries go in a table
-  # TODO:
-  #  - recognise email addresses
-  #  - support special processing for some tags (param at least)
   def pdoc(self, docstr):
     (base, tags) = nd_docstring(docstr)
     self.pln(self.escape_email(base))
     self.pushln("dl")
     lasttag = None
     for (tag, val) in tags:
+      if _doctags.has_key(tag):
+        (tag, val) = _doctags[tag](val)
       if tag != lasttag:
         self.tag("dt");
         self.push("b"); self.pq(capitalize(tag) + ":"); self.pop()
