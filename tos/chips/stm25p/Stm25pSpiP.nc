@@ -30,8 +30,8 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
 
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-20 01:07:25 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-27 06:56:19 $
  */
 
 includes crc;
@@ -180,7 +180,7 @@ implementation {
   }
 
   async event void SPIPacket.sendDone( uint8_t* tx_buf, uint8_t* rx_buf,
-				       stm25p_len_t len, error_t error ) {
+				       uint16_t len, error_t error ) {
 
     int i;
 
