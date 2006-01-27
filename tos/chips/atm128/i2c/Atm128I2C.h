@@ -1,6 +1,6 @@
-/// $Id: Atm128I2C.h,v 1.1.2.1 2005-09-13 06:25:07 mturon Exp $
+/// $Id: Atm128I2C.h,v 1.1.2.2 2006-01-27 22:19:34 mturon Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its

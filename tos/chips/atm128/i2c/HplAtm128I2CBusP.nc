@@ -1,4 +1,6 @@
-/**
+/// $Id: HplAtm128I2CBusP.nc,v 1.1.2.1 2006-01-27 22:19:36 mturon Exp $
+
+/*
  *  Copyright (c) 2004-2005 Crossbow Technology, Inc.
  *  All rights reserved.
  *
@@ -21,10 +23,6 @@
  *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  *  THE POSSIBILITY OF SUCH DAMAGE.
- *
- *  @author Martin Turon <mturon@xbow.com>
- *
- *  $Id: HplI2CBusP.nc,v 1.1.2.1 2006-01-22 07:01:35 mturon Exp $
  */
 
 #define I2C_TIMEOUT 30000
@@ -37,6 +35,8 @@
  * controller for the ATmega128 via a Hardware Platform Layer (HPL) to its  
  * two-wire-interface (TWI) hardware subsystem.
  *
+ * @author Martin Turon <mturon@xbow.com>
+ *
  * @version    2005/9/11    mturon     Initial version
  */
 module HplI2CBusP
@@ -44,21 +44,21 @@ module HplI2CBusP
     provides interface HplI2CBus as I2C;
 
     uses {
-	    interface Leds;
-	    interface BusyWait<TMicro,uint16_t> as uWait;
-		interface GeneralIO as I2CClk;
-		interface GeneralIO as I2CData;
+        interface Leds;
+	interface BusyWait<TMicro,uint16_t> as uWait;
+	interface GeneralIO as I2CClk;
+	interface GeneralIO as I2CData;
     }
 }
 implementation {
 
   command void I2C.init() {
       // Set the internal pullup resisters
-	  call I2CClk.makeOutput();
+      call I2CClk.makeOutput();
       call I2CData.makeOutput();
-	  call I2CClk.set();
+      call I2CClk.set();
       call I2CData.set();
-
+      
       TWSR = 0;                             // set prescaler == 0
       TWBR = (F_CPU / 100000UL - 16) / 2;   // set I2C baud rate
       // TWBR = 50;
@@ -66,7 +66,7 @@ implementation {
 
   /** Send START symbol and begin I2C bus transaction. */
   command void I2C.begin() {
-	  //TWCR = 1<<TWIE | 1<<TWEN | 1<<TWSTA | 1<<TWINT ;
+      //TWCR = 1<<TWIE | 1<<TWEN | 1<<TWSTA | 1<<TWINT ;
       Atm128I2CControl_t ctrl;
       ctrl.bits = (Atm128I2CControl_s) { twen : 1, twint : 1, twsta : 1, twie : 1 };
       call I2C.setControl(ctrl);      
