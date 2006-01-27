@@ -16,6 +16,7 @@ push( @includes, qw(
   %T/chips/msp430/pins
   %T/chips/msp430/timer
   %T/chips/msp430/usart
+  %T/chips/msp430/sensors
   %T/chips/stm25p
   %T/lib/timer
   %T/lib/serial
