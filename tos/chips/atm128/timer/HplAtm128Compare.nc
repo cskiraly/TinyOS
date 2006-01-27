@@ -1,4 +1,4 @@
-/// $Id: HplAtm128Compare.nc,v 1.1.2.2 2006-01-27 17:56:06 idgay Exp $
+/// $Id: HplAtm128Compare.nc,v 1.1.2.3 2006-01-27 21:40:07 mturon Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -31,18 +31,43 @@
 
 interface HplAtm128Compare<size_type>
 {
-  /// Compare value register: Direct access
+  // ==== Compare value register: Direct access ======================
+  /** 
+   * Get the compare time to fire on.
+   * @return  the compare time value
+   */
   async command size_type get();
-  async command void      set(size_type t);
 
-  /// Interrupt signals
+  /** 
+   * Set the compare time to fire on.
+   * @param t     the compare time to set
+   */
+  async command void set(size_type t);
+
+  // ==== Interrupt signals ==========================================
+  /** Signalled on  interrupt. */
   async event void fired();           //<! Signalled on compare interrupt
 
-  /// Interrupt flag utilites: Bit level set/clr
-  async command void reset();         //<! Clear the compare interrupt flag
-  async command void start();         //<! Enable the compare interrupt
-  async command void stop();          //<! Turn off comparee interrupts
-  async command bool test();          //<! Did compare interrupt occur?
-  async command bool isOn();          //<! Is compare interrupt on?
+  // ==== Interrupt flag utilites: Bit level set/clr =================
+  /** Clear the compare interrupt flag. */
+  async command void reset();         
+
+  /** Enable the compare interrupt. */
+  async command void start();         
+
+  /** Turn off comparee interrupts. */
+  async command void stop();          
+
+  /** 
+   * Did compare interrupt occur? 
+   * @return TRUE if compare triggered, FALSE otherwise
+   */
+  async command bool test();          
+
+  /** 
+   * Is compare interrupt on?
+   * @return TRUE if compare enabled, FALSE otherwise
+   */
+  async command bool isOn();
 }
 
