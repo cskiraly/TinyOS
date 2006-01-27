@@ -1,4 +1,4 @@
-/// $Id: Atm128AdcMultiple.nc,v 1.1.2.2 2006-01-26 21:39:39 idgay Exp $
+/// $Id: Atm128AdcMultiple.nc,v 1.1.2.3 2006-01-27 23:44:37 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -33,27 +33,31 @@
 /**
  * Hardware Abstraction Layer interface of Atmega128 for acquiring data
  * from multiple channels using the ATmega128's free-running mode.
- *
+ * <p>
  * Because of the possibility that samples may be imprecise after 
  * switching channels and/or reference voltages, and because there
  * is a one sample delay on swithcing channels and reference voltages,
  * Atm128ADCMultiple is complex. Two straightforward uses are:
- *
- * A) Acquire N samples from channel C:
- *    1. call getData to start sampling on channel C at the desired rate
+ * <ol type="A">
+ * <li>Acquire N samples from channel C:
+ *    <ol>
+ *    <li>call getData to start sampling on channel C at the desired rate
  *       (note that the choice of prescalers is very limited, so you
  *       don't have many choices for sampling rate)
- *    2. ignore the first dataReady event
- *    3. use the results of the next N dataReady() events, return FALSE
+ *    <li>ignore the first dataReady event
+ *    <li>use the results of the next N dataReady() events, return FALSE
  *       on the last one
- *
- * B) Acquire one sample each from channels C1, ..., Cn (this pseudocode
+ *    </ol>
+ * <li>Acquire one sample each from channels C1, ..., Cn (this pseudocode
  *    assumes that none of these channels are differential)
- *    1. call getData to start sampling on channel C1
- *    2. on the ith dataReady event switch to channel Ci+1 by changing
+ *    <ol>
+ *    <li>call getData to start sampling on channel C1
+ *    <li>on the ith dataReady event switch to channel Ci+1 by changing
  *       *newChannel
- *    3. the data passed to the ith dataReady event is for channel Ci-1
+ *    <li>the data passed to the ith dataReady event is for channel Ci-1
  *       (the data from the first dataReady event is ignored)
+ *    </ol>
+ * </ol>
  *
  * @author Hu Siquan <husq@xbow.com>
  * @author David Gay

@@ -28,9 +28,25 @@ from nesdoc.components import generate_component
 from nesdoc.graph import generate_graph
 from nesdoc.index import generate_indices
 from sys import *
-from re import search
+from re import search, compile
 from shutil import copyfile
 import os
+from nesdoc.html import *
+
+param_pattern = compile("^\s*([a-zA-Z0-9_]+)")
+
+# Print @param doc tags as Parameters:, and put parameter name as <code>
+def param_doctag(val):
+  name = param_pattern.search(val)
+  if name:
+    val = "<code>" + name.group(1) + "</code> - " + val[name.end():]
+  return ("parameters", val)
+
+# Print @return tags as Returns:
+def return_doctag(val):
+  return ("returns", val)
+  
+register_doctag("param", param_doctag)
 
 # Generate HTML files, and a global index for all interfaces and components
 # in the specified repository
