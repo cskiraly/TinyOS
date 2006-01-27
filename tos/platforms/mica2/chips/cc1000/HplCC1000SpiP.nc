@@ -1,4 +1,4 @@
-// $Id: HplCC1000SpiP.nc,v 1.1.2.2 2006-01-27 18:46:00 idgay Exp $
+// $Id: HplCC1000SpiP.nc,v 1.1.2.3 2006-01-27 22:04:28 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -28,14 +28,10 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
-
-/* 
- * Authors: Jaein Jeong, Philip buonadonna
- * Date last modified: $Revision: 1.1.2.2 $
- *
- */
-
 /**
+ * Low-level functions to access the CC1000 bus. Built using the mica2
+ * hardware SPI.
+ *
  * @author Jaein Jeong
  * @author Philip buonadonna
  */

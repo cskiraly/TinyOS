@@ -1,4 +1,4 @@
-/// $Id: VoltageP.nc,v 1.1.2.3 2006-01-21 01:31:40 idgay Exp $
+/// $Id: VoltageP.nc,v 1.1.2.4 2006-01-27 22:04:27 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -21,7 +21,11 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR 
  * MODIFICATIONS.
  */
-/// @author Hu Siquan <husq@xbow.com>
+/**
+ * Internal component for voltage sensor reading.
+ *
+ * @author Hu Siquan <husq@xbow.com>
+ */
 
 module VoltageP {
   provides {

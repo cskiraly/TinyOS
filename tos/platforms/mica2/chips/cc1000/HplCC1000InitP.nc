@@ -1,4 +1,4 @@
-// $Id: HplCC1000InitP.nc,v 1.1.2.2 2006-01-15 23:44:55 scipio Exp $
+// $Id: HplCC1000InitP.nc,v 1.1.2.3 2006-01-27 22:04:28 idgay Exp $
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -28,6 +28,9 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
+ * Hardware initialisation for the CC1000 radio. This component is always
+ * included even if the radio is not used.
+ *
  * @author David Gay
  */
 configuration HplCC1000InitP {

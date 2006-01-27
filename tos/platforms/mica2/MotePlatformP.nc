@@ -1,4 +1,4 @@
-/* $Id: MotePlatformP.nc,v 1.1.2.5 2006-01-10 19:04:46 idgay Exp $
+/* $Id: MotePlatformP.nc,v 1.1.2.6 2006-01-27 22:04:27 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -8,7 +8,7 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * The porttion of a mica-family initialisation that is mote-specific.
+ * The portion of a mica-family initialisation that is mote-specific.
  * 
  * @author David Gay
  */

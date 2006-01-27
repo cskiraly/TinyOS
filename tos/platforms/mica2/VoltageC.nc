@@ -1,4 +1,4 @@
-/// $Id: VoltageC.nc,v 1.1.2.7 2006-01-20 23:17:43 idgay Exp $
+/// $Id: VoltageC.nc,v 1.1.2.8 2006-01-27 22:04:27 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -21,7 +21,11 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR 
  * MODIFICATIONS.
  */
-/// @author Hu Siquan <husq@xbow.com>
+/**
+ * Read the mica2's onboard voltage sensor.
+ *
+ * @author Hu Siquan <husq@xbow.com>
+ */
 
 configuration VoltageC
 {
