@@ -60,7 +60,7 @@ implementation
     // Continue on match, Non-periodic, w/ given resolution
     atomic {
       call OSTChnl.setOMCR(OMCR_C | OMCR_P | OMCR_CRES(resolution));
-      call OSTChnl.setOMCR(0);
+      call OSTChnl.setOSMR(0);
       call OSTChnl.setOSCR(1);
       call OSTChnl.clearOSSRbit();
       call OSTChnl.setOIERbit(TRUE);
