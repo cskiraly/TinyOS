@@ -1,4 +1,8 @@
+/// $Id: Atm128GpioInterruptC.nc,v 1.1.2.2 2006-01-27 21:55:55 mturon Exp $
 
+/**
+ * @author Phil Levis
+ */
 generic module Atm128GpioInterruptC() {
 
   provides interface GpioInterrupt as Interrupt;

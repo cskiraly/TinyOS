@@ -1,6 +1,6 @@
-// $Id: HplAtm128InterruptPinP.nc,v 1.1.2.1 2006-01-15 23:44:52 scipio Exp $
+/// $Id: HplAtm128InterruptPinP.nc,v 1.1.2.2 2006-01-27 21:55:55 mturon Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,10 +22,10 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
-
 /**
  * Interrupt interface access for interrupt capable GPIO pins.
+ *
+ * @author Martin Turon <mturon@xbow.com>
  */
 generic module HplAtm128InterruptPinP (uint8_t ctrl_addr, 
 				 uint8_t edge0bit, 
