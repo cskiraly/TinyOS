@@ -1,4 +1,4 @@
-/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.17 2006-01-27 18:46:00 idgay Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.18 2006-01-27 20:24:36 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -100,11 +100,11 @@ implementation {
   SendReceive.CC1000Control -> Control;
   SendReceive.HplCC1000Spi -> Hpl;
   SendReceive.amAddress -> ActiveMessageAddressC;
-  SendReceive.RssiRx -> Rssi.Rssi[unique("CC1000RSSI")];
+  SendReceive.RssiRx -> Rssi.Rssi[unique(UQ_CC1000_RSSI)];
   
-  Csma.RssiNoiseFloor -> Rssi.Rssi[unique("CC1000RSSI")];
-  Csma.RssiCheckChannel -> Rssi.Rssi[unique("CC1000RSSI")];
-  Csma.RssiPulseCheck -> Rssi.Rssi[unique("CC1000RSSI")];
+  Csma.RssiNoiseFloor -> Rssi.Rssi[unique(UQ_CC1000_RSSI)];
+  Csma.RssiCheckChannel -> Rssi.Rssi[unique(UQ_CC1000_RSSI)];
+  Csma.RssiPulseCheck -> Rssi.Rssi[unique(UQ_CC1000_RSSI)];
   Csma.cancelRssi -> Rssi;
   Csma.BusyWait -> BusyWaitMicroC;
 
