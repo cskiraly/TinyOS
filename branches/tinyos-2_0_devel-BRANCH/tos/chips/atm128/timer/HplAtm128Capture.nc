@@ -1,4 +1,4 @@
-/// $Id: HplAtm128Capture.nc,v 1.1.2.2 2006-01-27 17:56:06 idgay Exp $
+/// $Id: HplAtm128Capture.nc,v 1.1.2.3 2006-01-27 21:40:07 mturon Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -28,22 +28,53 @@
  *
  * @author Martin Turon <mturon@xbow.com>
  */
-
 interface HplAtm128Capture<size_type>
 {
-  /// Capture value register: Direct access
+  // ==== Capture value register: Direct access ======================
+  /** 
+   * Get the time to be captured.
+   * @return  the capture time
+   */
   async command size_type get();
+
+  /** 
+   * Set the time to be captured.
+   * @param t     the time of the next capture event
+   */
   async command void      set(size_type t);
 
-  /// Interrupt signals
-  async event void captured(size_type t);  //<! Signalled on capture interrupt
+  // ==== Interrupt signals ==========================================
+  /** 
+   * Signalled on capture interrupt.
+   * @param t     the time of the capture event
+   */
+  async event void captured(size_type t);
 
-  /// Interrupt flag utilites: Bit level set/clr  
-  async command void reset();          //<! Clear the capture interrupt flag
-  async command void start();          //<! Enable the capture interrupt
-  async command void stop();           //<! Turn off capture interrupts
-  async command bool test();           //<! Did capture interrupt occur?
-  async command bool isOn();           //<! Is capture interrupt on?
+  // ==== Interrupt flag utilites: Bit level set/clr =================
+  /** Clear the capture interrupt flag. */
+  async command void reset();
 
-  async command void setEdge(bool up); //<! True = detect rising edge
+  /** Enable the capture interrupt. */
+  async command void start();          
+
+  /** Turn off capture interrupts. */
+  async command void stop();
+
+  /** 
+   * Did a capture interrupt occur?
+   * @return TRUE if capture triggered, FALSE otherwise
+   */
+  async command bool test();           
+
+  /** 
+   * Is capture interrupt on? 
+   * @return TRUE if capture enabled, FALSE otherwise
+   */
+  async command bool isOn();           
+
+  /** 
+   * Sets the capture edge.
+   * @param up   TRUE = detect rising edge, FALSE = detect falling edge
+   */
+  async command void setEdge(bool up);
 }

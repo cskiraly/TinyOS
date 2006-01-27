@@ -1,4 +1,4 @@
-/// $Id: HplAtm128Timer.nc,v 1.1.2.2 2006-01-27 17:56:06 idgay Exp $
+/// $Id: HplAtm128Timer.nc,v 1.1.2.3 2006-01-27 21:40:07 mturon Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,8 +22,6 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
-
 /**
  * Basic interface to the hardware timers on an ATmega128.  
  * 
@@ -40,25 +38,64 @@
  *      2) Overflow Interrupt event
  *      3) Control of Overflow Interrupt: start/stop/clear...
  *      4) Timer Initialization: turn on/off clock source
+ *
+ * @author Martin Turon <mturon@xbow.com>
  */
+
 interface HplAtm128Timer<timer_size>
 {
-  /// Timer value register: Direct access
+  /** 
+   * Get the current time.
+   * @return  the current time
+   */
   async command timer_size get();
+
+  /** 
+   * Set the current time.
+   * @param t     the time to set
+   */
   async command void       set( timer_size t );
 
-  /// Interrupt signals
-  async event void overflow();        //<! Signalled on overflow interrupt
+  /** Signalled on timer overflow interrupt. */
+  async event void overflow();
 
-  /// Interrupt flag utilites: Bit level set/clr
-  async command void reset(); //<! Clear the overflow interrupt flag
-  async command void start(); //<! Enable the overflow interrupt
-  async command void stop();  //<! Turn off overflow interrupts
-  async command bool test();  //<! Did overflow interrupt occur?
-  async command bool isOn();  //<! Is overflow interrupt on?
+  // ==== Interrupt flag utilites: Bit level set/clr =================
 
-  /// Clock initialization interface
-  async command void    off();                     //<! Turn off the clock 
-  async command void    setScale( uint8_t scale);  //<! Turn on the clock
-  async command uint8_t getScale();                //<! Get prescaler setting
+  /** Clear the overflow interrupt flag. */
+  async command void reset();
+
+  /** Enable the overflow interrupt. */
+  async command void start();
+
+  /** Turn off overflow interrupts. */
+  async command void stop();
+
+  /** 
+   * Did an overflow interrupt occur?
+   * @return TRUE if overflow triggered, FALSE otherwise
+   */
+  async command bool test();
+
+  /** 
+   * Is overflow interrupt on? 
+   * @return TRUE if overflow enabled, FALSE otherwise
+   */
+  async command bool isOn();
+
+  // ==== Clock initialization interface =============================
+
+  /** Turn off the clock. */
+  async command void    off();
+
+  /** 
+   * Turn on the clock.
+   * @param scale   Prescaler setting of clock -- see Atm128Timer.h
+   */
+  async command void    setScale( uint8_t scale);
+
+  /** 
+   * Get prescaler setting.
+   * @return  Prescaler setting of clock -- see Atm128Timer.h
+   */
+  async command uint8_t getScale();
 }
