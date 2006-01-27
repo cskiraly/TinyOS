@@ -1,4 +1,4 @@
-// $Id: RadioTOSMsg.h,v 1.1.2.2 2006-01-27 20:24:16 idgay Exp $
+// $Id: McuSleepC.nc,v 1.1.2.1 2006-01-27 20:24:16 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -12,19 +12,16 @@
  * Dummy implementation to support the null platform.
  */
 
-#ifndef RADIO_TOS_MSG_H
-#define RADIO_TOS_MSG_H
+module McuSleepC {
+  provides {
+    interface McuSleep;
+    interface McuPowerState;
+  }
+}
+implementation {
+  async command void McuSleep.sleep() {
+  }
 
-typedef nx_struct {
-  nx_int8_t dummy;
-} TOSRadioHeader;
-
-typedef nx_struct {
-  nx_int8_t dummy;
-} TOSRadioFooter;
-
-typedef nx_struct {
-  nx_int8_t dummy;
-} TOSRadioMetadata;
-
-#endif
+  async command void McuPowerState.update() {
+  }
+}
