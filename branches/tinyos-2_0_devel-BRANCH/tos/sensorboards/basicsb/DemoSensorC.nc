@@ -1,4 +1,4 @@
-/* $Id: DemoSensorC.nc,v 1.1.2.1 2006-01-25 01:32:46 idgay Exp $
+/* $Id: DemoSensorC.nc,v 1.1.2.2 2006-01-27 19:53:14 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -8,20 +8,18 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Demo sensor for basicsb
+ * Demo sensor for basicsb sensorboard.
  * 
  * @author David Gay
  */
 
 generic configuration DemoSensorC() {
   provides interface Read<uint16_t>;
-  provides interface ReadNow<uint16_t>;
   provides interface ReadStream<uint16_t>;
 }
 implementation {
-  components new TempClientC();
+  components new PhotoClientC() as Sensor;
 
-  Read = TempClientC;
-  ReadNow = TempClientC;
-  ReadStream = TempClientC;
+  Read = Sensor;
+  ReadStream = Sensor;
 }
