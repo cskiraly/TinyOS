@@ -26,6 +26,14 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+/**
+ * Busy wait component as per TEP102. Supports waiting for at least some
+ * number of microseconds. This functionality should be used sparingly,
+ * when the overhead of posting a Timer or Alarm is greater than simply
+ * busy waiting.
+ *
+ * @author David Gay
+ */
 module BusyWaitMicroC
 {
   provides interface BusyWait<TMicro,uint16_t>;

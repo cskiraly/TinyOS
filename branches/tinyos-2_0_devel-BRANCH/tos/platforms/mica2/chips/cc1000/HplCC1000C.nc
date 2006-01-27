@@ -1,4 +1,4 @@
-// $Id: HplCC1000C.nc,v 1.1.2.2 2006-01-20 23:08:13 idgay Exp $
+// $Id: HplCC1000C.nc,v 1.1.2.3 2006-01-27 22:04:28 idgay Exp $
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -28,6 +28,8 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
+ * HPL for the CC1000 radio, for the mica2 platform.
+ *
  * @author David Gay
  */
 configuration HplCC1000C {

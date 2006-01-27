@@ -1,4 +1,4 @@
-// $Id: HplCC1000P.nc,v 1.1.2.3 2006-01-21 01:31:41 idgay Exp $
+// $Id: HplCC1000P.nc,v 1.1.2.4 2006-01-27 22:04:28 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -28,15 +28,9 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
-/*
- *
- * Authors:		Jaein Jeong, Philip Buonadonna
- * Date last modified:  $Revision: 1.1.2.3 $
- *
- */
-
 /**
- * Low level hardware access to the CC1000
+ * Low level hardware access to the CC1000.
+ *
  * @author Jaein Jeong
  * @author Philip Buonadonna
  */

@@ -1,6 +1,6 @@
-/// $Id: DemoSensorC.nc,v 1.1.2.3 2006-01-20 23:17:43 idgay Exp $
+/// $Id: DemoSensorC.nc,v 1.1.2.4 2006-01-27 22:04:27 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -21,7 +21,11 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR 
  * MODIFICATIONS.
  */
-/// @author Hu Siquan <husq@xbow.com>
+/**
+ * Demo sensor for the mica2 platform.
+ *
+ * @author Hu Siquan <husq@xbow.com>
+ */
 
 configuration DemoSensorC
 {

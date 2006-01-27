@@ -1,4 +1,4 @@
-/// $Id: PlatformC.nc,v 1.1.2.7 2006-01-27 21:52:11 idgay Exp $
+/// $Id: PlatformC.nc,v 1.1.2.8 2006-01-27 22:04:26 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,7 +23,9 @@
  */
 
 /**
- * Initialisation component for mica-family platforms. See TEP107.
+ * Initialisation component for mica-family platforms. See TEP107. Each 
+ * mica-family member must also provide a MotePlatformC with initialisation
+ * specific to that member.
  *
  * @author Martin Turon <mturon@xbow.com>
  */
