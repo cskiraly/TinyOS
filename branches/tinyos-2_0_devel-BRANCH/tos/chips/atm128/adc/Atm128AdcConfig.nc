@@ -1,4 +1,4 @@
-/* $Id: Atm128AdcConfig.nc,v 1.1.2.4 2006-01-26 21:39:39 idgay Exp $
+/* $Id: Atm128AdcConfig.nc,v 1.1.2.5 2006-01-27 23:13:22 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -7,14 +7,15 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+
+#include "Atm128Adc.h"
+
 /**
  * Clients of the higher-level A/D system must implement this interface to
  * specify which channel to sample, and with what parameters.
  *
  * @author David Gay
  */
-#include "Atm128Adc.h"
-
 interface Atm128AdcConfig {
   /**
    * Obtain channel.

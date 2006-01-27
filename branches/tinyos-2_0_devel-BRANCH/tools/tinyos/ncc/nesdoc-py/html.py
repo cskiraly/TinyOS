@@ -11,6 +11,7 @@
 
 from string import *
 from nesdoc.generators import *
+from re import search
 
 class Html:
   # create a new HTML output file in filename
@@ -114,13 +115,24 @@ class Html:
 
   # Highlevel methods
 
+  # escape <> enclosed email addresses
+  def escape_email(self, s):
+    while True:
+      email = search("<\S+@\S+>", s)
+      if not email:
+        break
+      start = email.start()
+      end = email.end()
+      s = s[:start] + "&lt;" + s[start + 1 : end - 1] + "&gt;" + s[end:]
+    return s
+
   # print a nesdoc string. @ entries go in a table
   # TODO:
   #  - recognise email addresses
   #  - support special processing for some tags (param at least)
   def pdoc(self, docstr):
     (base, tags) = nd_docstring(docstr)
-    self.pln(base)
+    self.pln(self.escape_email(base))
     self.pushln("dl")
     lasttag = None
     for (tag, val) in tags:
@@ -128,7 +140,7 @@ class Html:
         self.tag("dt");
         self.push("b"); self.pq(capitalize(tag) + ":"); self.pop()
       self.pushln("dd");
-      self.p(val)
+      self.p(self.escape_email(val))
       self.popln() #dd
       lasttag = tag
     self.popln() #dl

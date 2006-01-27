@@ -1,6 +1,6 @@
-/// $Id: Atm128Timer.h,v 1.1.2.3 2006-01-20 16:47:33 idgay Exp $
+// $Id: Atm128Timer.h,v 1.1.2.4 2006-01-27 23:13:23 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,7 +22,7 @@
  * MODIFICATIONS.
  */
 
-/**
+/*
  * This file contains the configuration constants for the Atmega128
  * clocks and timers.
  *
@@ -62,14 +62,14 @@ enum {
   ATM128_CLK16_EXTERNAL_RISE = 0x7,
 };
 
-/** Common scales across both 8-bit and 16-bit clocks. */
+/* Common scales across both 8-bit and 16-bit clocks. */
 enum {
     AVR_CLOCK_OFF = 0,
     AVR_CLOCK_ON  = 1,
     AVR_CLOCK_DIVIDE_8 = 2,
 };
 
-/** 8-bit Waveform Generation Modes */
+/* 8-bit Waveform Generation Modes */
 enum {
     ATM128_WAVE8_NORMAL = 0,
     ATM128_WAVE8_PWM,
@@ -77,7 +77,7 @@ enum {
     ATM128_WAVE8_PWM_FAST,
 };
 
-/** 8-bit Timer compare settings */
+/* 8-bit Timer compare settings */
 enum {
     ATM128_COMPARE_OFF = 0,  //!< compare disconnected
     ATM128_COMPARE_TOGGLE,   //!< toggle on match (PWM reserved
@@ -85,7 +85,7 @@ enum {
     ATM128_COMPARE_SET,      //!< set on match    (PWN upcount)
 };
 
-/** 8-bit Timer Control Register */
+/* 8-bit Timer Control Register */
 typedef union
 {
   uint8_t flat;
@@ -107,7 +107,7 @@ typedef uint8_t Atm128_TCNT2_t;               //!< Timer2 Control Register
 typedef uint8_t Atm128_OCR2_t;         //!< Timer2 Output Compare Register
 // Timer2 shares compare lines with Timer1C
 
-/** Asynchronous Status Register -- Timer0 */
+/* Asynchronous Status Register -- Timer0 */
 typedef union
 {
   uint8_t flat;
@@ -120,7 +120,7 @@ typedef union
   } bits;
 } Atm128_ASSR_t;
 
-/** Timer/Counter Interrupt Mask Register */
+/* Timer/Counter Interrupt Mask Register */
 typedef union
 {
   uint8_t flat;
@@ -137,7 +137,7 @@ typedef union
 } Atm128_TIMSK_t;
 // + Note: Contains some 16-bit Timer flags
 
-/** Timer/Counter Interrupt Flag Register */
+/* Timer/Counter Interrupt Flag Register */
 typedef union
 {
   uint8_t flat;
@@ -154,7 +154,7 @@ typedef union
 } Atm128_TIFR_t;
 // + Note: Contains some 16-bit Timer flags
 
-/** Timer/Counter Interrupt Flag Register */
+/* Timer/Counter Interrupt Flag Register */
 typedef union
 {
   uint8_t flat;
@@ -180,7 +180,7 @@ enum {
     ATM128_TIMER_COMPARE_SET
 };
 
-/** Timer/Counter Control Register A Type */
+/* Timer/Counter Control Register A Type */
 typedef union
 {
   uint8_t flat;
@@ -192,13 +192,13 @@ typedef union
   } bits;
 } Atm128TimerCtrlCompare_t;
 
-/** Timer1 Compare Control Register A */
+/* Timer1 Compare Control Register A */
 typedef Atm128TimerCtrlCompare_t Atm128_TCCR1A_t;
 
-/** Timer3 Compare Control Register A */
+/* Timer3 Compare Control Register A */
 typedef Atm128TimerCtrlCompare_t Atm128_TCCR3A_t;
 
-/** 16-bit Waveform Generation Modes */
+/* 16-bit Waveform Generation Modes */
 enum {
     ATM128_WAVE16_NORMAL = 0,
     ATM128_WAVE16_PWM_8BIT,
@@ -218,7 +218,7 @@ enum {
     ATM128_WAVE16_PWM_FAST_COMPARE,
 };
 
-/** Timer/Counter Control Register B Type */
+/* Timer/Counter Control Register B Type */
 typedef union
 {
   uint8_t flat;
@@ -231,13 +231,13 @@ typedef union
   } bits;
 } Atm128TimerCtrlCapture_t;
 
-/** Timer1 Control Register B */
+/* Timer1 Control Register B */
 typedef Atm128TimerCtrlCapture_t Atm128_TCCR1B_t;
 
-/** Timer3 Control Register B */
+/* Timer3 Control Register B */
 typedef Atm128TimerCtrlCapture_t Atm128_TCCR3B_t;
 
-/** Timer/Counter Control Register C Type */
+/* Timer/Counter Control Register C Type */
 typedef union
 {
   uint8_t flat;
@@ -249,10 +249,10 @@ typedef union
   } bits;
 } Atm128TimerCtrlClock_t;
 
-/** Timer1 Control Register B */
+/* Timer1 Control Register B */
 typedef Atm128TimerCtrlClock_t Atm128_TCCR1C_t;
 
-/** Timer3 Control Register B */
+/* Timer3 Control Register B */
 typedef Atm128TimerCtrlClock_t Atm128_TCCR3C_t;
 
 // Read/Write these 16-bit Timer registers according to p.112:
@@ -262,7 +262,7 @@ typedef uint8_t Atm128_TCNT1L_t;  //!< Timer1 Register
 typedef uint8_t Atm128_TCNT3H_t;  //!< Timer3 Register
 typedef uint8_t Atm128_TCNT3L_t;  //!< Timer3 Register
 
-/** Contains value to continuously compare with Timer1 */
+/* Contains value to continuously compare with Timer1 */
 typedef uint8_t Atm128_OCR1AH_t;  //!< Output Compare Register 1A
 typedef uint8_t Atm128_OCR1AL_t;  //!< Output Compare Register 1A
 typedef uint8_t Atm128_OCR1BH_t;  //!< Output Compare Register 1B
@@ -270,7 +270,7 @@ typedef uint8_t Atm128_OCR1BL_t;  //!< Output Compare Register 1B
 typedef uint8_t Atm128_OCR1CH_t;  //!< Output Compare Register 1C
 typedef uint8_t Atm128_OCR1CL_t;  //!< Output Compare Register 1C
 
-/** Contains value to continuously compare with Timer3 */
+/* Contains value to continuously compare with Timer3 */
 typedef uint8_t Atm128_OCR3AH_t;  //!< Output Compare Register 3A
 typedef uint8_t Atm128_OCR3AL_t;  //!< Output Compare Register 3A
 typedef uint8_t Atm128_OCR3BH_t;  //!< Output Compare Register 3B
@@ -278,13 +278,13 @@ typedef uint8_t Atm128_OCR3BL_t;  //!< Output Compare Register 3B
 typedef uint8_t Atm128_OCR3CH_t;  //!< Output Compare Register 3C
 typedef uint8_t Atm128_OCR3CL_t;  //!< Output Compare Register 3C
 
-/** Contains counter value when event occurs on ICPn pin. */
+/* Contains counter value when event occurs on ICPn pin. */
 typedef uint8_t Atm128_ICR1H_t;  //!< Input Capture Register 1
 typedef uint8_t Atm128_ICR1L_t;  //!< Input Capture Register 1
 typedef uint8_t Atm128_ICR3H_t;  //!< Input Capture Register 3
 typedef uint8_t Atm128_ICR3L_t;  //!< Input Capture Register 3
 
-/** Extended Timer/Counter Interrupt Mask Register */
+/* Extended Timer/Counter Interrupt Mask Register */
 typedef union
 {
   uint8_t flat;
@@ -299,7 +299,7 @@ typedef union
   } bits;
 } Atm128_ETIMSK_t;
 
-/** Extended Timer/Counter Interrupt Flag Register */
+/* Extended Timer/Counter Interrupt Flag Register */
 typedef union
 {
   uint8_t flat;

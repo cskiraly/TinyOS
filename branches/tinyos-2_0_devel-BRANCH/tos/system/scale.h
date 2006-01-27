@@ -1,7 +1,7 @@
 #ifndef SCALE_H
 #define SCALE_H
 
-/**
+/*
  * Multiply x by a/b while avoiding overflow when possible. Requires that
  * a*b <= max value of from_t, and assumes unsigned arithmetic. 
  *

@@ -1,4 +1,4 @@
-/// $Id: Atm128Clock.h,v 1.1.2.2 2006-01-27 22:32:24 mturon Exp $
+// $Id: Atm128Clock.h,v 1.1.2.3 2006-01-27 23:13:22 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,14 +22,14 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+// @author Martin Turon <mturon@xbow.com>
 
 #ifndef _H_ATM128CLOCK_H
 #define _H_ATM128CLOCK_H
 
 //====================== Oscillators ==================================
 
-/** Timer Clock Select -- set via Fuses only through ISP */
+/* Timer Clock Select -- set via Fuses only through ISP */
 enum {
   ATM128_CKSEL_EXT_CLK = 0,        //!< External clock source
   ATM128_CKSEL_INT_1MHZ = 1,       //!< Internal RC oscillator
@@ -46,7 +46,7 @@ enum {
   ATM128_CKSEL_EXT_RES_8MHZ
 };
 
-/** 
+/* 
  * Calibration Register for Internal Oscillator
  *
  * OSCCAL      Min Freq         Max Freq
@@ -56,7 +56,7 @@ enum {
  */
 typedef uint8_t Atm128_OSCCAL_t;  //!< Internal Oscillator Calibration Register
 
-/** 8-bit Clock Divider Register */
+/* 8-bit Clock Divider Register */
 typedef struct
 {
   uint8_t xdiven : 1;  //!< Enable clock divider

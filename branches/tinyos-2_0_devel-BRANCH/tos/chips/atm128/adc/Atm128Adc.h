@@ -1,6 +1,6 @@
-/// $Id: Atm128Adc.h,v 1.1.2.4 2006-01-20 23:08:13 idgay Exp $
+// $Id: Atm128Adc.h,v 1.1.2.5 2006-01-27 23:13:22 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,15 +22,15 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
-/// @author Hu Siquan <husq@xbow.com>
+// @author Martin Turon <mturon@xbow.com>
+// @author Hu Siquan <husq@xbow.com>
 
 #ifndef _H_Atm128ADC_h
 #define _H_Atm128ADC_h
 
 //================== 8 channel 10-bit ADC ==============================
 
-/** Voltage Reference Settings */
+/* Voltage Reference Settings */
 enum {
     ATM128_ADC_VREF_OFF = 0, //!< VR+ = AREF   and VR- = GND
     ATM128_ADC_VREF_AVCC = 1,//!< VR+ = AVcc   and VR- = GND
@@ -38,14 +38,14 @@ enum {
     ATM128_ADC_VREF_2_56 = 3,//!< VR+ = 2.56V  and VR- = GND
 };
 
-/** Voltage Reference Settings */
+/* Voltage Reference Settings */
 enum {
     ATM128_ADC_RIGHT_ADJUST = 0, 
     ATM128_ADC_LEFT_ADJUST = 1,
 };
 
 
-/** ADC Multiplexer Settings */
+/* ADC Multiplexer Settings */
 enum {
     ATM128_ADC_SNGL_ADC0 = 0,
     ATM128_ADC_SNGL_ADC1,
@@ -81,7 +81,7 @@ enum {
     ATM128_ADC_SNGL_GND,
 };
 
-/** ADC Multiplexer Selection Register */
+/* ADC Multiplexer Selection Register */
 typedef struct
 {
     uint8_t mux   : 5;  //!< Analog Channel and Gain Selection Bits
@@ -89,7 +89,7 @@ typedef struct
     uint8_t refs  : 2;  //!< Reference Selection Bits
 } Atm128Admux_t;
 
-/** ADC Prescaler Settings */
+/* ADC Prescaler Settings */
 /* Note: each platform must define ATM128_ADC_PRESCALE to the smallest
    prescaler which guarantees full A/D precision. */
 enum {
@@ -103,37 +103,37 @@ enum {
     ATM128_ADC_PRESCALE_128,
 };
 
-/** ADC Enable Settings */
+/* ADC Enable Settings */
 enum {
     ATM128_ADC_ENABLE_OFF = 0,
     ATM128_ADC_ENABLE_ON,
 };
 
-/** ADC Start Conversion Settings */
+/* ADC Start Conversion Settings */
 enum {
     ATM128_ADC_START_CONVERSION_OFF = 0,
     ATM128_ADC_START_CONVERSION_ON,
 };
 
-/** ADC Free Running Select Settings */
+/* ADC Free Running Select Settings */
 enum {
     ATM128_ADC_FREE_RUNNING_OFF = 0,
     ATM128_ADC_FREE_RUNNING_ON,
 };
 
-/** ADC Interrupt Flag Settings */
+/* ADC Interrupt Flag Settings */
 enum {
     ATM128_ADC_INT_FLAG_OFF = 0,
     ATM128_ADC_INT_FLAG_ON,
 };
 
-/** ADC Interrupt Enable Settings */
+/* ADC Interrupt Enable Settings */
 enum {
     ATM128_ADC_INT_ENABLE_OFF = 0,
     ATM128_ADC_INT_ENABLE_ON,
 };
 
-/** ADC Multiplexer Selection Register */
+/* ADC Multiplexer Selection Register */
 typedef struct
 {
     uint8_t adps  : 3;  //!< ADC Prescaler Select Bits

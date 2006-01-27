@@ -1,4 +1,4 @@
-/**                                                                     tab:4
+/*                                                                     tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
  *  this license.  If you do not agree to this license, do not download,
@@ -33,7 +33,7 @@
  *  @author Jason Hill, Philip Levis, Nelson Lee, David Gay
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: atm128hardware.h,v 1.1.2.2 2005-12-20 18:09:51 scipio Exp $
+ *  $Id: atm128hardware.h,v 1.1.2.3 2006-01-27 23:13:22 idgay Exp $
  */
 
 #ifndef _H_atmega128hardware_H
@@ -46,19 +46,19 @@ uint8_t atm128RegFile[100][0xa0];
 
 #define REG_ACCESS(x) atm128RegFile[sim_node()][x]
 
-/** We need slightly different defs than SIGNAL, INTERRUPT */
+/* We need slightly different defs than SIGNAL, INTERRUPT */
 #define AVR_ATOMIC_HANDLER(signame) \
   void signame() __attribute__ ((spontaneous, C))
 
 #define AVR_NONATOMIC_HANDLER(signame) \
   void signame() __attribute__ ((spontaneous, C))
 
-/** Macro to create union casting functions. */
+/* Macro to create union casting functions. */
 #define DEFINE_UNION_CAST(func_name, from_type, to_type) \
   to_type func_name(from_type x) { \
   union {from_type f; to_type t;} c = {f:x}; return c.t; }
 
-/// Bit operators using bit number
+// Bit operators using bit number
 #define SET_BIT(port, bit)    ((REG_ACCESS(port)) |= _BV(bit))
 #define CLR_BIT(port, bit)    ((REG_ACCESS(port)) &= ~_BV(bit))
 #define READ_BIT(port, bit)   (((REG_ACCESS(port)) & _BV(bit)) != 0)
@@ -67,7 +67,7 @@ uint8_t atm128RegFile[100][0xa0];
    if (value) SET_BIT((port), (bit)); \
    else CLR_BIT((port), (bit))
 
-/// Bit operators using bit flag mask
+// Bit operators using bit flag mask
 #define SET_FLAG(port, flag)  ((REG_ACCESS(port)) |= (flag))
 #define CLR_FLAG(port, flag)  ((REG_ACCESS(port)) &= ~(flag))
 #define READ_FLAG(port, flag) ((REG_ACCESS(port)) & (flag))
@@ -75,19 +75,19 @@ uint8_t atm128RegFile[100][0xa0];
 #define sei() (SET_BIT(SREG, 7))
 #define cli() (CLR_BIT(SREG, 7))
 
-/** Enables interrupts. */
+/* Enables interrupts. */
 inline void __nesc_enable_interrupt() {
     sei();
 }
-/** Disables all interrupts. */
+/* Disables all interrupts. */
 inline void __nesc_disable_interrupt() {
     cli();
 }
 
-/** Defines data type for storing interrupt mask state during atomic. */
+/* Defines data type for storing interrupt mask state during atomic. */
 typedef uint8_t __nesc_atomic_t;
 
-/** Saves current interrupt mask state and disables interrupts. */
+/* Saves current interrupt mask state and disables interrupts. */
 inline __nesc_atomic_t 
 __nesc_atomic_start(void) __attribute__((spontaneous))
 {
@@ -96,7 +96,7 @@ __nesc_atomic_start(void) __attribute__((spontaneous))
     return result;
 }
 
-/** Restores interrupt mask to original state. */
+/* Restores interrupt mask to original state. */
 inline void 
 __nesc_atomic_end(__nesc_atomic_t original_SREG) __attribute__((spontaneous))
 {
@@ -112,7 +112,7 @@ __nesc_atomic_sleep()
 }
 
 typedef uint8_t mcu_power_t @combine("mcombine");
-/** Combine function.  */
+/* Combine function.  */
 mcu_power_t mcombine(mcu_power_t m1, mcu_power_t m2) {
   return (m1 < m2)? m1: m2;
 }
