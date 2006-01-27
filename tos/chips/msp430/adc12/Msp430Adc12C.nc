@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-13 18:38:13 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-27 23:49:43 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -47,7 +47,7 @@ configuration Msp430Adc12C
 implementation
 {
   components Msp430Adc12P, HplAdc12P, MSP430TimerC, 
-             Msp430RefVoltGeneratorC, MSP430GeneralIOC,
+             Msp430RefVoltGeneratorC, HplMsp430GeneralIOC,
              new RoundRobinArbiterC(MSP430ADC12_RESOURCE) as Arbiter;
 
   Init = Arbiter;
@@ -59,14 +59,14 @@ implementation
   Msp430Adc12P.ADCArbiterInfo -> Arbiter;
   Msp430Adc12P.HplAdc12 -> HplAdc12P;
   Msp430Adc12P.RefVoltGenerator -> Msp430RefVoltGeneratorC;
-  Msp430Adc12P.Port60 -> MSP430GeneralIOC.Port60;
-  Msp430Adc12P.Port61 -> MSP430GeneralIOC.Port61;
-  Msp430Adc12P.Port62 -> MSP430GeneralIOC.Port62;
-  Msp430Adc12P.Port63 -> MSP430GeneralIOC.Port63;
-  Msp430Adc12P.Port64 -> MSP430GeneralIOC.Port64;
-  Msp430Adc12P.Port65 -> MSP430GeneralIOC.Port65;
-  Msp430Adc12P.Port66 -> MSP430GeneralIOC.Port66;
-  Msp430Adc12P.Port67 -> MSP430GeneralIOC.Port67;
+  Msp430Adc12P.Port60 -> HplMsp430GeneralIOC.Port60;
+  Msp430Adc12P.Port61 -> HplMsp430GeneralIOC.Port61;
+  Msp430Adc12P.Port62 -> HplMsp430GeneralIOC.Port62;
+  Msp430Adc12P.Port63 -> HplMsp430GeneralIOC.Port63;
+  Msp430Adc12P.Port64 -> HplMsp430GeneralIOC.Port64;
+  Msp430Adc12P.Port65 -> HplMsp430GeneralIOC.Port65;
+  Msp430Adc12P.Port66 -> HplMsp430GeneralIOC.Port66;
+  Msp430Adc12P.Port67 -> HplMsp430GeneralIOC.Port67;
 
   // exclusive access to TimerA expected
   Msp430Adc12P.TimerA -> MSP430TimerC.TimerA;
