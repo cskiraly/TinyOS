@@ -46,13 +46,13 @@ implementation
 
   enum {OST_CLIENT_ID = unique("PXA27xOSTimer.Resource")};
 
-  CounterMilli32 = PhysCounterMilli.Counter;
-  LocalTimeMilli = PhysCounterMilli.LocalTime;
+  CounterMilli32 = PhysCounterMilli32.Counter;
+  LocalTimeMilli = PhysCounterMilli32.LocalTime;
 
   // Wire the initialization to the plaform init routine
   PlatformP.InitL0 -> PhysCounterMilli32.Init;
 
-  PhysCounterMilli.OSTInit -> HalPXA27xOSTimerMapC.Init;
-  PhysCounterMilli.OSTChnl -> HalPXA27xOSTimerMapC.OSTChnl[OST_CLIENT_ID];
+  PhysCounterMilli32.OSTInit -> HalPXA27xOSTimerMapC.Init;
+  PhysCounterMilli32.OSTChnl -> HalPXA27xOSTimerMapC.OSTChnl[OST_CLIENT_ID];
 }
 
