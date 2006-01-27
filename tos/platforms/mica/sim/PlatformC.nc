@@ -1,6 +1,6 @@
-/// $Id: PlatformC.nc,v 1.1.2.2 2006-01-26 04:01:22 scipio Exp $
+/// $Id: PlatformC.nc,v 1.1.2.3 2006-01-27 21:52:11 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,9 +22,11 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+/**
+ * @author Martin Turon <mturon@xbow.com>
+ */
 
-includes hardware;
+#include "hardware.h"
 
 configuration PlatformC {
   provides {

@@ -1,6 +1,6 @@
-/// $Id: PlatformP.nc,v 1.1.2.2 2006-01-20 16:47:33 idgay Exp $
+/// $Id: PlatformP.nc,v 1.1.2.3 2006-01-27 21:52:11 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,7 +22,11 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+/**
+ * Internal platform boot code.
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ */
 
 includes hardware;
 

@@ -1,5 +1,12 @@
 #include "scale.h"
 
+/**
+ * Simulation version of MeasureClockC for the mica platform. See 
+ * tos/platforms/mica/MeasureClockC.nc for more details.
+ *
+ * @authod Phil Levis
+ */
+
 module MeasureClockC {
   /* This code MUST be called from PlatformP only, hence the exactlyonce */
   provides interface Init @exactlyonce();
