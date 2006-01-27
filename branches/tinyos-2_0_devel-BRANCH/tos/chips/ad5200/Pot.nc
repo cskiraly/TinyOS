@@ -30,8 +30,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-27 03:17:54 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-27 14:58:29 $
  * ========================================================================
  */
  
@@ -50,15 +50,6 @@
  */
 
 interface Pot {
-    /** 
-     * Initialize the potentiometer and set it to a specified value.
-     *
-     * @param <b>initialSetting</b> -- The initial value for setting of the 
-		   *                                 potentiometer
-     * @return SUCCESS upon successful initialization<br>
-     *         FAIL Otherwise
-     */
-  command error_t init(uint8_t initialSetting);
 
     /**
      * Set the potentiometer value.
