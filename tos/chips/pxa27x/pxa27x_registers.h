@@ -1,4 +1,4 @@
-// $Id: pxa27x_registers.h,v 1.1.2.6 2005-12-07 23:31:44 philipb Exp $ 
+// $Id: pxa27x_registers.h,v 1.1.2.7 2006-01-27 23:24:41 philipb Exp $ 
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -1413,6 +1413,13 @@
 #define PSLR_SL_R1 	(1 << 9)	      /* SRAM bank 1 retains state */
 #define PSLR_SL_R0 	(1 << 8)	      /* SRAM bank 0 retains state */
 #define PSLR_SL_PI(_x) (((_x) & 0x3) << 2)    /* PI power domain */
+
+#define PWRMODE_M_NORMAL	(0)
+#define PWRMODE_M_IDLE		(1)
+#define PWRMODE_M_STANDBY	(2)
+#define PWRMODE_M_SLEEP		(3)
+#define PWRMODE_M_DEEPSLEEP	(4)
+#define PWRMODE_VC	(1 << 3)	/* Voltage Change */
 
 /******************************************************************************/
 /* Power Manager I2C */
