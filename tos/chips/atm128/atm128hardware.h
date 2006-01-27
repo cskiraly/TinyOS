@@ -1,4 +1,4 @@
-///  $Id: atm128hardware.h,v 1.1.2.4 2006-01-27 22:32:24 mturon Exp $
+//  $Id: atm128hardware.h,v 1.1.2.5 2006-01-27 23:13:22 idgay Exp $
 
 /*                                                                     tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -33,7 +33,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
+/*
  *  @author Jason Hill, Philip Levis, Nelson Lee, David Gay
  *  @author Martin Turon <mturon@xbow.com>
  */
@@ -48,19 +48,19 @@
 #include <avr/pgmspace.h>
 #include "atm128const.h"
 
-/** We need slightly different defs than SIGNAL, INTERRUPT */
+/* We need slightly different defs than SIGNAL, INTERRUPT */
 #define AVR_ATOMIC_HANDLER(signame) \
   void signame() __attribute__ ((signal)) @atomic_hwevent() @C()
 
 #define AVR_NONATOMIC_HANDLER(signame) \
   void signame() __attribute__ ((interrupt)) @hwevent() @C()
 
-/** Macro to create union casting functions. */
+/* Macro to create union casting functions. */
 #define DEFINE_UNION_CAST(func_name, from_type, to_type) \
   to_type func_name(from_type x) { \
   union {from_type f; to_type t;} c = {f:x}; return c.t; }
 
-/// Bit operators using bit number
+// Bit operators using bit number
 #define SET_BIT(port, bit)    ((port) |= _BV(bit))
 #define CLR_BIT(port, bit)    ((port) &= ~_BV(bit))
 #define READ_BIT(port, bit)   (((port) & _BV(bit)) != 0)
@@ -69,24 +69,24 @@
    if (value) SET_BIT((port), (bit)); \
    else CLR_BIT((port), (bit))
 
-/// Bit operators using bit flag mask
+// Bit operators using bit flag mask
 #define SET_FLAG(port, flag)  ((port) |= (flag))
 #define CLR_FLAG(port, flag)  ((port) &= ~(flag))
 #define READ_FLAG(port, flag) ((port) & (flag))
 
-/** Enables interrupts. */
+/* Enables interrupts. */
 inline void __nesc_enable_interrupt() {
     sei();
 }
-/** Disables all interrupts. */
+/* Disables all interrupts. */
 inline void __nesc_disable_interrupt() {
     cli();
 }
 
-/** Defines data type for storing interrupt mask state during atomic. */
+/* Defines data type for storing interrupt mask state during atomic. */
 typedef uint8_t __nesc_atomic_t;
 
-/** Saves current interrupt mask state and disables interrupts. */
+/* Saves current interrupt mask state and disables interrupts. */
 inline __nesc_atomic_t 
 __nesc_atomic_start(void) @spontaneous()
 {
@@ -95,7 +95,7 @@ __nesc_atomic_start(void) @spontaneous()
     return result;
 }
 
-/** Restores interrupt mask to original state. */
+/* Restores interrupt mask to original state. */
 inline void 
 __nesc_atomic_end(__nesc_atomic_t original_SREG) @spontaneous()
 {
@@ -123,7 +123,7 @@ enum {
   ATM128_POWER_DOWN        = 5, 
 };
 
-/** Combine function.  */
+/* Combine function.  */
 mcu_power_t mcombine(mcu_power_t m1, mcu_power_t m2) {
   return (m1 < m2)? m1: m2;
 }

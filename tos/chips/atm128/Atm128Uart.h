@@ -1,4 +1,4 @@
-/// $Id: Atm128Uart.h,v 1.1.2.2 2006-01-27 22:32:24 mturon Exp $
+// $Id: Atm128Uart.h,v 1.1.2.3 2006-01-27 23:13:22 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,7 +22,7 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+// @author Martin Turon <mturon@xbow.com>
 
 #ifndef _H_Atm128Uart_h
 #define _H_Atm128Uart_h
@@ -32,7 +32,7 @@
 typedef uint8_t Atm128_UDR0_t;  //!< USART0 I/O Data Register
 typedef uint8_t Atm128_UDR1_t;  //!< USART1 I/O Data Register
 
-/** UART Status Register */
+/* UART Status Register */
 typedef union {
   struct Atm128_UCSRA_t {
     uint8_t mpcm : 1;  //!< UART Multiprocessor Communication Mode
@@ -50,7 +50,7 @@ typedef union {
 typedef Atm128UartStatus_t Atm128_UCSR0A_t;  //!< UART 0 Status Register
 typedef Atm128UartStatus_t Atm128_UCSR1A_t;  //!< UART 1 Status Register
 
-/** UART Control Register */
+/* UART Control Register */
 typedef union {
   struct Atm128_UCSRB_t {
     uint8_t txb8  : 1;  //!< UART Transmit Data Bit 8
@@ -75,7 +75,7 @@ enum {
   ATM128_UART_DATA_SIZE_8_BITS = 3,
 };
 
-/** UART Control Register */
+/* UART Control Register */
 typedef union {
   uint8_t flat;
   struct Atm128_UCSRC_t {
@@ -91,7 +91,7 @@ typedef union {
 typedef Atm128UartMode_t Atm128_UCSR0C_t;  //!< UART 0 Mode Register
 typedef Atm128UartMode_t Atm128_UCSR1C_t;  //!< UART 1 Mode Register
 
-/**
+/*
  * ATmega1128 UART baud register settings:
  *      ATM128_<baudRate>_BAUD_<cpuSpeed>
  */

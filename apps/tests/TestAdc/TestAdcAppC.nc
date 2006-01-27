@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-13 18:46:17 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-01-27 23:13:21 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -59,7 +59,7 @@ implementation
   MainC.SoftwareInit -> LedsC;
   TestAdcC.Leds -> LedsC;
   TestAdcC.Read -> Sensor;
-  TestAdcC.ReadNow -> Sensor;
+  //TestAdcC.ReadNow -> Sensor;
   TestAdcC.ReadStream -> Sensor;
 }
 

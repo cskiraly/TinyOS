@@ -1,4 +1,4 @@
-/// $Id: Atm128I2C.h,v 1.1.2.2 2006-01-27 22:32:24 mturon Exp $
+// $Id: Atm128I2C.h,v 1.1.2.3 2006-01-27 23:13:22 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,14 +22,14 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+// @author Martin Turon <mturon@xbow.com>
 
 #ifndef _H_Atm128I2C_h
 #define _H_Atm128I2C_h
 
 //====================== I2C Bus ==================================
 
-/** SCL freq = CPU freq / (16 + 2(TWBR) * pow(4, TWPR)) */
+/* SCL freq = CPU freq / (16 + 2(TWBR) * pow(4, TWPR)) */
 enum {
   ATM128_I2C_RATE_DIVIDE_16 = 0,
   ATM128_I2C_RATE_DIVIDE_24 = 1,
@@ -38,7 +38,7 @@ enum {
 
   typedef uint8_t Atm128_TWBR_t;  //!< Two Wire Bit Rate Register
 
-/** I2C Control Register */
+/* I2C Control Register */
 typedef struct
 {
   uint8_t twie  : 1;  //!< Two Wire Interrupt Enable
@@ -54,7 +54,7 @@ typedef struct
 
 typedef Atm128I2CControl_t Atm128_TWCR_t;  //!< Two Wire Control Register
 
-/** SCL freq = CPU freq / (16 + 2(TWBR) * pow(4, TWPR)) */
+/* SCL freq = CPU freq / (16 + 2(TWBR) * pow(4, TWPR)) */
 enum {
   ATM128_I2C_PRESCALE_1 = 0,
   ATM128_I2C_PRESCALE_4 = 1,
@@ -66,7 +66,7 @@ enum {
   ATM128_I2C_STATUS_START = 1,
 };
 
-/** I2C Status Register */
+/* I2C Status Register */
 typedef struct
 {
   uint8_t twps  : 2;  //!< Two Wire Prescaler Bits

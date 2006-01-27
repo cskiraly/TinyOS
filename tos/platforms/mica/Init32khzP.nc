@@ -1,4 +1,4 @@
-// $Id: Init32khzP.nc,v 1.1.2.2 2006-01-27 21:52:11 idgay Exp $
+// $Id: Init32khzP.nc,v 1.1.2.3 2006-01-27 23:13:23 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -12,7 +12,7 @@
  * Internal mica-family timer component. Sets up hardware timer 1 to run
  * at cpu clock / 256, at boot time.
  *
- * @authod David Gay
+ * @author David Gay
  */
 
 configuration Init32khzP { }

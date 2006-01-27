@@ -1,4 +1,4 @@
-/// $Id: Atm128Interrupt.h,v 1.1.2.2 2006-01-27 21:55:55 mturon Exp $
+// $Id: Atm128Interrupt.h,v 1.1.2.3 2006-01-27 23:13:22 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,14 +22,14 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+// @author Martin Turon <mturon@xbow.com>
 
 #ifndef _H_Atm128Interrupt_h
 #define _H_Atm128Interrupt_h
 
 //====================== External Interrupts ===============================
 
-/** Sleep modes */
+/* Sleep modes */
 enum {
   ATM128_IRQ_ON_LOW    = 0, 
   ATM128_IRQ_ON_CHANGE = 1, 
@@ -37,7 +37,7 @@ enum {
   ATM128_IRQ_ON_RISE   = 3, 
 };
 
-/** Interrupt Control Register */
+/* Interrupt Control Register */
 typedef struct
 {
   uint8_t isc0  : 2;  //!< Interrupt Sense Control

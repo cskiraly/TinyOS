@@ -1,4 +1,4 @@
-/// $Id: Atm128Power.h,v 1.1.2.2 2006-01-27 22:32:24 mturon Exp $
+// $Id: Atm128Power.h,v 1.1.2.3 2006-01-27 23:13:22 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,14 +22,14 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+// @author Martin Turon <mturon@xbow.com>
 
 #ifndef _H_Atm128Power_h
 #define _H_Atm128Power_h
 
 //================== ATmega128 Power Management ==========================
 
-/** Sleep modes */
+/* Sleep modes */
 enum {
   ATM128_SLEEP_IDLE = 0, 
   ATM128_SLEEP_ADC,
@@ -39,7 +39,7 @@ enum {
   ATM128_SLEEP_EXTENDED_STANDBY = 4,    //!< enable standby bit (sm2)
 };
 
-/** MCU Control Register */
+/* MCU Control Register */
 typedef struct
 {
   uint8_t ivce  : 1;  //!< Interrupt Vector Change Enable

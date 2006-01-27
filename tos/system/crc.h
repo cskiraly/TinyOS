@@ -1,4 +1,4 @@
-// $Id: crc.h,v 1.1.2.3 2006-01-27 22:19:17 idgay Exp $
+// $Id: crc.h,v 1.1.2.4 2006-01-27 23:13:23 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -32,7 +32,7 @@
 #ifndef CRC_H
 #define CRC_H
 
-/**
+/*
  * Default CRC function. Some microcontrollers may provide more efficient
  * implementations.
  *

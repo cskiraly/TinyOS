@@ -4,7 +4,7 @@
  * Simulation version of MeasureClockC for the mica platform. See 
  * tos/platforms/mica/MeasureClockC.nc for more details.
  *
- * @authod Phil Levis
+ * @author Phil Levis
  */
 
 module MeasureClockC {

@@ -1,4 +1,4 @@
-/* $Id: Adc.h,v 1.1.2.5 2006-01-25 01:32:46 idgay Exp $
+/* $Id: Adc.h,v 1.1.2.6 2006-01-27 23:13:22 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -7,7 +7,7 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
-/**
+/*
  * @author David Gay
  */
 #ifndef ADC_H

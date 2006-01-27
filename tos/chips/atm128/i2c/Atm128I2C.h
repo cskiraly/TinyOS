@@ -1,4 +1,4 @@
-/// $Id: Atm128I2C.h,v 1.1.2.2 2006-01-27 22:19:34 mturon Exp $
+// $Id: Atm128I2C.h,v 1.1.2.3 2006-01-27 23:13:22 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,7 +22,7 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+// @author Martin Turon <mturon@xbow.com>
 
 #ifndef _H_Atm128I2C_h
 #define _H_Atm128I2C_h
@@ -33,7 +33,7 @@
 typedef uint8_t Atm128_TWBR_t;  //!< Two Wire Bit Rate Register
 typedef uint8_t Atm128_TWDR_t;  //!< Two Wire Data Register
 
-/** I2C Control Register -- TWCR */
+/* I2C Control Register -- TWCR */
 typedef struct {
     uint8_t twie  : 1;  //!< Two Wire Interrupt Enable
     uint8_t rsvd  : 1;  //!< Reserved
@@ -49,7 +49,7 @@ typedef union {
     uint8_t flat;
 } Atm128I2CControl_t;
 
-/** I2C Status Codes */
+/* I2C Status Codes */
 enum {
     ATM128_I2C_BUSERROR	        = 0x00,
     ATM128_I2C_START		= 0x08,
@@ -65,7 +65,7 @@ enum {
     ATM128_I2C_MR_DATA_NACK	= 0x58
 };
 
-/** I2C Status Register -- TWSR */
+/* I2C Status Register -- TWSR */
 typedef union {
   struct Atm128I2CStatus_s {
     uint8_t twps  : 2;  //!< Two Wire Prescaler Bits
@@ -75,7 +75,7 @@ typedef union {
   uint8_t flat;
 } Atm128I2CStatus_t;
 
-/** I2C Slave Address Register -- TWAR */
+/* I2C Slave Address Register -- TWAR */
 typedef union {
   struct Atm128I2CSlaveAddr_s {
     uint8_t twgce : 1;  //!< Two Wire General Call Enable

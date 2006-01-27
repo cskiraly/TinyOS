@@ -1,4 +1,4 @@
-// $Id: MeasureClockC.nc,v 1.1.2.3 2006-01-27 21:52:11 idgay Exp $
+// $Id: MeasureClockC.nc,v 1.1.2.4 2006-01-27 23:13:23 idgay Exp $
 /*
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
@@ -16,7 +16,7 @@
  * An "AlarmMicro microsecond" is actually 8 cpu cycles (see 
  * AlarmMicro16C and AlarmMicro32C).
  *
- * @authod David Gay
+ * @author David Gay
  */
 
 #include "scale.h"

@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-13 18:46:17 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-01-27 23:13:21 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -45,7 +45,7 @@
 module TestAdcC
 {
   uses interface Read<uint16_t> as Read;
-  uses interface ReadNow<uint16_t> as ReadNow;
+  //uses interface ReadNow<uint16_t> as ReadNow;
   uses interface ReadStream<uint16_t> as ReadStream;
   uses interface Boot;
   uses interface Leds;
@@ -57,7 +57,7 @@ implementation
   
   event void Boot.booted()
   {
-    call ReadNow.read();
+    //call ReadNow.read();
     call Read.read();
     call ReadStream.postBuffer(buf, BUF_SIZE);
     call ReadStream.read(10000);
@@ -69,11 +69,13 @@ implementation
       call Leds.led0On();
   }
   
+#if 0
   async event void ReadNow.readDone(error_t result, uint16_t data)
   {
     if (result == SUCCESS)
       call Leds.led1On();
   }
+#endif
 
   event void ReadStream.bufferDone( error_t result, 
 			 uint16_t* buffer, uint16_t count )
