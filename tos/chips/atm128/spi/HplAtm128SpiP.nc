@@ -1,3 +1,5 @@
+/// $Id: HplAtm128SpiP.nc,v 1.1.2.2 2006-01-27 22:04:19 mturon Exp $
+
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
