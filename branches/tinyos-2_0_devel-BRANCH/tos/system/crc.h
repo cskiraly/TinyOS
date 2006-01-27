@@ -1,4 +1,4 @@
-// $Id: crc.h,v 1.1.2.2 2005-05-24 18:20:46 idgay Exp $
+// $Id: crc.h,v 1.1.2.3 2006-01-27 22:19:17 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -33,15 +33,18 @@
 #define CRC_H
 
 /**
- * Default CRC function. Note that avrmote has a much more efficient one. 
+ * Default CRC function. Some microcontrollers may provide more efficient
+ * implementations.
  *
  * This CRC-16 function produces a 16-bit running CRC that adheres to the
  * ITU-T CRC standard.
  *
  * The ITU-T polynomial is: G_16(x) = x^16 + x^12 + x^5 + 1
+ * @param crc Running CRC value
+ * @param b Byte to "add" to the CRC
+ * @return New CRC value
  *
  */
-
 uint16_t crcByte(uint16_t crc, uint8_t b)
 {
   uint8_t i;

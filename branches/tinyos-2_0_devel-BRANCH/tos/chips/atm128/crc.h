@@ -1,4 +1,4 @@
-// $Id: crc.h,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+// $Id: crc.h,v 1.1.2.2 2006-01-27 22:19:31 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -66,6 +66,13 @@ uint16_t crcTable[256] PROGMEM = {
   0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
 };
 
+/**
+ * Optimised Atmega128 ITU-T CRC function.
+ *
+ * @param crc Running CRC value
+ * @param b Byte to "add" to the CRC
+ * @return New CRC value
+ */
 uint16_t crcByte(uint16_t oldCrc, uint8_t byte)
 {
 #if 1
