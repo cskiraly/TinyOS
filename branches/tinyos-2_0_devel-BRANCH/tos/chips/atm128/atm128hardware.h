@@ -1,4 +1,6 @@
-/**                                                                     tab:4
+///  $Id: atm128hardware.h,v 1.1.2.4 2006-01-27 22:32:24 mturon Exp $
+
+/*                                                                     tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
  *  this license.  If you do not agree to this license, do not download,
@@ -29,11 +31,11 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ */
+
+/**
  *  @author Jason Hill, Philip Levis, Nelson Lee, David Gay
  *  @author Martin Turon <mturon@xbow.com>
- *
- *  $Id: atm128hardware.h,v 1.1.2.3 2005-10-27 21:04:15 idgay Exp $
  */
 
 #ifndef _H_atmega128hardware_H

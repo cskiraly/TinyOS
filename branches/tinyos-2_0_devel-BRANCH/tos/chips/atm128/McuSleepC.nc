@@ -1,4 +1,6 @@
-/**
+/// $Id: McuSleepC.nc,v 1.1.2.4 2006-01-27 22:32:24 mturon Exp $
+
+/*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and
@@ -19,7 +21,6 @@
  * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
  * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
  * ENHANCEMENTS, OR MODIFICATIONS."
- *
  */
 
 /**
@@ -28,13 +29,12 @@
  * Szewczyk's 1.x code in HPLPowerManagementM.nc.
  *
  * <pre>
- *  $Id: McuSleepC.nc,v 1.1.2.3 2006-01-20 17:15:46 idgay Exp $
+ *  $Id: McuSleepC.nc,v 1.1.2.4 2006-01-27 22:32:24 mturon Exp $
  * </pre>
  *
  * @author Philip Levis
  * @author Robert Szewczyk
  * @date   October 26, 2005
- *
  */
 
 module McuSleepC {

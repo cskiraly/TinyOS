@@ -1,6 +1,6 @@
-/// $Id: HplAtm128UartC.nc,v 1.1.2.1 2005-10-31 20:07:09 scipio Exp $
+/// $Id: HplAtm128UartC.nc,v 1.1.2.2 2006-01-27 22:32:24 mturon Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
