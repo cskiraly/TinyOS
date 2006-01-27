@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSpiDMAM.nc,v 1.1.2.2 2006-01-23 21:15:57 philipb Exp $ */
+/* $Id: HalPXA27xSpiDMAM.nc,v 1.1.2.3 2006-01-27 01:11:39 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -104,7 +104,7 @@ implementation
     return SUCCESS;
   }
 
-  async command error_t SPIPacket.send[uint8_t instance](uint8_t* txBuf, uint8_t* rxBuf, uint8_t len) {
+  async command error_t SPIPacket.send[uint8_t instance](uint8_t* txBuf, uint8_t* rxBuf, uint16_t len) {
     uint32_t tmp;
     uint32_t txAddr,rxAddr;
     uint32_t txDMAFlags, rxDMAFlags;
@@ -201,7 +201,7 @@ implementation
   }
 
   default async event void SPIPacket.sendDone[uint8_t instance](uint8_t* txBuf, uint8_t* rxBuf, 
-					      uint8_t len, error_t error) {
+					      uint16_t len, error_t error) {
     return;
   }
   
