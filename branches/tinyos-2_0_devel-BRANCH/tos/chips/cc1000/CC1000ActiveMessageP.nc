@@ -1,4 +1,4 @@
-// $Id: CC1000ActiveMessageP.nc,v 1.1.2.3 2006-01-19 00:35:03 scipio Exp $
+// $Id: CC1000ActiveMessageP.nc,v 1.1.2.4 2006-01-27 18:46:00 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -28,14 +28,9 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
-/*
- *
- * Authors:		Philip Levis
- * Date last modified:  $Id: CC1000ActiveMessageP.nc,v 1.1.2.3 2006-01-19 00:35:03 scipio Exp $
- *
- */
-
 /**
+ * Implementation component for CC1000ActiveMessageC.
+ *
  * @author Philip Levis
  * @date June 19 2005
  */

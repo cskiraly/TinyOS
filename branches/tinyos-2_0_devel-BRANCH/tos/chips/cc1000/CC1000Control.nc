@@ -1,4 +1,4 @@
-/* $Id: CC1000Control.nc,v 1.1.2.4 2006-01-26 21:11:40 idgay Exp $
+/* $Id: CC1000Control.nc,v 1.1.2.5 2006-01-27 18:46:00 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -28,7 +28,8 @@
  */
 /**
  * CC1000 internal radio control interface.
- * @author Philip Buonadonna, Jaein Jeong
+ * @author Philip Buonadonna
+ * @aythor Jaein Jeong
  */
 interface CC1000Control
 {

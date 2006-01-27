@@ -1,4 +1,4 @@
-// $Id: HplCC1000.nc,v 1.1.2.1 2005-08-13 01:16:32 idgay Exp $
+// $Id: HplCC1000.nc,v 1.1.2.2 2006-01-27 18:46:00 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -36,6 +36,9 @@
  */
 
 /**
+ * Low-level CC1000 radio-access operations that must be provided by every
+ * platform.
+ *
  * @author Jason Hill
  * @author David Gay
  * @author Philip Levis
@@ -45,29 +48,26 @@
 interface HplCC1000 {
   /**
    * Initialize CC1K pins
-   *
-   * @return SUCCESS if successful
    */
   command void init();
 
   /**
-   * Transmit 8-bit data for 7-bit register address
-   *
-   * @return SUCCESS if successful
+   * Write a value to a CC1000 register.
+   * @param addr Which CC1000 register
+   * @param data Value to write
    */
   async command void write(uint8_t addr, uint8_t data);
 
   /**
-   * Read 8-bit data for 7-bit register address
-   *
-   * @return data
+   * Read a value from a CC1000 register.
+   * @param addr Which CC1000 register
+   * @return Value of register
    */
   async command uint8_t read(uint8_t addr);
 
   /**
-   * Read a BINARY value from the CHP_OUT pin
-   *
-   * @return TRUE or FALSE
+   * Read the state of the CHP_OUT pin
+   * @return State of CHP_OUT as a boolean (TRUE for high)
    */
   async command bool getLOCK();
 }

@@ -1,4 +1,4 @@
-// $Id: CC1000Const.h,v 1.1.2.4 2005-08-10 15:54:38 scipio Exp $
+// $Id: CC1000Const.h,v 1.1.2.5 2006-01-27 18:46:00 idgay Exp $
 
 /* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */ 
 /*									tab:4
@@ -489,5 +489,7 @@ static const_uint8_t CC1K_Params[6][20] = {
     8 << CC1K_VCO_CURRENT | 1 << CC1K_PA_DRIVE,
   },
 };
+
+#define UQ_CC1000_RSSI "CC1000RssiP.Rssi"
 
 #endif /* CC1000CONST_H */

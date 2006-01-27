@@ -1,4 +1,4 @@
-/* $Id: CC1000ControlP.nc,v 1.1.2.3 2006-01-10 19:34:09 idgay Exp $
+/* $Id: CC1000ControlP.nc,v 1.1.2.4 2006-01-27 18:46:00 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -27,16 +27,13 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
+ * This module provides the CONTROL functionality for the Chipcon1000
+ * series radio.  It exports a custom interface to control CC1000
+ * operation.
+ *
  * @author Philip Buonadonna
  * @author Jaein Jeong
  * @author David Gay
- * Revision:  $Revision: 1.1.2.3 $
- */
-
-/**
- * This module provides the CONTROL functionality for the Chipcon1000
- * series radio.  It exports both a standard control interface and a custom
- * interface to control CC1000 operation.
  */
 #include "CC1000Const.h"
 #include "Timer.h"

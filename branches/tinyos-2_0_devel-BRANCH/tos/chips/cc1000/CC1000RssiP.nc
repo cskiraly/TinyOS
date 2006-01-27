@@ -1,4 +1,4 @@
-/* $Id: CC1000RssiP.nc,v 1.1.2.2 2006-01-20 23:08:13 idgay Exp $
+/* $Id: CC1000RssiP.nc,v 1.1.2.3 2006-01-27 18:46:00 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -26,21 +26,21 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+
 /**
-     RSSI fun. It's used for lots of things, and a request to read it
-     for one purpose may have to be discarded if conditions change. For
-     example, if we've initiated a noise-floor measure, but start 
-     receiving a packet, we have to:
-     - cancel the noise-floor measure (we don't know if the value will
-       reflect the received packet or the previous idle state)
-     - start an RSSI measurement so that we can report signal strength
-       to the application
+ *   RSSI fun. It's used for lots of things, and a request to read it
+ *   for one purpose may have to be discarded if conditions change. For
+ *   example, if we've initiated a noise-floor measure, but start 
+ *   receiving a packet, we have to:
+ *   - cancel the noise-floor measure (we don't know if the value will
+ *     reflect the received packet or the previous idle state)
+ *   - start an RSSI measurement so that we can report signal strength
+ *     to the application
+ *
+ *   This module hides the complexities of cancellation from the rest of
+ *   the stack.
+ */
 
-     This module hides the complexities of cancellation from the rest of
-     the stack.
-*/
-
-#define CC1000RSSI "cc1000.rssi"
 module CC1000RssiP
 {
   provides {
@@ -52,8 +52,8 @@ module CC1000RssiP
 implementation
 {
   enum {
-    IDLE = unique(CC1000RSSI),
-    CANCELLED = unique(CC1000RSSI)
+    IDLE = unique(UQ_CC1000_RSSI),
+    CANCELLED = unique(UQ_CC1000_RSSI)
   };
 
   /* All commands are called within atomic sections */
