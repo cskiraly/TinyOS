@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-01-24 17:43:31 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2006-01-27 23:49:43 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -89,6 +89,7 @@ implementation
     ignore = FALSE;
     state = owner = value = 0;
     resultBuf = 0;
+    return SUCCESS;
   }
   
   command error_t Read.read[uint8_t client]()
