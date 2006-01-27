@@ -26,30 +26,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
+ */
+ 
+/*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-23 00:51:18 $
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-01-27 03:17:54 $
  * ========================================================================
  */
 
- /**
- * AD5200SpiC configuration
- * Configuration file for the default SPI for writing the value to the
- * AD5200 Potentiometer. This file can be shadowed in the application or
- * platforms directory in order to have a different SPI implementation.
+/**
+ * There is currently no TEP for describing devices of this type.<br><br>
  *
- * @author Kevin Klues <klues@tkn.tu-berlin.de>
+ * This component provides the implementation of the ad5200 potentiometer
+ * chip.  It is currently the only chip of its type, and does not conform to
+ * any existing TEP standard.  This component will be updated as a TEP for
+ * potentiometers is developed in the near future.
+ *
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
-configuration AD5200SpiC {
-    provides {
-      interface Resource;
-      interface SPIByte;
-    }
+configuration Ad5200C {
+provides {
+  interface Pot;
+  interface Resource;
+  interface StdControl;
+}
 }
 
 implementation {
-  components new Spi0C() as SPI;
-  Resource = SPI;
-  SPIByte = SPI;
+  components Ad5200P
+      , Ad5200SpiC
+      , Ad5200PotIO
+      , MainC
+      ;
+
+      StdControl = Ad5200P;
+      Pot = Ad5200P;
+      Resource = Ad5200SpiC;
+
+
+      MainC.SoftwareInit-> Ad5200P.Init;
+      Ad5200P.ENPOT -> Ad5200PotIO.Ad5200PotENPOT;
+      Ad5200P.SDPOT -> Ad5200PotIO.Ad5200PotSDPOT;
+      Ad5200P.SpiByte -> Ad5200SpiC;
 }

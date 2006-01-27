@@ -26,40 +26,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
+ */
+ 
+/*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-23 00:51:18 $
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-01-27 03:17:54 $
  * ========================================================================
  */
 
 /**
-* AD5200C configuration
-*
-* @author Kevin Klues <klues@tkn.tu-berlin.de>
-*/
+ * There is currently no TEP for describing components of this type.<br><br>
+ *
+ * Configuration file for using the default Spi implementation for writing
+ * a value to the Ad5200 Potentiometer. This file can be shadowed in the
+ * application or platform directory in order to use a different Spi
+ * implementation.
+ *
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
+ */
 
-configuration AD5200C {
-provides {
-  interface Pot;
-  interface Resource;
-  interface StdControl;
-}
+configuration Ad5200SpiC {
+    provides {
+      interface Resource;
+      interface SpiByte;
+    }
 }
 
 implementation {
-  components AD5200P
-      , AD5200SpiC
-      , AD5200PotIO
-      , MainC
-      ;
-
-      StdControl = AD5200P;
-      Pot = AD5200P;
-      Resource = AD5200SpiC;
-
-
-      MainC.SoftwareInit-> AD5200P.Init;
-      AD5200P.ENPOT -> AD5200PotIO.AD5200PotENPOT;
-      AD5200P.SDPOT -> AD5200PotIO.AD5200PotSDPOT;
-      AD5200P.SPIByte -> AD5200SpiC;
+  components new Spi0C() as Spi;
+  Resource = Spi;
+  SpiByte = Spi;
 }
