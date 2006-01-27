@@ -1,5 +1,6 @@
-Application to test the BlockStorage abstraction. You must partition the flash
-chip first, by installing the TestNewFlash/Format application.
+Application to test the BlockStorageC abstraction. There must be a
+volumes-<chip>.xml file in this directory describing the test volume
+for your flash chip.
 
 Install this application with a moteid of k*4 + 3 to do a full flash test.
 If you install with an id of k*4+1, only the write portion of the test will

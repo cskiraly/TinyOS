@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.3 2006-01-20 01:16:52 jwhui Exp $
+/* $Id: RandRWAppC.nc,v 1.1.2.1 2006-01-27 17:17:55 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
