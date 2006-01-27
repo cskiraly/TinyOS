@@ -30,7 +30,7 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-01-27 03:17:54 $
  * ========================================================================
  */
@@ -38,25 +38,76 @@
 /**
  * There is currently no TEP for describing devices of this type.<br><br>
  *
- * This component provides the HIL abstraction for the Ad5200 potentiomter.
- * Since there is currently no TEP describing the abstractions for
- * potentiometers, this component will need to be updated once one is created.
+ * This component provides the internal implementation of the ad5200 potentiometer
+ * chip.  It is currently the only chip of its type, and does not conform to
+ * any existing TEP standard.  This component will be updated as a TEP for
+ * potentiometers is developed in the near future.
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
-configuration PotC {
-    provides {
-      interface Resource;
-      interface Pot;
-      interface StdControl;
+  module Ad5200P {
+  provides {
+    interface Init;
+    interface Pot;
+    interface StdControl;
+  }
+  uses {
+    interface GeneralIO as ENPOT;
+    interface GeneralIO as SDPOT;
+    interface SpiByte;
+  }
+  }
+  implementation {
+    uint8_t Pot_value = -1;
+
+    /************** interface commands **************/
+    command error_t Init.init() {
+      call ENPOT.makeOutput();
+      call SDPOT.makeOutput();
+      call ENPOT.set();
+      call SDPOT.set();
+      return SUCCESS;
     }
-}
 
-implementation {
-  components Ad5200C;
+    command error_t StdControl.start() {
+      call SDPOT.set();
+      call ENPOT.set();
+      return SUCCESS;
+    }
+    command error_t StdControl.stop() {
+      call ENPOT.set();
+      call SDPOT.clr();
+      return SUCCESS;
+    }
 
-  Pot = Ad5200C;
-  StdControl = Ad5200C;
-  Resource = Ad5200C;
-}
+    async command error_t Pot.set(uint8_t setting) {
+      error_t result;
+      call ENPOT.clr();
+      result = call SPIByte.write(setting, 0);
+      call ENPOT.set();
+      if(result == SUCCESS)
+        atomic Pot_value = setting;
+      return result;
+    }
+
+    async command uint8_t Pot.get() {
+      return Pot_value;
+    }
+
+    async command error_t Pot.increase() {
+      if (Pot_value < 255 && Pot_value >= 0) {
+        Pot_value++;
+        return call Pot.set(Pot_value);
+      }
+      else return FAIL;
+    }
+
+    async command error_t Pot.decrease() {
+      if (Pot_value > 0) {
+        Pot_value--;
+        return call Pot.set(Pot_value);
+      }
+      else return FAIL;
+    }
+  }
