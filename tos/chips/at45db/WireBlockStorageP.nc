@@ -8,6 +8,13 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
+/**
+ * Private component of the AT45DB implementation of the block storage
+ * abstraction.
+ *
+ * @author: David Gay <dgay@acm.org>
+ */
+
 configuration WireBlockStorageP { }
 implementation {
   components BlockStorageP, At45dbC;

@@ -8,7 +8,13 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-module StorageManagerC {
+/**
+ * Private component for reporting on an AT45DB's volume table.
+ *
+ * @author: David Gay <dgay@acm.org>
+ */
+
+module StorageManagerP {
   provides interface At45dbVolume[volume_id_t volid];
 }
 implementation {

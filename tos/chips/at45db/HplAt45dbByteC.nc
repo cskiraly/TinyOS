@@ -8,6 +8,17 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
+/**
+ * Generic byte-at-a-time implementation of the AT45DB HPL.
+ * 
+ * Each platform must provide its own HPL implementation for its AT45DB
+ * flash chip. To simplify this task, this component can easily be used to
+ * build an AT45DB HPL by connecting it to a byte-at-a-time SPI interface,
+ * and an HplAt45dbByte interface.
+ *
+ * @author David Gay
+ */
+
 generic module HplAt45dbByteC() {
   provides interface HplAt45db;
   uses {

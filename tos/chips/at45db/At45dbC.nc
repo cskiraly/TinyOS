@@ -8,7 +8,12 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+
 /**
+ * HAL for Atmel's AT45DB family of serial dataflash chips. Access to the HAL
+ * is controlled by a parameterised Resource interface - client ids are 
+ * obtained with unique(UQ_AT45DB).
+ *
  * @author David Gay
  */
 
