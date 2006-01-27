@@ -1,4 +1,6 @@
-/**
+/// $Id: Atm128I2CMasterP.nc,v 1.1.2.1 2006-01-27 22:19:36 mturon Exp $
+
+/*
  *  Copyright (c) 2004-2005 Crossbow Technology, Inc.
  *  All rights reserved.
  *
@@ -21,10 +23,6 @@
  *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  *  THE POSSIBILITY OF SUCH DAMAGE.
- *
- *  @author Martin Turon <mturon@xbow.com>
- *
- *  $Id: HalI2CMasterP.nc,v 1.1.2.2 2006-01-22 07:01:35 mturon Exp $
  */
 
 #include "Atm128I2C.h"
@@ -33,6 +31,8 @@
  * This driver implements an interupt driven I2C Master controller 
  * Hardware Abstraction Layer (HAL) to the ATmega128 
  * two-wire-interface (TWI) hardware subsystem.
+ *
+ * @author Martin Turon <mturon@xbow.com>
  *
  * @version    2005/9/11    mturon     Initial version
  */

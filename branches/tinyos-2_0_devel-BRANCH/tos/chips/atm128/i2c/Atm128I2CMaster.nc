@@ -1,5 +1,7 @@
-/**
- *  Copyright (c) 2004-2006 Crossbow Technology, Inc.
+/// $Id: Atm128I2CMaster.nc,v 1.1.2.1 2006-01-27 22:19:36 mturon Exp $
+
+/*
+ *  Copyright (c) 2004-2005 Crossbow Technology, Inc.
  *  All rights reserved.
  *
  *  Permission to use, copy, modify, and distribute this software and its
@@ -21,35 +23,32 @@
  *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  *  THE POSSIBILITY OF SUCH DAMAGE.
- *
- *  @author Martin Turon <mturon@xbow.com>
- *
- *  $Id: HplI2CBusC.nc,v 1.1.2.2 2006-01-22 07:01:35 mturon Exp $
  */
+
+#include "Atm128I2C.h"
 
 /**
- * This driver implements direct I2C register access and a blocking master
- * controller for the ATmega128 via a Hardware Platform Layer (HPL) to its  
- * two-wire-interface (TWI) hardware subsystem.
+ * Interface for non-blocking I2C master engine.
  *
- * @version    2005/9/11    mturon     Initial version
+ * @author Martin Turon <mturon@xbow.com>
  */
-configuration HplI2CBusC
+interface Atm128I2CMaster
 {
-    provides interface HplI2CBus as I2C;
-}
-implementation {
+    /** Ping the I2C device. */
+    command error_t ping  ();
 
-    components LedsC
-    	, HplAtm128GeneralIOC
-    	, BusyWaitMicroC
-    	, HplI2CBusP
-    	;
-  
-    I2C = HplI2CBusP.I2C;
-    
-    HplI2CBusP.Leds -> LedsC;
-    HplI2CBusP.uWait -> BusyWaitMicroC;
-    HplI2CBusP.I2CClk -> HplAtm128GeneralIOC.PortD0;
-    HplI2CBusP.I2CData -> HplAtm128GeneralIOC.PortD1;
+    /** Write the given data buffer the I2C device. */
+    command error_t write (uint8_t *data, uint8_t length);
+
+    /** Read from the I2C device. */
+    command error_t read  (uint8_t *data, uint8_t length);
+
+    /** Signal that the ping to the I2C device is done. */
+    event void pingDone  (error_t result);
+
+    /** Signal that the read from the I2C device is done. */
+    event void readDone  ();
+
+    /** Signal that the write to the I2C device is done. */
+    event void writeDone ();
 }
