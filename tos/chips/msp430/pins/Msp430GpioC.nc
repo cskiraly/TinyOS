@@ -1,4 +1,4 @@
-// $Id: MSP430GeneralIO.nc,v 1.1.2.1 2005-03-15 23:19:45 jpolastre Exp $
+//$Id: Msp430GpioC.nc,v 1.1.2.1 2006-01-27 23:28:12 jwhui Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -21,19 +21,23 @@
  */
 
 /**
- * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ * Implementation of the general-purpose I/O abstraction from TEP117
+ * for the TI MSP430 microcontroller.
+ *
+ * @author Joe Polastre
  */
 
-interface MSP430GeneralIO
-{
-  async command void set();
-  async command void clr();
-  async command void toggle();
-  async command uint8_t getRaw();
-  async command bool get();
-  async command void makeInput();
-  async command void makeOutput();
-  async command void selectModuleFunc();
-  async command void selectIOFunc();
+generic module Msp430GpioC() {
+  provides interface GeneralIO;
+  uses interface HplMsp430GeneralIO as HplGeneralIO;
 }
+implementation {
 
+  async command void GeneralIO.set() { call HplGeneralIO.set(); }
+  async command void GeneralIO.clr() { call HplGeneralIO.clr(); }
+  async command void GeneralIO.toggle() { call HplGeneralIO.toggle(); }
+  async command bool GeneralIO.get() { return call HplGeneralIO.get(); }
+  async command void GeneralIO.makeInput() { call HplGeneralIO.makeInput(); }
+  async command void GeneralIO.makeOutput() { call HplGeneralIO.makeOutput(); }
+
+}

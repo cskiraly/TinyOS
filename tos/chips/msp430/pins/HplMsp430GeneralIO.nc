@@ -1,4 +1,4 @@
-//$Id: MSP430Interrupt.nc,v 1.1.2.2 2005-04-21 22:09:00 jpolastre Exp $
+// $Id: HplMsp430GeneralIO.nc,v 1.1.2.1 2006-01-27 23:28:12 jwhui Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -21,43 +21,62 @@
  */
 
 /**
- * @author Joe Polastre
+ * HPL for the TI MSP430 family of microprocessors. This provides an
+ * abstraction for general-purpose I/O.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
  */
 
-interface MSP430Interrupt
+interface HplMsp430GeneralIO
 {
-  /** 
-   * Enables MSP430 hardware interrupt on a particular port
+  /**
+   * Set pin to high.
    */
-  async command void enable();
-
-  /** 
-   * Disables MSP430 hardware interrupt on a particular port
-   */
-  async command void disable();
-
-  /** 
-   * Clears the MSP430 Interrupt Pending Flag for a particular port
-   */
-  async command void clear();
-
-  /** 
-   * Gets the current value of the input voltage of a port
-   *
-   * @return TRUE if the pin is set high, FALSE if it is set low
-   */
-  async command bool getValue();
-
-  /** 
-   * Sets whether the edge should be high to low or low to high.
-   * @param TRUE if the interrupt should be triggered on a low to high
-   *        edge transition, false for interrupts on a high to low transition
-   */
-  async command void edge(bool low_to_high);
+  async command void set();
 
   /**
-   * Signalled when an interrupt occurs on a port
+   * Set pin to low.
    */
-  async event void fired();
+  async command void clr();
+
+  /**
+   * Toggle pin status.
+   */
+  async command void toggle();
+
+  /**
+   * Get the port status that contains the pin.
+   *
+   * @return Status of the port that contains the given pin. The x'th
+   * pin on the port will be represented in the x'th bit.
+   */
+  async command uint8_t getRaw();
+
+  /**
+   * Read pin value.
+   *
+   * @return TRUE if pin is high, FALSE otherwise.
+   */
+  async command bool get();
+
+  /**
+   * Set pin direction to input.
+   */
+  async command void makeInput();
+
+  /**
+   * Set pin direction to output.
+   */
+  async command void makeOutput();
+
+  /**
+   * Set pin for module specific functionality.
+   */
+  async command void selectModuleFunc();
+
+  /**
+   * Set pin for I/O functionality.
+   */
+  async command void selectIOFunc();
 }
 

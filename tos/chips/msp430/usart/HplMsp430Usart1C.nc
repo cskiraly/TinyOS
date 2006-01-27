@@ -36,7 +36,7 @@ implementation {
 
   components MainC;
   components HplMsp430Usart1P as HplUsartP;
-  components MSP430GeneralIOC as GIO;
+  components HplMsp430GeneralIOC as GIO;
   components new FcfsArbiterC( "Msp430Usart1.Resource" ) as Arbiter;
 
   MainC.SoftwareInit -> Arbiter;

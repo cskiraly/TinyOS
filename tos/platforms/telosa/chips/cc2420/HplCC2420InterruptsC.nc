@@ -45,18 +45,18 @@ configuration HplCC2420InterruptsC {
 implementation {
 
   components Counter32khzC;
-  components MSP430GeneralIOC;
+  components HplMsp430GeneralIOC as GeneralIOC;
   components MSP430TimerC;
   components new GpioCaptureC() as CaptureSFDC;
   CaptureSFDC.MSP430TimerControl -> MSP430TimerC.ControlB1;
   CaptureSFDC.MSP430Capture -> MSP430TimerC.CaptureB1;
-  CaptureSFDC.MSP430GeneralIO -> MSP430GeneralIOC.Port41;
+  CaptureSFDC.GeneralIO -> GeneralIOC.Port41;
 
-  components MSP430InterruptPort1C;
-  components new GpioInterruptC() as InterruptCCAC;
-  components new GpioInterruptC() as InterruptFIFOPC;
-  InterruptCCAC.MSP430Interrupt -> MSP430InterruptPort1C.Port14;
-  InterruptFIFOPC.MSP430Interrupt -> MSP430InterruptPort1C.Port10;
+  components HplMsp430InterruptC;
+  components new Msp430InterruptC() as InterruptCCAC;
+  components new Msp430InterruptC() as InterruptFIFOPC;
+  InterruptCCAC.HplInterrupt -> HplMsp430InterruptC.Port14;
+  InterruptFIFOPC.HplInterrupt -> HplMsp430InterruptC.Port10;
 
   CaptureSFD = CaptureSFDC.Capture;
   InterruptCCA = InterruptCCAC.Interrupt;

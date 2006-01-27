@@ -1,4 +1,4 @@
-// $Id: MSP430GeneralIOM.nc,v 1.1.2.1 2005-03-15 23:19:45 jpolastre Exp $
+// $Id: HplMsp430GeneralIOP.nc,v 1.1.2.1 2006-01-27 23:28:12 jwhui Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -26,7 +26,7 @@
 
 includes msp430regtypes;
 
-generic module MSP430GeneralIOM(
+generic module HplMsp430GeneralIOP(
 				uint8_t port_in_addr,
 				uint8_t port_out_addr,
 				uint8_t port_dir_addr,
@@ -34,7 +34,7 @@ generic module MSP430GeneralIOM(
 				uint8_t pin
 				)
 {
-  provides interface MSP430GeneralIO as IO;
+  provides interface HplMsp430GeneralIO as IO;
 }
 implementation
 {
@@ -53,4 +53,3 @@ implementation
   async command void IO.selectModuleFunc() { atomic PORTxSEL |= (0x01 << pin); }
   async command void IO.selectIOFunc() { atomic PORTxSEL &= ~(0x01 << pin); }
 }
-

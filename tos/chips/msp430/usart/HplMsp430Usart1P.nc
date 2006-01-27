@@ -30,8 +30,8 @@
  * Implementation of USART0 lowlevel functionality - stateless.
  * Setting a mode will by default disable USART-Interrupts.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-11 20:41:10 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-27 23:28:13 $
  * @author: Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author: Joe Polastre
  * ========================================================================
@@ -40,11 +40,11 @@
 module HplMsp430Usart1P {
   provides interface HplMsp430Usart as USART;
 
-  uses interface MSP430GeneralIO as SIMO;
-  uses interface MSP430GeneralIO as SOMI;
-  uses interface MSP430GeneralIO as UCLK;
-  uses interface MSP430GeneralIO as URXD;
-  uses interface MSP430GeneralIO as UTXD;
+  uses interface HplMsp430GeneralIO as SIMO;
+  uses interface HplMsp430GeneralIO as SOMI;
+  uses interface HplMsp430GeneralIO as UCLK;
+  uses interface HplMsp430GeneralIO as URXD;
+  uses interface HplMsp430GeneralIO as UTXD;
 }
 implementation
 {
