@@ -1,4 +1,6 @@
-/* $Id: atm128const.h,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: atm128const.h,v 1.1.2.2 2006-01-27 22:32:24 mturon Exp $
+
+/* 
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -7,6 +9,7 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+
 /**
  * const_[u]int[8/16/32]_t types are used to declare single and array
  * constants that should live in ROM/FLASH. These constants must be read
