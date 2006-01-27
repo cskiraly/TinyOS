@@ -1,6 +1,6 @@
-// $Id: HplAtm128GeneralIOPinP.nc,v 1.1.2.1 2006-01-15 23:44:52 scipio Exp $
+/// $Id: HplAtm128GeneralIOPinP.nc,v 1.1.2.2 2006-01-27 21:55:55 mturon Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,12 +22,12 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
-/// @author David Gay <dgay@intel-research.net>
-
 /**
  * Generic pin access for pins mapped into I/O space (for which the sbi, cbi
  * instructions give atomic updates). This can be used for ports A-E.
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ * @author David Gay <dgay@intel-research.net>
  */
 generic module HplAtm128GeneralIOPinP (uint8_t port_addr, 
 				 uint8_t ddr_addr, 

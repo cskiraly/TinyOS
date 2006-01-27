@@ -1,6 +1,6 @@
-// $Id: HplAtm128InterruptC.nc,v 1.1.2.1 2006-01-15 23:44:52 scipio Exp $
+/// $Id: HplAtm128InterruptC.nc,v 1.1.2.2 2006-01-27 21:55:55 mturon Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,9 +22,12 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
-
 #include <atm128hardware.h>
+
+/**
+ * Component providing access to all external interrupt pins on ATmega128.
+ * @author Martin Turon <mturon@xbow.com>
+ */
 
 configuration HplAtm128InterruptC
 {

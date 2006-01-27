@@ -1,6 +1,6 @@
-// $Id: HplAtm128GeneralIOPortP.nc,v 1.1.2.1 2006-01-15 23:44:52 scipio Exp $
+/// $Id: HplAtm128GeneralIOPortP.nc,v 1.1.2.2 2006-01-27 21:55:55 mturon Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,7 +22,11 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+/**
+ * Generic component to expose a full 8-bit port of GPIO pins.
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ */
 
 generic configuration HplAtm128GeneralIOPortP (uint8_t port_addr, uint8_t ddr_addr, uint8_t pin_addr)
 {

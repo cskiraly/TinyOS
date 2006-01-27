@@ -1,6 +1,6 @@
-/// $Id: Atm128Interrupt.h,v 1.1.2.1 2005-08-13 01:16:31 idgay Exp $
+/// $Id: Atm128Interrupt.h,v 1.1.2.2 2006-01-27 21:55:55 mturon Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
