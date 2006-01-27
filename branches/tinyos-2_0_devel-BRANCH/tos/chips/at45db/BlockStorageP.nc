@@ -1,4 +1,4 @@
-// $Id: BlockStorageP.nc,v 1.1.2.4 2006-01-26 21:11:40 idgay Exp $
+// $Id: BlockStorageP.nc,v 1.1.2.5 2006-01-27 00:57:20 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -29,7 +29,10 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-/*
+/**
+ * Private component of the AT45DB implementation of the block storage
+ * abstraction.
+ *
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  * @author: David Gay <dgay@acm.org>
  */

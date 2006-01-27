@@ -1,4 +1,4 @@
-// $Id: BlockStorageC.nc,v 1.1.2.4 2006-01-25 17:08:48 idgay Exp $
+// $Id: BlockStorageC.nc,v 1.1.2.5 2006-01-27 00:57:20 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -7,6 +7,13 @@
  * file. If you do not find these files, copies can be found by writing to
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
+ */
+
+/**
+ * Implementation of the block storage abstraction from TEP103 for the
+ * Atmel AT45DB serial data flash.
+ *
+ * @author David Gay
  */
 
 #include "Storage.h"
@@ -23,11 +30,11 @@ implementation {
     RESOURCE_ID = unique(UQ_AT45DB)
   };
     
-  components BlockStorageP, WireBlockStorageP, StorageManagerC, At45dbC;
+  components BlockStorageP, WireBlockStorageP, StorageManagerP, At45dbC;
 
   BlockWrite = BlockStorageP.BlockWrite[BLOCK_ID];
   BlockRead = BlockStorageP.BlockRead[BLOCK_ID];
 
-  BlockStorageP.At45dbVolume[BLOCK_ID] -> StorageManagerC.At45dbVolume[volid];
+  BlockStorageP.At45dbVolume[BLOCK_ID] -> StorageManagerP.At45dbVolume[volid];
   BlockStorageP.Resource[BLOCK_ID] -> At45dbC.Resource[RESOURCE_ID];
 }
