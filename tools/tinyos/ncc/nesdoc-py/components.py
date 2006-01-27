@@ -99,8 +99,8 @@ def generate_component(comp):
   used = filter(lambda (x): x.getAttribute("provided") == "0", spec)
 
   # sort arrays
-  provided.sort(cmp = interface_compare)
-  used.sort(cmp = interface_compare)
+  provided.sort(interface_compare)
+  used.sort(interface_compare)
 
   generate_speclist(ht, "Provides", provided)
   generate_speclist(ht, "Uses", used)
