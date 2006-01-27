@@ -1,4 +1,4 @@
-// $Id: TestI2CC.nc,v 1.1.1.1.2.1 2006-01-22 07:00:44 mturon Exp $
+// $Id: TestI2CC.nc,v 1.1.1.1.2.2 2006-01-27 22:20:33 mturon Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -33,8 +33,8 @@ implementation
   components 
       MainC, TestI2CM, LedsC, 
       new TimerMilliC() as Timer0,
-      HplI2CBusC as I2C;
-      //new HalI2CMasterC(0x58) as I2CPot;  // ad5242 for mag on MTS310
+      HplAtm128I2CBusC as I2C;
+      //new Atm128I2CMasterC(0x58) as I2CPot;  // ad5242 for mag on MTS310
 
   TestI2CM -> MainC.Boot;
   MainC.SoftwareInit -> LedsC;
