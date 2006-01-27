@@ -1,7 +1,22 @@
-module TimerMilliC
+// $Id: HilTimerMilliC.nc,v 1.1.2.1 2006-01-27 20:24:16 idgay Exp $
+/*
+ * Copyright (c) 2005-2006 Intel Corporation
+ * All rights reserved.
+ *
+ * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * file. If you do not find these files, copies can be found by writing to
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * 94704.  Attention:  Intel License Inquiry.
+ */
+/**
+ * Dummy implementation to support the null platform.
+ */
+
+module HilTimerMilliC
 {
   provides interface Init;
   provides interface Timer<TMilli> as TimerMilli[ uint8_t num ];
+  provides interface LocalTime<TMilli>;
 }
 implementation
 {
@@ -42,6 +57,10 @@ implementation
   }
 
   command uint32_t TimerMilli.getdt[ uint8_t num ]() {
+    return 0;
+  }
+
+  async command uint32_t LocalTime.get() {
     return 0;
   }
 }
