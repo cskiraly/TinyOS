@@ -1,3 +1,5 @@
+/// $Id: HplAtm128SpiC.nc,v 1.1.2.3 2006-01-27 22:04:19 mturon Exp $
+
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -45,7 +47,7 @@
  * Configuration encapsulating the basic SPI HPL for the atm128.
  *
  * <pre>
- * $Id: HplAtm128SpiC.nc,v 1.1.2.2 2006-01-15 23:44:53 scipio Exp $
+ * $Id: HplAtm128SpiC.nc,v 1.1.2.3 2006-01-27 22:04:19 mturon Exp $
  * </pre>
  *
  * @author Philip Levis

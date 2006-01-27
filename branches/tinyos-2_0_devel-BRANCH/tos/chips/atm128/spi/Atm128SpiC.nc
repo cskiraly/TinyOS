@@ -1,3 +1,5 @@
+/// $Id: Atm128SpiC.nc,v 1.1.2.7 2006-01-27 22:04:19 mturon Exp $
+
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -50,7 +52,7 @@
  * The HAL of the SPI bus on the atm128.
  *
  * <pre>
- *  $Id: Atm128SpiC.nc,v 1.1.2.6 2006-01-15 23:44:53 scipio Exp $
+ *  $Id: Atm128SpiC.nc,v 1.1.2.7 2006-01-27 22:04:19 mturon Exp $
  * </pre>
  *
  *

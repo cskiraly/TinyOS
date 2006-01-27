@@ -1,4 +1,6 @@
-/**
+/// $Id: Atm128SpiP.nc,v 1.1.2.5 2006-01-27 22:04:19 mturon Exp $
+
+/*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and
@@ -61,7 +63,7 @@
  *
  *
  * <pre>
- *  $Id: Atm128SpiP.nc,v 1.1.2.4 2006-01-20 01:12:21 jwhui Exp $
+ *  $Id: Atm128SpiP.nc,v 1.1.2.5 2006-01-27 22:04:19 mturon Exp $
  * </pre>
  *
  * @author Philip Levis
