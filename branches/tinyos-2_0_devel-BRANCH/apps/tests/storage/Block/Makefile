@@ -1,4 +1,4 @@
-COMPONENT=RandRWC
+COMPONENT=RandRWAppC
 include $(MAKERULES)
 
 
