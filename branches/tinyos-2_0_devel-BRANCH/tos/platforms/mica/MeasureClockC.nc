@@ -1,3 +1,24 @@
+// $Id: MeasureClockC.nc,v 1.1.2.3 2006-01-27 21:52:11 idgay Exp $
+/*
+ * Copyright (c) 2006 Intel Corporation
+ * All rights reserved.
+ *
+ * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * file. If you do not find these files, copies can be found by writing to
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * 94704.  Attention:  Intel License Inquiry.
+ */
+/**
+ * Measure cpu clock frequency at boot time. Provides a command
+ * (<code>cyclesPerJiffy</code>) to return the number of cpu cycles per
+ * "jiffy"( 1/32768s) and a command (<code>calibrateMicro</code>) to 
+ * convert a number of microseconds into "AlarmMicro microseconds".
+ * An "AlarmMicro microsecond" is actually 8 cpu cycles (see 
+ * AlarmMicro16C and AlarmMicro32C).
+ *
+ * @authod David Gay
+ */
+
 #include "scale.h"
 
 module MeasureClockC {
@@ -5,7 +26,17 @@ module MeasureClockC {
   provides interface Init @exactlyonce();
 
   provides {
+    /**
+     * Return CPU cycles per 1/32768s.
+     * @return CPU cycles.
+     */
     command uint16_t cyclesPerJiffy();
+
+    /**
+     * Convert n microseconds into a value suitable for use with
+     * AlarmMicro16C and AlarmMicro32C Alarms.
+     * @return (n + 122) * 244 / cyclesPerJiffy
+     */
     command uint32_t calibrateMicro(uint32_t n);
   }
 }
