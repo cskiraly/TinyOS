@@ -1,4 +1,4 @@
-/* $Id: AdcReadClientC.nc,v 1.1.2.1 2006-01-20 23:08:13 idgay Exp $
+/* $Id: AdcReadClientC.nc,v 1.1.2.2 2006-01-27 19:35:31 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -8,8 +8,10 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Provide arbitrated access to the Read interface of the AdcC
- * component for a particular port.
+ * Provide, as per TEP101, arbitrated access via a Read interface to the
+ * Atmega128 ADC.  Users of this component must link it to an
+ * implementation of Atm128AdcConfig which provides the ADC parameters
+ * (channel, etc).
  * 
  * @author David Gay
  */
@@ -21,14 +23,14 @@ generic configuration AdcReadClientC() {
   uses interface Atm128AdcConfig;
 }
 implementation {
-  components AdcC, Atm128AdcC;
+  components WireAdcP, Atm128AdcC;
 
   enum {
     ID = unique(UQ_ADC_READ),
     HAL_ID = unique(UQ_ATM128ADC_RESOURCE)
   };
 
-  Read = AdcC.Read[ID];
-  Atm128AdcConfig = AdcC.Atm128AdcConfig[ID];
-  AdcC.Resource[ID] -> Atm128AdcC.Resource[HAL_ID];
+  Read = WireAdcP.Read[ID];
+  Atm128AdcConfig = WireAdcP.Atm128AdcConfig[ID];
+  WireAdcP.Resource[ID] -> Atm128AdcC.Resource[HAL_ID];
 }

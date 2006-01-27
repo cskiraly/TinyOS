@@ -1,4 +1,4 @@
-/* $Id: AdcStreamC.nc,v 1.1.2.1 2006-01-25 01:32:46 idgay Exp $
+/* $Id: WireAdcStreamP.nc,v 1.1.2.1 2006-01-27 19:35:31 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -8,15 +8,14 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * HIL A/D converter interface (TEP101).  Clients must use the Resource
- * interface to allocate the A/D before use (see TEP108).  
+ * Support component for AdcReadStreamClientC.
  *
  * @author David Gay
  */
 
 #include "Adc.h"
 
-configuration AdcStreamC {
+configuration WireAdcStreamP {
   provides interface ReadStream<uint16_t>[uint8_t client];
   uses {
     interface Atm128AdcConfig[uint8_t client];

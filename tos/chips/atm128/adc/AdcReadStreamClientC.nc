@@ -1,4 +1,4 @@
-/* $Id: AdcReadStreamClientC.nc,v 1.1.2.1 2006-01-25 01:32:46 idgay Exp $
+/* $Id: AdcReadStreamClientC.nc,v 1.1.2.2 2006-01-27 19:35:31 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -8,8 +8,10 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Provide arbitrated access to the Read interface of the AdcC
- * component for a particular port.
+ * Provide, as per TEP101, arbitrated access via a ReadStream interface to
+ * the Atmega128 ADC.  Users of this component must link it to an
+ * implementation of Atm128AdcConfig which provides the ADC parameters
+ * (channel, etc).
  * 
  * @author David Gay
  */
@@ -21,14 +23,14 @@ generic configuration AdcReadStreamClientC() {
   uses interface Atm128AdcConfig;
 }
 implementation {
-  components AdcStreamC, Atm128AdcC;
+  components WireAdcStreamP, Atm128AdcC;
 
   enum {
     ID = unique(UQ_ADC_READSTREAM),
     HAL_ID = unique(UQ_ATM128ADC_RESOURCE)
   };
 
-  ReadStream = AdcStreamC.ReadStream[ID];
-  Atm128AdcConfig = AdcStreamC.Atm128AdcConfig[ID];
-  AdcStreamC.Resource[ID] -> Atm128AdcC.Resource[HAL_ID];
+  ReadStream = WireAdcStreamP.ReadStream[ID];
+  Atm128AdcConfig = WireAdcStreamP.Atm128AdcConfig[ID];
+  WireAdcStreamP.Resource[ID] -> Atm128AdcC.Resource[HAL_ID];
 }
