@@ -32,7 +32,7 @@
  * the Intel Xscale PXA27x
  *
  * <pre>
- *  $Id: McuSleepC.nc,v 1.1.2.1 2005-11-02 00:41:29 philipb Exp $
+ *  $Id: McuSleepC.nc,v 1.1.2.2 2006-01-27 23:24:24 philipb Exp $
  * </pre>
  *
  * @author Philip Buonadonna
@@ -52,6 +52,11 @@ implementation {
   
   async command void McuSleep.sleep() {
     // Put idle into here.
+    asm volatile (
+		  "mcr p14,0,%0,c7,c0,0"
+		  : 
+		  : "r" (PWRMODE_M_IDLE)
+		  );
     __nesc_enable_interrupt();
     __nesc_disable_interrupt();
     return;
