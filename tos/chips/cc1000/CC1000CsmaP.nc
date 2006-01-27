@@ -1,4 +1,4 @@
-// $Id: CC1000CsmaP.nc,v 1.1.2.8 2006-01-26 21:11:40 idgay Exp $
+// $Id: CC1000CsmaP.nc,v 1.1.2.9 2006-01-27 18:46:00 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -28,6 +28,7 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+
 /**
  * A rewrite of the low-power-listening CC1000 radio stack.
  * This file contains the CSMA and low-power listening logic. Actual

@@ -1,4 +1,4 @@
-// $Id: HplCC1000SpiP.nc,v 1.1.2.1 2006-01-10 18:10:47 idgay Exp $
+// $Id: HplCC1000SpiP.nc,v 1.1.2.2 2006-01-27 18:46:00 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 
 /* 
  * Authors: Jaein Jeong, Philip buonadonna
- * Date last modified: $Revision: 1.1.2.1 $
+ * Date last modified: $Revision: 1.1.2.2 $
  *
  */
 
@@ -76,7 +76,7 @@ implementation
   }
 
   async command bool HplCC1000Spi.isBufBusy() {
-    return bit_is_clear(SPSR,SPIF);
+    return bit_is_clear(SPSR, SPIF);
   }
 
   async command uint8_t HplCC1000Spi.readByte() {

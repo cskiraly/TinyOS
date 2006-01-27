@@ -1,4 +1,4 @@
-// $Id: HplCC1000Spi.nc,v 1.1.2.1 2005-08-13 01:16:32 idgay Exp $
+// $Id: HplCC1000Spi.nc,v 1.1.2.2 2006-01-27 18:46:00 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -29,18 +29,65 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Interface to the CC1000 chip using a SPI bus in slave mode
+ * Interface to the CC1000 chip's serial bus. This isn't really an SPI,
+ * but the mica2 interface was done using the Atmega128 SPI hardware. Hence
+ * the name.
+ *
+ * @author Jaein Jeong
+ * @author Philip buonadonna
  */
 interface HplCC1000Spi
 {
+  /**
+   * Write a byte to the CC1000 bus.
+   * @param data Byte to write.
+   */
   async command void writeByte(uint8_t data);
+
+  /**
+   * Is write buffer busy with the last transmission?
+   * @return TRUE if the buffer is busy, FALSE otherwise.
+   */
   async command bool isBufBusy();
+
+  /**
+   * Get the last byte received from the CC1000 bus.
+   * @return Last byte received.
+   */
   async command uint8_t readByte();
+
+  /**
+   * Enable dataReady events on every byte sent or received from the CC1000
+   * bus. After this is called, dataReady events will be signaled every
+   * 8 CC1000 data clocks.
+   */
   async command void enableIntr();
+
+  /**
+   * Disable CC1000 bus interrupts.
+   */
   async command void disableIntr();
+
+  /**
+   * Initialise the interface to the CC1000 bus.
+   */
   async command void initSlave();
+
+  /**
+   * Switch the interface to the CC1000 bus "transmit" mode.
+   */
   async command void txMode();
+
+  /**
+   * Switch the interface to the CC1000 bus to "receive" mode.
+   */
   async command void rxMode();
 
+  /**
+   * If enableIntr() is called, this event will be signaled every 8 CC1000
+   * data clocks. 
+   * @param data In "receive" mode, the last value received from the CC1000 
+   *   bus.
+   */
   async event void dataReady(uint8_t data);
 }

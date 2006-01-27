@@ -1,4 +1,4 @@
-// $Id: CC1000ActiveMessageC.nc,v 1.1.2.5 2006-01-19 00:35:03 scipio Exp $
+// $Id: CC1000ActiveMessageC.nc,v 1.1.2.6 2006-01-27 18:46:00 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -27,12 +27,6 @@
  * file. If you do not find these files, copies can be found by writing to
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
- */
-/*
- *
- * Authors:		Philip Levis
- * Date last modified:  $Id: CC1000ActiveMessageC.nc,v 1.1.2.5 2006-01-19 00:35:03 scipio Exp $
- *
  */
 
 /**
