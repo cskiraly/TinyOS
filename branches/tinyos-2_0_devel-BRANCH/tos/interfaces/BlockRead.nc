@@ -30,16 +30,16 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
 
- * $Revision: 1.1.2.5 $
- * $Date: 2006-01-26 21:11:40 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-01-27 21:38:30 $
  */
 
 #include "Storage.h"
 
 interface BlockRead {
   
-  command error_t read( storage_addr_t addr, void* buf, uint16_t len );
-  event void readDone( storage_addr_t addr, void* buf, uint16_t len, 
+  command error_t read( storage_addr_t addr, void* buf, storage_len_t len );
+  event void readDone( storage_addr_t addr, void* buf, storage_len_t len, 
 		       error_t error );
   
   command error_t verify();

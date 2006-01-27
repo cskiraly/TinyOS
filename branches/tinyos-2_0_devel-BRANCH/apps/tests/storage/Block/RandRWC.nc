@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.5 2006-01-27 17:19:25 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.6 2006-01-27 21:39:14 jwhui Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -146,7 +146,7 @@ implementation {
       }
   }
 
-  event void BlockWrite.writeDone(storage_addr_t x, void* buf, uint16_t y, error_t result) {
+  event void BlockWrite.writeDone(storage_addr_t x, void* buf, storage_len_t y, error_t result) {
     if (scheck(result))
       nextWrite();
   }
@@ -176,7 +176,7 @@ implementation {
       }
   }
 
-  event void BlockRead.readDone(storage_addr_t x, void* buf, uint16_t rlen, error_t result) __attribute__((noinline)) {
+  event void BlockRead.readDone(storage_addr_t x, void* buf, storage_len_t rlen, error_t result) __attribute__((noinline)) {
     if (scheck(result) && bcheck(x == addr && rlen == len && buf == rdata &&
 				 memcmp(data + offset, rdata, rlen) == 0))
       nextRead();
