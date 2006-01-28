@@ -29,9 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
  * @author Alec Woo <awoo@archedrock.com>
- *
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-20 01:36:05 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-01-28 00:35:28 $
  */
 
 module CC2420LinkStatsP{

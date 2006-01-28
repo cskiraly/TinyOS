@@ -28,10 +28,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Jonathan Hui <jhui@archedrock.com>
+ * Basic implementation of a CSMA MAC for the ChipCon CC2420 radio.
  *
- * $Revision: 1.1.2.5 $
- * $Date: 2006-01-26 21:11:40 $
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-01-28 00:35:28 $
  */
 
 includes CC2420;

@@ -28,21 +28,69 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Jonathan Hui <jhui@archedrock.com>
+ * Low-level abstraction for the transmit path implementaiton of the
+ * ChipCon CC2420 radio.
  *
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-20 01:36:05 $
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-01-28 00:35:29 $
  */
 
 interface CC2420Transmit {
 
+  /**
+   * Send a message with CCA enabled.
+   *
+   * @param p_msg message to send.
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   async command error_t sendCCA( message_t* p_msg );
-  async command error_t send( message_t* p_msg );
-  async command error_t resendCCA();
-  async command error_t resend();
-  async command error_t cancel();
-  async event void sendDone( message_t* p_msg, error_t err );
 
+  /**
+   * Send a message with CCA disabled.
+   *
+   * @param p_msg message to send.
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
+  async command error_t send( message_t* p_msg );
+
+  /**
+   * Send the previous message again with CCA enabled.
+   *
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
+  async command error_t resendCCA();
+
+  /**
+   * Send the previous message again with CCA disabled.
+   *
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
+  async command error_t resend();
+
+  /**
+   * Cancel sending of the message.
+   *
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
+  async command error_t cancel();
+
+  /**
+   * Signal that a message has been sent
+   *
+   * @param p_msg message to send.
+   * @param error notifaction of how the operation went.
+   */
+  async event void sendDone( message_t* p_msg, error_t error );
+
+  /**
+   * Modify the contents of a packet. This command can only be used
+   * when an SFD capture event for the sending packet is signalled.
+   *
+   * @param offset in the message to start modifying.
+   * @param buf to data to write
+   * @param len of bytes to write
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   async command error_t modify( uint8_t offset, uint8_t* buf, uint8_t len );
 
 }

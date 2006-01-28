@@ -29,9 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- *
- * $Revision: 1.1.2.7 $
- * $Date: 2006-01-26 21:11:40 $
+ * @version $Revision: 1.1.2.8 $ $Date: 2006-01-28 00:35:28 $
  */
 
 module CC2420CsmaP {
@@ -43,7 +41,7 @@ module CC2420CsmaP {
 
   uses interface Resource;
   uses interface CC2420Config;
-  uses interface AsyncControl as SubControl;
+  uses interface AsyncStdControl as SubControl;
   uses interface CC2420Transmit;
   uses interface CsmaBackoff;
   uses interface Random;

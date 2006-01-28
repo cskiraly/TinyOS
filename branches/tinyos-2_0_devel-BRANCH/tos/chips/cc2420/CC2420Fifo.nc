@@ -28,19 +28,64 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Jonathan Hui <jhui@archedrock.com>
+ * HAL abstraction for accessing the FIFO registers of a ChipCon
+ * CC2420 radio.
  *
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-20 01:36:05 $
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-01-28 00:35:28 $
  */
 
 interface CC2420Fifo {
 
+  /**
+   * Start reading from the FIFO. The <code>readDone</code> event will
+   * be signalled upon completion.
+   *
+   * @param data a pointer to the receive buffer.
+   * @param length number of bytes to read.
+   * @return status byte returned when sending the last address byte
+   * of the SPI transaction.
+   */
   async command cc2420_status_t beginRead( uint8_t* data, uint8_t length );
+
+  /**
+   * Continue reading from the FIFO without having to send the address
+   * byte again. The <code>readDone</code> event will be signalled
+   * upon completion.
+   *
+   * @param data a pointer to the receive buffer.
+   * @param length number of bytes to read.
+   * @return SUCCESS always.
+   */
   async command error_t continueRead( uint8_t* data, uint8_t length );
+
+  /**
+   * Signals the completion of a read operation.
+   *
+   * @param data a pointer to the receive buffer.
+   * @param length number of bytes read.
+   * @param error notification of how the operation went
+   */
   async event void readDone( uint8_t* data, uint8_t length, error_t error );
 
+  /**
+   * Start writing the FIFO. The <code>writeDone</code> event will be
+   * signalled upon completion.
+   *
+   * @param data a pointer to the send buffer.
+   * @param length number of bytes to write.
+   * @return status byte returned when sending the last address byte
+   * of the SPI transaction.
+   */
   async command cc2420_status_t write( uint8_t* data, uint8_t length );
+
+  /**
+   * Signals the completion of a write operation.
+   *
+   * @param data a pointer to the send buffer.
+   * @param length number of bytes written.
+   * @param error notification of how the operation went
+   */
   async event void writeDone( uint8_t* data, uint8_t length, error_t error );
 
 }

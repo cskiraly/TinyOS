@@ -28,10 +28,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Jonathan Hui <jhui@archedrock.com>
+ * HAL abstraction for accessing theRAM of a ChipCon CC2420 radio.
  *
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-20 01:36:05 $
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-01-28 00:35:28 $
  */
 
 includes CC2420;
@@ -39,10 +39,25 @@ includes CC2420;
 interface CC2420Ram {
 
   /**
-   * Commands are synchronous for now. Assumption is that RAM
-   * transactions are rare and only to configure the radio.
+   * Read data from a RAM. This operation is sychronous.
+   *
+   * @param offset within the field.
+   * @param data a pointer to the receive buffer.
+   * @param length number of bytes to read.
+   * @return status byte returned when sending the last byte
+   * of the SPI transaction.
    */
   async command cc2420_status_t read( uint8_t offset, uint8_t* data, uint8_t length );
+
+  /**
+   * Write data to RAM. This operation is sychronous.
+   *
+   * @param offset within the field.
+   * @param data a pointer to the send buffer.
+   * @param length number of bytes to write.
+   * @return status byte returned when sending the last address byte
+   * of the SPI transaction.
+   */
   async command cc2420_status_t write( uint8_t offset, uint8_t* data, uint8_t length );
 
 }

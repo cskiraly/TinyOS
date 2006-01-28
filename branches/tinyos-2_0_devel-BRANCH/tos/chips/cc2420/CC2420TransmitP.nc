@@ -29,15 +29,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- *
- * $Revision: 1.1.2.9 $
- * $Date: 2006-01-26 21:11:40 $
+ * @version $Revision: 1.1.2.10 $ $Date: 2006-01-28 00:35:29 $
  */
 
 module CC2420TransmitP {
 
   provides interface Init;
-  provides interface AsyncControl;
+  provides interface AsyncStdControl;
   provides interface CC2420Transmit as Send;
   provides interface CsmaBackoff;
   provides interface RadioTimeStamping as TimeStamp;
@@ -131,7 +129,7 @@ implementation {
     return SUCCESS;
   }
 
-  async command error_t AsyncControl.start() {
+  async command error_t AsyncStdControl.start() {
     atomic {
       call CaptureSFD.captureRisingEdge();
       m_state = S_STARTED;
@@ -140,7 +138,7 @@ implementation {
     return SUCCESS;
   }
 
-  async command error_t AsyncControl.stop() {
+  async command error_t AsyncStdControl.stop() {
     atomic {
       m_state = S_STOPPED;
       stopBackoffTimer();
