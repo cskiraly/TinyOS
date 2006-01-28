@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2005 Arched Rock Corporation
  * All rights reserved.
  *
@@ -28,18 +28,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Gilman Tolle <gtolle@archedrock.com>
- *
- * $ Revision: $
- * $ Date: $
  */
 
 /**
- * This interface is intended for split-phase low-rate or high-latency
- * reading of small values.
+ * The Read interface is intended for split-phase low-rate or
+ * high-latency reading of small values. The type of the value is
+ * given as a template argument. Because this interface is
+ * split-phase, these values may be backed by hardware, or a
+ * long-running computation.
+ *
+ * <p>
+ * See TEP114 - SIDs: Source and Sink Independent Drivers for details.
+ * 
+ * @param val_t the type of the object that will be returned
+ *
+ * @author Gilman Tolle <gtolle@archedrock.com>
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-01-28 02:05:16 $
  */
 
 interface Read<val_t> {
+  /**
+   * Initiates a read of the value.
+   * 
+   * @return SUCCESS if a readDone() event will eventually come back.
+   */
   command error_t read();
+
+  /**
+   * Signals the completion of the read().
+   *
+   * @param result SUCCESS if the read() was successful
+   * @param val the value that has been read
+   */
   event void readDone( error_t result, val_t val );
 }

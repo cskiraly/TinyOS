@@ -28,18 +28,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Gilman Tolle <gtolle@archedrock.com>
- *
- * $ Revision: $
- * $ Date: $
  */
 
 /**
- * This interface is intended for split-phase low-rate or high-latency
- * reading of potentially large values.
+ * The ReadRef interface is intended for split-phase low-rate or
+ * high-latency reading of large values. The type of the value is
+ * given as a template argument. When a value is too large to be
+ * comfortably passed on the stack, the caller should allocate space
+ * for the value and pass the pointer to read(). When the readDone()
+ * comes back, the space will be filled with the new value.
+ *
+ * <p>
+ * See TEP114 - SIDs: Source and Sink Independent Drivers for details.
+ * 
+ * @param val_t the type of the object that will be returned
+ *
+ * @author Gilman Tolle <gtolle@archedrock.com>
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-01-28 02:05:16 $
  */
 
 interface ReadRef<val_t> {
+  /**
+   * Initiates a read of the value.
+   * 
+   * @param val a pointer to space that will be filled by the value
+   *
+   * @return SUCCESS if a readDone() event will eventually come back.
+   */
   command error_t read( val_t* val );
+  
+  /**
+   * Signals the completion of the read(). The returned pointer will
+   * be the same as the original pointer passed to read().
+   *
+   * @param result SUCCESS if the read() was successful
+   * @param val a pointer to the value that has been read
+   */
   event void readDone( error_t result, val_t* val );
 }
