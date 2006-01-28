@@ -28,24 +28,77 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * Read interface for the block storage abstraction described in
+ * TEP103.
+ *
  * @author Jonathan Hui <jhui@archedrock.com>
-
- * $Revision: 1.1.2.6 $
- * $Date: 2006-01-27 21:38:30 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-01-28 01:27:19 $
  */
 
 #include "Storage.h"
 
 interface BlockRead {
   
+  /**
+   * Initiate a read operation within a given volume. On SUCCESS, the
+   * <code>readDone</code> event will signal completion of the
+   * operation.
+   * 
+   * @param addr starting address to begin reading.
+   * @param buf buffer to place read data.
+   * @param len number of bytes to read.
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   command error_t read( storage_addr_t addr, void* buf, storage_len_t len );
+
+  /**
+   * Signals the completion of a read operation.
+   *
+   * @param addr starting address of read.
+   * @param buf buffer where read data was placed.
+   * @param len number of bytes read.
+   * @param error notification of how the operation went.
+   */
   event void readDone( storage_addr_t addr, void* buf, storage_len_t len, 
 		       error_t error );
   
+  /**
+   * Initiate a verify operation to verify the integrity of the
+   * data. This operation is only valid after a commit operation from
+   * <code>BlockWrite</code> has been completed. On SUCCESS, the
+   * <code>verifyDone</code> event will signal completion of the
+   * operation.
+   *
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   command error_t verify();
+  
+  /**
+   * Signals the completion of a verify operation.
+   *
+   * @param error notification of how the operation went.
+   */
   event void verifyDone( error_t error );
   
+  /**
+   * Initiate a crc computation. On SUCCESS, the
+   * <code>computeCrcDone</code> event will signal completion of the
+   * operation.
+   *
+   * @param addr starting address.
+   * @param len the number of bytes to compute the crc over.
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   command error_t computeCrc( storage_addr_t addr, storage_len_t len );
+
+  /**
+   * Signals the completion of a crc computation.
+   *
+   * @param addr stating address.
+   * @param len number of bytes the crc was computed over.
+   * @param crc the resulting crc value.
+   * @param error notification of how the operation went.
+   */
   event void computeCrcDone( storage_addr_t addr, storage_len_t len,
 			     uint16_t crc, error_t error );
 
