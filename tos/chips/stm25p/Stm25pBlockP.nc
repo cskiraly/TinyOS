@@ -29,9 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
  * @author Jonathan Hui <jhui@archedrock.com>
-
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-27 21:38:49 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-01-28 01:08:25 $
  */
 
 module Stm25pBlockP {

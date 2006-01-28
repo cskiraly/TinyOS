@@ -28,10 +28,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * Implementation of the sector storage absraction for the ST M25P
+ * serial code flash.
+ *
  * @author Jonathan Hui <jhui@archedrock.com>
-
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-20 01:19:41 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-01-28 01:08:25 $
  */
 
 configuration Stm25pSectorC {
