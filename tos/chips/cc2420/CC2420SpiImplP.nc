@@ -27,9 +27,11 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
- *
+ */
+
+/**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-01-28 00:35:28 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-01-28 01:39:29 $
  */
 
 module CC2420SpiImplP {
