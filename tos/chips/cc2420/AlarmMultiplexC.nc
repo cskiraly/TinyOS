@@ -28,10 +28,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * A component that multiplexes the use of an alarm. The assumption is
+ * that its use is mutually exclusive and users check whether the
+ * events are for them.
+ *
  * @author Jonathan Hui <jhui@archedrock.com>
-
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-20 01:36:04 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-01-28 00:35:28 $
  */
 
 configuration AlarmMultiplexC {

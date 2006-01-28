@@ -29,15 +29,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- *
- * $Revision: 1.1.2.6 $
- * $Date: 2006-01-20 01:35:45 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-01-28 00:35:28 $
  */
 
 module CC2420ReceiveP {
 
   provides interface Init;
-  provides interface AsyncControl;
+  provides interface AsyncStdControl;
   provides interface CC2420Receive;
   provides interface Receive;
 
@@ -103,7 +101,7 @@ implementation {
     m_missed_packets = 0;
   }
 
-  async command error_t AsyncControl.start() {
+  async command error_t AsyncStdControl.start() {
     atomic {
       reset_state();
       m_state = S_STARTED;
@@ -112,7 +110,7 @@ implementation {
     return SUCCESS;
   }
 
-  async command error_t AsyncControl.stop() {
+  async command error_t AsyncStdControl.stop() {
     atomic {
       m_state = S_STOPPED;
       call InterruptFIFOP.disable();

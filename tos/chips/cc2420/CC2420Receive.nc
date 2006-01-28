@@ -28,16 +28,34 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Jonathan Hui <jhui@archedrock.com>
+ * Low-level abstraction of the receive path implementation for the
+ * ChipCon CC2420 radio.
  *
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-20 01:36:05 $
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-01-28 00:35:28 $
  */
 
 interface CC2420Receive {
 
+  /**
+   * Notification that an SFD capture has occured.
+   *
+   * @param time at which the capture happened.
+   */
   async command void sfd( uint16_t time );
+
+  /**
+   * Notification that the packet has been dropped by the radio
+   * (e.g. due to address rejection).
+   */
   async command void sfd_dropped();
+
+  /**
+   * Signals that a message has been received.
+   *
+   * @param type of the message received.
+   * @param message pointer to message received.
+   */
   async event void receive( uint8_t type, message_t* message );
 
 }

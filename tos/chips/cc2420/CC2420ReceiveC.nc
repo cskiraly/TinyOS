@@ -28,16 +28,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Jonathan Hui <jhui@archedrock.com>
+ * Implementation of the receive path for the ChipCon CC2420 radio.
  *
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-20 01:36:05 $
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-01-28 00:35:28 $
  */
 
 configuration CC2420ReceiveC {
 
   provides interface Init;
-  provides interface AsyncControl;
+  provides interface AsyncStdControl;
   provides interface CC2420Receive;
   provides interface Receive;
 
@@ -55,7 +55,7 @@ implementation {
   CC2420ReceiveP.Leds -> Leds;
 
   Init = CC2420ReceiveP;
-  AsyncControl = CC2420ReceiveP;
+  AsyncStdControl = CC2420ReceiveP;
   CC2420Receive = CC2420ReceiveP;
   Receive = CC2420ReceiveP;
 

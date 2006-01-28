@@ -28,28 +28,83 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Jonathan Hui <jhui@archedrock.com>
+ * An HAL abstraction of the ChipCon CC2420 radio. This abstraction
+ * deals specifically with radio configurations.
  *
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-20 01:36:05 $
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-01-28 00:35:28 $
  */
 
 interface CC2420Config {
 
-  // does not require arbitration
+  /**
+   * Start the voltage regulator on the CC2420. On SUCCESS,
+   * <code>startVReg()</code> will be signalled when the voltage
+   * regulator is fully on.
+   *
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   async command error_t startVReg();
+
+  /**
+   * Signals that the voltage regulator has been started.
+   */
   async event void startVRegDone();
+  
+  /**
+   * Stop the voltage regulator immediately.
+   *
+   * @return SUCCESS always
+   */
   async command error_t stopVReg();
 
-  // requires arbitration
+  /**
+   * Start the oscillator. On SUCCESS, <code>startOscillator</code>
+   * will be signalled when the oscillator has been started.
+   *
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   async command error_t startOscillator();
+
+  /**
+   * Signals that the oscillator has been started.
+   */
   async event void startOscillatorDone();
+
+  /**
+   * Stop the oscillator.
+   *
+   * @return SUCCESS if the oscillator was stopped, FAIL otherwise.
+   */
   async command error_t stopOscillator();
 
+  /**
+   * Enable RX.
+   *
+   * @return SUCCESS if receive mode has been enabled, FAIL otherwise.
+   */
   async command error_t rxOn();
+
+  /**
+   * Disable RX.
+   *
+   * @return SUCCESS if receive mode has been disabled, FAIL otherwise.
+   */
   async command error_t rfOff();
 
+  /**
+   * @return SUCCESS if the channel was set successfully, FAIL
+   * otherwise.
+   */
   async command error_t setChannel( uint8_t channel );
+
+  /**
+   * Change the transmit power of the CC2420 radio.
+   *
+   * @param power power to transmit. Valid values are 0 - 31.
+   * @return SUCCESS if the transmit power was set successfully, FAIL
+   * otherwise.
+   */
   async command error_t setTxPower( uint8_t power );
 
 }

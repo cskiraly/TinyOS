@@ -28,10 +28,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Jonathan Hui <jhui@archedrock.com>
+ * Implementation for configuring a ChipCon CC2420 radio.
  *
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-20 01:36:05 $
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-01-28 00:35:28 $
  */
 
 includes CC2420;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * $ Revision: $
- * $ Date: $
+ * HPL implementation of 32khz alarms for the ChipCon CC2420 radio
+ * connected to a TI MSP430 processor.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-01-28 00:35:29 $
  */
 
 generic configuration HplCC2420AlarmC() {

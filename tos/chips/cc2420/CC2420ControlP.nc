@@ -29,9 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- *
- * $Revision: 1.1.2.14 $
- * $Date: 2006-01-24 01:04:50 $
+ * @version $Revision: 1.1.2.15 $ $Date: 2006-01-28 00:35:28 $
  */
 
 includes Timer;
