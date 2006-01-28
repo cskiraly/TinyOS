@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2005 Arched Rock Corporation
  * All rights reserved.
  *
@@ -28,16 +28,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Gilman Tolle <gtolle@archedrock.com>
- *
- * $ Revision: $
- * $ Date: $
  */
 
 /**
- * This interface is intended for synchronous writing of small values.
+ * The Set interface is intended for synchronous writing of small
+ * values. The type of the value is given as a template
+ * argument. Generally, these values are backed by memory or
+ * computation. Because no error code is included, the set() call must
+ * be guaranteed to succeed.
+ *
+ * <p>
+ * See TEP114 - SIDs: Source and Sink Independent Drivers for details.
+ * 
+ * @param val_t the type of the object that will be stored
+ *
+ * @author Gilman Tolle <gtolle@archedrock.com>
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-01-28 02:05:16 $
  */
 
 interface Set<val_t> {
+  /**
+   * Stores a value of type val_t.
+   *
+   * @param val the value to be stored
+   */
   command void set( val_t val );
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2005 Arched Rock Corporation
  * All rights reserved.
  *
@@ -28,22 +28,75 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Gilman Tolle <gtolle@archedrock.com>
- *
- * $ Revision: $
- * $ Date: $
  */
 
 /**
- * This interface is intended for continuous bulk reads at potentially
- * high rates.
+ * The ReadStream interface is intended for buffered high data rate
+ * reading, usually from sensor devices. The type of the values being
+ * read is given as a template argument. 
+ *
+ * <p> To use this interface, allocate one or more buffers in your own
+ * space. Then, call postBuffer to pass these buffers into the
+ * device. Call read() to begin the sampling process. The buffers will
+ * be filled in the order originally posted, and a bufferDone() event
+ * will be signaled once each buffer has been filled with data. At any
+ * time while the read() is running, you may post new buffers to be
+ * filled. If the lower layer finishes signaling readDone() and then
+ * finds that no more buffers have been posted, it will consider the
+ * read to be finished, and signal readDone(). 
+ *
+ * <p>
+ * See TEP114 - SIDs: Source and Sink Independent Drivers for details.
+ * 
+ * @param val_t the type of the object that will be returned
+ *
+ * @author Gilman Tolle <gtolle@archedrock.com>
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-01-28 02:05:16 $
  */
 
 interface ReadStream<val_t> {
+  /**
+   * Passes a buffer to the device, and indicates how many values
+   * should be placed into the buffer. Make sure your count doesn't
+   * overrun the buffer.
+   *
+   * @param buf a pointer to the buffer
+   * @param count the number of values the buffer should hold
+   *
+   * @return SUCCESS if the post was successful
+   */
   command error_t postBuffer( val_t* buf, uint16_t count );
+
+  /**
+   * Directs the device to start filling buffers by sampling with the
+   * specified period. 
+   * 
+   * @param usPeriod the between-sample period in microseconds
+   * 
+   * @return SUCCESS if the reading process began
+   */
   command error_t read( uint32_t usPeriod );
+
+  /**
+   * Signalled when a previously posted buffer has been filled by the
+   * device. In the event of a read error, result will not equal
+   * SUCCESS, and the buffer will be filled with zeroes.
+   *
+   * @param result SUCCESS if the buffer was filled without errors
+   * @param buf a pointer to the buffer that has been filled
+   * @param count the number of values actually read
+   */
   event void bufferDone( error_t result, 
 			 val_t* buf, uint16_t count );
+
+  /**
+   * Signalled when a buffer has been filled but no more buffers have
+   * been posted. In the event of a read error, all previously posted
+   * buffers will have their bufferDone() event signalled, and then
+   * this event will be signalled with a non-SUCCESS argument.
+   *
+   * @param result SUCCESS if all buffers were filled without errors
+   */
   event void readDone( error_t result );
 }    
 

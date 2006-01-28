@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2005 Arched Rock Corporation
  * All rights reserved.
  *
@@ -28,18 +28,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * @author Gilman Tolle <gtolle@archedrock.com>
- *
- * $ Revision: $
- * $ Date: $
  */
 
 /**
- * This interface is intended for synchronous reading and writing of
- * small values.
+ * The GetSet interface is intended for synchronous reading and
+ * writing of small values. The type of the value is given as a
+ * template argument. Generally, these values are backed by memory or
+ * computation. Because no error code is included, both calls must be
+ * guaranteed to succeed. This interface should be used when a single
+ * logical unit supports both getting and setting.
+ *
+ * <p>
+ * See TEP114 - SIDs: Source and Sink Independent Drivers for details.
+ * 
+ * @param val_t the type of the object that will be stored
+ *
+ * @author Gilman Tolle <gtolle@archedrock.com>
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-01-28 02:05:16 $
  */
 
 interface GetSet<val_t> {
+  /**
+   * Retrieves a value of type val_t.
+   *
+   * @return the value itself
+   */
   command val_t get();
+
+  /**
+   * Stores a value of type val_t.
+   *
+   * @param val the value to be stored
+   */
   command void set( val_t val );
 }
