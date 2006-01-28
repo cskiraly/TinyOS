@@ -31,14 +31,14 @@
 
 includes Msp430Adc12;
 
-module Msp430InternalVoltageP {
+module Msp430InternalTemperatureP {
   provides interface Msp430Adc12Config;
 }
 implementation {
 
   async command msp430adc12_channel_config_t Msp430Adc12Config.getChannelSettings() {
     msp430adc12_channel_config_t config = {
-      inch: SUPPLY_VOLTAGE_HALF_CHANNEL,
+      inch: TEMPERATURE_DIODE_CHANNEL,
       sref: REFERENCE_VREFplus_AVss,
       ref2_5v: REFVOLT_LEVEL_1_5,
       adc12ssel: SHT_SOURCE_ACLK,
