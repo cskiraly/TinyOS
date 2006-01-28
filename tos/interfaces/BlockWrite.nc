@@ -28,24 +28,76 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * Write interface for the block storage abstraction described in
+ * TEP103.
+ *
  * @author Jonathan Hui <jhui@archedrock.com>
-
- * $Revision: 1.1.2.6 $
- * $Date: 2006-01-27 21:38:30 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-01-28 01:27:19 $
  */
 
 #include "Storage.h"
 
 interface BlockWrite {
   
+  /**
+   * Initiate a write operation within a given volume. On SUCCESS, the
+   * <code>writeDone</code> event will signal completion of the
+   * operation.
+   * 
+   * @param addr starting address to begin write.
+   * @param buf buffer to write data from.
+   * @param len number of bytes to write.
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   command error_t write( storage_addr_t addr, void* buf, storage_len_t len );
+
+  /**
+   * Signals the completion of a read operation. However, data is not
+   * guaranteed to survive a power-cycle unless a commit operation has
+   * been completed.
+   *
+   * @param addr starting address of write.
+   * @param buf buffer that written data was read from.
+   * @param len number of bytes rwrite.
+   * @param error notification of how the operation went.
+   */
   event void writeDone( storage_addr_t addr, void* buf, storage_len_t len, 
 			error_t error );
   
+  /**
+   * Initiate an erase operation. On SUCCESS, the
+   * <code>eraseDone</code> event will signal completion of the
+   * operation.
+   *
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   command error_t erase();
+  
+  /**
+   * Signals the completion of an erase operation.
+   *
+   * @param error notification of how the operation went.
+   */
   event void eraseDone( error_t error );
 
+  /**
+   * Initiate a commit operation and finialize any additional writes
+   * to the volume. A verify operation from <code>BlockRead</code> can
+   * be done to check if the data has been modified since. A commit
+   * operation must be issued to ensure that data is stored in
+   * non-volatile storage. On SUCCES, the <code>commitDone</code>
+   * event will signal completion of the operation.
+   *
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   command error_t commit();
+
+  /**
+   * Signals the completion of a commit operation. All written data is
+   * flushed to non-volatile storage after this event.
+   *
+   * @param error notification of how the operation went.
+   */
   event void commitDone( error_t error );
   
 }
