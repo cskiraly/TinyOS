@@ -27,11 +27,13 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
- *
+ */
+
+/**
  * Abstraction to provide the id of a volume.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-01-28 01:08:25 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-01-28 01:39:30 $
  */
 
 includes Stm25p;

@@ -27,12 +27,14 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
- *
+ */
+
+/**
  * Implementation of the block storage abstraction from TEP103 for the
  * ST M25P serial code flash.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-01-28 01:08:25 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-01-28 01:39:30 $
  */
 
 includes Stm25p;
