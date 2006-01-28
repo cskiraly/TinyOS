@@ -1,4 +1,4 @@
-// $Id: RadioSenseToLedsC.nc,v 1.1.2.5 2006-01-20 23:16:58 idgay Exp $
+// $Id: RadioSenseToLedsC.nc,v 1.1.2.6 2006-01-28 00:26:24 gtolle Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -53,7 +53,6 @@ module RadioSenseToLedsC {
     interface Timer<TMilli> as MilliTimer;
     interface Packet;
     interface Read<uint16_t>;
-    interface StdControl as SensorControl;
     interface SplitControl as RadioControl;
   }
 }
@@ -74,18 +73,10 @@ implementation {
   event void RadioControl.stopDone(error_t err) {}
   
   event void MilliTimer.fired() {
-    if (call SensorControl.start() != SUCCESS) {
-      return;
-    }
-    
-    if (call Read.read() != SUCCESS) {
-      call SensorControl.stop();
-      return;
-    }
+    call Read.read();
   }
 
   event void Read.readDone(error_t result, uint16_t data) {
-    call SensorControl.stop();
     if (locked) {
       return;
     }
