@@ -29,25 +29,34 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
 
-includes Msp430Adc12;
+/**
+ * Msp430InternalTemperatureC is the temperature sensor available on
+ * the msp430-based platforms.
+ *
+ * To convert from ADC counts to temperature, convert to voltage by
+ * dividing by 4096 and multiplying by Vref (1.5V). Then subtract
+ * 0.986 from voltage and divide by 0.00355 to get degrees C.
+ *
+ * @author Gilman Tolle <gtolle@archedrock.com>
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-01-28 02:23:40 $
+ */
 
-module Msp430InternalVoltageP {
-  provides interface Msp430Adc12Config;
+generic configuration Msp430InternalTemperatureC() {
+  provides interface Read<uint16_t>;
+  provides interface ReadStream<uint16_t>;
 }
 implementation {
+  components new AdcReadClientC();
+  Read = AdcReadClientC;
 
-  async command msp430adc12_channel_config_t Msp430Adc12Config.getChannelSettings() {
-    msp430adc12_channel_config_t config = {
-      inch: SUPPLY_VOLTAGE_HALF_CHANNEL,
-      sref: REFERENCE_VREFplus_AVss,
-      ref2_5v: REFVOLT_LEVEL_1_5,
-      adc12ssel: SHT_SOURCE_ACLK,
-      adc12div: SHT_CLOCK_DIV_1,
-      sht: SAMPLE_HOLD_4_CYCLES,
-      sampcon_ssel: SAMPCON_SOURCE_SMCLK,
-      sampcon_id: SAMPCON_CLOCK_DIV_1
-    };
+  components new AdcReadStreamClientC();
+  ReadStream = AdcReadStreamClientC;
 
-    return config;
-  }
+  components Msp430InternalTemperatureP;
+  AdcReadClientC.Msp430Adc12Config -> Msp430InternalTemperatureP;
+  AdcReadStreamClientC.Msp430Adc12Config -> Msp430InternalTemperatureP;
+
+  components MainC;
+  MainC.SoftwareInit -> AdcReadClientC;
+  MainC.SoftwareInit -> AdcReadStreamClientC;
 }
