@@ -1,4 +1,4 @@
-// $Id: Storage.h,v 1.1.2.6 2006-01-26 21:11:40 idgay Exp $
+// $Id: Storage.h,v 1.1.2.7 2006-01-28 01:10:56 jwhui Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -32,6 +32,7 @@
 /*
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  * @author: David Gay <david.e.gay@intel.com>
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-01-28 01:10:56 $
  */
 
 #ifndef STORAGE_H

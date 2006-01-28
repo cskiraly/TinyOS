@@ -28,10 +28,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * Implementation of the SPI bus abstraction for the ST M25P serial
+ * code flash.
+ *
  * @author Jonathan Hui <jhui@archedrock.com>
-
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-20 01:07:25 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-01-28 01:08:25 $
  */
 
 configuration Stm25pSpiC {

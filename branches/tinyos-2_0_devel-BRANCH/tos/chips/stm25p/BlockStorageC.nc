@@ -28,10 +28,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * Implementation of the block storage abstraction from TEP103 for the
+ * ST M25P serial code flash.
+ *
  * @author Jonathan Hui <jhui@archedrock.com>
-
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-20 01:07:24 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-01-28 01:08:25 $
  */
 
 includes Stm25p;

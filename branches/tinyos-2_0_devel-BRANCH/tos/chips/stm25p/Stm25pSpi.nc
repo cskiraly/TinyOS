@@ -28,33 +28,116 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * SPI abstraction for the ST M25P family of serial code flash chips.
+ *
  * @author Jonathan Hui <jhui@archedrock.com>
-
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-20 01:07:24 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-01-28 01:08:25 $
  */
 
 interface Stm25pSpi {
   
+  /**
+   * Initiate a read operation. On SUCCESS, the <code>readDone</cdoe>
+   * event will be signalled when the operation completes.
+   *
+   * @param addr the physical address to start at.
+   * @param buf pointer to data buffer.
+   * @param len number of bytes to read.
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   async command error_t read( stm25p_addr_t addr, uint8_t* buf, 
 			      stm25p_len_t len );
+
+  /**
+   * Signals the completion of a read operation.
+   *
+   * @param addr the starting physical address.
+   * @param buf pointer to data buffer.
+   * @param len number of bytes read.
+   * @param error notification of how the operation went.
+   */
   async event void readDone( stm25p_addr_t addr, uint8_t* buf, 
 			     stm25p_len_t len, error_t error );
 
+  /**
+   * Initiate a crc computation. On SUCCESS, the
+   * <code>computeCrcDone</code> event will be signalled when the
+   * operation completes.
+   *
+   * @param crc starting crc value.
+   * @param addr the starting physical address.
+   * @param len the number of bytes to do crc computation over.
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   async command error_t computeCrc( uint16_t crc, stm25p_addr_t addr,
 				    stm25p_len_t len );
+
+  /**
+   * Signals the completion of a crc computation operation.
+   *
+   * @param crc resulting crc value.
+   * @param addr the starting physical address.
+   * @param len the number of bytes the crc was computed over.
+   * @param error notification of how the operation went.
+   */
   async event void computeCrcDone( uint16_t crc, stm25p_addr_t addr,
 				   stm25p_len_t len, error_t error );
 
+  /**
+   * Initiate a page program. On SUCCESS, the
+   * <code>pageProgramDone</code> event will be signalled when the
+   * operation completes.
+   *
+   * @param addr starting physical address.
+   * @param buf pointer to data buffer.
+   * @param len number of bytes to write.
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   async command error_t pageProgram( stm25p_addr_t addr, uint8_t* buf, 
 				     stm25p_len_t len );
+
+  /**
+   * Signal the completion of a page program operation.
+   *
+   * @param addr starting physical address.
+   * @param buf pointer to data buffer.
+   * @param len number of bytes to write.
+   * @param error notification of how the operation went.
+   */
   async event void pageProgramDone( stm25p_addr_t addr, uint8_t* buf, 
 				    stm25p_len_t len, error_t error );
 
+  /**
+   * Initiate a sector erase. On SUCCESS, the
+   * <code>sectorEraseDone</code> event will be signalled when the
+   * operation completes.
+   *
+   * @param sector physical sector to erase.
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   async command error_t sectorErase( uint8_t sector );
+
+  /**
+   * Signals the completion of a sector erase operation.
+   *
+   * @param sector physical sector erased
+   * @param error notification of how the operation went.
+   */
   async event void sectorEraseDone( uint8_t sector, error_t error );
 
+  /**
+   * Initiate a bulk erase. On SUCCESS, the <code>bulkEraseDone</code>
+   * event will be signalled when the operation completes.
+   *
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
   async command error_t bulkErase();
+
+  /**
+   * Signals the completion of a bulk erase operation.
+   *
+   * @param error notification of how the operation went.
+   */
   async event void bulkEraseDone( error_t error );
 
 }

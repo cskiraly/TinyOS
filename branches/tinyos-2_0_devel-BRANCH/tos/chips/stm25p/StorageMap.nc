@@ -28,14 +28,20 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * An abstraction to map volume addresses to physical addresses.
+ *
  * @author Jonathan Hui <jhui@archedrock.com>
-
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-20 01:07:25 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-01-28 01:08:25 $
  */
 
 interface StorageMap {
 
+  /**
+   * Get the physical address of a volume address.
+   *
+   * @param addr the volume addres.
+   * @return the physical address.
+   */
   command storage_addr_t getPhysicalAddress( storage_addr_t addr );
 
 }
