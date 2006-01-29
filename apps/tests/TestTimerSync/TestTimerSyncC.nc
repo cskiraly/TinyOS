@@ -1,4 +1,4 @@
-// $Id: TestTimerSyncC.nc,v 1.1.2.2 2005-11-10 03:22:27 klueska Exp $
+// $Id: TestTimerSyncC.nc,v 1.1.2.3 2006-01-29 18:04:25 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -60,7 +60,7 @@ implementation {
   }
  
   event void SplitControl.startDone(error_t err) {
-    if(TOS_LOCAL_ADDRESS == 0) {
+    if(TOS_NODE_ID == 0) {
       call AMSend.send(AM_BROADCAST_ADDR, &syncMsg, 0);
     }
   }
