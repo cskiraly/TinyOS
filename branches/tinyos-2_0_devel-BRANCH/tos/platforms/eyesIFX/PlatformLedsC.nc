@@ -1,4 +1,4 @@
-// $Id: PlatformLedsC.nc,v 1.1.2.4 2006-01-29 02:52:12 vlahan Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.5 2006-01-29 21:35:22 vlahan Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.
  * All rights reserved.
@@ -37,10 +37,10 @@ implementation
 {
   components
     HplMsp430GeneralIOC
-    , new GpioC() as Led0Impl
-    , new GpioC() as Led1Impl
-    , new GpioC() as Led2Impl
-    , new GpioC() as Led3Impl
+    , new Msp430GpioC() as Led0Impl
+    , new Msp430GpioC() as Led1Impl
+    , new Msp430GpioC() as Led2Impl
+    , new Msp430GpioC() as Led3Impl
     ;
 
 
