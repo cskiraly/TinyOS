@@ -26,16 +26,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-10-29 17:51:31 $ 
- * ======================================================================== 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-29 02:53:44 $
+ * ========================================================================
  */
- 
+
  /**
  * AD5200PotIO configuration
- * Configuration file for using the IO pins to the AD5200 Pot on 
+ * Configuration file for using the IO pins to the AD5200 Pot on
  * the eyesIFX platforms
- * 
+ *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  */
 configuration AD5200PotIO
@@ -45,15 +45,15 @@ configuration AD5200PotIO
 }
 implementation {
   components
-      MSP430GeneralIOC as MSPGeneralIO
+      HplMsp430GeneralIOC as MspGeneralIO
     , new GpioC() as rENPOT
     , new GpioC() as rSDPOT
     ;
 
   AD5200PotENPOT = rENPOT;
-  AD5200PotSDPOT = rSDPOT;   
-    
-  rENPOT -> MSPGeneralIO.Port24;
-  rSDPOT -> MSPGeneralIO.Port23;
+  AD5200PotSDPOT = rSDPOT;
+
+  rENPOT -> MspGeneralIO.Port24;
+  rSDPOT -> MspGeneralIO.Port23;
 }
 
