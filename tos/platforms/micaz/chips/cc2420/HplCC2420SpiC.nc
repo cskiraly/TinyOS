@@ -39,8 +39,8 @@ generic configuration HplCC2420SpiC() {
   provides interface Init;
   provides interface Resource;
 
-  provides interface SPIByte;
-  provides interface SPIPacket;
+  provides interface SpiByte;
+  provides interface SpiPacket;
 
 }
 
@@ -50,7 +50,7 @@ implementation {
 
   Init = Atm128SpiC;
   Resource = Atm128SpiC.Resource[ unique("Atm128SpiC.Resource") ];
-  SPIByte = Atm128SpiC;
-  SPIPacket = Atm128SpiC;
+  SpiByte = Atm128SpiC;
+  SpiPacket = Atm128SpiC;
 
 }
