@@ -1,4 +1,4 @@
-$Id: README.Null,v 1.1.2.1 2005-01-25 03:37:33 cssharp Exp $
+$Id: README.txt,v 1.1.2.1 2006-01-29 20:30:58 scipio Exp $
 
 README for Null
 Author/Contact: tinyos-help@millennium.berkeley.edu
@@ -7,7 +7,8 @@ Author/Contact: tinyos-help@millennium.berkeley.edu
 Description:
 
 Null is an empty skeleton application.  It is useful to test that the
-build environment is functional in its most minimal sense.
+build environment is functional in its most minimal sense, i.e., you
+can correctly compile an application.
 
 Tools:
 
