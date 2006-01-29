@@ -20,7 +20,7 @@ typedef uint8_t bool;
 enum { FALSE = 0, TRUE = 1 };
 
 typedef int8_t nx_bool __attribute__((nx_base(int8)));
-uint16_t TOS_LOCAL_ADDRESS = 1;
+uint16_t TOS_NODE_ID = 1;
 
 /* This macro is used to mark pointers that represent ownership
    transfer in interfaces. See TEP 3 for more discussion. */

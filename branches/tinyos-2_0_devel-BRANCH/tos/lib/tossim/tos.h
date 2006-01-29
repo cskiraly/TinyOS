@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tos.h,v 1.1.2.8 2006-01-13 18:52:52 scipio Exp $
+// $Id: tos.h,v 1.1.2.9 2006-01-29 18:11:01 scipio Exp $
 
 #ifndef TOS_H_INCLUDED
 #define TOS_H_INCLUDED
@@ -59,7 +59,7 @@ typedef uint8_t bool;
 
 enum { FALSE = 0, TRUE = 1 };
 
-extern uint16_t TOS_LOCAL_ADDRESS;
+extern uint16_t TOS_NODE_ID
 
 #define PROGMEM
 

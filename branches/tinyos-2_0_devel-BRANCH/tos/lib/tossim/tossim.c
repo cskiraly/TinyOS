@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tossim.c,v 1.1.2.7 2006-01-13 18:52:52 scipio Exp $
+// $Id: tossim.c,v 1.1.2.8 2006-01-29 18:11:01 scipio Exp $
 
 
 #include <stdint.h>
@@ -44,7 +44,7 @@
 #include <radio.c>
 #include <packet.c>
 
-uint16_t TOS_LOCAL_ADDRESS = 1;
+uint16_t TOS_NODE_ID = 1;
 
 Variable::Variable(char* str, char* formatStr, int array, int which) {
   name = str;
