@@ -30,7 +30,7 @@ if( @ARGV < ($G_opts{readdata} ? 1 : 3) ) {
     print "       tos-set-symbols --exe [--objcopy=...] [--objdump=...]\n";
     print "                       INFILE OUTFILE [SYMBOL]=VALUE...\n";
     print "       tos-set-symbols --read [--objdump=...] INFILE SYMBOL...\n";
-    print "\nNote: If omitted, SYMBOL defaults to TOS_LOCAL_ADDRESS.\n";
+    print "\nNote: If omitted, SYMBOL defaults to TOS_NODE_ID.\n";
     exit 0;
 }
 
@@ -45,7 +45,7 @@ if( $G_opts{readdata} ) {
   }
 } else {
   for my $value (@ARGV) {
-    my $name = 'TOS_LOCAL_ADDRESS';
+    my $name = 'TOS_NODE_ID';
     ($name,$value) = ($1,$2) if $value =~ /^([^=]+)=(.*)/;
     $value = hex $value if $value =~ /^0x/;
     $user_symbols{$name} = $value;
