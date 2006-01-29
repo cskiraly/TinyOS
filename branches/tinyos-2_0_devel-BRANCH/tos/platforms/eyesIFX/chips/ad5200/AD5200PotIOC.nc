@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-29 02:53:44 $
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-01-29 21:33:04 $
  * ========================================================================
  */
 
@@ -38,7 +38,7 @@
  *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  */
-configuration AD5200PotIO
+configuration AD5200PotIOC
 {
   provides interface GeneralIO as AD5200PotENPOT;
   provides interface GeneralIO as AD5200PotSDPOT;
@@ -46,8 +46,8 @@ configuration AD5200PotIO
 implementation {
   components
       HplMsp430GeneralIOC as MspGeneralIO
-    , new GpioC() as rENPOT
-    , new GpioC() as rSDPOT
+    , new Msp430GpioC() as rENPOT
+    , new Msp430GpioC() as rSDPOT
     ;
 
   AD5200PotENPOT = rENPOT;
