@@ -1,4 +1,4 @@
-// $Id: Send.nc,v 1.1.2.8 2006-01-19 00:35:05 scipio Exp $
+// $Id: Send.nc,v 1.1.2.9 2006-01-29 20:32:25 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -28,10 +28,13 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-/** The basic message sending interface. Also see Packet and Receive.
+/** 
+  * The basic address-free message sending interface. 
   *
   * @author Philip Levis
   * @date   January 5 2005
+  * @see    Packet
+  * @see    Receive
   */ 
 
 
@@ -49,6 +52,14 @@ interface Send {
     * component may accept a send request which it later finds it
     * cannot satisfy; in this case, it will signal sendDone with an
     * appropriate error code.
+    *
+    * @param   msg     the packet to send
+    * @param   len     the length of the packet payload
+    * @return          SUCCESS if the request was accepted and will issue
+    *                  a sendDone event, EBUSY if the component cannot accept
+    *                  the request now but will be able to later, FAIL
+    *                  if the stack is in a state that cannot accept requests
+    *                  (e.g., it's off).
     */ 
   command error_t send(message_t* msg, uint8_t len);
 
@@ -59,8 +70,10 @@ interface Send {
     * if the send was successfully cancelled, if the radio is
     * handling much of the logic; in this case, a component
     * should be conservative and return an appropriate error code.
-    * A successful call to cancel must always result in a 
-    * sendFailed event, and never a sendSucceeded event.
+    *
+    * @param   msg    the packet whose transmission should be cancelled
+    * @return         SUCCESS if the packet was successfully cancelled, FAIL
+    *                 otherwise
     */
   command error_t cancel(message_t* msg);
 
@@ -68,6 +81,10 @@ interface Send {
     * Signaled in response to an accepted send request. <tt>msg</tt>
     * is the sent buffer, and <tt>error</tt> indicates whether the
     * send was succesful, and if not, the cause of the failure.
+    * 
+    * @param msg   the message which was requested to send
+    * @param error SUCCESS if it was transmitted successfully, FAIL if
+    *              it was not, ECANCEL if it was cancelled via <tt>cancel</tt>
     */ 
   event void sendDone(message_t* msg, error_t error);
 
@@ -76,6 +93,8 @@ interface Send {
    * can provide. This command behaves identically to
    * <tt>Packet.maxPayloadLength</tt> and is included in this
    * interface as a convenience.
+   *
+   * @return  the maximum payload length
    */
 
   
@@ -88,6 +107,9 @@ interface Send {
     * behaves similarly to <tt>Packet.getPayload</tt> (minus the
     * length parameter) and is included in this interface
     * as a convenience.
+    *
+    * @param   msg    the packet
+    * @return         a pointer to the packet's payload
     */
   command void* getPayload(message_t* msg);
 

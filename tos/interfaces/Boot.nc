@@ -1,4 +1,4 @@
-// $Id: Boot.nc,v 1.1.2.3 2005-02-10 01:25:20 scipio Exp $
+// $Id: Boot.nc,v 1.1.2.4 2006-01-29 20:32:25 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -37,6 +37,15 @@
   */ 
 
 interface Boot {
+  /**
+   * Signaled when the system has booted successfully. Components can
+   * assume the system has been initialized properly. Services may
+   * need to be started to work, however.
+   *
+   * @see StdControl
+   * @see SplitConrol
+   * @see TEP 107: Boot Sequence
+   */
   event void booted();
 }
 

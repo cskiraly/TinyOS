@@ -1,4 +1,4 @@
-// $Id: TaskBasic.nc,v 1.1.2.5 2005-04-17 08:35:43 cssharp Exp $
+// $Id: TaskBasic.nc,v 1.1.2.6 2006-01-29 20:32:25 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -29,10 +29,13 @@
  */
 
 /**
-  * The basic TinyOS task interface, as discussed in TEP 106.
+  * The basic TinyOS task interface. Components generally do not wire to
+  * this interface: the nesC compiler handles it automatically through the
+  * <tt>post</tt> and <tt>task</tt> keywords.
   *
   * @author Philip Levis
   * @date   January 12, 2005
+  * @see    TEP 106: Tasks and Schedulers
   */ 
 
 
@@ -43,7 +46,9 @@ interface TaskBasic {
   /**
    * Post this task to the TinyOS scheduler. At some later time,
    * depending on the scheduling policy, the scheduler will signal the
-   * <tt>run()</tt> event. SUCCESS means the task was successfuly
+   * <tt>run()</tt> event. 
+   *
+   * @return SUCCESS if task was successfuly
    * posted; the semantics of a non-SUCCESS return value depend on the
    * implementation of this interface (the class of task).
    */

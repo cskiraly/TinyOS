@@ -1,4 +1,4 @@
-// $Id: ActiveMessageImplP.nc,v 1.1.2.1 2006-01-19 20:01:37 scipio Exp $
+// $Id: ActiveMessageImplP.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,7 +30,7 @@
 
 
 /**
- * The underlying configuration of OSKI Active Messages. Wires the AM
+ * The underlying configuration of the AM layer. Wires the AM
  * implementation (ActiveMessageC) to the boot sequence, and exports
  * the AM interfaces.
  *
@@ -38,7 +38,7 @@
  * @date   January 5 2005
  */ 
 
-includes AM;
+#include "AM.h"
 
 configuration ActiveMessageImplP {
   provides {

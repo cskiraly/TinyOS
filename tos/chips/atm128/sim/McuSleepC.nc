@@ -24,10 +24,10 @@
 
 /**
  * TOSSIM Implementation of TEP 112 (Microcontroller Power Management)
- * for the Atmega128.
+ * for the Atmega128. It currently does nothing.
  *
  * <pre>
- *  $Id: McuSleepC.nc,v 1.1.2.1 2006-01-19 00:35:03 scipio Exp $
+ *  $Id: McuSleepC.nc,v 1.1.2.2 2006-01-29 20:32:24 scipio Exp $
  * </pre>
  *
  * @author Philip Levis

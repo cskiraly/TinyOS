@@ -20,8 +20,9 @@
  */
 
 /**
- * This is the basic configuration for a
- * random number generator.
+ * The standard TinyOS random number generator. If your system requires a 
+ * specific random number generator, it should wire to that component
+ * directly. 
  *
  * @author  Barbara Hohlt 
  * @author  Phil Levis 

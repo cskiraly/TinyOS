@@ -1,4 +1,4 @@
-/// $Id: McuPowerOverride.nc,v 1.1.2.1 2005-10-26 17:52:47 scipio Exp $
+/// $Id: McuPowerOverride.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
 
 /**
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -34,7 +34,7 @@
  * 
  * @author Philip Levis
  * @date   Oct 26, 2005
- *
+ * @see    TEP 112: Microconroller Power Management
  */
 
 includes hardware;
@@ -47,6 +47,9 @@ interface McuPowerOverride {
    * this command originates deep within the basic TinyOS scheduling
    * mechanisms, it should be used very sparingly. Refer to TEP 112 for
    * details.
+   *
+   * @return    the lowest power state the system can enter to meet the 
+   *            requirements of this component
    */
   async command mcu_power_t lowestState();
 }

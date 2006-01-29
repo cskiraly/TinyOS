@@ -1,4 +1,4 @@
-// $Id: MainC.nc,v 1.1.2.3 2005-08-08 04:24:55 scipio Exp $
+// $Id: MainC.nc,v 1.1.2.4 2006-01-29 20:32:25 scipio Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -27,20 +27,17 @@
  * file. If you do not find these files, copies can be found by writing to
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
- */
-/*
  *
- * Authors:             Philip Levis
- * Date last modified:  $Id: MainC.nc,v 1.1.2.3 2005-08-08 04:24:55 scipio Exp $
- *
+ * Date last modified:  $Id: MainC.nc,v 1.1.2.4 2006-01-29 20:32:25 scipio Exp $
  */
 
 /**
- * Main is the system interface the TinyOS boot sequence. It wires the
+ * MainC is the system interface the TinyOS boot sequence. It wires the
  * boot sequence implementation to the scheduler and hardware resources.
  *
  * @author Philip Levis
  * @date   August 6 2005
+ * @see    TEP 107: Boot Sequence
  */
 
 includes hardware;

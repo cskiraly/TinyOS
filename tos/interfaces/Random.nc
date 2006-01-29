@@ -20,7 +20,8 @@
  *
  */
 
-/** The basic random number generator interface.
+/** 
+  * Interface for generating 16-bit and 32-bit random numbers.
   *
   * @author Barbara Hohlt 
   * @date   March 1 2005 

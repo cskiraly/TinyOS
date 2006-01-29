@@ -1,6 +1,14 @@
 #ifndef ATM128_SIM_H_INCLUDED
 #define ATM128_SIM_H_INCLUDED
 
+/*
+ * In normal avr code, the address and identifier of a register can be
+ * the same. In a parallel simulation, this runs into issues with C typing,
+ * as there are actually many copies of a register. So in TOSSIM the standard
+ * name (e.g., PINE) refers to the actual memory location of the register while
+ * ATM128_ (e.g., ATM128_PINE) refers to the register identifier.
+ *
+ */
 
 //uint8_t atm128RegFile[100][0xa0];
 
