@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-27 23:49:43 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-01-29 18:27:07 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -45,11 +45,11 @@ module Msp430Adc12P
     interface ArbiterInfo as ADCArbiterInfo;
     interface Msp430RefVoltGenerator as RefVoltGenerator;
 	  interface HplAdc12;
-    interface MSP430Timer as TimerA;
-    interface MSP430TimerControl as ControlA0;
-    interface MSP430TimerControl as ControlA1;
-    interface MSP430Compare as CompareA0;
-    interface MSP430Compare as CompareA1;
+    interface Msp430Timer as TimerA;
+    interface Msp430TimerControl as ControlA0;
+    interface Msp430TimerControl as ControlA1;
+    interface Msp430Compare as CompareA0;
+    interface Msp430Compare as CompareA1;
     interface HplMsp430GeneralIO as Port60;
     interface HplMsp430GeneralIO as Port61;
     interface HplMsp430GeneralIO as Port62;
@@ -158,7 +158,7 @@ implementation
 
   void prepareTimerA(uint16_t interval, uint16_t csSAMPCON, uint16_t cdSAMPCON)
   {
-    MSP430CompareControl_t ccResetSHI = {
+    msp430_compare_control_t ccResetSHI = {
       ccifg : 0, cov : 0, out : 0, cci : 0, ccie : 0,
       outmod : 0, cap : 0, clld : 0, scs : 0, ccis : 0, cm : 0 };
 
@@ -174,13 +174,13 @@ implementation
     
   void startTimerA()
   {
-    MSP430CompareControl_t ccSetSHI = {
+    msp430_compare_control_t ccSetSHI = {
       ccifg : 0, cov : 0, out : 1, cci : 0, ccie : 0,
       outmod : 0, cap : 0, clld : 0, scs : 0, ccis : 0, cm : 0 };
-    MSP430CompareControl_t ccResetSHI = {
+    msp430_compare_control_t ccResetSHI = {
       ccifg : 0, cov : 0, out : 0, cci : 0, ccie : 0,
       outmod : 0, cap : 0, clld : 0, scs : 0, ccis : 0, cm : 0 };
-    MSP430CompareControl_t ccRSOutmod = {
+    msp430_compare_control_t ccRSOutmod = {
       ccifg : 0, cov : 0, out : 0, cci : 0, ccie : 0,
       outmod : 7, cap : 0, clld : 0, scs : 0, ccis : 0, cm : 0 };
     // manually trigger first conversion, then switch to Reset/set conversionMode
