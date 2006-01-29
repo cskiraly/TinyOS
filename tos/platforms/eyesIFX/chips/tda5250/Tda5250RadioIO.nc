@@ -26,30 +26,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-11-23 18:10:45 $ 
- * ======================================================================== 
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-01-29 02:54:20 $
+ * ========================================================================
  */
- 
+
  /**
- * TDA5250RadioInterruptPWDDD configuration
- * Configuration file for using the PWDDD interrupt for the TDA5250 Radio 
- * on the eyesIFX platforms
- * 
+ * Tda5250RadioIO configuration
+ * Configuration file for using the IO pins to the TDA5250 Radio on
+ * the eyesIFX platforms
+ *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  */
-configuration TDA5250RadioInterruptPWDDD
+configuration Tda5250RadioIO
 {
-  provides interface GpioInterrupt;
+  provides interface GeneralIO as Tda5250RadioBUSM;
+  provides interface GeneralIO as Tda5250RadioENTDA;
+  provides interface GeneralIO as Tda5250RadioTXRX;
+  provides interface GeneralIO as Tda5250RadioDATA;
+  provides interface GeneralIO as Tda5250RadioPWDDD;
 }
-implementation
-{
-  components 
-      MSP430InterruptPort1C
-    , new GpioInterruptC()
+implementation {
+  components
+      HplMsp430GeneralIOC as MspGeneralIO
+    , new GpioC() as rBUSM
+    , new GpioC() as rENTDA
+    , new GpioC() as rTXRX
+    , new GpioC() as rDATA
+    , new GpioC() as rPWDD
     ;
 
-    GpioInterrupt = GpioInterruptC.Interrupt;
-    GpioInterruptC.MSP430Interrupt -> MSP430InterruptPort1C.Port10;
+  Tda5250RadioBUSM = rBUSM;
+  Tda5250RadioENTDA = rENTDA;
+  Tda5250RadioTXRX = rTXRX;
+  Tda5250RadioDATA = rDATA;
+  Tda5250RadioPWDDD = rPWDD;
+
+  rBUSM -> MspGeneralIO.Port15;
+  rENTDA -> MspGeneralIO.Port16;
+  rTXRX -> MspGeneralIO.Port14;
+  rDATA -> MspGeneralIO.Port11;
+  rPWDD -> MspGeneralIO.Port10;
 }
 
