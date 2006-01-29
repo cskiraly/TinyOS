@@ -27,18 +27,18 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
- 
+
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-29 18:05:12 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-01-29 21:26:16 $
  * ========================================================================
  */
 
 /**
  * There is currently no TEP for describing devices of this type.<br><br>
  *
- * This component provides the internal implementation of the ad5200 potentiometer
+ * This component provides the implementation of the ad5200 potentiometer
  * chip.  It is currently the only chip of its type, and does not conform to
  * any existing TEP standard.  This component will be updated as a TEP for
  * potentiometers is developed in the near future.
@@ -46,68 +46,28 @@
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
-  module Ad5200P {
-  provides {
-    interface Init;
-    interface Pot;
-    interface StdControl;
-  }
-  uses {
-    interface GeneralIO as ENPOT;
-    interface GeneralIO as SDPOT;
-    interface SpiByte;
-  }
-  }
-  implementation {
-    uint8_t Pot_value = -1;
+configuration AD5200C {
+provides {
+  interface Pot;
+  interface Resource;
+  interface StdControl;
+}
+}
 
-    /************** interface commands **************/
-    command error_t Init.init() {
-      call ENPOT.makeOutput();
-      call SDPOT.makeOutput();
-      call ENPOT.set();
-      call SDPOT.set();
-      return SUCCESS;
-    }
+implementation {
+  components AD5200P
+      , AD5200SpiC
+      , AD5200PotIO
+      , MainC
+      ;
 
-    command error_t StdControl.start() {
-      call SDPOT.set();
-      call ENPOT.set();
-      return SUCCESS;
-    }
-    command error_t StdControl.stop() {
-      call ENPOT.set();
-      call SDPOT.clr();
-      return SUCCESS;
-    }
+      StdControl = AD5200P;
+      Pot = AD5200P;
+      Resource = AD5200SpiC;
 
-    async command error_t Pot.set(uint8_t setting) {
-      error_t result;
-      call ENPOT.clr();
-      result = call SpiByte.write(setting, 0);
-      call ENPOT.set();
-      if(result == SUCCESS)
-        atomic Pot_value = setting;
-      return result;
-    }
 
-    async command uint8_t Pot.get() {
-      return Pot_value;
-    }
-
-    async command error_t Pot.increase() {
-      if (Pot_value < 255 && Pot_value >= 0) {
-        Pot_value++;
-        return call Pot.set(Pot_value);
-      }
-      else return FAIL;
-    }
-
-    async command error_t Pot.decrease() {
-      if (Pot_value > 0) {
-        Pot_value--;
-        return call Pot.set(Pot_value);
-      }
-      else return FAIL;
-    }
-  }
+      MainC.SoftwareInit-> AD5200P.Init;
+      AD5200P.ENPOT -> AD5200PotIO.AD5200PotENPOT;
+      AD5200P.SDPOT -> AD5200PotIO.AD5200PotSDPOT;
+      AD5200P.SpiByte -> AD5200SpiC;
+}
