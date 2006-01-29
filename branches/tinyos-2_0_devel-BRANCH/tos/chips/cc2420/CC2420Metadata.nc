@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2005 Arched Rock Corporation
  * All rights reserved.
  *
@@ -33,9 +33,10 @@
  *
  * @author Gilman Tolle <gtolle@archedrock.com>
  * @author Alec Woo <awoo@archedrock.com>
+ * @author Philip Levis
  */
 
-interface LinkStats {
+interface CC2420Metadata {
 
   /*
    * @param msg Message that contains the metadata

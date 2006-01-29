@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
@@ -31,16 +31,16 @@
 
 /**
  * @author Alec Woo <awoo@archedrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-01-28 01:39:29 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-01-29 17:50:45 $
  */
 
-module CC2420LinkStatsP{
-  provides interface LinkStats;
+module CC2420MetadataP{
+  provides interface CC2420Metadata;
 }
 
 implementation{
 
-  command uint8_t LinkStats.linkQual(message_t* pMsg){
+  command uint8_t CC2420Metadata.linkQual(message_t* pMsg){
     uint8_t result;
     cc2420_metadata_t * mdata = (cc2420_metadata_t *) pMsg->metadata;
 
@@ -56,7 +56,7 @@ implementation{
     return result;    
   }
 
-  command int16_t LinkStats.rssi(message_t* pMsg){
+  command int16_t CC2420Metadata.rssi(message_t* pMsg){
     cc2420_metadata_t * mdata = (cc2420_metadata_t *) pMsg->metadata;
     return ((int16_t) mdata->strength - (int16_t) 45); // do no scaling for now    
   }
