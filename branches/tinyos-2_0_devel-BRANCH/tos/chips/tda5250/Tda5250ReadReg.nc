@@ -27,17 +27,17 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2005-05-24 16:23:56 $ 
- * ======================================================================== 
+ * $Date: 2006-01-29 02:34:56 $
+ * ========================================================================
  */
- 
+
  /**
- * TDA5250WriteReg Interface
+ * Tda5250ReadReg Interface
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
-interface TDA5250WriteReg<reg_type> {
-  async command error_t set(reg_type v);
+interface Tda5250ReadReg<reg_type> {
+  async command reg_type get();
 }
 

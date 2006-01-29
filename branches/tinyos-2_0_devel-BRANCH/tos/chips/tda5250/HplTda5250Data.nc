@@ -26,34 +26,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-01-29 02:34:56 $
  * ========================================================================
  */
 
  /**
- * tda5250RegDefaultSettings Header File
- * Defines the default values of the registers for the TDA5250 Radio
+ * TDA5250Data Interface
+ * Interface for sending and receiving bytes of data over the TDA5250 Radio
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
-#ifndef TDA5250REGDEFAULTSETTINGS_H
-#define TDA5250REGDEFAULTSETTINGS_H
+interface HplTda5250Data {
 
-// Default values of data registers
-#define TDA5250_REG_DEFAULT_SETTING_CONFIG           0x04F9
-#define TDA5250_REG_DEFAULT_SETTING_FSK              0x0A0C
-#define TDA5250_REG_DEFAULT_SETTING_XTAL_TUNING      0x0012
-#define TDA5250_REG_DEFAULT_SETTING_LPF              0x18
-#define TDA5250_REG_DEFAULT_SETTING_ON_TIME          0xFEC0
-#define TDA5250_REG_DEFAULT_SETTING_OFF_TIME         0xF380
-#define TDA5250_REG_DEFAULT_SETTING_COUNT_TH1        0x0000
-#define TDA5250_REG_DEFAULT_SETTING_COUNT_TH2        0x0001
-#define TDA5250_REG_DEFAULT_SETTING_RSSI_TH3         0xFF
-#define TDA5250_REG_DEFAULT_SETTING_CLK_DIV          0x08
-#define TDA5250_REG_DEFAULT_SETTING_XTAL_CONFIG      0x01
-#define TDA5250_REG_DEFAULT_SETTING_BLOCK_PD         0xFFFF
+ /**
+   * Transmit a byte of data over the radio.
+   * @param data The data byte to be transmitted
+   * @return SUCCESS Byte successfully transmitted
+             FAIL    Byte could not be transmitted
+   */
+  async command error_t tx(uint8_t data);
 
-#endif //TDA5250REGDEFAULTSETTINGS_H
+  /**
+   * Signalled when the next byte can be made ready to transmit
+   * Receiving such an event does not guarantee that the previous
+   * byte has already been transmitted, just that the next one can
+   * now be handed over for transmission.
+   */
+  async event void txReady();
+
+  /**
+   * Command for querying whether any bytes are still waiting to be transmitted
+   */
+  async command bool isTxDone();
+
+  /**
+   * Signaled when a byte of data has been received from the radio.
+   * @param data The data byte received
+   */
+  async event void rxDone(uint8_t data);
+
+  /**
+   * Enable transmitting over the radio
+  */
+  async command error_t enableTx();
+
+  /**
+   * Disable transmitting over the radio
+  */
+  async command error_t disableTx();
+
+  /**
+   * Enable receiving over the radio
+  */
+  async command error_t enableRx();
+
+  /**
+   * Disable receiving over the radio
+  */
+  async command error_t disableRx();
+}
 

@@ -28,16 +28,16 @@
  *
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-23 00:54:44 $
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-01-29 02:34:56 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
 
-module TDA5250RegCommP {
+module Tda5250RegCommP {
   provides {
     interface Init;
-    interface TDA5250RegComm;
+    interface Tda5250RegComm;
     // FIXME: Hier ResourceController!?
     interface Resource;
   }
@@ -46,7 +46,7 @@ module TDA5250RegCommP {
     // FIXME: Hier ResourceController als high priority client!?
     interface Resource as SpiResource;
 //    interface ArbiterInfo;
-    interface SPIByte;
+    interface SpiByte;
   }
 }
 
@@ -96,33 +96,33 @@ implementation {
    async event void Usart.rxDone(uint8_t data) {
    }
 */
-   async command error_t TDA5250RegComm.writeByte(uint8_t address, uint8_t data) {
+   async command error_t Tda5250RegComm.writeByte(uint8_t address, uint8_t data) {
      uint8_t rxbyte;
 //     if(call ArbiterInfo.userId() != TDA5250_SPI_BUS_ID) {
 //       return FAIL;
 //     }
-     call SPIByte.write(address,&rxbyte);
-     call SPIByte.write(data,&rxbyte);
+     call SpiByte.write(address,&rxbyte);
+     call SpiByte.write(data,&rxbyte);
      return SUCCESS;
    }
-   async command error_t TDA5250RegComm.writeWord(uint8_t address, uint16_t data) {
+   async command error_t Tda5250RegComm.writeWord(uint8_t address, uint16_t data) {
       uint8_t rxbyte;
 //      if(call ArbiterInfo.userId() != TDA5250_SPI_BUS_ID)
 //        return FAIL;
-      call SPIByte.write(address, &rxbyte);
-      call SPIByte.write(((uint8_t) (data >> 8)),&rxbyte);
-      call SPIByte.write(((uint8_t) data),&rxbyte);
+      call SpiByte.write(address, &rxbyte);
+      call SpiByte.write(((uint8_t) (data >> 8)),&rxbyte);
+      call SpiByte.write(((uint8_t) data),&rxbyte);
       return SUCCESS;
    }
 
-   async command uint8_t TDA5250RegComm.readByte(uint8_t address){
+   async command uint8_t Tda5250RegComm.readByte(uint8_t address){
       uint8_t rxbyte;
 //      if(call ArbiterInfo.userId() != TDA5250_SPI_BUS_ID)
 //        return 0x00;
-      call SPIByte.write(address, &rxbyte);
+      call SpiByte.write(address, &rxbyte);
 
       // FIXME: Put SIMO/SOMI in input
-      call SPIByte.write(0x00, &rxbyte);
+      call SpiByte.write(0x00, &rxbyte);
       return rxbyte;
    }
 

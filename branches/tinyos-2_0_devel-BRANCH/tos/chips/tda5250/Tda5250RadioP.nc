@@ -27,24 +27,24 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Description ---------------------------------------------------------
-* Controlling the TDA5250, switching modes and initializing.
+* Controlling the Tda5250, switching modes and initializing.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.3 $
-* $Date: 2006-01-23 00:54:44 $
+* $Revision: 1.1.2.1 $
+* $Date: 2006-01-29 02:34:56 $
 * @author: Kevin Klues (klues@tkn.tu-berlin.de)
 * ========================================================================
 */
 
-module TDA5250RadioP {
+module Tda5250RadioP {
   provides {
     interface Init;
     interface SplitControl;
-    interface TDA5250Control;
+    interface Tda5250Control;
     interface RadioByteComm;
   }
   uses {
-    interface HPLTDA5250Config;
-    interface HPLTDA5250Data;
+    interface HplTda5250Config;
+    interface HplTda5250Data;
     interface Resource as ConfigResource;
     // FIXME: Hier ResourceController (high priority client)
         interface Resource as DataResource;
@@ -114,47 +114,47 @@ implementation {
         atomic mode = radioMode;
         switch(mode) {
           case RADIO_MODE_ON_TRANSITION:
-            call HPLTDA5250Config.reset();
-            call HPLTDA5250Config.SetRFPower(255);
-            call HPLTDA5250Config.UsePeakDetector();
-            call HPLTDA5250Config.SetClockOnDuringPowerDown();
-            call HPLTDA5250Config.UseRSSIDataValidDetection(INIT_RSSI_THRESHOLD, TH1_VALUE, TH2_VALUE);
+            call HplTda5250Config.reset();
+            call HplTda5250Config.SetRFPower(255);
+            call HplTda5250Config.UsePeakDetector();
+            call HplTda5250Config.SetClockOnDuringPowerDown();
+            call HplTda5250Config.UseRSSIDataValidDetection(INIT_RSSI_THRESHOLD, TH1_VALUE, TH2_VALUE);
             call ConfigResource.release();
             atomic radioMode = RADIO_MODE_ON;
             signal SplitControl.startDone(SUCCESS);
             break;
           case RADIO_MODE_OFF_TRANSITION:
-            call HPLTDA5250Config.SetClockOffDuringPowerDown();
-            call HPLTDA5250Config.SetSleepMode();
+            call HplTda5250Config.SetClockOffDuringPowerDown();
+            call HplTda5250Config.SetSleepMode();
             call ConfigResource.release();
             atomic radioMode = RADIO_MODE_OFF;
             signal SplitControl.stopDone(SUCCESS);
             break;
           case RADIO_MODE_TX_TRANSITION:
-            call HPLTDA5250Config.SetSlaveMode();
-            call HPLTDA5250Config.SetTxMode();
+            call HplTda5250Config.SetSlaveMode();
+            call HplTda5250Config.SetTxMode();
             break;
           case RADIO_MODE_RX_TRANSITION:
-            call HPLTDA5250Config.SetSlaveMode();
+            call HplTda5250Config.SetSlaveMode();
             atomic ccaMode = FALSE;
-            call HPLTDA5250Config.SetRxMode();
+            call HplTda5250Config.SetRxMode();
             break;
           case RADIO_MODE_CCA_TRANSITION:
-            call HPLTDA5250Config.SetSlaveMode();
+            call HplTda5250Config.SetSlaveMode();
             atomic ccaMode = TRUE;
-            call HPLTDA5250Config.SetRxMode();
+            call HplTda5250Config.SetRxMode();
             break;
           case RADIO_MODE_TIMER_TRANSITION:
-            call HPLTDA5250Config.SetTimerMode(onTime, offTime);
+            call HplTda5250Config.SetTimerMode(onTime, offTime);
             call ConfigResource.release();
             atomic radioMode = RADIO_MODE_TIMER;
-            signal TDA5250Control.TimerModeDone();
+            signal Tda5250Control.TimerModeDone();
             break;
           case RADIO_MODE_SELF_POLLING_TRANSITION:
-            call HPLTDA5250Config.SetSelfPollingMode(onTime, offTime);
+            call HplTda5250Config.SetSelfPollingMode(onTime, offTime);
             call ConfigResource.release();
             atomic radioMode = RADIO_MODE_SELF_POLLING;
-            signal TDA5250Control.SelfPollingModeDone();
+            signal Tda5250Control.SelfPollingModeDone();
             break;
           default:
             break;
@@ -166,14 +166,14 @@ implementation {
         atomic mode = radioMode;
         switch(mode) {
           case RADIO_MODE_TX_TRANSITION:
-            call HPLTDA5250Data.enableTx();
+            call HplTda5250Data.enableTx();
             atomic radioMode = RADIO_MODE_TX;
-            signal TDA5250Control.TxModeDone();
+            signal Tda5250Control.TxModeDone();
             break;
           case RADIO_MODE_RX_TRANSITION:
-            call HPLTDA5250Data.enableRx();
+            call HplTda5250Data.enableRx();
             atomic radioMode = RADIO_MODE_RX;
-            signal TDA5250Control.RxModeDone();
+            signal Tda5250Control.RxModeDone();
             break;
           default:
             break;
@@ -184,7 +184,7 @@ implementation {
       Set the mode of the radio
       The choices are TIMER_MODE, SELF_POLLING_MODE
   */
-      async command error_t TDA5250Control.TimerMode(float on_time, float off_time) {
+      async command error_t Tda5250Control.TimerMode(float on_time, float off_time) {
         atomic {
           if(radioBusy() == FALSE) {
             radioMode = RADIO_MODE_TIMER_TRANSITION;
@@ -200,7 +200,7 @@ implementation {
         return FAIL;
       }
 
-      async command error_t TDA5250Control.ResetTimerMode() {
+      async command error_t Tda5250Control.ResetTimerMode() {
         atomic {
           if(radioBusy() == FALSE)
             radioMode = RADIO_MODE_TIMER_TRANSITION;
@@ -213,7 +213,7 @@ implementation {
         return FAIL;
       }
 
-      async command error_t TDA5250Control.SelfPollingMode(float on_time, float off_time) {
+      async command error_t Tda5250Control.SelfPollingMode(float on_time, float off_time) {
         atomic {
           if(radioBusy() == FALSE) {
             radioMode = RADIO_MODE_SELF_POLLING_TRANSITION;
@@ -229,7 +229,7 @@ implementation {
         return FAIL;
       }
 
-      async command error_t TDA5250Control.ResetSelfPollingMode() {
+      async command error_t Tda5250Control.ResetSelfPollingMode() {
         atomic {
           if(radioBusy() == FALSE)
             radioMode = RADIO_MODE_SELF_POLLING_TRANSITION;
@@ -242,19 +242,19 @@ implementation {
         return FAIL;
       }
 
-      async command error_t TDA5250Control.SleepMode() {
+      async command error_t Tda5250Control.SleepMode() {
         atomic {
           if(radioBusy() == FALSE)
             radioMode = RADIO_MODE_SLEEP_TRANSITION;
         }
         if(radioMode == RADIO_MODE_SLEEP_TRANSITION) {
-          call HPLTDA5250Config.SetSleepMode();
+          call HplTda5250Config.SetSleepMode();
           return SUCCESS;
         }
         return FAIL;
       }
 
-      async command error_t TDA5250Control.TxMode() {
+      async command error_t Tda5250Control.TxMode() {
         radioMode_t mode;
         atomic {
           if(radioBusy() == FALSE)
@@ -269,7 +269,7 @@ implementation {
         return FAIL;
       }
 
-      async command error_t TDA5250Control.RxMode() {
+      async command error_t Tda5250Control.RxMode() {
         radioMode_t mode;
         atomic {
           if(radioBusy() == FALSE)
@@ -284,7 +284,7 @@ implementation {
         return FAIL;
       }
 
-      async command error_t TDA5250Control.CCAMode() {
+      async command error_t Tda5250Control.CCAMode() {
         atomic {
           if(radioBusy() == FALSE)
             radioMode = RADIO_MODE_CCA_TRANSITION;
@@ -297,63 +297,63 @@ implementation {
         return FAIL;
       }
 
-      async event void HPLTDA5250Data.txReady() {
+      async event void HplTda5250Data.txReady() {
         signal RadioByteComm.txByteReady(SUCCESS);
       }
-      async event void HPLTDA5250Data.rxDone(uint8_t data) {
+      async event void HplTda5250Data.rxDone(uint8_t data) {
         signal RadioByteComm.rxByteReady(data);
       }
 
-      async event void HPLTDA5250Config.SetTxModeDone() {
+      async event void HplTda5250Config.SetTxModeDone() {
         call ConfigResource.release();
         call DataResource.request();
       }
 
-      async event void HPLTDA5250Config.SetRxModeDone() {
+      async event void HplTda5250Config.SetRxModeDone() {
         call ConfigResource.release();
         call DataResource.request();
       }
-      async event void HPLTDA5250Config.SetSleepModeDone() {
-        call HPLTDA5250Data.disableTx();
-        call HPLTDA5250Data.disableRx();
+      async event void HplTda5250Config.SetSleepModeDone() {
+        call HplTda5250Data.disableTx();
+        call HplTda5250Data.disableRx();
         call DataResource.release();
         atomic radioMode = RADIO_MODE_SLEEP;
-        signal TDA5250Control.SleepModeDone();
+        signal Tda5250Control.SleepModeDone();
       }
 
-      async event void HPLTDA5250Config.RSSIStable() {
+      async event void HplTda5250Config.RSSIStable() {
         if(ccaMode == TRUE) {
           radioMode = RADIO_MODE_CCA;
-          signal TDA5250Control.CCAModeDone();
+          signal Tda5250Control.CCAModeDone();
         }
       }
-      async event void HPLTDA5250Config.PWDDDInterrupt() {
-        signal TDA5250Control.PWDDDInterrupt();
+      async event void HplTda5250Config.PWDDDInterrupt() {
+        signal Tda5250Control.PWDDDInterrupt();
       }
 
       async command void RadioByteComm.txByte(uint8_t data) {
-        error_t error = call HPLTDA5250Data.tx(data);
+        error_t error = call HplTda5250Data.tx(data);
         if(error != SUCCESS)
           signal RadioByteComm.txByteReady(error);
       }
 
       async command bool RadioByteComm.isTxDone() {
-        return call HPLTDA5250Data.isTxDone();
+        return call HplTda5250Data.isTxDone();
       }
 
-      default async event void TDA5250Control.TimerModeDone(){
+      default async event void Tda5250Control.TimerModeDone(){
       }
-      default async event void TDA5250Control.SelfPollingModeDone(){
+      default async event void Tda5250Control.SelfPollingModeDone(){
       }
-      default async event void TDA5250Control.RxModeDone(){
+      default async event void Tda5250Control.RxModeDone(){
       }
-      default async event void TDA5250Control.TxModeDone(){
+      default async event void Tda5250Control.TxModeDone(){
       }
-      default async event void TDA5250Control.SleepModeDone(){
+      default async event void Tda5250Control.SleepModeDone(){
       }
-      default async event void TDA5250Control.CCAModeDone(){
+      default async event void Tda5250Control.CCAModeDone(){
       }
-      default async event void TDA5250Control.PWDDDInterrupt() {
+      default async event void Tda5250Control.PWDDDInterrupt() {
       }
       default async event void RadioByteComm.rxByteReady(uint8_t data) {
       }

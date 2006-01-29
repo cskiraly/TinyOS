@@ -26,11 +26,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-07-04 15:13:39 $ 
- * ======================================================================== 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-29 02:34:56 $
+ * ========================================================================
  */
- 
+
  /**
  * tda5250Const Header File
  * Defines constants and macros for use with the TDA5250 Radio
@@ -61,7 +61,7 @@ typedef enum {
    CLOCK_OUT_FREQ_POINT_FIVE_SIX_MHZ              = 0x0F,
    CLOCK_OUT_FREQ_THIRTY_TWO_KHZ                  = 0x80,
    CLOCK_OUT_FREQ_WINDOW_COUNT_COMPLETE           = 0xC0
-} TDA5250ClockOutFreqs_t;
+} tda5250_clock_out_freqs_t;
 
 //List of valid cutoff frequencies for the IQ Filter
 typedef enum {
@@ -81,7 +81,7 @@ typedef enum {
    DATA_CUTOFF_FREQ_SEVENTY_THREE_KHZ               = 0x0D,
    DATA_CUTOFF_FREQ_EIGHTY_SIX_KHZ                  = 0x0E,
    DATA_CUTOFF_FREQ_ONE_HUNDRED_TWO_KHZ             = 0x0F
-} TDA5250DataCutoffFreqs_t;
+} tda5250_data_cutoff_freqs_t;
 
 //List of valid cutoff frequencies for the Lowpass
   //data filter
@@ -92,14 +92,14 @@ typedef enum {
    IQ_CUTOFF_FREQ_ONE_HUNDRED_FIFTY_KHZ           = 0x04,
    IQ_CUTOFF_FREQ_ONE_HUNDRED_KHZ                 = 0x05,
    IQ_CUTOFF_FREQ_FIFTY_KHZ                       = 0x06
-} TDA5250IqCutoffFreqs_t;
+} tda5250_iq_cutoff_freqs_t;
 
 //List of valid capacitor values for tuning the nominal
   //frequency setting
 typedef enum {
    CAP_VAL_ZERO_F                          = 0x00,
    CAP_VAL_TWO_HUNDRED_FIFTY_FF            = 0x01,
-   CAP_VAL_FIVE_HUNDRED_FIFTY_FF           = 0x02,   
+   CAP_VAL_FIVE_HUNDRED_FIFTY_FF           = 0x02,
    CAP_VAL_SEVEN_HUNDRED_FIFTY_FF          = 0x03,
    CAP_VAL_ONE_PF                          = 0x04,
    CAP_VAL_ONE_POINT_TWO_FIVE_PF           = 0x05,
@@ -112,64 +112,64 @@ typedef enum {
    CAP_VAL_THREE_PF                        = 0x0C,
    CAP_VAL_THREE_POINT_TWO_FIVE_PF         = 0x0D,
    CAP_VAL_THREE_POINT_FIVE_PF             = 0x0E,
-   CAP_VAL_THREE_POINT_SEVEN_FIVE_PF       = 0x0F,    
+   CAP_VAL_THREE_POINT_SEVEN_FIVE_PF       = 0x0F,
    CAP_VAL_FOUR_PF                         = 0x10,
    CAP_VAL_FOUR_POINT_TWO_FIVE_PF          = 0x11,
    CAP_VAL_FOUR_POINT_FIVE_PF              = 0x12,
-   CAP_VAL_FOUR_POINT_SEVEN_FIVE_PF        = 0x13, 
+   CAP_VAL_FOUR_POINT_SEVEN_FIVE_PF        = 0x13,
    CAP_VAL_FIVE_PF                         = 0x14,
    CAP_VAL_FIVE_POINT_TWO_FIVE_PF          = 0x15,
    CAP_VAL_FIVE_POINT_FIVE_PF              = 0x16,
-   CAP_VAL_FIVE_POINT_SEVEN_FIVE_PF        = 0x17,     
+   CAP_VAL_FIVE_POINT_SEVEN_FIVE_PF        = 0x17,
    CAP_VAL_SIX_PF                          = 0x18,
    CAP_VAL_SIX_POINT_TWO_FIVE_PF           = 0x19,
    CAP_VAL_SIX_POINT_FIVE_PF               = 0x1A,
-   CAP_VAL_SIX_POINT_SEVEN_FIVE_PF         = 0x1B,    
+   CAP_VAL_SIX_POINT_SEVEN_FIVE_PF         = 0x1B,
    CAP_VAL_SEVEN_PF                        = 0x1C,
    CAP_VAL_SEVEN_POINT_TWO_FIVE_PF         = 0x1D,
    CAP_VAL_SEVEN_POINT_FIVE_PF             = 0x1E,
-   CAP_VAL_SEVEN_POINT_SEVEN_FIVE_PF       = 0x1F,    
+   CAP_VAL_SEVEN_POINT_SEVEN_FIVE_PF       = 0x1F,
    CAP_VAL_EIGHT_PF                        = 0x10,
    CAP_VAL_EIGHT_POINT_TWO_FIVE_PF         = 0x11,
    CAP_VAL_EIGHT_POINT_FIVE_PF             = 0x12,
-   CAP_VAL_EIGHT_POINT_SEVEN_FIVE_PF       = 0x13, 
+   CAP_VAL_EIGHT_POINT_SEVEN_FIVE_PF       = 0x13,
    CAP_VAL_NINE_PF                         = 0x14,
    CAP_VAL_NINE_POINT_TWO_FIVE_PF          = 0x15,
    CAP_VAL_NINE_POINT_FIVE_PF              = 0x16,
-   CAP_VAL_NINE_POINT_SEVEN_FIVE_PF        = 0x17,     
+   CAP_VAL_NINE_POINT_SEVEN_FIVE_PF        = 0x17,
    CAP_VAL_TEN_PF                          = 0x18,
    CAP_VAL_TEN_POINT_TWO_FIVE_PF           = 0x19,
    CAP_VAL_TEN_POINT_FIVE_PF               = 0x1A,
-   CAP_VAL_TEN_POINT_SEVEN_FIVE_PF         = 0x1B,    
+   CAP_VAL_TEN_POINT_SEVEN_FIVE_PF         = 0x1B,
    CAP_VAL_ELEVEN_PF                       = 0x1C,
    CAP_VAL_ELEVEN_POINT_TWO_FIVE_PF        = 0x1D,
    CAP_VAL_ELEVEN_POINT_FIVE_PF            = 0x1E,
-   CAP_VAL_ELEVEN_POINT_SEVEN_FIVE_PF      = 0x1F, 
+   CAP_VAL_ELEVEN_POINT_SEVEN_FIVE_PF      = 0x1F,
    CAP_VAL_TWELVE_PF                       = 0x10,
    CAP_VAL_TWELVE_POINT_TWO_FIVE_PF        = 0x11,
    CAP_VAL_TWELVE_POINT_FIVE_PF            = 0x12,
-   CAP_VAL_TWELVE_POINT_SEVEN_FIVE_PF      = 0x13, 
+   CAP_VAL_TWELVE_POINT_SEVEN_FIVE_PF      = 0x13,
    CAP_VAL_THIRTEEN_PF                     = 0x14,
    CAP_VAL_THIRTEEN_POINT_TWO_FIVE_PF      = 0x15,
    CAP_VAL_THIRTEEN_POINT_FIVE_PF          = 0x16,
-   CAP_VAL_THIRTEEN_POINT_SEVEN_FIVE_PF    = 0x17,     
+   CAP_VAL_THIRTEEN_POINT_SEVEN_FIVE_PF    = 0x17,
    CAP_VAL_FOURTEEN_PF                     = 0x18,
    CAP_VAL_FOURTEEN_POINT_TWO_FIVE_PF      = 0x19,
    CAP_VAL_FOURTEEN_POINT_FIVE_PF          = 0x1A,
-   CAP_VAL_FOURTEEN_POINT_SEVEN_FIVE_PF    = 0x1B,    
+   CAP_VAL_FOURTEEN_POINT_SEVEN_FIVE_PF    = 0x1B,
    CAP_VAL_FIFTEEN_PF                      = 0x1C,
    CAP_VAL_FIFTEEN_POINT_TWO_FIVE_PF       = 0x1D,
    CAP_VAL_FIFTEEN_POINT_FIVE_PF           = 0x1E,
    CAP_VAL_FIFTEEN_POINT_SEVEN_FIVE_PF     = 0x1F
-} TDA5250CapVals_t;
+} tda5250_cap_vals_t;
 
-//List of valid times for Bipolar Ramp 
+//List of valid times for Bipolar Ramp
 typedef enum {
    BIPOLAR_FET_RAMP_TIME_LESS_THAN_TWO_MS                = 0x01,
    BIPOLAR_FET_RAMP_TIME_FOUR_MS                         = 0x03,
    BIPOLAR_FET_RAMP_TIME_EIGHT_MS                        = 0x05,
    BIPOLAR_FET_RAMP_TIME_TWELVE_MS                       = 0x07
-} TDA5250BipolarFETRampTimes_t;
+} tda5250_bipolar_fet_ramp_times_t;
 
 #define TDA5250_RECEIVE_FREQUENCY               868.3      // kHz
 #define TDA5250_OSCILLATOR_FREQUENCY            ((3.0/4.0) * TDA5250_RECEIVE_FREQUENCY) // kHz
@@ -180,14 +180,14 @@ typedef enum {
 #define TDA5250_CONVERT_TIME(time)         ((uint16_t)(0xFFFF - ((time*TDA5250_INTERNAL_OSC_FREQUENCY))))
 #define TDA5250_CONVERT_FREQ_TO_TH_VALUE(freq, clock_freq) \
            ((TDA5250_CONSTANT_FOR_FREQ_TO_TH_VALUE/(clock_freq*freq))*1000)
-           
+
 #define TDA5250_SYSTEM_SETUP_TIME            (12000/TDA5250_INTERNAL_OSC_FREQUENCY) //12000us
 #define TDA5250_RECEIVER_SETUP_TIME           (2860/TDA5250_INTERNAL_OSC_FREQUENCY) // 2860us
 #define TDA5250_DATA_DETECTION_SETUP_TIME     (3380/TDA5250_INTERNAL_OSC_FREQUENCY) // 3380us
 #define TDA5250_RSSI_STABLE_TIME              (3380/TDA5250_INTERNAL_OSC_FREQUENCY) // 3380us
 #define TDA5250_CLOCK_OUT_SETUP_TIME           (500/TDA5250_INTERNAL_OSC_FREQUENCY) //  500us
 #define TDA5250_TRANSMITTER_SETUP_TIME        (1430/TDA5250_INTERNAL_OSC_FREQUENCY) // 1430us
-#define TDA5250_XTAL_STARTUP_TIME              (500/TDA5250_INTERNAL_OSC_FREQUENCY) //  500us          
+#define TDA5250_XTAL_STARTUP_TIME              (500/TDA5250_INTERNAL_OSC_FREQUENCY) //  500us
 
 // Subaddresses of data registers write
 #define TDA5250_REG_ADDR_CONFIG            0x00
@@ -209,7 +209,7 @@ typedef enum {
 
 // Mask Values for write registers (16 or 8 bit)
 /************* Apply these masks by & with original */
-#define MASK_CONFIG_SLICER_RC_INTEGRATOR       0x7FFF 
+#define MASK_CONFIG_SLICER_RC_INTEGRATOR       0x7FFF
 #define MASK_CONFIG_ALL_PD_NORMAL              0xBFFF
 #define MASK_CONFIG_TESTMODE_NORMAL            0xDFFF
 #define MASK_CONFIG_CONTROL_TXRX_EXTERNAL      0xEFFF

@@ -26,65 +26,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2005-07-01 13:05:11 $ 
- * ======================================================================== 
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-01-29 02:34:56 $
+ * ========================================================================
  */
- 
+
  /**
- * TDA5250Data Interface  
- * Interface for sending and receiving bytes of data over the TDA5250 Radio 
+ * HplTda5250ConfigM configuration
+ * Controlling the Tda5250 at the Hpl layer..
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
- 
-interface HPLTDA5250Data {
 
- /**
-   * Transmit a byte of data over the radio. 
-   * @param data The data byte to be transmitted
-   * @return SUCCESS Byte successfully transmitted
-             FAIL    Byte could not be transmitted
-   */
-  async command error_t tx(uint8_t data);
-
-  /**
-   * Signalled when the next byte can be made ready to transmit
-   * Receiving such an event does not guarantee that the previous
-   * byte has already been transmitted, just that the next one can
-   * now be handed over for transmission.
-   */
-  async event void txReady();
-  
-  /**
-   * Command for querying whether any bytes are still waiting to be transmitted
-   */  
-  async command bool isTxDone();
-  
-  /**
-   * Signaled when a byte of data has been received from the radio.
-   * @param data The data byte received
-   */
-  async event void rxDone(uint8_t data);
- 
-  /**
-   * Enable transmitting over the radio
-  */  
-  async command error_t enableTx();
-  
-  /**
-   * Disable transmitting over the radio
-  */    
-  async command error_t disableTx();
-  
-  /**
-   * Enable receiving over the radio
-  */    
-  async command error_t enableRx();
-  
-  /**
-   * Disable receiving over the radio
-  */    
-  async command error_t disableRx(); 	
+#include "tda5250Const.h"
+#include "tda5250RegDefaultSettings.h"
+#include "tda5250RegTypes.h"
+configuration Tda5250RadioC {
+  provides {
+    interface Init;
+    interface SplitControl;
+    interface Tda5250Control;
+    interface RadioByteComm;
+  }
 }
+implementation {
+  components Tda5250RadioP
+           , HplTda5250ConfigC
+           , HplTda5250DataC
+           ;
 
+  Init = HplTda5250ConfigC;
+  Init = HplTda5250DataC;
+  Init = Tda5250RadioP;
+  Tda5250Control = Tda5250RadioP;
+  RadioByteComm = Tda5250RadioP;
+  SplitControl = Tda5250RadioP;
+
+  Tda5250RadioP.ConfigResource -> HplTda5250ConfigC;
+  Tda5250RadioP.DataResource -> HplTda5250DataC;
+
+  Tda5250RadioP.HplTda5250Config -> HplTda5250ConfigC;
+  Tda5250RadioP.HplTda5250Data -> HplTda5250DataC;
+}

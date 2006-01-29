@@ -26,25 +26,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-23 00:54:44 $ 
- * ======================================================================== 
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-01-29 02:34:56 $
+ * ========================================================================
  */
- 
+
  /**
- * HPLTDA5250DataM module
+ * HplTda5250DataP module
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
   */
- 
-module HPLTDA5250DataP {
+
+module HplTda5250DataP {
   provides {
     interface Init;
-    interface HPLTDA5250Data;
+    interface HplTda5250Data;
     interface Resource;
   }
   uses {
-    interface GeneralIO as DATA;     
+    interface GeneralIO as DATA;
     interface HplMsp430Usart as Usart;
     interface Resource as UartResource;
     interface ArbiterInfo;
@@ -52,77 +52,69 @@ module HPLTDA5250DataP {
 }
 
 implementation {
-   
-   /****************************************************************
-  async commands Implemented
-   *****************************************************************/
-   /**
+
+  /**
    * Initializes the Radio, setting up all Pin configurations
    * to the MicroProcessor that is driving it
    *
    * @return always returns SUCCESS
-    */   
+    */
   command error_t Init.init() {
-     // setting pins to output
     call DATA.makeOutput();
-     
-     // initializing pin values
     call DATA.clr();
-                 
+
     //Make Rx default
-    call DATA.makeInput();  
+    call DATA.makeInput();
     return SUCCESS;
   }
-         
+
   async command error_t Resource.request() {
-    return call UartResource.request(); 
-  } 
-   
+    return call UartResource.request();
+  }
+
   async command error_t Resource.immediateRequest() {
     if(call UartResource.immediateRequest() == EBUSY) {
       return EBUSY;
     }
-    // Need to put back in once HPLUSART0M is fixed
-    call Usart.setModeUART(); 
+    call Usart.setModeUART();
     return SUCCESS;
-  }   
-   
+  }
+
   async command void Resource.release() {
     call Usart.disableRxIntr();
     call Usart.disableTxIntr();
-    call UartResource.release(); 
+    call UartResource.release();
   }
-  
+
   async command uint8_t Resource.getId() {
     return TDA5250_UART_BUS_ID;
   }
-   
+
   event void UartResource.granted() {
-     // Need to put back in once HPLUSART0M is fixed
-    call Usart.setModeUART(); 
+    call Usart.setModeUART();
     signal Resource.granted();
   }
-   
+
   /* FIXME
   event void UartResource.requested() {
     signal Resource.requested();
-  } 
+  }
   */
-        
-  async command error_t HPLTDA5250Data.tx(uint8_t data) {
+
+  async command error_t HplTda5250Data.tx(uint8_t data) {
     if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
      return FAIL;
     call Usart.tx(data);
     return SUCCESS;
   }
-  
-  async command bool HPLTDA5250Data.isTxDone() {
+
+  async command bool HplTda5250Data.isTxDone() {
     if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
       return FAIL;
     return call Usart.isTxEmpty();
   }
-         
-  async command error_t HPLTDA5250Data.enableTx() {
+
+  async command error_t HplTda5250Data.enableTx() {
     if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
       return FAIL;
     call Usart.setModeUART_TX();
@@ -131,55 +123,50 @@ implementation {
     call Usart.enableTxIntr();
     return SUCCESS;
   }
-         
-  async command error_t HPLTDA5250Data.disableTx() {
+
+  async command error_t HplTda5250Data.disableTx() {
     if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
       return FAIL;
     call Usart.disableUARTTx();
     call Usart.disableTxIntr();
     return SUCCESS;
   }
-         
-  async command error_t HPLTDA5250Data.enableRx() {
+
+  async command error_t HplTda5250Data.enableRx() {
     if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
       return FAIL;
-    call Usart.setModeUART_RX();  
+    call Usart.setModeUART_RX();
     call Usart.setClockSource(SSEL_SMCLK);
     call Usart.setClockRate(UBR_SMCLK_38400, UMCTL_SMCLK_38400);
     call Usart.enableRxIntr();
     return SUCCESS;
   }
-         
-  async command error_t HPLTDA5250Data.disableRx() {
+
+  async command error_t HplTda5250Data.disableRx() {
     if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
       return FAIL;
     call Usart.disableUARTRx();
     call Usart.disableRxIntr();
     return SUCCESS;
   }
-         
+
   async event void Usart.txDone() {
     if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
       return;
-    signal HPLTDA5250Data.txReady();
+    signal HplTda5250Data.txReady();
   }
-         
-  /*
-  async event void Usart.rxOverflow() {
-  }
-  */      
-  
+
   async event void Usart.rxDone(uint8_t data) {
     if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
       return;
-    signal HPLTDA5250Data.rxDone(data);
+    signal HplTda5250Data.rxDone(data);
   }
-        
+
   default event void Resource.granted() {}
 
   // FIXME
   //default event void Resource.requested() {}
 
-  default async event void HPLTDA5250Data.txReady() {}
-  default async event void HPLTDA5250Data.rxDone(uint8_t data) {}
+  default async event void HplTda5250Data.txReady() {}
+  default async event void HplTda5250Data.rxDone(uint8_t data) {}
 }
