@@ -1,4 +1,4 @@
-/// $Id: Atm128SpiP.nc,v 1.1.2.5 2006-01-27 22:04:19 mturon Exp $
+/// $Id: Atm128SpiP.nc,v 1.1.2.6 2006-01-29 18:06:19 scipio Exp $
 
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -54,16 +54,16 @@
  * Primitives for accessing the SPI module on ATmega128
  * microcontroller.  This module assumes the bus has been reserved and
  * checks that the bus owner is in fact the person using the bus.
- * SPIPacket provides an asynchronous send interface where the
+ * SpiPacket provides an asynchronous send interface where the
  * transmit data length is equal to the receive data length, while
- * SPIByte provides an interface for sending a single byte
- * synchronously. SPIByte allows a component to send a few bytes
+ * SpiByte provides an interface for sending a single byte
+ * synchronously. SpiByte allows a component to send a few bytes
  * in a simple fashion: if more than a handful need to be sent,
- * SPIPacket should be used.
+ * SpiPacket should be used.
  *
  *
  * <pre>
- *  $Id: Atm128SpiP.nc,v 1.1.2.5 2006-01-27 22:04:19 mturon Exp $
+ *  $Id: Atm128SpiP.nc,v 1.1.2.6 2006-01-29 18:06:19 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -75,8 +75,8 @@
 module Atm128SpiP {
   provides {
     interface Init;
-    interface SPIByte;
-    interface SPIPacket;
+    interface SpiByte;
+    interface SpiPacket;
     interface Resource[uint8_t id];
   }
   uses {
@@ -126,7 +126,7 @@ implementation {
     call McuPowerState.update();
   }
   
-  async command error_t SPIByte.write( uint8_t tx, uint8_t* rx ) {
+  async command error_t SpiByte.write( uint8_t tx, uint8_t* rx ) {
     call Spi.write( tx );
     while ( !( SPSR & 0x80 ) );
     *rx = call Spi.read();
@@ -149,7 +149,7 @@ implementation {
    * This component takes a middle ground. When asked to transmit X
    * bytes in a packet, it transmits those X bytes in 10-byte parts.
    * <tt>sendNextPart()</tt> is responsible for sending one such
-   * part. It transmits bytes with the SPIByte interface, which
+   * part. It transmits bytes with the SpiByte interface, which
    * disables interrupts and spins on the SPI control register for
    * completion. On the last byte, however, <tt>sendNextPart</tt>
    * re-enables SPI interrupts and sends the byte through the
@@ -177,9 +177,9 @@ implementation {
     for (;tmpPos < (end - 1) ; tmpPos++) {
       uint8_t val;
       if (tx != NULL) 
-	call SPIByte.write( tx[tmpPos], &val );
+	call SpiByte.write( tx[tmpPos], &val );
       else
-	call SPIByte.write( 0, &val );
+	call SpiByte.write( 0, &val );
     
       if (rx != NULL) {
 	rx[tmpPos] = val;
@@ -215,7 +215,7 @@ implementation {
    */
   
   
-  async command error_t SPIPacket.send(uint8_t* writeBuf, 
+  async command error_t SpiPacket.send(uint8_t* writeBuf, 
 				       uint8_t* readBuf, 
 				       uint16_t  bufLen) {
     uint8_t discard;
@@ -231,7 +231,7 @@ implementation {
     return sendNextPart();
   }
 
- default async event void SPIPacket.sendDone
+ default async event void SpiPacket.sendDone
       (uint8_t* _txbuffer, uint8_t* _rxbuffer, 
        uint16_t _length, error_t _success) { }
 
@@ -271,7 +271,7 @@ implementation {
      }
      discard = call Spi.read();
 
-     signal SPIPacket.sendDone(tx, rx, myLen, SUCCESS);
+     signal SpiPacket.sendDone(tx, rx, myLen, SUCCESS);
    }
  }
 

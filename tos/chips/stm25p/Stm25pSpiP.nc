@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-01-28 01:39:30 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-01-29 18:06:19 $
  */
 
 includes crc;
@@ -45,8 +45,8 @@ module Stm25pSpiP {
   uses interface Resource as SpiResource;
   uses interface GeneralIO as CSN;
   uses interface GeneralIO as Hold;
-  uses interface SPIByte;
-  uses interface SPIPacket;
+  uses interface SpiByte;
+  uses interface SpiPacket;
   uses interface Leds;
 
 }
@@ -88,7 +88,7 @@ implementation {
 
     call CSN.clr();
     for ( i = 0; i < len; i++ )
-      call SPIByte.write( cmd, &tmp );
+      call SpiByte.write( cmd, &tmp );
     call CSN.set();
 
     return tmp;
@@ -170,7 +170,7 @@ implementation {
     if ( write )
       sendCmd( 0x6, 1 );
     call CSN.clr();
-    call SPIPacket.send( m_cmd, NULL, cmd_len );
+    call SpiPacket.send( m_cmd, NULL, cmd_len );
     return SUCCESS;
   }
 
@@ -179,7 +179,7 @@ implementation {
     call SpiResource.request();
   }
 
-  async event void SPIPacket.sendDone( uint8_t* tx_buf, uint8_t* rx_buf,
+  async event void SpiPacket.sendDone( uint8_t* tx_buf, uint8_t* rx_buf,
 				       uint16_t len, error_t error ) {
 
     int i;
@@ -188,7 +188,7 @@ implementation {
 
     case S_READ:
       if ( tx_buf == m_cmd ) {
-	call SPIPacket.send( NULL, m_buf, m_len );
+	call SpiPacket.send( NULL, m_buf, m_len );
 	break;
       }
       else if ( m_computing_crc ) {
@@ -207,7 +207,7 @@ implementation {
 
     case S_PAGE_PROGRAM:
       if ( tx_buf == m_cmd ) {
-	call SPIPacket.send( m_buf, NULL, m_len );
+	call SpiPacket.send( m_buf, NULL, m_len );
 	break;
       }
       // fall through

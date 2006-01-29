@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSpiPioM.nc,v 1.1.2.4 2006-01-27 01:11:39 philipb Exp $ */
+/* $Id: HalPXA27xSpiPioM.nc,v 1.1.2.5 2006-01-29 18:06:19 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -29,7 +29,7 @@
  * DAMAGE.
  */
 /**
- * Implements the TOS 2.0 SPIByte and SPIPacket interfaces for the PXA27x.
+ * Implements the TOS 2.0 SpiByte and SpiPacket interfaces for the PXA27x.
  * Provides master mode communication for a variety of frame formats, speeds
  * and data sizes.
  * 
@@ -41,7 +41,7 @@
  * associated SSP peripheral.
  * 
  * @param enableRWOT Enables Receive without transmit mode. Used only for 
- * the SPIPacket interface. If the txBuf parameter of SPIPacket.send is null
+ * the SpiPacket interface. If the txBuf parameter of SpiPacket.send is null
  * the implementation will continuously clock in data without regard to the 
  * contents of the TX FIFO.  This is different from the spec for the interface
  * which requires that the transmitter send zeros (0) for this case.
@@ -53,8 +53,8 @@ generic module HalPXA27xSpiPioM(uint8_t valFRF, uint8_t valSCR, uint8_t valDSS, 
 {
   provides {
     interface Init;
-    interface SPIByte;
-    interface SPIPacket[uint8_t instance];
+    interface SpiByte;
+    interface SpiPacket[uint8_t instance];
   }
   uses {
     interface HplPXA27xSSP as SSP;
@@ -81,7 +81,7 @@ implementation
       txBuf = txCurrentBuf;
       rxBuf = rxCurrentBuf;
       lenCurrent = 0;
-      signal SPIPacket.sendDone[instance](txBuf,rxBuf,len,SUCCESS);
+      signal SpiPacket.sendDone[instance](txBuf,rxBuf,len,SUCCESS);
     }
     
     return;
@@ -106,7 +106,7 @@ implementation
     return SUCCESS;
   }
 
-  async command error_t SPIByte.write(uint8_t tx, uint8_t* rx) {
+  async command error_t SpiByte.write(uint8_t tx, uint8_t* rx) {
     volatile uint32_t tmp;
     volatile uint8_t val;
 #if 1
@@ -125,7 +125,7 @@ implementation
     return SUCCESS;
   }
 
-  async command error_t SPIPacket.send[uint8_t instance](uint8_t* txBuf, uint8_t* rxBuf, uint16_t len) {
+  async command error_t SpiPacket.send[uint8_t instance](uint8_t* txBuf, uint8_t* rxBuf, uint16_t len) {
     uint32_t tmp,i;
     uint8_t *txPtr,*rxPtr;
     uint32_t txInc = 1,rxInc = 1;
@@ -213,7 +213,7 @@ implementation
     return;
   }
 
-  default async event void SPIPacket.sendDone[uint8_t instance](uint8_t* txBuf, uint8_t* rxBuf, 
+  default async event void SpiPacket.sendDone[uint8_t instance](uint8_t* txBuf, uint8_t* rxBuf, 
 					      uint16_t len, error_t error) {
     return;
   }

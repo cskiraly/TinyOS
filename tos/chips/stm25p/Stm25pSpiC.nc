@@ -34,7 +34,7 @@
  * code flash.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-01-28 01:39:30 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-01-29 18:06:19 $
  */
 
 configuration Stm25pSpiC {
@@ -59,8 +59,8 @@ implementation {
   SpiP.SpiResource -> SpiC;
   SpiP.CSN -> PinsC.CSN;
   SpiP.Hold -> PinsC.Hold;
-  SpiP.SPIByte -> SpiC;
-  SpiP.SPIPacket -> SpiC;
+  SpiP.SpiByte -> SpiC;
+  SpiP.SpiPacket -> SpiC;
 
   components LedsC as Leds;
   SpiP.Leds -> Leds;

@@ -30,8 +30,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-27 03:17:54 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-29 18:05:12 $
  * ========================================================================
  */
 
@@ -84,7 +84,7 @@
     async command error_t Pot.set(uint8_t setting) {
       error_t result;
       call ENPOT.clr();
-      result = call SPIByte.write(setting, 0);
+      result = call SpiByte.write(setting, 0);
       call ENPOT.set();
       if(result == SUCCESS)
         atomic Pot_value = setting;

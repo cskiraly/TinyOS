@@ -22,7 +22,7 @@
 generic module HplAt45dbByteC() {
   provides interface HplAt45db;
   uses {
-    interface SPIByte as FlashSpi;
+    interface SpiByte as FlashSpi;
     interface HplAt45dbByte;
   }
 }
