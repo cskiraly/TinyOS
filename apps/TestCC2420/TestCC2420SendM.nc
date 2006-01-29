@@ -1,4 +1,4 @@
-// $Id: TestCC2420SendM.nc,v 1.1.2.3 2006-01-15 22:31:34 scipio Exp $
+// $Id: TestCC2420SendM.nc,v 1.1.2.4 2006-01-29 20:30:58 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -61,7 +61,7 @@ implementation {
     msg.data[0] = AM_COUNT_MSG;
     // group location in tinyos 1.x
     msg.data[1] = DEF_TOS_AM_GROUP;
-    cmsg->src = TOS_LOCAL_ADDRESS;
+    cmsg->src = TOS_NODE_ID;
     cmsg->n = cnt++;
     if (call Send.send(&msg, sizeof(CountMsg_t))) {
       call Leds.led1On();

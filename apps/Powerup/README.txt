@@ -1,4 +1,4 @@
-$Id: README.Powerup,v 1.1.2.1 2005-02-10 04:59:52 cssharp Exp $
+$Id: README.txt,v 1.1.2.1 2006-01-29 20:30:58 scipio Exp $
 
 README for Powerup
 Author/Contact: tinyos-help@millennium.berkeley.edu
