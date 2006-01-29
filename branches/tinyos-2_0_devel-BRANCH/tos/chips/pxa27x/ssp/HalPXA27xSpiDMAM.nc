@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSpiDMAM.nc,v 1.1.2.3 2006-01-27 01:11:39 philipb Exp $ */
+/* $Id: HalPXA27xSpiDMAM.nc,v 1.1.2.4 2006-01-29 18:06:19 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -29,7 +29,7 @@
  * DAMAGE.
  */
 /**
- * I'm plements the TOS 2.0 SPIByte and SPIPacket interfaces for the PXA27x.
+ * I'm plements the TOS 2.0 SpiByte and SpiPacket interfaces for the PXA27x.
  * It assumes the Motorola Serial Peripheral Interface format.
  * Uses DMA for the packet based transfers.
  * 
@@ -46,8 +46,8 @@ generic module HalPXA27xSpiDMAM(uint8_t valFRF, uint8_t valSCR, uint8_t valDSS, 
 {
   provides {
     interface Init;
-    interface SPIByte;
-    interface SPIPacket[uint8_t instance];
+    interface SpiByte;
+    interface SpiPacket[uint8_t instance];
   }
   uses {
     interface HplPXA27xSSP as SSP;
@@ -85,7 +85,7 @@ implementation
     return SUCCESS;
   }
 
-  async command error_t SPIByte.write(uint8_t tx, uint8_t* rx) {
+  async command error_t SpiByte.write(uint8_t tx, uint8_t* rx) {
     volatile uint32_t tmp;
     volatile uint8_t val;
 #if 1
@@ -104,7 +104,7 @@ implementation
     return SUCCESS;
   }
 
-  async command error_t SPIPacket.send[uint8_t instance](uint8_t* txBuf, uint8_t* rxBuf, uint16_t len) {
+  async command error_t SpiPacket.send[uint8_t instance](uint8_t* txBuf, uint8_t* rxBuf, uint16_t len) {
     uint32_t tmp;
     uint32_t txAddr,rxAddr;
     uint32_t txDMAFlags, rxDMAFlags;
@@ -180,7 +180,7 @@ implementation
     call RxDMA.setDCMD(0);
     call RxDMA.setDCSR(DCSR_EORINT | DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERRINTR);
 
-    signal SPIPacket.sendDone[instance](txBuf,rxBuf,len,SUCCESS);
+    signal SpiPacket.sendDone[instance](txBuf,rxBuf,len,SUCCESS);
 
     return;
   }
@@ -200,7 +200,7 @@ implementation
     return;
   }
 
-  default async event void SPIPacket.sendDone[uint8_t instance](uint8_t* txBuf, uint8_t* rxBuf, 
+  default async event void SpiPacket.sendDone[uint8_t instance](uint8_t* txBuf, uint8_t* rxBuf, 
 					      uint16_t len, error_t error) {
     return;
   }

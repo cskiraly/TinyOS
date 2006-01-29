@@ -1,4 +1,4 @@
-/// $Id: Atm128SpiC.nc,v 1.1.2.7 2006-01-27 22:04:19 mturon Exp $
+/// $Id: Atm128SpiC.nc,v 1.1.2.8 2006-01-29 18:06:19 scipio Exp $
 
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -52,7 +52,7 @@
  * The HAL of the SPI bus on the atm128.
  *
  * <pre>
- *  $Id: Atm128SpiC.nc,v 1.1.2.7 2006-01-27 22:04:19 mturon Exp $
+ *  $Id: Atm128SpiC.nc,v 1.1.2.8 2006-01-29 18:06:19 scipio Exp $
  * </pre>
  *
  *
@@ -64,8 +64,8 @@
 
 configuration Atm128SpiC {
   provides interface Init;
-  provides interface SPIByte;
-  provides interface SPIPacket;
+  provides interface SpiByte;
+  provides interface SpiPacket;
   provides interface Resource[uint8_t id];
 }
 implementation {
@@ -77,8 +77,8 @@ implementation {
   Init         = SpiMaster;
   Init         = Arbiter;
   
-  SPIByte      = SpiMaster;
-  SPIPacket    = SpiMaster;
+  SpiByte      = SpiMaster;
+  SpiPacket    = SpiMaster;
   Resource     = SpiMaster;
 
   SpiMaster.ResourceArbiter -> Arbiter;
