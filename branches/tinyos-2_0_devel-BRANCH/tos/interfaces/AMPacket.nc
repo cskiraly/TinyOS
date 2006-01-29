@@ -1,4 +1,4 @@
-// $Id: AMPacket.nc,v 1.1.2.8 2006-01-19 00:35:05 scipio Exp $
+// $Id: AMPacket.nc,v 1.1.2.9 2006-01-29 18:07:19 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,10 +30,13 @@
 
 /**
   * The Active Message accessors, which provide the AM local address and
-  * functionality for querying packlets. Also see the Packet interface.
+  * functionality for querying packets. Also see the Packet interface.
   *
-  * @author Philip Levis
+  * @author Philip Levis 
   * @date   January 18 2005
+  * @see    Packet
+  * @see    AMSend
+  * @see    TEP 116: Packet Protocols
   */ 
 
 
@@ -43,16 +46,18 @@
 interface AMPacket {
 
   /**
-   * Return the AM address of this mote.
-   *
+   * Return the node's active message address associated with this AM stack.
+   * @return The address
    */
 
   command am_addr_t address();
 
   /**
-   * Return the AM address of the destination field of the AM packet.
+   * Return the AM address of the destination field of an AM packet.
    * If <tt>amsg</tt> is not an AM packet, the results of this command
    * are undefined.
+   * @param amsg    the packet
+   * @return        the destination address of the packet.
    */
   
   command am_addr_t destination(message_t* amsg);
@@ -65,6 +70,9 @@ interface AMPacket {
    * request to send. The component can save the destination address
    * and then recover it when actually sending. If <tt>amsg</tt> is
    * not an AM packet, the results of this command are undefined.
+   *
+   * @param  amsg   the packet
+   * @param  addr   the address
    */
 
   command void setDestination(message_t* amsg, am_addr_t addr);
@@ -78,6 +86,9 @@ interface AMPacket {
    * the broadcast address, but <tt>address</tt> will still be
    * the mote's local address. If <tt>amsg</tt> is not an AM packet,
    * the results of this command are undefined.
+   *
+   * @param  amsg   the packet
+   * @return        whether the packet is addressed to this AM stack
    */
   command bool isForMe(message_t* amsg);
   
@@ -85,11 +96,14 @@ interface AMPacket {
    * Return the AM type of the AM packet.
    * If <tt>amsg</tt> is not an AM packet, the results of this command
    * are undefined.
+   *
+   * @param  amsg   the packet
+   * @return        the AM type
    */
   
   command am_id_t type(message_t* amsg);
 
-  /*
+  /**
    * Set the AM type of the AM packet.  As the AM type is set as part
    * of sending with the AMSend interface, this command is not used
    * for sending packets. Instead, it is used when a component, such
@@ -97,6 +111,9 @@ interface AMPacket {
    * save the AM type in the packet then recover it when actually
    * sending. If <tt>amsg</tt> is not an AM packet, the results of
    * this command are undefined.
+   * 
+   * @param  amsg    the packet
+   * @param  t       the AM type
    */
   
   command void setType(message_t* amsg, am_id_t t);
