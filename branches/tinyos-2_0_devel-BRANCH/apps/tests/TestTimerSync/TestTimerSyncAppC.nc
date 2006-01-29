@@ -1,4 +1,4 @@
-// $Id: TestTimerSyncAppC.nc,v 1.1.2.1 2005-11-08 01:36:30 klueska Exp $
+// $Id: TestTimerSyncAppC.nc,v 1.1.2.2 2006-01-29 18:04:25 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -50,18 +50,18 @@ configuration TestTimerSyncAppC {}
 implementation {
   components MainC, TestTimerSyncC as App, LedsC;
   components ActiveMessageC;
-  components new OskiTimerMilliC();
-  
+  components new TimerMilliC();
+  components new AMSenderC(240), new AMReceiverC(240); 
   MainC.SoftwareInit -> LedsC;
   MainC.SoftwareInit -> ActiveMessageC;
   
   App.Boot -> MainC.Boot;
 
-  App.Receive -> ActiveMessageC.Receive[240];
-  App.AMSend -> ActiveMessageC.AMSend[240];
+  App.Receive -> AMReceiverC;
+  App.AMSend -> AMSenderC;
   App.SplitControl -> ActiveMessageC;
   App.Leds -> LedsC;
-  App.MilliTimer -> OskiTimerMilliC;
+  App.MilliTimer -> TimerMilliC;
 }
 
 
