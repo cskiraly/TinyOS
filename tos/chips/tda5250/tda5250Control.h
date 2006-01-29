@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  * Macros for configuring the TDA5250.
  * - Revision ------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-07-01 13:05:11 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-29 02:34:56 $
  * Author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -40,7 +40,7 @@
 
 typedef enum {
   RADIO_MODE_ON_TRANSITION,
-	RADIO_MODE_ON,
+  RADIO_MODE_ON,
   RADIO_MODE_OFF_TRANSITION,
   RADIO_MODE_OFF,
   RADIO_MODE_TX_TRANSITION,

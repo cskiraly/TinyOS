@@ -26,11 +26,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-05-30 19:34:59 $ 
- * ======================================================================== 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-29 02:34:56 $
+ * ========================================================================
  */
- 
+
  /**
  * tda5250RegTypes Header File
  * Defines the register types for the registers on the TDA5250 Radio
@@ -38,8 +38,8 @@
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
-#ifndef HPLTDA5250REGTYPES_H
-#define HPLTDA5250REGTYPES_H
+#ifndef TDA5250REGTYPES_H
+#define TDA5250REGTYPES_H
 
 //Macro for receiving an address and figuring out its type
 #define TDA5250_REG_TYPE(addr) TDA5250_REG_TYPE_#addr
@@ -61,5 +61,5 @@
 #define TDA5250_REG_TYPE_STATUS           uint8_t
 #define TDA5250_REG_TYPE_ADC              uint8_t
 
-#endif //HPLTDA5250REGTYPES_H
+#endif //TDA5250REGTYPES_H
 

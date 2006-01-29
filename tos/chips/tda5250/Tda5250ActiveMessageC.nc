@@ -1,19 +1,19 @@
-// $Id: TDA5250ActiveMessageC.nc,v 1.1.2.3 2005-11-23 18:01:11 phihup Exp $
+// $Id: Tda5250ActiveMessageC.nc,v 1.1.2.1 2006-01-29 02:34:56 vlahan Exp $
 
 /*                                                                      tab:4
- * "Copyright (c) 2004-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2004-2005 The Regents of the University  of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
  * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -23,33 +23,33 @@
  * Copyright (c) 2004-2005 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: TDA5250ActiveMessageC.nc,v 1.1.2.3 2005-11-23 18:01:11 phihup Exp $
+ * Date last modified:  $Id: Tda5250ActiveMessageC.nc,v 1.1.2.1 2006-01-29 02:34:56 vlahan Exp $
  *
  */
 
 /**
  *
  * The Active Message layer for the TDA5250 radio. This configuration
- * just layers the AM dispatch (TDA5250ActiveMessageP) on top of the
+ * just layers the AM dispatch (Tda5250ActiveMessageP) on top of the
  * underlying TDA5250 radio packet.
- * 
+ *
  * @author Philip Levis
  * @author Vlado Handziski (TDA5250 modifications)
  * @date July 20 2005
  */
- 
+
 
 includes Timer;
 
-configuration TDA5250ActiveMessageC {
+configuration Tda5250ActiveMessageC {
   provides {
     interface Init;
     interface SplitControl;
@@ -63,15 +63,15 @@ configuration TDA5250ActiveMessageC {
 }
 implementation {
 
-  components TDA5250ActiveMessageP as AM, PacketSerializerC as Radio;
+  components Tda5250ActiveMessageP as AM, PacketSerializerC as Radio;
   components ActiveMessageAddressC as Address;
-  
+
   Init         = Radio;
   SplitControl = Radio;
-  
+
   Packet       = Radio;
   PacketAcknowledgements = Radio;
-  
+
   AMSend   = AM;
   Receive  = AM.Receive;
   Snoop    = AM.Snoop;

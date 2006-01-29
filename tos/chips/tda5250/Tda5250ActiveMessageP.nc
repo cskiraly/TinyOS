@@ -1,19 +1,19 @@
-// $Id: TDA5250ActiveMessageP.nc,v 1.1.2.2 2006-01-23 00:54:44 vlahan Exp $
+// $Id: Tda5250ActiveMessageP.nc,v 1.1.2.1 2006-01-29 02:34:56 vlahan Exp $
 
 /*                                                                      tab:4
- * "Copyright (c) 2004-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2004-2005 The Regents of the University  of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
  * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -23,15 +23,15 @@
  * Copyright (c) 2004-2005 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: TDA5250ActiveMessageP.nc,v 1.1.2.2 2006-01-23 00:54:44 vlahan Exp $
+ * Date last modified:  $Id: Tda5250ActiveMessageP.nc,v 1.1.2.1 2006-01-29 02:34:56 vlahan Exp $
  *
  */
 
@@ -41,7 +41,7 @@
  * @date July 20 2005
  */
 
-module TDA5250ActiveMessageP {
+module Tda5250ActiveMessageP {
   provides {
     interface AMSend[am_id_t id];
     interface Receive[am_id_t id];
@@ -60,11 +60,11 @@ implementation {
   tda5250_header_t* getHeader( message_t* msg ) {
                 return (tda5250_header_t*)( msg->data - sizeof(tda5250_header_t) );
   }
-        
+
   command error_t AMSend.send[am_id_t id](am_addr_t addr,
                                           message_t* msg,
                                           uint8_t len) {
-    tda5250_header_t* header = getHeader(msg);            
+    tda5250_header_t* header = getHeader(msg);
     header->type = id;
     header->addr = addr;
     header->group = TOS_AM_GROUP;
@@ -105,7 +105,7 @@ implementation {
   command uint8_t Receive.payloadLength[am_id_t id](message_t* m) {
     return call Packet.payloadLength(m);
   }
-  
+
   command void* Snoop.getPayload[am_id_t id](message_t* m, uint8_t* len) {
     return call Packet.getPayload(m, len);
   }
@@ -117,7 +117,7 @@ implementation {
   command am_addr_t AMPacket.address() {
     return call amAddress();
   }
- 
+
   command am_addr_t AMPacket.destination(message_t* amsg) {
     tda5250_header_t* header = getHeader(amsg);
     return header->addr;
@@ -137,20 +137,20 @@ implementation {
     tda5250_header_t* header = getHeader(amsg);
     return header->type;
   }
-  
+
   command void AMPacket.setType(message_t* amsg, am_id_t type) {
     tda5250_header_t* header = getHeader(amsg);
     header->type = type;
   }
-  
+
   //command am_group_t AMPacket.group(message_t* amsg) {
   //  return amsg->header.group;
   //}
-  
+
  default event message_t* Receive.receive[am_id_t id](message_t* msg, void* payload, uint8_t len) {
     return msg;
   }
-  
+
   default event message_t* Snoop.receive[am_id_t id](message_t* msg, void* payload, uint8_t len) {
     return msg;
   }
@@ -159,6 +159,6 @@ implementation {
    return;
  }
 
-  
+
 
 }

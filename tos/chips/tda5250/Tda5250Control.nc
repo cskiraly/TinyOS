@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Technische Universitat Berlin
+ * Copyright (c) 2004, Technische Universitaet Berlin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  * - Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * - Neither the name of the Technische Universitat Berlin nor the names
+ * - Neither the name of the Technische Universitaet Berlin nor the names
  *   of its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -25,46 +25,41 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2005-11-22 12:07:46 $ 
- * ======================================================================== 
- */
- 
- /**
- * HPLTDA5250ConfigM configuration  
- * Controlling the TDA5250 at the HPL layer.. 
  *
- * @author Kevin Klues (klues@tkn.tu-berlin.de)
+ * - Description ---------------------------------------------------------
+ * Configuring the registers on the Tda5250 Radio.
+ * - Revision -------------------------------------------------------------
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-01-29 02:34:56 $
+ * @author: Kevin Klues (klues@tkn.tu-berlin.de)
+ * ========================================================================
  */
- 
-#include "tda5250Const.h"
-#include "tda5250RegDefaultSettings.h"
-#include "tda5250RegTypes.h"
-configuration TDA5250RadioC {
-  provides {
-    interface Init;  
-    interface SplitControl;
-    interface TDA5250Control;
-    interface RadioByteComm;
-  }
+
+#include "tda5250Control.h"
+interface Tda5250Control {
+   /**
+      Switches radio between modes
+   */
+   async command error_t TimerMode(float on_time, float off_time);
+   async command error_t ResetTimerMode();
+   async command error_t SelfPollingMode(float on_time, float off_time);
+   async command error_t ResetSelfPollingMode();
+   async command error_t TxMode();
+   async command error_t RxMode();
+   async command error_t CCAMode();
+   async command error_t SleepMode();
+
+   async event void TimerModeDone();
+   async event void SelfPollingModeDone();
+   async event void TxModeDone();
+   async event void RxModeDone();
+   async event void CCAModeDone();
+   async event void SleepModeDone();
+
+   /**
+      Interrupt avialable on the PWD_DD pin when in
+      TIMER_MODE or SELF_POLLING_MODE
+   */
+   async event void PWDDDInterrupt();
 }
-implementation {
-  components TDA5250RadioP
-           , HPLTDA5250ConfigC
-           , HPLTDA5250DataC
-           ;
-   
-  Init = HPLTDA5250ConfigC;
-  Init = HPLTDA5250DataC;  
-  Init = TDA5250RadioP; 
-  TDA5250Control = TDA5250RadioP;
-  RadioByteComm = TDA5250RadioP;
-  SplitControl = TDA5250RadioP;
-  
-  TDA5250RadioP.ConfigResource -> HPLTDA5250ConfigC;
-  TDA5250RadioP.DataResource -> HPLTDA5250DataC;
-  
-  TDA5250RadioP.HPLTDA5250Config -> HPLTDA5250ConfigC;
-  TDA5250RadioP.HPLTDA5250Data -> HPLTDA5250DataC;
-}
+

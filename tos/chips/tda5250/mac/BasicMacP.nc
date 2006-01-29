@@ -27,8 +27,8 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.3 $
-* $Date: 2006-01-23 00:54:43 $
+* $Revision: 1.1.2.4 $
+* $Date: 2006-01-29 02:34:56 $
 * ========================================================================
 */
 
@@ -47,12 +47,12 @@ module BasicMacP {
     interface PhyPacketRx;
   }
   uses {
-    interface TDA5250Control;
+    interface Tda5250Control;
     interface SplitControl as RadioSplitControl;
     interface Alarm<TMilli, uint32_t> as RxTimeoutTimer;
-    interface RadioByteComm as TDA5250RadioByteComm;
-    interface PhyPacketTx as TDA5250PhyPacketTx;
-    interface PhyPacketRx as TDA5250PhyPacketRx;
+    interface RadioByteComm as Tda5250RadioByteComm;
+    interface PhyPacketTx as Tda5250PhyPacketTx;
+    interface PhyPacketRx as Tda5250PhyPacketRx;
   }
 }
 implementation
@@ -89,7 +89,7 @@ implementation
   event void RadioSplitControl.startDone(error_t error) {
     if(error != SUCCESS)
       signal SplitControl.startDone(error);
-    else call TDA5250Control.RxMode();
+    else call Tda5250Control.RxMode();
   }
 
   event void RadioSplitControl.stopDone(error_t error) {
@@ -107,7 +107,7 @@ implementation
       }
     }
     if(busy == FALSE) {
-      if(call TDA5250Control.TxMode() == SUCCESS)
+      if(call Tda5250Control.TxMode() == SUCCESS)
         return;
       atomic txBusy = FALSE;
       signal PhyPacketTx.sendHeaderDone(FAIL);
@@ -119,50 +119,50 @@ implementation
   }
 
   async command void RadioByteComm.txByte(uint8_t data) {
-    call TDA5250RadioByteComm.txByte(data);
+    call Tda5250RadioByteComm.txByte(data);
   }
 
   async command bool RadioByteComm.isTxDone() {
-    return call TDA5250RadioByteComm.isTxDone();
+    return call Tda5250RadioByteComm.isTxDone();
   }
 
   async command void PhyPacketTx.sendFooter() {
-    call TDA5250PhyPacketTx.sendFooter();
+    call Tda5250PhyPacketTx.sendFooter();
   }
 
   /**************** Radio Recv ****************/
   async command void PhyPacketRx.recvHeader() {
     atomic rxBusy = FALSE;
-    call TDA5250PhyPacketRx.recvHeader();
+    call Tda5250PhyPacketRx.recvHeader();
   }
 
   async command void PhyPacketRx.recvFooter() {
-    call TDA5250PhyPacketRx.recvFooter();
+    call Tda5250PhyPacketRx.recvFooter();
   }
 
   async command error_t PhyPacketTx.cancel() {
-    return call TDA5250PhyPacketTx.cancel();
+    return call Tda5250PhyPacketTx.cancel();
   }
 
-  async event void TDA5250PhyPacketTx.sendHeaderDone(error_t error) {
+  async event void Tda5250PhyPacketTx.sendHeaderDone(error_t error) {
     if(error != SUCCESS)
-      call TDA5250Control.RxMode();
+      call Tda5250Control.RxMode();
     signal PhyPacketTx.sendHeaderDone(error);
   }
 
   /**************** Rx Done ****************/
-  async event void TDA5250RadioByteComm.txByteReady(error_t error) {
+  async event void Tda5250RadioByteComm.txByteReady(error_t error) {
     if(error != SUCCESS)
-      call TDA5250Control.RxMode();
+      call Tda5250Control.RxMode();
     signal RadioByteComm.txByteReady(error);
   }
 
-  async event void TDA5250PhyPacketTx.sendFooterDone(error_t error) {
-    call TDA5250Control.RxMode();
+  async event void Tda5250PhyPacketTx.sendFooterDone(error_t error) {
+    call Tda5250Control.RxMode();
     signal PhyPacketTx.sendFooterDone(error);
   }
 
-  async event void TDA5250PhyPacketRx.recvHeaderDone() {
+  async event void Tda5250PhyPacketRx.recvHeaderDone() {
     atomic rxBusy = TRUE;
     //call RxTimeoutTimer.start((((TOSH_DATA_LENGTH+2)*100)/(384)+1));
     call RxTimeoutTimer.start((TOSH_DATA_LENGTH+2)<<2);
@@ -175,41 +175,41 @@ implementation
         return;
       atomic rxBusy = FALSE;
     }
-    call TDA5250PhyPacketRx.recvHeader();
+    call Tda5250PhyPacketRx.recvHeader();
   }
 
   /**************** Rx Done ****************/
-  async event void TDA5250RadioByteComm.rxByteReady(uint8_t data) {
+  async event void Tda5250RadioByteComm.rxByteReady(uint8_t data) {
     signal RadioByteComm.rxByteReady(data);
   }
 
-  async event void TDA5250PhyPacketRx.recvFooterDone(bool error) {
+  async event void Tda5250PhyPacketRx.recvFooterDone(bool error) {
     call RxTimeoutTimer.stop();
     signal PhyPacketRx.recvFooterDone(error);
   }
 
-  async event void TDA5250Control.TxModeDone(){
-    call TDA5250PhyPacketTx.sendHeader();
+  async event void Tda5250Control.TxModeDone(){
+    call Tda5250PhyPacketTx.sendHeader();
   }
-  async event void TDA5250Control.TimerModeDone(){
+  async event void Tda5250Control.TimerModeDone(){
   }
-  async event void TDA5250Control.SelfPollingModeDone(){
+  async event void Tda5250Control.SelfPollingModeDone(){
   }
-  async event void TDA5250Control.RxModeDone(){
+  async event void Tda5250Control.RxModeDone(){
     bool state;
     atomic {
       txBusy = FALSE;
       rxBusy = FALSE;
       state = started;
     }
-    call TDA5250PhyPacketRx.recvHeader();
+    call Tda5250PhyPacketRx.recvHeader();
     if(state == FALSE)
       post StartDone();
   }
-  async event void TDA5250Control.SleepModeDone(){
+  async event void Tda5250Control.SleepModeDone(){
   }
-  async event void TDA5250Control.CCAModeDone(){
+  async event void Tda5250Control.CCAModeDone(){
   }
-  async event void TDA5250Control.PWDDDInterrupt() {
+  async event void Tda5250Control.PWDDDInterrupt() {
   }
 }
