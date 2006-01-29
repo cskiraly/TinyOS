@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.6 2006-01-27 21:39:14 jwhui Exp $
+/* $Id: RandRWC.nc,v 1.1.2.7 2006-01-29 18:01:55 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -63,9 +63,9 @@ implementation {
   }
 
   void resetSeed() {
-    shiftReg = 119 * 119 * ((TOS_LOCAL_ADDRESS >> 2) + 1);
+    shiftReg = 119 * 119 * ((TOS_NODE_ID >> 2) + 1);
     initSeed = shiftReg;
-    mask = 137 * 29 * ((TOS_LOCAL_ADDRESS >> 2) + 1);
+    mask = 137 * 29 * ((TOS_NODE_ID >> 2) + 1);
   }
   
   uint8_t data[512], rdata[512];
@@ -108,7 +108,7 @@ implementation {
     for (i = 0; i < sizeof data; i++)
       data[i++] = rand() >> 8;
 
-    if (TOS_LOCAL_ADDRESS & 1)
+    if (TOS_NODE_ID & 1)
       {
 	state = S_ERASE;
 	rcheck(call BlockWrite.erase());
@@ -165,7 +165,7 @@ implementation {
   event void BlockWrite.commitDone(error_t result) {
     if (scheck(result))
       {
-	if (TOS_LOCAL_ADDRESS & 2)
+	if (TOS_NODE_ID & 2)
 	  {
 	    call Leds.led2Toggle();
 	    state = S_VERIFY;
