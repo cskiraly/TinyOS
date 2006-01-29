@@ -35,8 +35,10 @@
  * events are for them.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-01-28 01:39:29 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-01-29 17:49:13 $
  */
+
+#include <Timer.h>
 
 configuration AlarmMultiplexC {
 

@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-01-28 01:39:29 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-01-29 17:49:13 $
  */
 
 module CC2420SpiImplP {
@@ -41,8 +41,8 @@ module CC2420SpiImplP {
   provides interface CC2420Register as Reg[ uint8_t id ];
   provides interface CC2420Strobe as Strobe[ uint8_t id ];
 
-  uses interface SPIByte;
-  uses interface SPIPacket;
+  uses interface SpiByte;
+  uses interface SpiPacket;
   uses interface Leds;
 
 }
@@ -58,7 +58,7 @@ implementation {
     
     m_addr = addr | 0x40;
     
-    call SPIByte.write( m_addr, &status );
+    call SpiByte.write( m_addr, &status );
     call Fifo.continueRead[ addr ]( data, len );
     
     return status;
@@ -67,7 +67,7 @@ implementation {
 
   async command error_t Fifo.continueRead[ uint8_t addr ]( uint8_t* data,
 							   uint8_t len ) {
-    call SPIPacket.send( NULL, data, len );
+    call SpiPacket.send( NULL, data, len );
     return SUCCESS;
   }
 
@@ -78,8 +78,8 @@ implementation {
 
     m_addr = addr;
 
-    call SPIByte.write( m_addr, &status );
-    call SPIPacket.send( data, NULL, len );
+    call SpiByte.write( m_addr, &status );
+    call SpiPacket.send( data, NULL, len );
 
     return status;
 
@@ -93,16 +93,16 @@ implementation {
 
     addr += offset;
 
-    call SPIByte.write( addr | 0x80, &status );
-    call SPIByte.write( ( ( addr >> 1 ) & 0xc0 ) | 0x20, &status );
+    call SpiByte.write( addr | 0x80, &status );
+    call SpiByte.write( ( ( addr >> 1 ) & 0xc0 ) | 0x20, &status );
     for ( ; len; len-- )
-      call SPIByte.write( 0, data++ );
+      call SpiByte.write( 0, data++ );
 
     return status;
 
   }
 
-  async event void SPIPacket.sendDone( uint8_t* tx_buf, uint8_t* rx_buf, 
+  async event void SpiPacket.sendDone( uint8_t* tx_buf, uint8_t* rx_buf, 
 				       uint16_t len, error_t error ) {
     if ( m_addr & 0x40 )
       signal Fifo.readDone[ m_addr & ~0x40 ]( rx_buf, len, error );
@@ -118,10 +118,10 @@ implementation {
 
     addr += offset;
 
-    call SPIByte.write( addr | 0x80, &status );
-    call SPIByte.write( ( addr >> 1 ) & 0xc0, &status );
+    call SpiByte.write( addr | 0x80, &status );
+    call SpiByte.write( ( addr >> 1 ) & 0xc0, &status );
     for ( ; len; len-- )
-      call SPIByte.write( *data++, &status );
+      call SpiByte.write( *data++, &status );
 
     return status;
 
@@ -132,10 +132,10 @@ implementation {
     cc2420_status_t status;
     uint8_t tmp;
 
-    call SPIByte.write( addr | 0x40, &status );
-    call SPIByte.write( 0, &tmp );
+    call SpiByte.write( addr | 0x40, &status );
+    call SpiByte.write( 0, &tmp );
     *data = (uint16_t)tmp << 8;
-    call SPIByte.write( 0, &tmp );
+    call SpiByte.write( 0, &tmp );
     *data |= tmp;
 
     return status;
@@ -146,9 +146,9 @@ implementation {
 
     cc2420_status_t status;
 
-    call SPIByte.write( addr, &status );
-    call SPIByte.write( data >> 8, &status );
-    call SPIByte.write( data & 0xff, &status );
+    call SpiByte.write( addr, &status );
+    call SpiByte.write( data >> 8, &status );
+    call SpiByte.write( data & 0xff, &status );
 
     return status;
 
@@ -158,7 +158,7 @@ implementation {
 
     cc2420_status_t status;
 
-    call SPIByte.write( addr, &status );
+    call SpiByte.write( addr, &status );
 
     return status;
 

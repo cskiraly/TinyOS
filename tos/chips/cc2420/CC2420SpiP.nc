@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-01-28 01:39:29 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-01-29 17:49:13 $
  */
 
 configuration CC2420SpiP {
@@ -54,8 +54,8 @@ implementation {
   Reg = SpiP;
   Strobe = SpiP;
 
-  SpiP.SPIByte -> HplCC2420SpiC;
-  SpiP.SPIPacket -> HplCC2420SpiC;
+  SpiP.SpiByte -> HplCC2420SpiC;
+  SpiP.SpiPacket -> HplCC2420SpiC;
   SpiP.Leds -> LedsC;
 
 }
