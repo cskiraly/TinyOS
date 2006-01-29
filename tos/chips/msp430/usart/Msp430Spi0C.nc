@@ -28,8 +28,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-20 01:11:27 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-29 04:57:30 $
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  */
@@ -40,8 +40,8 @@ configuration Msp430Spi0C {
   provides interface Init;
   provides interface Resource[ uint8_t id ];
 
-  provides interface SPIByte;
-  provides interface SPIPacket[ uint8_t id ];
+  provides interface SpiByte;
+  provides interface SpiPacket[ uint8_t id ];
 
 }
 
@@ -55,11 +55,11 @@ implementation {
   Init = HplUsart;
   Resource = SpiP;
 
-  SPIByte = SpiP;
-  SPIPacket = SpiP;
+  SpiByte = SpiP;
+  SpiPacket = SpiP;
 
   SpiP.UsartResource -> HplUsart;
-  SpiP.HplUsart -> HplUsart; 
+  SpiP.HplUsart -> HplUsart;
   SpiP.Leds -> Leds;
 
 }

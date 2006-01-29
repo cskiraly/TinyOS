@@ -28,8 +28,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-20 01:11:27 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-01-29 04:57:30 $
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  */
@@ -38,14 +38,13 @@
 generic module Msp430SpiP() {
 
   provides interface Init;
-  provides interface Resource[ uint8_t id ];
-  provides interface SPIByte;
-  provides interface SPIPacket[ uint8_t id ];
-  
-  uses interface Resource as UsartResource[ uint8_t id ];
-  uses interface HplMsp430Usart as HplUsart;
-  uses interface Leds;
+  provides interface Resource;
+  provides interface SpiByte;
+  provides interface SpiPacket[ uint8_t id ];
 
+  uses interface Resource as UsartResource;
+  uses interface ArbiterInfo;
+  uses interface HplMsp430Usart as HplUsart;
 }
 
 implementation {
@@ -53,55 +52,62 @@ implementation {
   enum {
     SPI_ATOMIC_SIZE = 2,
   };
-  
+
   norace uint8_t* m_tx_buf;
   norace uint8_t* m_rx_buf;
   norace uint16_t m_len;
   norace uint16_t m_pos;
   norace uint8_t client;
+  bool isOwner;
 
   void signalDone();
   task void signalDone_task();
 
   command error_t Init.init() {
+    atomic isOwner = FALSE;
     return SUCCESS;
   }
 
-  async command error_t Resource.immediateRequest[ uint8_t id ]() {
-    error_t result = call UsartResource.immediateRequest[ id ]();
+  async command error_t Resource.immediateRequest() {
+    error_t result = call UsartResource.immediateRequest();
     if ( result == SUCCESS )
+      atomic isOwner = TRUE;
       call HplUsart.setModeSPI();
     return result;
   }
 
-  async command error_t Resource.request[ uint8_t id ]() {
-    return call UsartResource.request[ id ]();
+  async command error_t Resource.request() {
+    return call UsartResource.request();
   }
 
-  async command uint8_t Resource.getId[ uint8_t id ]() {
-    return call UsartResource.getId[ id ]();
+  async command uint8_t Resource.getId() {
+    return call UsartResource.getId();
   }
 
-  async command void Resource.release[ uint8_t id ]() {
-    call UsartResource.release[ id ]();
+  async command void Resource.release() {
+    atomic isOwner = FALSE;
+    call UsartResource.release();
   }
 
-  event void UsartResource.granted[ uint8_t id ]() {
+  event void UsartResource.granted() {
+    atomic isOwner = TRUE;
     call HplUsart.setModeSPI();
-    signal Resource.granted[ id ]();
+    signal Resource.granted();
   }
 
-  async command error_t SPIByte.write( uint8_t tx, uint8_t* rx ) {
-
+  async command error_t SpiByte.write( uint8_t tx, uint8_t* rx ) {
+    bool owner;
+    atomic owner = isOwner;
+    if (owner != TRUE) return FAIL;
+    call HplUsart.disableRxIntr();
     call HplUsart.tx( tx );
     while( !call HplUsart.isRxIntrPending() );
     *rx = call HplUsart.rx();
-
+    call HplUsart.enableRxIntr();
     return SUCCESS;
-
   }
 
-  default event void Resource.granted[ uint8_t id ]() {}
+  default event void Resource.granted() {}
 
   void continueOp() {
 
@@ -113,23 +119,27 @@ implementation {
 
       end = m_pos + SPI_ATOMIC_SIZE;
       if ( end > m_len )
-	end = m_len;
-      
+        end = m_len;
+
       while ( ++m_pos < end ) {
-	while( !call HplUsart.isTxIntrPending() );
-	call HplUsart.tx( m_tx_buf ? m_tx_buf[ m_pos ] : 0 );
-	while( !call HplUsart.isRxIntrPending() );
-	tmp = call HplUsart.rx();
-	if ( m_rx_buf )
-	  m_rx_buf[ m_pos - 1 ] = tmp;
+        while( !call HplUsart.isTxIntrPending() );
+        call HplUsart.tx( m_tx_buf ? m_tx_buf[ m_pos ] : 0 );
+        while( !call HplUsart.isRxIntrPending() );
+        tmp = call HplUsart.rx();
+        if ( m_rx_buf )
+          m_rx_buf[ m_pos - 1 ] = tmp;
       }
     }
 
   }
 
-  async command error_t SPIPacket.send[ uint8_t id ]( uint8_t* tx_buf, 
-						      uint8_t* rx_buf, 
-						      uint16_t len ) {
+  async command error_t SpiPacket.send[ uint8_t id ]( uint8_t* tx_buf,
+                                                      uint8_t* rx_buf,
+                                                      uint16_t len ) {
+
+    bool owner;
+    atomic owner = isOwner;
+    if (owner != TRUE) return FAIL;
 
     client = id;
     m_tx_buf = tx_buf;
@@ -154,7 +164,9 @@ implementation {
   }
 
   async event void HplUsart.rxDone( uint8_t data ) {
-
+    bool owner;
+    atomic owner = isOwner;
+    if (owner != TRUE) return;
     if ( m_rx_buf )
       m_rx_buf[ m_pos-1 ] = data;
 
@@ -164,15 +176,14 @@ implementation {
       call HplUsart.disableRxIntr();
       signalDone();
     }
-    
   }
-  
+
   void signalDone() {
-    signal SPIPacket.sendDone[ client ]( m_tx_buf, m_rx_buf, m_len, SUCCESS );
+    signal SpiPacket.sendDone[ client ]( m_tx_buf, m_rx_buf, m_len, SUCCESS );
   }
-  
+
   async event void HplUsart.txDone() {}
 
-  default async event void SPIPacket.sendDone[ uint8_t id ]( uint8_t* tx_buf, uint8_t* rx_buf, uint16_t len, error_t error ) {}
+  default async event void SpiPacket.sendDone[ uint8_t id ]( uint8_t* tx_buf, uint8_t* rx_buf, uint16_t len, error_t error ) {}
 
 }
