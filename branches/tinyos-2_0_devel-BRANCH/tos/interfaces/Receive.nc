@@ -1,4 +1,4 @@
-// $Id: Receive.nc,v 1.1.2.8 2006-01-19 00:35:05 scipio Exp $
+// $Id: Receive.nc,v 1.1.2.9 2006-01-29 20:32:25 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -29,10 +29,13 @@
  */
 
 /**
- * The basic message reception interface. Also see Packet and Send.
+ * The basic message reception interface. 
  *
  * @author Philip Levis
  * @date   November 16, 2004
+ * @see    Packet
+ * @see    Send
+ * @see    TEP 116: Packet Protocols
  */ 
 
 
@@ -53,6 +56,12 @@ interface Receive {
    * the buffer will be reused before the send occurs, overwriting
    * the component's data. This would cause the mote to possibly
    * instead send a packet it most recently received.
+   *
+   * @param  msg      the receied packet
+   * @param  payload  a pointer to the packet's payload
+   * @param  len      the length of the data region pointed to by payload
+   * @return          a packet buffer for the stack to use for the next
+   *                  received packet.
    */
   
   event message_t* receive(message_t* msg, void* payload, uint8_t len);
@@ -62,6 +71,10 @@ interface Receive {
    * is not NULL, getPayload will return the length of the payload in
    * it. This call is identical to <TT>Packet.getPayload</TT>, and is
    * included in Receive as a convenience.
+   *
+   * @param  msg      the packet
+   * @param  len      a pointer to where to store the payload length
+   * @return          a pointer to the payload of the packet
    */
   command void* getPayload(message_t* msg, uint8_t* len);
 
@@ -69,6 +82,9 @@ interface Receive {
    * Return the length of the payload of msg. This call is identical
    * to <TT>Packet.payloadLength</TT>, and is included in Receive as a
    * convenience.
+   *
+   * @param  msg      the packet
+   * @return          the length of the packet's payload
    */
   command uint8_t payloadLength(message_t* msg);
   

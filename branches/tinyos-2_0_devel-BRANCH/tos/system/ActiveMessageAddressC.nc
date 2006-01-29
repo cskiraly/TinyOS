@@ -1,5 +1,4 @@
-// $Id: ActiveMessageAddressC.nc,v 1.1.2.1 2005-06-20 01:09:28 scipio Exp $
-
+// $Id: ActiveMessageAddressC.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -27,16 +26,13 @@
  * file. If you do not find these files, copies can be found by writing to
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
- */
-/*
  *
- * Authors:		Philip Levis
- * Date last modified:  $Id: ActiveMessageAddressC.nc,v 1.1.2.1 2005-06-20 01:09:28 scipio Exp $
+ * Date last modified:  $Id: ActiveMessageAddressC.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
  *
  */
 
 /**
- * Accessor methods for Active Messages.
+ * Component that stores the node's active message address.
  *
  * @author Philip Levis
  * @date June 19 2005

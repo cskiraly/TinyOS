@@ -1,4 +1,4 @@
-// $Id: TinySchedulerC.nc,v 1.1.2.2 2005-10-27 01:13:30 scipio Exp $
+// $Id: TinySchedulerC.nc,v 1.1.2.3 2006-01-29 20:32:25 scipio Exp $
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.
  * All rights reserved.
@@ -29,6 +29,7 @@
  *
  * @author  Phil Levis
  * @date    August 7 2005
+ * @see     TEP 106: Tasks and Schedulers
  */
 
 configuration TinySchedulerC {

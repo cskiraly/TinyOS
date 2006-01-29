@@ -1,4 +1,4 @@
-// $Id: AMSend.nc,v 1.1.2.5 2006-01-19 00:35:05 scipio Exp $
+// $Id: AMSend.nc,v 1.1.2.6 2006-01-29 20:32:25 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -33,6 +33,10 @@
   *
   * @author Philip Levis
   * @date   January 5 2005
+  * @see   Packet
+  * @see   AMPacket
+  * @see   Receive
+  * @see   TEP 116: Packet Protocols
   */ 
 
 
@@ -51,6 +55,16 @@ interface AMSend {
     * signal the event.  Note that a component may accept a send
     * request which it later finds it cannot satisfy; in this case, it
     * will signal sendDone with error code.
+    *
+    * @param addr   address to which to send the packet
+    * @param msg    the packet
+    * @param len    the length of the data in the packet payload
+    * @return       SUCCESS if the request to send succeeded and a
+    *               sendDone will be signaled later, EBUSY if the
+    *               abstraction cannot send now but will be able to
+    *               later, or FAIL if the communication layer is not
+    *               in a state that can send (e.g., off).
+    * @see          sendDone
     */ 
   command error_t send(am_addr_t addr, message_t* msg, uint8_t len);
 
@@ -63,6 +77,10 @@ interface AMSend {
     * should be conservative and return an appropriate error code.
     * A successful call to cancel must always result in a 
     * sendFailed event, and never a sendSucceeded event.
+    * 
+    * @param  msg     the packet whose transmission should be cancelled.
+    * @return SUCCESS if the transmission was cancelled, FAIL otherwise.
+    * @see    sendDone
     */
   command error_t cancel(message_t* msg);
 
@@ -71,6 +89,11 @@ interface AMSend {
     * the message buffer sent, and <tt>error</tt> indicates whether
     * the send was successful.
     *
+    * @param  msg   the packet which was submitted as a send request
+    * @param  error SUCCESS if it was sent successfully, FAIL if it was not,
+    *               ECANCEL if it was cancelled
+    * @see send
+    * @see cancel
     */ 
 
   event void sendDone(message_t* msg, error_t error);
@@ -81,6 +104,8 @@ interface AMSend {
    * can provide. This command behaves identically to
    * <tt>Packet.maxPayloadLength</tt> and is included in this
    * interface as a convenience.
+   *
+   * @return the maximum payload length
    */
 
   
@@ -93,6 +118,9 @@ interface AMSend {
     * behaves similarly to <tt>Packet.getPayload</tt> (minus the
     * length parameter) and is included in this interface
     * as a convenience.
+    *
+    * @param  msg    the packet
+    * @return        the payload of the packet
     */
   command void* getPayload(message_t* msg);
 

@@ -1,4 +1,4 @@
-// $Id: ParameterInit.nc,v 1.1.2.1 2005-06-06 17:36:33 scipio Exp $
+// $Id: ParameterInit.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -28,10 +28,12 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-/** A synchronous initialization interface that takes a single parameter.
+/** 
+  * A synchronous initialization interface that takes a single parameter.
   *
   * @author Philip Levis
   * @date   June 6 2005
+  * @see    TEP 107: Boot Sequence
   */ 
 
 
@@ -42,8 +44,11 @@ interface ParameterInit <parameter> {
   /**
    * Initialize this component. Initialization should not assume that
    * any component is running: init() cannot call any commands besides
-   * those that initialize other components. 
+   * those that initialize other components. This command behaves
+   * identically to Init.init, except that it takes a parameter.
    *
+   * @param   param   the initialization parameter
+   * @return          SUCCESS if initialized properly, FAIL otherwise.
    */
   command error_t init(parameter param);
 }

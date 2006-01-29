@@ -1,4 +1,4 @@
-// $Id: TimerMilliP.nc,v 1.1.2.1 2006-01-18 22:11:21 scipio Exp $
+// $Id: TimerMilliP.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -19,19 +19,11 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2004 Intel Corporation
- * All rights reserved.
- *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
- * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
- * 94704.  Attention:  Intel License Inquiry.
  */
-
-
 /**
  * Components should never wire to this component. This is the
- * underlying configuration of the OSKI timers. Wires the timer
+ * underlying configuration of virtualized millisecond timers. 
+ * It auto-wires wires the timer
  * implementation (TimerC) to the boot sequence and exports the
  * various Timer interfaces.
  *

@@ -22,7 +22,7 @@
 
 /**
  * This interface allows a component to enable or disable acknowledgments
- * on a communication channel.
+ * on per-packet basis.
  *
  * @author Jonathan Hui
  * @author Philip Levis
@@ -32,8 +32,9 @@
 interface PacketAcknowledgements {
 
   /**
-   * Enable acknowledgments.
-   * @return error_t, SUCCESS if acknowledgements are enabled, EBUSY
+   * Enable acknowledgments on this packet.
+   *
+   * @return SUCCESS if acknowledgements are enabled, EBUSY
    * if the communication layer cannot enable them at this time, FAIL
    * if it does not support them.
    */
@@ -41,8 +42,9 @@ interface PacketAcknowledgements {
   async command error_t requestAck( message_t* msg );
 
   /**
-   * Disable acknowledgments. 
-   * @return error_t, SUCCESS if acknowledgements are disabled, EBUSY
+   * Disable acknowledgments on this packet. 
+   *
+   * @return SUCCESS if acknowledgements are disabled, EBUSY
    * if the communication layer cannot disable them at this time, FAIL
    * if it cannot support unacknowledged communication.
    */
@@ -54,7 +56,7 @@ interface PacketAcknowledgements {
    * layer does not support acknowledgements, this must return always
    * return FALSE.
    *
-   * @return bool Whether the packet was acknowledged.
+   * @return Whether the packet was acknowledged.
    *
    */
   

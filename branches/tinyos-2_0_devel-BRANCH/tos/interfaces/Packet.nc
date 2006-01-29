@@ -1,4 +1,4 @@
-// $Id: Packet.nc,v 1.1.2.8 2006-01-19 00:35:05 scipio Exp $
+// $Id: Packet.nc,v 1.1.2.9 2006-01-29 20:32:25 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -28,12 +28,14 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-/** The basic message data type accessors. Protocols may add
+/** 
+  * The basic message data type accessors. Protocols may use
   * additional packet interfaces for their protocol specific
   * data/metadata.
   *
   * @author Philip Levis
   * @date   January 5 2005
+  * @see    TEP 116: Packet Protocols
   */ 
 
 
@@ -46,6 +48,7 @@ interface Packet {
     * Clear out this packet.  Note that this is a deep operation and
     * total operation: calling clear() on any layer will completely
     * clear the packet for reuse.
+    * @param  msg    the packet to clear
     */
 
   command void clear(message_t* msg);
@@ -56,6 +59,9 @@ interface Packet {
     * the MTU. If a communication component does not support variably
     * sized data regions, then payloadLength() will always return
     * the same value as maxPayloadLength(). 
+    *
+    * @param  msg    the packet to examine
+    * @return        the length of its current payload
     */
 
   command uint8_t payloadLength(message_t* msg);
@@ -69,6 +75,9 @@ interface Packet {
     * send.  This command allows the component to store the length
     * specified in the request and later recover it when actually
     * sending.
+    *
+    * @param msg   the packet
+    * @param len   the value to set its length field to
     */
 
   command void setPayloadLength(message_t* msg, uint8_t len);
@@ -80,6 +89,8 @@ interface Packet {
    * payload length (e.g., if there are variable length
    * fields). Protocols may provide specialized interfaces for these
    * circumstances.
+   *
+   * @return   the maximum size payload allowed by this layer
    */
   command uint8_t maxPayloadLength();
 
@@ -89,6 +100,10 @@ interface Packet {
    * in it, which is the same as the return value from
    * payloadLength(). If a protocol does not support variable length
    * packets, then *len is equal to maxPayloadLength().
+   *
+   * @param msg   the packet
+   * @param len   pointer to where the current payload length should be stored.
+   * @return      a pointer to the packet's data payload for this layer
    */
   command void* getPayload(message_t* msg, uint8_t* len);
 

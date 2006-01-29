@@ -1,4 +1,4 @@
-// $Id: RandomLfsrC.nc,v 1.1.2.2 2005-08-07 21:12:50 scipio Exp $
+// $Id: RandomLfsrC.nc,v 1.1.2.3 2006-01-29 20:32:25 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -27,23 +27,20 @@
  * file. If you do not find these files, copies can be found by writing to
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
- */
-/*
  *
- * Authors:		Alec Woo, David Gay, Philip Levis
  * Date last modified:  6/25/02
- *
- * +1 necessary to prevent spinning on zero.
  */
-
-/* This is a 16 bit Linear Feedback Shift Register pseudo random number
-   generator */
 
 /**
- * @author Alec Woo
- * @author David Gay
+ * This is a 16 bit Linear Feedback Shift Register pseudo random number
+ * generator. It is faster than the MLCG generator but does not generate
+ * nearly as good random numbers.
+ *
  * @author Philip Levis
- */
+ * @author David Gay
+ * @author Alec Woo
+ * @date   Jan 20 2005
+ * /
 
 configuration RandomLfsrC
 {
