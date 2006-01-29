@@ -1,18 +1,18 @@
-//$Id: MSP430ClockM.nc,v 1.1.2.2 2005-04-01 08:55:00 cssharp Exp $
+//$Id: Msp430ClockP.nc,v 1.1.2.1 2006-01-29 04:33:33 vlahan Exp $
 
-/* "Copyright (c) 2000-2003 The Regents of the University of California.  
+/* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement
  * is hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY
  * OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -22,12 +22,12 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-includes MSP430Timer;
+includes Msp430Timer;
 
-module MSP430ClockM
+module Msp430ClockP
 {
   provides interface Init;
-  provides interface MSP430ClockInit;
+  provides interface Msp430ClockInit;
 }
 implementation
 {
@@ -45,7 +45,7 @@ implementation
     TARGET_DCO_DELTA = (TARGET_DCO_KHZ / ACLK_KHZ) * ACLK_CALIB_PERIOD,
   };
 
-  command void MSP430ClockInit.defaultInitClocks()
+  command void Msp430ClockInit.defaultInitClocks()
   {
     // BCSCTL1
     // .XT2OFF = 1; disable the external oscillator for SCLK and MCLK
@@ -66,7 +66,7 @@ implementation
     CLR_FLAG( IE1, OFIE );
   }
 
-  command void MSP430ClockInit.defaultInitTimerA()
+  command void Msp430ClockInit.defaultInitTimerA()
   {
     TAR = 0;
 
@@ -81,7 +81,7 @@ implementation
     TACTL = TASSEL1 | TAIE;
   }
 
-  command void MSP430ClockInit.defaultInitTimerB()
+  command void Msp430ClockInit.defaultInitTimerB()
   {
     TBR = 0;
 
@@ -96,19 +96,19 @@ implementation
     TBCTL = TBSSEL0 | TBIE;
   }
 
-  default event void MSP430ClockInit.initClocks()
+  default event void Msp430ClockInit.initClocks()
   {
-    call MSP430ClockInit.defaultInitClocks();
+    call Msp430ClockInit.defaultInitClocks();
   }
 
-  default event void MSP430ClockInit.initTimerA()
+  default event void Msp430ClockInit.initTimerA()
   {
-    call MSP430ClockInit.defaultInitTimerA();
+    call Msp430ClockInit.defaultInitTimerA();
   }
 
-  default event void MSP430ClockInit.initTimerB()
+  default event void Msp430ClockInit.initTimerB()
   {
-    call MSP430ClockInit.defaultInitTimerB();
+    call Msp430ClockInit.defaultInitTimerB();
   }
 
 
@@ -149,7 +149,7 @@ implementation
     uint16_t dco_curr = 0;
 
     set_dco_calib( calib );
-    
+
     while( aclk_count-- > 0 )
     {
       TBCCR0 = TBR + ACLK_CALIB_PERIOD; // set next interrupt
@@ -165,7 +165,7 @@ implementation
   // busyCalibrateDCO
   // Should take about 9ms if ACLK_CALIB_PERIOD=8.
   // DCOCTL and BCSCTL1 are calibrated when done.
-  void busyCalibrateDCO()
+  void busyCalibrateDco()
   {
     // --- variables ---
     int calib;
@@ -188,7 +188,7 @@ implementation
     {
       // if the step is not past the target, commit it
       if( test_calib_busywait_delta(calib|step) <= TARGET_DCO_DELTA )
-	calib |= step;
+        calib |= step;
     }
 
     // if DCOx is 7 (0x0e0 in calib), then the 5-bit MODx is not useable, set it to 0
@@ -208,10 +208,10 @@ implementation
 
     atomic
     {
-      busyCalibrateDCO();
-      signal MSP430ClockInit.initClocks();
-      signal MSP430ClockInit.initTimerA();
-      signal MSP430ClockInit.initTimerB();
+      busyCalibrateDco();
+      signal Msp430ClockInit.initClocks();
+      signal Msp430ClockInit.initTimerA();
+      signal Msp430ClockInit.initTimerB();
       startTimerA();
       startTimerB();
     }

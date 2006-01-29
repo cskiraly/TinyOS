@@ -1,18 +1,18 @@
-//$Id: MSP430Timer.nc,v 1.1.2.1 2005-03-30 17:58:26 cssharp Exp $
+//$Id: Msp430CounterC.nc,v 1.1.2.1 2006-01-29 04:33:33 vlahan Exp $
 
-/* "Copyright (c) 2000-2003 The Regents of the University of California.  
+/* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement
  * is hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY
  * OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -21,24 +21,36 @@
  */
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
-//@author Jan Hauer <hauer@tkn.tu-berlin.de>
 
-includes MSP430Timer;
+// The TinyOS Timer interfaces are discussed in TEP 102.
 
-interface MSP430Timer
+// Msp430Counter is a generic component that wraps the MSP430 HPL timers into a
+// TinyOS Counter.
+generic module Msp430CounterC( typedef frequency_tag )
 {
-  async command uint16_t get();
-  async command bool isOverflowPending();
-  async command void clearOverflow();
-  async event void overflow();
+  provides interface Counter<frequency_tag,uint16_t> as Counter;
+  uses interface Msp430Timer;
+}
+implementation
+{
+  async command uint16_t Counter.get()
+  {
+    return call Msp430Timer.get();
+  }
 
-  async command void setMode( int mode );
-  async command int getMode();
-  async command void clear();
-  async command void enableEvents();
-  async command void disableEvents();
-  async command void setClockSource( uint16_t clockSource );
-  async command void setInputDivider( uint16_t inputDivider );
-  // partial timer management, add more commands here as appropriate
+  async command bool Counter.isOverflowPending()
+  {
+    return call Msp430Timer.isOverflowPending();
+  }
+
+  async command void Counter.clearOverflow()
+  {
+    call Msp430Timer.clearOverflow();
+  }
+
+  async event void Msp430Timer.overflow()
+  {
+    signal Counter.overflow();
+  }
 }
 

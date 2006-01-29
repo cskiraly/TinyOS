@@ -1,10 +1,10 @@
 
-module MSP430TimerCommonM
+module Msp430TimerCommonP
 {
-  provides interface MSP430TimerEvent as VectorTimerA0;
-  provides interface MSP430TimerEvent as VectorTimerA1;
-  provides interface MSP430TimerEvent as VectorTimerB0;
-  provides interface MSP430TimerEvent as VectorTimerB1;
+  provides interface Msp430TimerEvent as VectorTimerA0;
+  provides interface Msp430TimerEvent as VectorTimerA1;
+  provides interface Msp430TimerEvent as VectorTimerB0;
+  provides interface Msp430TimerEvent as VectorTimerB1;
 }
 implementation
 {

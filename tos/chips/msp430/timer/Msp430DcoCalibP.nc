@@ -1,18 +1,18 @@
-//$Id: MSP430DCOCalibM.nc,v 1.1.2.1 2005-04-01 08:55:00 cssharp Exp $
+//$Id: Msp430DcoCalibP.nc,v 1.1.2.1 2006-01-29 04:33:33 vlahan Exp $
 
-/* "Copyright (c) 2000-2003 The Regents of the University of California.  
+/* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement
  * is hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY
  * OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -22,10 +22,10 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-module MSP430DCOCalibM
+module Msp430DcoCalibP
 {
-  uses interface MSP430Timer as TimerMicro;
-  uses interface MSP430Timer as Timer32khz;
+  uses interface Msp430Timer as TimerMicro;
+  uses interface Msp430Timer as Timer32khz;
 }
 implementation
 {
@@ -49,12 +49,12 @@ implementation
       // too many 32khz ticks means the DCO is running too slow, speed it up
       if( DCOCTL < 0xe0 )
       {
-	DCOCTL++;
+        DCOCTL++;
       }
       else if( (BCSCTL1 & 7) < 7 )
       {
-	BCSCTL1++;
-	DCOCTL = 96;
+        BCSCTL1++;
+        DCOCTL = 96;
       }
     }
     else if( delta < (TARGET_DELTA-MAX_DEVIATION) )
@@ -62,12 +62,12 @@ implementation
       // too few 32khz ticks means the DCO is running too fast, slow it down
       if( DCOCTL > 0 )
       {
-	DCOCTL--;
+        DCOCTL--;
       }
       else if( (BCSCTL1 & 7) > 0 )
       {
-	BCSCTL1--;
-	DCOCTL = 128;
+        BCSCTL1--;
+        DCOCTL = 128;
       }
     }
   }

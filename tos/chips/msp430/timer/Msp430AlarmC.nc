@@ -1,18 +1,18 @@
-//$Id: MSP430AlarmC.nc,v 1.1.2.3 2005-10-11 22:04:54 scipio Exp $
+//$Id: Msp430AlarmC.nc,v 1.1.2.1 2006-01-29 04:33:33 vlahan Exp $
 
-/* "Copyright (c) 2000-2003 The Regents of the University of California.  
+/* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement
  * is hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY
  * OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -24,25 +24,25 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-// MSP430Alarm is a generic component that wraps the MSP430 HPL timers and
+// Msp430Alarm is a generic component that wraps the MSP430 HPL timers and
 // compares into a TinyOS Alarm.
-generic module MSP430AlarmC(typedef frequency_tag)
+generic module Msp430AlarmC(typedef frequency_tag)
 {
   provides interface Init;
   provides interface Alarm<frequency_tag,uint16_t> as Alarm;
-  uses interface MSP430Timer;
-  uses interface MSP430TimerControl;
-  uses interface MSP430Compare;
+  uses interface Msp430Timer;
+  uses interface Msp430TimerControl;
+  uses interface Msp430Compare;
 }
 implementation
 {
   command error_t Init.init()
   {
-    call MSP430TimerControl.disableEvents();
-    call MSP430TimerControl.setControlAsCompare();
+    call Msp430TimerControl.disableEvents();
+    call Msp430TimerControl.setControlAsCompare();
     return SUCCESS;
   }
-  
+
   async command void Alarm.start( uint16_t dt )
   {
     call Alarm.startAt( call Alarm.getNow(), dt );
@@ -50,54 +50,54 @@ implementation
 
   async command void Alarm.stop()
   {
-    call MSP430TimerControl.disableEvents();
+    call Msp430TimerControl.disableEvents();
   }
 
-  async event void MSP430Compare.fired()
+  async event void Msp430Compare.fired()
   {
-    call MSP430TimerControl.disableEvents();
+    call Msp430TimerControl.disableEvents();
     signal Alarm.fired();
   }
 
   async command bool Alarm.isRunning()
   {
-    return call MSP430TimerControl.areEventsEnabled();
+    return call Msp430TimerControl.areEventsEnabled();
   }
 
   async command void Alarm.startAt( uint16_t t0, uint16_t dt )
   {
     atomic
     {
-      uint16_t now = call MSP430Timer.get();
+      uint16_t now = call Msp430Timer.get();
       uint16_t elapsed = now - t0;
       if( elapsed >= dt )
       {
-	call MSP430Compare.setEventFromNow(2);
+        call Msp430Compare.setEventFromNow(2);
       }
       else
       {
-	uint16_t remaining = dt - elapsed;
-	if( remaining <= 2 )
-	  call MSP430Compare.setEventFromNow(2);
-	else
-	  call MSP430Compare.setEvent( now+remaining );
+        uint16_t remaining = dt - elapsed;
+        if( remaining <= 2 )
+          call Msp430Compare.setEventFromNow(2);
+        else
+          call Msp430Compare.setEvent( now+remaining );
       }
-      call MSP430TimerControl.clearPendingInterrupt();
-      call MSP430TimerControl.enableEvents();
+      call Msp430TimerControl.clearPendingInterrupt();
+      call Msp430TimerControl.enableEvents();
     }
   }
 
   async command uint16_t Alarm.getNow()
   {
-    return call MSP430Timer.get();
+    return call Msp430Timer.get();
   }
 
   async command uint16_t Alarm.getAlarm()
   {
-    return call MSP430Compare.getEvent();
+    return call Msp430Compare.getEvent();
   }
 
-  async event void MSP430Timer.overflow()
+  async event void Msp430Timer.overflow()
   {
   }
 }
