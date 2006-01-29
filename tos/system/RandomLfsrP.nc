@@ -1,4 +1,4 @@
-// $Id: RandomLfsrP.nc,v 1.1.2.2 2005-08-07 21:12:50 scipio Exp $
+// $Id: RandomLfsrP.nc,v 1.1.2.3 2006-01-29 18:07:50 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -61,9 +61,9 @@ implementation
   /* Initialize the seed from the ID of the node */
   command error_t Init.init() {
     atomic {
-      shiftReg = 119 * 119 * (TOS_LOCAL_ADDRESS + 1);
+      shiftReg = 119 * 119 * (TOS_NODE_ID + 1);
       initSeed = shiftReg;
-      mask = 137 * 29 * (TOS_LOCAL_ADDRESS + 1);
+      mask = 137 * 29 * (TOS_NODE_ID + 1);
     }
     return SUCCESS;
   }

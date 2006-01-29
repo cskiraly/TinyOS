@@ -42,7 +42,7 @@ implementation
 
   /* Initialize the seed from the ID of the node */
   command error_t Init.init() {
-    atomic  seed = (uint32_t)(TOS_LOCAL_ADDRESS + 1);
+    atomic  seed = (uint32_t)(TOS_NODE_ID + 1);
     
     return SUCCESS;
   }
