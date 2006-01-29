@@ -1,4 +1,4 @@
-/* $Id: IM2CC2420SpiP.nc,v 1.1.2.2 2005-12-20 00:54:49 philipb Exp $ */
+/* $Id: IM2CC2420SpiP.nc,v 1.1.2.3 2006-01-29 17:59:23 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -37,8 +37,8 @@ configuration IM2CC2420SpiP
   
   provides interface Init;
   provides interface Resource[uint8_t id];
-  provides interface SPIByte;
-  provides interface SPIPacket[uint8_t instance];
+  provides interface SpiByte;
+  provides interface SpiPacket[uint8_t instance];
 
 }
 
@@ -58,8 +58,8 @@ implementation
   Init = FcfsArbiterC.Init;
   Init = HalPXA27xSpiM.Init;
 
-  SPIByte = HalPXA27xSpiM;
-  SPIPacket = HalPXA27xSpiM;
+  SpiByte = HalPXA27xSpiM;
+  SpiPacket = HalPXA27xSpiM;
   Resource = FcfsArbiterC;
 
   IM2CC2420InitSpiP.SCLK -> HplPXA27xGPIOC.HplPXA27xGPIOPin[SSP3_SCLK];

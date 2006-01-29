@@ -1,4 +1,4 @@
-// $Id: PlatformC.nc,v 1.1.2.1 2005-09-26 18:08:47 scipio Exp $
+// $Id: PlatformC.nc,v 1.1.2.2 2006-01-29 17:59:27 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -32,10 +32,10 @@ configuration PlatformC
 implementation
 {
   components PlatformP
-    , MSP430ClockC
+    , Msp430ClockC
     ;
 
   Init = PlatformP;
-  PlatformP.MSP430ClockInit -> MSP430ClockC.Init;
+  PlatformP.Msp430ClockInit -> Msp430ClockC.Init;
 }
 
