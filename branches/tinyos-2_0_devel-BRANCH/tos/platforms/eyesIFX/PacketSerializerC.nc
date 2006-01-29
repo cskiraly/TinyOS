@@ -31,7 +31,7 @@
 /**
 * PacketSerializer on the eyesIFX platforms. This wires the
 * platform-independant components with the chip-dependant components.
-* [PacketSerializer -> BasicMac -> UART -> TDA5250Radio]
+* [PacketSerializer -> BasicMac -> UART -> Tda5250Radio]
 * @author Philipp Huppertz
 */
 
@@ -47,18 +47,18 @@ configuration PacketSerializerC {
 }
 implementation {
   components new AlarmMilliC() as RxAlarm;
-  components TDA5250RadioC;
+  components Tda5250RadioC;
   components UartPhyP;
   components BasicMacP;
   components PacketSerializerP;
 
   Init = BasicMacP.Init;
-  Init = TDA5250RadioC.Init;
+  Init = Tda5250RadioC.Init;
   Init = UartPhyP.Init;
   Init = BasicMacP.Init;
   Init = PacketSerializerP.Init;
 
-  SplitControl = TDA5250RadioC.SplitControl;
+  SplitControl = Tda5250RadioC.SplitControl;
   SplitControl = BasicMacP.SplitControl;
 
   Packet = PacketSerializerP;
@@ -70,13 +70,13 @@ implementation {
   PacketSerializerP.PhyPacketRx -> BasicMacP.PhyPacketRx;
   PacketSerializerP.RadioByteComm -> BasicMacP.RadioByteComm;
 
-  BasicMacP.TDA5250Control -> TDA5250RadioC.TDA5250Control;
-  BasicMacP.TDA5250RadioByteComm -> UartPhyP.SerializerRadioByteComm;
-  BasicMacP.TDA5250PhyPacketTx -> UartPhyP.PhyPacketTx;
-  BasicMacP.TDA5250PhyPacketRx -> UartPhyP.PhyPacketRx;
+  BasicMacP.Tda5250Control -> Tda5250RadioC.Tda5250Control;
+  BasicMacP.Tda5250RadioByteComm -> UartPhyP.SerializerRadioByteComm;
+  BasicMacP.Tda5250PhyPacketTx -> UartPhyP.PhyPacketTx;
+  BasicMacP.Tda5250PhyPacketRx -> UartPhyP.PhyPacketRx;
   BasicMacP.RxTimeoutTimer -> RxAlarm;
-  BasicMacP.RadioSplitControl -> TDA5250RadioC.SplitControl;
+  BasicMacP.RadioSplitControl -> Tda5250RadioC.SplitControl;
 
-  UartPhyP.RadioByteComm -> TDA5250RadioC.RadioByteComm;
+  UartPhyP.RadioByteComm -> Tda5250RadioC.RadioByteComm;
 
 }

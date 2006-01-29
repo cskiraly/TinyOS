@@ -30,47 +30,47 @@
  * Controlling the TDA5250 at the HPL layer for use with the MSP430 on the
  * eyesIFX platforms, Configuration.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-01-23 00:56:02 $
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-01-29 02:54:20 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
 
 #include "tda5250BusResourceId.h"
 
-configuration TDA5250RegCommC {
+configuration Tda5250RegCommC {
   provides {
     interface Init;
-    interface TDA5250RegComm;
+    interface Tda5250RegComm;
     interface Pot;
     interface Resource;
   }
 }
 implementation {
   components new Spi0C() as Spi
-           , TDA5250RegCommP
-           , TDA5250RadioIO
+           , Tda5250RegCommP
+           , Tda5250RadioIO
            , AD5200P
            , AD5200PotIO
            ;
 
-  Init = TDA5250RegCommP;
+  Init = Tda5250RegCommP;
   Init = AD5200P;
   Pot = AD5200P.Pot;
-  Resource = TDA5250RegCommP.Resource;
+  Resource = Tda5250RegCommP.Resource;
 
-  TDA5250RegComm = TDA5250RegCommP;
+  Tda5250RegComm = Tda5250RegCommP;
 
-  TDA5250RegCommP.BusM -> TDA5250RadioIO.TDA5250RadioBUSM;
+  Tda5250RegCommP.BusM -> Tda5250RadioIO.Tda5250RadioBUSM;
 
-  TDA5250RegCommP.SPIByte -> Spi;
+  Tda5250RegCommP.SpiByte -> Spi;
   // FIXME: Hier ResourceController!?
-  TDA5250RegCommP.SpiResource -> Spi;
-  //TDA5250RegCommP.ArbiterInfo -> Spi;
+  Tda5250RegCommP.SpiResource -> Spi;
+  //Tda5250RegCommP.ArbiterInfo -> Spi;
 
   AD5200P.ENPOT -> AD5200PotIO.AD5200PotENPOT;
   AD5200P.SDPOT -> AD5200PotIO.AD5200PotSDPOT;
-  AD5200P.SPIByte -> Spi;
+  AD5200P.SpiByte -> Spi;
 
 
 

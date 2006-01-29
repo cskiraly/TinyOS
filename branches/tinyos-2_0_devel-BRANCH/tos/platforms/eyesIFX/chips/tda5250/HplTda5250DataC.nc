@@ -27,12 +27,12 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * - Revision -------------------------------------------------------------
 * $Revision: 1.1.2.1 $
-* $Date: 2006-01-23 00:56:02 $
+* $Date: 2006-01-29 02:54:20 $
 * ========================================================================
 */
 
 /**
- * HPLTDA5250M configuration
+ * HplTda5250M configuration
  * Controlling the TDA5250 at the HPL layer..
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
@@ -41,28 +41,28 @@
 #include "msp430baudrates.h"
 #include "tda5250BusResourceId.h"
 
-configuration HPLTDA5250DataC {
+configuration HplTda5250DataC {
   provides {
     interface Init;
-    interface HPLTDA5250Data;
+    interface HplTda5250Data;
     interface Resource as Resource;
   }
 }
 implementation {
 
 
-  components HPLTDA5250DataP
+  components HplTda5250DataP
       , HplMsp430Usart0C
-      , TDA5250RadioIO
+      , Tda5250RadioIO
       ;
 
-  Init = HPLTDA5250DataP;
+  Init = HplTda5250DataP;
   Init = HplMsp430Usart0C;
-  Resource = HPLTDA5250DataP.Resource;
-  HPLTDA5250Data = HPLTDA5250DataP;
+  Resource = HplTda5250DataP.Resource;
+  HplTda5250Data = HplTda5250DataP;
 
-  HPLTDA5250DataP.DATA -> TDA5250RadioIO.TDA5250RadioDATA;
-  HPLTDA5250DataP.Usart -> HplMsp430Usart0C;
-  HPLTDA5250DataP.UartResource -> HplMsp430Usart0C.Resource[TDA5250_UART_BUS_ID];
-  HPLTDA5250DataP.ArbiterInfo -> HplMsp430Usart0C.ArbiterInfo;
+  HplTda5250DataP.DATA -> Tda5250RadioIO.Tda5250RadioDATA;
+  HplTda5250DataP.Usart -> HplMsp430Usart0C;
+  HplTda5250DataP.UartResource -> HplMsp430Usart0C.Resource[TDA5250_UART_BUS_ID];
+  HplTda5250DataP.ArbiterInfo -> HplMsp430Usart0C.ArbiterInfo;
 }

@@ -26,11 +26,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2005-05-24 17:14:47 $ 
- * ======================================================================== 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-29 02:55:07 $
+ * ========================================================================
  */
- 
+
  /**
  * tda5250RegDefaultSettings Header File
  * Defines the default values of the registers for the TDA5250 Radio
@@ -38,8 +38,8 @@
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
-#ifndef HPLTDA5250REGDEFAULTSETTINGS_H
-#define HPLTDA5250REGDEFAULTSETTINGS_H
+#ifndef TDA5250REGDEFAULTSETTINGS_H
+#define TDA5250REGDEFAULTSETTINGS_H
 
 // Default values of data registers
 #define TDA5250_REG_DEFAULT_SETTING_CONFIG           0x04F9
@@ -55,5 +55,5 @@
 #define TDA5250_REG_DEFAULT_SETTING_XTAL_CONFIG      0x01
 #define TDA5250_REG_DEFAULT_SETTING_BLOCK_PD         0xFFFF
 
-#endif //HPLTDA5250REGDEFAULTSETTINGS_H
+#endif //TDA5250REGDEFAULTSETTINGS_H
 
