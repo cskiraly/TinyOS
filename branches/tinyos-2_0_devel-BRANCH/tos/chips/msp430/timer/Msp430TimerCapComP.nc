@@ -1,18 +1,18 @@
-//$Id: MSP430TimerCapComM.nc,v 1.1.2.1 2005-03-30 17:58:27 cssharp Exp $
+//$Id: Msp430TimerCapComP.nc,v 1.1.2.1 2006-01-29 04:33:33 vlahan Exp $
 
-/* "Copyright (c) 2000-2003 The Regents of the University of California.  
+/* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement
  * is hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY
  * OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -22,55 +22,55 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-includes MSP430Timer;
+includes Msp430Timer;
 
-generic module MSP430TimerCapComM(
+generic module Msp430TimerCapComP(
     uint16_t TxCCTLx_addr,
     uint16_t TxCCRx_addr
   )
 {
-  provides interface MSP430TimerControl as Control;
-  provides interface MSP430Compare as Compare;
-  provides interface MSP430Capture as Capture;
-  uses interface MSP430Timer as Timer;
-  uses interface MSP430TimerEvent as Event;
+  provides interface Msp430TimerControl as Control;
+  provides interface Msp430Compare as Compare;
+  provides interface Msp430Capture as Capture;
+  uses interface Msp430Timer as Timer;
+  uses interface Msp430TimerEvent as Event;
 }
 implementation
 {
   #define TxCCTLx (*(volatile TYPE_TACCTL0*)TxCCTLx_addr)
   #define TxCCRx (*(volatile TYPE_TACCR0*)TxCCRx_addr)
-  
-  typedef MSP430CompareControl_t CC_t;
 
-  DEFINE_UNION_CAST(CC2int,uint16_t,CC_t)
-  DEFINE_UNION_CAST(int2CC,CC_t,uint16_t)
+  typedef msp430_compare_control_t cc_t;
+
+  DEFINE_UNION_CAST(CC2int,uint16_t,cc_t)
+  DEFINE_UNION_CAST(int2CC,cc_t,uint16_t)
 
   uint16_t compareControl()
   {
-    CC_t x = {
+    cc_t x = {
       cm : 1,    // capture on rising edge
       ccis : 0,  // capture/compare input select
       clld : 0,  // TBCL1 loads on write to TBCCR1
       cap : 0,   // compare mode
-      ccie : 0,  // capture compare interrupt enable 
+      ccie : 0,  // capture compare interrupt enable
     };
     return CC2int(x);
   }
 
   uint16_t captureControl(uint8_t l_cm)
   {
-    CC_t x = {
+    cc_t x = {
       cm : l_cm & 0x03,    // capture on rising edge
       ccis : 0,  // capture/compare input select
       clld : 0,  // TBCL1 loads on write to TBCCR1
       cap : 1,   // compare mode
       scs : 1,   // synchronous capture mode
-      ccie : 0,  // capture compare interrupt enable 
+      ccie : 0,  // capture compare interrupt enable
     };
     return CC2int(x);
   }
-  
-  async command CC_t Control.getControl()
+
+  async command cc_t Control.getControl()
   {
     return int2CC(TxCCTLx);
   }
@@ -85,7 +85,7 @@ implementation
     CLR_FLAG(TxCCTLx,CCIFG);
   }
 
-  async command void Control.setControl( CC_t x )
+  async command void Control.setControl( cc_t x )
   {
     TxCCTLx = CC2int(x);
   }
@@ -102,7 +102,7 @@ implementation
 
   async command void Capture.setEdge(uint8_t cm)
   {
-    CC_t t = call Control.getControl();
+    cc_t t = call Control.getControl();
     t.cm = cm & 0x03;
     TxCCTLx = CC2int(t);
   }
@@ -167,7 +167,7 @@ implementation
 
   async event void Event.fired()
   {
-    if( (call Control.getControl()).cap ) 
+    if( (call Control.getControl()).cap )
       signal Capture.captured( call Capture.getEvent() );
     else
       signal Compare.fired();

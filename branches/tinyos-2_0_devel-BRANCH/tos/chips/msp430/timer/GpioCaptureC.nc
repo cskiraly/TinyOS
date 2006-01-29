@@ -1,18 +1,18 @@
-//$Id: GpioCaptureC.nc,v 1.1.2.3 2006-01-27 23:28:12 jwhui Exp $
+//$Id: GpioCaptureC.nc,v 1.1.2.4 2006-01-29 04:33:33 vlahan Exp $
 
-/* "Copyright (c) 2000-2003 The Regents of the University of California.  
+/* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement
  * is hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY
  * OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -28,8 +28,8 @@
 generic module GpioCaptureC() {
 
   provides interface GpioCapture as Capture;
-  uses interface MSP430TimerControl;
-  uses interface MSP430Capture;
+  uses interface Msp430TimerControl;
+  uses interface Msp430Capture;
   uses interface HplMsp430GeneralIO as GeneralIO;
 
 }
@@ -38,12 +38,12 @@ implementation {
 
   error_t enableCapture( uint8_t mode ) {
     atomic {
-      call MSP430TimerControl.disableEvents();
+      call Msp430TimerControl.disableEvents();
       call GeneralIO.selectModuleFunc();
-      call MSP430TimerControl.clearPendingInterrupt();
-      call MSP430Capture.clearOverflow();
-      call MSP430TimerControl.setControlAsCapture( mode );
-      call MSP430TimerControl.enableEvents();
+      call Msp430TimerControl.clearPendingInterrupt();
+      call Msp430Capture.clearOverflow();
+      call Msp430TimerControl.setControlAsCapture( mode );
+      call Msp430TimerControl.enableEvents();
     }
     return SUCCESS;
   }
@@ -58,14 +58,14 @@ implementation {
 
   async command void Capture.disable() {
     atomic {
-      call MSP430TimerControl.disableEvents();
+      call Msp430TimerControl.disableEvents();
       call GeneralIO.selectIOFunc();
     }
   }
 
-  async event void MSP430Capture.captured( uint16_t time ) {
-    call MSP430TimerControl.clearPendingInterrupt();
-    call MSP430Capture.clearOverflow();
+  async event void Msp430Capture.captured( uint16_t time ) {
+    call Msp430TimerControl.clearPendingInterrupt();
+    call Msp430Capture.clearOverflow();
     signal Capture.captured( time );
   }
 

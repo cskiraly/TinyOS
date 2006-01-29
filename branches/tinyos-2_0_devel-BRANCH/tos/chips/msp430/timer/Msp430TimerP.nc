@@ -1,18 +1,18 @@
-//$Id: MSP430TimerM.nc,v 1.1.2.1 2005-03-30 17:58:27 cssharp Exp $
+//$Id: Msp430TimerP.nc,v 1.1.2.1 2006-01-29 04:33:34 vlahan Exp $
 
-/* "Copyright (c) 2000-2003 The Regents of the University of California.  
+/* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement
  * is hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY
  * OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -24,7 +24,7 @@
 
 includes msp430regtypes;
 
-generic module MSP430TimerM(
+generic module Msp430TimerP(
   uint16_t TxIV_addr,
   uint16_t TxR_addr,
   uint16_t TxCTL_addr,
@@ -34,11 +34,11 @@ generic module MSP430TimerM(
   uint16_t TxSSEL0,
   uint16_t TxSSEL1 )
 {
-  provides interface MSP430Timer as Timer;
-  provides interface MSP430TimerEvent as Event[uint8_t n];
-  uses interface MSP430TimerEvent as Overflow;
-  uses interface MSP430TimerEvent as VectorTimerX0;
-  uses interface MSP430TimerEvent as VectorTimerX1;
+  provides interface Msp430Timer as Timer;
+  provides interface Msp430TimerEvent as Event[uint8_t n];
+  uses interface Msp430TimerEvent as Overflow;
+  uses interface Msp430TimerEvent as VectorTimerX0;
+  uses interface Msp430TimerEvent as VectorTimerX1;
 }
 implementation
 {
@@ -86,11 +86,11 @@ implementation
     TxCTL &= ~TxIE;
   }
 
-  async command void Timer.setClockSource( uint16_t clockSource ) 
-  { 
+  async command void Timer.setClockSource( uint16_t clockSource )
+  {
     TxCTL = (TxCTL & ~(TxSSEL0|TxSSEL1)) | ((clockSource << 8) & (TxSSEL0|TxSSEL1));
   }
-  
+
   async command void Timer.setInputDivider( uint16_t inputDivider )
   {
     TxCTL = (TxCTL & ~(ID_1|ID_3)) | ((inputDivider << 8) & (ID_1|ID_3));

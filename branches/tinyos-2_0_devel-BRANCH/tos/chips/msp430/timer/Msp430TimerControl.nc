@@ -1,18 +1,18 @@
-//$Id: MSP430DCOCalibC.nc,v 1.1.2.1 2005-04-01 08:55:00 cssharp Exp $
+//$Id: Msp430TimerControl.nc,v 1.1.2.1 2006-01-29 04:33:33 vlahan Exp $
 
-/* "Copyright (c) 2000-2003 The Regents of the University of California.  
+/* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement
  * is hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY
  * OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -21,15 +21,23 @@
  */
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
+//@author Joe Polastre
 
-configuration MSP430DCOCalibC
-{
-}
-implementation
-{
-  components MSP430DCOCalibM, MSP430TimerC;
+includes Msp430Timer;
 
-  MSP430DCOCalibM.TimerMicro -> MSP430TimerC.TimerA;
-  MSP430DCOCalibM.Timer32khz -> MSP430TimerC.TimerB;
+interface Msp430TimerControl
+{
+  async command msp430_compare_control_t getControl();
+  async command bool isInterruptPending();
+  async command void clearPendingInterrupt();
+
+  async command void setControl(msp430_compare_control_t control );
+  async command void setControlAsCompare();
+  async command void setControlAsCapture(bool low_to_high);
+
+  async command void enableEvents();
+  async command void disableEvents();
+  async command bool areEventsEnabled();
+
 }
 

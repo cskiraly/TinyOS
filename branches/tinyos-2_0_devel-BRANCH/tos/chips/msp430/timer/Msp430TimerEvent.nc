@@ -1,5 +1,5 @@
 
-interface MSP430TimerEvent
+interface Msp430TimerEvent
 {
   async event void fired();
 }
