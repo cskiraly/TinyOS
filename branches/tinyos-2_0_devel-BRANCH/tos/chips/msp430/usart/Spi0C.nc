@@ -28,33 +28,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-20 01:11:27 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-29 04:57:30 $
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  */
+
+#include "msp430UsartResource.h"
 
 generic configuration Spi0C() {
 
   provides interface Init;
   provides interface Resource;
-  provides interface SPIByte;
-  provides interface SPIPacket;
+  provides interface ArbiterInfo;
+  provides interface SpiByte;
+  provides interface SpiPacket;
 
 }
 
 implementation {
 
   enum {
-    CLIENT_ID = unique( "Msp430Usart0.Resource" ),
+    CLIENT_ID = unique(MSP430_SPIO_BUS)
   };
-  
-  components Msp430Spi0C as SpiC;
-  
-  Init = SpiC.Init;
-  Resource = SpiC.Resource[ CLIENT_ID ];
-  SPIByte = SpiC.SPIByte;
-  SPIPacket = SpiC.SPIPacket[ CLIENT_ID ];
+
+  components new Msp430SpiP() as SpiP, HplMsp430Usart0C as HplUsart;
+
+  Init = SpiP.Init;
+  Resource = SpiP.Resource;
+  ArbiterInfo = HplUsart;
+  SpiP.UsartResource -> HplUsart.Resource[ CLIENT_ID ];
+  SpiByte = SpiP.SpiByte;
+  SpiPacket = SpiP.SpiPacket[ CLIENT_ID ];
+  SpiP.HplUsart -> HplUsart;
 
 }
 

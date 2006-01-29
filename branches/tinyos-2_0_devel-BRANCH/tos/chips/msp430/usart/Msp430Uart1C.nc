@@ -1,5 +1,5 @@
 /**                                                                      tab:2
- * "Copyright (c) 2000-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and
@@ -7,13 +7,13 @@
  * agreement is hereby granted, provided that the above copyright
  * notice, the following two paragraphs and the author appear in all
  * copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY
  * PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
  * DAMAGES ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS
  * DOCUMENTATION, EVEN IF THE UNIVERSITY OF CALIFORNIA HAS BEEN
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
@@ -30,6 +30,7 @@
 configuration Msp430Uart1C {
   provides interface Init;
   provides interface Resource[ uint8_t id ];
+  provides interface ArbiterInfo;
   provides interface StdControl;
   provides interface SerialByteComm;
 }
@@ -44,6 +45,7 @@ implementation {
 
   components HplMsp430Usart1C as HplUsart;
   Resource = HplUsart;
+  ArbiterInfo = HplUsart;
   UartP.HplUsart -> HplUsart;
 }
-   
+
