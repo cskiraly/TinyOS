@@ -1,4 +1,4 @@
-//$Id: BusyWaitCounterC.nc,v 1.1.2.5 2006-01-30 20:25:03 idgay Exp $
+//$Id: BusyWaitCounterC.nc,v 1.1.2.6 2006-01-30 21:31:27 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -26,6 +26,8 @@
  * BusyWaitCounterC uses a Counter to implement the BusyWait interface
  * (block until a specified amount of time elapses). See TEP102 for more
  * details.
+ *
+ * <p>See TEP102 for more details.
  *
  * @param precision_tag A type indicating the precision of the BusyWait
  *   interface.

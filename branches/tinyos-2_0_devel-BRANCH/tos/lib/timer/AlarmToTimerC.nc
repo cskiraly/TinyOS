@@ -1,4 +1,4 @@
-//$Id: AlarmToTimerC.nc,v 1.1.2.6 2006-01-30 20:25:03 idgay Exp $
+//$Id: AlarmToTimerC.nc,v 1.1.2.7 2006-01-30 21:31:27 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -20,8 +20,12 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
+#include "Timer.h"
+
 /**
  * AlarmToTimerC converts a 32-bit Alarm to a Timer.  
+ *
+ * <p>See TEP102 for more details.
  * @param precision_tag A type indicating the precision of the Alarm and
  * Timer being converted.
  *

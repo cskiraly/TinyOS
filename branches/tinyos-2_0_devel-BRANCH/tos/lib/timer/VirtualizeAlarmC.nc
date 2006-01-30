@@ -1,4 +1,4 @@
-//$Id: VirtualizeAlarmC.nc,v 1.1.2.5 2005-11-29 03:13:47 philipb Exp $
+//$Id: VirtualizeAlarmC.nc,v 1.1.2.6 2006-01-30 21:31:27 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -20,11 +20,19 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-// @author Cory Sharp <cssharp@eecs.berkeley.edu>
+/**
+ * VirtualizeAlarmC uses a single Alarm to create up to 255 virtual alarms.
+ * Note that a virtualized Alarm will have significantly more overhead than
+ * an Alarm built on a hardware compare register.
+ *
+ * @param precision_tag A type indicating the precision of the Alarm being 
+ *   virtualized.
+ * @param num_alarms Number of virtual alarms to create.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ */
 
-// See TEP 102 Timers.
-
-generic module VirtualizeAlarmC( typedef precision_tag, typedef size_type @integer(), int num_alarms )
+generic module VirtualizeAlarmC(typedef precision_tag, typedef size_type @integer(), int num_alarms)
 {
   provides interface Init;
   provides interface Alarm<precision_tag,size_type> as Alarm[uint8_t id];
@@ -45,19 +53,19 @@ implementation
     return SUCCESS;
   }
 
-  void setAlarm( size_type now )
+  void setAlarm(size_type now)
   {
     size_type t0 = 0;
     size_type dt = 0;
     bool isNotSet = TRUE;
     uint8_t id;
 
-    for( id=0; id<NUM_ALARMS; id++ )
+    for(id=0; id<NUM_ALARMS; id++)
     {
-      if( m_isset[id] )
+      if (m_isset[id])
       {
         size_type elapse = now - m_t0[id];
-        if( m_dt[id] <= elapse )
+        if (m_dt[id] <= elapse)
         {
           m_t0[id] += m_dt[id];
           m_dt[id] = 0;
@@ -68,7 +76,7 @@ implementation
           m_dt[id] -= elapse;
         }
 
-        if( isNotSet || (m_dt[id] < dt) )
+        if (isNotSet || (m_dt[id] < dt))
         {
           t0 = m_t0[id];
           dt = m_dt[id];
@@ -77,16 +85,16 @@ implementation
       }
     }
 
-    if( isNotSet )
+    if (isNotSet)
       call AlarmFrom.stop();
     else
-      call AlarmFrom.startAt( t0, dt );
+      call AlarmFrom.startAt(t0, dt);
   }
   
   // basic interface
-  async command void Alarm.start[uint8_t id]( size_type dt )
+  async command void Alarm.start[uint8_t id](size_type dt)
   {
-    call Alarm.startAt[id]( call AlarmFrom.getNow(), dt );
+    call Alarm.startAt[id](call AlarmFrom.getNow(), dt);
   }
 
   async command void Alarm.stop[uint8_t id]()
@@ -94,7 +102,7 @@ implementation
     atomic
     {
       m_isset[id] = FALSE;
-      setAlarm( call AlarmFrom.getNow() );
+      setAlarm(call AlarmFrom.getNow());
     }
   }
 
@@ -103,15 +111,15 @@ implementation
     atomic
     {
       uint8_t id;
-      for( id=0; id<NUM_ALARMS; id++ )
+      for(id=0; id<NUM_ALARMS; id++)
       {
-        if( m_isset[id] && (m_dt[id] == 0) )
+        if (m_isset[id] && (m_dt[id] == 0))
         {
           m_isset[id] = FALSE;
           signal Alarm.fired[id]();
         }
       }
-      setAlarm( call AlarmFrom.getNow() );
+      setAlarm(call AlarmFrom.getNow());
     }
   }
 
@@ -121,14 +129,14 @@ implementation
     return m_isset[id];
   }
 
-  async command void Alarm.startAt[uint8_t id]( size_type t0, size_type dt )
+  async command void Alarm.startAt[uint8_t id](size_type t0, size_type dt)
   {
     atomic
     {
       m_t0[id] = t0;
       m_dt[id] = dt;
       m_isset[id] = TRUE;
-      setAlarm( t0 );
+      setAlarm(t0);
     }
   }
 
