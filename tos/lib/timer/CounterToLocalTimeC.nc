@@ -1,4 +1,4 @@
-//$Id: CounterToLocalTimeC.nc,v 1.1.2.2 2005-05-18 11:19:17 cssharp Exp $
+//$Id: CounterToLocalTimeC.nc,v 1.1.2.3 2006-01-30 21:31:27 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -20,13 +20,19 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
+#include "Timer.h"
 
-// The TinyOS Timer interfaces are discussed in TEP 102.
+/**
+ * CounterToLocalTimeC converts a 32-bit LocalTime to a Counter.  
+ *
+ * <p>See TEP102 for more details.
+ * @param precision_tag A type indicating the precision of the LocalTime and
+ * Counter being converted.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ */
 
-includes Timer;
-
-generic module CounterToLocalTimeC( typedef precision_tag )
+generic module CounterToLocalTimeC(typedef precision_tag)
 {
   provides interface LocalTime<precision_tag>;
   uses interface Counter<precision_tag,uint32_t>;

@@ -1,4 +1,4 @@
-//$Id: TransformAlarmC.nc,v 1.1.2.9 2006-01-30 20:25:03 idgay Exp $
+//$Id: TransformAlarmC.nc,v 1.1.2.10 2006-01-30 21:31:27 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -20,9 +20,22 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
-
-// The TinyOS Timer interfaces are discussed in TEP 102.
+/**
+ * TransformAlarmC decreases precision and/or widens an Alarm.  An already
+ * widened Counter component is used to help.
+ *
+ * <p>See TEP102 for more details.
+ * @param to_precision_tag A type indicating the precision of the transformed
+ *   Alarm.
+ * @param to_size_type The type for the width of the transformed Alarm.
+ * @param from_precision_tag A type indicating the precision of the original
+ *   Alarm.
+ * @param from_size_type The type for the width of the original Alarm.
+ * @param bit_shift_right Original time units will be 2 to the power 
+ *   <code>bit_shift_right</code> larger than transformed time units.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ */
 
 generic module TransformAlarmC(
   typedef to_precision_tag,
@@ -31,8 +44,21 @@ generic module TransformAlarmC(
   typedef from_size_type @integer(),
   uint8_t bit_shift_right)
 {
-  provides interface Alarm<to_precision_tag,to_size_type> as Alarm;
-  uses interface Counter<to_precision_tag,to_size_type> as Counter;
+  /**
+   * The transformed Alarm.
+   */
+  provides interface Alarm<to_precision_tag,to_size_type>;
+
+  /**
+   * Users of this component must wire Counter to an already-widened
+   * Counter (with the same precision as the new Alarm). See
+   * TransformCounterC for one possible implementation.
+   */
+  uses interface Counter<to_precision_tag,to_size_type>;
+
+  /**
+   * The original Alarm.
+   */
   uses interface Alarm<from_precision_tag,from_size_type> as AlarmFrom;
 }
 implementation

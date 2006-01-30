@@ -1,4 +1,4 @@
-//$Id: TransformAlarmCounterC.nc,v 1.1.2.3 2005-11-29 03:12:22 philipb Exp $
+//$Id: TransformAlarmCounterC.nc,v 1.1.2.4 2006-01-30 21:31:27 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -28,15 +28,27 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
-
-// The TinyOS Timer interfaces are discussed in TEP 102.
-
-// TransformCounterC increases the size and/or decreases the precision of an
-// existing Counter.  bit_shift_right specifies the power of two to decrease
-// the precision.  upper_count_type specifies the type to internally store the
-// upper bits -- those needed above from_size_type after its shifter right to
-// fill to_size_type.
+/**
+ * TransformAlarmCounterC decreases precision and/or widens an Alarm/Counter
+ * pair. This component has a reduced interrupt overhead compared to using
+ * TransformAlarmC and TransformCounterC separately. However, it is not as 
+ * useful for hardware timers with multiple compare registers.
+ *
+ * @param to_precision_tag A type indicating the precision of the transformed
+ *   interfaces.
+ * @param to_size_type The type for the width of the transformed interfaces.
+ * @param from_precision_tag A type indicating the precision of the original
+ *   interfaces.
+ * @param from_size_type The type for the width of the original interfaces.
+ * @param bit_shift_right Original time units will be 2 to the power 
+ *   <code>bit_shift_right</code> larger than transformed time units.
+ * @param upper_count_type A type large enough to store the upper bits --
+ *   those needed above from_size_type after its shift right to fill
+ *   to_size_type.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ * @author David Gay
+ */
 
 generic module TransformAlarmCounterC(
   typedef to_precision_tag,
@@ -84,7 +96,7 @@ implementation
     {
       upper_count_type high = m_upper;
       from_size_type low = call CounterFrom.get();
-      if( call CounterFrom.isOverflowPending() )
+      if (call CounterFrom.isOverflowPending())
       {
 	// If we signalled CounterFrom.overflow, that might trigger a
 	// Counter.overflow, which breaks atomicity.  The right thing to do
@@ -122,7 +134,7 @@ implementation
   {
     atomic
     {
-      if( call Counter.isOverflowPending() )
+      if (call Counter.isOverflowPending())
       {
 	m_upper++;
 	call CounterFrom.clearOverflow();
@@ -136,7 +148,7 @@ implementation
     {
 
       m_upper++;
-      if( (m_upper & OVERFLOW_MASK) == 0 )
+      if ((m_upper & OVERFLOW_MASK) == 0)
 	signal Counter.overflow();
 
       if (m_skip_overflows && !--m_skip_overflows)
@@ -216,7 +228,7 @@ implementation
 			   (from_size_type)remaining << bit_shift_right);
   }
 
-  async command void Alarm.startAt( to_size_type t0, to_size_type dt )
+  async command void Alarm.startAt(to_size_type t0, to_size_type dt)
   {
     atomic
     {
@@ -226,16 +238,16 @@ implementation
     }
   }
 
-  async command void Alarm.start( to_size_type dt )
+  async command void Alarm.start(to_size_type dt)
   {
-    call Alarm.startAt( call Alarm.getNow(), dt );
+    call Alarm.startAt(call Alarm.getNow(), dt);
   }
 
   async event void AlarmFrom.fired()
   {
     atomic
     {
-      if( m_dt == 0 )
+      if (m_dt == 0)
       {
 	signal Alarm.fired();
       }
