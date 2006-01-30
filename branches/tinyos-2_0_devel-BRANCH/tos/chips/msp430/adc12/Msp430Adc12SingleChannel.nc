@@ -27,13 +27,13 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-13 18:35:55 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-30 17:37:07 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
   
-includes Msp430Adc12;
+#include <Msp430Adc12.h>
 interface Msp430Adc12SingleChannel 
 {   
 
@@ -45,7 +45,7 @@ interface Msp430Adc12SingleChannel
    *
    * @return Whether the request succeeded.
    */
-  async command msp430adc12_result_t getSingleData( const
+  async command error_t getSingleData( const
       msp430adc12_channel_config_t *config);
 
   /**
@@ -62,7 +62,7 @@ interface Msp430Adc12SingleChannel
    * 
    * @return Whether the request succeeded.
    */
-  async command msp430adc12_result_t getSingleDataRepeat( const
+  async command error_t getSingleDataRepeat( const
       msp430adc12_channel_config_t *config, uint16_t jiffies);
 
  /** 
@@ -80,7 +80,7 @@ interface Msp430Adc12SingleChannel
   *
   * @return Whether the request succeeded.
   */ 
-  async command msp430adc12_result_t getMultipleData( const
+  async command error_t getMultipleData( const
       msp430adc12_channel_config_t *config, uint16_t *buf, uint16_t length,
       uint16_t jiffies);
 
@@ -100,17 +100,9 @@ interface Msp430Adc12SingleChannel
   *
   * @return Whether the request succeeded.
   */ 
-  async command msp430adc12_result_t getMultipleDataRepeat( const
+  async command error_t getMultipleDataRepeat( const
       msp430adc12_channel_config_t *config, uint16_t *buf, uint8_t length,
       uint16_t jiffies);
-           
-  /** 
-   * Stops a request, if the sampling has not yet started (MSP430ADC12_DELAYED
-   * was returned).
-   * 
-   * @return Whether the request succeeded.
-   */  
-  async command error_t stop();
 
  /**
    * Data from call to getSingleData() or getSingleDataRepeat() 
