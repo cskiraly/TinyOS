@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-16 16:01:29 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-01-30 17:43:45 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -38,18 +38,8 @@
 #include "Msp430RefVoltGenerator.h"
 
 #define P6PIN_AUTO_CONFIGURE
-
-typedef enum
-{
-   MSP430ADC12_SUCCESS,            // conversion started successfully 
-   MSP430ADC12_DELAYED,            // conversion will start when VREF stable (max 17ms)
-   MSP430ADC12_FAIL_NOT_RESERVED,  // failed: client has not reserved
-   MSP430ADC12_FAIL_PARAMS,        // failed: parameters illegal (out of range)
-   MSP430ADC12_FAIL_VREF,          // failed: VREF in use at different voltage level
-   MSP430ADC12_FAIL_JIFFIES,       // failed: jiffies out of bounds
-   MSP430ADC12_FAIL_BUSY,          // failed: request already pending for client
-} msp430adc12_result_t;
-
+#define REF_VOLT_AUTO_CONFIGURE
+#define CHECK_ARGS
 
 /**
   The msp430adc12_channel_config_t struct encapsulates the relevant flags for
