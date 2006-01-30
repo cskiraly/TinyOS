@@ -1,4 +1,4 @@
-// $Id: CC1000CsmaP.nc,v 1.1.2.9 2006-01-27 18:46:00 idgay Exp $
+// $Id: CC1000CsmaP.nc,v 1.1.2.10 2006-01-30 18:45:27 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -233,18 +233,21 @@ implementation
   void setWakeup() {
     switch (radioState)
       {
-      case IDLE_STATE: 
-	if (call CC1000Squelch.settled())
-	  {
-	    if (lplRxPower == 0 || f.txPending)
-	      call WakeupTimer.startOneShot(CC1K_SquelchIntervalSlow);
-	    else
-	      // timeout for receiving a message after an lpl check
-	      // indicates channel activity.
-	      call WakeupTimer.startOneShot(TIME_AFTER_CHECK);
-	  }
-	else
-	  call WakeupTimer.startOneShot(CC1K_SquelchIntervalFast);
+      case IDLE_STATE:
+	/* Timer already running means that we have a noise floor
+	   measurement scheduled. */
+	if (!call WakeupTimer.isRunning())
+	  if (call CC1000Squelch.settled())
+	    {
+	      if (lplRxPower == 0 || f.txPending)
+		call WakeupTimer.startOneShot(CC1K_SquelchIntervalSlow);
+	      else
+		// timeout for receiving a message after an lpl check
+		// indicates channel activity.
+		call WakeupTimer.startOneShot(TIME_AFTER_CHECK);
+	    }
+	  else
+	    call WakeupTimer.startOneShot(CC1K_SquelchIntervalFast);
 	break;
       case PULSECHECK_STATE:
 	// Radio warm-up time.
