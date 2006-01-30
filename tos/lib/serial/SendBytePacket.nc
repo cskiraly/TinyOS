@@ -1,4 +1,4 @@
-//$Id: SendBytePacket.nc,v 1.1.2.8 2005-08-16 21:27:04 bengreenstein Exp $
+//$Id: SendBytePacket.nc,v 1.1.2.9 2006-01-30 19:23:44 bengreenstein Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -42,8 +42,11 @@
 interface SendBytePacket {
   /**
    * The dispatcher may initiate a serial transmission by calling this function
-   * and passing the first byte to be transmitted. The framer will either return
-   * SUCCESS if it has the resources available to transmit a frame or EBUSY if not.
+   * and passing the first byte to be transmitted.
+   * @param first_byte The first byte to be transmitted.
+   * @return Returns an error_t code indicating either that the framer
+   * has the resources available to transmit the frame (SUCCESS) or
+   * not (EBUSY).
    */
   async command error_t startSend(uint8_t first_byte);
 
@@ -51,21 +54,18 @@ interface SendBytePacket {
    * The dispatcher must indicate when the end-of-packet has been reached and does
    * so by calling completeSend. The function may be called from within the
    * implementation of a nextByte event.
+   * @return Returns an error_t code indicating whether the framer accepts
+   * this notification (SUCCESS) or not (FAIL).
    */
   async command error_t completeSend();
 
-  /** The semantics on this are a bit tricky, as it should be able to
-   * handle nested interrupts (self-preemption) if the signalling
-   * component has a buffer. Signals to this event
-   * are considered atomic. This means that the underlying component MUST
-   * have updated its state so that if it is preempted then bytes will
-   * be put in the right place (store variables on the stack, etc).
-   */
-  
   /**
-   * Used by the framer to request the next byte to transmit. The framer may
-   * allocate a buffer to pre-spool some or all of a packet; or it may request
-   * and transmit a byte at a time.
+   * Used by the framer to request the next byte to transmit. The
+   * framer may allocate a buffer to pre-spool some or all of a
+   * packet; or it may request and transmit a byte at a time. If there
+   * are no more bytes to send, the dispatcher must call completeSend
+   * before returning from this function.
+   * @return The dispatcher must return the next byte to transmit
    */
   async event uint8_t nextByte();
 
@@ -73,6 +73,9 @@ interface SendBytePacket {
    * The framer signals sendCompleted to indicate that it is done transmitting a
    * packet on the dispatcher's behalf. A non-SUCCESS error_t code indicates that
    * there was a problem in transmission.
+   * @param error The framer indicates whether it has successfully
+   * accepted the entirety of the packet from the dispatcher (SUCCESS)
+   * or not (FAIL).
    */
   async event void sendCompleted(error_t error);
 }
