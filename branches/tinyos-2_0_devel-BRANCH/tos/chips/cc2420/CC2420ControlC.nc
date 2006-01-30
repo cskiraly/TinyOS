@@ -33,7 +33,7 @@
  * Implementation for configuring a ChipCon CC2420 radio.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-01-28 01:39:29 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-01-30 22:24:28 $
  */
 
 includes CC2420;
@@ -59,7 +59,6 @@ implementation {
   components LedsC as Leds;
   
   Init = CC2420ControlP;
-  Init = Spi;
   Resource = CC2420ControlP;
   CC2420Config = CC2420ControlP;
   AMPacket = CC2420ControlP;

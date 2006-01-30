@@ -31,11 +31,12 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-01-29 17:49:13 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-01-30 22:24:28 $
  */
 
 configuration CC2420SpiP {
 
+  provides interface Resource[ uint8_t id ];
   provides interface CC2420Fifo as Fifo[ uint8_t id ];
   provides interface CC2420Ram as Ram[ uint16_t id ];
   provides interface CC2420Register as Reg[ uint8_t id ];
@@ -45,17 +46,22 @@ configuration CC2420SpiP {
 
 implementation {
 
-  components new HplCC2420SpiC();
   components CC2420SpiImplP as SpiP;
-  components LedsC;
-
+  Resource = SpiP;
   Fifo = SpiP;
   Ram = SpiP;
   Reg = SpiP;
   Strobe = SpiP;
 
+  components new HplCC2420SpiC();
+  SpiP.SpiResource -> HplCC2420SpiC;
   SpiP.SpiByte -> HplCC2420SpiC;
   SpiP.SpiPacket -> HplCC2420SpiC;
+
+  components MainC;
+  MainC.SoftwareInit -> HplCC2420SpiC;
+
+  components LedsC;
   SpiP.Leds -> LedsC;
 
 }

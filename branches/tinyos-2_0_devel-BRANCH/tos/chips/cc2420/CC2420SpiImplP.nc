@@ -31,16 +31,18 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-01-29 17:49:13 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-01-30 22:24:28 $
  */
 
 module CC2420SpiImplP {
 
+  provides interface Resource[ uint8_t id ];
   provides interface CC2420Fifo as Fifo[ uint8_t id ];
   provides interface CC2420Ram as Ram[ uint16_t id ];
   provides interface CC2420Register as Reg[ uint8_t id ];
   provides interface CC2420Strobe as Strobe[ uint8_t id ];
 
+  uses interface Resource as SpiResource;
   uses interface SpiByte;
   uses interface SpiPacket;
   uses interface Leds;
@@ -49,7 +51,81 @@ module CC2420SpiImplP {
 
 implementation {
 
+  enum {
+    RESOURCE_COUNT = uniqueCount( "CC2420Spi.Resource" ),
+  };
+
   norace uint16_t m_addr;
+  bool m_resource_busy = FALSE;
+  uint8_t m_requests = 0;
+  uint8_t m_holder;
+
+  default event void Resource.granted[ uint8_t id ]() {
+  }
+
+  async command error_t Resource.request[ uint8_t id ]() {
+    atomic {
+      if ( m_resource_busy )
+	m_requests |= 1 << id;
+      else {
+	m_holder = id;
+	m_resource_busy = TRUE;
+	call SpiResource.request();
+      }
+    }
+    return SUCCESS;
+  }
+  
+  async command error_t Resource.immediateRequest[ uint8_t id ]() {
+    error_t error;
+    atomic {
+      if ( m_resource_busy )
+	return EBUSY;
+      error = call SpiResource.immediateRequest();
+      if ( error == SUCCESS ) {
+	m_holder = id;
+	m_resource_busy = TRUE;
+      }
+    }
+    return error;
+  }
+
+  task void signalGranted_task() {
+    uint8_t holder;
+    atomic holder = m_holder;
+    signal Resource.granted[ holder ]();
+  }
+
+  async command void Resource.release[ uint8_t id ]() {
+    uint8_t i;
+    atomic {
+      if ( m_holder != id || !m_resource_busy )
+	return;
+      call SpiResource.release();
+      for ( i = m_holder + 1; ; i++ ) {
+	if ( i >= RESOURCE_COUNT )
+	  i = 0;
+	if ( m_requests & ( 1 << i ) ) {
+	  m_holder = i;
+	  m_requests &= ~( 1 << i );
+	  call SpiResource.request();
+	  return;
+	}
+	if ( i == m_holder ) {
+	  m_resource_busy = FALSE;
+	  return;
+	}
+      }
+    }
+  }
+  
+  async command uint8_t Resource.getId[ uint8_t id ]() {
+    return id;
+  }
+
+  event void SpiResource.granted() {
+    post signalGranted_task();
+  }
 
   async command cc2420_status_t Fifo.beginRead[ uint8_t addr ]( uint8_t* data, 
 								uint8_t len ) {
