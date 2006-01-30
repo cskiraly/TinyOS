@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-01-29 18:27:07 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-01-30 17:41:48 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -36,29 +36,25 @@
 /*
  * HAL1 of ADC12, see TEP 101.
  */
-includes Msp430Adc12;
+#include <Msp430Adc12.h>
 configuration Msp430Adc12C
 {
-  provides interface Init;
-  provides interface StdControl;
   provides interface Resource[uint8_t id];
   provides interface Msp430Adc12SingleChannel as SingleChannel[uint8_t id];
 }
 implementation
 {
-  components Msp430Adc12P, HplAdc12P, Msp430TimerC, 
-             Msp430RefVoltGeneratorC, HplMsp430GeneralIOC,
+  components Msp430Adc12P, HplAdc12P, Msp430TimerC,
+             MainC, HplMsp430GeneralIOC,
              new RoundRobinArbiterC(MSP430ADC12_RESOURCE) as Arbiter;
 
-  Init = Arbiter;
-  Init = Msp430Adc12P;
   Resource = Arbiter;
   SingleChannel = Msp430Adc12P.SingleChannel;
-  StdControl = Msp430Adc12P.StdControlNull;
   
+  Arbiter.Init <- MainC;
+  Msp430Adc12P.Init <- MainC;
   Msp430Adc12P.ADCArbiterInfo -> Arbiter;
   Msp430Adc12P.HplAdc12 -> HplAdc12P;
-  Msp430Adc12P.RefVoltGenerator -> Msp430RefVoltGeneratorC;
   Msp430Adc12P.Port60 -> HplMsp430GeneralIOC.Port60;
   Msp430Adc12P.Port61 -> HplMsp430GeneralIOC.Port61;
   Msp430Adc12P.Port62 -> HplMsp430GeneralIOC.Port62;
