@@ -27,23 +27,21 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-01-29 18:27:07 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-01-30 17:41:13 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
-includes Msp430Adc12;
+#include <Msp430Adc12.h>
 module Msp430Adc12P 
 {
   provides {
     interface Init;
-    interface StdControl as StdControlNull;
     interface Msp430Adc12SingleChannel as SingleChannel[uint8_t id];
 	}
 	uses {
     interface ArbiterInfo as ADCArbiterInfo;
-    interface Msp430RefVoltGenerator as RefVoltGenerator;
 	  interface HplAdc12;
     interface Msp430Timer as TimerA;
     interface Msp430TimerControl as ControlA0;
@@ -72,9 +70,6 @@ implementation
   enum { // flags
     ADC_BUSY = 1,               /* request pending */
     TIMERA_USED = 2,            /* TimerA used for SAMPCON signal */
-    VREF_USED = 4,              /* VREF generator in use */
-    DELAYED = 8,                /* waiting for VREF generator to become stable */
-    CANCELLED = 16,             /* conversion stopped by client */
   };
 
   uint16_t *resultBuffer;        /* result buffer */
@@ -93,67 +88,23 @@ implementation
     return SUCCESS;
   }
   
-  command error_t StdControlNull.start() {
-    return SUCCESS;
-  }
-
-  command error_t StdControlNull.stop() {
-    return SUCCESS;
-  }  
-  
-  msp430adc12_result_t clientAccessRequest(uint8_t id)
+  error_t clientAccessRequest(uint8_t id)
   {
     if (call ADCArbiterInfo.userId() == id){
       atomic {
         if (flags & ADC_BUSY)
-          return MSP430ADC12_FAIL_BUSY;
+          return EBUSY;
         flags = ADC_BUSY;
         clientID = id;
       }
-      return MSP430ADC12_SUCCESS;
+      return SUCCESS;
     }
-    return MSP430ADC12_FAIL_NOT_RESERVED;
+    return ERESERVE;
   }
 
   inline void clientAccessFinished()
   {
     atomic flags = 0;
-  }
-
-  msp430adc12_result_t enableReferenceVoltage(uint8_t sref, uint8_t ref2_5v)
-  {
-    error_t vrefResult;
-    if (sref == REFERENCE_VREFplus_AVss ||
-        sref == REFERENCE_VREFplus_VREFnegterm)
-    {
-      if (ref2_5v == REFVOLT_LEVEL_1_5)
-        vrefResult = call RefVoltGenerator.switchOn(REFERENCE_1_5V);
-      else
-        vrefResult = call RefVoltGenerator.switchOn(REFERENCE_2_5V);
-      if (vrefResult == FAIL)
-        return MSP430ADC12_FAIL_VREF;
-      else {
-        atomic flags |= VREF_USED;
-        if (call RefVoltGenerator.getVoltageLevel() == REFERENCE_UNSTABLE){
-          atomic flags |= DELAYED;
-          return MSP430ADC12_DELAYED;
-        } else
-          return MSP430ADC12_SUCCESS;
-      }
-    } else {
-      atomic flags &= ~VREF_USED;
-      return MSP430ADC12_SUCCESS;
-    }
-  }
-    
-  error_t releaseReferenceVoltage()
-  {
-    if (flags & VREF_USED){
-      call RefVoltGenerator.switchOff();
-      flags &= ~VREF_USED;
-      return SUCCESS;
-    }
-    return FAIL;
   }
 
   void prepareTimerA(uint16_t interval, uint16_t csSAMPCON, uint16_t cdSAMPCON)
@@ -235,309 +186,238 @@ implementation
     call HplAdc12.stopConversion();
     call HplAdc12.setIEFlags(0);
     call HplAdc12.resetIFGs();
-    releaseReferenceVoltage();
     clientAccessFinished();
   }
-  
-  event void RefVoltGenerator.isStable(uint8_t voltageLevel)
-  {
-    uint8_t useTimerA = 0;
-    atomic {
-      if (flags & CANCELLED){
-        stopConversionSingleChannel();
-        return;
-      } else {
-        flags &= ~DELAYED;
-        useTimerA = (flags & TIMERA_USED);
-      }
-    }
-    call HplAdc12.startConversion();
-    if (useTimerA)
-        startTimerA(); // go!
-  }
 
-  void task cancelRefVoltGenerator()
-  {
-    atomic {
-      if (flags & DELAYED)
-        stopConversionSingleChannel();
-    }
-  }
-  
-  async command error_t SingleChannel.stop[uint8_t id]()
-  {
-    error_t stopped = FAIL;
-    if (call ADCArbiterInfo.userId() == id)
-      atomic {
-        if (flags & DELAYED){
-          flags |= CANCELLED;
-          stopped = SUCCESS;
-        }
-      }
-    if (stopped == SUCCESS)
-      post cancelRefVoltGenerator();
-    return stopped;
-  }
-
-
-  async command msp430adc12_result_t SingleChannel.getSingleData[uint8_t id](
+  async command error_t SingleChannel.getSingleData[uint8_t id](
       const msp430adc12_channel_config_t *config)
   {
-    msp430adc12_result_t result;
+    error_t result;
+#ifdef CHECK_ARGS
     if (!config)
-      return MSP430ADC12_FAIL_PARAMS;
-    if ((result = clientAccessRequest(id)) == MSP430ADC12_SUCCESS)
+      return EINVAL;
+#endif
+    if ((result = clientAccessRequest(id)) == SUCCESS)
     {
-      result = enableReferenceVoltage(config->sref, config->ref2_5v);
-      if (result == MSP430ADC12_FAIL_VREF){
-        clientAccessFinished();
-      } else {
-        adc12ctl0_t ctl0 = { 
-          adc12sc: 0,
-          enc: 0,
-          adc12tovie: 0,
-          adc12ovie: 0,
-          adc12on: 1,
-          refon: call HplAdc12.getRefon(),
-          r2_5v: call HplAdc12.isRef2_5V(),
-          msc: 1,
-          sht0: config->sht,
-          sht1: config->sht
-        };
-        adc12ctl1_t ctl1 = {
-          adc12busy: 0,
-          conseq: 0,
-          adc12ssel: config->adc12ssel,
-          adc12div: config->adc12div,
-          issh: 0,
-          shp: 1,
-          shs: 0,
-          cstartadd: 0
-        };
-        adc12memctl_t memctl = {
-          inch: config->inch,
-          sref: config->sref,
-          eos: 1
-        };        
-        conversionMode = SINGLE_DATA;
-        configureAdcPin( config->inch );
-        call HplAdc12.setCtl0(ctl0);
-        call HplAdc12.setCtl1(ctl1);
-        call HplAdc12.setMCtl(0, memctl);
-        call HplAdc12.setIEFlags(0x01);
-        if (result == MSP430ADC12_SUCCESS)
-          call HplAdc12.startConversion();
-        // go on in RefVoltGenerator.isStable() if "result" is MSP430ADC12_DELAYED
-      }
+      adc12ctl0_t ctl0 = { 
+        adc12sc: 0,
+        enc: 0,
+        adc12tovie: 0,
+        adc12ovie: 0,
+        adc12on: 1,
+        refon: call HplAdc12.getRefon(),
+        r2_5v: call HplAdc12.isRef2_5V(),
+        msc: 1,
+        sht0: config->sht,
+        sht1: config->sht
+      };
+      adc12ctl1_t ctl1 = {
+        adc12busy: 0,
+        conseq: 0,
+        adc12ssel: config->adc12ssel,
+        adc12div: config->adc12div,
+        issh: 0,
+        shp: 1,
+        shs: 0,
+        cstartadd: 0
+      };
+      adc12memctl_t memctl = {
+        inch: config->inch,
+        sref: config->sref,
+        eos: 1
+      };        
+      conversionMode = SINGLE_DATA;
+      configureAdcPin( config->inch );
+      call HplAdc12.setCtl0(ctl0);
+      call HplAdc12.setCtl1(ctl1);
+      call HplAdc12.setMCtl(0, memctl);
+      call HplAdc12.setIEFlags(0x01);
+      call HplAdc12.startConversion();
     }
     return result;
   }
 
-  async command msp430adc12_result_t SingleChannel.getSingleDataRepeat[uint8_t id](
+  async command error_t SingleChannel.getSingleDataRepeat[uint8_t id](
       const msp430adc12_channel_config_t *config,
       uint16_t jiffies)
   {
-    msp430adc12_result_t result;
-    if (!config)
-      return MSP430ADC12_FAIL_PARAMS;
-    if (jiffies == 1 || jiffies == 2)
-      return MSP430ADC12_FAIL_JIFFIES;
-    if ((result = clientAccessRequest(id)) == MSP430ADC12_SUCCESS)
+    error_t result;
+#ifdef CHECK_ARGS
+    if (!config || jiffies == 1 || jiffies == 2)
+      return EINVAL;
+#endif
+    if ((result = clientAccessRequest(id)) == SUCCESS)
     {
-      result = enableReferenceVoltage(config->sref, config->ref2_5v);
-      if (result == MSP430ADC12_FAIL_VREF){
-        clientAccessFinished();
-      } else {
-        adc12ctl0_t ctl0 = { 
-          adc12sc: 0,
-          enc: 0,
-          adc12tovie: 0,
-          adc12ovie: 0,
-          adc12on: 1,
-          refon: call HplAdc12.getRefon(),
-          r2_5v: call HplAdc12.isRef2_5V(),
-          msc: (jiffies == 0) ? 1 : 0,
-          sht0: config->sht,
-          sht1: config->sht
-        };
-        adc12ctl1_t ctl1 = {
-          adc12busy: 0,
-          conseq: 2,
-          adc12ssel: config->adc12ssel,
-          adc12div: config->adc12div,
-          issh: 0,
-          shp: 1,
-          shs: (jiffies == 0) ? 0 : 1,
-          cstartadd: 0
-        };
-        adc12memctl_t memctl = {
-          inch: config->inch,
-          sref: config->sref,
-          eos: 1
-        };        
-        conversionMode = SINGLE_DATA_REPEAT;
-        configureAdcPin( config->inch );
-        call HplAdc12.setCtl0(ctl0);
-        call HplAdc12.setCtl1(ctl1);
-        call HplAdc12.setMCtl(0, memctl);
-        call HplAdc12.setIEFlags(0x01);
-        if (jiffies){
-          atomic flags |= TIMERA_USED;   
-          prepareTimerA(jiffies, config->sampcon_ssel, config->sampcon_id);
-        }     
-        if (result == MSP430ADC12_SUCCESS){
-          call HplAdc12.startConversion();
-          if (jiffies)
-              startTimerA(); // go!
-        }
-        // go on in RefVoltGenerator.isStable() if "result" is MSP430ADC12_DELAYED
-      }
+      adc12ctl0_t ctl0 = { 
+        adc12sc: 0,
+        enc: 0,
+        adc12tovie: 0,
+        adc12ovie: 0,
+        adc12on: 1,
+        refon: call HplAdc12.getRefon(),
+        r2_5v: call HplAdc12.isRef2_5V(),
+        msc: (jiffies == 0) ? 1 : 0,
+        sht0: config->sht,
+        sht1: config->sht
+      };
+      adc12ctl1_t ctl1 = {
+        adc12busy: 0,
+        conseq: 2,
+        adc12ssel: config->adc12ssel,
+        adc12div: config->adc12div,
+        issh: 0,
+        shp: 1,
+        shs: (jiffies == 0) ? 0 : 1,
+        cstartadd: 0
+      };
+      adc12memctl_t memctl = {
+        inch: config->inch,
+        sref: config->sref,
+        eos: 1
+      };        
+      conversionMode = SINGLE_DATA_REPEAT;
+      configureAdcPin( config->inch );
+      call HplAdc12.setCtl0(ctl0);
+      call HplAdc12.setCtl1(ctl1);
+      call HplAdc12.setMCtl(0, memctl);
+      call HplAdc12.setIEFlags(0x01);
+      if (jiffies){
+        atomic flags |= TIMERA_USED;   
+        prepareTimerA(jiffies, config->sampcon_ssel, config->sampcon_id);
+      }     
+      call HplAdc12.startConversion();
+      if (jiffies)
+        startTimerA(); // go!
     }
     return result;
   }
 
-  async command msp430adc12_result_t SingleChannel.getMultipleData[uint8_t id](
+  async command error_t SingleChannel.getMultipleData[uint8_t id](
       const msp430adc12_channel_config_t *config,
       uint16_t *buf, uint16_t length, uint16_t jiffies)
   {
-    msp430adc12_result_t result;
-    if (!config || !buf || !length)
-      return MSP430ADC12_FAIL_PARAMS;
-    if (jiffies == 1 || jiffies == 2)
-      return MSP430ADC12_FAIL_JIFFIES;
-    if ((result = clientAccessRequest(id)) == MSP430ADC12_SUCCESS)
+    error_t result;
+#ifdef CHECK_ARGS
+    if (!config || !buf || !length || jiffies == 1 || jiffies == 2)
+      return EINVAL;
+#endif
+    if ((result = clientAccessRequest(id)) == SUCCESS)
     {
-      result = enableReferenceVoltage(config->sref, config->ref2_5v);
-      if (result == MSP430ADC12_FAIL_VREF){
-        clientAccessFinished();
-      } else {
-        adc12ctl0_t ctl0 = { 
-          adc12sc: 0,
-          enc: 0,
-          adc12tovie: 0,
-          adc12ovie: 0,
-          adc12on: 1,
-          refon: call HplAdc12.getRefon(),
-          r2_5v: call HplAdc12.isRef2_5V(),
-          msc: (jiffies == 0) ? 1 : 0,
-          sht0: config->sht,
-          sht1: config->sht
-        };
-        adc12ctl1_t ctl1 = {
-          adc12busy: 0,
-          conseq: (length > 16) ? 3 : 1,
-          adc12ssel: config->adc12ssel,
-          adc12div: config->adc12div,
-          issh: 0,
-          shp: 1,
-          shs: (jiffies == 0) ? 0 : 1,
-          cstartadd: 0
-        };
-        adc12memctl_t memctl = {
-          inch: config->inch,
-          sref: config->sref,
-          eos: 0
-        };        
-        uint16_t i, mask = 1;
-        conversionMode = MULTIPLE_DATA;
-        atomic {
-          resultBuffer = buf;
-          resultBufferLength = length;
-          resultBufferIndex = 0;
-        }    
-        configureAdcPin( config->inch );
-        call HplAdc12.setCtl0(ctl0);
-        call HplAdc12.setCtl1(ctl1);
-        for (i=0; i<(length-1) && i < 15; i++)
-          call HplAdc12.setMCtl(i, memctl);
-        memctl.eos = 1;  
+      adc12ctl0_t ctl0 = { 
+        adc12sc: 0,
+        enc: 0,
+        adc12tovie: 0,
+        adc12ovie: 0,
+        adc12on: 1,
+        refon: call HplAdc12.getRefon(),
+        r2_5v: call HplAdc12.isRef2_5V(),
+        msc: (jiffies == 0) ? 1 : 0,
+        sht0: config->sht,
+        sht1: config->sht
+      };
+      adc12ctl1_t ctl1 = {
+        adc12busy: 0,
+        conseq: (length > 16) ? 3 : 1,
+        adc12ssel: config->adc12ssel,
+        adc12div: config->adc12div,
+        issh: 0,
+        shp: 1,
+        shs: (jiffies == 0) ? 0 : 1,
+        cstartadd: 0
+      };
+      adc12memctl_t memctl = {
+        inch: config->inch,
+        sref: config->sref,
+        eos: 0
+      };        
+      uint16_t i, mask = 1;
+      conversionMode = MULTIPLE_DATA;
+      atomic {
+        resultBuffer = buf;
+        resultBufferLength = length;
+        resultBufferIndex = 0;
+      }    
+      configureAdcPin( config->inch );
+      call HplAdc12.setCtl0(ctl0);
+      call HplAdc12.setCtl1(ctl1);
+      for (i=0; i<(length-1) && i < 15; i++)
         call HplAdc12.setMCtl(i, memctl);
-        call HplAdc12.setIEFlags(mask << i);        
-        
-        if (jiffies){
-          atomic flags |= TIMERA_USED;
-          prepareTimerA(jiffies, config->sampcon_ssel, config->sampcon_id);
-        }      
-        if (result == MSP430ADC12_SUCCESS){
-          call HplAdc12.startConversion();
-          if (jiffies)
-              startTimerA(); // go!
-        }
-        // go on in RefVoltGenerator.isStable() if "result" is MSP430ADC12_DELAYED
-      }
+      memctl.eos = 1;  
+      call HplAdc12.setMCtl(i, memctl);
+      call HplAdc12.setIEFlags(mask << i);        
+      
+      if (jiffies){
+        atomic flags |= TIMERA_USED;
+        prepareTimerA(jiffies, config->sampcon_ssel, config->sampcon_id);
+      }      
+      call HplAdc12.startConversion();
+      if (jiffies)
+        startTimerA(); // go!
     }
     return result;
   }
 
-  async command msp430adc12_result_t SingleChannel.getMultipleDataRepeat[uint8_t id](
+  async command error_t SingleChannel.getMultipleDataRepeat[uint8_t id](
       const msp430adc12_channel_config_t *config,
       uint16_t *buf, uint8_t length, uint16_t jiffies)
   {
-    msp430adc12_result_t result;
-    if (!config || !buf || !length || length > 16)
-      return MSP430ADC12_FAIL_PARAMS;
-    if (jiffies == 1 || jiffies == 2)
-      return MSP430ADC12_FAIL_JIFFIES;
-    if ((result = clientAccessRequest(id)) == MSP430ADC12_SUCCESS)
+    error_t result;
+#ifdef CHECK_ARGS
+    if (!config || !buf || !length || length > 16 || jiffies == 1 || jiffies == 2)
+      return EINVAL;
+#endif
+    if ((result = clientAccessRequest(id)) == SUCCESS)
     {
-      result = enableReferenceVoltage(config->sref, config->ref2_5v);
-      if (result == MSP430ADC12_FAIL_VREF){
-        clientAccessFinished();
-      } else {
-        adc12ctl0_t ctl0 = { 
-          adc12sc: 0,
-          enc: 0,
-          adc12tovie: 0,
-          adc12ovie: 0,
-          adc12on: 1,
-          refon: call HplAdc12.getRefon(),
-          r2_5v: call HplAdc12.isRef2_5V(),
-          msc: (jiffies == 0) ? 1 : 0,
-          sht0: config->sht,
-          sht1: config->sht
-        };
-        adc12ctl1_t ctl1 = {
-          adc12busy: 0,
-          ctl1.conseq = 3,
-          adc12ssel: config->adc12ssel,
-          adc12div: config->adc12div,
-          issh: 0,
-          shp: 1,
-          shs: (jiffies == 0) ? 0 : 1,
-          cstartadd: 0
-        };
-        adc12memctl_t memctl = {
-          inch: config->inch,
-          sref: config->sref,
-          eos: 0
-        };        
-        uint16_t i, mask = 1;
-        conversionMode = MULTIPLE_DATA_REPEAT;
-        atomic { 
-          resultBuffer = buf;
-          resultBufferLength = length;
-          resultBufferIndex = 0;            
-        }
-        configureAdcPin( config->inch );
-        call HplAdc12.setCtl0(ctl0);
-        call HplAdc12.setCtl1(ctl1);
-        for (i=0; i<(length-1) && i < 15; i++)
-          call HplAdc12.setMCtl(i, memctl);
-        memctl.eos = 1;  
-        call HplAdc12.setMCtl(i, memctl);
-        call HplAdc12.setIEFlags(mask << i);        
-        
-        if (jiffies){
-          atomic flags |= TIMERA_USED;
-          prepareTimerA(jiffies, config->sampcon_ssel, config->sampcon_id);
-        }      
-        if (result == MSP430ADC12_SUCCESS){
-          call HplAdc12.startConversion();
-          if (jiffies)
-              startTimerA(); // go!
-        }
-        // go on in RefVoltGenerator.isStable() if "result" is MSP430ADC12_DELAYED
+      adc12ctl0_t ctl0 = { 
+        adc12sc: 0,
+        enc: 0,
+        adc12tovie: 0,
+        adc12ovie: 0,
+        adc12on: 1,
+        refon: call HplAdc12.getRefon(),
+        r2_5v: call HplAdc12.isRef2_5V(),
+        msc: (jiffies == 0) ? 1 : 0,
+        sht0: config->sht,
+        sht1: config->sht
+      };
+      adc12ctl1_t ctl1 = {
+        adc12busy: 0,
+        ctl1.conseq = 3,
+        adc12ssel: config->adc12ssel,
+        adc12div: config->adc12div,
+        issh: 0,
+        shp: 1,
+        shs: (jiffies == 0) ? 0 : 1,
+        cstartadd: 0
+      };
+      adc12memctl_t memctl = {
+        inch: config->inch,
+        sref: config->sref,
+        eos: 0
+      };        
+      uint16_t i, mask = 1;
+      conversionMode = MULTIPLE_DATA_REPEAT;
+      atomic { 
+        resultBuffer = buf;
+        resultBufferLength = length;
+        resultBufferIndex = 0;            
       }
+      configureAdcPin( config->inch );
+      call HplAdc12.setCtl0(ctl0);
+      call HplAdc12.setCtl1(ctl1);
+      for (i=0; i<(length-1) && i < 15; i++)
+        call HplAdc12.setMCtl(i, memctl);
+      memctl.eos = 1;  
+      call HplAdc12.setMCtl(i, memctl);
+      call HplAdc12.setIEFlags(mask << i);        
+      
+      if (jiffies){
+        atomic flags |= TIMERA_USED;
+        prepareTimerA(jiffies, config->sampcon_ssel, config->sampcon_id);
+      }      
+      call HplAdc12.startConversion();
+      if (jiffies)
+        startTimerA(); // go!
     }
     return result;
   }
