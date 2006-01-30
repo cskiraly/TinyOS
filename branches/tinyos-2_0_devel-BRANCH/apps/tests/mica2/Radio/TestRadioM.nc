@@ -1,4 +1,4 @@
-// $Id: TestRadioM.nc,v 1.1.1.1 2005-11-05 16:38:03 kristinwright Exp $
+// $Id: TestRadioM.nc,v 1.1.1.1.2.1 2006-01-30 21:33:10 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -49,13 +49,17 @@ implementation
 {
   message_t msg;
 
+  CC1KHeader* getHeader(message_t* amsg) {
+    return (CC1KHeader*)(amsg->data - sizeof(CC1KHeader));
+  }
+
   event void Boot.booted()
   {
     call SplitControl.start();
   }
 
   event void SplitControl.startDone(error_t error) {
-    call Timer0.startPeriodic( 1000 );
+    call Timer0.startPeriodic(1000);
   }
 
   event void SplitControl.stopDone(error_t error) {
@@ -63,13 +67,16 @@ implementation
 
   event void Timer0.fired()
   {
+    CC1KHeader *header = getHeader(&msg);
+
     call Leds.led0Toggle();
-    msg.header.addr = 0xffff;
-    msg.header.group = 0x42;
+    header->addr = 0xffff;
+    header->group = 0x22;
+    header->type = 0x77;
     msg.data[0] = 0xaa;
     msg.data[1] = 0xbb;
-    msg.header.length = 2;
-    if (call Send.send(&msg, 2) == SUCCESS)
+    header->length = 16;
+    if (call Send.send(&msg, 16) == SUCCESS)
       call Leds.led1Toggle();
   }
 
@@ -81,4 +88,3 @@ implementation
     return mmsg;
   }
 }
-
