@@ -19,17 +19,19 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
  *
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.7 $
- * $Date: 2006-01-18 22:29:27 $ 
- * ======================================================================== 
- *
  */
- 
- /**
- * MyComponentC Configuration  
+
+/**
+ * Please refer to TEP 115 for more information about the components
+ * this application is used to test.
  *
- * @author Kevin Klues (klueska@cs.wustl.edu)
+ * This component is used to create a "dummy" non-virtualized component for use
+ * with the TestPowerManager component.  It can be powered on and off through any
+ * of the AsyncStdControl, StdControl, and SplitControl interfaces.
+ *
+ * @author Kevin Klues <klueska@cs.wustl.edu>
+ * @version  $Revision: 1.1.2.8 $
+ * @date $Date: 2006-01-30 18:25:35 $ 
  */
  
 #define MYCOMPONENT_RESOURCE   "MyComponent.Resource"
