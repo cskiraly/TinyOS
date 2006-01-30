@@ -27,25 +27,25 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-01-27 23:13:21 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-01-30 17:53:24 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
 /** 
- * Tests the AdcC and switches on LED1, LED2 and LED3 if the test is
- * successful: 
- * LED1 denotes a successful Read operation, 
- * LED2 denotes a successful ReadNow operation, 
- * LED3 denotes a successful ReadStream operation.  
+ * Tests the AdcC subsystem and switches on leds 0, 1 and 2
+ * if the test is successful: 
+ * LED0 denotes a successful Read operation, 
+ * LED1 denotes a successful ReadNow operation, 
+ * LED2 denotes a successful ReadStream operation.  
  *
- * Requires a DemoSensorC component that provides Read<uint16_t>,
- * ReadNow<uint16_t> and ReadStream<uint16_t>
+ * Requires a platform-specific DemoSensorC component that provides 
+ * Read<uint16_t> and ReadStream<uint16_t> and a platform-specific   
+ * DemoSensorNowC component that provides ReadNow<uint16_t> and Resource.
  * 
- * Author: Jan Hauer 
+ * @author Jan Hauer 
  */
-
 configuration TestAdcAppC {
 }
 implementation
@@ -53,13 +53,15 @@ implementation
   components MainC, 
              TestAdcC, 
              new DemoSensorC() as Sensor, 
+             new DemoSensorNowC() as SensorNow,
              LedsC;
 
   TestAdcC -> MainC.Boot;
   MainC.SoftwareInit -> LedsC;
   TestAdcC.Leds -> LedsC;
   TestAdcC.Read -> Sensor;
-  //TestAdcC.ReadNow -> Sensor;
+  TestAdcC.ReadNow -> SensorNow;
+  TestAdcC.ReadNowResource -> SensorNow;
   TestAdcC.ReadStream -> Sensor;
 }
 
