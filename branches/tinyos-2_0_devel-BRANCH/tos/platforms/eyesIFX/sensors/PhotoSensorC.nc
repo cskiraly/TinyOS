@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-13 18:43:20 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-30 18:06:45 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -37,9 +37,9 @@
 generic configuration PhotoSensorC()
 {
   provides {
-    interface Init;
     interface Read<uint16_t> as Read;
     interface ReadNow<uint16_t> as ReadNow;
+    interface Resource as ReadNowResource;
   }
 }
 implementation
@@ -47,13 +47,12 @@ implementation
   components SensorSettingsC as Settings;
              
   components new AdcReadClientC() as AdcReadClient;
-  Init = AdcReadClient;
   Read = AdcReadClient;
   AdcReadClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];
   
   components new AdcReadNowClientC() as AdcReadNowClient;
-  Init = AdcReadNowClient;
   ReadNow = AdcReadNowClient;
+  ReadNowResource = AdcReadNowClient;
   AdcReadNowClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];
 }
 
