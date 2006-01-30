@@ -27,14 +27,13 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-06 16:14:19 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-30 17:44:12 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
         
-includes Msp430Adc12;
-
+#include <Msp430Adc12.h>
 interface HplAdc12
 {
   /** Setting ADC12 Control Register ADC12CTL0 */

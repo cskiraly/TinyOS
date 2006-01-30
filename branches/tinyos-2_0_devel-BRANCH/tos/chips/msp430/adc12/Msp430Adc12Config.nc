@@ -27,13 +27,13 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-06 16:25:25 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-30 17:42:21 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
-includes Msp430Adc12;
+#include <Msp430Adc12.h>
 interface Msp430Adc12Config {
   /* 
    * Returns configuration settings of an HAL2 client, See TEP 101.
