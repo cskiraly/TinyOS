@@ -1,4 +1,4 @@
-//$Id: SerialByteComm.nc,v 1.1.2.3 2005-08-16 21:27:04 bengreenstein Exp $
+//$Id: SerialByteComm.nc,v 1.1.2.4 2006-01-30 19:23:44 bengreenstein Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -34,11 +34,15 @@ interface SerialByteComm {
 
   /** 
    * Put a single byte to the serial port.
+   * @param data The byte to send to the serial port.
+   * @return Returns an error_t code indicating whether this byte was
+   * successfully put (SUCCESS) or not (FAIL).
    */
   async command error_t put(uint8_t data);
 
   /** 
    * Receive a single byte from the serial port.
+   * @param data The byte that has been received from the serial port.
    */
   async event void get(uint8_t data);
 

@@ -1,4 +1,4 @@
-//$Id: ReceiveBytePacket.nc,v 1.1.2.5 2005-08-16 21:27:04 bengreenstein Exp $
+//$Id: ReceiveBytePacket.nc,v 1.1.2.6 2006-01-30 19:23:44 bengreenstein Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -44,20 +44,27 @@ interface ReceiveBytePacket {
    * return a non-SUCCESS code  such as EBUSY to the lower layer to discard
    * the frame. The underlying layer may signal endPacket in response to
    * such a discard request.
+   * @return Returns an error_t code indicating whether the
+   * dispatcher would like to receive a packet (SUCCESS), or not
+   * perhaps because it isn't ready (EBUSY).
    */
   async event error_t startPacket();
 
   /**
    * Signals the upper layer that a byte of the encapsulated packet has been
    * received. Passes this byte as a parameter to the function.
+   * @param data A byte of the encapsulated packet that has been received.
    */
-  async event void byteReceived(uint8_t b);
+  async event void byteReceived(uint8_t data);
   /**
    * Signalled to indicate that a packet encapsulated withing a serial
    * frame has been received. SUCCESS should be passed by the lower layer
    * following verification that the packet has been received correctly.
    * A value of error_t indicating an error should be passed when the lower
    * layer's verification test fails or when the lower layer loses sync.
+   * @param result An error_t code indicating whether the framer has
+   * passed all bytes of an encapsulated packet it receives from
+   * serial to the dispatcher (SUCCESS) or not (FAIL).
    */
   async event void endPacket(error_t result);
 }

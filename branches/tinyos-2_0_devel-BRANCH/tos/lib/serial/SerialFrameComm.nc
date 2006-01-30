@@ -1,4 +1,4 @@
-//$Id: SerialFrameComm.nc,v 1.1.2.5 2005-08-16 21:27:04 bengreenstein Exp $
+//$Id: SerialFrameComm.nc,v 1.1.2.6 2006-01-30 19:23:44 bengreenstein Exp $
 
 /* "Copyright (c) 2005 The Regents of the University of California.  
  * All rights reserved.
@@ -38,11 +38,18 @@ interface SerialFrameComm {
    * Used by the upper layer to request that an interframe delimiter
    * be sent. The lower layer is responsible for the determining the
    * actual byte(s) that must be sent to delimit the frame.
+   * @return Returns a error_t code that indicates if the lower layer
+   * was able to put an interframe delimiter to serial (SUCCESS) or
+   * not (FAIL).
    */
   async command error_t putDelimiter();
 
   /**
-   *  Request that a byte of data be sent over serial. 
+   *  Used by the upper layer to request that a byte of data be sent
+   *  over serial.
+   *  @param data The byte to be sent
+   *  @return Returns an error_t code that indicates if the lower layer
+   *  has accepted the byte for sending (SUCCESS) or not (FAIL).
    */
   async command error_t putData(uint8_t data);
 
@@ -67,9 +74,12 @@ interface SerialFrameComm {
   async event void delimiterReceived();
 
   /**
-   * Signals the upper layer that a byte of data has been received from
-   * the serial connection. It passes this byte as a function parameter.
-   */
+   * Signals the upper layer that a byte of data has been received
+   * from the serial connection. It passes this byte as a function
+   * parameter.  
+   * @param data The byte of data that has been received
+   * from the serial connection
+   */  
   async event void dataReceived(uint8_t data);
 
   /**
