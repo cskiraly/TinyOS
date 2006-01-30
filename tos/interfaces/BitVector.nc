@@ -1,4 +1,4 @@
-//$Id: BitVector.nc,v 1.1.2.1 2005-04-21 08:26:19 cssharp Exp $
+//$Id: BitVector.nc,v 1.1.2.2 2006-01-30 19:13:00 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -20,17 +20,60 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-// @author Cory Sharp <cssharp@eecs.berkeley.edu>
+/**
+ * Interface to a bit vector.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ */
 
 interface BitVector
 {
+  /**
+   * Clear all bits in the vector.
+   */
   async command void clearAll();
+
+  /**
+   * Set all bits in the vector.
+   */
   async command void setAll();
-  async command bool get( uint16_t bitnum );
-  async command void set( uint16_t bitnum );
-  async command void clear( uint16_t bitnum );
-  async command void toggle( uint16_t bitnum );
-  async command void assign( uint16_t bitnum, bool value );
+
+  /**
+   * Read a bit from the vector.
+   * @param bitnum Bit to read.
+   * @return Bit value.
+   */
+  async command bool get(uint16_t bitnum);
+
+  /**
+   * Set a bit in the vector.
+   * @param bitnum Bit to set.
+   */
+  async command void set(uint16_t bitnum);
+
+  /**
+   * Set a bit in the vector.
+   * @param bitnum Bit to clear.
+   */
+  async command void clear(uint16_t bitnum);
+
+  /**
+   * Toggle a bit in the vector.
+   * @param bitnum Bit to toggle.
+   */
+  async command void toggle(uint16_t bitnum);
+
+  /**
+   * Write a bit in the vector.
+   * @param bitnum Bit to clear.
+   * @param value New bit value.
+   */
+  async command void assign(uint16_t bitnum, bool value);
+
+  /**
+   * Return bit vector length.
+   * @return Bit vector length.
+   */
   async command uint16_t size();
 }
 

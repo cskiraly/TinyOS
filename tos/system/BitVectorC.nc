@@ -1,4 +1,4 @@
-//$Id: BitVectorC.nc,v 1.1.2.2 2006-01-10 16:48:16 idgay Exp $
+//$Id: BitVectorC.nc,v 1.1.2.3 2006-01-30 19:12:59 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -20,9 +20,17 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-// @author Cory Sharp <cssharp@eecs.berkeley.edu>
+/**
+ * Generic bit vector implementation. Note that if you use this bit vector
+ * from interrupt code, you must use appropriate <code>atomic</code>
+ * statements to ensure atomicity.
+ *
+ * @param max_bits Bit vector length.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ */
 
-generic module BitVectorC( uint16_t max_bits )
+generic module BitVectorC(uint16_t max_bits)
 {
   provides interface Init;
   provides interface BitVector;
@@ -39,12 +47,12 @@ implementation
 
   int_type m_bits[ ARRAY_SIZE ];
 
-  uint16_t getIndex( uint16_t bitnum )
+  uint16_t getIndex(uint16_t bitnum)
   {
     return bitnum / ELEMENT_SIZE;
   }
 
-  uint16_t getMask( uint16_t bitnum )
+  uint16_t getMask(uint16_t bitnum)
   {
     return 1 << (bitnum % ELEMENT_SIZE);
   }
@@ -57,40 +65,40 @@ implementation
 
   async command void BitVector.clearAll()
   {
-    memset( m_bits, 0, sizeof(m_bits) );
+    memset(m_bits, 0, sizeof(m_bits));
   }
 
   async command void BitVector.setAll()
   {
-    memset( m_bits, 255, sizeof(m_bits) );
+    memset(m_bits, 255, sizeof(m_bits));
   }
 
-  async command bool BitVector.get( uint16_t bitnum )
+  async command bool BitVector.get(uint16_t bitnum)
   {
     return (m_bits[getIndex(bitnum)] & getMask(bitnum)) ? TRUE : FALSE;
   }
 
-  async command void BitVector.set( uint16_t bitnum )
+  async command void BitVector.set(uint16_t bitnum)
   {
     m_bits[getIndex(bitnum)] |= getMask(bitnum);
   }
 
-  async command void BitVector.clear( uint16_t bitnum )
+  async command void BitVector.clear(uint16_t bitnum)
   {
     m_bits[getIndex(bitnum)] &= ~getMask(bitnum);
   }
 
-  async command void BitVector.toggle( uint16_t bitnum )
+  async command void BitVector.toggle(uint16_t bitnum)
   {
     m_bits[getIndex(bitnum)] ^= getMask(bitnum);
   }
 
-  async command void BitVector.assign( uint16_t bitnum, bool value )
+  async command void BitVector.assign(uint16_t bitnum, bool value)
   {
-    if( value )
-      call BitVector.set( bitnum );
+    if(value)
+      call BitVector.set(bitnum);
     else
-      call BitVector.clear( bitnum );
+      call BitVector.clear(bitnum);
   }
 
   async command uint16_t BitVector.size()
