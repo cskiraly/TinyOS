@@ -37,7 +37,7 @@
  * multiply by 3.
  *
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-01-27 23:51:36 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-01-30 17:47:04 $
  */
 
 generic configuration Msp430InternalVoltageC() {
@@ -54,8 +54,4 @@ implementation {
   components Msp430InternalVoltageP;
   AdcReadClientC.Msp430Adc12Config -> Msp430InternalVoltageP;
   AdcReadStreamClientC.Msp430Adc12Config -> Msp430InternalVoltageP;
-
-  components MainC;
-  MainC.SoftwareInit -> AdcReadClientC;
-  MainC.SoftwareInit -> AdcReadStreamClientC;
 }
