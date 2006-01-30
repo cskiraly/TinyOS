@@ -27,63 +27,85 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-30 17:44:12 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-30 18:49:39 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
         
+/**
+ * The HplAdc12 interface exports low-level access to the ADC12 registers
+ * of the MSP430 MCU. The ADC subsytem is discussed in TEP 101.
+ *
+ * @author Jan Hauer
+ */
 #include <Msp430Adc12.h>
 interface HplAdc12
 {
-  /** Setting ADC12 Control Register ADC12CTL0 */
+  /** 
+   * Sets the ADC12 control register ADC12CTL0.
+   * @param control0 ADC12CTL0 register data.
+   **/
   async command void setCtl0(adc12ctl0_t control0); 
   
-  /** Setting ADC12 Control Register ADC12CTL1 */
+  /** 
+   * Sets the ADC12 control register ADC12CTL1. 
+   * @param control1 ADC12CTL1 register data.
+   **/
   async command void setCtl1(adc12ctl1_t control1);
 
-  /** Returns the ADC12 Control Register ADC12CTL0 */
+  /** 
+   * Returns the ADC12 control register ADC12CTL0.
+   * @return ADC12CTL0
+   **/
   async command adc12ctl0_t getCtl0(); 
 
-  /** Returns the ADC12 Control Register ADC12CTL1 */
+  /** Returns the ADC12 control register ADC12CTL1. 
+   *  @return ADC12CTL1
+   **/
   async command adc12ctl1_t getCtl1(); 
   
   /** 
-   * Setting the ADC12 Conversion Memory Control Register ADC12MCTLx.
-   * @param index The register (the 'x' in ADC12MCTLx) [0..15] 
+   * Sets the ADC12 conversion memory control register ADC12MCTLx.
+   * @param index The register index (the 'x' in ADC12MCTLx) [0..15] 
+   * @param memControl ADC12MCTLx register data.
    */
   async command void setMCtl(uint8_t index, adc12memctl_t memControl); 
   
   /** 
-   * Returns the ADC12 Conversion Memory Control Register ADC12MCTLx.
-   * @param index The register (the 'x' in ADC12MCTLx) [0..15] 
+   * Returns the ADC12 conversion memory control register ADC12MCTLx.
+   * @param index The register index (the 'x' in ADC12MCTLx) [0..15] 
+   * @return memControl ADC12MCTLx register data.
    */
   async command adc12memctl_t getMCtl(uint8_t index); 
 
   /** 
-   * Returns the ADC12 Conversion Memory Registers ADC12MEMx.
-   * @param index The register (the 'x' in ADC12MEMx) [0..15] 
+   * Returns the ADC12 conversion memory register ADC12MEMx.
+   * @param index The register index (the 'x' in ADC12MEMx) [0..15] 
+   * @return ADC12MEMx 
    */  
   async command uint16_t getMem(uint8_t index); 
 
   /** 
-   * Setting the ADC12 Interrupt Enable Register, ADC12IE.
-   * @param mask Bitmask (0 Interrupt disabled, 1 Interrupt enabled) 
+   * Sets the ADC12 interrupt enable register, ADC12IE.
+   * @param mask Bitmask (0 means interrupt disabled, 1 menas interrupt enabled) 
    */
   async command void setIEFlags(uint16_t mask); 
 
   /** 
-   * Returns the ADC12 Interrupt Enable Register, ADC12IE.
+   * Returns the ADC12 interrupt enable register, ADC12IE.
+   * @return ADC12IE
    */  
   async command uint16_t getIEFlags(); 
   
   /** 
-   * Resets the ADC12 Interrupt Flag Register, ADC12IFG.
+   * Resets the ADC12 interrupt flag register, ADC12IFG.
    */
   async command void resetIFGs(); 
 
   /** 
-   * Returns the ADC12 Interrupt Flag Register, ADC12IFG.
+   * Returns the ADC12 interrupt flag register, ADC12IFG.
+   * @return ADC12IFG
    */  
   async command uint16_t getIFGs(); 
 
@@ -104,69 +126,74 @@ interface HplAdc12
   async event void conversionDone(uint16_t iv);
 
   /** 
-   * The ADC12 BUSY flag.
+   * Returns the ADC12 BUSY flag.
+   * @return ADC12BUSY 
    */ 
   async command bool isBusy();
 
-  /* 
-   * Note: setConversionMode and setSHT etc. require ENC-flag to be reset! 
-   * (disableConversion)
-   */
-
   /** 
-   * Setting the Sample-and-hold time flags, SHT0x and SHT1x .
+   * Sets the Sample-and-hold time flags, SHT0x and SHT1x.
+   * Requires ENC-flag to be reset (disableConversion) !
    * @param sht Sample-and-hold, top 4 bits = SHT1x, lower 4 bits = SHT0x
    */
   async command void setSHT(uint8_t sht);
 
   /** 
-   * Setting the Multiple sample and conversion flag, MSC in ADC12CTL0. 
+   * Sets the multiple sample and conversion flag, MSC in ADC12CTL0. 
+   * Requires ENC-flag to be reset (disableConversion) !
    */
   async command void setMSC();
  
   /** 
-   * Resetting the Multiple sample and conversion flag, MSC in ADC12CTL0.
+   * Resets the multiple sample and conversion flag, MSC in ADC12CTL0.
+   * Requires ENC-flag to be reset (disableConversion) !
    */
   async command void resetMSC();
 
   /** 
-   * Setting the REFON in ADC12CTL0. 
+   * Sets the REFON in ADC12CTL0. 
+   * Requires ENC-flag to be reset (disableConversion) !
    */
   async command void setRefOn();
 
   /** 
-   * Resetting the REFON in ADC12CTL0. 
+   * Resets the REFON in ADC12CTL0. 
+   * Requires ENC-flag to be reset (disableConversion) !
    */
   async command void resetRefOn();
 
   /** 
-   * Returns the REFON in ADC12CTL0. 
+   * Returns the REFON flag in ADC12CTL0. 
+   * @return REFON
    */
-  async command uint8_t getRefon();     // off if 0, else on
+  async command uint8_t getRefon();     
 
   /** 
-   * Setting the reference generator voltage to 1.5V. 
+   * Sets the reference generator voltage to 1.5V. 
+   * Requires ENC-flag to be reset (disableConversion) !
    */
   async command void setRef1_5V();
 
   /** 
-   * Setting the reference generator voltage to 2.5V. 
+   * Sets the reference generator voltage to 2.5V. 
+   * Requires ENC-flag to be reset (disableConversion) !
    */
   async command void setRef2_5V();
 
   /** 
-   * Returns 1 if  reference generator voltage is 2.5V, 
-   * returns 0 if  reference generator voltage is 1.5V, 
+   * Returns reference voltage level (REF2_5V flag). 
+   * @return 0 if reference generator voltage is 1.5V, 
+   * 1 if  reference generator voltage is 2.5V
    */
   async command uint8_t isRef2_5V(); 
    
   /**
-   * Enables a conversion (sets the ENC flag)
+   * Enables a conversion (sets the ENC flag).
    */
   async command void enableConversion();
 
   /**
-   * Disables a conversion (resets the ENC flag)
+   * Disables a conversion (resets the ENC flag).
    */
   async command void disableConversion();
 
