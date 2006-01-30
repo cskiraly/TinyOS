@@ -27,190 +27,251 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-06 16:15:31 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-30 17:28:30 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
- * @author: Kevin Klues <klues@tkn.tu-berlin.de>
  * ========================================================================
  */
-
-includes Timer;
+#include <Timer.h>
 module Msp430RefVoltGeneratorP
 {
-  provides interface Msp430RefVoltGenerator as Generator;
+  provides interface SplitControl as RefVolt_1_5V;
+  provides interface SplitControl as RefVolt_2_5V;
   uses {
     interface HplAdc12;
     interface Timer<TMilli> as SwitchOnTimer;
     interface Timer<TMilli> as SwitchOffTimer;
   }
-}
-
-implementation
-{
+} implementation {
+  
   enum
   {
-    REFERENCE_OFF,
+    GENERATOR_OFF,
     REFERENCE_1_5V_PENDING, 
     REFERENCE_2_5V_PENDING,
     REFERENCE_1_5V_STABLE,
     REFERENCE_2_5V_STABLE,
   };
 
-  norace uint8_t semaCount;
-  norace uint8_t state;
-  norace bool switchOff;
-  
-  inline void switchRefOn(uint8_t voltageLevel);
-  inline void switchRefOff();
-  inline void switchToRefStable(uint8_t voltageLevel);
-  inline void switchToRefPending(uint8_t voltageLevel);
-  
-  task void switchOnDelay();
-  task void switchOffDelay();
-  task void switchOffRetry();
-  
-  async command error_t Generator.switchOn(uint8_t voltageLevel)
+  uint8_t state;
+
+  error_t switchOn(uint8_t level)
   {
-    error_t result = SUCCESS;
     atomic {
-      if (semaCount == 0) {
-        if (call HplAdc12.isBusy())
-          result = FAIL;
-        else {
-          if (state == REFERENCE_OFF)
-            switchRefOn(voltageLevel);
-          else if ((state == REFERENCE_1_5V_PENDING && voltageLevel == REFERENCE_2_5V) ||
-                  (state == REFERENCE_2_5V_PENDING && voltageLevel == REFERENCE_1_5V))
-                    switchToRefPending(voltageLevel);
-          else if ((state == REFERENCE_1_5V_STABLE  && voltageLevel == REFERENCE_2_5V) ||
-                  (state == REFERENCE_2_5V_STABLE  && voltageLevel == REFERENCE_1_5V))
-                    switchToRefStable(voltageLevel);
-          semaCount++;
-          switchOff = FALSE;
-          result = SUCCESS;
-        }
-      }
-      else if((state == REFERENCE_1_5V_PENDING && voltageLevel == REFERENCE_1_5V) ||
-              (state == REFERENCE_2_5V_PENDING && voltageLevel == REFERENCE_2_5V) ||
-              (state == REFERENCE_1_5V_STABLE  && voltageLevel == REFERENCE_1_5V) ||
-              (state == REFERENCE_2_5V_STABLE  && voltageLevel == REFERENCE_2_5V)) {
-        semaCount++;
-        switchOff = FALSE;
-        result = SUCCESS;
-      }
-      else result = FAIL;
-    }
-    return result;
-  }
-  
-  inline void switchRefOn(uint8_t voltageLevel) {
-    call HplAdc12.disableConversion();
-    call HplAdc12.setRefOn();
-    if (voltageLevel == REFERENCE_1_5V){
-      call HplAdc12.setRef1_5V();
-      atomic state = REFERENCE_1_5V_PENDING;
-    } 
-    else {
-      call HplAdc12.setRef2_5V();
-      atomic state = REFERENCE_2_5V_PENDING;
-    }  
-    post switchOnDelay();
-  }
-  
-  inline void switchToRefPending(uint8_t voltageLevel) {
-    switchRefOn(voltageLevel);
-  }
-  
-  inline void switchToRefStable(uint8_t voltageLevel) {
-    switchRefOn(voltageLevel);
-  }
-        
-  task void switchOnDelay(){
-    call SwitchOnTimer.startOneShot(STABILIZE_INTERVAL);
-  }
-
-  event void SwitchOnTimer.fired() {
-    atomic {
-      if (state == REFERENCE_1_5V_PENDING)
-        state = REFERENCE_1_5V_STABLE;
-      if (state == REFERENCE_2_5V_PENDING)
-        state = REFERENCE_2_5V_STABLE;
-    }
-    if (state == REFERENCE_1_5V_STABLE)
-      signal Generator.isStable(REFERENCE_1_5V);    
-    if (state == REFERENCE_2_5V_STABLE)
-      signal Generator.isStable(REFERENCE_2_5V);         
-  }
-
-  async command error_t Generator.switchOff() {
-    error_t result = FAIL;
-    
-    atomic {
-      if(semaCount <= 0)
-        result = FAIL;
+      if (call HplAdc12.isBusy())
+        return FAIL;
       else {
-        semaCount--;
-        if(semaCount == 0) {
-          if(state == REFERENCE_1_5V_PENDING ||
-             state == REFERENCE_2_5V_PENDING) {
-            switchOff = TRUE;
-            switchRefOff();
-          }
-          else {
-            switchOff = TRUE;
-            post switchOffDelay();
-          }
-          result = SUCCESS;
-        }
+        call HplAdc12.disableConversion();
+        call HplAdc12.setRefOn();
+        if (level == REFERENCE_1_5V_PENDING)
+          call HplAdc12.setRef1_5V();
+        else
+          call HplAdc12.setRef2_5V();
+        return SUCCESS;
       }
-    }  
-    return result;
+    }
   }
-  
-  inline void switchRefOff() {
-    error_t result;
-  
+    
+  error_t switchOff()
+  {
     atomic {
-      if(switchOff == FALSE)
-        result = FAIL;
-      else if(call HplAdc12.isBusy()) {
-        result = FAIL; 
-      }
+      if (call HplAdc12.isBusy())
+        return FAIL;
       else {
         call HplAdc12.disableConversion();
         call HplAdc12.resetRefOn();
-        state = REFERENCE_OFF;
-        result = SUCCESS;
+        return SUCCESS;
       }
     }
-    if(switchOff == TRUE && result == FAIL)
-      post switchOffRetry();
+  }  
+    
+  command error_t RefVolt_1_5V.start()
+  {
+    switch (state)
+    {
+      case REFERENCE_1_5V_STABLE:
+        call SwitchOffTimer.stop();
+        signal RefVolt_1_5V.startDone(SUCCESS);
+        return SUCCESS;
+      case GENERATOR_OFF:
+        if (switchOn(REFERENCE_1_5V_PENDING) == SUCCESS){
+          call SwitchOnTimer.startOneShot(STABILIZE_INTERVAL);
+          state = REFERENCE_1_5V_PENDING;
+          return SUCCESS;
+        } else
+          return FAIL;
+      case REFERENCE_2_5V_STABLE:
+        if (switchOn(REFERENCE_1_5V_PENDING) == SUCCESS){
+          call SwitchOffTimer.stop();
+          state = REFERENCE_1_5V_STABLE;
+          signal RefVolt_1_5V.startDone(SUCCESS);
+          return SUCCESS;
+        } else
+          return FAIL;         
+      case REFERENCE_1_5V_PENDING:
+        // fall through
+      case REFERENCE_2_5V_PENDING:
+        // fall through
+      default:
+        // illegal state
+        return FAIL;
+    }
   }
-            
-  task void switchOffDelay(){
-    if(switchOff == TRUE)
-      call SwitchOffTimer.startOneShot(SWITCHOFF_INTERVAL); 
+
+  command error_t RefVolt_1_5V.stop()
+  {
+    switch (state)
+    {
+      case REFERENCE_1_5V_PENDING:
+        // fall through
+      case REFERENCE_2_5V_PENDING:
+        if (switchOff() == SUCCESS){
+          call SwitchOnTimer.stop();
+          state = GENERATOR_OFF;
+          if (state == REFERENCE_1_5V_PENDING)
+            signal RefVolt_1_5V.stopDone(SUCCESS);
+          else
+            signal RefVolt_2_5V.stopDone(SUCCESS);
+          return SUCCESS;
+        } else 
+          return FAIL;
+      case REFERENCE_1_5V_STABLE:
+        // fall through
+      case REFERENCE_2_5V_STABLE:
+        call SwitchOffTimer.startOneShot(SWITCHOFF_INTERVAL);
+        return SUCCESS;
+      case GENERATOR_OFF:
+        // fall through
+      default:
+        // illegal state
+        return FAIL;
+    }
+  }
+
+  command error_t RefVolt_2_5V.start()
+  {
+    switch (state)
+    {
+      case REFERENCE_2_5V_STABLE:
+        call SwitchOffTimer.stop();
+        signal RefVolt_2_5V.startDone(SUCCESS);
+        return SUCCESS;
+      case GENERATOR_OFF:
+        if (switchOn(REFERENCE_2_5V_PENDING) == SUCCESS){
+          call SwitchOnTimer.startOneShot(STABILIZE_INTERVAL);
+          state = REFERENCE_2_5V_PENDING;
+          return SUCCESS;
+        } else
+          return FAIL;
+      case REFERENCE_1_5V_STABLE:
+        if (switchOn(REFERENCE_2_5V_PENDING) == SUCCESS){
+          call SwitchOffTimer.stop();
+          state = REFERENCE_2_5V_STABLE;
+          signal RefVolt_2_5V.startDone(SUCCESS);
+          return SUCCESS;
+        } else
+          return FAIL;         
+      case REFERENCE_2_5V_PENDING:
+        // fall through
+      case REFERENCE_1_5V_PENDING:
+        // fall through
+      default:
+        // illegal state
+        return FAIL;
+    }
   }
   
-  task void switchOffRetry(){
-    if(switchOff == TRUE)
-      call SwitchOffTimer.startOneShot(SWITCHOFF_RETRY); 
+  command error_t RefVolt_2_5V.stop()
+  {
+    switch (state)
+    {
+      case REFERENCE_2_5V_PENDING:
+        // fall through
+      case REFERENCE_1_5V_PENDING:
+        if (switchOff() == SUCCESS){
+          call SwitchOnTimer.stop();
+          state = GENERATOR_OFF;
+          if (state == REFERENCE_2_5V_PENDING)
+            signal RefVolt_2_5V.stopDone(SUCCESS);
+          else
+            signal RefVolt_1_5V.stopDone(SUCCESS);
+          return SUCCESS;
+        } else 
+          return FAIL;
+      case REFERENCE_2_5V_STABLE:
+        // fall through
+      case REFERENCE_1_5V_STABLE:
+        call SwitchOffTimer.startOneShot(SWITCHOFF_INTERVAL);
+        return SUCCESS;
+      case GENERATOR_OFF:
+        // fall through
+      default:
+        // illegal state
+        return FAIL;
+    }
   }
-             
-  event void SwitchOffTimer.fired() {
-    switchRefOff();
+
+  event void SwitchOnTimer.fired() 
+  {
+    switch (state)
+    {
+      case REFERENCE_1_5V_PENDING:
+        state = REFERENCE_1_5V_STABLE;
+        signal RefVolt_1_5V.startDone(SUCCESS);
+        break;
+      case REFERENCE_2_5V_PENDING:
+         state = REFERENCE_2_5V_STABLE;
+        signal RefVolt_2_5V.startDone(SUCCESS);
+        break;
+      case REFERENCE_1_5V_STABLE:
+        // fall through
+      case GENERATOR_OFF:
+        // fall through
+      case REFERENCE_2_5V_STABLE:
+        // fall through
+      default:
+        // illegal state
+        return;
+    }
   }
-  
-  async command uint8_t Generator.getVoltageLevel() {
-    if (state == REFERENCE_2_5V_STABLE)
-      return REFERENCE_2_5V;
-    if (state == REFERENCE_1_5V_STABLE)
-      return REFERENCE_1_5V;
-    return REFERENCE_UNSTABLE;
+    
+  event void SwitchOffTimer.fired() 
+  {
+    switch (state)
+    {
+      case REFERENCE_1_5V_STABLE:
+        if (switchOff() == SUCCESS){
+          state = GENERATOR_OFF;
+          signal RefVolt_1_5V.stopDone(SUCCESS);
+        } else
+          call SwitchOffTimer.startOneShot(SWITCHOFF_INTERVAL);
+        break;
+      case REFERENCE_2_5V_STABLE:
+        if (switchOff() == SUCCESS){
+          state = GENERATOR_OFF;
+          signal RefVolt_2_5V.stopDone(SUCCESS);
+        } else
+          call SwitchOffTimer.startOneShot(SWITCHOFF_INTERVAL);
+        break;
+      case GENERATOR_OFF:
+        // fall through
+      case REFERENCE_1_5V_PENDING:
+        // fall through
+      case REFERENCE_2_5V_PENDING:
+        // fall through
+      default:
+        // illegal state
+        return;
+    }
   }
-  
+
   async event void HplAdc12.memOverflow(){}
   async event void HplAdc12.conversionTimeOverflow(){}
   async event void HplAdc12.conversionDone(uint16_t iv){}
+
+  default event void RefVolt_1_5V.startDone(error_t error){}
+  default event void RefVolt_2_5V.startDone(error_t error){}
+  default event void RefVolt_1_5V.stopDone(error_t error){}
+  default event void RefVolt_2_5V.stopDone(error_t error){}
 }
 

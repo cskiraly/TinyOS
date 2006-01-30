@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Technische Universitaet Berlin
+ * Copyright (c) 2004, Technische Universität Berlin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -10,7 +10,7 @@
  * - Redistributions in binary form must reproduce the above copyright 
  *   notice, this list of conditions and the following disclaimer in the 
  *   documentation and/or other materials provided with the distribution.
- * - Neither the name of the Technische Universitaet Berlin nor the names 
+ * - Neither the name of the Technische Universität Berlin nor the names 
  *   of its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -27,21 +27,33 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-01-30 17:28:30 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
-#ifndef REFVOLTGENERATOR_H
-#define REFVOLTGENERATOR_H
+configuration Msp430RefVoltArbiterC
+{
+  provides interface Resource as ClientResource[uint8_t client];
+  uses {
+    interface Resource as AdcResource[uint8_t client];
+    interface Msp430Adc12Config as Config[uint8_t client];
+  }
+} implementation {
+  components Msp430RefVoltGeneratorP, Msp430RefVoltArbiterP,
+             new TimerMilliC() as SwitchOnDelayTimer, 
+             new TimerMilliC() as SwitchOffDelayTimer,
+             HplAdc12P;
 
-// Time for generator to become stable (don't change).
-#define STABILIZE_INTERVAL 17
+  ClientResource = Msp430RefVoltArbiterP.ClientResource;
+  AdcResource = Msp430RefVoltArbiterP.AdcResource;
+  Config = Msp430RefVoltArbiterP;
 
-// Delay before generator is switched off after it has been stopped (in ms). 
-// This avoids having to wait the 17ms in case the generator is needed again
-// shortly after it has been stopped (value may be modified).
-#define SWITCHOFF_INTERVAL 100
+  Msp430RefVoltArbiterP.RefVolt_1_5V -> Msp430RefVoltGeneratorP.RefVolt_1_5V;
+  Msp430RefVoltArbiterP.RefVolt_2_5V -> Msp430RefVoltGeneratorP.RefVolt_2_5V;
+  Msp430RefVoltGeneratorP.SwitchOnTimer -> SwitchOnDelayTimer;
+  Msp430RefVoltGeneratorP.SwitchOffTimer -> SwitchOffDelayTimer;
+  Msp430RefVoltGeneratorP.HplAdc12 -> HplAdc12P;
+}  
 
-#endif
