@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-13 18:43:20 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-30 18:07:15 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -39,6 +39,7 @@
  * respective subdirectory.
  */
 
+#include <sensors.h>
 module SensorSettingsC {
   provides interface Msp430Adc12Config[uint8_t type];  
 }
