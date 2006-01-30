@@ -1,4 +1,4 @@
-//$Id: AlarmToTimerC.nc,v 1.1.2.5 2005-10-11 22:04:54 scipio Exp $
+//$Id: AlarmToTimerC.nc,v 1.1.2.6 2006-01-30 20:25:03 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -20,9 +20,15 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-// @author Cory Sharp <cssharp@eecs.berkeley.edu>
+/**
+ * AlarmToTimerC converts a 32-bit Alarm to a Timer.  
+ * @param precision_tag A type indicating the precision of the Alarm and
+ * Timer being converted.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ */
 
-generic module AlarmToTimerC( typedef precision_tag )
+generic module AlarmToTimerC(typedef precision_tag)
 {
   provides interface Timer<precision_tag>;
   uses interface Alarm<precision_tag,uint32_t>;
@@ -35,27 +41,27 @@ implementation
   uint32_t m_dt;
   bool m_oneshot;
 
-  void start( uint32_t t0, uint32_t dt, bool oneshot )
+  void start(uint32_t t0, uint32_t dt, bool oneshot)
   {
     m_t0 = t0;
     m_dt = dt;
     m_oneshot = oneshot;
-    call Alarm.startAt( t0, dt );
+    call Alarm.startAt(t0, dt);
   }
 
-  command void Timer.startPeriodic( uint32_t dt )
-  { start( call Alarm.getNow(), dt, FALSE ); }
+  command void Timer.startPeriodic(uint32_t dt)
+  { start(call Alarm.getNow(), dt, FALSE); }
 
-  command void Timer.startOneShot( uint32_t dt )
-  { start( call Alarm.getNow(), dt, TRUE ); }
+  command void Timer.startOneShot(uint32_t dt)
+  { start(call Alarm.getNow(), dt, TRUE); }
 
   command void Timer.stop()
   { call Alarm.stop(); }
 
   task void fired()
   { 
-    if( m_oneshot == FALSE )
-      start( call Alarm.getAlarm(), m_dt, FALSE );
+    if(m_oneshot == FALSE)
+      start(call Alarm.getAlarm(), m_dt, FALSE);
     signal Timer.fired();
   }
 
@@ -68,11 +74,11 @@ implementation
   command bool Timer.isOneShot()
   { return m_oneshot; }
 
-  command void Timer.startPeriodicAt( uint32_t t0, uint32_t dt )
-  { start( t0, dt, FALSE ); }
+  command void Timer.startPeriodicAt(uint32_t t0, uint32_t dt)
+  { start(t0, dt, FALSE); }
 
-  command void Timer.startOneShotAt( uint32_t t0, uint32_t dt )
-  { start( t0, dt, TRUE ); }
+  command void Timer.startOneShotAt(uint32_t t0, uint32_t dt)
+  { start(t0, dt, TRUE); }
 
   command uint32_t Timer.getNow()
   { return call Alarm.getNow(); }
