@@ -1,4 +1,4 @@
-// $Id: TestRadioC.nc,v 1.1.1.1 2005-11-05 16:38:03 kristinwright Exp $
+// $Id: TestRadioC.nc,v 1.1.1.1.2.1 2006-01-30 21:33:10 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -42,17 +42,17 @@ configuration TestRadioC
 }
 implementation
 {
-  components Main, TestRadioM, new TimerMilli() as Timer0, LedsC, CSMARadioC;
+  components MainC, TestRadioM, new TimerMilliC() as Timer0, LedsC,
+    CC1000CsmaRadioC as Radio;
 
-  TestRadioM -> Main.Boot;
-  Main.SoftwareInit -> LedsC;
-  Main.SoftwareInit -> CSMARadioC;
+  TestRadioM -> MainC.Boot;
+  MainC.SoftwareInit -> LedsC;
+  MainC.SoftwareInit -> Radio;
 
-  TestRadioM.SplitControl -> CSMARadioC;
-  TestRadioM.Send -> CSMARadioC;
-  TestRadioM.Receive -> CSMARadioC;
+  TestRadioM.SplitControl -> Radio;
+  TestRadioM.Send -> Radio;
+  TestRadioM.Receive -> Radio;
   TestRadioM.Timer0 -> Timer0;
   TestRadioM.Leds -> LedsC;
-
 }
 
