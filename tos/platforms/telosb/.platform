@@ -10,6 +10,9 @@ push( @includes, qw(
   %T/platforms/telosb/chips/stm25p
   %T/platforms/telosa
   %T/platforms/telosa/chips/cc2420
+  %T/platforms/telosa/chips/s1087
+  %T/platforms/telosa/chips/s10871
+  %T/platforms/telosa/chips/sht11
   %T/chips/cc2420
   %T/chips/msp430
   %T/chips/msp430/adc12
@@ -18,10 +21,11 @@ push( @includes, qw(
   %T/chips/msp430/usart
   %T/chips/msp430/sensors
   %T/chips/stm25p
+  %T/chips/sht11
   %T/lib/timer
   %T/lib/serial
   %T/lib/adc
-
+  %T/lib/power
 ) );
 
 @opts = qw(
