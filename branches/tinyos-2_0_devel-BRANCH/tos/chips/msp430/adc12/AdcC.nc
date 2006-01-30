@@ -27,28 +27,28 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.7 $
- * $Date: 2006-01-27 23:49:43 $
+ * $Revision: 1.1.2.8 $
+ * $Date: 2006-01-30 17:45:56 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
 module AdcC {
   provides {
-    interface Init;
     interface Read<uint16_t> as Read[uint8_t client];
     interface ReadNow<uint16_t> as ReadNow[uint8_t client];
     interface ReadStream<uint16_t> as ReadStream[uint8_t rsClient];
   }
   uses {
-    // for Read and ReadNow:
+    // for Read only:
     interface Resource as Resource[uint8_t client];
+    // for Read and ReadNow:
     interface Msp430Adc12Config as Config[uint8_t client];
     interface Msp430Adc12SingleChannel as SingleChannel[uint8_t client];
-    // for ReadStream:
-    interface Resource as ResourceReadStream[uint8_t rsClient];
+    // for ReadStream only:
     interface Msp430Adc12Config as ConfigReadStream[uint8_t rsClient];
     interface Msp430Adc12SingleChannel as SingleChannelReadStream[uint8_t rsClient];
+    interface Resource as ResourceReadStream[uint8_t rsClient];
   }
 }
 implementation
@@ -78,19 +78,6 @@ implementation
   void task finishStreamRequest();
   void task signalBufferDone();
   void nextReadStreamRequest(uint8_t rsClient);
-
-  command error_t Init.init()
-  {
-    uint16_t i;
-    for (i=0; i<uniqueCount(ADCC_READ_STREAM_SERVICE); i++){
-      streamBuf[i] = 0;
-      usPeriod[i] = 0;
-    }
-    ignore = FALSE;
-    state = owner = value = 0;
-    resultBuf = 0;
-    return SUCCESS;
-  }
   
   command error_t Read.read[uint8_t client]()
   {
@@ -100,45 +87,26 @@ implementation
   async command error_t ReadNow.read[uint8_t client]()
   {
     msp430adc12_channel_config_t settings;
-    msp430adc12_result_t hal1request;
-    error_t granted = call Resource.immediateRequest[client]();
+    error_t hal1request;
     
-    if (granted == SUCCESS){
-      settings = call Config.getChannelSettings[client]();
-      if (settings.inch == INPUT_CHANNEL_NONE){
-        call Resource.release[client]();
-        return EINVAL;
-      }
-      hal1request = call SingleChannel.getSingleData[client](&settings);
-      if (hal1request == MSP430ADC12_SUCCESS){
-        state = READ_NOW;
-        return SUCCESS;
-      } else {
-        if (hal1request == MSP430ADC12_DELAYED){
-          // delayed conversion not acceptable for ReadNow
-          error_t stopped = call SingleChannel.stop[client]();
-          if (stopped == SUCCESS){
-            call Resource.release[client]();
-            return EOFF;
-          } else {
-            // will get the singleDataReady, but have to ignore it 
-            ignore = TRUE;
-            return EOFF;
-          }
-        } else {
-          call Resource.release[client]();
-          return EBUSY;
-        }
-      }
-    }
-    return granted;
+    settings = call Config.getChannelSettings[client]();
+    if (settings.inch == INPUT_CHANNEL_NONE)
+      return EINVAL; // Config not wired ?!
+    
+    // There is no automatic Resource reservation for ReadNow, 
+    // but getSingleData() will fail if the client has not
+    // reserved, because HAL1 checks ownership at runtime
+    hal1request = call SingleChannel.getSingleData[client](&settings);
+    if (hal1request == SUCCESS)
+      state = READ_NOW;
+    return hal1request;
   }
 
   event void Resource.granted[uint8_t client]() 
   {
-    // signalled only for Read (ReadNow uses immediateRequest)
+    // signalled only for Read
     msp430adc12_channel_config_t settings;
-    msp430adc12_result_t hal1request;
+    error_t hal1request;
     
     settings = call Config.getChannelSettings[client]();
     if (settings.inch == INPUT_CHANNEL_NONE){
@@ -147,7 +115,7 @@ implementation
       return;
     }
     hal1request = call SingleChannel.getSingleData[client](&settings);
-    if (hal1request == MSP430ADC12_SUCCESS || hal1request == MSP430ADC12_DELAYED){
+    if (hal1request == SUCCESS){
       state = READ;
       owner = client;
     } else {
@@ -171,7 +139,6 @@ implementation
         post readDone();
         break;
       case READ_NOW:  
-        call Resource.release[client]();
         if (ignore == TRUE)
           ignore = FALSE;
         else
@@ -221,7 +188,7 @@ implementation
   
   event void ResourceReadStream.granted[uint8_t rsClient]() 
   {
-    msp430adc12_result_t hal1request;
+    error_t hal1request;
     struct list_entry_t *entry = streamBuf[rsClient];
     msp430adc12_channel_config_t settings = 
       call ConfigReadStream.getChannelSettings[rsClient]();
@@ -239,7 +206,7 @@ implementation
     streamBuf[rsClient] = entry->next;
     hal1request = call SingleChannelReadStream.getMultipleData[rsClient](
       &streamSettings, (uint16_t *) entry, entry->count, usPeriod[rsClient]);
-    if (hal1request != MSP430ADC12_SUCCESS && hal1request != MSP430ADC12_DELAYED){
+    if (hal1request != SUCCESS){
       streamBuf[rsClient] = entry;
       post finishStreamRequest();
       return;
@@ -265,7 +232,7 @@ implementation
   async event uint16_t* SingleChannelReadStream.multipleDataReady[uint8_t rsClient](
       uint16_t *buf, uint16_t length)
   {
-    msp430adc12_result_t nextRequest;
+    error_t nextRequest;
     
     if (!resultBuf){
       value = length;
@@ -279,7 +246,7 @@ implementation
         streamBuf[rsClient] = streamBuf[rsClient]->next;
         nextRequest = call SingleChannelReadStream.getMultipleData[rsClient](
           &streamSettings, (uint16_t *) entry, entry->count, usPeriod[rsClient]);
-        if (nextRequest != MSP430ADC12_SUCCESS && nextRequest != MSP430ADC12_DELAYED){
+        if (nextRequest != SUCCESS){
           streamBuf[owner] = entry;
           post finishStreamRequest();
         }
@@ -318,15 +285,10 @@ implementation
 			 uint16_t* buf, uint16_t count ){}
   default event void ReadStream.readDone[uint8_t rsClient]( error_t result ){ } 
 
-  default async command msp430adc12_result_t 
+  default async command error_t 
     SingleChannel.getSingleData[uint8_t client](const msp430adc12_channel_config_t *config)
   {
-    return MSP430ADC12_FAIL_PARAMS;
-  }
-  
-  default async command error_t SingleChannel.stop[uint8_t client]()
-  {
-    return SUCCESS;
+    return EINVAL;
   }
 
   default async command msp430adc12_channel_config_t 
@@ -336,12 +298,12 @@ implementation
     return defaultConfig;
   }
 
-  default async command msp430adc12_result_t 
+  default async command error_t 
     SingleChannelReadStream.getMultipleData[uint8_t client](
       const msp430adc12_channel_config_t *config,
       uint16_t *buf, uint16_t length, uint16_t jiffies)
   {
-    return MSP430ADC12_FAIL_PARAMS;
+    return EINVAL;
   }
 
   default async command msp430adc12_channel_config_t 
