@@ -1,4 +1,4 @@
-//$Id: BusyWaitCounterC.nc,v 1.1.2.4 2005-10-11 19:49:10 cssharp Exp $
+//$Id: BusyWaitCounterC.nc,v 1.1.2.5 2006-01-30 20:25:03 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -20,13 +20,22 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
+#include "Timer.h"
 
-// The TinyOS Timer interfaces are discussed in TEP 102.
+/**
+ * BusyWaitCounterC uses a Counter to implement the BusyWait interface
+ * (block until a specified amount of time elapses). See TEP102 for more
+ * details.
+ *
+ * @param precision_tag A type indicating the precision of the BusyWait
+ *   interface.
+ * @param size_type An integer type representing time values for the
+ *   BusyWait interface.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ */
 
-includes Timer;
-
-generic module BusyWaitC( typedef precision_tag, typedef size_type @integer() )
+generic module BusyWaitC(typedef precision_tag, typedef size_type @integer())
 {
   provides interface BusyWait<precision_tag,size_type>;
   uses interface Counter<precision_tag,size_type>;
@@ -38,7 +47,7 @@ implementation
     HALF_MAX_SIZE_TYPE = ((size_type)1) << (8*sizeof(size_type)-1),
   };
 
-  async command void BusyWait.wait( size_type dt )
+  async command void BusyWait.wait(size_type dt)
   {
     atomic
     {
@@ -46,15 +55,15 @@ implementation
 
       size_type t0 = call Counter.get();
 
-      if( dt > HALF_MAX_SIZE_TYPE )
+      if(dt > HALF_MAX_SIZE_TYPE)
       {
         dt -= HALF_MAX_SIZE_TYPE;
-	while( (call Counter.get() - t0) <= dt );
+	while((call Counter.get() - t0) <= dt);
         t0 += dt;
         dt = HALF_MAX_SIZE_TYPE;
       }
 
-      while( (call Counter.get() - t0) <= dt );
+      while((call Counter.get() - t0) <= dt);
     }
   }
 

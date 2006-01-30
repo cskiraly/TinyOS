@@ -1,4 +1,4 @@
-//$Id: TransformAlarmC.nc,v 1.1.2.8 2005-10-11 22:14:50 idgay Exp $
+//$Id: TransformAlarmC.nc,v 1.1.2.9 2006-01-30 20:25:03 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -24,12 +24,12 @@
 
 // The TinyOS Timer interfaces are discussed in TEP 102.
 
-generic module TransformAlarmC( 
+generic module TransformAlarmC(
   typedef to_precision_tag,
   typedef to_size_type @integer(),
   typedef from_precision_tag,
   typedef from_size_type @integer(),
-  uint8_t bit_shift_right )
+  uint8_t bit_shift_right)
 {
   provides interface Alarm<to_precision_tag,to_size_type> as Alarm;
   uses interface Counter<to_precision_tag,to_size_type> as Counter;
@@ -107,7 +107,7 @@ implementation
 			   (from_size_type)remaining << bit_shift_right);
   }
 
-  async command void Alarm.startAt( to_size_type t0, to_size_type dt )
+  async command void Alarm.startAt(to_size_type t0, to_size_type dt)
   {
     atomic
     {
@@ -117,16 +117,16 @@ implementation
     }
   }
 
-  async command void Alarm.start( to_size_type dt )
+  async command void Alarm.start(to_size_type dt)
   {
-    call Alarm.startAt( call Alarm.getNow(), dt );
+    call Alarm.startAt(call Alarm.getNow(), dt);
   }
 
   async event void AlarmFrom.fired()
   {
     atomic
     {
-      if( m_dt == 0 )
+      if(m_dt == 0)
       {
 	signal Alarm.fired();
       }
@@ -145,4 +145,3 @@ implementation
   {
   }
 }
-
