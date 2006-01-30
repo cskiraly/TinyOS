@@ -1,0 +1,277 @@
+<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+  <title>TinyOS Tutorial Lesson 2: Modules and the TinyOS Execution Model</title>
+  <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<div class="title">Lesson 2: </div>
+<div class="subtitle">Last updated 18 January 2006</div>
+
+<p>This lesson introduces the TinyOS Execution Model and expands on the Module.</p>
+
+Tutorial II: Modules (Kristin)
+  - Executable logic.
+  - Events vs. commands.
+  - Defaults.
+  - Storage and ownership.
+
+default keyword
+
+<p><b>Execution Model</b> <br>
+
+TinyOS executes only one program consisting of selected system
+components and custom components needed for a single application. There is
+no concept of user address space and system address space; there is only 
+one address space accessible from all components of the applicatin. </p>
+
+<p>There are two threads of execution: one for <b>tasks</b> and one
+for <b>events</b>. <a href="#event_footnote">(1)</a> A tasks is
+functions whose execution is deferred. Once scheduled, they run to
+completion with respect to other tasks and do not preempt one
+another. Events are executed in response to a hardware interrupt and
+are also run to completion, but may preempt the execution of a task or
+another event. 
+
+Recall from lesson 1 that a <b>command</b>, along with events, specify
+a components interface. Commands can be run in either the task context
+or the event context depending upon where the command was called
+from. If the command was called from within an event, it will be run
+in the event handler context. If a command was called from within a
+task, it will be run in the task queue context. <a href="#task_footnote">(2)</a>
+
+<p>Any state belongs to the containing component and is accessed through 
+the components interfaces. Blink does not use any state, but if it
+did it would be declared within the <code>implementation</code> blocks.</p> 
+
+<p>Now let's revisit the Blink application to see how it uses events
+and commands. Here is the Blink module BlinkC.nc's implementation in
+its entirety:
+
+<pre></pre>
+<prehead>apps/Blink/BlinkC.nc:</prehead>
+<pre>
+module BlinkC {
+  uses interface Timer&lt;TMilli&gt; as Timer0;
+  uses interface Timer&lt;TMilli&gt; as Timer1;
+  uses interface Timer&lt;TMilli&gt; as Timer2;
+  uses interface Leds;
+  users interface Boot;
+}
+implementation
+{
+  event void Boot.booted()
+  {
+    call Timer0.startPeriodic( 250 );
+    call Timer1.startPeriodic( 500 );
+    call Timer2.startPeriodic( 1000 );
+  }
+
+  event void Timer0.fired()
+  {
+    call Leds.led0Toggle();
+  }
+  
+  event void Timer1.fired()
+  {
+    call Leds.led1Toggle();
+  }
+  
+  event void Timer2.fired()
+  {
+    call Leds.led2Toggle();
+  }
+}
+</pre>
+
+In lesson 1 we learned that if a Component is to use another component,
+it must implement the events in that component's interface. We also
+saw that the BlinkC component uses the Timer, Leds, and Boot interfaces. 
+Let's take a look at those interfaces:
+
+<pre></pre>
+<prehead>tos/interfaces/Boot.nc:</prehead>
+<pre>
+interface Boot {
+  event void booted();
+}
+</pre>
+
+<prehead>tos/interfaces/Leds.nc:</prehead>
+<pre>
+interface Leds {
+
+  /**
+   * Turn LED n on, off, or toggle its present state.
+   */
+  async command void led0On();
+  async command void led0Off();
+  async command void led0Toggle();
+
+  async command void led1On();
+  async command void led1Off();
+  async command void led1Toggle();
+
+  async command void led2On();
+  async command void led2Off();
+  async command void led2Toggle();
+
+  /**
+   * Get/Set the current LED settings as a bitmask. Each bit corresponds to
+   * whether an LED is on; bit 0 is LED 0, bit 1 is LED 1, etc. 
+   */
+  async command uint8_t get();
+  async command void set(uint8_t val);
+  
+}
+</pre>
+
+<prehead>tos/interfaces/Leds.nc:</prehead>
+<pre>
+interface Timer<precision_tag>
+{
+  // basic interface
+  command void startPeriodic( uint32_t dt );
+  command void startOneShot( uint32_t dt );
+  command void stop();
+  event void fired();
+
+  // extended interface omitted (all commands)
+}
+</pre>
+
+Looking over the interfaces for <code>Boot</code>, <code>Leds</code>,
+and
+<code>Timer</code>, we can see that since <code>BlinkC</code> uses
+those interfaces it must implement handlers for the
+<code>Boot.booted()</code> event, and the <code>Timer.fired()</code>
+event. The <code>Leds</code> interface signature does not include any
+events, so BlinkC need not implement any in order to call the Leds
+commands.
+<p>
+Here, again, is BlinkC's implementation of <code>Boot.booted()<code>:
+
+<pre></pre>
+<prehead>apps/Blink/BlinkC.nc:</prehead>
+<pre>
+  event void Boot.booted()
+  {
+    call Timer0.startPeriodic( 250 );
+    call Timer1.startPeriodic( 500 );
+    call Timer2.startPeriodic( 1000 );
+  }
+</pre>
+BlinkC uses 3 instances of the OskiTimerMilliC component and they're
+called Timer0, Timer1, and Timer2. In the Boot.booted() event handler, 
+these instances are each started. The parameter to 
+<code>startPeriodic()</code> specifies the period in milliseconds after 
+which the timer will fire. Because the timer is started using the 
+<code>startPeriodic()</code> command, the timer will be reset after
+firing such that the fired() event is triggered every n milliseconds. 
+
+<p>Next, we look at the implementation of the <code>Timer.fired()</code>:
+
+<pre></pre>
+<prehead>apps/Blink/BlinkC.nc:</prehead>
+<pre>
+  event void Timer0.fired()
+  {
+    call Leds.led0Toggle();
+  }
+  
+  event void Timer1.fired()
+  {
+    call Leds.led1Toggle();
+  }
+  
+  event void Timer2.fired()
+  {
+    call Leds.led2Toggle();
+  }
+}
+</pre>
+
+<p>Because there are three Timer instances, the BlinkC component
+must implement three instances of the <code>Timer.fired()</code>
+event. Here, each Timer toggles it's corresponding LED (from on to off or
+from off to on) at every Timer fire by calling the <code>Leds.ledNToggle()</code>
+command exported by the Leds interface. Note that the Leds will be
+toggled within event context because the command is called from
+within an event; this event, in turn, was triggered by a hardware 
+interrupt from the platform's timer hardware. Looking back at the
+declaration of the Leds interface, we note that the commands are
+declared with the <code>async</code> keyword so we know that they
+can be called from within event handlers:</p>
+
+<pre></pre>
+<prehead>tos/interfaces/Leds.nc:</prehead>
+<pre>
+interface Leds {
+
+  ... 
+  async command void led0Toggle();
+  ...
+  async command void led1Toggle();
+  ...
+  async command void led2Toggle();
+  ...
+}
+</pre>
+
+<h1>Exercise</h1>
+
+Blink as written does not use any tasks. Rewrite Blink to
+<ol>
+<li> blink LED0 every 1000 milliseconds 
+<li> use a task to change the Leds
+</ol>
+
+Here are a few things you'll 
+need to change:
+
+<ol>
+<li>  Remove two of the TimerMilliC instances and their corresponding
+events. Remove the lines in the boot() event that start them.
+<li> Create a task that will call the Leds.led0Toggle() command. The 
+syntax to define a task goes inside of the modules implementation block 
+and looks like this:
+<pre>
+  task void myTask() 
+  {
+      // task implementation;
+  }
+</pre>
+<li> Change the fired() event to post your new task. 
+</ol>
+
+When you're done, you can compare your work with the application 
+in <code>apps/BlinkTask</code>.
+
+<a name=#related_docs>
+<p><b>Related Documentation</b><br>
+</a>
+<ul>
+<li> NesC reference manual: tinyos-2.x/doc/nesc/ref.pdf
+<li> <a href="https://sourceforge.net/projects/nescc">nesc at sourceforge</a>
+<li> <a href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/Attic/tep106.txt?view=markup">TEP 106: Tasks and Schedulers</a>
+<li> <a href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/Attic/tep106.txt?view=markup">TEP 107: Boot Sequence</a>
+</ul>
+
+<hr>
+
+<p><a name="event_footnote">(1)</a> Recall that events were introduced
+in lesson 1 in conjunction with the component model and were explained
+in that context to be functions in an interface that a component must
+implement if the component is to use that interface. Lesson 1
+discussed events in terms of the Component Model; here they are
+discussed in terms of the Execution Model.
+
+<p><a name="task_footnote">(2)</a> The task semantics have changed
+significantly from tinyos-2.x. In 1.x, a task could be posted more
+than once and a post could fail if the task queue were full. In 2.x, a
+basic post will only fail if that task has already been posted and has
+not started execution. So a task can always run, but can only have one
+outstanding post at any time. If a component needs to post task
+several times, then the end of the task logic can repost itself as
+need be.

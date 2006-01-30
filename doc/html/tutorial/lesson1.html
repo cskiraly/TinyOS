@@ -1,7 +1,7 @@
 <!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-  <title>TinyOS Tutorial Lesson 1: Getting Started with TinyOS and nesC</title>
+  <title>TinyOS Tutorial Lesson 1: TinyOS Component Model</title>
   <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
 </head>
 <body>
@@ -34,7 +34,7 @@ interfaces represent the functionality the component needs to perform
 its job.
 
 <p>Interfaces are bidirectional: they specify a set of
-<i>commands</i>, which are functions to be implemented by the
+<b>commands</b>, which are functions to be implemented by the
 interface's provider, and a set of <i>events</i> which are functions
 to be implemented by the interface's user. For a component to call the
 commands in an interface, it must implement the events of that
@@ -84,7 +84,7 @@ that simply wires together one or more modules, none of which she
 actually designed.  Likewise, another developer can provide a new set
 of "library" modules that can be used in a range of applications. </p>
 
-<!-- 
+<!-- Fill in 2.x convention 
 <p>Sometimes (as is the case with <tt>BlinkAppC</tt> and
 <tt>BlinkC</tt>) you will have a configuration and a module that go
 together. When this is the case, the convention used in the TinyOS
@@ -107,14 +107,16 @@ configuration.
 <p>Let's look at <tt>BlinkAppC.nc</tt>, the configuration for this
 application first:
 
+<pre></pre>
+<prehead>apps/Blink/BlinkAppC.nc:</prehead>
 <pre>
 configuration BlinkAppC {
 }
 implementation {  
   components MainC, BlinkC, LedsC;
-  components new OskiTimerMilliC() as Timer0;
-  components new OskiTimerMilliC() as Timer1;
-  components new OskiTimerMilliC() as Timer2;
+  components new TimerMilliC() as Timer0;
+  components new TimerMilliC() as Timer1;
+  components new TimerMilliC() as Timer2;
 
   BlinkC -> MainC.Boot;
   MainC.SoftwareInit -> LedsC;
@@ -128,6 +130,9 @@ implementation {
 <p>The first thing to notice is the key word <tt>configuration</tt>,
 which indicates that this is a configuration file. The first two
 lines,
+
+<pre></pre>
+<prehead>apps/Blink/BlinkAppC.nc:</prehead>
 <pre>
 configuration BlinkAppC {
 }
@@ -141,10 +146,11 @@ another way, not all configurations are top-level applications.
 
 <p>The actual configuration is implemented within the pair of curly
 brackets following the key word <tt>implementation </tt>. The
-<tt>components</tt>lines specify the set of components that this
-configuration references, in this case <tt>Main</tt>, <tt>BlinkC</tt>,
+<tt>components</tt> lines specify the set of components that this
+configuration references. In this case those components are
+<tt>Main</tt>, <tt>BlinkC</tt>,
 <tt>LedsC</tt>, and three instances of a timer component called
-<tt>OskiTimerMilliC</tt> which will be referenced as Timer0, Timer1,
+<tt>TimerMilliC</tt> which will be referenced as Timer0, Timer1,
 and Timer2.  <a href="#oskitimermillic_footnote">(2)</a> As we
 continue reviewing the BlinkAppC application, keep in mind that the
 BlinkAppC component is not the same as the BlinkC component. Rather,
@@ -159,13 +165,15 @@ part of TinyOS's boot sequence and will be covered in detail in Lesson
 be initialized.
 
 <p>The last four lines wire interfaces that the BlinkC component
-<i>uses</i> to interfaces that the OskiTimerMilliC and LedsC
+<i>uses</i> to interfaces that the TimerMilliC and LedsC
 components <i>provide</i>. To fully understand the semantics of these
 wirings, it is helpful to look at the BlinkC module's definition and
 implementation.
 
 <h1>The BlinkC.nc Module</h1>
 
+<pre></pre>
+<prehead>apps/Blink/BlinkC.nc:</prehead>
 <pre>
 module BlinkC {
   uses interface Timer&lt;TMilli&gt; as Timer0;
@@ -186,7 +194,7 @@ uses.&nbsp; The <tt>BlinkC</tt>&nbsp; module <b>uses</b> three
 instances of the interface <tt>Timer&lt;TMilli&gt;</tt> using the
 names Timer0, Timer1 and Timer2 (the <tt>&lt;TMilli&gt;</tt> syntax
 simply supplies the generic Timer component with the required timer
-precision; more about Timers in Lesson 3). Lastly, the <tt>BlinkC</tt>
+precision). Lastly, the <tt>BlinkC</tt>
 module also uses the Leds and Boot interfaces. This means that BlinkC
 may call any command declared in the interfaces it uses and must also
 implement any events declared in those interfaces.
@@ -197,7 +205,7 @@ component, the semantics of the last four lines in
 <tt>BlinkC.Timer0 -&gt; Timer0</tt> wires the three
 <tt>Timer&lt;TMilli&gt;</tt> interface used by <tt>BlinkC</tt> to the
 <tt>Timer&lt;TMilli&gt;</tt> interface provided the three
-<tt>OskiTimerMilliC</tt> component. The <tt>BlinkC.Leds -&gt;
+<tt>TimerMilliC</tt> component. The <tt>BlinkC.Leds -&gt;
 LedsC</tt> line wires the <tt>Leds</tt> interface used by the
 <tt>BlinkC</tt> component to the <tt>Leds</tt> interface provided by
 the <tt>LedsC</tt> component.
@@ -211,6 +219,8 @@ implementation on the right side.  In other words, the component that
 
 It follows, then, that on the line:
 
+<pre></pre>
+<prehead>apps/Blink/BlinkAppC.nc:</prehead>
 <pre>
   BlinkC.Timer -> Timer0;
 </pre>
@@ -225,6 +235,8 @@ right).
 <p><tt>BlinkAppC</tt> also illustrates that wirings can be
 implicit. For example:
 
+<pre></pre>
+<prehead>apps/Blink/BlinkAppC.nc:</prehead>
 <pre>
   BlinkC.Leds -> LedsC;
 </pre>
@@ -239,25 +251,66 @@ If no interface name is given on the right side of the arrow, the nesC
 compiler by default tries to bind to the same interface as on the left
 side of the arrow.
 
+<h1>Exercise</h1>
+
+<p>As a first exercise, simply compile the Blink application for your
+chosen platform.  If you don't have hardware, you can compile for the 
+<code>pc</code> platform which is simulated code.</p>
+
+<p>The TinyOS makefile structure is tailored to ease 
+adding new platforms with widely differing hardware support into TinyOS. 
+The makefile system definitions are located in tinyos-2.x/support/make.
+
+<p>The make command to compile a TinyOS application is 
+<code>make</code>&nbsp;<i>[platform]</i> and should be executed from the 
+application's directory. From the <code>apps/Blink</code> directory
+you could enter the following to compile an image for the telosb platform:
+
+<pre>
+  make telosb
+</pre>
+
+<p>The make parameters that you use to upload or <i>install</i> your 
+application image onto your mote vary from platform to platform. Please
+check your hardware manufacturer's Getting Started Guide for exact parameters
+(see <a href="#related_docs">Related Documentation</a>). In general,
+however, the make command to install an image onto a mote is
+<code>make</code>&nbsp;<i>[platform]</i>&nbsp
+<code>install,</code><i>[moteid]</i>&nbsp;
+<i>[upload port]</i>. From the <code>apps/Blink</code> directory
+you could enter:
+
+<pre>
+  make telosb install,2 bsl,3
+</pre>
+
+<p>This would compile an image suitable for the telosb platform and install 
+it with a mote ID of 2 using the <code>tos-bsl</code> loader on 
+COM port 4 (the bsl argument uses n-1 notation: the COM port is 4 but 
+the argument on the make line is 3 (4-1)). Again, see the Getting Started 
+Guide for your chosen platform for the exact make parameters.</p>
+
+
 <h1>Conclusion</h1>
 
 <p>This lesson has introduced the concepts of the TinyOS component
 model: configurations, modules, interfaces and wiring.  The next
-lesson expands on the nesC/TinyOS concurrency model and continues our
-look at Blink.
+lesson continues our look at Blink to expand 1) on the nesC/TinyOS concurrency model
+and 2) Module implementations. 
 
 <p>
 <a name=#related_docs>
 <p><b>Related Documentation</b><br>
 </a>
 <ul>
-<li>nesc paper
-<li>nesc reference manual
-<li> tinyos-2.x/doc/nesc (copy of nesc/doc directory)
-<li> nesc at sourceforge
-<li> getting started guide for Crossbow
-<li> getting started guide for moteiv
-<li> tep 3 : tinyos coding conventions
+<li> NesC reference manual: tinyos-2.x/doc/nesc/ref.pdf
+<li> <a href="https://sourceforge.net/projects/nescc">nesc at sourceforge</a>
+<li> Generic component information: tinyos-2.x/doc/nesc/user/generics-1.2.txt
+<li> mica mote Getting Started Guide at <a href="http://www.xbow.com">Crossbow</a>
+<li> telos mote Getting Started Guide for <a href="http://www.moteiv.com">moteiv</a>
+<li> <a href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/Attic/tep103.txt?view=markup">TEP 103: TinyOS Coding Conventions</a>
+<li> <a href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/Attic/tep106.txt?view=markup">TEP 107: Boot Sequence</a>
+<li> tinyos-2.x/support/make/README
 </ul>
 
 <hr>
@@ -268,7 +321,7 @@ that different platforms have different colored LEDs. In telos, the
 mapping (LED0,LED1,LED2) to (Red,Green,Blue), and in mica motes the
 mapping is (LED0,LED1,LED2) to (Red,Green,Yellow).
 
-<p><a name="oskitimermillic_footnote">(2)</a> The OskiTimerMilliC
+<p><a name="timermillic_footnote">(2)</a> The TimerMilliC
 component is a <i>generic component</i> which means that, unlike
 non-generic components, it can be instantiated more than once.
 Generic components can take typed arguments and in this case, that
