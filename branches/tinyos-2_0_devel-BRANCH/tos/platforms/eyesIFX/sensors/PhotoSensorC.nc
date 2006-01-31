@@ -27,11 +27,21 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-30 18:06:45 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-31 18:53:36 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
+
+/** 
+ *
+ * Please refer to TEP 109 for more information about this component and its
+ * intended use. This component provides platform-independent access to the
+ * onboard photo sensor on the eyesIFXv{1,2} platform.
+ *
+ * @author Jan Hauer
+ */
+
 
 #include <sensors.h>
 generic configuration PhotoSensorC()
