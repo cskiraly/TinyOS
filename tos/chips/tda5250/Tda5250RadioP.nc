@@ -26,15 +26,20 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* - Description ---------------------------------------------------------
-* Controlling the Tda5250, switching modes and initializing.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.1 $
-* $Date: 2006-01-29 02:34:56 $
+* $Revision: 1.1.2.2 $
+* $Date: 2006-01-31 12:40:05 $
 * @author: Kevin Klues (klues@tkn.tu-berlin.de)
 * ========================================================================
 */
 
+/*
+ * Controlling the Tda5250
+ *
+ * Switch modes and initialize.
+ *
+ * @author Kevin Klues
+ */
 module Tda5250RadioP {
   provides {
     interface Init;

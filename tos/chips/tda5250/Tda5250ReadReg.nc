@@ -26,18 +26,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-29 02:34:56 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-31 12:40:05 $
  * ========================================================================
  */
 
  /**
  * Tda5250ReadReg Interface
  *
+ * Allows reading of a specified register. See "tda5250RegTypes.h".
+ *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
 interface Tda5250ReadReg<reg_type> {
+  /**
+   * Reads from the paramterized register.
+   *
+   * @return data content of the register.
+   */
   async command reg_type get();
 }
 
