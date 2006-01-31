@@ -134,7 +134,7 @@ foreach $dir (@includes) {
 if (!-f $platform_def) {
   if (opendir PLATFORMS, "$TOSDIR/$platform") {
     foreach $dir (readdir PLATFORMS) {
-      if ($dir =~ m!/$target/?$! && -f "$TOSDIR/$platform/$dir/.platform") {
+      if ($dir eq $target && -f "$TOSDIR/$platform/$dir/.platform") {
 	if ($tossim) {
 	  $platform_def = "$TOSDIR/$platform/$dir/sim/.platform";
 	} else {
@@ -145,7 +145,7 @@ if (!-f $platform_def) {
       if (-f "$TOSDIR/$platform/$dir/.family") {
 	if (opendir SUBPLATFORMS, "$TOSDIR/$platform/$dir") {
 	  foreach $subdir (readdir SUBPLATFORMS) {
-	    if ($subdir =~ m!$target?$! && -f "$TOSDIR/$platform/$dir/$subdir/.platform") {
+	    if ($subdir eq $target && -f "$TOSDIR/$platform/$dir/$subdir/.platform") {
 	      if ($tossim) {
 		$platform_def = "$TOSDIR/$platform/$dir/$subdir/sim/.platform";
 	      } else {
