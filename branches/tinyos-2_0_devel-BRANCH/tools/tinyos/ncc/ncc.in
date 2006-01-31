@@ -131,12 +131,38 @@ foreach $dir (@includes) {
     }
 }
 
-if ($tossim) {
-  $platform_def = "$TOSDIR/$platform/$target/sim/.platform" unless $platform_def;
+if (!-f $platform_def) {
+  if (opendir PLATFORMS, "$TOSDIR/$platform") {
+    foreach $dir (readdir PLATFORMS) {
+      if ($dir =~ m!/$target/?$! && -f "$TOSDIR/$platform/$dir/.platform") {
+	if ($tossim) {
+	  $platform_def = "$TOSDIR/$platform/$dir/sim/.platform";
+	} else {
+	  $platform_def = "$TOSDIR/$platform/$dir/.platform";
+	}
+	last;
+      }
+      if (-f "$TOSDIR/$platform/$dir/.family") {
+	if (opendir SUBPLATFORMS, "$TOSDIR/$platform/$dir") {
+	  foreach $subdir (readdir SUBPLATFORMS) {
+	    if ($subdir =~ m!$target?$! && -f "$TOSDIR/$platform/$dir/$subdir/.platform") {
+	      if ($tossim) {
+		$platform_def = "$TOSDIR/$platform/$dir/$subdir/sim/.platform";
+	      } else {
+		$platform_def = "$TOSDIR/$platform/$dir/$subdir/.platform";
+	      }
+	      $family_def = "$TOSDIR/$platform/$dir/.family";
+	      last;
+	    }
+	  }
+	  closedir SUBPLATFORMS;
+	}
+      }
+    }
+    closedir PLATFORMS;
+  }
 }
-else {
-  $platform_def = "$TOSDIR/$platform/$target/.platform" unless $platform_def;
-}
+
 if (!-f $platform_def) {
     print STDERR "Unknown target $target\n";
     print STDERR "Known targets for TinyOS directory $TOSDIR\n";
@@ -153,6 +179,9 @@ if (!-f $platform_def) {
     exit 2;
 }
 
+if (-f $family_def) {
+  do $family_def;
+}
 do $platform_def;
 
 push @new_args, @opts;
@@ -263,18 +292,26 @@ sub push_platform {
 }
 
 sub all_platforms() {
-    local(@platforms);
+  local(@platforms);
 
-    foreach $dir (@includes) {
-	push_platform($1) if -f "$dir/.platform" && $dir =~ m!/([^/]*)/?$!;
-    }
+  foreach $dir (@includes) {
+    push_platform($1) if -f "$dir/.platform" && $dir =~ m!/([^/]*)/?$!;
+  }
 
-    if (opendir PLATFORMS, "$TOSDIR/$platform") {
-	foreach $d (readdir PLATFORMS) {
-	    push_platform($d) if (-f "$TOSDIR/$platform/$d/.platform");
+  if (opendir PLATFORMS, "$TOSDIR/$platform") {
+    foreach $d (readdir PLATFORMS) {
+      push_platform($d) if (-f "$TOSDIR/$platform/$d/.platform");
+      if (-f "$TOSDIR/$platform/$d/.family") {
+	if (opendir SUBPLATFORMS, "$TOSDIR/$platform/$d") {
+	  foreach $subdir (readdir SUBPLATFORMS) {
+	    push_platform($subdir) if (-f "$TOSDIR/$platform/$d/$subdir/.platform");
+	  }
 	}
-	closedir PLATFORMS;
+	closedir SUBPLATFORMS;
+      }
     }
+    closedir PLATFORMS;
+  }
 
-    return @platforms;
+  return @platforms;
 }
