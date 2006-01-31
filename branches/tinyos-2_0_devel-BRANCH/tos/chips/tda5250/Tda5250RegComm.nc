@@ -26,34 +26,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Description ---------------------------------------------------------
- * Interface for writing and reading bytes to and from the Tda5250 Radio
- * registers
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-29 02:34:56 $
- * @author: Kevin Klues (klues@tkn.tu-berlin.de)
- * ========================================================================
+ *
  */
 
+/**
+ * Interface for writing and reading bytes to and from the Tda5250 Radio
+ * registers.
+ *
+ * @author: Kevin Klues (klues@tkn.tu-berlin.de)
+ */
 interface Tda5250RegComm {
  /**
    * Transmit a byte of data to a given register.
+   *
    * @param address The address of the register to write to
    * @param data the 8-bit data value to write to the register
+   *
+   * @return always SUCCESS.
    */
   async command error_t writeByte(uint8_t address, uint8_t data);
 
  /**
    * Transmit a word of data to a given register.
+   *
    * @param address The address of the register to write to
    * @param data the 16-bit data value to write to the register
+   *
+   * @return always SUCCESS.
    */
   async command error_t writeWord(uint8_t address, uint16_t data);
 
  /**
    * Read a byte of data from a given register.
+   *
    * @param address The address of the register to read from
+   *
    * @return The 16-bit data value read from the register
    */
   async command uint8_t readByte(uint8_t address);

@@ -27,39 +27,129 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Description ---------------------------------------------------------
- * Configuring the registers on the Tda5250 Radio.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-29 02:34:56 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-31 12:40:05 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
 
 #include "tda5250Control.h"
+/** 
+ * Controlling the Tda5250 radio modes.
+ *
+ * This interface provides commands and events to control the radio modes.
+ * 
+ * @author: Kevin Klues (klues@tkn.tu-berlin.de)
+ *
+ */
 interface Tda5250Control {
+   
    /**
-      Switches radio between modes
-   */
+    * Switches radio to TIMER_MODE.
+    * 
+    * @param on_time sets the time (ms) the radio is on.
+    * @param off_time sets the time (ms) the radio is off.
+    *
+    * @return SUCCESS on success
+    *         FAIL otherwise.
+    */
    async command error_t TimerMode(float on_time, float off_time);
+   
+   /**
+   * Resets the timers set in TimerMode(). 
+   * 
+   * @return SUCCESS on success
+   *         FAIL otherwise.
+   */
    async command error_t ResetTimerMode();
+   
+   /**
+   * Switches radio to SELF_POLLING_MODE.
+   * 
+   * @param on_time sets the time (ms) the radio is on.
+   * @param off_time sets the time (ms) the radio is off.
+   *
+   * @return SUCCESS on success
+   *         FAIL otherwise.
+   */
    async command error_t SelfPollingMode(float on_time, float off_time);
+   
+   /**
+    * Resets the timers set in SelfPollingMode(float, float). 
+    * 
+    * @return SUCCESS on success
+    *         FAIL otherwise.
+    */
    async command error_t ResetSelfPollingMode();
+   
+   /**
+   * Switches radio to TX_MODE.
+   * 
+   * @return SUCCESS on success
+   *         FAIL otherwise.
+   */
    async command error_t TxMode();
+   
+   /**
+   * Switches radio to RX_MODE.
+   * 
+   * @return SUCCESS on success
+   *         FAIL otherwise.
+   */
    async command error_t RxMode();
+   
+   /**
+   * Switches radio to CCA_MODE.
+   * 
+   * @return SUCCESS on success
+   *         FAIL otherwise.
+   */
    async command error_t CCAMode();
+   
+   /**
+   * Switches radio to SLEEP_MODE.
+   * 
+   * @return SUCCESS on success
+   *         FAIL otherwise.
+   */
    async command error_t SleepMode();
 
+   
+   /**
+    * Notification that radio mode is switched to TIMER_MODE
+    */
    async event void TimerModeDone();
+   
+   /**
+   * Notification that radio mode is switched to SELF_POLLING_MODE
+   */
    async event void SelfPollingModeDone();
+   
+   /**
+   * Notification that radio mode is switched to TX_MODE
+   */
    async event void TxModeDone();
+   
+   /**
+   * Notification that radio mode is switched to RX_MODE
+   */
    async event void RxModeDone();
+   
+   /**
+   * Notification that radio mode is switched to CCA_MODE
+   */
    async event void CCAModeDone();
+   
+   /**
+   * Notification that radio mode is switched to SLEEP_MODE
+   */
    async event void SleepModeDone();
 
    /**
-      Interrupt avialable on the PWD_DD pin when in
-      TIMER_MODE or SELF_POLLING_MODE
-   */
+    * Notification of interrupt when in
+    * TIMER_MODE or SELF_POLLING_MODE
+    */
    async event void PWDDDInterrupt();
 }
 
