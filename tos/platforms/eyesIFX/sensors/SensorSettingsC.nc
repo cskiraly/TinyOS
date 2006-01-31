@@ -27,16 +27,18 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-30 18:07:15 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-31 18:53:36 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
-/* 
+/**
  * Default ADC channel configuration for eyesIFXv1 and eyesIFXv2. Future
  * eyesIFX platforms may shadow this configuration (and sensors.h) in their
  * respective subdirectory.
+ *
+ * @author Jan Hauer
  */
 
 #include <sensors.h>
