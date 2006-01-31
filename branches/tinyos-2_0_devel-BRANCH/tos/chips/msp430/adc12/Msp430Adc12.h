@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-01-30 17:43:45 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-01-31 18:43:40 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -41,85 +41,83 @@
 #define REF_VOLT_AUTO_CONFIGURE
 #define CHECK_ARGS
 
-/**
-  The msp430adc12_channel_config_t struct encapsulates the relevant flags for
-  ADC configuration on a per-client basis from ADC12CTL0, ADC12CTL1,
-  ADC12MCTLx and TACTL of TimerA (if applicable). The members of
-  msp430adc12_channel_config_t are as follows (see also section "17.3 ADC12
-  Registers" of the "MSP430x1xx Family User's Guide",
-  http://focus.ti.com/lit/ug/slau049e/slau049e.pdf):
- 
-                    **********************************
-
-  inch (ADC12MCTLx): ADC input channel. An (external) input channel maps to
-  one of msp430's A0-A7 pins (see device specific data sheet).
- 
-  sref (ADC12MCTLx): Reference voltage. If REFERENCE_VREFplus_AVss or
-  REFERENCE_VREFplus_VREFnegterm is chosen then the voltage level of VREF is
-  defined by the "ref2_5v" flag.
-  
-  ref2_5v (ADC12CTL0): Reference generator voltage. This flag is only relevant
-  if "sref" is either REFERENCE_VREFplus_AVss REFERENCE_VREFplus_VREFnegterm,
-  it is ignored otherwise.  It defines the voltage level of the reference
-  generator, during the sampling process. The ADC HAL1 automatically switches
-  the reference generator to the level specified in "ref2_5v" for the sampling
-  process.  Because the switch-on time may result in a 17 ms delay (depending
-  on whether VREF is stable), a getData() call may be delayed
-  (MSP430ADC12_DELAYED is returned).  To avoid this delay, the application may
-  start the reference voltage generator itself 17 ms prior to the first
-  conversion to be stable at the time getData() is called.
- 
-  adc12ssel (ADC12CTL1): ADC12 clock source select for sample-hold-time. In
-  combination with  "adc12ssel", "adc12div" and "sht" it defines the
-  sample-hold-time. The sample-hold-time depends on the device (sensor)
-  characteristics, use the formula in section "17.2.4 Sample Timing
-  Considerations" of the User's Guide. 
- 
-  adc12div (ADC12CTL1): ADC12 clock divider. See "adc12ssel" flag.
- 
-  sht (ADC12CTL0): Sample-and-hold time. Defines the number of clock cycles in
-  the sampling period (clock source defined by "adc12ssel", input divider
-  defined by "adc12div").
- 
-  sampcon_ssel (no ADC register, but identical to TASSEL in TACTL, TimerA): In
-  combination with "sampcon_id" and the "jiffies" parameter the "sampcon_ssel"
-  defines the sampling rate. It is the clock source for the SAMPCON signal,
-  which triggers the sampling. It is not relevant if only getSingleData() is
-  used or the "jiffies" parameter is zero; otherwise the SAMPCON signal is
-  sourced from TimerA, so that the multiple conversion mode can be made with a
-  user defined sampling rate.
- 
-  sampcon_id (no ADC register, but identical to IDx in TACTL, TimerA): Input
-  divider for "sampcon_ssel".
- 
-                    **********************************
-
-  EXAMPLE: Assuming that SMCLK runs at 1 MHz the following command fills the
-  user buffer with 2000 conversion results sampled on channel A2 with a
-  sampling rate of 4000 Hz, i.e. the dataReady() event is signalled after 500
-  ms (plus a possible 17 ms delay for the reference voltage generator to
-  become stable). Note that the sampling rate is defined by the combination of
-  SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 and the "jiffies" parameter of 250.
-
-  
-  uint16_t buffer[2000];
-  msp430adc12_channel_config_t config = {
-    INPUT_CHANNEL_A2, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
-    SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_64_CYCLES,
-    SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 
-  };
-  
-  event void Resource.granted() 
-  { 
-    if (call SingleChannel.getMultipleData(&config, buffer, 2000, 250)
-        == MSP430ADC12_SUCCESS)
-    {
-      // .. go on in multipleDataReady() event
-    } else {
-      // check error
-    } 
-  }
+/*
+ * The msp430adc12_channel_config_t encapsulates all relevant flags for
+ * sampling a single ADC12 channel on a per-client basis.  They are taken from
+ * the following MSP430 registers: ADC12CTL0, ADC12CTL1, ADC12MCTLx and TACTL
+ * of TimerA (if applicable) and named according to section "17.3 ADC12
+ * Registers" of the "MSP430x1xx Family User's Guide",
+ * http://focus.ti.com/lit/ug/slau049e/slau049e.pdf).
+ *
+ * .inch: ADC12 input channel (ADC12MCTLx register). An (external) input channel 
+ *        maps to one of msp430's A0-A7 pins (see device specific data sheet).
+ *
+ * .sref: reference voltage (ADC12MCTLx register). If
+ *        REFERENCE_VREFplus_AVss or REFERENCE_VREFplus_VREFnegterm is chosen
+ *        AND the client wires to Msp430Adc12RefVoltAutoClientC (or
+ *        REF_VOLT_AUTO_CONFIGURE is defined and the client wires to
+ *        AdcReadClientC, AdcReadNowClientC or AdcReadStreamClientC) then the
+ *        reference voltage generator is automatically switched on to the
+ *        voltage level defined by the "ref2_5v" flag (see below) whenever the
+ *        client accesses the ADC12. Otherwise both flags are ignored.
+ * 
+ * .ref2_5v: Reference generator voltage level (ADC12CTL0 register). See
+ *        explanation to "sref" flag.
+ * 
+ * .adc12ssel: ADC12 clock source select for the sample-hold-time
+ *        (ADC12CTL1 register). In combination the "adc12ssel", "adc12div" and
+ *        "sht" define the sample-hold-time: "adc12ssel" defines the clock
+ *        source, "adc12div" defines the ADC12 clock divider and "sht" define
+ *        the time expressed in jiffies.
+ *
+ * .adc12div: ADC12 clock divider (ADC12CTL1 register). See "adc12ssel".
+ *
+ * .sht: Sample-and-hold time (ADC12CTL1 register). See "adc12ssel".
+ * 
+ * .sampcon_ssel: In combination with "sampcon_id" and the "jiffies"
+ *        parameter in the Msp430Adc12SingleChannel interface commands the
+ *        "sampcon_ssel" defines the sampling rate (TASSEL in TACTL register,
+ *        TimerA). It is the clock source for the SAMPCON signal, which
+ *        triggers the actual sampling. It is ignored when
+ *        Msp430Adc12SingleChannel.getSingleData() is used or the "jiffies"
+ *        parameter is zero; otherwise the SAMPCON signal is sourced from
+ *        TimerA, so that the multiple conversion mode can be made with the
+ *        user defined sampling rate.
+ * 
+ * .sampcon_id: Input divider for "sampcon_ssel"  (IDx in TACTL
+ *        register, TimerA). See "sampcon_ssel".
+ *
+ * 
+ *                   **********************************
+ *                    
+ * EXAMPLE: Assuming that SMCLK runs at 1 MHz the following command fills the
+ * user buffer with 2000 conversion results sampled on channel A2 with a
+ * sampling rate of 4000 Hz, i.e. the multipleDataReady() event is signalled
+ * after 500 ms. Note that the sampling rate is defined by the combination of
+ * SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 and the "jiffies" parameter of
+ * 250.  
+ *
+ * 
+ * uint16_t buffer[2000];
+ * msp430adc12_channel_config_t config = {
+ *   INPUT_CHANNEL_A2, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
+ *   SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_64_CYCLES,
+ *   SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 
+ * };
+ * 
+ * event void Resource.granted() 
+ * { 
+ *  if (call SingleChannel.getMultipleData(&config, buffer, 2000, 250)
+ *       == SUCCESS)
+ *   {
+ *     // .. multipleDataReady() event will be signalled in 500ms
+ *   } else {
+ *     // check error
+ *   } 
+ * }
  */
+
+ 
 typedef struct { 
   unsigned int inch: 4;            // input channel 
   unsigned int sref: 3;            // reference voltage 

@@ -27,12 +27,28 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-30 17:31:48 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-31 18:43:40 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
- 
+
+/** 
+ *
+ * Please refer to TEP 101 for more information about this component and its
+ * intended use. This component realizes the HAL1 representation and allows an
+ * MSP430-specific client to access the MSP430 ADC12 (12-bit analog-to-digital
+ * converter) via the <code>Msp430Adc12SingleChannel</code> and
+ * <code>Resource</code> interface.  According to TEP 108 a client must reserve
+ * the ADC before using it via the <code>Resource</code> interface (otherwise
+ * the request will fail). In contrast to the
+ * <code>Msp430Adc12RefVoltAutoClientC</code> the
+ * <code>Msp430Adc12ClientC</code> does not enable internal reference voltage
+ * generator.  
+ * 
+ * @author Jan Hauer
+ */
+
 generic configuration Msp430Adc12ClientC()
 {
   provides interface Resource;

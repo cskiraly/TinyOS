@@ -27,16 +27,25 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-30 17:42:21 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-31 18:43:40 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
+/** 
+ * Please refer to TEP 101 for more information about this interface and its
+ * intended use. This interface is used by the ADC subsystem to pull a client's
+ * ADC12 configuration in order to prepare the hardware.
+ * 
+ * @author Jan Hauer
+ */
+
 #include <Msp430Adc12.h>
 interface Msp430Adc12Config {
-  /* 
-   * Returns configuration settings of an HAL2 client, See TEP 101.
+  /** 
+   * Returns the configuration data for an ADC12 client (single channel).
+   * @return Configuration data.
    */
   async command msp430adc12_channel_config_t getChannelSettings();
 }
