@@ -27,16 +27,16 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-31 09:58:25 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-31 12:25:32 $
  * ========================================================================
  */
  
 /**
- * Physical Packet Receive Interface
+ * Physical Packet Receive Interface.
  * Commands and event provided by the Radio Interface
  * to communicate with upper layers about the status of a 
- * received packet
+ * received packet.
  *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  */ 
@@ -59,7 +59,7 @@ interface PhyPacketRx {
   /**
   * Notification that the the packet footer was received.
   *
-  * @param success Notification.
+  * @param error Success-Notification.
   */
   async event void recvFooterDone(bool error);
 }

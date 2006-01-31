@@ -26,21 +26,19 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.3 $
-* $Date: 2006-01-31 10:02:21 $
+* $Revision: 1.1.2.4 $
+* $Date: 2006-01-31 12:25:32 $
 * ========================================================================
 */
-
-/**
- * HplTda5250P configuration
- * Controlling the TDA5250 at the HPL layer..
- *
- * @author Kevin Klues (klues@tkn.tu-berlin.de)
- */
 
 #include "msp430baudrates.h"
 #include "tda5250BusResourceId.h"
 
+/**
+ * Controlling the TDA5250 at the HPL layer.
+ *
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
+ */
 configuration HplTda5250DataC {
   provides {
     interface Init;
