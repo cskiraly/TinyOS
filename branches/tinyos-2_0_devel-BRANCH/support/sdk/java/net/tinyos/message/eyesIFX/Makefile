@@ -1,7 +1,7 @@
 
 TOS = $(shell ncc -print-tosdir)
 PACKAGE = net.tinyos.message
-MIG = mig java -I$(TOS)/platforms/eyesIFX/eyesIFXv2
+MIG = mig java
 
 SerialAMPacket=$(TOS)/lib/serial/Serial.h
 
