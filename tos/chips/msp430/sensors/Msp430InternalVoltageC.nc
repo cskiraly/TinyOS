@@ -37,12 +37,15 @@
  * multiply by 3.
  *
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-01-30 17:47:04 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-01-31 19:54:17 $
  */
 
 generic configuration Msp430InternalVoltageC() {
   provides interface Read<uint16_t>;
   provides interface ReadStream<uint16_t>;
+
+  provides interface Resource;
+  provides interface ReadNow<uint16_t>;
 }
 implementation {
   components new AdcReadClientC();
@@ -54,4 +57,10 @@ implementation {
   components Msp430InternalVoltageP;
   AdcReadClientC.Msp430Adc12Config -> Msp430InternalVoltageP;
   AdcReadStreamClientC.Msp430Adc12Config -> Msp430InternalVoltageP;
+
+  components new AdcReadNowClientC();
+  Resource = AdcReadNowClientC;
+  ReadNow = AdcReadNowClientC;
+  
+  AdcReadNowClientC.Msp430Adc12Config -> Msp430InternalVoltageP;
 }
