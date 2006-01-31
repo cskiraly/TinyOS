@@ -29,14 +29,19 @@
 * - Description ---------------------------------------------------------
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.1 $
-* $Date: 2006-01-23 01:01:40 $
+* $Revision: 1.1.2.2 $
+* $Date: 2006-01-31 09:58:25 $
 * @author: Kevin Klues (klues@tkn.tu-berlin.de)
 * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
 * ========================================================================
 */
 
-
+/**
+ * UartPhyP module
+ *
+ * @author Kevin Klues <klues@tkn.tu-berlin.de>
+ * @author Philipp Huppertz <huppertz@tkn.tu-berlin.de>
+ */
 module UartPhyP {
 provides {
   interface Init;
@@ -50,7 +55,7 @@ uses {
 }
 implementation
 {
-  /**************** Module Definitions  *****************/
+  /* Module Definitions  */
   typedef enum {
     STATE_NULL,
     STATE_PREAMBLE,
@@ -70,15 +75,15 @@ implementation
 #define SYNC_BYTE         0xFF
 #define SFD_BYTE          0x33
 
-/**************** Module Global Variables  *****************/
+/** Module Global Variables  */
 phyState_t phyState;    // Current Phy state State
 uint16_t numPreambles;  // Number of preambles to send before the packet
 
-    /**************** Local Function Declarations  *****************/
+    /* Local Function Declarations */
     void TransmitNextByte();
     void ReceiveNextByte(uint8_t data);
 
-    /**************** Radio Init  *****************/
+    /* Radio Init */
     command error_t Init.init(){
       atomic {
         phyState = STATE_NULL;
@@ -108,14 +113,14 @@ uint16_t numPreambles;  // Number of preambles to send before the packet
     }
 
 
-    /**************** Radio Recv ****************/
+    /* Radio Recv */
     async command void PhyPacketRx.recvHeader() {
       atomic phyState = STATE_PREAMBLE;
     }
 
     async command void PhyPacketRx.recvFooter() {
-//      there is no footer
-//      atomic phyState = STATE_FOOTER_START;
+        // currently there is no footer
+        // atomic phyState = STATE_FOOTER_START;
         atomic phyState = STATE_NULL;
         signal PhyPacketRx.recvFooterDone(TRUE);
     }
@@ -139,7 +144,7 @@ uint16_t numPreambles;  // Number of preambles to send before the packet
       }
     }
 
-    /**************** Tx Done ****************/
+    /* Tx Done */
     async event void RadioByteComm.txByteReady(error_t error) {
       phyState_t state;
       if(error == SUCCESS) {
@@ -217,7 +222,7 @@ uint16_t numPreambles;  // Number of preambles to send before the packet
       }
     }
 
-    /**************** Rx Done ****************/
+    /* Rx Done */
     async event void RadioByteComm.rxByteReady(uint8_t data) {
       ReceiveNextByte(data);
     }
@@ -253,14 +258,14 @@ uint16_t numPreambles;  // Number of preambles to send before the packet
         case STATE_DATA:
           signal SerializerRadioByteComm.rxByteReady(data);
           break;
-// maybe there will be a time.... we will need this. but for now there is no footer
-//              case STATE_FOOTER_START:
-//                      // atomic phyState = STATE_FOOTER_DONE;
-//                      // break;
-//              case STATE_FOOTER_DONE:
-//                      atomic phyState = STATE_NULL;
-//                      signal PhyPacketRx.recvFooterDone(TRUE);
-//                      break;
+          // maybe there will be a time.... we will need this. but for now there is no footer
+          //              case STATE_FOOTER_START:
+          //                      atomic phyState = STATE_FOOTER_DONE;
+          //                      break;
+          //              case STATE_FOOTER_DONE:
+          //                      atomic phyState = STATE_NULL;
+          //                      signal PhyPacketRx.recvFooterDone(TRUE);
+          //                      break;
         default:
           break;
       }
