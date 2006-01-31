@@ -30,14 +30,21 @@
  * Controlling the TDA5250 at the HPL layer for use with the MSP430 on the
  * eyesIFX platforms, Configuration.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-29 21:30:47 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-01-31 10:02:21 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
 
 #include "tda5250BusResourceId.h"
 
+/**
+ * Tda5250RegCommP configuration
+ * Configuration file for the registers of TDA5250 Radio on
+ * the eyesIFX platforms
+ *
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
+ */
 configuration Tda5250RegCommC {
   provides {
     interface Init;
@@ -64,9 +71,7 @@ implementation {
   Tda5250RegCommP.BusM -> Tda5250RadioIOC.Tda5250RadioBUSM;
 
   Tda5250RegCommP.SpiByte -> Spi;
-  // FIXME: Hier ResourceController!?
   Tda5250RegCommP.SpiResource -> Spi;
-  //Tda5250RegCommP.ArbiterInfo -> Spi;
 
   AD5200P.ENPOT -> AD5200PotIOC.AD5200PotENPOT;
   AD5200P.SDPOT -> AD5200PotIOC.AD5200PotSDPOT;
