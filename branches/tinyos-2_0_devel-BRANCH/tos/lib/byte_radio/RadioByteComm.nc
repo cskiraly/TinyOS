@@ -1,4 +1,4 @@
-// $Id: RadioByteComm.nc,v 1.1.2.2 2006-01-31 09:58:25 phihup Exp $
+// $Id: RadioByteComm.nc,v 1.1.2.3 2006-01-31 12:25:32 phihup Exp $
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
@@ -41,31 +41,31 @@
  */
 interface RadioByteComm {
   /**
-   * Transmits a byte over the radio
+   * Transmits a byte over the radio.
    *
-   * @param data the byte to be transmitted
+   * @param data The byte to be transmitted.
    */
   async command void txByte(uint8_t data);
 	
   /**
-   * Notification that the radio is ready to receive another byte
+   * Notification that the radio is ready to receive another byte.
    *
-   * @param data the byte read from the radio
+   * @param data The byte read from the radio.
    */
   async event void rxByteReady(uint8_t data);
 
   /**
-   * Notification that the bus is ready to transmit/queue another byte
+   * Notification that the bus is ready to transmit/queue another byte.
    *
-   * @param success Notification of the successful transmission of the last byte
+   * @param error Success Notification of the successful transmission of the last byte.
    */
   async event void txByteReady(error_t error);
 
   /**
    * Check to see if the transmission is done and the queue is empty
    *
-   * @return TRUE if the queue is empty and no more bytes will be sent
-   *         FALSE if bytes remain in the queue
+   * @return TRUE if the queue is empty and no more bytes will be sent.
+   *         FALSE if bytes remain in the queue.
    */
   async command bool isTxDone();
 }

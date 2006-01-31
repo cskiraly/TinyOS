@@ -30,8 +30,8 @@
  * Controlling the TDA5250 at the HPL layer for use with the MSP430 on the
  * eyesIFX platforms, Configuration.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-31 10:02:21 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-31 12:25:32 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -39,9 +39,8 @@
 #include "tda5250BusResourceId.h"
 
 /**
- * Tda5250RegCommP configuration
  * Configuration file for the registers of TDA5250 Radio on
- * the eyesIFX platforms
+ * the eyesIFX platforms.
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
