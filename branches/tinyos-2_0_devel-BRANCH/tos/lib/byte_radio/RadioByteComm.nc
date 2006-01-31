@@ -1,5 +1,4 @@
-// $Id: RadioByteComm.nc,v 1.1.2.1 2006-01-23 01:01:40 vlahan Exp $
-
+// $Id: RadioByteComm.nc,v 1.1.2.2 2006-01-31 09:58:25 phihup Exp $
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
@@ -28,15 +27,11 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
-/*
- * Authors:		Jason Hill, David Gay, Philip Levis
- * Date last modified:  6/25/02
- *
- *
- */
 
-/**
- * A byte-level communication interface. It signals byte receptions and
+
+/** 
+ * A byte-level communication interface
+ * It signals byte receptions and
  * provides a split-phased byte send interface. txByteReady states
  * that the component can accept another byte in its queue to send,
  * while txDone states that the send queue has been emptied.
@@ -49,8 +44,6 @@ interface RadioByteComm {
    * Transmits a byte over the radio
    *
    * @param data the byte to be transmitted
-   *
-   * @return SUCCESS if successful
    */
   async command void txByte(uint8_t data);
 	
@@ -58,8 +51,6 @@ interface RadioByteComm {
    * Notification that the radio is ready to receive another byte
    *
    * @param data the byte read from the radio
-   *
-   * @return SUCCESS if successful
    */
   async event void rxByteReady(uint8_t data);
 
@@ -67,8 +58,6 @@ interface RadioByteComm {
    * Notification that the bus is ready to transmit/queue another byte
    *
    * @param success Notification of the successful transmission of the last byte
-   *
-   * @return SUCCESS if successful
    */
   async event void txByteReady(error_t error);
 
@@ -76,7 +65,7 @@ interface RadioByteComm {
    * Check to see if the transmission is done and the queue is empty
    *
    * @return TRUE if the queue is empty and no more bytes will be sent
-	 *         FALSE if bytes remain in the queue
+   *         FALSE if bytes remain in the queue
    */
   async command bool isTxDone();
 }

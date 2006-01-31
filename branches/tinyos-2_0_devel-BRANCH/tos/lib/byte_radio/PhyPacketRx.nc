@@ -27,13 +27,13 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-23 01:01:40 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-31 09:58:25 $
  * ========================================================================
  */
  
 /**
- * PhyPacketRx Interface
+ * Physical Packet Receive Interface
  * Commands and event provided by the Radio Interface
  * to communicate with upper layers about the status of a 
  * received packet
@@ -41,8 +41,25 @@
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  */ 
 interface PhyPacketRx {
+  /**
+   * Start receiving a new packet header. This will also reset the current receiving state.
+   */
   async command void recvHeader();
+  
+  /**
+  * Notification that the packet header was received.
+  */
   async event void recvHeaderDone();
+  
+  /**
+  * Start receiving the packet footer.
+  */
   async command void recvFooter();
+  
+  /**
+  * Notification that the the packet footer was received.
+  *
+  * @param success Notification.
+  */
   async event void recvFooterDone(bool error);
 }

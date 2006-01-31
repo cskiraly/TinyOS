@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-23 01:01:40 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-31 09:58:25 $
  * ========================================================================
  */
 
@@ -59,7 +59,7 @@ module PacketSerializerP {
   }
 }
 implementation {
-  /**************** Module Global Variables  *****************/
+  /* Module Global Variables */
   typedef enum {
     STATE_CRC1,
     STATE_CRC2,
@@ -73,15 +73,12 @@ implementation {
   norace uint16_t crc;         // CRC value of either the current incoming or outgoing packet
   crcState_t crcState;  // CRC state
 
-  /**************** Local Function Declarations  *****************/
+  /* Local Function Declarations */
   void TransmitNextByte();
   void ReceiveNextByte(uint8_t data);
 
-  // platform-independant radiostructures are called message_radio_header_t & message_radio_footer_t
-
-
-  /**************** Packet structure accessor functions************/
-
+  /* Packet structure accessor functions
+   * note: platform-independant radiostructures are called message_radio_header_t & message_radio_footer_t */
   message_radio_header_t* getHeader(message_t* amsg) {
     return (message_radio_header_t*)(amsg->data - sizeof(message_radio_header_t));
   }
@@ -94,7 +91,7 @@ implementation {
     return (message_radio_metadata_t*)((uint8_t*)amsg->footer + sizeof(message_radio_footer_t));
   }
 
-  /**************** Task Declarations  *****************/
+  /* Task Declarations  */
   task void SendDoneSuccessTask() {
     signal Send.sendDone((message_t*)txBufPtr, SUCCESS);
   }
@@ -110,7 +107,7 @@ implementation {
     call PhyPacketRx.recvHeader();
   }
 
-  /**************** Radio Init  *****************/
+  /* Radio Init  */
   command error_t Init.init(){
     atomic {
       crc = 0;
@@ -121,7 +118,7 @@ implementation {
     return SUCCESS;
   }
 
-  /**************** Radio Send ****************/
+  /*- Radio Send */
   command error_t Send.send(message_t* msg, uint8_t len) {
     message_radio_header_t* header = getHeader(msg);
     atomic {
@@ -197,7 +194,7 @@ implementation {
   }
 
 
-  /**************** Radio Receive ****************/
+  /* Radio Receive */
   async event void PhyPacketRx.recvHeaderDone() {
     byteCnt = (sizeof(message_header_t) - sizeof(message_radio_header_t));
     getHeader(&rxMsg)->length = sizeof(message_radio_header_t);
@@ -225,8 +222,8 @@ implementation {
   }
 
 
-  /**************** Packet interface ****************/
-
+  /* Packet interface */
+      
   command void Packet.clear(message_t* msg) {
     memset(msg, 0, sizeof(message_t));
   }
@@ -265,7 +262,8 @@ implementation {
     return call Packet.getPayload(m, NULL);
   }
 
-  /**************** PacketAcknowledgements interface ****************/
+  
+  /* PacketAcknowledgements interface */
 
   async command error_t PacketAcknowledgements.requestAck(message_t* msg) {
     return FAIL;

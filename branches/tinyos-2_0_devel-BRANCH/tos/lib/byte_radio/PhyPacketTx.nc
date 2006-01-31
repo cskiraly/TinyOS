@@ -27,13 +27,13 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-23 01:01:40 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-01-31 09:58:25 $
  * ========================================================================
  */
 
 /**
- * PhyPacketTx Interface
+ * Physical Packet Transmission Interface
  * Commands and event provided by the Physical Layer
  * to communicate with upper layers about the status of a 
  * packet that is being transmitted
@@ -42,9 +42,33 @@
  */  
  
 interface PhyPacketTx {
+  /**
+  * Cancel the current packet transmission.
+  *
+  * @return SUCCESS if we are actually sending a packet
+  *         FAIL otherwise.
+  */
   async command error_t cancel();
+  
+  /**
+  * Start sending a new packet header. 
+  */
   async command void sendHeader();
+  
+  /**
+  * Notification that the packet header was sent.
+  */
   async event void sendHeaderDone(error_t error);
+  
+  /**
+  * Start sending the packet footer.
+  */
   async command void sendFooter();
+  
+  /**
+  * Notification that the the packet footer was sent.
+  *
+  * @param success Notification.
+  */
   async event void sendFooterDone(error_t error);  
 }
