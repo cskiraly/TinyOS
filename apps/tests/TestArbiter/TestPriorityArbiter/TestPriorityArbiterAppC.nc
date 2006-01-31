@@ -26,18 +26,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-18 22:28:17 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-01-31 09:57:26 $ 
  * ======================================================================== 
  */
  
- /**
- * TestArbiter Application  
- * This application is used to test the functionality of the arbiter 
- * components developed using the Resource and ResourceUser uinterfaces
+/**
+ * TestPriorityArbiter Application  
+ * This application is used to test the functionality of the FcfsPriorityArbiter 
+ * component developed using the Resource and ResourceUser interfaces
  *
+ * In this test there are 4 users of one ressource. The Leds indicate which
+ * user is the owner of the resource:<br>
+ * <li> normal priority client 1  - led 0
+ * <li> normal priority client 2  - led 1
+ * <li> power manager             - led 2
+ * <li> high priority client      - led 0 and led 1 and led 2
+ * <br>
+ * The short flashing of the according leds inidicate that a user has requested the
+ * resource. The users have the following behaviour:<br>
+ *  <li> normal priority clients are idle for a period of time before requesting the resource. 
+ *       If they are granted the resource they will use it for a specific amount of time before releasing it.
+ *  <li> power manager only request the resource if its idle. It releases the resource immediatly 
+ *       if there is a request from another client.
+ *  <li> high priority client behaves like a normal client but it will release the resource 
+ *       after a shorter period of time if there are requests from other clients.<br>
+ *
+ * The poliy of the arbiter should be FirstComeFirstServed with one exception: 
+ * If the high priority client requests the resource, the resource will be granted to the 
+ * high priority client after the release of the current owner regardless of the internal queue of the arbiter. After
+ * the high priority client releases the resource the normal FCFS arbitration resumes.
+ * 
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
- * @author Philipp Huppertz (extended to test FcfsPriorityArbiter)
+ * @author Philipp Huppertz (extended test FcfsPriorityArbiter)
  */
  
 
