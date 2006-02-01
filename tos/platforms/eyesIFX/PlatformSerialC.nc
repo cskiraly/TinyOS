@@ -9,5 +9,6 @@ implementation {
   Init = UartC;
   StdControl = UartC;
   SerialByteComm = UartC;
+  StdControl = eyesIFXSerialP;
   eyesIFXSerialP.Resource -> UartC.Resource;
 }
