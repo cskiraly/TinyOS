@@ -1,4 +1,4 @@
-// $Id: MicaBusC.nc,v 1.1.2.2 2006-01-27 22:04:27 idgay Exp $
+// $Id: MicaBusC.nc,v 1.1.2.1 2006-02-01 16:43:58 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -10,7 +10,9 @@
  */
 /**
  * A simplistic beginning to providing a standard interface to the mica-family
- * 51-pin bus. Just provides the PW0-PW7 digital I/O pins.
+ * 51-pin bus. Just provides the PW0-PW7 digital I/O pins and returns the
+ * ADC channel number for the ADC pins.
+ * @author David Gay
  */
 
 configuration MicaBusC {
@@ -23,10 +25,20 @@ configuration MicaBusC {
     interface GeneralIO as PW5;
     interface GeneralIO as PW6;
     interface GeneralIO as PW7;
+
+    /* Separate interfaces to allow inlining to occur */
+    interface MicaBusAdc as Adc0;
+    interface MicaBusAdc as Adc1;
+    interface MicaBusAdc as Adc2;
+    interface MicaBusAdc as Adc3;
+    interface MicaBusAdc as Adc4;
+    interface MicaBusAdc as Adc5;
+    interface MicaBusAdc as Adc6;
+    interface MicaBusAdc as Adc7;
   }
 }
 implementation {
-  components HplAtm128GeneralIOC as Pins;
+  components HplAtm128GeneralIOC as Pins, MicaBusP;
 
   PW0 = Pins.PortC0;
   PW1 = Pins.PortC1;
@@ -36,4 +48,13 @@ implementation {
   PW5 = Pins.PortC5;
   PW6 = Pins.PortC6;
   PW7 = Pins.PortC7;
+
+  Adc0 = MicaBusP.Adc0;
+  Adc1 = MicaBusP.Adc1;
+  Adc2 = MicaBusP.Adc2;
+  Adc3 = MicaBusP.Adc3;
+  Adc4 = MicaBusP.Adc4;
+  Adc5 = MicaBusP.Adc5;
+  Adc6 = MicaBusP.Adc6;
+  Adc7 = MicaBusP.Adc7;
 }
