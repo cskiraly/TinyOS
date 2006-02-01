@@ -26,14 +26,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-29 21:28:25 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-02-01 17:44:18 $
  * ========================================================================
  */
 
  /**
- * HplTda5250ConfigP configuration
- * Controlling the TDA5250 at the HPL layer..
+ * Controlling the TDA5250 at the HPL layer.
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */

@@ -39,8 +39,8 @@ interface Tda5250RegComm {
  /**
    * Transmit a byte of data to a given register.
    *
-   * @param address The address of the register to write to
-   * @param data the 8-bit data value to write to the register
+   * @param address The address of the register to write to.
+   * @param data The 8-bit data value to write to the register.
    *
    * @return always SUCCESS.
    */
@@ -49,8 +49,8 @@ interface Tda5250RegComm {
  /**
    * Transmit a word of data to a given register.
    *
-   * @param address The address of the register to write to
-   * @param data the 16-bit data value to write to the register
+   * @param address The address of the register to write to.
+   * @param data The 16-bit data value to write to the register.
    *
    * @return always SUCCESS.
    */
@@ -59,9 +59,9 @@ interface Tda5250RegComm {
  /**
    * Read a byte of data from a given register.
    *
-   * @param address The address of the register to read from
+   * @param address The address of the register to read from.
    *
-   * @return The 16-bit data value read from the register
+   * @return The 16-bit data value read from the register.
    */
   async command uint8_t readByte(uint8_t address);
 }

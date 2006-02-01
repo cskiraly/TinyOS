@@ -26,14 +26,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-31 12:40:05 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-02-01 17:44:18 $
  * ========================================================================
  */
 
  /**
- * TDA5250Data Interface
- * Interface for sending and receiving bytes of data over the TDA5250 Radio
+ * Interface for sending and receiving bytes of data over the TDA5250 Radio.
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
@@ -41,14 +40,14 @@ interface HplTda5250Data {
 
  /**
    * Transmit a byte of data over the radio.
-   * @param data The data byte to be transmitted
-   * @return SUCCESS Byte successfully transmitted
-             FAIL    Byte could not be transmitted
+   * @param data The data byte to be transmitted.
+   * @return SUCCESS Byte successfully transmitted.
+             FAIL    Byte could not be transmitted.
    */
   async command error_t tx(uint8_t data);
 
   /**
-   * Signalled when the next byte can be made ready to transmit
+   * Signalled when the next byte can be made ready to transmit.
    * Receiving such an event does not guarantee that the previous
    * byte has already been transmitted, just that the next one can
    * now be handed over for transmission.
@@ -56,7 +55,7 @@ interface HplTda5250Data {
   async event void txReady();
 
   /**
-   * Command for querying whether any bytes are still waiting to be transmitted
+   * Command for querying whether any bytes are still waiting to be transmitted.
    *
    * @return TRUE if all bytes are trasnmitted
    *         FALSE otherwise.
@@ -65,12 +64,12 @@ interface HplTda5250Data {
 
   /**
    * Signaled when a byte of data has been received from the radio.
-   * @param data The data byte received
+   * @param data The data byte received.
    */
   async event void rxDone(uint8_t data);
 
   /**
-   * Enable transmitting over the radio
+   * Enable transmitting over the radio.
    *
    * @return SUCCESS on success
    *         FAIL otherwise.

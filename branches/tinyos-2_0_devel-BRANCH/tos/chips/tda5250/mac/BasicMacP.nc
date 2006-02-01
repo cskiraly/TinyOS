@@ -27,13 +27,13 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.4 $
-* $Date: 2006-01-29 02:34:56 $
+* $Revision: 1.1.2.5 $
+* $Date: 2006-02-01 17:44:18 $
 * ========================================================================
 */
 
 /**
-* PacketSerializerM module
+* BasicMac module
 *
 * @author Kevin Klues <klues@tkn.tu-berlin.de>
 */

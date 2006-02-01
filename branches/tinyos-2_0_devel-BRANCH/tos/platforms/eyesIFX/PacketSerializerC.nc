@@ -31,7 +31,7 @@
 /**
 * PacketSerializer on the eyesIFX platforms. This wires the
 * platform-independant components with the chip-dependant components.
-* [PacketSerializer -> BasicMac -> UART -> Tda5250Radio]
+* [Note: This is an intermmediate solution!]
 * @author Philipp Huppertz
 */
 
