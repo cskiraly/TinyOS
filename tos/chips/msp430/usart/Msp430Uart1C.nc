@@ -44,6 +44,7 @@ implementation {
   SerialByteComm = UartP;
 
   components HplMsp430Usart1C as HplUsart;
+  Init = HplUsart;
   Resource = HplUsart;
   ArbiterInfo = HplUsart;
   UartP.HplUsart -> HplUsart;

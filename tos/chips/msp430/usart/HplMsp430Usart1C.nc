@@ -50,10 +50,10 @@ implementation {
   ResourceController = Arbiter;
   ArbiterInfo = Arbiter;
 
-  HplUsartP.SIMO -> GIO.SIMO0;
-  HplUsartP.SOMI -> GIO.SOMI0;
-  HplUsartP.UCLK -> GIO.UCLK0;
-  HplUsartP.URXD -> GIO.URXD0;
-  HplUsartP.UTXD -> GIO.UTXD0;
+  HplUsartP.SIMO -> GIO.SIMO1;
+  HplUsartP.SOMI -> GIO.SOMI1;
+  HplUsartP.UCLK -> GIO.UCLK1;
+  HplUsartP.URXD -> GIO.URXD1;
+  HplUsartP.UTXD -> GIO.UTXD1;
 
 }
