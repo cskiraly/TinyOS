@@ -107,13 +107,14 @@ def _typename_void(xmltype, name, quals, isstar):
   return (quals + "void", name)
 
 def _typename_qualified(xmltype, name, quals, isstar):
+  silly = [quals]
   def add_qualifier(q):
     if xmltype.hasAttribute(q):
-      quals += q + " "
+      silly[0] += q + " "
   add_qualifier("volatile")
   add_qualifier("const")
   add_qualifier("__restrict")
-  return typename_full(xml_tagset(xmltype, type_tags), name, quals, isstar)
+  return typename_full(xml_tagset(xmltype, type_tags), name, silly[0], isstar)
 
 def _typename_ptr(xmltype, name, quals, isstar):
   name = "*" + quals + name
