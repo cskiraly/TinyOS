@@ -1,4 +1,4 @@
-// $Id: Counter32khz16C.nc,v 1.1.2.2 2006-01-27 21:52:11 idgay Exp $
+// $Id: Counter32khz16C.nc,v 1.1.2.3 2006-02-01 16:42:54 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -23,7 +23,7 @@ configuration Counter32khz16C
 }
 implementation
 {
-  components HplAtm128Timer3C as HWTimer, Init32khzP,
+  components HplAtm128Timer1C as HWTimer, Init32khzP,
     new Atm128CounterC(T32khz, uint16_t) as NCounter;
   
   Counter = NCounter;
