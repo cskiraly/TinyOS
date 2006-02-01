@@ -26,8 +26,8 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.1 $
-* $Date: 2006-01-29 02:34:56 $
+* $Revision: 1.1.2.2 $
+* $Date: 2006-02-01 17:44:18 $
 * ========================================================================
 */
 
@@ -63,7 +63,6 @@ module HplTda5250ConfigP {
     interface Alarm<T32khz, uint16_t> as RSSIStableDelay;
     interface GeneralIO as TXRX;
     interface GeneralIO as PWDDD;
-    //interface Interrupt as PWDDDInterrupt;
     interface GpioInterrupt as PWDDDInterrupt;
   }
 }

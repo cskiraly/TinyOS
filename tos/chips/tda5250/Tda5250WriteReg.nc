@@ -26,15 +26,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-31 12:40:05 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-02-01 17:44:18 $
  * ========================================================================
  */
 
  /**
- * TDA5250WriteReg Interface
- *
  * Allows writing to a specified register. See "tda5250RegTypes.h".
+ * WriteReg is parameterized by the register it uses.
+ *
+ * @param reg_type Defines the register to write to.
  *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
@@ -42,7 +43,7 @@ interface Tda5250WriteReg<reg_type> {
   /**
   * Writes to the parametrized register.
   *
-  * @param register to which is written.
+  * @param v Data written to the register.
   *
   * @return SUCCESS on success
   *         FAIL otherwise.
