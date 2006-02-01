@@ -4,9 +4,10 @@ configuration PlatformSerialC {
   provides interface SerialByteComm;
 }
 implementation {
-  components new Uart1C() as UartC;
+  components new Uart1C() as UartC, eyesIFXSerialP;
 
   Init = UartC;
   StdControl = UartC;
   SerialByteComm = UartC;
+  eyesIFXSerialP.Resource -> UartC.Resource;
 }
