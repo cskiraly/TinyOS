@@ -1,4 +1,4 @@
-// $Id: Init32khzP.nc,v 1.1.2.3 2006-01-27 23:13:23 idgay Exp $
+// $Id: Init32khzP.nc,v 1.1.2.4 2006-02-01 16:42:54 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -18,7 +18,7 @@
 configuration Init32khzP { }
 implementation {
   components PlatformC, HplAtm128Timer1C as HWTimer,
-    new Atm128TimerInitC(uint16_t, ATM128_CLK8_DIVIDE_256) as Init32khz;
+    new Atm128TimerInitC(uint16_t, ATM128_CLK16_DIVIDE_256) as Init32khz;
 
   PlatformC.SubInit -> Init32khz;
   Init32khz.Timer -> HWTimer;
