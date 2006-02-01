@@ -4,9 +4,11 @@ configuration PlatformSerialC {
   provides interface SerialByteComm;
 }
 implementation {
-  components new Uart1C() as UartC;
+  components new Uart1C() as UartC, TelosSerialP;
 
   Init = UartC;
   StdControl = UartC;
+  StdControl = TelosSerialP;
   SerialByteComm = UartC;
+  TelosSerialP.Resource -> UartC.Resource;
 }
