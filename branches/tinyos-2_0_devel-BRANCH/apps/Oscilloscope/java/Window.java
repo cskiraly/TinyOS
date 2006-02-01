@@ -21,6 +21,7 @@ class Window
     Oscilloscope parent;
     Graph graph;
 
+    Font smallFont = new Font("Dialog", Font.PLAIN, 8);
     Font boldFont = new Font("Dialog", Font.BOLD, 12);
     Font normalFont = new Font("Dialog", Font.PLAIN, 12);
     MoteTableModel moteListModel; // GUI view of mote list
@@ -131,6 +132,12 @@ class Window
 	return label;
     }
 
+    JLabel makeSmallLabel(String txt, int alignment) {
+	JLabel label = new JLabel(txt, alignment);
+	label.setFont(smallFont);
+	return label;
+    }
+
     JTextField makeTextField(int columns, ActionListener action) {
 	JTextField tf = new JTextField(columns);
 	tf.setFont(normalFont);
@@ -177,6 +184,13 @@ class Window
 	Box xControl = new Box(BoxLayout.Y_AXIS);
 	xLabel = makeLabel("", JLabel.CENTER);
 	final JSlider xSlider = new JSlider(JSlider.HORIZONTAL, 0, 8, graph.scale);
+	Hashtable xTable = new Hashtable();
+	for (int i = 0; i <= 8; i += 2)
+	    xTable.put(new Integer(i),
+		       makeSmallLabel("" + (Graph.MIN_WIDTH << i),
+				      JLabel.CENTER));
+	xSlider.setLabelTable(xTable);
+	xSlider.setPaintLabels(true);
 	graph.updateXLabel();
 	graph.setScale(graph.scale);
 	xSlider.addChangeListener(new ChangeListener() {
