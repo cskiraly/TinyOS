@@ -7,13 +7,14 @@
 # by ncc.  And because of that, the current platform's include directory
 # must be specified, otherwise its search order is last instead of first.
 #
-# $Id: .platform,v 1.1.2.5 2005-12-14 17:10:45 philipb Exp $
+# $Id: .platform,v 1.1.2.6 2006-02-01 23:59:15 philipb Exp $
 #
 
 push ( @includes, qw(
 
   %T/platforms/intelmote2
   %T/platforms/intelmote2/chips/cc2420
+  %T/platforms/intelmote2/chips/da9030
   %T/chips/cc2420
   %T/chips/pxa27x
   %T/chips/pxa27x/lib
@@ -21,6 +22,7 @@ push ( @includes, qw(
   %T/chips/pxa27x/gpio
   %T/chips/pxa27x/dma
   %T/chips/pxa27x/ssp
+  %T/chips/pxa27x/i2c
   %T/chips/pxa27x/uart
   %T/lib/timer
   %T/lib/serial
