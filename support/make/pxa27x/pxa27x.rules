@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: pxa27x.rules,v 1.1.2.6 2006-02-02 18:39:10 scipio Exp $
+#$Id: pxa27x.rules,v 1.1.2.7 2006-02-02 21:51:46 philipb Exp $
 
 define PXA27X_HELP
 
@@ -51,7 +51,7 @@ $(if $(PROGRAM),,$(call TOSMake_include,pxa27x/$(DEFAULT_PROGRAM).extra))
 
 ifndef BUILD_DEPS
   ifeq ($(filter $(BUILDLESS_DEPS),$(GOALS)),)
-    BUILD_DEPS = bin bytes setid $(POST_BUILD_EXTRA_DEPS)
+    BUILD_DEPS = bin bytes $(POST_BUILD_EXTRA_DEPS)
   endif
 endif
 
