@@ -179,10 +179,11 @@ if (!-f $platform_def) {
     exit 2;
 }
 
+do $platform_def;
+
 if (-f $family_def) {
   do $family_def;
 }
-do $platform_def;
 
 push @new_args, @opts;
 
