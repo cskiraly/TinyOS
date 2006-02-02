@@ -1,4 +1,4 @@
-// $Id: Tda5250ActiveMessageC.nc,v 1.1.2.1 2006-01-29 02:34:56 vlahan Exp $
+// $Id: Tda5250ActiveMessageC.nc,v 1.1.2.2 2006-02-02 16:41:38 vlahan Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: Tda5250ActiveMessageC.nc,v 1.1.2.1 2006-01-29 02:34:56 vlahan Exp $
+ * Date last modified:  $Id: Tda5250ActiveMessageC.nc,v 1.1.2.2 2006-02-02 16:41:38 vlahan Exp $
  *
  */
 
@@ -79,5 +79,6 @@ implementation {
 
   AM.SubSend    -> Radio.Send;
   AM.SubReceive -> Radio.Receive;
+  AM.SubPacket -> Radio.Packet;
   AM.amAddress -> Address;
 }
