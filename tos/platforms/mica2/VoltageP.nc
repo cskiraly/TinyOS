@@ -1,4 +1,4 @@
-/// $Id: VoltageP.nc,v 1.1.2.4 2006-01-27 22:04:27 idgay Exp $
+/// $Id: VoltageP.nc,v 1.1.2.5 2006-02-02 01:03:17 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -35,7 +35,6 @@ module VoltageP {
   uses interface GeneralIO as BAT_MON;	
 }
 implementation {
-  
   command error_t StdControl.start() {
     call BAT_MON.makeOutput();
     call BAT_MON.set();
@@ -59,4 +58,3 @@ implementation {
     return ATM128_ADC_PRESCALE;
   }
 }
-
