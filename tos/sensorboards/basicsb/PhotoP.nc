@@ -1,4 +1,4 @@
-/* $Id: PhotoP.nc,v 1.1.2.3 2006-02-02 00:13:46 idgay Exp $
+/* $Id: PhotoP.nc,v 1.1.2.4 2006-02-02 01:03:29 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -14,7 +14,6 @@
 module PhotoP
 {
   provides {
-    interface Init;
     interface StdControl;
     interface Atm128AdcConfig;
   }
@@ -25,10 +24,6 @@ module PhotoP
 }
 implementation
 {
-  command error_t Init.init() {
-    return SUCCESS;
-  }
-
   command error_t StdControl.start() {
     call PhotoPin.makeOutput();
     call PhotoPin.set();
