@@ -1,4 +1,4 @@
-// $Id: TestAMOnOffC.nc,v 1.1.2.3 2005-10-31 19:53:52 scipio Exp $
+// $Id: TestAMOnOffC.nc,v 1.1.2.4 2006-02-02 18:35:42 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -36,7 +36,7 @@
  *  power message. When a slave hears a data message, it toggles its
  *  red led; when it hears a power message, it turns off its radio,
  *  which it turns back on in a few seconds. This essentially tests
- *  whether the AMService is turning the radio off appropriately.
+ *  whether ActiveMessageC is turning the radio off appropriately.
  *
  *  @author Philip Levis
  *  @date   June 19 2005
@@ -54,9 +54,7 @@ module TestAMOnOffC {
     interface Receive as DataReceive;
     interface AMSend as DataSend;
     interface Timer<TMilli> as MilliTimer;
-    interface Service;
-    interface ServiceNotify;
-    interface Service as SecondService;
+    interface SplitControl as RadioControl;
   }
 }
 implementation {
@@ -67,8 +65,7 @@ implementation {
   uint8_t counter = 0;
   
   event void Boot.booted() {
-    call Service.start();
-    //call SecondService.start();
+    call RadioControl.start();
     call MilliTimer.startPeriodic(1000);
   }
   
@@ -131,13 +128,13 @@ implementation {
     }
   }
 
-  event void ServiceNotify.started() {
+  event void RadioControl.startDone() {
 #ifdef SERVICE_SLAVE
     call Leds.led1On();
 #endif
   }
 
-  event void ServiceNotify.stopped() {
+  event void RadioControl.stopDone() {
 #ifdef SERVICE_SLAVE
     call Leds.led1Off();
 #endif
