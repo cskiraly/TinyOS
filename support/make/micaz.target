@@ -1,22 +1,10 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: micaz.target,v 1.1.2.2 2006-01-03 02:12:51 scipio Exp $
+#$Id: micaz.target,v 1.1.2.3 2006-02-02 00:34:11 jwhui Exp $
 
 PLATFORM = micaz
 SENSORBOARD ?= micasb
 PROGRAMMER_PART ?= -dpart=ATmega128 --wr_fuse_e=ff
 PFLAGS += -finline-limit=100000
-
-ifdef TINYOS_NP
-  ifeq ($(TINYOS_NP),BNP)
-    PFLAGS += -I%T/lib/Deluge
-    PFLAGS += -I%T/lib/Deluge/TOSBoot/include
-    BOOTLOADER ?= $(TOSDIR)/lib/Deluge/TOSBoot/bl_micaz.srec
-    AVR_FUSE_H ?= 0xd8
-  endif
-  ifeq ($(TINYOS_NP),XNP)
-    BOOTLOADER ?= $(XNP_DIR)/inpispm2.srec
-  endif
-endif
 
 AVR_FUSE_H ?= 0xd9
 
