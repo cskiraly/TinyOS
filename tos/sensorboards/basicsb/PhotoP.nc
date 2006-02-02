@@ -1,4 +1,4 @@
-/* $Id: PhotoP.nc,v 1.1.2.2 2006-01-27 19:53:15 idgay Exp $
+/* $Id: PhotoP.nc,v 1.1.2.3 2006-02-02 00:13:46 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -14,13 +14,21 @@
 module PhotoP
 {
   provides {
+    interface Init;
     interface StdControl;
     interface Atm128AdcConfig;
   }
-  uses interface GeneralIO as PhotoPin;
+  uses {
+    interface GeneralIO as PhotoPin;
+    interface MicaBusAdc as PhotoAdc;
+  }
 }
 implementation
 {
+  command error_t Init.init() {
+    return SUCCESS;
+  }
+
   command error_t StdControl.start() {
     call PhotoPin.makeOutput();
     call PhotoPin.set();
@@ -33,7 +41,7 @@ implementation
   }
 
   async command uint8_t Atm128AdcConfig.getChannel() {
-    return 5;
+    return call PhotoAdc.getChannel();
   }
 
   async command uint8_t Atm128AdcConfig.getRefVoltage() {
