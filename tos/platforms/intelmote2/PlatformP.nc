@@ -35,6 +35,7 @@ includes hardware;
 
 module PlatformP {
   provides interface Init;
+  provides interface PlatformReset;
   uses {
     interface Init as InitL0;
     interface Init as InitL1;
@@ -42,6 +43,8 @@ module PlatformP {
     interface Init as InitL3;
     interface Init as PMICInit;
   }
+  uses interface HplPXA27xOSTimer as OST0M3;
+  uses interface HplPXA27xOSTimerWatchdog as PXA27xWD;
 }
 implementation {
 
@@ -109,6 +112,20 @@ implementation {
 
     //call PMICInit.init();
     return SUCCESS;
+  }
+
+  command void PlatformReset.reset() {
+    call OST0M3.setOSMR(call OST0M3.getOSCR() + 1000);
+    call PXA27xWD.enableWatchdog();
+    while (1);
+    return; // Should never get here.
+  }
+
+  async event void OST0M3.fired() 
+  {
+    call OST0M3.setOIERbit(FALSE);
+    call OST0M3.clearOSSRbit();
+    return;
   }
 
   default command error_t InitL0.init() { return SUCCESS; }

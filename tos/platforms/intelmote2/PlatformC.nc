@@ -35,14 +35,20 @@ includes hardware;
 configuration PlatformC
 {
   provides interface Init;
+  provides interface PlatformReset;
 
 }
 
 implementation
 {
-  components PlatformP,PMICM;
+  components PlatformP,PMICC;
+  components HplPXA27xOSTimerC;
 
   Init = PlatformP;
-  PlatformP.PMICInit -> PMICM.Init;
+  PlatformReset = PlatformP;
+
+  PlatformP.PMICInit -> PMICC.Init;
+  PlatformP.OST0M3 -> HplPXA27xOSTimerC.OST0M3;
+  PlatformP.PXA27xWD -> HplPXA27xOSTimerC.OSTWDCntl;
 
 }
