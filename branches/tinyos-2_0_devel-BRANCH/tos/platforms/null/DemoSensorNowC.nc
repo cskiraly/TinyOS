@@ -1,4 +1,4 @@
-/* $Id: DemoSensorC.nc,v 1.1.2.4 2006-02-02 01:42:54 idgay Exp $
+/* $Id: DemoSensorNowC.nc,v 1.1.2.1 2006-02-02 01:43:08 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -12,23 +12,30 @@
  *
  * @author David Gay
  */
-generic module DemoSensorC()
+generic module DemoSensorNowC()
 {
-  provides interface Read<uint16_t>;
-  provides interface ReadStream<uint16_t>;
+  provides interface Resource;
+  provides interface ReadNow<uint16_t>;
 }
 implementation
 {
-  command error_t Read.read() {
+  async command error_t Resource.request() {
     return SUCCESS;
   }
 
-  command error_t ReadStream.postBuffer(uint16_t *buf, uint16_t count) {
+  async command error_t Resource.immediateRequest() {
     return SUCCESS;
   }
 
-   command error_t ReadStream.read(uint32_t usPeriod) {
-     return SUCCESS;
+  async command void Resource.release() {
+  }
+
+  async command uint8_t Resource.getId() {
+    return 0;
+  }
+
+  async command error_t ReadNow.read() {
+    return SUCCESS;
   }
 }
 
