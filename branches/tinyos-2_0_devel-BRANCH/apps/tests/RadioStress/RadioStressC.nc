@@ -1,4 +1,4 @@
-// $Id: RadioStressC.nc,v 1.1.2.4 2005-10-31 19:53:52 scipio Exp $
+// $Id: RadioStressC.nc,v 1.1.2.5 2006-02-02 18:35:42 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -48,8 +48,7 @@ module RadioStressC {
     interface Boot;
     interface Receive;
     interface AMSend;
-    interface Service;
-    interface ServiceNotify;
+    interface SplitControl as RadioControl;
     interface Packet;
     interface Timer<TMilli>;
     interface PacketAcknowledgements as Acks;
@@ -70,7 +69,7 @@ implementation {
   
   event void Boot.booted() {
     call Leds.led0On();
-    call Service.start();
+    call RadioControl.start();
   }
 
   task void sendTask();
@@ -92,13 +91,13 @@ implementation {
     sendPacket();
   }
   
-  event void ServiceNotify.started() {
+  event void RadioControl.startDone() {
     call Leds.led1On();
     call Timer.startPeriodic(1000);
     //call Acks.enable();
   }
 
-  event void ServiceNotify.stopped() {
+  event void RadioControl.stopDone() {
 
   }
 
