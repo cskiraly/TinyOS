@@ -1,44 +1,32 @@
-/// $Id: DemoSensorC.nc,v 1.1.2.3 2006-01-20 23:32:32 idgay Exp $
-
-/**
- * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
+/* $Id: DemoSensorC.nc,v 1.1.2.4 2006-02-02 01:39:00 idgay Exp $
+ * Copyright (c) 2006 Intel Corporation
+ * All rights reserved.
  *
- * Permission to use, copy, modify, and distribute this software and its
- * documentation for any purpose, without fee, and without written agreement is
- * hereby granted, provided that the above copyright notice, the following
- * two paragraphs and the author appear in all copies of this software.
- * 
- * IN NO EVENT SHALL CROSSBOW TECHNOLOGY OR ANY OF ITS LICENSORS BE LIABLE TO 
- * ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL 
- * DAMAGES ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
- * IF CROSSBOW OR ITS LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
- * DAMAGE. 
- *
- * CROSSBOW TECHNOLOGY AND ITS LICENSORS SPECIFICALLY DISCLAIM ALL WARRANTIES,
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
- * AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS 
- * ON AN "AS IS" BASIS, AND NEITHER CROSSBOW NOR ANY LICENSOR HAS ANY 
- * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR 
- * MODIFICATIONS.
+ * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * file. If you do not find these files, copies can be found by writing to
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * The micaZ Voltage sensor seems to have a few issues, so the default
- * micaZ sensor returns a constant value of 0xbeef.
+ * The micaZ doesn't have any built-in sensors - the DemoSensor returns
+ * a constant value of 0xbeef, or just reads the ground value for the
+ * stream sensor.
  *
  * @author Philip Levis
- * @author Hu Siquan <husq@xbow.com>
+ * @authod David Gay
  */
 
-configuration DemoSensorC
+generic configuration DemoSensorC()
 {
-  provides interface StdControl;	
   provides interface Read<uint16_t>;
+  provides interface ReadStream<uint16_t>;
 }
 implementation
 {
-  components new ConstantSensorC(uint16_t, 0xbeef) as DemoChannel;
+  components new ConstantSensorC(uint16_t, 0xbeef) as DemoChannel,
+    new AdcReadStreamClientC();
 
-  StdControl  = DemoChannel;    
   Read = DemoChannel;
+  // An unconfigure atm128 ReadStream sensor reads the "ground" channel.
+  ReadStream = AdcReadStreamClientC;
 }
-
