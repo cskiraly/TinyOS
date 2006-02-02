@@ -1,4 +1,4 @@
-/// $Id: ConstantSensorC.nc,v 1.1.2.3 2006-01-20 23:32:34 idgay Exp $
+/// $Id: ConstantSensorC.nc,v 1.1.2.4 2006-02-02 01:39:18 idgay Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -32,19 +32,10 @@
  */
   
 generic module ConstantSensorC(typedef width_t @integer(), uint32_t val) { 
-  provides interface StdControl;	
   provides interface Read<width_t>;
 }
 implementation
 {
-  command error_t StdControl.start() {
-    return SUCCESS;
-  }
-
-  command error_t StdControl.stop() {
-    return SUCCESS;
-  }
-
   task void senseResult() {
     signal Read.readDone(SUCCESS, val);
   }
