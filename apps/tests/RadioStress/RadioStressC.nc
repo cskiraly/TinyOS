@@ -1,4 +1,4 @@
-// $Id: RadioStressC.nc,v 1.1.2.5 2006-02-02 18:35:42 scipio Exp $
+// $Id: RadioStressC.nc,v 1.1.2.6 2006-02-02 18:42:06 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -91,13 +91,18 @@ implementation {
     sendPacket();
   }
   
-  event void RadioControl.startDone() {
-    call Leds.led1On();
-    call Timer.startPeriodic(1000);
-    //call Acks.enable();
+  event void RadioControl.startDone(error_t err) {
+    if (err != SUCCESS) {
+      call RadioControl.start();
+    }
+    else {
+      call Leds.led1On();
+      call Timer.startPeriodic(1000);
+      //call Acks.enable();
+    }
   }
 
-  event void RadioControl.stopDone() {
+  event void RadioControl.stopDone(error_t err) {
 
   }
 
