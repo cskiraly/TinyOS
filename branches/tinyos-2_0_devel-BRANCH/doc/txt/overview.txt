@@ -16,7 +16,7 @@ TinyOS 2.0 Overview
 
 TinyOS 2.0 is a clear slate redesign and re-implementation of TinyOS.
 Its development was motivated by our belief that many aspects of 1.x
-are straining to meet requirements and uses that were not foreseen
+strain to meet requirements and uses that were not foreseen
 when it was designed and implemented. The structure and interfaces 1.x
 defines have several fundamental limitations. While these limitations
 can be worked around, this practice has led to tightly coupled
@@ -26,8 +26,8 @@ for a newcomer to sensor network programming.
 TinyOS 2.0 is not backwards compatible with 1.x: code written for the
 latter will not compile for the former. However, one important aspect
 of 2.0's design is to minimize the difficulty of upgrading
-code. Therefore, while moving a 1.x application to 2.0 will require
-some work, it should not be very much.
+code. Therefore, while porting a 1.x application to 2.0 will require
+some work, it should not be very much. 
 
 This document provides a high-level overview of 2.0 and describes some
 of the ways in which it departs from 1.x. It covers the basic TinyOS
@@ -130,7 +130,25 @@ should handle this event and start services accordingly. Details on
 the new boot sequence can be found in TEP 107: TinyOS 2.x Boot
 Sequence[TEP107_].
 
-5. Timers
+5. Virtualization
+====================================================================
+
+TinyOS 2.0 is written with nesC 1.2, which introduces the concept
+of a 'generic' or instantiable component. Generic modules allow
+TinyOS to have reusable data structures, such as bit vectors and
+queues, which simplify development. More importantly, generic
+configurations allow services to encapsulate complex wiring 
+relationships for clients that need them.
+
+In practice, this means that many basic TinyOS services are now
+*virtualized.* Rather than wire to a component with a parameterized
+interface (e.g., GenericComm or TimerC in 1.x), a program instantiates
+a service component that provides the needed interface. This
+service component does all of the wiring underneath (e.g., in the
+case of timers, to a unique) automatically, reducing wiring
+mistakes and simplifying use of the abstraction.
+
+6. Timers
 ====================================================================
 
 TinyOS 2.0 provides a much richer set of timer interfaces than
@@ -142,13 +160,25 @@ timers, and the timer system may provide one or two high-precision
 timers that fire asynchronously (they have the async
 keyword). Components can query their timers for how much time
 remainins before they fire, and can start timers in the future (e.g.,
-'start firing a timer at 1Hz starting 31ms from now). The HIL of the
-timer subsystem can now be found in ``tos/lib/timer``. A platform's
-microcontoller implementation defines components such as ``TimerMilliC``
-and ``Timer32KHzC`` for higherMore information on the timer system can be
-found in TEP 102: Timers[TEP102_].
+'start firing a timer at 1Hz starting 31ms from now'). TEP 102: 
+Timers[TEP102_] defines what HIL components a platform must provide
+in order to support standard TinyOS timers. Platforms are
+required to provide millisecond granularity timers, and can provide
+finer granularity timers (e.g., 32kHz) if needed.
 
-6. Communication
+Timers present a good example of virtualization in 2.0. In 1.x,
+a program instantiates a timer by wiring to TimerC::
+
+components App, TimerC;
+App.Timer -> TimerC.Timer[unique("Timer")];
+
+In 2.0, a program instantiates a timer::
+
+components App, new TimerMilliC();
+App.Timer -> TimerMilliC;
+
+
+7. Communication
 ====================================================================
 
 In TinyOS 2.0, the message buffer type is ``message_t``, and it is a
@@ -175,42 +205,45 @@ communication.  Instead, a component should wire to
 SerialActiveMessageC, which provides active message communication over
 the serial port.
 
-Further information on message_t can be found in TEP 111:
-message_t[TEP111_].
+Active message communication is virtualized through four generic 
+components, which take the AM type as a parameter: AMSenderC, 
+AMReceiverC, AMSnooperC, and AMSnoopingReceiverC. AMSenderC is
+virtualized in that the call to send() does not fail if some
+other component is sending (as it does with GenericComm in 1.x). Instead,
+it fails only if that particular AMSenderC already has a packet
+outstanding or if the radio is not in a sending state. Underneath,
+the active message system queues and sends these outstanding packets.
+This is different than the QueuedSendC approach of 1.x, in which there
+is an N-deep queue that is shared among all senders. With N AMSenderC 
+components, there is an N-deep queue where each sender has a single
+reserved entry.
 
-7. Sensors
+Further information on message_t can be found in TEP 111:
+message_t[TEP111_], while further information on AM can be
+found in TEP 116: Packet Protocoks[TEP116_].
+
+8. Sensors
 ====================================================================
 
 In TinyOS 2.0, named sensor components comprise the HIL of a
-platform's sensors. Sensor HIL components provide the ``AcquireData``
-interface, which does not have async events. If a component needs
+platform's sensors. TEP 114 describes a set of HIL data acquisition
+interfaces, such as Read, ReadStream, and Get, which sensors
+provide according to their acquisition capabilities.
+
+If a component needs
 high-frequency or very accurate sampling, it must use the HAL, which
 gives it the full power of the underlying platform (highly accurate
 platform-independent sampling is not really feasible, due to the
-particulars of individual platforms). ``AcquireData`` assumes that the
+particulars of individual platforms). ``Read`` assumes that the
 request can tolerate some latencies (for example, it might schedule
-requests using a FIFO policy). There is also a ``AcquireDataNow``
-interface, which represents a more urgent request: if the underlying
-system cannot service the request very soon, ``getData`` returns an
-error. Both data acquisition interfaces have an ``error`` event, to
-inform the calling component that something went wrong.
+competing requests using a FIFO policy). 
 
-Details on the ADC subsystem and sensor abstractions can be found in
-TEP 101: Analog-to-Digital Converters[TEP101_] and TEP 109:
-Sensorboards[TEP109_].
+Details on the ADC subsystem can be found in
+TEP 101: Analog-to-Digital Converters[TEP101_]; details on
+the organization of sensor boards can be found in TEP 109:
+Sensorboards[TEP109_], and the details of the HIL sensor interfaces
+can be found in TEP 114: Source and Sink Independent Drivers[TEP114_].
 
-8. Service Distributions
-====================================================================
-
-TinyOS 2.0 introduces the notion of 'service distributions,' or
-collections of system services that are designed to work together. A
-service distribution represents a coherent API for an application
-programmer to use, and deals with all of the underlying
-initialization, coordination, and composition.
-
-TinyOS 2.0 includes an example service distribution, OSKI (Operating
-System Key Interfaces). Service distributions and OSKI are described
-in TEP 110: Service Distributions[TEP110_].
 
 9. Error Codes
 ====================================================================
@@ -223,7 +256,56 @@ to the caller. In TinyOS 2.0, ``result_t`` is replaced by ``error_t``,
 whose values include SUCCESS, FAIL, EBUSY, and ECANCEL. Interface
 commands and events define which error codes they may return and why.
 
-10. Conclusion
+From the perspective of porting code, this is the most significant
+different in 2.0. Calls that were once::
+
+if (call X.y()) {
+  busy = TRUE;
+}
+
+
+now have their meanings reversed. In 1.x, the busy statement will execute
+if the call succeeds, while in 2.0 it will execute if the call fails.
+This encourages a more portable, upgradable, and readable approach::
+
+if (call X.y() == SUCCESS) {
+  busy = TRUE;
+}
+
+10. Arbitration
+====================================================================
+
+While basic abstractions, such as packet communication and timers,
+can be virtualized, experiences with 1.x showed that some cannot 
+without either adding significant complexity or limiting the system.
+The most pressing example of this is a shared bus on a microcontroller.
+Many different systems -- sensors, storage, the radio -- might need
+to use the bus at the same time, so some way of arbitrating access
+is needed. 
+
+To support these kinds of abstractions, TinyOS 2.0 introduces 
+the Resource interface, which components use to request and
+acquire shared resources, and arbiters, which provide a policy for 
+arbitrating access between multiple clients. For some abstractions,
+the arbiter also provides a power management policy, as it can tell
+when the system is no longer needed and can be safely turned off.
+
+TEP 108: Resource Arbitration[TEP108_] describes the Resource interface
+and how arbiters work.
+
+11. Power Management
+====================================================================
+
+Power management in 2.0 is divided into two parts: the power state
+of the microcontroller and the power state of devices. The former,
+discussed in TEP 112: Microcontroller Power Management[TEP112_],
+is computed in a chip-specific manner by examining which devices 
+and interrupt souces are active. The latter, discussed in
+TEP 115: Power Management of Non-Virtualised Devices, is handled
+through resource abiters.
+
+
+12. Conclusion
 ====================================================================
 
 TinyOS 2.0 represents the next step of TinyOS development. Building on
@@ -232,15 +314,15 @@ TinyOS architecture and pushed it forward in several directions,
 hopefully leading to simpler and easier application development. It is
 still under active development: future prereleases will include
 non-volatile storage, basic multihop protocols (collection routing,
-dissemination), and power management policies.
+dissemination), and further power management abstractions.
 
-11. Acknowledgments
+13. Acknowledgments
 ====================================================================
 
 TinyOS 2.0 is the result of a lot of hard work from a lot of people,
 including (but not limited to) David Gay, Cory Sharp, Vlado Handziski,
-Jan Hauer, Kevin Klues, Joe Polastre, Jonathan Hui, Gilman Tolle, 
-Martin Turon, Phil Buonodonna, Ben Greenstein, Adam Wolisz, David Culler, 
+Jan Hauer, Kevin Klues, Joe Polastre, Jonathan Hui, Prabal Dutta, 
+Gilman Tolle, Martin Turon, Phil Buonodonna, Ben Greenstein, David Culler, 
 Kristin Wright, Ion Yannopoulos, and Phil Levis. 
 
 
@@ -266,23 +348,29 @@ Kristin Wright, Ion Yannopoulos, and Phil Levis.
 
 .. [TEP3] TEP 3: Coding Standard
 
-.. [TEP101] TEP 101: Analog-to-Digital Converters. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep101.txt?view=markup
+.. [TEP101] TEP 101: Analog-to-Digital Converters. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep101.txt?view=markup
 
-.. [TEP102] TEP 102: Timers. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep102.txt?view=markup
+.. [TEP102] TEP 102: Timers. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep102.txt?view=markup
 
-.. [TEP106] TEP 106: Schedulers and Tasks. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep106.txt?view=markup
+.. [TEP106] TEP 106: Schedulers and Tasks. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep106.txt?view=markup
 
-.. [TEP107] TEP 107: Boot Sequence. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep107.txt?view=markup
+.. [TEP107] TEP 107: Boot Sequence. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep107.txt?view=markup
 
-.. [TEP108] TEP 108: message_t. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep108.txt?view=markup
+.. [TEP108] TEP 108: message_t. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep108.txt?view=markup
 
-.. [TEP109] TEP 109: Sensorboards. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep109.txt?view=markup
+.. [TEP109] TEP 109: Sensorboards. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep109.txt?view=markup
 
-.. [TEP110] TEP 110: Service Distributions. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep110.txt?view=markup
+.. [TEP110] TEP 110: Service Distributions. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep110.txt?view=markup
 
-.. [TEP111] TEP 111: message_t. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep111.txt?view=markup
+.. [TEP111] TEP 111: message_t. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep111.txt?view=markup
 
-.. [TEP112] TEP 112: Microcontroller Power Management. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep112.txt?view=markup
+.. [TEP112] TEP 112: Microcontroller Power Management. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep112.txt?view=markup
 
-.. [TEP113] TEP 113: Serial Communication. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep113.txt?view=markup
+.. [TEP113] TEP 113: Serial Communication. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep113.txt?view=markup
+ 
+.. [TEP114] TEP 114: SIDs: Source and Sink Independent Drivers. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep114.txt?view=markup
+ 
+.. [TEP115] TEP 115: Power Management of Non-Virtualised Devices. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep115.txt?view=markup
+ 
+.. [TEP116] TEP 116: Packet Protocols. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep116.txt?view=markup
  
