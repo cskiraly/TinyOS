@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: avr.rules,v 1.1.2.5 2006-01-29 18:10:02 scipio Exp $
+#$Id: avr.rules,v 1.1.2.6 2006-02-02 18:39:09 scipio Exp $
 
 define AVR_HELP
 
@@ -75,8 +75,7 @@ ifndef BUILD_DEPS
 endif
 
 setid: FORCE
-	@cmd () { echo "$$@"; $$@; }; if [ x = x$(NODEID) ]; then cmd cp $(MAIN_SREC) $(INSTALL_SREC); else cmd $(SET_ID) $(MAIN_SREC) $(INSTALL_SREC) TOS_NODE_ID=$(NODEID); fi
-	$(SET_ID) $(MAIN_SREC) $(INSTALL_SREC) $(AMADDR)=$(NODEID) 
+	@cmd () { echo "$$@"; $$@; }; if [ x = x$(NODEID) ]; then cmd cp $(MAIN_SREC) $(INSTALL_SREC); else cmd $(SET_ID) $(MAIN_SREC) $(INSTALL_SREC) TOS_NODE_ID=$(NODEID) $(AMADDR)=$(NODEID) ; fi
 
 delsetid: FORCE
 	rm -f $(subst .srec.,.exe.,$(INSTALL_SREC)) $(INSTALL_SREC) 

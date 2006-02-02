@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: pxa27x.rules,v 1.1.2.5 2006-01-29 18:10:02 scipio Exp $
+#$Id: pxa27x.rules,v 1.1.2.6 2006-02-02 18:39:10 scipio Exp $
 
 define PXA27X_HELP
 
@@ -56,8 +56,7 @@ ifndef BUILD_DEPS
 endif
 
 setid: FORCE
-	@cmd () { echo "$$@"; $$@; }; if [ x = x$(NODEID) ]; then cmd $(OBJCOPY) --output-target=binary $(MAIN_EXE) $(INSTALL_BIN); else cmd $(SET_ID) --objcopy $(OBJCOPY) --objdump $(OBJDUMP) --target binary $(MAIN_EXE) $(INSTALL_BIN) TOS_NODE_ID=$(NODEID); fi
-	$(SET_ID) $(MAIN_SREC) $(INSTALL_SREC) $(AMADDR)=$(NODEID) 
+	@cmd () { echo "$$@"; $$@; }; if [ x = x$(NODEID) ]; then cmd $(OBJCOPY) --output-target=binary $(MAIN_EXE) $(INSTALL_BIN); else cmd $(SET_ID) --objcopy $(OBJCOPY) --objdump $(OBJDUMP) --target binary $(MAIN_EXE) $(INSTALL_BIN) TOS_NODE_ID=$(NODEID) $(AMADDR) = $(NODEID); fi
 
 
 bin: exe FORCE
