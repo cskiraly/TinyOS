@@ -1,4 +1,4 @@
-// $Id: TestAMOnOffC.nc,v 1.1.2.4 2006-02-02 18:35:42 scipio Exp $
+// $Id: TestAMOnOffC.nc,v 1.1.2.5 2006-02-02 18:41:50 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -63,7 +63,7 @@ implementation {
 
   bool locked;
   uint8_t counter = 0;
-  
+  bool on = FALSE;
   event void Boot.booted() {
     call RadioControl.start();
     call MilliTimer.startPeriodic(1000);
@@ -74,8 +74,8 @@ implementation {
     counter++;
 #ifdef SERVICE_SLAVE
     if ((counter % 7) == 0) {
-      if (!call Service.isRunning()) {
-        call Service.start();
+      if (!on) {
+        call RadioControl.start();
       }
     }
 #endif
@@ -109,8 +109,8 @@ implementation {
   event message_t* PowerReceive.receive(message_t* bufPtr, 
 	   			        void* payload, uint8_t len) {
 #ifdef SERVICE_SLAVE 
-    if (call Service.isRunning()) {
-      call Service.stop();
+    if (on) {
+      call RadioControl.stop();
     }
 #endif
     return bufPtr;
@@ -128,16 +128,28 @@ implementation {
     }
   }
 
-  event void RadioControl.startDone() {
+  event void RadioControl.startDone(error_t err) {
+    if (err != SUCCESS) {
+      call RadioControl.start();
+    }
+    else {
+      on = TRUE;
 #ifdef SERVICE_SLAVE
     call Leds.led1On();
 #endif
+    }
   }
 
-  event void RadioControl.stopDone() {
+  event void RadioControl.stopDone(error_t err) {
+    if (err != SUCCESS) {
+      call RadioControl.stop();
+    }
+    else {
+      on = FALSE;
 #ifdef SERVICE_SLAVE
     call Leds.led1Off();
 #endif
+    }
   }
 }
 
