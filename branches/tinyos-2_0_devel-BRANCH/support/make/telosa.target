@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: telosa.target,v 1.1.2.4 2006-01-03 02:15:36 scipio Exp $
+#$Id: telosa.target,v 1.1.2.5 2006-02-02 00:34:11 jwhui Exp $
 
 PLATFORM ?= telosa
 
@@ -13,18 +13,6 @@ MSP_BSL ?= tos-bsl
 
 ifdef CC2420_CHANNEL
 PFLAGS += -DCC2420_DEF_CHANNEL=$(CC2420_CHANNEL)
-endif
-
-ifdef TINYOS_NP
-  ifeq ($(TINYOS_NP),BNP)
-    PFLAGS += -I%T/lib/Deluge
-    PFLAGS += -I%T/lib/Deluge/TOSBoot/include
-    PFLAGS += -Wl,--section-start=.text=0x3000,--defsym=_reset_vector__=0x1100
-    BOOTLOADER ?= $(TOSDIR)/lib/Deluge/TOSBoot/bl_telos.ihex
-    ifeq ($(shell [ -f /bin/cygwin1.dll ] && echo cygwin),cygwin)
-      BOOTLOADER := $(shell cygpath -m $(BOOTLOADER))
-    endif
-  endif
 endif
 
 $(call TOSMake_include_platform,msp)

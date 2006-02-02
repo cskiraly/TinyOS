@@ -10,10 +10,6 @@ endif
 ASSEMBLY_FILES += $(TOSDIR)/platforms/intelmote2/toscrt0.s $(TOSDIR)/chips/pxa27x/pxa27x_util.s
 CFLAGS += -T$(TOSDIR)/platforms/intelmote2/tos.x
 
-ifdef TINYOS_NP
-
-endif
-
 $(call TOSMake_include_platform,pxa27x)
 
 intelmote2: $(BUILD_DEPS)
