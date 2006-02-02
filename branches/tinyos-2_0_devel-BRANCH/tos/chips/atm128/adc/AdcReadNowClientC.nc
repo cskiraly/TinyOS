@@ -1,4 +1,4 @@
-/* $Id: AdcReadNowClientC.nc,v 1.1.2.3 2006-01-27 19:35:31 idgay Exp $
+/* $Id: AdcReadNowClientC.nc,v 1.1.2.4 2006-02-02 01:03:17 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -34,6 +34,6 @@ implementation {
   };
 
   ReadNow = WireAdcP.ReadNow[ID];
-  Atm128AdcConfig = AdcC.Atm128AdcConfig[ID];
+  Atm128AdcConfig = WireAdcP.Atm128AdcConfig[ID];
   Resource = Atm128AdcC.Resource[HAL_ID];
 }
