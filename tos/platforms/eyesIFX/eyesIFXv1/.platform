@@ -7,35 +7,12 @@
 push( @includes, qw(
 
   %T/platforms/eyesIFX/eyesIFXv1
-  %T/platforms/eyesIFX
   %T/platforms/eyesIFX/chips/stm25p
-  %T/platforms/eyesIFX/chips/tda5250
-  %T/platforms/eyesIFX/chips/ad5200
-  %T/platforms/eyesIFX/sensors
   %T/chips/stm25p
-  %T/chips/tda5250
-  %T/chips/ad5200
-  %T/chips/msp430
-  %T/chips/msp430/adc12
-  %T/chips/msp430/pins
-  %T/chips/msp430/sensors
-  %T/chips/msp430/timer
-  %T/lib/timer
-  %T/lib/serial
-  %T/lib/adc
-  %T/lib/byte_radio
-
 ) );
 
-@opts = qw(
+push ( @opts, qw(
 
-  -gcc=msp430-gcc
   -mmcu=msp430x149
-  -fnesc-target=msp430
-  -fnesc-no-debug
-  -fnesc-scheduler=TinySchedulerC,TinyScheduleriC.TaskBasic,TaskBasic,TaskBasic,runTask,postTask
-
-);
-
-push @opts, "-mingw-gcc" if $cygwin;
+) );
 
