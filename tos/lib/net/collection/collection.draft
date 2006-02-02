@@ -1,6 +1,6 @@
 Collection Service
 
-$Id: collection.draft,v 1.1.2.1 2006-02-02 02:49:25 rfonseca76 Exp $
+$Id: collection.draft,v 1.1.2.2 2006-02-02 03:01:59 rfonseca76 Exp $
 
 Rodrigo Fonseca, UCB
 Omprakash Gnawali, USC
@@ -82,9 +82,9 @@ Control-plane protocol:
 The tree formation protocol is based on a variation of the distance vector
 protocol.  
 
-Control packet format:
+Control packet format: (in bits)
 
-16:source 4:count 4:total | [ 8:tree_id | 8:root_id | 8:root_seqno | 8:hopcount | 16:cost  ]+ 
+[sizeof(bits) neighbor_t]:source 4:count 4:total | [ 8:tree_id | 8:root_id | 8:root_seqno | 8:hopcount | 16:cost  ]+ 
 
 source is the neighbor id
 total is how many control packets in this message (if there are many roots that
@@ -170,14 +170,15 @@ than one tree.
 
 Interfaces:
 
+
 (The send interface is to be used, parameterized by tree_id)
 interface BasicRouting
 	//To be parameterized by tree_id
-	command result_t getNextHops(uint16_t* nextHops, uint8_t* n);
+	command result_t getNextHops(neighbor_t* nextHops, uint8_t* n);
 interface CostBasedRouting
 	//To be parameterized by tree_id
 	command uint16_t getMyCost();
-	command uint16_t getNeighborCost(uint16_t neighbor);
+	command uint16_t getNeighborCost(neighbor_t neighbor);
 interface REControl
 	command result_t initializeRH(message_t *msg, uint8_t tree_id);
 	command uint8_t getHeaderSize();
@@ -185,12 +186,14 @@ interface REControl
 	command result_t stopRoot(uint8_t tree_id);
 
 interface LinkEstimator:
-	command uint8_t getLinkQuality(uint16_t neighbor);
-	command uint8_t getReverseQuality(uint16_t neighbor);
-	command uint8_t getForwardQuality(uint16_t neighbor);
+	command uint8_t getLinkQuality(neighbot_t neighbor);
+	command uint8_t getReverseQuality(neighbot_t neighbor);
+	command uint8_t getForwardQuality(neighbot_t neighbor);
 
 interface NeighborTable:
-	event void evicted(uint16_t neighbor)
+	event void evicted(neighbot_t neighbor)
+
+(Initially, typedef uint16_t neighbor_t)
 	
 Components:
 
