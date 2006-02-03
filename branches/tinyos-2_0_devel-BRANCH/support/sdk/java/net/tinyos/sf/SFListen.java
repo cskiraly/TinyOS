@@ -1,4 +1,4 @@
-// $Id: SFListen.java,v 1.1.2.2 2005-10-31 20:13:43 scipio Exp $
+// $Id: SFListen.java,v 1.1.2.3 2006-02-03 01:26:32 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -67,8 +67,11 @@ public class SFListen extends Thread implements PacketListenerIF, PhoenixError {
     // handler, but sends the error message to a different location
     // (sf.message vs sf.verbose.message)
     public void error(IOException e) {
+	if (e.getMessage() != null) {
+	    sf.message(e.getMessage());
+	}
 	sf.message(source.getPacketSource().getName() +
-		   " died - restarting (" + e + ")");
+		   " died - restarting");
 	try {
 	    sleep(5000);
 	}
