@@ -1,4 +1,4 @@
-/* $Id: DemoSensorStreamC.nc,v 1.1.2.1 2006-02-03 21:11:42 idgay Exp $
+/* $Id: DemoSensorStreamC.nc,v 1.1.2.2 2006-02-03 21:23:01 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -17,7 +17,7 @@ generic configuration DemoSensorStreamC() {
   provides interface ReadStream<uint16_t>;
 }
 implementation {
-  components new PhotoReadStreamC() as SensorStream;
+  components new PhotoStreamC() as SensorStream;
 
   ReadStream = SensorStream;
 }

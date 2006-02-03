@@ -1,4 +1,4 @@
-/* $Id: DemoSensorC.nc,v 1.1.2.4 2006-02-03 21:11:42 idgay Exp $
+/* $Id: DemoSensorC.nc,v 1.1.2.5 2006-02-03 21:23:01 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -17,7 +17,7 @@ generic configuration DemoSensorC() {
   provides interface Read<uint16_t>;
 }
 implementation {
-  components new PhotoReadC() as Sensor;
+  components new PhotoC() as Sensor;
 
   Read = Sensor;
 }
