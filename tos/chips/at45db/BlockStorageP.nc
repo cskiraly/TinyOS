@@ -1,4 +1,4 @@
-// $Id: BlockStorageP.nc,v 1.1.2.5 2006-01-27 00:57:20 idgay Exp $
+// $Id: BlockStorageP.nc,v 1.1.2.6 2006-02-03 23:23:06 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -209,7 +209,7 @@ implementation
       }
   }
 
-  command error_t BlockWrite.write[blockstorage_t id](storage_addr_t addr, void* buf, uint16_t len) {
+  command error_t BlockWrite.write[blockstorage_t id](storage_addr_t addr, void* buf, storage_len_t len) {
     error_t ok = newRequest(S_WRITE, id, addr, buf, len);
 
     if (ok == SUCCESS && addr + len > maxAddr[id])
@@ -255,7 +255,7 @@ implementation
   }
 #endif
 
-  command error_t BlockRead.read[blockstorage_t id](storage_addr_t addr, void* buf, uint16_t len) {
+  command error_t BlockRead.read[blockstorage_t id](storage_addr_t addr, void* buf, storage_len_t len) {
     return newRequest(S_READ, id, addr, buf, len);
   }
 
@@ -314,10 +314,10 @@ implementation
   event void At45db.flushDone(error_t result) {
   }
 
-  default event void BlockWrite.writeDone[uint8_t id](storage_addr_t addr, void* buf, uint16_t len, error_t result) { }
+  default event void BlockWrite.writeDone[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t result) { }
   default event void BlockWrite.eraseDone[uint8_t id](error_t result) { }
   default event void BlockWrite.commitDone[uint8_t id](error_t result) { }
-  default event void BlockRead.readDone[uint8_t id](storage_addr_t addr, void* buf, uint16_t len, error_t result) { }
+  default event void BlockRead.readDone[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t result) { }
   default event void BlockRead.verifyDone[uint8_t id](error_t result) { }
   default event void BlockRead.computeCrcDone[uint8_t id](storage_addr_t addr, storage_len_t len, uint16_t x, error_t result) { }
   

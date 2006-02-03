@@ -1,4 +1,4 @@
-// $Id: HplAt45dbIOC.nc,v 1.1.2.4 2006-01-27 22:04:27 idgay Exp $
+// $Id: HplAt45dbIOC.nc,v 1.1.2.5 2006-02-03 23:23:06 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -16,7 +16,7 @@
 
 configuration HplAt45dbIOC {
   provides {
-    interface SPIByte as FlashSpi;
+    interface SpiByte as FlashSpi;
     interface HplAt45dbByte;
   }
 }
