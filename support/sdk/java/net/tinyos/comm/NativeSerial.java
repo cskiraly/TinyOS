@@ -119,7 +119,11 @@ public class NativeSerial {
   }
 
   public void close() {
-    TOSCommJNI.NativeSerial_close(swigCPtr);
+    // We can come here with swigCptr == 0 from finalize if the C++
+    // constructor throws an exception. Ideally, we should guard all
+    // methods in the C++ code, but this is simpler.
+    if (swigCPtr != 0)
+      TOSCommJNI.NativeSerial_close(swigCPtr);
   }
 
   public int available() {
