@@ -1,4 +1,4 @@
-// $Id: PowerupC.nc,v 1.1.2.2 2005-09-26 18:09:46 scipio Exp $
+// $Id: PowerupAppC.nc,v 1.1.2.1 2006-02-03 22:50:23 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -36,6 +36,7 @@ implementation {
   components MainC, PowerupM, LedsC;
 
   MainC.Boot <- PowerupM;
+  MainC.SoftwareInit -> LedsC;
   
   PowerupM -> LedsC.Leds;
 }
