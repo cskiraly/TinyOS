@@ -86,7 +86,7 @@ esac
 AM_CONDITIONAL([CYGWIN], [test "$CYGWIN"])
 
 AC_MSG_CHECKING(for JDK location)
-JAVAC_DIR=`tinyos/misc/tos-locate-jre --javac`
+JAVAC_DIR=`/bin/sh tinyos/misc/tos-locate-jre --javac`
 if test $? -ne 0; then
   AC_ERROR(java not found)
 fi
@@ -113,6 +113,7 @@ AC_OUTPUT(
 	platforms/msp430/Makefile
 	platforms/msp430/motelist/Makefile
 	platforms/msp430/pybsl/Makefile
+	platforms/msp430/pybsl/tos-bsl.1
 	platforms/msp430/pybsl/serial/Makefile
 	tinyos/Makefile
 	tinyos/java/Makefile

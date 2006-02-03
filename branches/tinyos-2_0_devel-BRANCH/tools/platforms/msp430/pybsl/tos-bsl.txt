@@ -10,7 +10,7 @@ pybsl, with support for the telos, telosb and tmote devices
 from Moteiv (www.moteiv.com).
 
 It is released under a free software license,
-see license.txt for more details.
+see tos-bsl-license.txt for more details.
 
 (C) 2001-2003 Chris Liechti <cliechti@gmx.net>
 

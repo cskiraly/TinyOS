@@ -1,5 +1,11 @@
 AUTOMAKE_OPTIONS = foreign
 
+sharedocdir=@prefix@/share/doc/tinyos-tools-@PACKAGE_VERSION@
+
+sharedoc_DATA = tos-bsl.txt tos-bsl-license.txt
+
+dist_man_MANS = tos-bsl.1
+
 if CYGWIN
 # Cygwin support using native windows binary
 # (this code is not compatible with cygwin's python)
