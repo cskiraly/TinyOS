@@ -29,22 +29,29 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
 
-/**
- * VoltageC is a common name for the Msp430InternalVoltageC voltage
- * sensor available on the telosb platform.
+/** 
+ * DemoSensorStreamC is a generic sensor device that provides a 16-bit
+ * value. The platform author chooses which sensor actually sits
+ * behind DemoSensorStreamC, and though it's probably Voltage, Light, or
+ * Temperature, there are no guarantees.
  *
- * To convert from ADC counts to actual voltage, divide by 4096 and
- * multiply by 3.
+ * This particular DemoSensorStreamC on the telosb platform provides a
+ * voltage reading, using VoltageStreamC. 
+ *
+ * To convert from ADC counts to actual voltage, divide this reading
+ * by 4096 and multiply by 3.
  *
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-02-03 23:29:23 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-02-03 23:29:23 $
+ * 
  */
 
-generic configuration VoltageC() {
-  provides interface Read<uint16_t>;
+generic configuration DemoSensorStreamC()
+{
+  provides interface ReadStream<uint16_t>;
 }
-implementation {
-  components new Msp430InternalVoltageC();
-  Read = Msp430InternalVoltageC.Read;
+implementation
+{
+  components new VoltageStreamC() as DemoSensor;
+  ReadStream = DemoSensor;
 }
-
