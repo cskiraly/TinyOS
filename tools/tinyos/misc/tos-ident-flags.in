@@ -1,13 +1,13 @@
 #!@pathperl@ -w
-#$Id: tos-ident-flags.in,v 1.1.2.1 2005-08-08 19:03:11 idgay Exp $
+#$Id: tos-ident-flags.in,v 1.1.2.2 2006-02-03 16:58:19 idgay Exp $
 #@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
 use strict;
 
 my $MaxNameLength = 16;
 
-if( @ARGV == 0 ) {
-  print "usage: tos-ident-flags [program_name] (cache_file)\n";
+if( @ARGV != 1 ) {
+  print "usage: tos-ident-flags program_name\n";
   exit 0;
 }
 

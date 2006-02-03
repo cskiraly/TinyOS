@@ -1,5 +1,17 @@
 AUTOMAKE_OPTIONS = foreign
 
+dist_man_MANS = tos-ident-flags.1	\
+                tos-install-jni.1	\
+                tos-locate-jre.1	\
+                tos-mote-key.1		\
+                tos-serial-configure.1	\
+                tos-serial-debug.1	\
+                tos-set-symbols.1	\
+                tos-storage-at45db.1	\
+                tos-storage-stm25p.1	\
+                tos-write-image.1
+
+
 bin_SCRIPTS = tos-ident-flags \
 	      tos-install-jni \
 	      tos-locate-jre \
