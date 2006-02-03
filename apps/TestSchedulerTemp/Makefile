@@ -1,3 +1,0 @@
-COMPONENT=TestSchedulerC
-include $(MAKERULES)
-
