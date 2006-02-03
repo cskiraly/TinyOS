@@ -1,4 +1,4 @@
-//$Id: TOSSerial.java,v 1.1.2.1 2005-05-23 22:11:48 idgay Exp $
+//$Id: TOSSerial.java,v 1.1.2.2 2006-02-03 01:27:02 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -288,8 +288,14 @@ public class TOSSerial extends NativeSerial implements SerialPort
 
   protected void finalize()
   {
+    // Be careful what you call here. The object may never have been
+    // created, so the underlying C++ object may not exist, and there's
+    // insufficient guarding to avoid a core dump. If you call other
+    // methods than super.close() or super.finalize(), be sure to
+    // add an if (swigCptr != 0) guard in NativeSerial.java.
     System.out.println("Java TOSSerial finalize");
     close();
+    super.finalize();
   }
 }
 
