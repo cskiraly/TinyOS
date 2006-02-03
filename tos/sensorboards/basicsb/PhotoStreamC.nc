@@ -1,4 +1,4 @@
-/* $Id: PhotoReadC.nc,v 1.1.2.1 2006-02-02 00:13:46 idgay Exp $
+/* $Id: PhotoStreamC.nc,v 1.1.2.1 2006-02-03 21:11:42 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -15,20 +15,21 @@
 
 #include "basicsb.h"
 
-generic configuration PhotoReadC() {
-  provides interface Read<uint16_t>;
+generic configuration PhotoStreamC() {
+  provides interface ReadStream<uint16_t>;
 }
 implementation {
-  components PhotoReadP, PhotoDeviceP, new AdcReadClientC();
+  components PhotoReadStreamP, PhotoDeviceP, new AdcReadStreamClientC();
 
   enum {
     RESID = unique(UQ_PHOTODEVICE),
+    STREAMID = unique(UQ_PHOTODEVICE_STREAM)
   };
 
-  Read = PhotoReadP.Read[RESID];
+  ReadStream = PhotoReadStreamP.ReadStream[STREAMID];
   
-  PhotoReadP.ActualRead[RESID] -> AdcReadClientC;
-  PhotoReadP.Resource[RESID] -> PhotoDeviceP.Resource[RESID];
+  PhotoReadStreamP.ActualReadStream[STREAMID] -> AdcReadStreamClientC;
+  PhotoReadStreamP.Resource[STREAMID] -> PhotoDeviceP.Resource[RESID];
 
-  AdcReadClientC.Atm128AdcConfig -> PhotoDeviceP;
+  AdcReadStreamClientC.Atm128AdcConfig -> PhotoDeviceP;
 }
