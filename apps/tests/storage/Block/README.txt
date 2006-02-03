@@ -1,3 +1,8 @@
+README for Block
+Author/Contact: tinyos-help@millennium.berkeley.edu
+
+Description:
+
 Application to test the BlockStorageC abstraction. There must be a
 volumes-<chip>.xml file in this directory describing the test volume
 for your flash chip.
@@ -14,3 +19,11 @@ Different values of k run the test with different initial random seeds
 
 A successful test will blink the yellow led a few times, then turn on the
 green led. A failed test will turn on the red led.
+
+Tools:
+
+Known bugs/limitations:
+
+None.
+
+$Id: README.txt,v 1.1.2.3 2006-02-03 23:25:03 idgay Exp $
