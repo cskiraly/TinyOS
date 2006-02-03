@@ -1,4 +1,4 @@
-// $Id: BlinkC.nc,v 1.1.2.4 2005-11-11 02:28:13 philipb Exp $
+// $Id: BlinkC.nc,v 1.1.2.1 2006-02-03 19:44:51 idgay Exp $
 
 configuration BlinkC
 {
