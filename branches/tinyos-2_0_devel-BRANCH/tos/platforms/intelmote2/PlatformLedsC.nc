@@ -34,16 +34,18 @@ includes hardware;
 
 configuration PlatformLedsC
 {
-  provides {
-    interface GeneralIO as Led0;
-    interface GeneralIO as Led1;
-    interface GeneralIO as Led2;
-  }
+  provides interface GeneralIO as Led0;
+  provides interface GeneralIO as Led1;
+  provides interface GeneralIO as Led2;
+  uses interface Init;
 }
 
 implementation
 {
   components GeneralIOC;
+  components PlatformP;
+
+  Init = PlatformP.InitL3;
 
   Led0 = GeneralIOC.GeneralIO[RED_LED_PIN];
   Led1 = GeneralIOC.GeneralIO[GREEN_LED_PIN];

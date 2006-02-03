@@ -1,4 +1,4 @@
-/// $Id: PlatformP.nc,v 1.1.2.3 2006-01-27 21:52:11 idgay Exp $
+/// $Id: PlatformP.nc,v 1.1.2.4 2006-02-03 23:57:28 philipb Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -35,6 +35,8 @@ module PlatformP
   provides interface Init;
   uses interface Init as MoteInit;
   uses interface Init as MeasureClock;
+  uses interface Init as LedsInit;
+
 }
 implementation
 {
@@ -58,7 +60,11 @@ implementation
 
     power_init();
 
+    call LedsInit.init();
+
     return SUCCESS;
   }
+
+  default command error_t LedsInit.init() { return SUCCESS; }
 }
 

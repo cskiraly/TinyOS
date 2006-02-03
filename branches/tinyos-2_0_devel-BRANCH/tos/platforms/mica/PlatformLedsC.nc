@@ -1,4 +1,4 @@
-// $Id: PlatformLedsC.nc,v 1.1.2.5 2006-01-27 21:52:11 idgay Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.6 2006-02-03 23:57:28 philipb Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -35,11 +35,15 @@ configuration PlatformLedsC
   provides interface GeneralIO as Led0;
   provides interface GeneralIO as Led1;
   provides interface GeneralIO as Led2;
+  uses interface Init;
 }
 implementation
 {
   components HplAtm128GeneralIOC as IO;
-    
+  components PlatformP;
+
+  Init = PlatformP.LedsInit;
+
   Led0 = IO.PortA2;  // Pin A2 = Red LED
   Led1 = IO.PortA1;  // Pin A1 = Green LED
   Led2 = IO.PortA0;  // Pin A0 = Yellow LED
