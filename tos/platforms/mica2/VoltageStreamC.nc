@@ -1,4 +1,4 @@
-/* $Id: VoltageReadStreamC.nc,v 1.1.2.1 2006-02-02 01:03:17 idgay Exp $
+/* $Id: VoltageStreamC.nc,v 1.1.2.1 2006-02-03 21:15:12 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
 
 #include "hardware.h"
 
-generic configuration VoltageReadStreamC() {
+generic configuration VoltageStreamC() {
   provides interface ReadStream<uint16_t>;
 }
 implementation {

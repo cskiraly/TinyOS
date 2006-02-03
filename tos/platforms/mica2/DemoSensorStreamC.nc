@@ -1,4 +1,4 @@
-/* $Id: DemoSensorNowC.nc,v 1.1.2.2 2006-02-03 21:15:12 idgay Exp $
+/* $Id: DemoSensorStreamC.nc,v 1.1.2.1 2006-02-03 21:15:12 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -13,14 +13,12 @@
  * @author David Gay
  */
 
-generic configuration DemoSensorNowC()
+generic configuration DemoSensorStreamC()
 {
-  provides interface Resource;
-  provides interface ReadNow<uint16_t>;
+  provides interface ReadStream<uint16_t>;
 }
 implementation {
-  components new VoltageNowC() as Sensor;
+  components new VoltageStreamC() as SensorStream;
 
-  Resource = Sensor;
-  ReadNow = Sensor;
+  ReadStream = SensorStream;
 }

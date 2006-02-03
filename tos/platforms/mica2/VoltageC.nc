@@ -1,4 +1,4 @@
-/* $Id: VoltageReadNowC.nc,v 1.1.2.1 2006-02-02 01:03:17 idgay Exp $
+/* $Id: VoltageC.nc,v 1.1.2.10 2006-02-03 21:15:12 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -15,22 +15,20 @@
 
 #include "hardware.h"
 
-generic configuration VoltageReadNowC() {
-  provides interface Resource;
-  provides interface ReadNow<uint16_t>;
+generic configuration VoltageC() {
+  provides interface Read<uint16_t>;
 }
 implementation {
-  components VoltageDeviceP, new AdcReadNowClientC(), new NestedResourceC();
+  components VoltageReadP, VoltageDeviceP, new AdcReadClientC();
 
   enum {
     RESID = unique(UQ_VOLTAGEDEVICE),
   };
 
-  Resource = NestedResourceC;
-  ReadNow = AdcReadNowClientC;
+  Read = VoltageReadP.Read[RESID];
+  
+  VoltageReadP.ActualRead[RESID] -> AdcReadClientC;
+  VoltageReadP.Resource[RESID] -> VoltageDeviceP.Resource[RESID];
 
-  NestedResourceC.Resource1 -> VoltageDeviceP.Resource[RESID];
-  NestedResourceC.Resource2 -> AdcReadNowClientC;
-
-  AdcReadNowClientC.Atm128AdcConfig -> VoltageDeviceP;
+  AdcReadClientC.Atm128AdcConfig -> VoltageDeviceP;
 }
