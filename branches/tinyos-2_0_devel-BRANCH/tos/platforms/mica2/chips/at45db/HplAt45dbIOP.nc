@@ -1,4 +1,4 @@
-// $Id: HplAt45dbIOP.nc,v 1.1.2.3 2006-01-17 19:03:17 idgay Exp $
+// $Id: HplAt45dbIOP.nc,v 1.1.2.4 2006-02-03 23:23:06 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -45,7 +45,7 @@
 module HplAt45dbIOP {
   provides {
     interface Init;
-    interface SPIByte as FlashSpi;
+    interface SpiByte as FlashSpi;
     interface HplAt45dbByte;
   }
   uses {
