@@ -1,4 +1,4 @@
-/* $Id: DemoSensorC.nc,v 1.1.2.5 2006-02-02 01:03:17 idgay Exp $
+/* $Id: DemoSensorC.nc,v 1.1.2.6 2006-02-03 21:15:12 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -16,12 +16,9 @@
 generic configuration DemoSensorC()
 {
   provides interface Read<uint16_t>;
-  provides interface ReadStream<uint16_t>;
 }
 implementation {
-  components new VoltageReadStreamC() as SensorStream,
-    new VoltageReadC() as Sensor;
+  components new VoltageC() as Sensor;
 
   Read = Sensor;
-  ReadStream = SensorStream;
 }
