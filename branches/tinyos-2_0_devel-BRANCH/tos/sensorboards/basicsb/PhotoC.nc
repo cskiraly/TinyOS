@@ -1,4 +1,4 @@
-/* $Id: TempReadC.nc,v 1.1.2.1 2006-02-02 00:13:46 idgay Exp $
+/* $Id: PhotoC.nc,v 1.1.2.1 2006-02-03 21:11:42 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -8,27 +8,27 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Thermistor of the basicsb sensor board.
+ * Photodiode of the basicsb sensor board.
  * 
  * @author David Gay
  */
 
 #include "basicsb.h"
 
-generic configuration TempReadC() {
+generic configuration PhotoC() {
   provides interface Read<uint16_t>;
 }
 implementation {
-  components TempReadP, TempDeviceP, new AdcReadClientC();
+  components PhotoReadP, PhotoDeviceP, new AdcReadClientC();
 
   enum {
-    RESID = unique(UQ_TEMPDEVICE),
+    RESID = unique(UQ_PHOTODEVICE),
   };
 
-  Read = TempReadP.Read[RESID];
+  Read = PhotoReadP.Read[RESID];
   
-  TempReadP.ActualRead[RESID] -> AdcReadClientC;
-  TempReadP.Resource[RESID] -> TempDeviceP.Resource[RESID];
+  PhotoReadP.ActualRead[RESID] -> AdcReadClientC;
+  PhotoReadP.Resource[RESID] -> PhotoDeviceP.Resource[RESID];
 
-  AdcReadClientC.Atm128AdcConfig -> TempDeviceP;
+  AdcReadClientC.Atm128AdcConfig -> PhotoDeviceP;
 }
