@@ -1,4 +1,4 @@
-// $Id: BlinkM.nc,v 1.1.2.4 2005-03-21 19:34:31 scipio Exp $
+// $Id: BlinkM.nc,v 1.1.2.1 2006-02-03 19:42:46 idgay Exp $
 
 module BlinkM
 {
