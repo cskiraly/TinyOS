@@ -1,4 +1,4 @@
-// $Id: PlatformLedsC.nc,v 1.1.2.3 2006-01-27 23:28:13 jwhui Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.4 2006-02-03 23:57:28 philipb Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -29,6 +29,7 @@ configuration PlatformLedsC {
   provides interface GeneralIO as Led0;
   provides interface GeneralIO as Led1;
   provides interface GeneralIO as Led2;
+  uses interface Init;
 }
 implementation
 {
@@ -38,6 +39,9 @@ implementation
     , new Msp430GpioC() as Led1Impl
     , new Msp430GpioC() as Led2Impl
     ;
+  components PlatformP;
+
+  Init = PlatformP.LedsInit;
 
   Led0 = Led0Impl;
   Led0Impl -> GeneralIOC.Port54;
