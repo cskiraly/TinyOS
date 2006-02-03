@@ -42,18 +42,16 @@
  * by 4096 and multiply by 3.
  *
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-01-27 23:53:40 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-02-03 23:29:23 $
  * 
  */
 
 generic configuration DemoSensorC()
 {
   provides interface Read<uint16_t>;
-  provides interface ReadStream<uint16_t>;
 }
 implementation
 {
   components new VoltageC() as DemoSensor;
   Read = DemoSensor;
-  ReadStream = DemoSensor;
 }

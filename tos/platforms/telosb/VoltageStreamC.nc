@@ -37,14 +37,14 @@
  * multiply by 3.
  *
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-02-03 23:29:23 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-02-03 23:29:23 $
  */
 
-generic configuration VoltageC() {
-  provides interface Read<uint16_t>;
+generic configuration VoltageStreamC() {
+  provides interface ReadStream<uint16_t>;
 }
 implementation {
   components new Msp430InternalVoltageC();
-  Read = Msp430InternalVoltageC.Read;
+  ReadStream = Msp430InternalVoltageC.ReadStream;
 }
 
