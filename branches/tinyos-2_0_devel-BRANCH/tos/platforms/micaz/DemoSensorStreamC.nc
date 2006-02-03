@@ -1,4 +1,4 @@
-/* $Id: DemoSensorC.nc,v 1.1.2.5 2006-02-03 21:15:35 idgay Exp $
+/* $Id: DemoSensorStreamC.nc,v 1.1.2.1 2006-02-03 21:15:35 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -16,13 +16,14 @@
  * @authod David Gay
  */
 
-generic configuration DemoSensorC()
+generic configuration DemoSensorStreamC()
 {
-  provides interface Read<uint16_t>;
+  provides interface ReadStream<uint16_t>;
 }
 implementation
 {
-  components new ConstantSensorC(uint16_t, 0xbeef) as DemoChannel;
+  components new AdcReadStreamClientC();
 
-  Read = DemoChannel;
+  // An unconfigure atm128 ReadStream sensor reads the "ground" channel.
+  ReadStream = AdcReadStreamClientC;
 }
