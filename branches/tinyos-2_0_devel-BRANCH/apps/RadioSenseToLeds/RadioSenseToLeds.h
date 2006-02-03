@@ -7,7 +7,7 @@ typedef nx_struct RadioSenseMsg {
 } RadioSenseMsg;
 
 enum {
-  AM_RADIOSENSEMSG = 6,
+  AM_RADIOSENSEMSG = 7,
 };
 
 #endif
