@@ -1,4 +1,4 @@
-/* $Id: Atm128AdcP.nc,v 1.1.2.3 2006-01-24 18:47:16 idgay Exp $
+/* $Id: Atm128AdcP.nc,v 1.1.2.4 2006-02-03 22:42:34 idgay Exp $
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -193,7 +193,7 @@ implementation
     adcsr.aden = ATM128_ADC_ENABLE_ON;
     adcsr.adsc = ATM128_ADC_START_CONVERSION_ON;
     adcsr.adfr = f.multiple;
-    adcsr.adif = ATM128_ADC_INT_FLAG_OFF;
+    adcsr.adif = ATM128_ADC_INT_FLAG_ON; // clear any stale flag
     adcsr.adie = ATM128_ADC_INT_ENABLE_ON;
     adcsr.adps = prescaler;
     call HplAtm128Adc.setAdcsra(adcsr);
