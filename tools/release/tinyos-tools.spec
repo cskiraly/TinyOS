@@ -9,13 +9,16 @@
 # INSTALLJNI: install
 # JNISUFFIX: so
 # 
-%define INSTALLJNI install --group=SYSTEM
-%define JNISUFFIX dll
+#%define INSTALLJNI install --group=SYSTEM
+#%define JNISUFFIX dll
+
+%define INSTALLJNI install 
+%define JNISUFFIX so
 
 Summary: TinyOS tools 
 Name: tinyos-tools
-Version: 1.2.0
-Release: 2
+Version: 1.2.1
+Release: 1
 License: Please see source
 Group: Development/System
 URL: http://www.tinyos.net/
@@ -79,6 +82,8 @@ echo "done."
 # Remove JNI code on uninstall
 
 %changelog
+* Sat Feb 4 2006 <kwright@cs.berkeley.edu> 1.2.1-1
+- 1.2.1
 * Wed Aug 26 2005 <kwright@cs.berkeley.edu> 1.2.0-beta2.1
 - includes dgay fixes for uisp and calling tos-locate-jre from post script
 * Wed Aug 17 2005 <kwright@cs.berkeley.edu> 1.2.0-internal2.1
