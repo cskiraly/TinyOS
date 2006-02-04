@@ -1,4 +1,4 @@
-// $Id: TestI2CC.nc,v 1.1.1.1.2.2 2006-01-27 22:20:33 mturon Exp $
+// $Id: TestI2CC.nc,v 1.1.1.1.2.3 2006-02-04 01:10:33 philipb Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -37,7 +37,7 @@ implementation
       //new Atm128I2CMasterC(0x58) as I2CPot;  // ad5242 for mag on MTS310
 
   TestI2CM -> MainC.Boot;
-  MainC.SoftwareInit -> LedsC;
+  
 
   TestI2CM.Timer0 -> Timer0;
   TestI2CM.Leds -> LedsC;  

@@ -1,4 +1,4 @@
-// $Id: TestRadioC.nc,v 1.1.1.1.2.1 2006-01-30 21:33:10 idgay Exp $
+// $Id: TestRadioC.nc,v 1.1.1.1.2.2 2006-02-04 01:10:33 philipb Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -46,7 +46,7 @@ implementation
     CC1000CsmaRadioC as Radio;
 
   TestRadioM -> MainC.Boot;
-  MainC.SoftwareInit -> LedsC;
+  
   MainC.SoftwareInit -> Radio;
 
   TestRadioM.SplitControl -> Radio;

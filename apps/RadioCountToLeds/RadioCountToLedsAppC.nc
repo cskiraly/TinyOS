@@ -1,4 +1,4 @@
-// $Id: RadioCountToLedsAppC.nc,v 1.1.2.3 2006-01-19 20:30:16 scipio Exp $
+// $Id: RadioCountToLedsAppC.nc,v 1.1.2.4 2006-02-04 01:10:32 philipb Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -47,7 +47,7 @@ implementation {
   components new TimerMilliC();
   components ActiveMessageC;
   
-  MainC.SoftwareInit -> LedsC;
+  
   
   App.Boot -> MainC.Boot;
   

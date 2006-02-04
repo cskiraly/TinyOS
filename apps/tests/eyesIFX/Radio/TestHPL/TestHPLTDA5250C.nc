@@ -1,4 +1,4 @@
-// $Id: TestHPLTDA5250C.nc,v 1.1.1.1.2.1 2005-11-22 12:31:10 phihup Exp $
+// $Id: TestHPLTDA5250C.nc,v 1.1.1.1.2.2 2006-02-04 01:10:33 philipb Exp $
 
 /*                                  tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.
@@ -45,7 +45,7 @@ implementation {
 
   TestHPLTDA5250P -> MainC.Boot;
   
-  MainC.SoftwareInit -> LedsC;
+  
   MainC.SoftwareInit -> HPLTDA5250ConfigC;
 
   TestHPLTDA5250P.Resource -> HPLTDA5250ConfigC.Resource;

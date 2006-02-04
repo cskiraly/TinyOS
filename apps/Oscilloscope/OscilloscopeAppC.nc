@@ -31,5 +31,5 @@ implementation
   OscilloscopeC.Read -> Sensor;
   OscilloscopeC.Leds -> LedsC;
 
-  MainC.SoftwareInit -> LedsC;
+  
 }
