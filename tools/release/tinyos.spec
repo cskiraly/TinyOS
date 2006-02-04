@@ -1,7 +1,7 @@
 Summary: An event-based operating environment designed for use with embedded networked sensors.
 Name: tinyos
 BuildArchitectures: noarch
-Version: 2.0.0pre2
+Version: 2.0.0beta1
 Release: 1
 License: Please see source
 Packager: TinyOS Group, UC Berkeley
@@ -10,7 +10,17 @@ URL: www.tinyos.net
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 Prefix: /opt
-Requires: tinyos-tools >= 1.2.0, nesc >= 1.2, avr-binutils >= 2.15, avr-gcc >= 3.4, avr-libc
+Requires: tinyos-tools >= 1.2.1, nesc >= 1.2.4, avr-binutils >= 2.15, avr-gcc >= 3.4, avr-libc
+
+%define CLASSPATH_DELIM ;
+
+# linux:
+# "export CLASSPATH=\"$TOSROOT/support/sdk/java:.\""
+#
+# cygwin:
+#%define CLASSPATH_DFN "CLASSPATH=\`cygpath -w $TOSROOT/support/sdk/java\`;export CLASSPATH=\"$CLASSPATH;.\""
+%define CLASSPATH_DFN export CLASSPATH=$TOSROOT/support/sdk/java:.
+
 
 %description
 TinyOS is an event based operating environment designed for use with 
@@ -29,8 +39,11 @@ rm -rf %{buildroot}/opt/tinyos-2.x
 mkdir -p %{buildroot}/opt
 export TOSROOT=$RPM_BUILD_DIR/%{name}-%{version}
 export TOSDIR=$TOSROOT/tos
-CLASSPATH=`cygpath -w $TOSROOT/support/sdk/java`
-export CLASSPATH="$CLASSPATH;."
+#CLASSPATH=`cygpath -w $TOSROOT/support/sdk/java`
+#CLASSPATH=$TOSROOT/support/sdk/java
+#export CLASSPATH="$CLASSPATH;."
+#export CLASSPATH="$CLASSPATH:."
+%{CLASSPATH_DFN}
 cd support/sdk/java
 pwd
 ls
