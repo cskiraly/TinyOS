@@ -29,5 +29,5 @@
  */
 
 interface PlatformReset {
-  command void reset();
+  async command void reset();
 }
