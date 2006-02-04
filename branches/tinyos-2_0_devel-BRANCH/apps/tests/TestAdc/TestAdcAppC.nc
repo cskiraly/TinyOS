@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2004, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -27,32 +27,33 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.8 $
- * $Date: 2006-02-04 01:10:33 $
+ * $Revision: 1.1.2.9 $
+ * $Date: 2006-02-04 01:32:25 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
-/** 
+/**
  * Tests the AdcC subsystem and switches on leds 0, 1 and 2
- * if the test is successful: 
- * LED0 denotes a successful Read operation, 
- * LED1 denotes a successful ReadNow operation, 
- * LED2 denotes a successful ReadStream operation.  
+ * if the test is successful:
+ * LED0 denotes a successful Read operation,
+ * LED1 denotes a successful ReadNow operation,
+ * LED2 denotes a successful ReadStream operation.
  *
- * Requires a platform-specific DemoSensorC component that provides 
- * Read<uint16_t> and ReadStream<uint16_t> and a platform-specific   
- * DemoSensorNowC component that provides ReadNow<uint16_t> and Resource.
- * 
- * @author Jan Hauer 
+ * Requires a platform-specific DemoSensorC component that provides
+ * Read<uint16_t>, a platform-specific DemoSensorStreamC component that provides
+ * ReadStream<uint16_t> and a platform-specific DemoSensorNowC component that provides
+ * ReadNow<uint16_t> and Resource
+ *
+ * @author Jan Hauer
  */
 configuration TestAdcAppC {
 }
 implementation
 {
-  components MainC, 
-             TestAdcC, 
-             new DemoSensorC() as Sensor, 
+  components MainC,
+             TestAdcC,
+             new DemoSensorC() as Sensor,
              new DemoSensorNowC() as SensorNow,
              new DemoSensorStreamC() as SensorStream,
              LedsC;
