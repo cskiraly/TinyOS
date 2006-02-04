@@ -1,19 +1,20 @@
 NAME=tinyos
-VERSION=2.0.0pre2
+VERSION=2.0.0beta1
 
 cd ../..
 rm -rf $NAME-$VERSION
 tools/release/extractor $NAME-$VERSION <<'EOF' | gzip >../$NAME-$VERSION.tar.gz
-!^./apps/(BlinkAlarm|BlinkMSP430|Powerup|Test*)
-!^./apps/tests/(eyesIFX|TestScheduler|TestSleep)
-!^./apps/tests/mica2/(ADC|I2C|Radio|Timer)
-!^./tos/chips/(ad5200|ad45db|pxa27x|stm25p|tda5250)
+!^./apps/(BlinkAlarm|Test*)
+!^./apps/tests/(eyesIFX|mica2|msp430|RadioStress|TestAdc|TestAlarm|TestAM|TestAMOnOff|TestAMService|TestArbiter|TestBroadcast|TestPowerManager|TestPowerup|TestScheduler|TestSerial|TestSerialBandwidth|TestSleep|TestTimerSync|TestTrickleTimer)
+!^./doc
 !^./overall-todo.txt
+!^./README
+!^./support/make/(mica2dot.target|telosa.target)
 !^./tools
+!^./tos/chips/sht11
+!^./tos/lib/(deluge|net|oski)
 !^./tos/oski
-!^./tos/lib/(byteradio|deluge|tossim)
-!^./tos/platforms/(eyesIFX|intelmote2)
-!^./support/make/(imote2*|eyes*|mica2dot|pxa27x)
+!^./tos/sensorboards/mts300
 !/.cvsignore
 !/CVS/
 !/CVS$
