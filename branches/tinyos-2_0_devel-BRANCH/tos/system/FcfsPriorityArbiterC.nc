@@ -7,19 +7,19 @@
  * hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
  *
- * IN NO EVENT SHALL WASHINGTON UNIVERSITY IN ST. LOUIS BE LIABLE TO ANY PARTY 
- * FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING 
- * OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF WASHINGTON 
+ * IN NO EVENT SHALL WASHINGTON UNIVERSITY IN ST. LOUIS BE LIABLE TO ANY PARTY
+ * FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING
+ * OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF WASHINGTON
  * UNIVERSITY IN ST. LOUIS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * WASHINGTON UNIVERSITY IN ST. LOUIS SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
- * ON AN "AS IS" BASIS, AND WASHINGTON UNIVERSITY IN ST. LOUIS HAS NO 
+ * ON AN "AS IS" BASIS, AND WASHINGTON UNIVERSITY IN ST. LOUIS HAS NO
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
  */
- 
+
 /*
  * Copyright (c) 2004, Technische Universitat Berlin
  * All rights reserved.
@@ -51,11 +51,11 @@
 
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-27 03:40:40 $ 
- * ======================================================================== 
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-02-04 00:40:49 $
+ * ========================================================================
  */
- 
+
 /**
  * Please refer to TEP 108 for more information about this component and its
  * intended use.<br><br>
@@ -73,12 +73,12 @@
  * immediately receive access to the Resource.
  *
  * @param <b>resourceName</b> -- The name of the Resource being shared
- * 
+ *
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * @author Philip Levis
- * @author Philipp Huppertz 
+ * @author Philipp Huppertz
  */
- 
+
 generic module FcfsPriorityArbiterC(char resourceName[]) {
   provides {
     interface Init;
@@ -106,39 +106,39 @@ implementation {
   uint8_t qTail = NO_RES;
   bool hpreq = FALSE;   // request from the high priority client
   bool irp = FALSE;     // immediate request pending
-  
+
   task void grantedTask();
   error_t queueRequest(uint8_t id);
   void grantNextRequest();
-  
+
   bool requested(uint8_t id) {
     return ( ( resQ[id] != NO_RES ) || ( qTail == id ) );
   }
 
-  /**  
+  /**
     Initialize the Arbiter to the idle state
   */
   command error_t Init.init() {
     memset( resQ, NO_RES, sizeof( resQ ) );
     return SUCCESS;
-  }  
-  
+  }
+
   /**
     Request the use of the shared resource
-    
-    If the user has not already requested access to the 
-    resource, the request will be either served immediately 
-    or queued for later service in an FCFS fashion.  
-    A SUCCESS value will be returned and the user will receive 
-    the granted() event in synchronous context once it has 
+
+    If the user has not already requested access to the
+    resource, the request will be either served immediately
+    or queued for later service in an FCFS fashion.
+    A SUCCESS value will be returned and the user will receive
+    the granted() event in synchronous context once it has
     been given access to the resource.
-    
-    Whenever requests are queued, the highest priority client 
+
+    Whenever requests are queued, the highest priority client
     will receive a requested() event after he receives granted(),
-    notifying him that another user would like to have access to the resource. 
-    
+    notifying him that another user would like to have access to the resource.
+
     If the user has already requested access to the resource and
-    is waiting on a pending granted() event, an EBUSY value will 
+    is waiting on a pending granted() event, an EBUSY value will
     be returned to the caller.
   */
   async command error_t Resource.request[uint8_t id]() {
@@ -156,7 +156,7 @@ implementation {
       }
       return queueRequest( id );
     }
-  } 
+  }
 
   async command error_t LowPriorityClient.request() {
     atomic {
@@ -169,7 +169,7 @@ implementation {
     }
     return EBUSY;
   }
-  
+
   async command error_t HighPriorityClient.request() {
     atomic {
       if (resId == LOW_PRIORITY_CLIENT_ID)  {
@@ -184,12 +184,12 @@ implementation {
       return SUCCESS;
     }
   }
-  
+
   /**
   * Request immediate access to the shared resource.  Requests are
-  * not queued, and no granted event is returned.  A return value 
+  * not queued, and no granted event is returned.  A return value
   * of SUCCESS signifies that the resource has been granted to you,
-  * while a return value of EBUSY signifies that the resource is 
+  * while a return value of EBUSY signifies that the resource is
   * currently being used.
   */
   uint8_t tryImmediateRequest(uint8_t id) {
@@ -200,9 +200,9 @@ implementation {
         return id;
       }
       return resId;
-    }     
+    }
   }
-  
+
   async command error_t Resource.immediateRequest[uint8_t id]() {
     uint8_t ownerId = tryImmediateRequest(id);
 
@@ -213,7 +213,7 @@ implementation {
       atomic {
         irp = TRUE;     //indicate that immediateRequest is pending
         reqResId = id;  //Id to grant resource to if can
-      }  
+      }
       signal LowPriorityClient.requested();
       atomic {
         ownerId = resId;   //See if I have been granted the resource
@@ -228,24 +228,24 @@ implementation {
       return EBUSY;
     }
   }
-    
+
   async command error_t LowPriorityClient.immediateRequest() {
     return call Resource.immediateRequest[LOW_PRIORITY_CLIENT_ID]();
   }
   async command error_t HighPriorityClient.immediateRequest() {
     return call Resource.immediateRequest[HIGH_PRIORITY_CLIENT_ID]();
   }
- 
+
   /**
     Release the use of the shared resource
-    
+
     The resource will only actually be released if
     there are no pending requests for the resource.
     If requests are pending, then the next pending request
     will be serviced, according to a Fist come first serve
-    arbitration scheme.  If no requests are currently 
-    pending, then the resource is released, and any 
-    users can put in a request for immediate access to 
+    arbitration scheme.  If no requests are currently
+    pending, then the resource is released, and any
+    users can put in a request for immediate access to
     the resource.
   */
   async command void Resource.release[uint8_t id]() {
@@ -264,16 +264,16 @@ implementation {
       signal HighPriorityClient.idle();
       signal LowPriorityClient.idle();
     }
-  } 
+  }
   async command void LowPriorityClient.release() {
     call Resource.release[LOW_PRIORITY_CLIENT_ID]();
   }
   async command void HighPriorityClient.release() {
     call Resource.release[HIGH_PRIORITY_CLIENT_ID]();
-  } 
+  }
   /**
     Check if the Resource is currently in use
-  */    
+  */
   async command bool ArbiterInfo.inUse() {
     atomic {
       if ( state == RES_IDLE )
@@ -286,14 +286,14 @@ implementation {
     Returns the current user of the Resource.
     If there is no current user, the return value
     will be 0xFF
-  */      
+  */
   async command uint8_t ArbiterInfo.userId() {
     atomic return resId;
   }
 
   /**
    * Returns my user id.
-   */      
+   */
   async command uint8_t Resource.getId[uint8_t id]() {
     return id;
   }
@@ -303,12 +303,12 @@ implementation {
   async command uint8_t HighPriorityClient.getId() {
     return call Resource.getId[HIGH_PRIORITY_CLIENT_ID]();
   }
-  
+
   //Grant a request to the next Pending user
     //in FCFS order
   void grantNextRequest() {
     resId = NO_RES;
-    // do not grant, if highest priority client had the resource before 
+    // do not grant, if highest priority client had the resource before
     if ( (hpreq) && (resId != HIGH_PRIORITY_CLIENT_ID) ) {
       atomic {
         hpreq = FALSE;
@@ -332,12 +332,12 @@ implementation {
       }
     }
   }
-  
+
   //Queue the requests so that they can be granted
     //in FCFS order after release of the resource
   error_t queueRequest(uint8_t id) {
     atomic {
-      if( !requested( id ) ) { 
+      if( !requested( id ) ) {
         if(qHead == NO_RES ) {
           qHead = id;
         } else {
@@ -349,11 +349,10 @@ implementation {
       return EBUSY;
     }
   }
-  
+
   //Task for pulling the Resource.granted() signal
-    //into synchronous context  
+    //into synchronous context
   task void grantedTask() {
-    int i;
     uint8_t tmpId;
     atomic {
       tmpId = resId = reqResId;
@@ -364,11 +363,11 @@ implementation {
       // lets throw pending request at him...
       atomic {
         if (qHead != NO_RES) {
-        signal HighPriorityClient.requested(); 
+        signal HighPriorityClient.requested();
         }
       }
     } else if (tmpId == LOW_PRIORITY_CLIENT_ID) {
-      signal LowPriorityClient.granted(); 
+      signal LowPriorityClient.granted();
     } else {
       call ResourceConfigure.configure[tmpId]();
       signal Resource.granted[tmpId]();
@@ -376,8 +375,8 @@ implementation {
   }
 
   //Default event/command handlers for all of the other
-    //potential users/providers of the parameterized interfaces 
-    //that have not been connected to.  
+    //potential users/providers of the parameterized interfaces
+    //that have not been connected to.
   default event void Resource.granted[uint8_t id]() {
       signal LowPriorityClient.granted();
   }
