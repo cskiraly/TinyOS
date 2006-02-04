@@ -1,4 +1,4 @@
-// $Id: TestAMAppC.nc,v 1.1.2.2 2005-08-08 03:58:15 scipio Exp $
+// $Id: TestAMAppC.nc,v 1.1.2.3 2006-02-04 00:02:52 philipb Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -43,7 +43,6 @@ implementation {
   components ActiveMessageC;
   components new OSKITimerMilliC();
   
-  MainC.SoftwareInit -> LedsC;
   MainC.SoftwareInit -> ActiveMessageC;
   
   App.Boot -> MainC.Boot;
