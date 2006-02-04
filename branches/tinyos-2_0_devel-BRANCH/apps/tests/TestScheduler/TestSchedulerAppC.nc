@@ -1,4 +1,4 @@
-// $Id: TestSchedulerAppC.nc,v 1.1.2.2 2005-08-12 01:35:52 scipio Exp $
+// $Id: TestSchedulerAppC.nc,v 1.1.2.3 2006-02-04 01:10:33 philipb Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -43,7 +43,7 @@ configuration TestSchedulerAppC {}
 implementation {
   components MainC, TestSchedulerC, LedsC, TinySchedulerC;
   
-  MainC.SoftwareInit -> LedsC;
+  
   TestSchedulerC -> MainC.Boot;
 
   TestSchedulerC.Leds -> LedsC;

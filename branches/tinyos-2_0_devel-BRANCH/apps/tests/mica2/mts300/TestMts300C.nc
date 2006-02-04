@@ -24,7 +24,7 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: TestMts300C.nc,v 1.1.1.1 2005-11-05 16:38:04 kristinwright Exp $
+ *  $Id: TestMts300C.nc,v 1.1.1.1.2.1 2006-02-04 01:10:33 philipb Exp $
  */
 
 /**
@@ -41,7 +41,7 @@ implementation
   components MainC, TestMts300P, LedsC, new OskiTimerMilliC(),
       SensorMts300C;
 
-  MainC.SoftwareInit -> LedsC;
+  
   MainC.SoftwareInit -> SensorMts300C;
 
   TestMts300P -> MainC.Boot;

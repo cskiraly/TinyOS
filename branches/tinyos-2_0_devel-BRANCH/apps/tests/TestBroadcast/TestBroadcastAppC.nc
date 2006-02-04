@@ -1,4 +1,4 @@
-// $Id: TestBroadcastAppC.nc,v 1.1.2.2 2006-01-18 22:28:53 scipio Exp $
+// $Id: TestBroadcastAppC.nc,v 1.1.2.3 2006-02-04 01:10:33 philipb Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -47,7 +47,7 @@ implementation {
   components new BroadcastServiceC();
   components new TimerMilliC();
   
-  MainC.SoftwareInit -> LedsC;
+  
   
   App.Boot -> MainC.Boot;
 

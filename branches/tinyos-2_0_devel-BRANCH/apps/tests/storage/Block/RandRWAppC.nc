@@ -1,4 +1,4 @@
-/* $Id: RandRWAppC.nc,v 1.1.2.2 2006-01-27 17:19:25 idgay Exp $
+/* $Id: RandRWAppC.nc,v 1.1.2.3 2006-02-04 01:10:33 philipb Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -22,7 +22,7 @@ implementation {
     MainC, LedsC, PlatformC;
 
   MainC.Boot <- RandRWC;
-  MainC.SoftwareInit -> LedsC;
+  
   RandRWC.BlockRead -> BlockStorageC.BlockRead;
   RandRWC.BlockWrite -> BlockStorageC.BlockWrite;
   RandRWC.Leds -> LedsC;

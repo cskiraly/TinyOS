@@ -1,4 +1,4 @@
-// $Id: BlinkC.nc,v 1.1.1.1 2005-11-05 16:38:03 kristinwright Exp $
+// $Id: BlinkC.nc,v 1.1.1.1.2.1 2006-02-04 01:10:33 philipb Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -33,7 +33,7 @@ implementation
     components MainC, new BlinkM(uint8_t), LedsC, HplTimerC;
 
     BlinkM.Boot -> MainC;
-    MainC.SoftwareInit -> LedsC;
+    
     BlinkM.Leds -> LedsC;
     
     BlinkM.Timer -> HplTimerC.Timer0;

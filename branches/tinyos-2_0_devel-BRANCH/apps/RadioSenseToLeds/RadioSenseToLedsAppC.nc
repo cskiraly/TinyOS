@@ -1,4 +1,4 @@
-// $Id: RadioSenseToLedsAppC.nc,v 1.1.2.7 2006-01-28 00:26:24 gtolle Exp $
+// $Id: RadioSenseToLedsAppC.nc,v 1.1.2.8 2006-02-04 01:10:32 philipb Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -45,7 +45,7 @@ implementation {
   components new AMReceiverC(AM_RADIOSENSEMSG);
   components new TimerMilliC();
 
-  MainC.SoftwareInit -> LedsC;
+  
   
   App.Boot -> MainC.Boot;
   

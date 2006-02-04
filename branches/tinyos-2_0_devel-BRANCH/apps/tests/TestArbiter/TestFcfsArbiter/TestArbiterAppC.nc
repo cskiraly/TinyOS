@@ -55,8 +55,8 @@
  * <br>
  *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
- * @version  $Revision: 1.1.2.1 $
- * @date $Date: 2006-01-30 17:46:59 $
+ * @version  $Revision: 1.1.2.2 $
+ * @date $Date: 2006-02-04 01:10:33 $
  */
  
 #define TEST_ARBITER_RESOURCE   "Test.Arbiter.Resource"
@@ -76,7 +76,7 @@ implementation {
   };
 
   TestArbiterC -> MainC.Boot;
-  MainC.SoftwareInit -> LedsC;
+  
   MainC.SoftwareInit -> Arbiter;
  
   TestArbiterC.Resource0 -> Arbiter.Resource[RESOURCE0_ID];
