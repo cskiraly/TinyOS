@@ -27,7 +27,7 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-02-04 01:36:04 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
@@ -46,17 +46,17 @@
 
 
 #include <sensors.h>
-generic configuration DemoSensorC()
+generic configuration DemoSensorStreamC()
 {
   provides {
-    interface Read<uint16_t>;
+    interface ReadStream<uint16_t>;
   }
 }
 implementation
 {
   components SensorSettingsC as Settings;
 
-  components new AdcReadClientC() as AdcReadClient;
-  Read = AdcReadClient;
-  AdcReadClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];
+  components new AdcReadStreamClientC() as AdcReadStreamClient;
+  ReadStream = AdcReadStreamClient;
+  AdcReadStreamClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];
 }
