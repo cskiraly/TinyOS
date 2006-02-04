@@ -1,4 +1,4 @@
-// $Id: TestAMOnOffAppC.nc,v 1.1.2.2 2005-08-08 03:58:15 scipio Exp $
+// $Id: TestAMOnOffAppC.nc,v 1.1.2.3 2006-02-04 00:02:52 philipb Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -55,7 +55,6 @@ implementation {
   components new AMServiceC();
   components new AMServiceC() as SecondServiceC;
   
-  MainC.SoftwareInit -> LedsC;
   
   App.Boot -> MainC.Boot;
   
