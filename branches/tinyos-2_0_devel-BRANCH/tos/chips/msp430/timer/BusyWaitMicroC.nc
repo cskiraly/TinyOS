@@ -1,4 +1,4 @@
-//$Id: BusyWaitMicroC.nc,v 1.1.2.2 2006-01-29 04:33:33 vlahan Exp $
+//$Id: BusyWaitMicroC.nc,v 1.1.2.3 2006-02-04 00:35:42 vlahan Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
@@ -35,6 +35,6 @@ implementation
            ;
 
   BusyWait = BusyWaitCounterC;
-  BusyWaitCounter.Counter -> Msp430CounterMicroC;
+  BusyWaitCounterC.Counter -> Msp430CounterMicroC;
 }
 
