@@ -1,4 +1,4 @@
-// $Id: BlinkAppC.nc,v 1.1.2.4 2006-01-18 22:21:12 scipio Exp $
+// $Id: BlinkAppC.nc,v 1.1.2.5 2006-02-04 00:50:29 philipb Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -49,7 +49,6 @@ implementation
 
 
   BlinkC -> MainC.Boot;
-  MainC.SoftwareInit -> LedsC;
 
   BlinkC.Timer0 -> Timer0;
   BlinkC.Timer1 -> Timer1;
