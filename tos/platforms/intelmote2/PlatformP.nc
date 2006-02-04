@@ -114,7 +114,7 @@ implementation {
     return SUCCESS;
   }
 
-  command void PlatformReset.reset() {
+  async command void PlatformReset.reset() {
     call OST0M3.setOSMR(call OST0M3.getOSCR() + 1000);
     call PXA27xWD.enableWatchdog();
     while (1);

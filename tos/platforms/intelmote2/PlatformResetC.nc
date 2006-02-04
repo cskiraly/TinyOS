@@ -39,9 +39,4 @@ implementation {
 
   PlatformReset = PlatformC;
 
-#if 0
-  command void PlatformReset.reset() {
-    return;
-  }
-#endif
 }
