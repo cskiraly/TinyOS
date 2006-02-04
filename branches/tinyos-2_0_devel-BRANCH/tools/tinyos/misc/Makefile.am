@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
-dist_man_MANS = tos-ident-flags.1	\
+dist_man_MANS = tos-check-env.1 	\
+		tos-ident-flags.1	\
                 tos-install-jni.1	\
                 tos-locate-jre.1	\
                 tos-mote-key.1		\

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: tos-check-env,v 1.1.2.2 2005-08-29 20:10:49 kristinwright Exp $ 
+# $Id: tos-check-env,v 1.1.2.3 2006-02-04 04:33:31 kristinwright Exp $ 
 #
 
 
@@ -149,7 +149,7 @@ sub chk_yacc {
 
 sub chk_nesc {
     my $found;
-    my $nescversion = ">=1.2";
+    my $nescversion = ">=1.2.4";
     print "nesc:\n";
     $found = which("nescc", 1);
     if ($found) {
@@ -427,7 +427,7 @@ sub chk_avarice {
 	while (<AVARICE>) {
 	    if (/version/) {
 		print "\t$_";
-		$versionok = 1 if /2\.3\.20041206/;
+		$versionok = 1 if /2\.4/;
 	    }
 	}
 	close AVARICE;
