@@ -13,9 +13,9 @@ Prefix: /opt
 Requires: tinyos-tools >= 1.2.1, nesc >= 1.2.4, avr-binutils >= 2.15, avr-gcc >= 3.4, avr-libc
 
 # linux:
-#%define CLASSPATH_DFN export CLASSPATH=$TOSROOT/support/sdk/java:.
+%define CLASSPATH_DFN export CLASSPATH=$TOSROOT/support/sdk/java:.
 # cygwin:
-%define CLASSPATH_DFN CLASSPATH=\`cygpath -w $TOSROOT/support/sdk/java\`;export CLASSPATH=$CLASSPATH;.
+# CLASSPATH_DFN CLASSPATH=\`cygpath -w $TOSROOT/support/sdk/java\`;export CLASSPATH=$CLASSPATH;.
 
 %description
 TinyOS is an event based operating environment designed for use with 
@@ -34,10 +34,6 @@ rm -rf %{buildroot}/opt/tinyos-2.x
 mkdir -p %{buildroot}/opt
 export TOSROOT=$RPM_BUILD_DIR/%{name}-%{version}
 export TOSDIR=$TOSROOT/tos
-#CLASSPATH=`cygpath -w $TOSROOT/support/sdk/java`
-#CLASSPATH=$TOSROOT/support/sdk/java
-#export CLASSPATH="$CLASSPATH;."
-#export CLASSPATH="$CLASSPATH:."
 %{CLASSPATH_DFN}
 cd support/sdk/java
 pwd
