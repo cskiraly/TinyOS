@@ -1,0 +1,22 @@
+NAME=tinyos
+VERSION=2.0.0beta1
+
+cd ../..
+rm -rf $NAME-$VERSION
+tools/release/extractor $NAME-$VERSION <<'EOF' | gzip >../$NAME-$VERSION.tar.gz
+!^./apps/(BlinkAlarm|Test*)
+!^./apps/tests/(eyesIFX|mica2|msp430|RadioStress|TestAdc|TestAlarm|TestAM|TestAMOnOff|TestAMService|TestArbiter|TestBroadcast|TestPowerManager|TestPowerup|TestScheduler|TestSerial|TestSerialBandwidth|TestSleep|TestTimerSync|TestTrickleTimer)
+!^./doc
+!^./overall-todo.txt
+!^./README
+!^./support/make/(mica2dot.target|telosa.target)
+!^./tools
+!^./tos/chips/sht11
+!^./tos/lib/(deluge|net|oski)
+!^./tos/oski
+!^./tos/sensorboards/mts300
+!/.cvsignore
+!/CVS/
+!/CVS$
+EOF
+rm -rf $NAME-$VERSION
