@@ -1,4 +1,4 @@
-/* $Id: IM2CC2420SpiP.nc,v 1.1.2.3 2006-01-29 17:59:23 scipio Exp $ */
+/* $Id: IM2CC2420SpiP.nc,v 1.1.2.4 2006-02-06 18:36:42 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -46,11 +46,11 @@ implementation
 {
 
   components new FcfsArbiterC("CC2420SpiClient");
-  //components new HalPXA27xSpiM(1,0x7); // 6.5 Mbps, 8bit width
-  components new HalPXA27xSpiPioM(0,1,0x7,FALSE) as HalPXA27xSpiM; // SPI, 6.5 Mbps, 8bit width, noRWOT
+  components new HalPXA27xSpiDMAM(0,1,0x7,FALSE) as HalPXA27xSpiM; // 6.5 Mbps, 8bit width
+  //components new HalPXA27xSpiPioM(0,1,0x7,FALSE) as HalPXA27xSpiM; // SPI, 6.5 Mbps, 8bit width, noRWOT
   components IM2CC2420InitSpiP;
   components HplPXA27xSSP3C;
-  //components HplPXA27xDMAC;
+  components HplPXA27xDMAC;
   components HplPXA27xGPIOC;
   components PlatformP;
 
@@ -66,10 +66,11 @@ implementation
   IM2CC2420InitSpiP.TXD -> HplPXA27xGPIOC.HplPXA27xGPIOPin[SSP3_TXD];
   IM2CC2420InitSpiP.RXD -> HplPXA27xGPIOC.HplPXA27xGPIOPin[SSP3_RXD];
 
-  //HalPXA27xSpiM.RxDMA -> HplPXA27xDMAC.HplPXA27xDMAChnl[0];
-  //HalPXA27xSpiM.TxDMA -> HplPXA27xDMAC.HplPXA27xDMAChnl[1];
+  HalPXA27xSpiM.RxDMA -> HplPXA27xDMAC.HplPXA27xDMAChnl[0];
+  HalPXA27xSpiM.TxDMA -> HplPXA27xDMAC.HplPXA27xDMAChnl[1];
+  HalPXA27xSpiM.SSPRxDMAInfo -> HplPXA27xSSP3C.SSPRxDMAInfo;
+  HalPXA27xSpiM.SSPTxDMAInfo -> HplPXA27xSSP3C.SSPTxDMAInfo;
+
   HalPXA27xSpiM.SSP -> HplPXA27xSSP3C.HplPXA27xSSP;
-  //HalPXA27xSpiM.SSPRxDMAInfo -> HplPXA27xSSP3C.SSPRxDMAInfo;
-  //HalPXA27xSpiM.SSPTxDMAInfo -> HplPXA27xSSP3C.SSPTxDMAInfo;
   
 }
