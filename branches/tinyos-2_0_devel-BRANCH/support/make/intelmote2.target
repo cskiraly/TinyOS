@@ -8,7 +8,7 @@ endif
 
 #ASSEMBLY_FILES += $(PLATFORM_DIR)/../imote2/flash.s $(PLATFORM_DIR)/../imote2/binarymover.s
 ASSEMBLY_FILES += $(TOSDIR)/platforms/intelmote2/toscrt0.s $(TOSDIR)/chips/pxa27x/pxa27x_util.s
-CFLAGS += -T$(TOSDIR)/platforms/intelmote2/tos.x
+CFLAGS += -DPXA27X_13M -T$(TOSDIR)/platforms/intelmote2/tos.x 
 
 $(call TOSMake_include_platform,pxa27x)
 
