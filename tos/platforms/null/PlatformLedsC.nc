@@ -1,4 +1,4 @@
-// $Id: PlatformLedsC.nc,v 1.1.2.2 2006-01-27 20:24:16 idgay Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.3 2006-02-06 18:55:58 philipb Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -17,6 +17,7 @@ module PlatformLedsC
   provides interface GeneralIO as Led0;
   provides interface GeneralIO as Led1;
   provides interface GeneralIO as Led2;
+  uses interface Init;
 }
 implementation
 {
@@ -38,6 +39,7 @@ implementation
   }
 
   async command void Led0.makeOutput() {
+    call Init.init();
   }
 
   async command void Led1.set() {
@@ -57,6 +59,7 @@ implementation
   }
 
   async command void Led1.makeOutput() {
+    call Init.init();
   }
 
   async command void Led2.set() {
@@ -76,5 +79,6 @@ implementation
   }
 
   async command void Led2.makeOutput() {
+    call Init.init();
   }
 }
