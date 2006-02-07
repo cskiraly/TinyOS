@@ -34,7 +34,7 @@
  * code flash.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-01-29 18:06:19 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-02-07 19:43:02 $
  */
 
 configuration Stm25pSpiC {
@@ -47,20 +47,19 @@ configuration Stm25pSpiC {
 
 implementation {
 
-  components HplStm25pPinsC as PinsC;
-  components HplStm25pSpiC as SpiC;
   components Stm25pSpiP as SpiP;
-
-  Init = SpiC;
   Init = SpiP;
   Resource = SpiP.ClientResource;
   Stm25pSpi = SpiP;
 
+  components HplStm25pSpiC as SpiC;
   SpiP.SpiResource -> SpiC;
-  SpiP.CSN -> PinsC.CSN;
-  SpiP.Hold -> PinsC.Hold;
   SpiP.SpiByte -> SpiC;
   SpiP.SpiPacket -> SpiC;
+
+  components HplStm25pPinsC as PinsC;
+  SpiP.CSN -> PinsC.CSN;
+  SpiP.Hold -> PinsC.Hold;
 
   components LedsC as Leds;
   SpiP.Leds -> Leds;
