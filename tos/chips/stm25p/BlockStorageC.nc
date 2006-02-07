@@ -34,7 +34,7 @@
  * ST M25P serial code flash.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-01-28 01:39:30 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-02-07 19:43:02 $
  */
 
 includes Stm25p;
@@ -55,19 +55,15 @@ implementation {
   };
 
   components Stm25pBlockP as BlockP;
-  components new Stm25pBinderP( volume_id ) as BinderP;
-  components Stm25pSectorC as SectorC;
-  
   BlockRead = BlockP.Read[ BLOCK_ID ];
   BlockWrite = BlockP.Write[ BLOCK_ID ];
   StorageMap = BlockP.StorageMap[ BLOCK_ID ];
 
+  components Stm25pSectorC as SectorC;
   BlockP.ClientResource[ BLOCK_ID ] -> SectorC.ClientResource[ VOLUME_ID ];
   BlockP.Sector[ BLOCK_ID ] -> SectorC.Sector[ VOLUME_ID ];
+
+  components new Stm25pBinderP( volume_id ) as BinderP;
   BinderP.Volume -> SectorC.Volume[ VOLUME_ID ];
 
-  components LedsC;
-  BlockP.Leds -> LedsC;
-
 }
-

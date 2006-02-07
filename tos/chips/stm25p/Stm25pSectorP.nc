@@ -31,10 +31,11 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-01-28 01:39:30 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-02-07 19:43:02 $
  */
 
-includes Stm25p;
+#include <Stm25p.h>
+#include <StorageVolumes.h>
 
 module Stm25pSectorP {
 

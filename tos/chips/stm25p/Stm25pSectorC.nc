@@ -34,7 +34,7 @@
  * serial code flash.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-01-28 01:39:30 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-02-07 19:43:02 $
  */
 
 configuration Stm25pSectorC {
@@ -56,8 +56,8 @@ implementation {
   MainC.SoftwareInit -> SectorP;
 
   components new FcfsArbiterC( "Stm25p.Volume" ) as Arbiter;
-  SectorP.Stm25pResource -> Arbiter;
   MainC.SoftwareInit -> Arbiter;
+  SectorP.Stm25pResource -> Arbiter;
 
   components Stm25pSpiC as SpiC;
   SectorP.SpiResource -> SpiC;
