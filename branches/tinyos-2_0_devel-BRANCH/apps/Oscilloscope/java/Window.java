@@ -226,7 +226,7 @@ class Window
 	frame = new JFrame("Oscilloscope");
 	frame.setSize(main.getPreferredSize());
 	frame.getContentPane().add(main);
-	frame.show();
+	frame.setVisible(true);
 	frame.addWindowListener(new WindowAdapter() {
 		public void windowClosing(WindowEvent e) { System.exit(0); }
 	    });
