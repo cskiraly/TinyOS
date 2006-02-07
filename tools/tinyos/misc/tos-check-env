@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: tos-check-env,v 1.1.2.3 2006-02-04 04:33:31 kristinwright Exp $ 
+# $Id: tos-check-env,v 1.1.2.4 2006-02-07 20:48:48 kristinwright Exp $ 
 #
 
 
@@ -79,7 +79,7 @@ sub chk_cygwin() {
 }
 
 #
-# Look for the phrase 'version 1.4' in the first line
+# Look for the phrase 'version 1.4' or 'version 1.5' in the first line
 #
 sub chk_java() {
     my $found;
@@ -89,20 +89,20 @@ sub chk_java() {
     if ($found) {
 	open JAVA, "java -version 2>&1 |" or die "can't fork java -version";
 	while (<JAVA>) {
-	    if ($_ =~ /version \"1\.4/) {
+	    if ($_ =~ /version \"1\.[45]/) {
 		print "\t$_";
 		$versionok = 1;
 	    }
 	}
 	close JAVA;
 	if (!$versionok) {
-	    $warning = "--> WARNING: The JAVA version found first by $program may not be version 1.4 " .
-		"which is required by TOS. Please " .
-		"ensure that the located Java version is 1.4\n";
+	    $warning = "--> WARNING: The JAVA version found first by $program may not be version 1.4 or version 1.5" .
+		"one of which is required by TOS. Please " .
+		"ensure that the located Java version is 1.4 or 1.5\n";
 	    if (is_windows()) {
-		$warning .= "Depending on your PATH environment variable, there is often a 1.2 " .
+		$warning .= "Depending on your PATH environment variable, there is often another " .
 		    " version of java.exe in c:\\windows\\system32 that is " .
-		    "\"seen\" first. Check that this is version 1.4 or reconfigure your PATH " .
+		    "\"seen\" first. Check that this is version 1.4 or 1.5 or reconfigure your PATH " .
 		    "environment variable if this is the case.\n";
 	    }
 	    print "\n$warning";
