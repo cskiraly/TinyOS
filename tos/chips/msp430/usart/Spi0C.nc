@@ -28,8 +28,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-29 04:57:30 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-02-07 05:22:39 $
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  */
@@ -52,8 +52,10 @@ implementation {
     CLIENT_ID = unique(MSP430_SPIO_BUS)
   };
 
-  components new Msp430SpiP() as SpiP, HplMsp430Usart0C as HplUsart;
+  components new Msp430SpiP() as SpiP;
+  Init = HplUsart;
 
+  components HplMsp430Usart0C as HplUsart;
   Init = SpiP.Init;
   Resource = SpiP.Resource;
   ArbiterInfo = HplUsart;
