@@ -237,6 +237,7 @@ class Window
 	synchronized (parent) {
 	    moteListModel.clear();
 	    parent.clear();
+	    graph.newData();
 	}
     }
 
