@@ -36,7 +36,9 @@ to use. By default, \fBtos-set-symbols\fR uses \fBavr-objcopy\fR and
 
 The \fISYMBOL\fR parameter refers to a variable in the image to 
 modify or print. If the variable is in a component, its name is of
-the form \fIcomponent\fR$\fIvariable\fR.
+the form \fIcomponent\fR$\fIvariable\fR. If the \fISYMBOL\fR is
+omitted, it defaults to \fBTOS_LOCAL_ADDRESS\fR, for compatibility
+with the TinyOS 1.x \fBset-mode-id\fR tool.
 
 .SH EXAMPLE
 . 
@@ -48,11 +50,11 @@ to 4, and writes out a new binary to main.srec.out-4.
   
 This reads in a Telos .srec file, changes the value of TOS_NODE_ID and
 ActiveMessageAddressC$addr to 3, and writes out a new binary to 
-main.srec.out-5. It uses the msp430, rather than the avr, binary tools,
+main.srec.out-3. It uses the msp430, rather than the avr, binary tools,
 and outputs an ihex format executable.
 
   tos-set-symbols --objcopy=msp430-objcopy --objdump=msp430-objdump \\
   --target=ihex build/telosa/main.ihex build/telosa/main.ihex.out-3 \\
-  ActiveMessageAddressC\$addr=3 
+  TOS_NODE_ID=3 ActiveMessageAddressC\$addr=3 
 
 
