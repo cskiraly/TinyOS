@@ -1,4 +1,4 @@
-//$Id: SerialDispatcherP.nc,v 1.1.2.5 2006-01-19 00:35:04 scipio Exp $
+//$Id: SerialDispatcherP.nc,v 1.1.2.6 2006-02-07 05:23:23 jwhui Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -205,7 +205,7 @@ implementation {
   }
   
   void receiveBufferSwap() {
-    receiveState.which = (receiveState.which)? 1: 0;
+    receiveState.which = (receiveState.which)? 0: 1;
     receiveBuffer = (uint8_t*)(messagePtrs[receiveState.which]);
   }
   
@@ -274,9 +274,7 @@ implementation {
     myBuf = signal Receive.receive[myType](myBuf, myBuf, mySize);
     atomic {
       messagePtrs[myWhich] = myBuf;
-      if (myWhich) {
-        unlockBuffer(myWhich);
-      }
+      unlockBuffer(myWhich);
       receiveTaskPending = FALSE;
     }
   }
