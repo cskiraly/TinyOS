@@ -1,4 +1,4 @@
-// $Id: Env.java,v 1.1.2.1 2005-05-23 22:11:50 idgay Exp $
+// $Id: Env.java,v 1.1.2.2 2006-02-07 18:14:29 idgay Exp $
 
 package net.tinyos.util;
 
@@ -22,8 +22,7 @@ public class Env {
 	}
 	catch (Throwable t) {
 	    System.err.println("getenv JNI library not found. Env.getenv will not work");
-	    System.err.println("(please consult installation directions in");
-	    System.err.println("tinyos-1.x/tools/java/net/tinyos/util/Env.INSTALL)");
+	    System.err.println("(run the tos-install-jni tool, see man tos-install-jni for more details)\n");
 	}
     }
 
