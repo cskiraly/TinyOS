@@ -12,7 +12,7 @@ CONTRIB_VERSION=1.1.4Apr2005cvs
 echo "*** Building tarballs"
 #rm ../../../*.tar.gz
 sh tinyos.files
-#sh tinyos-tools.files
+sh tinyos-tools.files
 #sh contrib/contrib.files
 #sh vm/vm.files
 #sh task-tinydb/task-tinydb.files
@@ -27,7 +27,7 @@ cd $RPMS
 
 echo "*** Installing new tarballs"
 cd $HERE/../../..
-#cp tinyos-$TINYOS_VERSION.tar.gz $RPMS/SOURCES
+cp tinyos-$TINYOS_VERSION.tar.gz $RPMS/SOURCES
 #cp tinyos-tools-$TINYOS_TOOLS_VERSION.tar.gz $RPMS/SOURCES
 #cp tinyos-vm-$VM_VERSION.tar.gz $RPMS/SOURCES
 #cp tinyos-contrib-$CONTRIB_VERSION.tar.gz $RPMS/SOURCES
@@ -35,7 +35,7 @@ cd $HERE/../../..
 
 echo "*** Creating rpms"
 cd $RPMS
-#rpmbuild -bb $HERE/tinyos.spec
+rpmbuild -bb $HERE/tinyos.spec
 #rpmbuild -bb $HERE/tinyos-tools.spec
 #rpmbuild -bb $HERE/task-tinydb/task-tinydb.spec
 #rpmbuild -bb $HERE/contrib/contrib.spec
