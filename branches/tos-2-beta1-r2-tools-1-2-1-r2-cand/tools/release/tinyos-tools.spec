@@ -2,18 +2,16 @@
 # For installing the JNI 
 # 
 # 08/15/2005 windows
-# INSTALLJNI: "install --group=SYSTEM"
+# INSTALLJNI: install --group=SYSTEM
 # JNISUFFIX: dll
 #
 # 08/15/2005: redhat linux 9
 # INSTALLJNI: install
 # JNISUFFIX: so
 # 
-#%define INSTALLJNI install --group=SYSTEM
-#%define JNISUFFIX dll
 
-%define INSTALLJNI install 
-%define JNISUFFIX so
+%define INSTALLJNI install --group=SYSTEM
+%define JNISUFFIX dll
 
 Summary: TinyOS tools 
 Name: tinyos-tools
