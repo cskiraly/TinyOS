@@ -4,11 +4,10 @@ VERSION=2.0.0beta1
 cd ../..
 rm -rf $NAME-$VERSION
 tools/release/extractor $NAME-$VERSION <<'EOF' | gzip >../$NAME-$VERSION.tar.gz
-!^./apps/(BlinkAlarm|Test*)
+!^./apps/(BlinkAlarm|BlinkToRadio|Test*)
 !^./apps/tests/(eyesIFX|mica2|msp430|RadioStress|TestAlarm|TestAM|TestAMOnOff|TestAMService|TestBroadcast|TestPowerup|TestScheduler|TestSerial|TestSerialBandwidth|TestSleep|TestTimerSync|TestTrickleTimer)
 !^./doc
 !^./overall-todo.txt
-!^./README
 !^./support/make/(mica2dot.target|telosa.target)
 !^./tools
 !^./tos/chips/sht11
