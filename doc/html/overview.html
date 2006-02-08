@@ -6,14 +6,14 @@
 <meta name="generator" content="Docutils 0.3.6: http://docutils.sourceforge.net/" />
 <title>TinyOS 2.0 Overview</title>
 <meta name="author" content="Philip Levis" />
-<meta name="date" content="Aug 13 2005" />
+<meta name="date" content="Feb 8 2006" />
 <style type="text/css">
 
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-01-15 20:07:26 $
-:version: $Revision: 1.1.2.5 $
+:date: $Date: 2006-02-08 21:59:15 $
+:version: $Revision: 1.1.2.6 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -291,7 +291,7 @@ ul.auto-toc {
 <tr><th class="docinfo-name">Author:</th>
 <td>Philip Levis</td></tr>
 <tr><th class="docinfo-name">Date:</th>
-<td>Aug 13 2005</td></tr>
+<td>Feb 8 2006</td></tr>
 </tbody>
 </table>
 <div class="document" id="tinyos-2-0-overview">
@@ -305,7 +305,7 @@ is detailed in TEP (TinyOS Enhancement Proposal) documents.</p>
 <h1><a name="introduction">1. Introduction</a></h1>
 <p>TinyOS 2.0 is a clear slate redesign and re-implementation of TinyOS.
 Its development was motivated by our belief that many aspects of 1.x
-are straining to meet requirements and uses that were not foreseen
+strain to meet requirements and uses that were not foreseen
 when it was designed and implemented. The structure and interfaces 1.x
 defines have several fundamental limitations. While these limitations
 can be worked around, this practice has led to tightly coupled
@@ -314,7 +314,7 @@ for a newcomer to sensor network programming.</p>
 <p>TinyOS 2.0 is not backwards compatible with 1.x: code written for the
 latter will not compile for the former. However, one important aspect
 of 2.0's design is to minimize the difficulty of upgrading
-code. Therefore, while moving a 1.x application to 2.0 will require
+code. Therefore, while porting a 1.x application to 2.0 will require
 some work, it should not be very much.</p>
 <p>This document provides a high-level overview of 2.0 and describes some
 of the ways in which it departs from 1.x. It covers the basic TinyOS
@@ -361,6 +361,17 @@ use and safely compile on multiple platforms. For example, the HIL
 component of the CC1000 on the mica2 is <tt class="docutils literal"><span class="pre">ActiveMessageC</span></tt>, representing
 a full active message communication layer.</p>
 <p>The HAA is described in TEP 2: Hardware Abstraction Architecture[<a class="reference" href="#tep2">TEP2</a>].</p>
+<p>Currently (as of the 2.0 beta release at TTX3), TinyOS 2.0 supports
+the following platforms:</p>
+<blockquote>
+<ul class="simple">
+<li>eyesIFXv2</li>
+<li>intelmote2</li>
+<li>mica2</li>
+<li>micaZ</li>
+<li>telosb</li>
+</ul>
+</blockquote>
 </div>
 <div class="section" id="scheduler">
 <h1><a name="scheduler">3. Scheduler</a></h1>
@@ -405,8 +416,24 @@ should handle this event and start services accordingly. Details on
 the new boot sequence can be found in TEP 107: TinyOS 2.x Boot
 Sequence[<a class="reference" href="#tep107">TEP107</a>].</p>
 </div>
+<div class="section" id="virtualization">
+<h1><a name="virtualization">5. Virtualization</a></h1>
+<p>TinyOS 2.0 is written with nesC 1.2, which introduces the concept
+of a 'generic' or instantiable component. Generic modules allow
+TinyOS to have reusable data structures, such as bit vectors and
+queues, which simplify development. More importantly, generic
+configurations allow services to encapsulate complex wiring 
+relationships for clients that need them.</p>
+<p>In practice, this means that many basic TinyOS services are now
+<em>virtualized.</em> Rather than wire to a component with a parameterized
+interface (e.g., GenericComm or TimerC in 1.x), a program instantiates
+a service component that provides the needed interface. This
+service component does all of the wiring underneath (e.g., in the
+case of timers, to a unique) automatically, reducing wiring
+mistakes and simplifying use of the abstraction.</p>
+</div>
 <div class="section" id="timers">
-<h1><a name="timers">5. Timers</a></h1>
+<h1><a name="timers">6. Timers</a></h1>
 <p>TinyOS 2.0 provides a much richer set of timer interfaces than
 1.x. Experience has shown that timers are one of the most critical
 abstractions a mote OS can provide, and so 2.0 expands the fidelity
@@ -416,14 +443,25 @@ timers, and the timer system may provide one or two high-precision
 timers that fire asynchronously (they have the async
 keyword). Components can query their timers for how much time
 remainins before they fire, and can start timers in the future (e.g.,
-'start firing a timer at 1Hz starting 31ms from now). The HIL of the
-timer subsystem can now be found in <tt class="docutils literal"><span class="pre">tos/lib/timer</span></tt>. A platform's
-microcontoller implementation defines components such as <tt class="docutils literal"><span class="pre">TimerMilliC</span></tt>
-and <tt class="docutils literal"><span class="pre">Timer32KHzC</span></tt> for higherMore information on the timer system can be
-found in TEP 102: Timers[<a class="reference" href="#tep102">TEP102</a>].</p>
+'start firing a timer at 1Hz starting 31ms from now'). TEP 102: 
+Timers[<a class="reference" href="#tep102">TEP102</a>] defines what HIL components a platform must provide
+in order to support standard TinyOS timers. Platforms are
+required to provide millisecond granularity timers, and can provide
+finer granularity timers (e.g., 32kHz) if needed.</p>
+<p>Timers present a good example of virtualization in 2.0. In 1.x,
+a program instantiates a timer by wiring to TimerC:</p>
+<pre class="literal-block">
+components App, TimerC;
+App.Timer -&gt; TimerC.Timer[unique(&quot;Timer&quot;)];
+</pre>
+<p>In 2.0, a program instantiates a timer:</p>
+<pre class="literal-block">
+components App, new TimerMilliC();
+App.Timer -&gt; TimerMilliC;
+</pre>
 </div>
 <div class="section" id="communication">
-<h1><a name="communication">6. Communication</a></h1>
+<h1><a name="communication">7. Communication</a></h1>
 <p>In TinyOS 2.0, the message buffer type is <tt class="docutils literal"><span class="pre">message_t</span></tt>, and it is a
 buffer that is large enough to hold a packet from any of a node's
 communication interfaces. The structure itself is completely opaque:
@@ -444,38 +482,40 @@ active message layer as ActiveMessageC.</p>
 communication.  Instead, a component should wire to
 SerialActiveMessageC, which provides active message communication over
 the serial port.</p>
+<p>Active message communication is virtualized through four generic 
+components, which take the AM type as a parameter: AMSenderC, 
+AMReceiverC, AMSnooperC, and AMSnoopingReceiverC. AMSenderC is
+virtualized in that the call to send() does not fail if some
+other component is sending (as it does with GenericComm in 1.x). Instead,
+it fails only if that particular AMSenderC already has a packet
+outstanding or if the radio is not in a sending state. Underneath,
+the active message system queues and sends these outstanding packets.
+This is different than the QueuedSendC approach of 1.x, in which there
+is an N-deep queue that is shared among all senders. With N AMSenderC 
+components, there is an N-deep queue where each sender has a single
+reserved entry.</p>
 <p>Further information on message_t can be found in TEP 111:
-message_t[<a class="reference" href="#tep111">TEP111</a>].</p>
+message_t[<a class="reference" href="#tep111">TEP111</a>], while further information on AM can be
+found in TEP 116: Packet Protocoks[<a class="reference" href="#tep116">TEP116</a>].</p>
 </div>
 <div class="section" id="sensors">
-<h1><a name="sensors">7. Sensors</a></h1>
+<h1><a name="sensors">8. Sensors</a></h1>
 <p>In TinyOS 2.0, named sensor components comprise the HIL of a
-platform's sensors. Sensor HIL components provide the <tt class="docutils literal"><span class="pre">AcquireData</span></tt>
-interface, which does not have async events. If a component needs
+platform's sensors. TEP 114 describes a set of HIL data acquisition
+interfaces, such as Read, ReadStream, and Get, which sensors
+provide according to their acquisition capabilities.</p>
+<p>If a component needs
 high-frequency or very accurate sampling, it must use the HAL, which
 gives it the full power of the underlying platform (highly accurate
 platform-independent sampling is not really feasible, due to the
-particulars of individual platforms). <tt class="docutils literal"><span class="pre">AcquireData</span></tt> assumes that the
+particulars of individual platforms). <tt class="docutils literal"><span class="pre">Read</span></tt> assumes that the
 request can tolerate some latencies (for example, it might schedule
-requests using a FIFO policy). There is also a <tt class="docutils literal"><span class="pre">AcquireDataNow</span></tt>
-interface, which represents a more urgent request: if the underlying
-system cannot service the request very soon, <tt class="docutils literal"><span class="pre">getData</span></tt> returns an
-error. Both data acquisition interfaces have an <tt class="docutils literal"><span class="pre">error</span></tt> event, to
-inform the calling component that something went wrong.</p>
-<p>Details on the ADC subsystem and sensor abstractions can be found in
-TEP 101: Analog-to-Digital Converters[<a class="reference" href="#tep101">TEP101</a>] and TEP 109:
-Sensorboards[<a class="reference" href="#tep109">TEP109</a>].</p>
-</div>
-<div class="section" id="service-distributions">
-<h1><a name="service-distributions">8. Service Distributions</a></h1>
-<p>TinyOS 2.0 introduces the notion of 'service distributions,' or
-collections of system services that are designed to work together. A
-service distribution represents a coherent API for an application
-programmer to use, and deals with all of the underlying
-initialization, coordination, and composition.</p>
-<p>TinyOS 2.0 includes an example service distribution, OSKI (Operating
-System Key Interfaces). Service distributions and OSKI are described
-in TEP 110: Service Distributions[<a class="reference" href="#tep110">TEP110</a>].</p>
+competing requests using a FIFO policy).</p>
+<p>Details on the ADC subsystem can be found in
+TEP 101: Analog-to-Digital Converters[<a class="reference" href="#tep101">TEP101</a>]; details on
+the organization of sensor boards can be found in TEP 109:
+Sensorboards[<a class="reference" href="#tep109">TEP109</a>], and the details of the HIL sensor interfaces
+can be found in TEP 114: Source and Sink Independent Drivers[<a class="reference" href="#tep114">TEP114</a>].</p>
 </div>
 <div class="section" id="error-codes">
 <h1><a name="error-codes">9. Error Codes</a></h1>
@@ -486,27 +526,70 @@ makes conditionals on calls very easy to write (e.g., <tt class="docutils litera
 to the caller. In TinyOS 2.0, <tt class="docutils literal"><span class="pre">result_t</span></tt> is replaced by <tt class="docutils literal"><span class="pre">error_t</span></tt>,
 whose values include SUCCESS, FAIL, EBUSY, and ECANCEL. Interface
 commands and events define which error codes they may return and why.</p>
+<p>From the perspective of porting code, this is the most significant
+different in 2.0. Calls that were once:</p>
+<pre class="literal-block">
+if (call X.y()) {
+  busy = TRUE;  
+}
+</pre>
+<p>now have their meanings reversed. In 1.x, the busy statement will execute
+if the call succeeds, while in 2.0 it will execute if the call fails.
+This encourages a more portable, upgradable, and readable approach:</p>
+<pre class="literal-block">
+if (call X.y() == SUCCESS) {
+  busy = TRUE;
+}
+</pre>
+</div>
+<div class="section" id="arbitration">
+<h1><a name="arbitration">10. Arbitration</a></h1>
+<p>While basic abstractions, such as packet communication and timers,
+can be virtualized, experiences with 1.x showed that some cannot 
+without either adding significant complexity or limiting the system.
+The most pressing example of this is a shared bus on a microcontroller.
+Many different systems -- sensors, storage, the radio -- might need
+to use the bus at the same time, so some way of arbitrating access
+is needed.</p>
+<p>To support these kinds of abstractions, TinyOS 2.0 introduces 
+the Resource interface, which components use to request and
+acquire shared resources, and arbiters, which provide a policy for 
+arbitrating access between multiple clients. For some abstractions,
+the arbiter also provides a power management policy, as it can tell
+when the system is no longer needed and can be safely turned off.</p>
+<p>TEP 108: Resource Arbitration[<a class="reference" href="#tep108">TEP108</a>] describes the Resource interface
+and how arbiters work.</p>
+</div>
+<div class="section" id="power-management">
+<h1><a name="power-management">11. Power Management</a></h1>
+<p>Power management in 2.0 is divided into two parts: the power state
+of the microcontroller and the power state of devices. The former,
+discussed in TEP 112: Microcontroller Power Management[<a class="reference" href="#tep112">TEP112</a>],
+is computed in a chip-specific manner by examining which devices 
+and interrupt souces are active. The latter, discussed in
+TEP 115: Power Management of Non-Virtualised Devices, is handled
+through resource abiters.</p>
 </div>
 <div class="section" id="conclusion">
-<h1><a name="conclusion">10. Conclusion</a></h1>
+<h1><a name="conclusion">12. Conclusion</a></h1>
 <p>TinyOS 2.0 represents the next step of TinyOS development. Building on
 user experiences over the past few years, it has taken the basic
 TinyOS architecture and pushed it forward in several directions,
 hopefully leading to simpler and easier application development. It is
 still under active development: future prereleases will include
 non-volatile storage, basic multihop protocols (collection routing,
-dissemination), and power management policies.</p>
+dissemination), and further power management abstractions.</p>
 </div>
 <div class="section" id="acknowledgments">
-<h1><a name="acknowledgments">11. Acknowledgments</a></h1>
+<h1><a name="acknowledgments">13. Acknowledgments</a></h1>
 <p>TinyOS 2.0 is the result of a lot of hard work from a lot of people,
 including (but not limited to) David Gay, Cory Sharp, Vlado Handziski,
-Jan Hauer, Kevin Klues, Joe Polastre, Jonathan Hui, Gilman Tolle, 
-Martin Turon, Phil Buonodonna, Ben Greenstein, Adam Wolisz, David Culler, 
+Jan Hauer, Kevin Klues, Joe Polastre, Jonathan Hui, Prabal Dutta, 
+Gilman Tolle, Martin Turon, Phil Buonodonna, Ben Greenstein, David Culler, 
 Kristin Wright, Ion Yannopoulos, and Phil Levis.</p>
 </div>
 <div class="section" id="author-s-address">
-<h1><a name="author-s-address">12. Author's Address</a></h1>
+<h1><a name="author-s-address">14. Author's Address</a></h1>
 <div class="line-block">
 <div class="line">Philip Levis</div>
 <div class="line">358 Gates</div>
@@ -520,7 +603,7 @@ Kristin Wright, Ion Yannopoulos, and Phil Levis.</p>
 </div>
 </div>
 <div class="section" id="citations">
-<h1><a name="citations">13. Citations</a></h1>
+<h1><a name="citations">15. Citations</a></h1>
 <table class="docutils citation" frame="void" id="tep1" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -542,61 +625,79 @@ Kristin Wright, Ion Yannopoulos, and Phil Levis.</p>
 <table class="docutils citation" frame="void" id="tep101" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep101">[TEP101]</a></td><td>TEP 101: Analog-to-Digital Converters. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep101.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep101.txt?view=markup</a></td></tr>
+<tr><td class="label"><a name="tep101">[TEP101]</a></td><td>TEP 101: Analog-to-Digital Converters. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep101.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep101.txt?view=markup</a></td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="tep102" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep102">[TEP102]</a></td><td>TEP 102: Timers. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep102.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep102.txt?view=markup</a></td></tr>
+<tr><td class="label"><a name="tep102">[TEP102]</a></td><td>TEP 102: Timers. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep102.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep102.txt?view=markup</a></td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="tep106" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep106">[TEP106]</a></td><td>TEP 106: Schedulers and Tasks. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep106.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep106.txt?view=markup</a></td></tr>
+<tr><td class="label"><a name="tep106">[TEP106]</a></td><td>TEP 106: Schedulers and Tasks. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep106.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep106.txt?view=markup</a></td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="tep107" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep107">[TEP107]</a></td><td>TEP 107: Boot Sequence. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep107.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep107.txt?view=markup</a></td></tr>
+<tr><td class="label"><a name="tep107">[TEP107]</a></td><td>TEP 107: Boot Sequence. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep107.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep107.txt?view=markup</a></td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="tep108" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep108">[TEP108]</a></td><td>TEP 108: message_t. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep108.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep108.txt?view=markup</a></td></tr>
+<tr><td class="label"><a name="tep108">[TEP108]</a></td><td>TEP 108: message_t. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep108.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep108.txt?view=markup</a></td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="tep109" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep109">[TEP109]</a></td><td>TEP 109: Sensorboards. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep109.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep109.txt?view=markup</a></td></tr>
+<tr><td class="label"><a name="tep109">[TEP109]</a></td><td>TEP 109: Sensorboards. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep109.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep109.txt?view=markup</a></td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="tep110" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep110">[TEP110]</a></td><td>TEP 110: Service Distributions. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep110.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep110.txt?view=markup</a></td></tr>
+<tr><td class="label"><a name="tep110">[TEP110]</a></td><td>TEP 110: Service Distributions. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep110.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep110.txt?view=markup</a></td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="tep111" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep111">[TEP111]</a></td><td>TEP 111: message_t. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep111.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep111.txt?view=markup</a></td></tr>
+<tr><td class="label"><a name="tep111">[TEP111]</a></td><td>TEP 111: message_t. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep111.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep111.txt?view=markup</a></td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="tep112" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep112">[TEP112]</a></td><td>TEP 112: Microcontroller Power Management. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep112.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep112.txt?view=markup</a></td></tr>
+<tr><td class="label"><a name="tep112">[TEP112]</a></td><td>TEP 112: Microcontroller Power Management. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep112.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep112.txt?view=markup</a></td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="tep113" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep113">[TEP113]</a></td><td>TEP 113: Serial Communication. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep113.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/tep113.txt?view=markup</a></td></tr>
+<tr><td class="label"><a name="tep113">[TEP113]</a></td><td>TEP 113: Serial Communication. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep113.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep113.txt?view=markup</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="tep114" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep114">[TEP114]</a></td><td>TEP 114: SIDs: Source and Sink Independent Drivers. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep114.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep114.txt?view=markup</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="tep115" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep115">[TEP115]</a></td><td>TEP 115: Power Management of Non-Virtualised Devices. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep115.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep115.txt?view=markup</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="tep116" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep116">[TEP116]</a></td><td>TEP 116: Packet Protocols. <a class="reference" href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep116.txt?view=markup">http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep116.txt?view=markup</a></td></tr>
 </tbody>
 </table>
 </div>

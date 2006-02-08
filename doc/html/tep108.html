@@ -3,38 +3,33 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.5: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.3.6: http://docutils.sourceforge.net/" />
 <title>Resource Arbitration</title>
-<meta name="authors" content="Kevin Klues  Philip Levis  David Gay  David Culler  Vlado Handziski" />
+<meta name="author" content="Kevin Klues" />
+<meta name="author" content="Philip Levis" />
+<meta name="author" content="David Gay" />
+<meta name="author" content="David Culler" />
+<meta name="author" content="Vlado Handziski" />
 <style type="text/css">
 
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:Date: $Date: 2006-01-18 05:39:57 $
-:Revision: $Revision: 1.1.2.3 $
-:Copyright: This stylesheet has been placed in the public domain.
+:date: $Date: 2006-02-08 21:59:15 $
+:version: $Revision: 1.1.2.4 $
+:copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
-
-See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
-customize this style sheet.
 */
-
-/* used to remove borders from tables and images */
-.borderless, table.borderless td, table.borderless th {
-  border: 0 }
-
-table.borderless td, table.borderless th {
-  /* Override padding for "table.docutils td" with "! important".
-     The right padding separates the table cells. */
-  padding: 0 0.5em 0 0 ! important }
+body {
+  font-family: Times;
+  font-size: 16px;
+}
 
 .first {
-  /* Override more specific margin styles with "! important". */
   margin-top: 0 ! important }
 
-.last, .with-subtitle {
+.last {
   margin-bottom: 0 ! important }
 
 .hidden {
@@ -47,11 +42,11 @@ a.toc-backref {
 blockquote.epigraph {
   margin: 2em 5em ; }
 
-dl.docutils dd {
+dd {
   margin-bottom: 0.5em }
 
-/* Uncomment (and remove this text!) to get bold-faced definition list terms
-dl.docutils dt {
+/* Uncomment (& remove this text!) to get bold-faced definition list terms
+dt {
   font-weight: bold }
 */
 
@@ -62,17 +57,11 @@ div.abstract p.topic-title {
   font-weight: bold ;
   text-align: center }
 
-div.admonition, div.attention, div.caution, div.danger, div.error,
-div.hint, div.important, div.note, div.tip, div.warning {
+div.attention, div.caution, div.danger, div.error, div.hint,
+div.important, div.note, div.tip, div.warning, div.admonition {
   margin: 2em ;
   border: medium outset ;
   padding: 1em }
-
-div.admonition p.admonition-title, div.hint p.admonition-title,
-div.important p.admonition-title, div.note p.admonition-title,
-div.tip p.admonition-title {
-  font-weight: bold ;
-  font-family: sans-serif }
 
 div.attention p.admonition-title, div.caution p.admonition-title,
 div.danger p.admonition-title, div.error p.admonition-title,
@@ -81,14 +70,11 @@ div.warning p.admonition-title {
   font-weight: bold ;
   font-family: sans-serif }
 
-/* Uncomment (and remove this text!) to get reduced vertical space in
-   compound paragraphs.
-div.compound .compound-first, div.compound .compound-middle {
-  margin-bottom: 0.5em }
-
-div.compound .compound-last, div.compound .compound-middle {
-  margin-top: 0.5em }
-*/
+div.hint p.admonition-title, div.important p.admonition-title,
+div.note p.admonition-title, div.tip p.admonition-title,
+div.admonition p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
 
 div.dedication {
   margin: 2em 5em ;
@@ -100,11 +86,9 @@ div.dedication p.topic-title {
   font-style: normal }
 
 div.figure {
-  margin-left: 2em ;
-  margin-right: 2em }
+  margin-left: 2em }
 
 div.footer, div.header {
-  clear: both;
   font-size: smaller }
 
 div.line-block {
@@ -120,7 +104,7 @@ div.line-block div.line-block {
 div.sidebar {
   margin-left: 1em ;
   border: medium outset ;
-  padding: 1em ;
+  padding: 0em 1em ;
   background-color: #ffffee ;
   width: 40% ;
   float: right ;
@@ -147,24 +131,31 @@ div.system-message p.system-message-title {
 div.topic {
   margin: 2em }
 
-h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
-h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
-  margin-top: 0.4em }
+h1 {
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+}
 
 h1.title {
-  text-align: center }
+ text-align: center;
+ font-size: 32px;
+}
+
+h2 {
+ font-size: 16px;
+ font-family: Arial, sans-serif;
+}
 
 h2.subtitle {
   text-align: center }
 
-hr.docutils {
+h3 {
+ font-size: 12px;
+ font-family: Arial, sans-serif;
+}
+
+hr {
   width: 75% }
-
-img.align-left {
-  clear: left }
-
-img.align-right {
-  clear: right }
 
 ol.simple, ul.simple {
   margin-bottom: 1em }
@@ -222,6 +213,10 @@ pre.address {
   font-family: serif ;
   font-size: 100% }
 
+pre.line-block {
+  font-family: serif ;
+  font-size: 100% }
+
 pre.literal-block, pre.doctest-block {
   margin-left: 2em ;
   margin-right: 2em ;
@@ -241,48 +236,46 @@ span.interpreted {
 span.option {
   white-space: nowrap }
 
+span.option-argument {
+  font-style: italic }
+
 span.pre {
   white-space: pre }
 
 span.problematic {
   color: red }
 
-span.section-subtitle {
-  /* font-size relative to parent (h1..h6 element) */
-  font-size: 80% }
-
-table.citation {
-  border-left: solid 1px gray;
-  margin-left: 1px }
-
-table.docinfo {
-  margin: 2em 4em }
-
-table.docutils {
+table {
   margin-top: 0.5em ;
   margin-bottom: 0.5em }
 
-table.footnote {
-  border-left: solid 1px black;
-  margin-left: 1px }
+table.citation {
+  border-left: solid thin gray ;
+  padding-left: 0.5ex }
 
-table.docutils td, table.docutils th,
-table.docinfo td, table.docinfo th {
+table.docinfo {
+  margin: 2em 4em;
+}
+
+table.footnote {
+  border-left: solid thin black ;
+  padding-left: 0.5ex }
+
+td, th {
   padding-left: 0.5em ;
   padding-right: 0.5em ;
   vertical-align: top }
 
-table.docutils th.field-name, table.docinfo th.docinfo-name {
+th.docinfo-name, th.field-name {
   font-weight: bold ;
   text-align: left ;
-  white-space: nowrap ;
-  padding-left: 0 }
+  white-space: nowrap;
+  }
 
-h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
-h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
   font-size: 100% }
 
-tt.docutils {
+tt {
   background-color: #eeeeee }
 
 ul.auto-toc {
@@ -291,7 +284,6 @@ ul.auto-toc {
 </style>
 </head>
 <body>
-<div class="document" id="resource-arbitration">
 <h1 class="title">Resource Arbitration</h1>
 <table class="docinfo" frame="void" rules="none">
 <col class="docinfo-name" />
@@ -307,22 +299,27 @@ ul.auto-toc {
 <td>Draft</td></tr>
 <tr class="field"><th class="docinfo-name">TinyOS-Version:</th><td class="field-body">2.x</td>
 </tr>
-<tr><th class="docinfo-name">Authors:</th>
-<td>Kevin Klues
-<br />Philip Levis
-<br />David Gay
-<br />David Culler
-<br />Vlado Handziski</td></tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Kevin Klues</td></tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Philip Levis</td></tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>David Gay</td></tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>David Culler</td></tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Vlado Handziski</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">28-Mar-2005</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.4</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.5</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-01-15</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-01-18</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
 </tbody>
 </table>
+<div class="document" id="resource-arbitration">
 <div class="note">
 <p class="first admonition-title">Note</p>
 <p class="last">This memo documents a part of TinyOS for the TinyOS Community, and
@@ -330,14 +327,14 @@ requests discussion and suggestions for improvements.  Distribution
 of this memo is unlimited. This memo is in full compliance with
 TEP 1.</p>
 </div>
-<div class="section">
-<h1><a id="abstract" name="abstract">Abstract</a></h1>
+<div class="section" id="abstract">
+<h1><a name="abstract">Abstract</a></h1>
 <p>This memo documents the general resource sharing mechanisms for TinyOS
 2.x. These mechanisms are used to allow multiple software components to
 arbitrate access to shared abstractions.</p>
 </div>
-<div class="section">
-<h1><a id="introduction" name="introduction">1. Introduction</a></h1>
+<div class="section" id="introduction">
+<h1><a name="introduction">1. Introduction</a></h1>
 <p>TinyOS 1.x has two mechanisms for managing shared resources:
 virtualization and completion events. A virtualized resource appears
 as an independent instance of an abstraction, such as the Timer
@@ -356,32 +353,32 @@ needs a way to tell when GenericComm is free so it can retry. TinyOS
 1.x provides the mechanism of a global completion event which is
 signalled whenever a packet send completes. Interested components can
 handle this event and retry.</p>
-<p>The approach to physical (rather than virtualized) abstractions
+<p>The approach to physical (rather than virtualized) abstractions 
 has several drawbacks:</p>
 <ul class="simple">
 <li>If you need to make several requests, you have to handle the
-possibility of a request returning FAIL at any point. This complicates
+possibility of a request returning FAIL at any point. This complicates  
 implementations by adding internal states.</li>
 <li>You have no control over the timing of a sequence of operations. One
-example of when this can be a problem is timing-sensitive use of an
+example of when this can be a problem is timing-sensitive use of an 
 A/D converter.</li>
 <li>If a hardware resource supports reservation, you cannot express this
-via this software interface. For instance, I2C buses have a
-concept of &quot;repeated start&quot; when doing multiple bus transactions,
+via this software interface. For instance, I2C buses have a  
+concept of &quot;repeated start&quot; when doing multiple bus transactions, 
 but it is not clear how to use this in TinyOS 1.x's I2C abstraction.</li>
 <li>Most TinyOS 1.x services do not provide a very convenient way of
-monitoring an abstractions's availability for the purpose of retries,
+monitoring an abstractions's availability for the purpose of retries, 
 nor very clear documentation of which requests could happen simultaneously.</li>
 </ul>
 <p>A single approach to resource sharing is not appropriate for all
-circumstances. For instance, requiring resource reservation allows
-programs to have better timing guarantees for access to an A/D converter.
+circumstances. For instance, requiring resource reservation allows  
+programs to have better timing guarantees for access to an A/D converter. 
 But if a program does not need precise timing guarantees (e.g., when measuring
 temperature in a biological monitoring application), this extra resource
 reservation step unnecessarily complicates code.</p>
 </div>
-<div class="section">
-<h1><a id="resource-classes" name="resource-classes">2. Resource Classes</a></h1>
+<div class="section" id="resource-classes">
+<h1><a name="resource-classes">2. Resource Classes</a></h1>
 <p>TinyOS 2.x distinguishes between three kinds of abstractions: physical
 and dedicated, physical and shared, and virtual and shared.
 Components offer resource sharing mechanisms appropriate to their
@@ -398,14 +395,14 @@ physical, as virtualization inevitably requires state. Depending on their
 expected use, HPL abstractions are either physical and dedicated or
 physical and shared. For example, while hardware timers are rarely
 multiplexed between multiple components, buses almost always are.
-Correspondingly, on the MSP430, compare and counter registers are
+Correspondingly, on the MSP430, compare and counter registers are 
 physical and dedicated, while the USARTs are physical and shared.</p>
-<div class="section">
-<h2><a id="physical-and-dedicated" name="physical-and-dedicated">2.1 Physical and Dedicated</a></h2>
+<div class="section" id="physical-and-dedicated">
+<h2><a name="physical-and-dedicated">2.1 Physical and Dedicated</a></h2>
 <p>An abstraction is <em>physical and dedicated</em> if it is a hardware resource
 which a subsystem needs exclusive access to at all times. Examples of
 physical and dedicated abstractions include interrupts and counters.
-Generally, a physical and dedicated abstraction is just an interface
+Generally, a physical and dedicated abstraction is just an interface 
 which its user wires to. For example, on the Atmega128, Timer 2 is
 presented by the component HplAtm128Timer2C:</p>
 <pre class="literal-block">
@@ -418,8 +415,8 @@ module HplAtmTimer2C {
 }
 </pre>
 </div>
-<div class="section">
-<h2><a id="virtual-and-shared" name="virtual-and-shared">2.2 Virtual and Shared</a></h2>
+<div class="section" id="virtual-and-shared">
+<h2><a name="virtual-and-shared">2.2 Virtual and Shared</a></h2>
 <p>Virtual and shared abstractions hide multiple clients from each other
 through software virtualization. Every client of the resource thinks it
 has its own independent instance of the resource, but these virtualized
@@ -427,7 +424,7 @@ instances are multiplexed on top of a single underlying resource. Because
 the virtualization is in software, there is no upper bound on the number
 of clients of the abstraction, barring memory or efficiency constraints.
 For example, the TimerMilliC component provides a virtual and shared
-abstraction of millisecond precision timers to application
+abstraction of millisecond precision timers to application 
 components <a class="citation-reference" href="#tep102" id="id3" name="id3">[TEP102]</a>. As virtualization usually requires keeping state
 and that state must scale with the number of virtualized instances,
 virtualized resources often use the Service Instance pattern[sipattern]_,
@@ -441,12 +438,12 @@ configuration TimerMilliC {
 <p>Virtualization generally allows a client to use a very simple interface.
 This simplicity comes at a cost of reduced efficiency and an inability to
 precisely control the underlying resource. For example, TimerMilli32C
-introduces CPU overhead from dispatching and maintaining all of the
+introduces CPU overhead from dispatching and maintaining all of the 
 virtual timers as well as jitter from when two timers want to fire at
 the same time.</p>
 </div>
-<div class="section">
-<h2><a id="physical-and-shared" name="physical-and-shared">2.3 Physical and Shared</a></h2>
+<div class="section" id="physical-and-shared">
+<h2><a name="physical-and-shared">2.3 Physical and Shared</a></h2>
 <p>Physical and dedicated abstractions are useful when a resource is
 always controlled by a single component. Virtualized abstractions are
 useful when clients are willing to pay a bit of overhead and sacrifice
@@ -462,7 +459,7 @@ acquiring the resource when needed and holding on to it no longer than
 necessary. Clients explicitly release resources: there is no way for
 an arbiter to forcibly reclaim it.</p>
 <p>A motivating example of a physical and shared resource is a bus.
-The bus may have multiple peripherals on it, corresponding to
+The bus may have multiple peripherals on it, corresponding to 
 different subsystems. For example, on the Telos platform the flash
 chip (storage) and the radio (network) share a bus. The storage and
 network stacks need exclusive access to the bus when using it,
@@ -470,14 +467,14 @@ but they also need to share it with the other subsystem. In this
 case, virtualization is problematic, as the radio stack needs to be
 able to perform a series of operations in quick succession without
 having to reacquire the bus in each case. Having the bus be a
-physical but shared resource allows the radio stack to
+physical but shared resource allows the radio stack to 
 send a series of operations atomically across to the radio without
-having to buffer them all up in memory beforehand (which would
+having to buffer them all up in memory beforehand (which would 
 introduce memory pressure).</p>
 </div>
 </div>
-<div class="section">
-<h1><a id="resource-arbiters" name="resource-arbiters">3. Resource Arbiters</a></h1>
+<div class="section" id="resource-arbiters">
+<h1><a name="resource-arbiters">3. Resource Arbiters</a></h1>
 <p>Physical and shared resources have an <em>arbiter</em> to manage which client
 can use the resource at any given time. Because an arbiter is a
 centralized place that knows whether the resource is in use, it also
@@ -488,9 +485,9 @@ arbiter SHOULD also provide an instance of ResourceController and
 ResourceConfigure interfaces. An arbiter MAY provide additional
 interfaces or instance of interfaces in order to provide a particular
 arbitration policy.</p>
-<div class="section">
-<h2><a id="resource" name="resource">3.1 Resource</a></h2>
-<p>Clients of a physical and shared resource arbiter request access
+<div class="section" id="resource">
+<h2><a name="resource">3.1 Resource</a></h2>
+<p>Clients of a physical and shared resource arbiter request access 
 using the Resource interface:</p>
 <pre class="literal-block">
 interface Resource {
@@ -503,7 +500,7 @@ interface Resource {
 <p>A client lets an arbiter know it needs access to the resource with
 a call to request(). The arbiter signals it the granted() event
 when it gains exclusive access to the resource. A client
-can also acquire the resource with immediateRequest(). The
+can also acquire the resource with immediateRequest(). The 
 return value of this call determines whether the client was able
 to acquire the resource. If immmediateRequest() does not successfully
 acquire the resource, then it can try to do so in the standard,
@@ -511,8 +508,8 @@ split-phase way with request(). If the call to immediateRequest()
 succeeds, then the arbiter MUST NOT issue a granted() event.</p>
 <p>An arbiter MUST provide a parameterized Resource interface,
 where the parameter is a client ID, following the Service
-Instance pattern[sipattern]_. An arbitrated component SomeNameC MUST
-#define SOME_NAME_RESOURCE to a string which can be passed to unique()
+Instance pattern[sipattern]_. An arbitrated component SomeNameC MUST 
+#define SOME_NAME_RESOURCE to a string which can be passed to unique() 
 to obtain a client id. For instance, an I2C bus might look like this:</p>
 <pre class="literal-block">
 includes I2CPacketC;
@@ -551,8 +548,8 @@ implementation {
 }
 </pre>
 </div>
-<div class="section">
-<h2><a id="resourcecontroller" name="resourcecontroller">3.2 ResourceController</a></h2>
+<div class="section" id="resourcecontroller">
+<h2><a name="resourcecontroller">3.2 ResourceController</a></h2>
 <p>An arbiter SHOULD provide one instance of the ResourceController
 interface and MAY provide more than one. The Resource interface is for
 simple and basic use cases, where clients are peers that share the
@@ -567,12 +564,12 @@ interface ResourceController {
   async command error_t immediateRequest();
   event void granted();
   async command void release();
-  async event void requested();
-  async event void idle();
+  async event void requested(); 
+  async event void idle(); 
 }
 </pre>
 <p>An arbiter signals the requested event if the client currently has the resource
-and some other client has requested it. It signals the idle() event when
+and some other client has requested it. It signals the idle() event when 
 no client holds the resource.</p>
 <p>ResourceController allows an arbiter to provide a much richer set of
 policies than simple sharing. For example, arbiters that want to
@@ -597,9 +594,9 @@ is always granted access to the resource before any other client.
 Other clients only obtain the resource if the high-priority client has
 not requested it or when the high-priority client releases it.</p>
 </div>
-<div class="section">
-<h2><a id="arbiterinfo" name="arbiterinfo">3.3 ArbiterInfo</a></h2>
-<p>The ArbiterInfo interface allows a component to query the current
+<div class="section" id="arbiterinfo">
+<h2><a name="arbiterinfo">3.3 ArbiterInfo</a></h2>
+<p>The ArbiterInfo interface allows a component to query the current 
 status of an arbiter:</p>
 <pre class="literal-block">
 interface ArbiterInfo {
@@ -607,7 +604,7 @@ interface ArbiterInfo {
   async command uint8_t userId();
 }
 </pre>
-<p>The ArbiterInfo interface has a variety of uses. For example, the resource
+<p>The ArbiterInfo interface has a variety of uses. For example, the resource 
 implementation can use it to refuse requests from clients that do not
 currently have access. In this case, the abstraction would need to provide
 a parameterized interface for its operations so it could distinguish separate
@@ -615,10 +612,10 @@ clients, and the client ID for its operations would need to be the same
 as the client ID for the arbiter.</p>
 <p>Arbiters MUST provide an instance of the ArbiterInfo interface.</p>
 </div>
-<div class="section">
-<h2><a id="resourceconfigure" name="resourceconfigure">3.4 ResourceConfigure</a></h2>
+<div class="section" id="resourceconfigure">
+<h2><a name="resourceconfigure">3.4 ResourceConfigure</a></h2>
 <p>The ResourceConfigure interface provides a mechanism for clients that need
-to use a resource with different configurations. Rather than forcing a
+to use a resource with different configurations. Rather than forcing a 
 client to reconfigure the resource itself, the component representing a
 client can wire to an arbiter's ResourceConfigure interface, which is called
 before the client is granted the resource.</p>
@@ -647,8 +644,8 @@ generic component RoundRobinArbiterC {
   }
 }
 </pre>
-<p>If an arbiter uses the ResourceConfigure interface, before it signals the
-Resource.granted() event and before it returns SUCCESS from a call to
+<p>If an arbiter uses the ResourceConfigure interface, before it signals the 
+Resource.granted() event and before it returns SUCCESS from a call to 
 Resource.immediateRequest(), it MUST call ResourceConfigure.configure()
 on the granted client ID.</p>
 <p>Using a parameterized interface that calls out rather than a decorator
@@ -667,15 +664,15 @@ generic component Msp430Spi0ClientC {
 implementation {
   enum {MSP430_SPI0_CLIENT = unique(MSP430_USART_RESOURCE);
   components Msp430Usart0C, Msp430Spi0Configure as Configure;
-
+  
   Resource = Msp430Usart0C.Resource[MSP430_SPI0_CLIENT];
   Msp430Usart0C.ResourceConfigure[MSP430_SPI0_CLIENT] -&gt; Configure;
 }
 </pre>
 <p>Arbiters SHOULD provide a parameterized ResourceConfigure interface.</p>
 </div>
-<div class="section">
-<h2><a id="cross-component-reservation" name="cross-component-reservation">3.5 Cross-component reservation</a></h2>
+<div class="section" id="cross-component-reservation">
+<h2><a name="cross-component-reservation">3.5 Cross-component reservation</a></h2>
 <p>In some cases, it is desirable to share reservation of resources
 across components. For example, on the TI MSP 430, the same pins can
 be used as an I2C bus, a UART, or an SPI connection. Clearly, on this
@@ -685,7 +682,7 @@ described above by:</p>
 <ol class="arabic simple">
 <li>using the same unique string for all three resources</li>
 </ol>
-<p>2) wiring the three parameterised Resource interfaces to the same
+<p>2) wiring the three parameterised Resource interfaces to the same  
 arbiter</p>
 <p>The common way to do this is as follows (the UART and SPI components
 are omitted, they are similar to I2CC,  low-level I2C component):</p>
@@ -711,8 +708,8 @@ configuration {
 </pre>
 </div>
 </div>
-<div class="section">
-<h1><a id="default-arbiters" name="default-arbiters">4. Default arbiters</a></h1>
+<div class="section" id="default-arbiters">
+<h1><a name="default-arbiters">4. Default arbiters</a></h1>
 <p>Because most components use one of a small number of arbitration
 policies, TinyOS includes a number of default resource arbiters, in
 the form of generic components, which all include this signature:</p>
@@ -732,8 +729,8 @@ are received. FcfsPriorityArbiterC is similar to FcfsArbiterC, but
 provides an additional ResourceController interface for the
 high-priority client.</p>
 </div>
-<div class="section">
-<h1><a id="author-s-address" name="author-s-address">5. Author's Address</a></h1>
+<div class="section" id="author-s-address">
+<h1><a name="author-s-address">5. Author's Address</a></h1>
 <div class="line-block">
 <div class="line">Kevin Klues</div>
 <div class="line">503 Bryan Hall</div>
@@ -777,8 +774,8 @@ high-priority client.</p>
 <div class="line">email - <a class="reference" href="mailto:handzisk&#64;tkn.tu-berlin.de">handzisk&#64;tkn.tu-berlin.de</a></div>
 </div>
 </div>
-<div class="section">
-<h1><a id="citations" name="citations">6. Citations</a></h1>
+<div class="section" id="citations">
+<h1><a name="citations">6. Citations</a></h1>
 <table class="docutils citation" frame="void" id="tep2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">

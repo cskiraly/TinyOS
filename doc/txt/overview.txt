@@ -179,13 +179,14 @@ finer granularity timers (e.g., 32kHz) if needed.
 Timers present a good example of virtualization in 2.0. In 1.x,
 a program instantiates a timer by wiring to TimerC::
 
-components App, TimerC;
-App.Timer -> TimerC.Timer[unique("Timer")];
+  components App, TimerC;
+  App.Timer -> TimerC.Timer[unique("Timer")];
 
 In 2.0, a program instantiates a timer::
 
-components App, new TimerMilliC();
-App.Timer -> TimerMilliC;
+  components App, new TimerMilliC();
+  App.Timer -> TimerMilliC;
+
 
 
 7. Communication
@@ -269,18 +270,18 @@ commands and events define which error codes they may return and why.
 From the perspective of porting code, this is the most significant
 different in 2.0. Calls that were once::
 
-if (call X.y()) {
-  busy = TRUE;
-}
+  if (call X.y()) {
+    busy = TRUE;  
+  }
 
 
 now have their meanings reversed. In 1.x, the busy statement will execute
 if the call succeeds, while in 2.0 it will execute if the call fails.
 This encourages a more portable, upgradable, and readable approach::
 
-if (call X.y() == SUCCESS) {
-  busy = TRUE;
-}
+  if (call X.y() == SUCCESS) {
+    busy = TRUE;
+  }
 
 10. Arbitration
 ====================================================================
@@ -336,7 +337,7 @@ Gilman Tolle, Martin Turon, Phil Buonodonna, Ben Greenstein, David Culler,
 Kristin Wright, Ion Yannopoulos, and Phil Levis. 
 
 
-12. Author's Address
+14. Author's Address
 ====================================================================
 
 | Philip Levis
@@ -349,7 +350,7 @@ Kristin Wright, Ion Yannopoulos, and Phil Levis.
 |
 | email - pal@cs.stanford.edu
 
-13. Citations
+15. Citations
 ====================================================================
 
 .. [TEP1] TEP 1: TEP Structure and Keywords

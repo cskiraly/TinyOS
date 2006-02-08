@@ -10,8 +10,8 @@ Dissemination
 :Author: Philip Levis and Gilman Tolle
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2006-02-08 01:48:27 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2006-02-08 21:59:16 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -67,14 +67,14 @@ Small-value dissemination has two interfaces: DisseminationValue and
 DisseminationUpdate. The former is for consumers of a disseminated
 value, the latter is for producers. They are as follows::
 
-interface DisseminationValue<t> {
-  command const t* get();
-  event void changed();
-}
+  interface DisseminationValue<t> {
+    command const t* get();
+    event void changed(); 
+  }
 
-interface DisseminationUpdate<t> {
-  command void change(t* newVal);
-}
+  interface DisseminationUpdate<t> {
+    command void change(t* newVal);
+  }
 
 
 These interfaces assume that the allocation for the disseminated data
@@ -107,10 +107,10 @@ the same data value.
 A dissemination service MUST provide one component, DisseminatorC,
 which has the following signature::
 
-generic configuration DisseminatorC(typedef t, uint16_t key) {
-  provides interface DisseminationValue <t>;
-  provides interface DisseminationUpdate <t>;
-}
+  generic configuration DisseminatorC(typedef t, uint16_t key) {
+    provides interface DisseminationValue <t>;
+    provides interface DisseminationUpdate <t>;
+  }
 
 The t argument MUST be able to fit in a single message_t[tep111_]  after
 considering the headers that the dissemination protocol introduces.
@@ -122,13 +122,13 @@ and generates code, if more than one component wants to share
 a disseminated value then they SHOULD encapsulate the value in
 a non-generic component that can be shared. E.g.::
 
-configuration DisseminateTxPowerC {
-  provides interface DisseminationValue<uint8_t>;
-}
-implementation {
-  components new DisseminatorC(uint8_t, DIS_TX_POWER);
-  DisseminationValue = DisseminatorC;
-}
+  configuration DisseminateTxPowerC {
+    provides interface DisseminationValue<uint8_t>;
+  }
+  implementation {
+    components new DisseminatorC(uint8_t, DIS_TX_POWER);
+    DisseminationValue = DisseminatorC;
+  }
 
 
 Two different instances of DisseminatorC MUST NOT share the same value
@@ -152,25 +152,25 @@ application-specific header file. The unique namespace and the static
 namespace are separated by their most significant bit. A component
 author might write something like this::
 
-#include <disseminate_keys.h>
-configuration SomeComponentC { 
-  ...
-}
-implementation {
-#ifndef DIS_SOME_COMPONENT_KEY
-  enum {
-    DIS_SOME_COMPONENT_KEY = unique(DISSEMINATE_KEY) + 1 << 15;
-  };
-#endif
-  components SomeComponentP;
-  components new DisseminatorC(uint8_t, DIS_SOME_COMPONENT_KEY);
-  SomeComponentP.ConfigVal -> DisseminatorC;
-}
+  #include <disseminate_keys.h>
+  configuration SomeComponentC { 
+    ...
+  }
+  implementation {
+  #ifndef DIS_SOME_COMPONENT_KEY
+    enum {
+      DIS_SOME_COMPONENT_KEY = unique(DISSEMINATE_KEY) + 1 << 15;
+    };
+  #endif
+    components SomeComponentP;
+    components new DisseminatorC(uint8_t, DIS_SOME_COMPONENT_KEY);
+    SomeComponentP.ConfigVal -> DisseminatorC; 
+  }
 
 To override, you can then make a disseminate_keys.h in your app
 directory::
 
-#define DIS_SOME_COMPONENT_KEY 32
+  #define DIS_SOME_COMPONENT_KEY 32
 
 Even with careful key selection, two incompatible binaries with
 keyspace collisions may end up in the same network. If this happens, a
