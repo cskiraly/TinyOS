@@ -2,7 +2,7 @@
 
 # For linux, change to /usr/src/redhat
 # For my cygwin: /cygdrive/c/rpmsrc
-RPMS=/usr/src/redhat
+RPMS=/cygdrive/c/rpmsrc
 TINYOS_VERSION=2.0.0beta1
 TINYOS_TOOLS_VERSION=1.2.1
 VM_VERSION=1.1.1Mar2004cvs
@@ -27,7 +27,7 @@ cd $RPMS
 
 echo "*** Installing new tarballs"
 cd $HERE/../../..
-cp tinyos-$TINYOS_VERSION.tar.gz $RPMS/SOURCES
+#cp tinyos-$TINYOS_VERSION.tar.gz $RPMS/SOURCES
 #cp tinyos-tools-$TINYOS_TOOLS_VERSION.tar.gz $RPMS/SOURCES
 #cp tinyos-vm-$VM_VERSION.tar.gz $RPMS/SOURCES
 #cp tinyos-contrib-$CONTRIB_VERSION.tar.gz $RPMS/SOURCES
@@ -35,7 +35,7 @@ cp tinyos-$TINYOS_VERSION.tar.gz $RPMS/SOURCES
 
 echo "*** Creating rpms"
 cd $RPMS
-rpmbuild -bb $HERE/tinyos.spec
+#rpmbuild -bb $HERE/tinyos.spec
 #rpmbuild -bb $HERE/tinyos-tools.spec
 #rpmbuild -bb $HERE/task-tinydb/task-tinydb.spec
 #rpmbuild -bb $HERE/contrib/contrib.spec
