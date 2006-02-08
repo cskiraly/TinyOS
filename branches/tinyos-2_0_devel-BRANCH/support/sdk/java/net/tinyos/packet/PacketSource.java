@@ -1,4 +1,4 @@
-// $Id: PacketSource.java,v 1.1.2.1 2005-05-23 22:11:49 idgay Exp $
+// $Id: PacketSource.java,v 1.1.2.2 2006-02-08 18:27:30 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -77,7 +77,7 @@ public interface PacketSource
      * Close a packet source. Closing a source must force any 
      * running <code>readPacket</code> and <code>writePacket</code>
      * operations to terminate with an IOException
-     * @excpetion IOException Thrown if a problem occured during closing.
+     * @exception IOException Thrown if a problem occured during closing.
      *   The source is considered closed even if thos occurs.
      *   Closing a closed source does not cause this exception
      */

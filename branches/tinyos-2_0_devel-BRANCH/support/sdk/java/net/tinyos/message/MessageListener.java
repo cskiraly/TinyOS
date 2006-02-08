@@ -1,4 +1,4 @@
-// $Id: MessageListener.java,v 1.1.2.1 2005-06-10 00:13:52 idgay Exp $
+// $Id: MessageListener.java,v 1.1.2.2 2006-02-08 18:27:30 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -51,8 +51,8 @@ package net.tinyos.message;
  */
 public interface MessageListener {
     /**
-     * This method is called to signal message reception. to is
-     * the destination of message m.
+     * This method is called to signal message reception. The destination of
+     * message m is to.
      * @param to the destination of the message (Note: to is only valid
      *   when using TOSBase base stations)
      * @param m the received message

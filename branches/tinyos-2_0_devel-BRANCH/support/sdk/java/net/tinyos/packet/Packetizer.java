@@ -1,4 +1,4 @@
-// $Id: Packetizer.java,v 1.1.2.5 2005-08-13 00:35:36 scipio Exp $
+// $Id: Packetizer.java,v 1.1.2.6 2006-02-08 18:27:30 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -71,7 +71,7 @@ public class Packetizer extends AbstractSource implements Runnable {
      *     the first byte must be the unknown packet type.
      * - Packets that are greater than a (private) MTU are silently dropped.
      */
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
 
     final static int SYNC_BYTE = 0x7e;
     final static int ESCAPE_BYTE = 0x7d;
