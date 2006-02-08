@@ -1,0 +1,229 @@
+============================
+TinyOS 2.x Boot Sequence
+============================
+
+:TEP: 107
+:Group: Core Working Group 
+:Type: Documentary
+:Status: Draft
+:TinyOS-Version: 2.x
+:Author: Philip Levis 
+
+:Draft-Created: 10-Dec-2004
+:Draft-Version: $Revision: 1.1.2.1 $
+:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
+
+.. Note::
+
+   This memo documents a part of TinyOS for the TinyOS Community, and
+   requests discussion and suggestions for improvements.  Distribution
+   of this memo is unlimited. This memo is in full compliance with
+   TEP 1.
+
+Abstract
+====================================================================
+
+This memo documents the structure and implementation of the mote
+boot sequence in TinyOS 2.x.
+
+
+1. Introduction
+====================================================================
+
+TinyOS has a set of calling conventions and semantics in its boot
+sequence. Earlier versions of TinyOS used an interface named
+"StdControl" to take care of system initialization and starting
+required software systems. Experience with several hardware platforms
+showed StdControl to be insufficient, as it provided only a
+synchronous interface. Additionally, StdControl bundled the notion of
+initialization, which happens only at boot, with power management and
+service control. TinyOS 2.x solves these problems by separating what
+was once StdControl into three separate interfaces: one for
+initialization, one for starting and stopping components, and one for
+notification that the mote has booted. This memo describes the TinyOS
+boot sequence and reasons for its semantics.
+
+2. TinyOS 1.x Boot Sequence
+====================================================================
+
+The TinyOS 1.x boot sequence is uniform across most mote platforms
+(TOSSIM has a very different boot sequence, as it is a PC
+program). The module RealMain implements main(), and has the following
+signature:
+
+|  ``module RealMain {``
+|    ``uses {``
+|      ``command result_t hardwareInit();``
+|      ``interface StdControl;``
+|      ``interface Pot;``
+|    ``}``
+|  ``}``
+
+
+The mote main() function uses a mix of nesC and C:
+
+|  ``int main() __attribute__ ((C, spontaneous)) {``
+|    ``call hardwareInit();``
+|    ``call Pot.init(10);``
+|    ``TOSH_sched_init();``
+|    ``     ``
+|    ``call StdControl.init();``
+|    ``call StdControl.start();``
+|    ``__nesc_enable_interrupt();``
+|    `` ``
+|    ``while(1) {``
+|      ``TOSH_run_task();``
+|    ``}``
+|  ``}``
+
+
+Several problems exist. Some of these calls are artifacts of old
+platforms: the Pot component refers to the mica variable potentiometer
+for controlling radio transmission power, and for other platforms is a
+stub component Some of the calls -- TOSH_sched_init and TOSH_run_task
+-- are C functions that are implemented in other, automatically
+included files. Separation from the nesC component model makes
+changing what lies behind these functions more difficult than normal
+in TinyOS.
+
+More importantly, the initialization sequence has several
+limitations. The component HPLInit implements the hardwareInit command
+(wired by the component Main): hardware initialization may not be part
+of a pure HPL layer. The scheduler is initialized after hardware,
+which means that no hardware initialization can post a task if it
+needs one. The StdControl interface combines component initialization
+(init()) and activation (start()/stop()); if a component needs to be
+initialized by RealMain, it must also be started. Separating these two
+leads to more flexible power management, and distinguishes required
+low-level components that must always be running (such as a Timer)
+from high level components that requires (such as an
+application). Finally, some components that need to often need to be
+started by main, such as a radio, do not follow a synchronous
+start/stop model. In this case, some components can't operate properly
+until the radio starts, but main has no mechanism for waiting for the
+radio start completion event.
+
+
+3. TinyOS 2.x Boot Interfaces
+====================================================================
+
+The TinyOS 2.x boot sequence uses three interfaces:
+
+  o Init, for initializing component/hardware state
+  o Scheduler, for initializing and running tasks
+  o Boot, for signalling that the system has successfully booted
+
+The Init interface has a single command, init():
+
+|  ``interface Init {``
+|    ``command error_t init();``
+|  ``}``
+
+Init provides a synchronous interface, enabling initialization
+ordering. Unlike normal execution, in which operations from a wide
+range of components need to be interleaved effectively, initialization
+is a sequential, synchronous operation: no component can be started
+until initialization is complete. If a particular component's
+initialization requires waiting for interrupts or other asynchronous
+events, then it must explicitly wait for them (e.g., 
+with a spin loop), MUST NOT return until complete. Otherwise the system
+may start before initialization is complete.
+
+The Scheduler interface is for initializing and controlling task
+execution. It is detailed in TEP 106[tep106].
+
+The Boot interface has a single event, booted(), which the boot
+sequence signals when it has completed.
+
+|  ``interface Boot {``
+|    ``event void booted();``
+|  ``}``
+
+
+4. TinyOS 2.x Boot Sequence
+====================================================================
+
+The module RealMain implements the standard TinyOS 2.x boot sequence.
+The configuration Main wires some of RealMain's interfaces to
+components that implement standard abstractions and exports the
+others that are application specific.
+
+ 
+|  ``module RealMain {``
+|    ``provides interface Booted;``
+|    ``uses {``
+|      ``interface Scheduler;``
+|      ``interface Init as PlatformInit;``
+|      ``interface Init as SoftwareInit;``
+|    ``}``
+|  ``}``
+|  ``implementation {``
+|    ``int main() __attribute__ ((C, spontaneous)) {``
+|      ``call Scheduler.init();``
+|      `` ``
+|      ``call PlatformInit.init();``
+|      ``while(call Scheduler.runNextTask(FALSE));``
+|      `` ``
+|      ``call SoftwareInit.init();``
+|      ``while(call Scheduler.runNextTask(FALSE));``
+|      `` ``
+|      ``__nesc_enable_interrupts();``
+|      `` ``
+|      ``signal Boot.booted();``
+|      ``while(1) {``
+|        ``call Scheduler.runNextTask(TRUE);``
+|      ``}``
+|    ``}``
+|  ``}``
+
+Interrupts are not enabled until all calls to Init.init have returned.
+If a component's initialization needs to handle interrupts, it can
+do one of two things:
+
+  1) If a status flag for the interrupt exists, the Init.init()
+     implementations SHOULD use a spin loop to test for when
+     an interrupt has been issued.
+  2) If no such flag exists, the Init.init() implementation MAY
+     temporarily enable interrupts. It MUST NOT call any other
+     component or return until it has re-disabled interrupts.
+
+As 2) means that interrupts may be temporarily enabled during
+initialization, components that control interrupts SHOULD NOT 
+cause interrupts to fire after their Init.init() returns. 
+However, it is possible that other components will cause an
+interrupt to fire due to hardware interactions or semantics.
+Therefore, a component MUST properly handle interrupts at
+all times.
+
+Unless part of a hardware abstraction architecture (HAA)[tep2]_, the 
+Init.init() command MUST NOT call any commands or signal any
+events, except for calling Init.init() on other components. An HAA
+component MAY make other calls to initialize hardware state. A
+component that is not part of an HAA SHOULD NOT call Init.init() on 
+other components unless it needs to enforce a temporal ordering on 
+initialization. 
+
+If a component A depends on another component, B, 
+which needs to be initialized, then A SHOULD wire B's Init directly 
+to the boot sequence, unless there is a temporal ordering requirement to
+the initialization. The purpose of this convention is to simplify
+component initialization and the initialization sequence.
+
+5. Author's Address
+====================================================================
+
+| Philip Levis
+| 467 Soda Hall
+| UC Berkeley
+| Berkeley, CA 94720
+|
+| phone - +1 510 290 5283
+|
+| email - pal@cs.berkeley.edu
+
+6. Citations
+====================================================================
+
+.. [tep2] TEP 2: Hardware Abstraction Architecture. Vladi Handziski, Joseph Polastre, Jan-Hinrich Hauer, Cory Sharp. Adam Wolisz and David Culler.
+ 
