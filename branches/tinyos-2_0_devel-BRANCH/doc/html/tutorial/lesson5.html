@@ -1,0 +1,945 @@
+<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+  <title>Lesson 5: Communications</title>
+  <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+$Id: lesson5.html,v 1.1.2.1 2006-02-08 08:51:43 prabal Exp $
+
+<div class="title">Lesson 5: Communications</div>
+<div class="subtitle">Last Modified: Feb 1, 2006</div>
+
+<p>This lesson introduces radio communications in TinyOS.  You will
+become familar with TinyOS interfaces and components that support
+communications and you will learn how to:
+
+<p>
+
+<ul>
+
+<li>Use <tt>message_t</tt>, the TinyOS 2.0 message buffer.
+
+<li>Send a message buffer to the radio.
+
+<li>Receive a message buffer from the radio.
+<!--
+<li>Access metadata in a message buffer.
+-->
+</ul>
+
+
+<h1>Introduction</h1>
+
+TinyOS provides a number of <i>interfaces</i> to abstract the
+underlying communications services and a number of <i>components</i>
+that <i>provide</i> (implement) these interfaces.  All of these
+interfaces and components use a common message buffer abstraction,
+called <tt>message_t</tt>, which is implemented as a nesC struct
+(similar to a C struct).  The <tt>message_t</tt> abstraction replaces
+the TinyOS 1.x <tt>TOS_Msg</tt> abstraction.  Unlike TinyOS 1.x, the
+members of <tt>message_t</tt> are opaque, and therefore not accessed
+directly.  Rather, <tt>message_t</tt> is an
+<i>abstract data type</i>, whose members are read and written using
+accessor and mutator functions.  See [1] for more details.
+
+<h2>Basic Communications Interfaces</h2>
+
+<p>There are a number of interfaces and components that use
+<tt>message_t</tt> as the underlying data structure.  Let's take a
+look at some of the interfaces that are in the <tt>tos/interfaces</tt>
+directory to familiarize ourselves with the general functionality of
+the communications system:
+
+<p>
+<ul>
+
+<li><tt><a href="../../../tos/interfaces/Packet.nc">Packet</a></tt> -
+Provides the basic accessors for the <tt>message_t</tt> abstract data
+type.  This interface provides commands for clearing a message's
+contents, getting its payload length, and getting a pointer to its
+payload area.
+
+<li><tt><a href="../../../tos/interfaces/Send.nc">Send</a></tt> -
+Provides the basic <i>address-free</i> message sending interface.
+This interface provides commands for sending a message and canceling a
+pending message send.  The interface provides an event to indicate
+whether a message was sent successfully or not.  It also provides
+convenience functions for getting the message's maximum payload as
+well as a pointer to a message's payload area.
+
+<li><tt><a href="../../../tos/interfaces/Receive.nc">Receive</a></tt>
+- Provides the basic message reception interface.  This interface
+provides an event for receiving messages.  It also provides, for
+convenience, commands for getting a message's payload length and
+getting a pointer to a message's payload area.
+
+<li><tt><a
+href="../../../tos/interfaces/PacketAcknowledgements.nc">PacketAcknowledgements</a></tt>
+- Provides a mechanism for requesting acknowledgements on a per-packet
+basis.
+
+<li><tt><a
+href="../../../tos/interfaces/RadioTimeStamping.nc">RadioTimeStamping</a></tt>
+- Provides time stamping information for radio transmission and
+reception.
+
+</ul>
+
+<h2>Active Message Interfaces</h2>
+
+<p>Since it is very common to have multiple services using the same
+radio to communicate, TinyOS provides the Active Message (AM) layer to
+multiplex access to the radio.  The term ``AM type'' refers to the
+field used for multiplexing.  AM types are similar in function to the
+Ethernet frame type field, IP protocol field, and the UDP port in that
+all of them are used to multiplex access to a communication service.
+Additional interfaces, also located in the <tt>tos/interfaces</tt>
+directory, were introduced to support the AM services:
+
+<p>
+<ul>
+
+<li><tt><a
+href="../../../tos/interfaces/AMPacket.nc">AMPacket</a></tt> - Similar
+to <tt>Packet</tt>, provides the basic AM accessors for the
+<tt>message_t</tt> abstract data type.  This interface provides
+commands for getting a node's AM address, an AM packet's destination,
+and an AM packet's type.  Commands are also provides for setting an AM
+packet's destination and type, and checking whether the destination is
+the local node.
+
+<li><tt><a href="../../../tos/interfaces/AMSend.nc">AMSend</a></tt> -
+Similar to <tt>Send</tt>, provides the basic Active Message sending
+interface.  The key difference between <tt>AMSend</tt> and
+<tt>Send</tt> is that <tt>AMSend</tt> takes an AM address in its
+<tt>send</tt> command.  The AM address is simply a field to support
+multiplexing/demultiplexing, much like a UDP port.
+
+</ul>
+
+<h2>Components</h2>
+
+<p>A number of components implement the basic communications and
+active message interfaces.  Let's take a look at some of the
+components in the <tt>/tos/system</tt> directory.  You should be
+familiar with these components because your code needs to specify both
+the <i>interfaces</i> your application
+<i>uses</i> as well as the <i>components</i> which <i>provide</i>
+(implement) those interfaces:
+
+<p>
+<ul>
+
+<li><tt><a
+href="../../../tos/system/AMReceiverC.nc">AMReceiverC</a></tt> -
+Provides the following interfaces: <tt>Receive</tt>, <tt>Packet</tt>,
+and <tt>AMPacket</tt>.
+
+<li><tt><a href="../../../tos/system/AMSenderC.nc">AMSenderC</a></tt>
+- Provides <tt>AMSend</tt>, <tt>Packet</tt>, <tt>AMPacket</tt>, and
+<tt>PacketAcknowledgements</tt> as <tt>Acks</tt>.
+
+<li><tt><a href="../../../tos/system/AMSnooperC.nc">AMSnooperC</a></tt>
+- Provides <tt>Receive</tt>, <tt>Packet</tt>, and <tt>AMPacket</tt>.
+
+<li><tt><a
+href="../../../tos/system/AMSnoopingReceiverC.nc">AMSnoopingReceiverC</a></tt>
+- Provides <tt>Receive</tt>, <tt>Packet</tt>, and <tt>AMPacket</tt>.
+
+<li><tt><a
+href="../../../tos/system/ActiveMessageAddressC.nc">ActiveMessageAddressC</a></tt>
+- Provides commands to get and set the node's active message address.
+This interface is not for general use and changing the a node's active
+message address can break the network stack, so avoid using it unless
+you know what you are doing.
+
+</ul>
+
+<h2>Naming Wrappers</h2>
+
+<p>Since TinyOS supports multiple platforms, each of which might have
+their own implementation of the radio drivers, an additional,
+platform-specific, naming wrapper called <tt>ActiveMessageC</tt> is
+used to bridge these interfaces to their underlying, platform-specific
+implementations.  <tt>ActiveMessageC</tt> provides most of the
+communication interfaces presented above.  Platform-specific versions
+of <tt>ActiveMessageC</tt>, as well the underlying implementations
+which may be shared by multiple platforms (e.g. Telos and MicaZ)
+include:
+
+<p>
+
+<ul>
+
+<li><tt>ActiveMessageC</tt> for the <a
+href="../../../tos/platforms/eyesIFX/ActiveMessageC.nc">eyesIFX</a>
+platform is implemented by <tt><a
+href="../../../tos/chips/tda5250/Tda5250ActiveMessageC.nc">Tda5250ActiveMessageC</a></tt>.
+
+<li><tt>ActiveMessageC</tt> for the 
+<a href="../../../tos/platforms/intelmote2/ActiveMessageC.nc">intelmote2</a>,
+<a href="../../../tos/platforms/micaz/ActiveMessageC.nc">micaz</a>,
+<a href="../../../tos/platforms/telosa/ActiveMessageC.nc">telosa</a>, and
+<a href="../../../tos/platforms/telosa/ActiveMessageC.nc">telosb</a>
+are all implemented by 
+<tt><a
+href="../../../tos/chips/cc2420/CC2420ActiveMessageC.nc">CC2420ActiveMessageC</a></tt>.
+
+<li><tt>ActiveMessageC</tt> for the <a
+href="../../../tos/platforms/mica2/ActiveMessageC.nc">mica2</a>
+platform is implemented by <tt><a
+href="../../../tos/chips/cc1000/CC1000ActiveMessageC.nc">CC1000ActiveMessageC</a></tt>.
+
+</ul>
+
+<!--
+<p>In the remainder of this tutorial, we will build a simple
+application that that increments a counter, displays the counter's
+three least significant bits on the three LEDs, sends a message with
+the counter value over the radio, and receives and processes such
+transmissions.
+-->
+
+<h1>The TinyOS 2.0 Message Buffer</h1>
+
+<p>TinyOS 2.0 introduces a new message buffer abstraction called
+<tt>message_t</tt>.  If you are familiar with earlier versions of
+TinyOS, you need to know that <tt>message_t</tt> replaces the
+<tt>TOS_Msg</tt>.  The <tt>message_t</tt> structure is defined in
+<tt><a
+href="../../../tos/types/message.h">tos/types/message.h</a></tt>.
+
+<pre>
+typedef nx_struct message_t {
+  nx_uint8_t header[sizeof(message_header_t)];
+  nx_uint8_t data[TOSH_DATA_LENGTH];
+  nx_uint8_t footer[sizeof(message_header_t)];
+  nx_uint8_t metadata[sizeof(message_metadata_t)];
+} message_t;
+</pre>
+
+<p><b>Note: The header, footer, and metadata fields are all opaque and
+must not be accessed directly.  It is important to access the
+<tt>message_t</tt> fields only through <tt>Packet</tt>,
+<tt>AMPacket</tt>, and other such interfaces, as will be demonstrated
+in this tutorial.</b> The rationale for this approach is that data is
+kept at fixed offsets, which is important when passing a message
+buffer between two different link layers.  Otherwise, if data is kept
+at different offsets for different link layers, then anytime a message
+is passed between two link layers, a move or copy is required.  See
+Section 3 in TEP 111 for more details.
+
+
+<h1>Sending a Message over the Radio</h1>
+
+We will now create a simple application that increments a counter,
+displays the counter's three least significant bits on the three LEDs,
+and sends a message with the counter value over the radio.  Our
+implementation will be a little bit different from the <tt>Blink</tt>
+application because <tt>Blink</tt> used three independent timers
+instead of a counter.
+
+<h2>Reimplementing Blink</h2>
+
+As a first step, we can reimplement <tt>Blink</tt> using a single
+timer and counter.  Consider <tt>BlinkToRadioC.nc</tt>:
+
+<pre>
+#include &lt;Timer.h&gt;
+#include "BlinkToRadio.h"
+
+module BlinkToRadioC {
+  uses interface Boot;
+  uses interface Leds;
+  uses interface Timer&lt;TMilli&gt; as Timer0;
+}
+implementation {
+  uint16_t counter = 0;
+
+  void setLeds(uint16_t val) {
+    val & 0x01 ? call Leds.led0On() : call Leds.led0Off();
+    val & 0x02 ? call Leds.led1On() : call Leds.led1Off();
+    val & 0x04 ? call Leds.led2On() : call Leds.led2Off();
+  }
+
+  event void Boot.booted() {
+    call Timer0.startPeriodic(TIMER_PERIOD_MILLI);
+  }
+
+  event void Timer0.fired() {
+    counter++;
+    setLeds(counter);
+  }
+}
+
+</pre>
+
+<p>Let's look at a few specific lines in this program.  First, notice
+the C preprocessor <tt>include</tt> directive on the first line.  This
+directive tells the compiler to simply replace the directive with the
+entire contents of <tt>Timer.h</tt>.  The compiler looks for
+<tt>Timer.h</tt> in the <i>standard</i> places.  In this case,
+standard means the TinyOS system directories that are located in
+<tt>tos</tt> or its subdirectories.  It is possible to tell the
+compiler to look beyond these standard directories by using the
+<tt>-I</tt> flag in the Makefile, for example, as is common when
+including contributed libraries located in <tt>contrib</tt> directory
+tree.
+
+<p>The second line of this program is also an <tt>include</tt>
+directive, but note that it uses quotes around the filename rather
+than angle brackets.  The quotes tell the preprocessor to look in the
+current directory before searching through the standard directories
+for the particular file.  In this case, the <tt>BlinkToRadio.h</tt>
+file is located in the same directory and defines some constants that
+are used in this program.  We will take a look at
+<tt>BlinkToRadio.h</tt> in just a bit.
+
+<p>The next thing to look at is the definition of the <tt>setLeds</tt>
+function.  Note that this function is <i>not</i> adorned with a
+<tt>command</tt> or <tt>event</tt> modifier.  This means the function
+is intended for local access and can be called from another function
+in the module, within task or event context, just like normal C
+functions.  The three lines inside the <tt>setLeds</tt> function are
+responsible for turning the LEDs on and off as a function of the
+counter value.  The C ternary operator is used to test a single bit in
+the counter and set the corresponding LED's state.  A line of the form
+<tt>a ? b : c;</tt> means evaluate <tt>a</tt> and if <tt>true</tt>,
+then evaluate and return <tt>b</tt> but if <tt>false</tt>, then
+evaluate and return <tt>c</tt>.  The ternary operator provides a
+compact way to perform and if-then-else construct.
+
+<p>Finally, note the <tt>call
+Timer0.startPeriodic(TIMER_PERIOD_MILLI)</tt> line in the
+<tt>Boot.booted</tt> function.  The value of
+<tt>TIMER_PERIOD_MILLI</tt> is defined in the <tt>BlinkToRadio.h</tt>
+header file:
+
+<pre>
+#ifndef BLINKTORADIO_H
+#define BLINKTORADIO_H
+
+enum {
+  TIMER_PERIOD_MILLI = 250
+};
+
+#endif
+</pre>
+
+<p><tt>BlinkToRadio.h</tt> is a pretty standard header file but there
+are two things to note here.  First, notice the use of the
+<tt>ifndef</tt>, <tt>define</tt>, and <tt>endif</tt> directives.
+These directives are used to ensure that the definitions in each
+header file is not included multiple times because the compiler would
+complain about multiply-defined objects.  By convention, the literal
+used for these directives is an all-caps version of the filename with
+any periods converted to underscores.  The other important thing to
+note is the use of an <tt>enum</tt> declaration for defining the
+constant <tt>TIMER_PERIOD_MILLI</tt>.  Using <tt>enum</tt> for
+defining constants is preferred over using <tt>define</tt> because
+<tt>enum</tt> does not indiscriminantly replace every occurence of the
+<tt>define</tt>d literal, regardless of where it appears in the
+source.  As a result, <tt>enum</tt>s provide better scoping as well.
+
+<p><tt>BlinkToRadioC.nc</tt> provides the <i>implementation</i> logic
+of the program and <tt>BlinkToRadio.h</tt> defines constants and/or
+data structures.  A third file is needed to <i>wire</i> the interfaces
+that the implementation <tt>uses</tt> to the actual components which
+<tt>provide</tt> these interfaces.  The <tt>BlinkToRadioAppC.nc</tt>
+provides the needed wiring:
+
+<pre>
+#include &lt;Timer.h&gt;
+#include "BlinkToRadio.h"
+
+configuration BlinkToRadioAppC {
+}
+implementation {
+  components MainC;
+  components LedsC;
+  components BlinkToRadioC as App;
+  components new TimerMilliC() as Timer0;
+
+  MainC.SoftwareInit -> LedsC;
+
+  App.Boot -> MainC;
+  App.Leds -> LedsC;
+  App.Timer0 -> Timer0;
+}
+</pre>
+
+The <tt>BlinkToRadioAppC</tt> should look familiar to you since it is
+essentially a subset of the <tt>Blink</tt> application/configuration
+from an earlier lesson.
+
+<h2>Defining a Message Structure</h2>
+
+<p>Now that <tt>Blink</tt> has been reimplemented using a single timer
+and counter, we can now turn our attention to defining a message
+format to send data over the radio.  Our message will send both the
+node id and the counter value over the radio.  Rather than directly
+writing and reading the payload area of the <tt>message_t</tt> with
+this data, we will use a structure to hold them and then use structure
+assignment to copy the data into the message payload area.  Using a
+structure allows reading and writing the message payload more
+efficiently when your message has multiple fields or multi-byte fields
+(like uint16_t or uint32_t) because you can avoid reading and writing
+bytes from/to the payload using indices and then shifting and adding
+(e.g. <tt>uint16_t x = data[0] << 8 + data[1]</tt>).  Even for a
+message with a single field, you should get used to using a structure
+because if you ever add more fields to your message or move any of the
+fields around, you will need to manually update all of the payload
+position indices if you read and write the payload at a byte level.
+Using structures is straightforward.  To define a message structure
+with a <tt>uint16_t</tt> node id and a <tt>uint16_t</tt> counter in
+the payload, we add the following lines to <tt>BlinkToRadio.h</tt>,
+just before the <tt>endif</tt> directive:
+
+<pre>
+typedef nx_struct BlinkToRadioMsg {
+  nx_uint16_t nodeid;
+  nx_uint16_t counter;
+} BlinkToRadioMsg;
+</pre>
+
+<p>If this code doesn't look even vaguely familiar, you should spend a
+few minutes reading up on C structures. If you are familiar with C
+structures, this syntax should look familar but the <tt>nx_</tt>
+prefix on the keywords <tt>struct</tt> and <tt>uint16_t</tt> should
+stand out.  The <tt>nx_</tt> prefix is specific to the nesC language
+and signifies that the <tt>struct</tt> and <tt>uint16_t</tt> are
+<i>network types</i>.  The nesC compiler generates code that
+transparently reorders access to <tt>nx_</tt> data types and
+eliminates the need to manually address endianness.  So what is
+endianness?  Read on...
+
+<p>Different processors represent numbers in different ways in their
+memory: some processors use a ``big endian'' representation which
+means that the most significant byte of a multi-byte (e.g. 16- or
+32-bit) number is located at a higher memory address than the least
+significant byte, while ``little endian'' stores data in exactly the
+opposite order.  A problem arises when data is serialized and sent
+over the network because different processors will decode the same set
+of bytes in different ways, depending on their ``endianness.''  The
+main difficulty endiannes presents is that it requires operations to
+rearrange byte orders to match the network protocol specification or
+the processor architecture -- an annoying and error-prone process.
+The <tt>htons</tt>, <tt>htonl</tt>, <tt>ntohs</tt>, and <tt>ntohl</tt>
+calls used with the sockets API are an example of platform-specific
+calls that convert between network and host byte orders, but you have
+to remember to use them.  The nesC programming language takes a
+different approach to the problem and defines
+<i>network types</i> which allow the programmer to avoid byte
+reordering.
+
+
+<h2>Sending a Message</h2>
+
+<p>Now that we have defined a message type for our application,
+<tt>BlinkToRadioMsg</tt>, we will next see how to send the message
+over the radio.  Before beginning, let's review the purpose of the
+application.  We want a timer-driven system in which every firing of
+the timer results in (i) incrementing a counter, (ii) displaying the
+three lowest bits of the counter on the LEDs, and (iii) transmitting
+the node's id and counter value over the radio.  To implement this
+program, we follow a number of simple steps, as described in the next
+paragraph.
+
+<p>First, we need to identify the interfaces (and components) that
+provide access to the radio and allow us to manipulate the
+<tt>message_t</tt> type.  Second, we must update the <tt>module</tt>
+block in the <tt>BlinkToRadioC.nc</tt> by adding <tt>uses</tt>
+statements for the interfaces we need.  Third, we need to declare and
+new variables add any initialization and start/stop code that is
+needed by the interfaces and components.  Fourth, we must add any
+calls to the component interfaces we need for our application.  Fifth,
+we need to implmement any events specified in the interfaces we plan
+on using.  Sixth, the <tt>implementation</tt> block of the application
+configuration file, <tt>BlinkToRadioApp.c</tt>, must be updated by
+adding a <tt>components</tt> statement for each component we use that
+provides one of the interfaces we chose earlier.  Finally, we need to
+wire the the interfaces used by the application to the components
+which provide those interfaces.
+
+<p>Let's walk through the steps, one-by-one: 
+
+<ol>
+
+<p><li><b>Identify the interfaces (and components) that provide access
+to the radio and allow us to manipulate the <tt>message_t</tt>
+type.</b> We will use the <tt>AMSend</tt> interface to send packets as
+well as the <tt>Packet</tt> and <tt>AMPacket</tt> interfaces to access
+the <tt>message_t</tt> abstract data type.  Although it is possible to
+wire directly to the <tt>ActiveMessageC</tt> component, we will
+instead use the <tt>AMSenderC</tt> component.  However, we still need
+to start the radio using the <tt>ActiveMessageC.SplitControl</tt>
+interface.
+
+<p>The reason for using <tt>AMSenderC</tt> is because it provides a
+virtualized abstraction.  Earlier versions of TinyOS did not
+virtualize access to the radio, so it was possible for two components
+that were sharing the radio to interfere with each other.  It was not
+at all uncommon for one component to discover the radio was busy
+because some other component, unknown to the first component, was
+accessing the active message layer.  Radio virtualization was
+introduced in TinyOS 2.0 to address this interference and
+<tt>AMSenderC</tt> was written to provide this virtualization.  Every
+user of <tt>AMSenderC</tt> is provided with a 1-deep queue to use and
+the set of queues across all of the users are serviced in a fair
+manner.
+
+<p><li><b>Update the <tt>module</tt> block in the
+<tt>BlinkToRadioC.nc</tt> by adding <tt>uses</tt> statements for the
+interfaces we need:</b>
+
+<pre>
+module BlinkToRadioC {
+  ...
+  uses interface Packet;
+  uses interface AMPacket;
+  uses interface AMSend;
+  uses interface SplitControl as AMControl;
+}
+</pre>
+
+Note that <tt>SplitControl</tt> has been renamed to <tt>AMControl</tt>
+using the <tt>as</tt> keyword.  NesC allows interfaces to be renamed
+in this way for at least a couple of reasons.  First, it often happens
+that two or components that are needed in the same module provide the
+same interface.  The <tt>as</tt> keyword allows one or more such names
+to be changed to distinct names so that they can each be addressed
+individually.  Second, interfaces are sometimes renamed to something
+more meaningful.  In our case, <tt>SplitControl</tt> is a general
+interface used for starting and stopping components, but the name
+<tt>AMControl</tt> is a mnemonic to remind us that the particular
+instance of <tt>SplitControl</tt> is used to control the
+<tt>ActiveMessageC</tt> component.
+
+
+<p><li><b>Declare any new variables and add any needed initialization
+code.</b>
+
+First, we need to declare some new module-scope variables.  We need a
+<tt>message_t</tt> to hold our data for transmission.  We also need a
+flag to keep track of when the radio is busy sending.  These
+declarations need to be added in the <tt>implementation</tt> block of
+<tt>BlinkToRadioC.nc</tt>:
+
+<pre>
+implementation {
+  bool busy = FALSE;
+  message_t packet;
+  ...
+}
+</pre>
+
+<p>Next, we need to handle the initialization of the radio.  The radio
+needs to be started when the system is booted so we must call
+<tt>AMControl.start</tt> inside <tt>Boot.booted</tt>.  The only
+complication is that in our current implementation, we start a timer
+inside <tt>Boot.booted</tt> and we are planning to use this timer to
+send messages over the radio but the radio can't be used until it has
+completed starting up.  The radio signals that it has completed
+starting through the <tt>AMControl.startDone</tt> event.  To ensure
+that we do not start using the radio before it is ready, we need to
+postpone starting the timer until after the radio has completed
+starting.  We can accomplish this by moving the call to start the
+timer, which is now inside <tt>Boot.booted</tt>, to
+<tt>AMControl.startDone</tt>, giving us a new <tt>Boot.booted</tt> with
+the following body:
+
+<pre>
+  event void Boot.booted() {
+    call AMControl.start();
+  }
+</pre>
+
+<p>We also need to implement the <tt>AMControl.startDone</tt> event
+handler, which has the following body:
+
+<pre>
+  event void AMControl.startDone(error_t err) {
+    if (err == SUCCESS) {
+      call Timer0.startPeriodic(TIMER_PERIOD_MILLI);
+    }
+    else {
+      call AMControl.start();
+    }
+  }
+</pre>
+
+<p>If the radio is started successfully, <tt>AMControl.startDone</tt>
+will be called with the <tt>error_t</tt> parameter set to a value of
+<tt>SUCCESS</tt>.  If the radio starts successfully, then it is
+appropriate to start the timer.  If, however, the radio does not start
+successfully, then it obviously cannot be used so we try again to
+start it.  This process continues until the radio starts, and ensures
+that the node software doesn't run until the key componets have
+started successfully.  In the radio doesn't start at all, a human
+operator might notice that the LEDs are not blinking as they are
+supposed to, and might try to debug the problem.
+
+
+<p><li><b>Add any program logic and calls to the used interfaces we
+need for our application.</b> 
+
+<p>Since we want to transmit the node's id and counter value every
+time the timer fires, we need to add some code to the
+<tt>Timer0.fired</tt> event handler:
+
+<pre>
+event void Timer0.fired() {
+  ...
+  if (!busy) {
+    BlinkToRadioMsg* btrpkt = (BlinkToRadioMsg*)(call Packet.getPayload(&amp;pkt, NULL));
+    btrpkt->nodeid = TOS_NODE_ID;
+    btrpkt->counter = counter;
+    if (call AMSend.send(AM_BROADCAST_ADDR, &amp;pkt, sizeof(BlinkToRadioMsg)) == SUCCESS) {
+      busy = TRUE;
+    }
+  }
+}
+</pre>
+
+This code performs several operations.  First, it ensures that a
+message transmission is not in progress already by checking the busy
+flag.  ,
+
+
+<p><li><b>Implmement any (non-initialization) events specified in the
+interfaces we plan on using.</b> Looking through the <tt>Packet</tt>,
+<tt>AMPacket</tt>, and <tt>AMSend</tt> interfaces, we see that there
+is only one <tt>event</tt> we need to worry about,
+<tt>AMSend.sendDone</tt>:
+
+<pre>
+  /** 
+   * Signaled in response to an accepted send request. msg is
+   * the message buffer sent, and error indicates whether
+   * the send was successful.
+   *
+   * @param  msg   the packet which was submitted as a send request
+   * @param  error SUCCESS if it was sent successfully, FAIL if it was not,
+   *               ECANCEL if it was cancelled
+   * @see send
+   * @see cancel
+   */ 
+  event void sendDone(message_t* msg, error_t error);
+</pre>
+
+This event is signaled after a message transmission attempt.  In
+addition to signaling whether the message was transmitted successfully
+or not, the event also signals a custody transfer of <tt>msg</tt> from
+<tt>AMSend</tt> back to the component that originally called the
+<tt>AMSend.send</tt> command.  Therefore <tt>sendDone</tt> handler
+needs to clear the <tt>busy</tt> flag to indicate that the message
+buffer can be reused:
+
+<pre>
+  event void AMSend.sendDone(message_t* msg, error_t error) {
+    if (&amp;pkt == msg) {
+      busy = FALSE;
+    }
+  }
+</pre>
+
+Note the check to ensure the message buffer that was signaled is the
+same as the local message buffer.  This test is needed because if two
+components wire to the same <tt>AMSend</tt>, <i>both</i> will receive
+a <tt>sendDone</tt> event after <i>either</i> component issues a
+<tt>send</tt> command.  Since a component writer has no way to enforce
+that her component will not be used in this manner, a defensive style
+of programming that verifies that the sent message is the same one
+that is being signaled is required.
+
+
+<p><li><b>Update the <tt>implementation</tt> block of the application
+configuration file by adding a <tt>components</tt> statement for each
+component used that provides one of the interfaces chosen earlier.</b>
+The following lines can be added just below the existing
+<tt>components</tt> declarations in the <tt>implementation</tt> block
+of <tt>BlinkToRadioAppC.nc</tt>:
+
+<pre>
+implementation {
+  ...
+  components ActiveMessageC;
+  components new AMSenderC(AM_BLINKTORADIO);
+  ...
+}
+</pre>
+
+These statements indicate that two components, <tt>ActiveMessageC</tt>
+and <tt>AMSenderC</tt>, will provide the needed interfaces.  However,
+note the slight difference in their syntax.  <tt>ActiveMessageC</tt>
+is a singleton component that is defined once for each type of
+hardware platform.  <tt>AMSenderC</tt> is a virtual, parameterized
+component.  The <tt>new</tt> keyword indicates that a new instance of
+<tt>AMSenderC</tt> will be created.  The <tt>AM_BLINKTORADIO</tt>
+parameter indicates the AM type of the <tt>AMSenderC</tt>.  We can
+extend the <tt>enum</tt> in the <tt>BlinkToRadio.h</tt> header file to
+incorporate the value of <tt>AM_BLINKTORADIO</tt>:
+
+<pre>
+...
+enum {
+  AM_BLINKTORADIO = 6,
+  TIMER_PERIOD_MILLI = 250
+};
+...
+</pre>
+
+
+<p><li><b>Wire the the interfaces used by the application to the
+components which provide those interfaces.</b> The following lines
+will wire the used interfaces to the providing components.  These
+lines should be added to the bottom of the <tt>implementation</tt>
+block of <tt>BlinkToRadioAppC.nc</tt>:
+
+<pre>
+implementation {
+  ...
+  App.Packet -&gt; AMSenderC;
+  App.AMPacket -&gt; AMSenderC;
+  App.AMSend -&gt; AMSenderC;
+  App.AMControl -&gt; ActiveMessageC;
+}
+</pre>
+
+
+</ol>
+
+
+<h1>Receiving a Message over the Radio</h1>
+
+<p>Now that we have an application that is transmitting messages, we
+can add some code to receive and process the messages.  Let's write
+code that, upon receiving a message, sets the LEDs to the three least
+significant bits of the counter in the message.  To make this
+application interesting, we will want to remove the line
+<tt><strike>setLeds(counter);</strike></tt> from the
+<tt>Timer0.fired</tt> event handler.  Otherwise, both the timer events
+and packet receptions will update the LEDs and the resulting effect
+will be bizarre.
+
+<p>If two motes are programmed with our modified application, then
+each will display the other mote's counter value.  If the motes go out
+of radio range, then the LEDs will stop changing.  You can even
+investigate link asymmetry by trying to get one mote's LEDs to keep
+blinking while the other mote's LEDs stop blinking.  This would
+indicate that the link from the non-blinking mote to blinking mote was
+available but that the reverse channel was no longer available.
+
+<ol>
+
+<p><li><b>Identify the interfaces (and components) that provide access
+to the radio and allow us to manipulate the <tt>message_t</tt>
+type.</b> We will use the <tt>Receive</tt> interface to receive
+packets.
+
+<p><li><b>Update the module block in the BlinkToRadioC.nc by adding
+uses statements for the interfaces we need:</b>
+
+<pre>
+module BlinkToRadioC {
+  ...
+  uses interface Receive;
+}
+</pre>
+
+<p><li><b>Declare any new variables and add any needed initialization
+code.</b> We will not require any new variable to receive and process
+messages from the radio.
+
+<p><li><b>Add any program logic and calls to the used interfaces we
+need for our application.</b> Message reception is an event-driven
+process so we do not need to call cny commands on the
+<tt>Receive</tt>.
+
+<p><li><b>Implemement any (non-initialization) events specified in the
+interfaces we plan on using.</b> We need to implement the
+<tt>Receive.receive</tt> event handler:
+
+<pre>
+event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
+  if (len == sizeof(BlinkToRadioMsg)) {
+    BlinkToRadioMsg* btrmsg = (BlinkToRadioMsg*)payload;
+    setLeds(btrpkt->counter);
+  }
+  return msg;
+}
+</pre>
+
+<p>The <tt>receive</tt> event handler performs some simple operations.
+First, we need to ensure that the length of the message is what is
+expected.  Then, the message payload is cast to a structure pointer of
+type <tt>BlinkToRadioMsg*</tt> and assigned to a local variable.
+Then, the counter value in the message is used to set the states of
+the three LEDs.
+
+<!--
+<p>Note that we can safely manipulate the <tt>counter</tt> variable
+outside of an atomic section.  The reason is that <rr>receive</tt>
+event executes in task context rather than interrupt context (events
+that have the <tt>async</tt> keyword can execute in interrupt
+context).  Since the TinyOS execution model allows only one task to
+execute at a time, if all accesses to a variable occur in task
+context, then no race conditions will occur for that variable.  Since
+all accesses to <tt>counter</tt> occur in task context, no critical
+sections are needed when accessing it.
+-->
+
+<p><li><b>Update the implementation block of the application
+configuration file by adding a components statement for each component
+used that provides one of the interfaces chosen earlier.</b> The
+following lines can be added just below the existing
+<tt>components</tt> declarations in the implementation block of
+<tt>BlinkToRadioAppsC.nc</tt>:
+
+<pre>
+implementation {
+  ...
+  components new AMReceiverC(AM_BLINKTORADIO);
+  ...
+}
+</pre>
+
+This statement means that a new instance of <tt>AMReceiverC</tt> will
+be created.  <tt>AMReceiver</tt> is a virtual, parameterized
+component. The <tt>new</tt> keyword indicates that a new instance of
+<tt>AMReceiverC</tt> will be created. The <tt>AM_BLINKTORADIO</tt>
+parameter indicates the AM type of the <tt>AMReceiverC</tt> and is
+chosen to be the same as that used for the <tt>AMSenderC</tt> used
+earlier, which ensure that the same AM type is being used for both
+transmissions and receptions.  <tt>AM_BLINKTORADIO</tt> is defined in
+the <tt>BlinkToRadio.h</tt> header file.
+
+<p><li><b>Wire the the interfaces used by the application to the
+components which provide those interfaces.</b> Update the wiring by
+insert the following line just before the closing brace of the
+<tt>implementation</tt> block in BlinkToRadioAppC:
+
+<pre>
+implementation {
+  ...
+  App.Receive -> AMReceiverC;
+}
+</pre>
+
+<p><li><b>Test your application!</b> Testing your application is easy.
+Get two motes.  They can be mica2, micaz, telosa, telosb, or tmote.
+For this exercise, let's assume that the motes are telosb (if not,
+skip past the motelist part and program the mote using whatever the
+appropriate programmer parameters are for your hardware).  Assuming
+you are using a telosb, first open a Cygwin or Linux shell and cd to
+the <tt>apps/BlinkToRadio</tt> directory.  Then, insert the first
+telosb mote into an available USB port on the PC and type
+<tt>motelist</tt> the at the Cygwin or Linux prompt ($).  You should
+see exactly one mote listed.  For example:
+
+<pre>
+$ motelist
+Reference  CommPort   Description
+---------- ---------- ----------------------------------------
+UCC89MXV   COM17      Telos (Rev B 2004-09-27)
+</pre>
+
+<p>Now, assuming you are in the <tt>apps/BlinkToRadio</tt> directory,
+type <tt>make telosb install,1</tt>.  You should see a lot text scroll
+by that looks something like:
+
+<pre>
+$ make telosb install,1
+mkdir -p build/telosb
+    compiling BlinkToRadioAppC to a telosb binary
+ncc -o build/telosb/main.exe -Os -O -mdisable-hwmul -Wall -Wshadow -DDEF_TOS_AM_GROUP=0x7d -Wnesc-all -target=telosb -fnesc-cfile=build/telosb/app.c -board=   BlinkToRadioAppC.nc -lm 
+    compiled BlinkToRadioAppC to build/telosb/main.exe
+            9040 bytes in ROM
+             246 bytes in RAM
+msp430-objcopy --output-target=ihex build/telosb/main.exe build/telosb/main.ihex
+    writing TOS image
+tos-set-symbols --objcopy msp430-objcopy --objdump msp430-objdump --target ihex build/telosb/main.ihex build/telosb/main.ihex.out-1 TOS_NODE_ID=1 ActiveMessageAddressC$addr=1
+    found mote on COM17 (using bsl,auto)
+    installing telosb binary using bsl
+tos-bsl --telosb -c 16 -r -e -I -p build/telosb/main.ihex.out-1
+MSP430 Bootstrap Loader Version: 1.39-telos-8
+Mass Erase...
+Transmit default password ...
+Invoking BSL...
+Transmit default password ...
+Current bootstrap loader version: 1.61 (Device ID: f16c)
+Changing baudrate to 38400 ...
+Program ...
+9072 bytes programmed.
+Reset device ...
+rm -f build/telosb/main.exe.out-1 build/telosb/main.ihex.out-1 
+</pre>
+
+<p>Now, remove the first telosb from the USB port, insert the
+batteries, and set it aside.  Insert the second telos into the USB
+port and once again type <tt>motelist</tt>.  You should again see
+something like:
+
+<pre>
+$ motelist
+Reference  CommPort   Description
+---------- ---------- ----------------------------------------
+UC9VN03I   COM14      Telos (Rev B 2004-09-27)
+</pre>
+
+<p>Finally, type <tt>make telosb reinstall,2</tt> and you should once
+again see something like the following scroll by:
+
+<pre>
+$ make telosb reinstall,2
+tos-set-symbols --objcopy msp430-objcopy --objdump msp430-objdump --target ihex build/telosb/main.ihex build/telosb/main.ihex.out-2 TOS_NODE_ID=2 ActiveMessageAddressC$addr=2
+    found mote on COM14 (using bsl,auto)
+    installing telosb binary using bsl
+tos-bsl --telosb -c 13 -r -e -I -p build/telosb/main.ihex.out-2
+MSP430 Bootstrap Loader Version: 1.39-telos-8
+Mass Erase...
+Transmit default password ...
+Invoking BSL...
+Transmit default password ...
+Current bootstrap loader version: 1.61 (Device ID: f16c)
+Changing baudrate to 38400 ...
+Program ...
+9072 bytes programmed.
+Reset device ...
+rm -f build/telosb/main.exe.out-2 build/telosb/main.ihex.out-2 
+</pre>
+
+<b><font color="red">At this point, both motes should be blinking
+their LEDs.</font></b> If you press the RESET button on either telosb,
+then the LEDs on the <i>other</i> telosb will pause on whatever was
+being displayed at the moment you pressed RESET.  When you release the
+RESET the button, the paused mote will be reset and then resume
+counting from one.
+
+</ol>
+
+<!--
+<h1>Accessing Message Metadata</h1>
+-->
+
+<h1>Conclusions</h1>
+
+This lesson has introduced radio communications TinyOS 2.x.
+
+<a name=#related_docs>
+<h1>Related Documentation</h1>
+
+<ul>
+<li>[1] <a href="../tep111.html">TEP 111: message_t</a>
+<li>[2] <a href="../tep116.html">TEP 116: Packet Protocols</a>
+</ul>
+
+<hr>
+
+<p><b><a href="lesson6.html">Next Lesson &gt;</a></b> |&nbsp; <b><a
+ href="index.html">Top</a></b>
+
+</body>
+</html>
