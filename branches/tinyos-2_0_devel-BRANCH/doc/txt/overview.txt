@@ -3,7 +3,7 @@ TinyOS 2.0 Overview
 ============================
 
 :Author: Philip Levis
-:Date: Aug 13 2005
+:Date: Feb 8 2006
 
 .. Note::
  
@@ -80,6 +80,16 @@ component of the CC1000 on the mica2 is ``ActiveMessageC``, representing
 a full active message communication layer.
 
 The HAA is described in TEP 2: Hardware Abstraction Architecture[TEP2_].
+
+Currently (as of the 2.0 beta release at TTX3), TinyOS 2.0 supports
+the following platforms:
+
+ * eyesIFXv2
+ * intelmote2
+ * mica2
+ * micaZ
+ * telosb
+
 
 3. Scheduler
 ====================================================================
