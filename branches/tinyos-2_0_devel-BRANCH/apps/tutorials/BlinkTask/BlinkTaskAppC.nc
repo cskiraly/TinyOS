@@ -1,4 +1,4 @@
-// $Id: BlinkTaskC.nc,v 1.1.2.1 2006-02-08 19:48:00 kristinwright Exp $
+// $Id: BlinkTaskAppC.nc,v 1.1.2.1 2006-02-09 17:06:12 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -20,52 +20,32 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Copyright (c) 2002-2003 Intel Corporation
+ * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
  * file. If you do not find these files, copies can be found by writing to
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
- *
  */
 
 /**
- * BlinkTask demo application: simple example of posting a task in TinyOS.
  * 
- * @author Kristin Wright
- *
- */
-
-/**
- * Blink Led0 every second. For expository purposes, use a task to 
- * toggle the LED.
+ * @author tinyos-help@millennium.berkeley.edu
  **/
 
-includes Timer;
-
-module BlinkTaskC
+configuration BlinkTaskAppC
 {
-  uses interface Timer<TMilli> as Timer0;
-  uses interface Leds;
-  uses interface Boot;
 }
 implementation
 {
-  task void toggle() 
-  {
-    call Leds.led0Toggle();
-  }
+  components MainC, BlinkTaskC, LedsC;
+  components new TimerMilliC() as Timer0;
 
-  event void Boot.booted()
-  {
-    call Timer0.startPeriodic( 1000 );
-  }
+  BlinkTaskC -> MainC.Boot;
+  MainC.SoftwareInit -> LedsC;
 
-  event void Timer0.fired()
-  {
-    post toggle();
-  }
-
+  BlinkTaskC.Timer0 -> Timer0;
+  BlinkTaskC.Leds -> LedsC;
 }
 
