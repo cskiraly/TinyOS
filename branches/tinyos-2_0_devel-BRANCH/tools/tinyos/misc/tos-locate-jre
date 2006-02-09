@@ -102,7 +102,9 @@ if [ "$jni" = "yes" ]; then
     }
 
     # Look for a likely JNI directory
-    if "$jhome/bin/java" -version 2>&1 | grep -q IBM; then
+    # Windows, and IBM Java: in jre/bin
+    # Sun Java on Linux: in jre/lib/i386
+    if "$jhome/bin/java" -version 2>&1 | grep -q IBM || cygpath -w / >/dev/null 2>/dev/null; then
 	jnilocate "$jhome/jre/bin" || jnilocate "$jhome/bin"
     else
 	arch=`uname -m`
