@@ -12,11 +12,6 @@ BuildRoot: %{_tmppath}/%{name}-root
 Prefix: /opt
 Requires: tinyos-tools >= 1.2.1, nesc >= 1.2.4
 
-# linux:
-%define CLASSPATH_DFN export CLASSPATH=$TOSROOT/support/sdk/java:.
-# cygwin:
-# CLASSPATH_DFN CLASSPATH=\`cygpath -w $TOSROOT/support/sdk/java\`;export CLASSPATH=$CLASSPATH;.
-
 %description
 TinyOS is an event based operating environment designed for use with 
 embedded networked sensors.  It is designed to support the concurrency
@@ -34,7 +29,10 @@ rm -rf %{buildroot}/opt/tinyos-2.x
 mkdir -p %{buildroot}/opt
 export TOSROOT=$RPM_BUILD_DIR/%{name}-%{version}
 export TOSDIR=$TOSROOT/tos
-%{CLASSPATH_DFN}
+%ifos linux
+export CLASSPATH=$TOSROOT/support/sdk/java:.
+%else
+CLASSPATH=\`cygpath -w $TOSROOT/support/sdk/java\`;export CLASSPATH=$CLASSPATH;.%endif
 cd support/sdk/java
 pwd
 ls
