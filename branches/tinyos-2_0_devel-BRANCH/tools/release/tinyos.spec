@@ -32,7 +32,7 @@ export TOSDIR=$TOSROOT/tos
 %ifos linux
 export CLASSPATH=$TOSROOT/support/sdk/java:.
 %else
-CLASSPATH=`cygpath -w $TOSROOT/support/sdk/java`;export CLASSPATH=$CLASSPATH;.
+export CLASSPATH=`cygpath -w $TOSROOT/support/sdk/java`\;.
 %endif
 cd support/sdk/java
 pwd
