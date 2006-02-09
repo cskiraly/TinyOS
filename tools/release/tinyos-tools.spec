@@ -10,7 +10,7 @@ URL: http://www.tinyos.net/
 BuildRoot: %{_tmppath}/%{name}-root
 Source0: %{name}-%{version}.tar.gz
 # This makes cygwin happy
-Provides: /bin/sh
+Provides: /bin/sh /bin/bash
 Requires: nesc >= 1.2.4
 
 %description
