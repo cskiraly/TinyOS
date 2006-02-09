@@ -4,7 +4,6 @@ VERSION=2.0.0beta1
 cd ../..
 rm -rf $NAME-$VERSION
 tools/release/extractor $NAME-$VERSION <<'EOF' | gzip >../$NAME-$VERSION.tar.gz
-!^./apps/(BlinkAlarm|BlinkToRadio|Test*)
 !^./apps/tests/(eyesIFX|mica2|msp430|RadioStress|TestAlarm|TestAM|TestAMOnOff|TestAMService|TestBroadcast|TestPowerup|TestScheduler|TestSerial|TestSerialBandwidth|TestSleep|TestTimerSync|TestTrickleTimer)
 !^./doc
 !^./overall-todo.txt
@@ -14,8 +13,16 @@ tools/release/extractor $NAME-$VERSION <<'EOF' | gzip >../$NAME-$VERSION.tar.gz
 !^./tos/lib/(deluge|net|oski)
 !^./tos/oski
 !^./tos/sensorboards/mts300
+!^./support/make/Makelocal
+!^./support/sdk/c
 !/.cvsignore
 !/CVS/
 !/CVS$
+!~$
+!/build/
+!/build$
+!#
+!.class$
+!^./tos/platforms/telosa/.platform
 EOF
 rm -rf $NAME-$VERSION

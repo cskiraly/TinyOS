@@ -2,7 +2,7 @@ Summary: An event-based operating environment designed for use with embedded net
 Name: tinyos
 BuildArchitectures: noarch
 Version: 2.0.0beta1
-Release: 2
+Release: 3
 License: Please see source
 Packager: TinyOS Group, UC Berkeley
 Group: Development/System
@@ -13,9 +13,9 @@ Prefix: /opt
 Requires: tinyos-tools >= 1.2.1, nesc >= 1.2.4
 
 # linux:
-# CLASSPATH_DFN export CLASSPATH=$TOSROOT/support/sdk/java:.
+%define CLASSPATH_DFN export CLASSPATH=$TOSROOT/support/sdk/java:.
 # cygwin:
-%define  CLASSPATH_DFN CLASSPATH=\`cygpath -w $TOSROOT/support/sdk/java\`;export CLASSPATH=$CLASSPATH;.
+# CLASSPATH_DFN CLASSPATH=\`cygpath -w $TOSROOT/support/sdk/java\`;export CLASSPATH=$CLASSPATH;.
 
 %description
 TinyOS is an event based operating environment designed for use with 
