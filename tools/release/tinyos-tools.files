@@ -13,5 +13,7 @@ tools/release/extractor $NAME-$VERSION <<'EOF' | gzip >../$NAME-$VERSION.tar.gz
 !/.cvsignore
 !/CVS/
 !/CVS$
+!~$
+!#
 EOF
 rm -rf $NAME-$VERSION
