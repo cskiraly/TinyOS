@@ -1,17 +1,3 @@
-#
-# For installing the JNI 
-# 
-# 08/15/2005 windows
-# INSTALLJNI: install --group=SYSTEM
-# JNISUFFIX: dll
-#
-# 08/15/2005: redhat linux 9
-# INSTALLJNI: install
-# JNISUFFIX: so
-# 
-
-%define INSTALLJNI install
-%define JNISUFFIX so
 %define debug_package %{nil}
 
 Summary: TinyOS tools 
