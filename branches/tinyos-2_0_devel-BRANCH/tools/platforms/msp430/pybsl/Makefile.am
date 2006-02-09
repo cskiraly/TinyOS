@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-sharedocdir=@prefix@/share/doc/tinyos-tools-@PACKAGE_VERSION@
+sharedocdir=$(datadir)/doc/tinyos-tools-@PACKAGE_VERSION@
 
 sharedoc_DATA = tos-bsl.txt tos-bsl-license.txt
 
