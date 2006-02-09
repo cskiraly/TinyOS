@@ -12,6 +12,7 @@
 
 %define INSTALLJNI install --group=SYSTEM
 %define JNISUFFIX dll
+%define debug_package %{nil}
 
 Summary: TinyOS tools 
 Name: tinyos-tools
