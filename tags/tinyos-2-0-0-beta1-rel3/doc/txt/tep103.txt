@@ -1,0 +1,330 @@
+==============================================
+Permanent Data Storage (Flash)
+==============================================
+
+:TEP: 103
+:Group: Core Working Group 
+:Type: Documentary
+:Status: Draft
+:TinyOS-Version: 2.0
+:Author: David Gay, Jonathan Hui
+
+:Draft-Created: 27-Sep-2004
+:Draft-Version: $Revision: 1.1.2.1 $
+:Draft-Modified: $Date: 2006-01-27 17:23:58 $
+:Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
+
+
+.. Note::
+
+   This memo documents a part of TinyOS for the TinyOS Community, and
+   requests discussion and suggestions for improvements.  Distribution
+   of this memo is unlimited. This memo is in full compliance with
+   TEP 1.
+
+
+
+
+Abstract
+====================================================================
+
+This TEP covers permanent storage abstractions for TinyOS 2.0, and the
+HPL and HAL layers for various flash chips.
+
+
+1. Introduction
+====================================================================
+
+Hardware differences between the current platforms
+--------------------------------------------------
+
+There are three different flash chip families under use or consideration
+for TinyOS platforms: the Atmel AT45DB family (Mica family, Telos rev. A),
+the ST M25P family (Telos rev. B, eyes) and the Intel Strataflash (imote2).
+All three are "NOR" flash chips, but the AT45DB has fairly different
+characteristics (see below). There also "NAND" flash chips which have
+rather different tradeoffs from NOR flash. Compact flash/etc cards use
+NAND flash but present a disk-like block interface.
+
+A common restriction of flash technology is that each bit can only be
+written once between erases. The table below summarizes the differences
+between the various flash technologies::
+
+
+		   NOR			AT45DB		NAND
+
+   Erase	:  Slow (seconds)	Fast (ms)	Fast (ms)
+   Erase unit	:  Large (64KB-128KB)	Small (256B)	Medium (8K-32KB)
+   Writes	:  Slow (100s kB/s)	Slow (60kB/s)	Fast (MBs/s)
+   Write unit	:  1 bit		256B		100's of bytes
+   Bit-errors   :  Low			Low		High (requires ECC, 
+							bad-block mapping)
+   Read		:  Fast*		Slow+I/O bus	Fast (but limited by 
+							I/O bus)
+   Erase cycles :  10^4 - 10^5		10^4 **		10^5 - 10^7
+   Intended use	:  Code storage		Data storage	Data storage
+
+   *  imote2 NOR flash is memory mapped (reads are very fast and can
+      directly execute code)
+   ** Or infinite? Data sheet just says that every page within a sector
+      must be written every 10^4 writes within that sector
+
+From the power consumption for erasing and writing, we can derive an
+energy cost/byte written (for NAND flash, taken from a Samsung datasheet):
+
+   Energy/byte:	   1uJ			1uJ		.01uJ
+
+Energy/byte for reads appears to depend mostly on how long the read takes
+(the power consumptions are comparable), i.e., on the efficiency of the bus
++ processor...
+
+2. Architecture
+====================================================================
+
+The proposed architecture aligns with the three-layer Hardware
+Abstraction Architecture (HAA). 
+
+
+HPL/HAL/HIL Structure
+---------------------
+
+The very significant differences between the flash chips used in TinyOS
+preclude common, low-level HIL interfaces such as a disk-like block
+interface. Instead, we propose that the HIL interfaces correspond to 
+high-level storage services useful for sensor network applications. We
+have identified three storage abstractions:
+
+  a. Large objects  (Deluge, Large Data Transfer):
+    
+       This scenario involves getting a large (100's bytes to kilobytes or
+       more) free chunk (through alloc or erase), writing to each
+       byte/block once in any arbitrary order, and "committing" when the
+       chunk is filled. 
+
+     Size: large
+     Reads: random
+     Writes: random (minimum block size?), each block written once
+     Failure model: no fault tolerance (crash before commit leads to
+     object loss)
+     Other: a commit operation terminates writes, a validate operation
+     checks the object.
+
+  b. Small objects (Deluge metadata, many other apps):
+
+       This scenario involves keeping a small chunk (less than 100
+       some bytes). Requires multiple and random reads/writes. 
+
+     Size: small
+     Reads: random
+     Writes: random, no minimum block size, rewrite ok
+     Failure model: writes are atomic, failure during/between writes
+     does not lead to object loss
+
+  c. Large sequential objects (Logs)
+       
+       Some applications (e.g., low-rate data collection, SNMS events) may
+       want to log all their results in a reliable fashion, possibly
+       in a circular buffer.
+
+     Size: large
+     Reads: from memorized write points or beginning
+     Writes: sequential, object is linear or circular
+     Failure model: writes are atomic, failure during/between writes
+     does not lead to whole object loss, but may lead to loss of
+     some entries (but see sync)
+     Note: failure during write may lead to (minor) capacity reduction
+     Other: sync: guarantees already written data will not be lost to
+     (crash-style) failure
+
+These interfaces will be offered on top of a uniform method of sharing
+the flash. Volumes are allocated in a similar way to fdisk. Volumes
+will be allocated and a partition table kept in non-volatile
+storage. To use a volume, it must be mounted. Thus, volumes exist
+independent of which components the applications are compiled
+with. This allows switching of applications while managing the sharing
+of flash.
+
+We envision separate implementations of these abstractions for each class
+of storage chip; these implementations will be found in the new 
+tos/chips/CHIPNAME hierarchy.
+
+
+Hardware Presentation Layer (HPL)
+---------------------------------
+
+  a. Implementation: system dependent
+  b. Presentation: chip (family?) dependent (common HPL for same chip
+     (family?) on different systems)
+  c. Stateless
+  d. Atmel 45DB family low-level interfaces
+
+       select, send/receive SPI byte, idle detection
+       (no commands, as efficiency dictates their integration in the HAL)
+       See tos/platform/mica/HPLFlashM
+
+  e. Intel Strataflash  
+
+       write data, erase, lock/unlock blocks, read config data, etc. 
+       details omitted - main interesting point is lack of reads, as device
+       is memory mapped
+
+  f. M25P family
+
+       r/w data, erase (sector or chip), r/w status, etc
+       (full details omitted)
+
+Hardware Adaptation Layer (HAL)
+-------------------------------
+
+  a. Implementation: chip dependent
+  b. Presentation: chip dependent
+  c. Atmel 45DB:
+     i. read, write, erase pages
+     ii. compute page crc
+     iii. automatic buffer management (+ sync, flush)
+     iv. see tos/platform/mica/PageEEPROM|PageEEPROMM.nc
+  d. Intel Strataflash (should extend to other memory-mapped NOR flashes)::
+
+       interface HALStrata { /* In flux until higher level stuff written */
+         command result_t lockRange(uint32_t from, uint32_t count);
+	 command result_t unlockRange(uint32_t from, uint32_t count);
+
+	 /* These return to read array mode when done */
+	 command result_t write(uint32_t address, uint16_t *data, uint8_t count);
+	 event   void	  writeDone(result_t success);
+
+	 command result_t erase(uint32_t block);
+	 event	 void	  eraseDone(result_t success);
+
+	 /* Will probably want to read some amount of device info. Not clear what
+	    yet, exactly. */
+        }
+
+  e. M25P::
+
+       interface {
+         command result_t read(addr_t addr, void* dest, addr_t len);
+	 event   result_t readDone(result_t result);
+
+	 command result_t write(addr_t addr, void* source, addr_t len);
+	 event   result_t writeDone(result_t result);
+
+	 command result_t erase(sector_t sector);
+	 event   result_t eraseDone(result_t result);
+
+	 command result_t bulkErase();
+	 event   result_t bulkEraseDone();
+       }
+
+
+Hardware Interface Layer (HIL)
+------------------------------
+
+  a. Implementation: Chip dependent
+  b. Presentation: application-level OS service (see discussion above)
+  c. Space allocation
+
+     This is similar to fdisk. Allocation of volumes can only occur
+     between calls to init() and commit(). init() wipes the volume
+     table clean and commit() writes out the volume table::
+
+       interface FStorage {
+ 	 command result_t init();
+	 command result_t allocate(uint8_t id, addr_t size);
+	 command result_t allocateFixed(uint8_t id, addr_t addr, addr_t size);
+	 command result_t commit();
+	 event 	 void     commitDone(storage_result_t result, uint8_t id);
+       }
+
+     The mount interface is used to setup access to a specific
+     volume::
+
+       interface Mount {
+         command result_t mount(uint8_t id);
+	 event   void     mountDone(storage_result_t result, uint8_t id);
+       }
+
+     This interface is provided by the components implementing
+     BlockRead/Write, ConfigStorage, and LogRead/Write. This
+     interface is necessary for components to setup any required
+     metadata. For example, ConfigRead may need to know where to
+     read a specific configuration. LogWrite may need to search for
+     the current offset::
+
+       interface VolumeInit {
+         command result_t init();
+	 event   void	  initDone(storage_result_t result);
+       }
+
+  d. Large object::
+
+       interface BlockWrite {
+         // compile-time block storage size constant available,
+         // varies by platform. Len must be a multiple of this.
+	 command result_t write(addr_t addr, void* source, addr_t len);
+         event	 void     writeDone(storage_result_t result);
+
+	 command result_t erase();
+	 event   void     eraseDone(storage_result_t result);
+
+	 command result_t commit();
+	 event   void     commitDone(storage_result_t result);
+       }
+
+       interface BlockRead {
+	 command result_t read(addr_t addr, void* dest, addr_t len);
+         event   void     readDone(storage_result_t result);
+
+	 command result_t verify();
+	 event   void     verifyDone(storage_result_t result);
+       }
+
+
+  e. Small object::
+
+       interface ConfigStorage {
+	 command result_t read(addr_t addr, void* dest, addr_t len);
+         event   void	  readDone(storage_result_t result);
+
+	 command result_t write(addr_t addr void* source, addr_t len);
+         event	 void	  writeDone(storage_result_t result);
+
+	 command result_t commit();
+	 event   void	  commitDone(storage_result_t result);
+       }
+
+  f. Large sequential object::
+
+      interface LogWrite {
+	command result_t erase();
+	event	void	 eraseDone(storage_result_t success);
+
+	command result_t append(uint8_t* data, uint32_t numBytes);
+	event	void	 appendDone(uint8_t* data, uint32_t numBytes, result_t success);
+	command uint32_t currentOffset();
+
+	command result_t sync();
+	event	void	 syncDone(storage_result_t success);
+      }
+
+      interface LogRead {
+	command result_t read(uint8_t* data, uint32_t numBytes);
+	event	void	 readDone(uint8_t* data, uint32_t numBytes, result_t success);
+
+	command result_t seek(uint32_t cookie);
+	event	void	 seekDone(storage_result_t success);
+      }
+
+   The circular-vs-linear distinction is made by offering separate
+   instances of the LogData, LogRead interfaces.
+
+3. Implementation
+====================================================================
+
+An STM25P implementation can be found in tinyos-1.x/beta/STM25P.
+ 
+4. Author's Address
+====================================================================
+
+| David Gay <dgay at acm.org>,
+| Jonathan Hui  <jwhui at cs.berkeley.edu>

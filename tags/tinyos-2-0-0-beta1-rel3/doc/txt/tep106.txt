@@ -1,0 +1,379 @@
+============================
+Schedulers and Tasks
+============================
+
+:TEP: 106
+:Group: Core Working Group 
+:Type: Documentary
+:Status: Draft
+:TinyOS-Version: 2.x
+:Author: Philip Levis and Cory Sharp
+
+:Draft-Created: 10-Dec-2004
+:Draft-Version: $Revision: 1.1.2.1 $
+:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
+
+.. Note::
+
+   This memo documents a part of TinyOS for the TinyOS Community, and
+   requests discussion and suggestions for improvements.  Distribution
+   of this memo is unlimited. This memo is in full compliance with
+   TEP 1.
+
+Abstract
+====================================================================
+
+This memo documents the structure and implementation of tasks
+and task schedulers in TinyOS 2.x.
+
+
+1. Introduction
+====================================================================
+
+TinyOS has two basic computational abstractions: asynchronous events
+and tasks. Prior versions of TinyOS provided a single type of task --
+parameter free -- and only a FIFO scheduling policy. While changing
+the latter was possible, the incorporation of tasks into the nesC
+language made it very difficult. Presenting task schedulers as a
+TinyOS component enables much easier customization, and allowing tasks
+to be presented as an interface enables extending the classes of tasks
+available. TinyOS 2.0 takes both approaches, and this memo documents
+the structure of how it does so.
+
+2. Tasks and the Scheduler in TinyOS 1.x
+====================================================================
+
+Tasks in TinyOS are a form of deferred procedure call (DPC)[1]_, which
+enable a program to defer a computation or operation until a later
+time. TinyOS tasks run to completion and do not pre-empt one
+another.  These two constraints mean that code called from tasks
+runs synchonously with respect to other tasks. Put another way, tasks
+are atomic with respect to other tasks[2]_.
+
+In TinyOS 1.x, the nesC language supports tasks through two
+mechanisms, ``task`` declarations and ``post`` expressions:
+
+|  ``task void computeTask() {``
+|    ``// Code here``
+|  ``}``
+
+and
+
+|  ``result_t rval = post computeTask();``
+
+
+TinyOS 1.x provides a single kind of task, a parameter-free function,
+and a single scheduling policy, FIFO. ``post`` expressions can return
+FAIL, to denote that TinyOS was unable to post the task.  Tasks can be
+posted multiple times. For example, if a task is posted twice in quick
+succession and the first succeeds while the second fails, then the
+task will be run once in the future; for this reason, even if a ``post``
+fails, the task may run.
+
+The TinyOS 1.x scheduler is implemented as a set of C functions in the
+file ``sched.c``. Modifying the scheduler requires replacing or
+changing this file. Additionally, as tasks are supported solely through
+nesC ``task`` declarations and ``post`` expressions, which assume
+a parameter-free function, modifying the syntax or capabilities of
+tasks is not possible.
+
+The task queue in TinyOS 1.x is implemented as a fixed size circular
+buffer of function pointers. Posting a task puts the task's function
+pointer in the next free element of the buffer; if there are no free
+elements, the ``post`` returns fail. This model has several issues:
+
+  1) Some components do not have a reasonable response to a failed ``post``
+  2) As a given task can be posted multiple times, it can consume more than one element in the buffer
+  3) All tasks from all components share a single resource: one misbehaving component cause other's posts to fail
+
+
+The combination of the above three issues mean that one misbehaving
+component can cause TinyOS to hang. Consider, for example, this
+scenario (a real and encountered problem on the Telos platform):
+
+  * A packet-based hardware radio, which issues an interrupt only when it finishes sending a packet
+  * A networking component that handles the interrupt to post a task to signal ``SendMsg.sendDone``.
+  * A sensing component that posts a task when it handles an ``ADC.dataReady`` event
+  * An application component that sends a packet and then sets its ADC sampling rate too high
+
+In this scenario, the sensing component will start handling events at
+a faster rate than it can process them. It will start posting tasks to
+handle the data it receives, until it fills the task queue. At some
+point later, the radio finishes sending a packet and signals its
+interrupt. The networking component, however, is unable to post its
+task that signals ``SendMsg.sendDone()``, losing the event. The
+application component does not try to send another packet until it
+knows the one it is sending completes (so it can re-use the
+buffer). As the ``sendDone()`` event was lost, this will never occur,
+and the application stops sending network traffic.
+
+The solution to this particular problem in TinyOS 1.x is to signal 
+sendDone() in the radio send complete interrupt if the post fails: 
+this violates the sync/async boundary, but the justification is that 
+a *possible* rare race condition is better than *certain* failure. 
+The TinyOS 1.x model prevents it from doing any better.
+
+3. Tasks in TinyOS 2.x
+====================================================================
+
+TinyOS 2.x takes the position that the basic use case of tasks should
+remain simple and easy to use, but that it should be possible to
+introduce new kinds of tasks beyond the basic use case. TinyOS
+actualizes this by keeping ``post`` and ``task`` for the basic case,
+and introducing task interfaces for additional ones. 
+
+Task interfaces allow users to extend the syntax and semantics of
+tasks. Generally, a task interface has an ``async`` command, ``post``,
+and an event, ``run``. The exact signature of these functions are
+up to the interface. For example, a task interface that allows a task
+to take an integer parameter could look like this:
+
+|  ``interface TaskParameter {``
+|    ``async error_t command postTask(uint16_t param);``
+|    ``event void runTask(uin16_t param);``
+|  ``}``
+
+Using this task interface, a component could post a task with a
+``uint16_t`` parameter. When the scheduler runs the task, it will
+signal the ``runTask`` event with the passed parameter, which contains
+the task's logic.
+
+The semantics of tasks in TinyOS 2.x are different than those in 1.x.
+This change is based on experiences with the limitations and run time
+errors that the 1.x model introduces. **In TinyOS 2.x, a basic post will
+only fail if the task has already been posted and has not started
+execution.** A task can always run, but can only have one outstanding
+post at any time. If a component needs to post task several times,
+then the end of the task logic can repost itself as need be.
+
+These semantics prevent several problems, such as the inability to
+signal completion of split-phase events because the task queue is
+full, task queue overflow at initialization, and unfair task
+allocation by components that post a task many times.
+
+
+4. The Scheduler in TinyOS 2.x
+====================================================================
+
+In TinyOS 2.x, the scheduler is a TinyOS component. Every scheduler
+MUST support basic nesC tasks. It MAY also support any number of
+additional task interfaces. The scheduler component is resonsible for
+the policy of reconciling different task types (e.g., earliest
+deadline first tasks vs. priority tasks).
+
+The basic task in TinyOS 2.x is parameterless and FIFO. Tasks continue
+to follow the nesC semantics of task and post, which are linguistic
+shortcuts for declaring a TaskBasic interface and wiring it to the
+Scheduler component. A scheduler provides a task interface as a
+parameterized interface. Every task that wires to the interface uses
+the unique() function to obtain a unique identifier, which the
+scheduler uses to dispatch tasks.
+
+For example, the standard TinyOS Scheduler has this signature:
+
+|  ``module SchedulerBasic {``
+|    ``provides interface Scheduler;``
+|    ``provides interface TaskBasic[uint8_t taskID];``
+|  ``}``
+
+A scheduler MUST provide a parameterized TaskBasic interface.
+If a call to TaskBasic.postTask() returns SUCCESS, the scheduler MUST run it
+eventually. The scheduler MUST return SUCCESS to a TaskBasic.postTask()
+operation unless it is not the first call to TaskBasic.postTask() since
+that task's TaskBasic.runTask() event has been signaled.
+
+A scheduler MUST provide the Scheduler interface. 
+The Scheduler interface has commands for initialization and running
+tasks, and is used by TinyOS to execute tasks.
+
+|  ``interface SchedulerRun {``
+|    ``command void init();``
+|    ``command bool runNextTask(bool sleep);``
+|  ``}``
+
+The init() command initializes the task queue and scheduler data
+structures. runNextTask() MUST run to completion whatever task the
+scheduler's policy decides is the next one: the return value indicates
+whether it ran a task. The bool parameter sleep indicates what the
+scheduler should do if there are no tasks to execute. If sleep is
+FALSE, then the command will return immediately with FALSE as a return
+value. If sleep is TRUE, then the command MUST NOT return until a task
+is executed, and SHOULD put the CPU to sleep until a new task arrives.
+Calls of runNextTask(FALSE) may return TRUE or FALSE; calls of
+runNextTask(TRUE) always return TRUE. 
+
+This is the TaskBasic interface:
+
+|  ``interface TaskBasic {``
+|    ``async command error_t postTask();``
+|    ``void event runTask();``
+|  ``}``
+
+When a component declares a task with the ``task`` keyword in nesC, it
+is implicitly declaring that it uses an instance of the TaskBasic
+interface: the task body is the run event. When a component uses the
+``post`` keyword, it calls the post command. Each TaskBasic MUST be
+wired to the Scheduler with a unique identifier as its parameter. 
+The parameter MUST be obtained with the ``unique`` function in nesC, 
+with a key of ``"BasicScheduler.TaskBasic"``. The nesC compiler
+automatically does this wiring when the ``task`` and ``post``
+keywords are used.
+
+The SchedulerBasic implementation uses these identifiers as its queue
+entries. When TinyOS tells the Scheduler to run a task, it pulls the
+next identifier off the queue and uses it dispatches on the
+parameterized TaskBasic interface.
+
+
+5. Replacing the Scheduler
+====================================================================
+
+The TinyOS scheduler is presented as a component named TinyScheduler.
+The default TinyOS scheduler implementation is a module named
+SchedulerBasic; the default Scheduler component is a configuration
+that provides wire-through of SchedulerBasic.
+
+To replace the scheduler for a particular application, a developer
+SHOULD put a configuration named Scheduler in the application
+directory: this will replace the default. The Scheduler component
+provides a wire-through of the desired scheduler implementation. All
+scheduler implementations SHOULD provide a parameterize TaskBasic
+interface, as SchedulerBasic does; this supports nesC post statements
+and task declarations. All scheduler implementations MUST provide
+the Scheduler interface.
+
+For example, imagine a hypothetical scheduler that provides earliest
+deadline first tasks, which are provided through the TaskEDF
+interface:
+
+|  ``interface TaskEDF {``
+|    ``async command error_t postTask(uint16_t deadlineMs);``
+|    ``event void runTask();``
+|  ``}``
+
+The scheduler implementation is named SchedulerEDF, and provides both
+TaskBasic and TaskEDF interfaces:
+
+|  ``module SchedulerEDF {``
+|    ``provides interface Scheduler;``
+|    ``provides interface TaskBasic[uint8_t taskID];``
+|    ``provides interface TaskEDF[uint8_t taskID];``
+|  ``}``
+
+An application that wants to use SchedulerEDF instead of
+SchedulerBasic includes a configuration named TinyScheduler, which
+exports all of SchedulerEDF's interfaces:
+
+|  ``configuration TinyScheduler {``
+|    ``provides interface Scheduler;``
+|    ``provides interface TaskBasic[uint8_t taskID];``
+|    ``provides interface TaskEDF[uint8_t taskID];``
+|  ``}``
+|  ``implementation {``
+|    ``components SchedulerEDF;``
+|    ``Scheduler = SchedulerEDF;``
+|    ``TaskBasic = SchedulerEDF;``
+|    ``TaskEDF   = SchedulerEDF;``
+|  ``}``
+
+For a module to have an earliest deadline first task, it uses the
+TaskEDF interface. Its configuration SHOULD wire it to TinyScheduler.
+The key used for task unique identifiers MUST be "TinyScheduler.TaskInterface",
+where *TaskInterface* is the name of the new task interface as presented
+by the scheduler.  For example, the module SomethingM requires two EDF
+tasks:
+
+|  ``configuration SomethingC {``
+|    ``...``
+|  ``}``
+|  ``implementation {``
+|    ``components SomethingM, TinyScheduler;``
+|    ``SomethingM.SendTask -> TinyScheduler.TaskEDF["TinyScheduler.TaskEDF"];``
+|    ``SomethingM.SenseTask -> TinyScheduler.TaskEDF["TinyScheduler.TaskEDF"];``
+|  ``}``
+
+The module SomethingM also has a basic task. The nesC compiler
+automatically transforms task keywords into BasicTask interfaces and
+wires them appropriately. Therefore, for basic tasks, a component
+author can either use the ``task`` and ``post`` keywords or use a TaskBasic
+interface. A component SHOULD use the keywords whenever possible, and it
+MUST NOT mix the two syntaxes for a given task.  This is an example
+implementation of SomethingM that uses keywords for basic tasks:
+
+|  ``module SomethingM {``
+|    ``uses interface TaskEDF as SendTask``
+|    ``uses interface TaskEDF as SenseTask``
+|  ``}``
+|  ``implementation {``
+|    ``// The TaskBasic, written with keywords``
+|    ``task void cleanupTask() { ... some logic ... }``
+|    ``event void SendTask.runTask() { ... some logic ... }``
+|    ``event void SenseTask.runTask() { ... some logic ... }``
+|
+|    ``void internal_function() {``
+|      ``call SenseTask.postTask(20);``
+|      ``call SendTask.postTask(100);``
+|      ``post cleanupTask();``
+|    ``}``
+|  ``}``
+
+If the scheduler provides two instances of the same task interface,
+their unique keys are based on the name of the interface as the 
+scheduler presents it (the "as" keyword). For example, imagine
+a scheduler which provides two instances of TaskBasic: standard
+tasks and high-priority tasks. The scheduler always selects a task
+for the high priority queue before the standard queue:
+
+|  ``configuration TinyScheduler {``
+|    ``provides interface Scheduler;``
+|    ``provides interface TaskBasic[uint8_t taskID];``
+|    ``provides interface TaskBasic[uint8_t taskID] as TaskHighPriority;``
+|  ``}``
+
+A component that uses a high priority task would then wire to
+TaskHighPriority with the key "TinyScheduler.TaskHighPriority":
+
+|  ``configuration SomethingElseC {``
+|  ``}``
+|  ``implementation {``
+|    ``components TinyScheduler, SomethingElseM;``
+|    ``SomethingElseM.RetransmitTask -> TinyScheduler.TaskHighPriority[unique("TinyScheduler.TaskHighPriority")];``
+|  ``}``
+
+
+6. Author's Address
+====================================================================
+
+| Philip Levis
+| 467 Soda Hall
+| UC Berkeley
+| Berkeley, CA 94720
+|
+| phone - +1 510 290 5283
+| email - pal@cs.berkeley.edu
+|
+| Cory Sharp
+| 410 Soda Hall
+| UC Berkeley
+| Berkeley, CA 94720
+|
+| email - cssharp@eecs.berkeley.edu
+
+
+
+7. Citations
+====================================================================
+
+.. [1] Erik Cota-Robles and James P. Held.  "A Comparison of Windows 
+   Driver Model Latency Performance on Windows NT and Windows 98." In
+   *Proceedings of the Third Symposium on Operating System Design
+   and Implementation (OSDI).*
+
+.. [2] David Gay, Philip Levis, Rob von Behren, Matt Welsh, Eric Brewer
+   and David Culler. "The *nesC* Language: A Holistic Approach to Networked
+   Embedded Systems." In *Proceedings of the ACM SIGPLAN 2003 Conference on
+   Programming Language Design and Implementation (PLDI).* 
+
+
+ 
