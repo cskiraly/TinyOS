@@ -10,8 +10,8 @@
 # JNISUFFIX: so
 # 
 
-%define INSTALLJNI install --group=SYSTEM
-%define JNISUFFIX dll
+%define INSTALLJNI install
+%define JNISUFFIX so
 %define debug_package %{nil}
 
 Summary: TinyOS tools 
@@ -73,9 +73,15 @@ if [ $? -ne 0 ]; then
   exit 0
 fi
 echo "Installing Java JNI code in $jni ... "
-for lib in $RPM_INSTALL_PREFIX/lib/tinyos/*.%{JNISUFFIX}; do 
-  %{INSTALLJNI} $lib "$jni" || exit 0
+%ifos linux
+for lib in $RPM_INSTALL_PREFIX/lib/tinyos/*.so; do 
+  install $lib "$jni" || exit 0
 done
+%else
+for lib in $RPM_INSTALL_PREFIX/lib/tinyos/*.dll; do 
+  install --group=SYSTEM $lib "$jni" || exit 0
+done
+%endif
 echo "done."
 
 %preun
