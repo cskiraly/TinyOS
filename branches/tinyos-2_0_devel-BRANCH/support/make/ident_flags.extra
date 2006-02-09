@@ -1,9 +1,9 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: ident_flags.extra,v 1.1.2.2 2005-08-08 19:09:28 idgay Exp $
+#$Id: ident_flags.extra,v 1.1.2.3 2006-02-09 18:37:31 philipb Exp $
 
 IDENT_PL ?= tos-ident-flags
 IDENT_PROGRAM_NAME ?= $(COMPONENT)
-IDENT_FLAGS := $(shell [ $(IDENT_PL) "$(IDENT_PROGRAM_NAME)")
+IDENT_FLAGS := $(shell $(IDENT_PL) "$(IDENT_PROGRAM_NAME)")
 
 CFLAGS += $(IDENT_FLAGS)
 
