@@ -1,0 +1,312 @@
+<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+  <title>Lesson T: Simulation with TOSSIM</title>
+  <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+$Id: lesson-t.html,v 1.1.2.1 2006-02-10 02:51:28 scipio Exp $
+
+<div class="title">Lesson T: Simulation with TOSSIM</div>
+<div class="subtitle">Last Modified: Feb 9, 2006</div>
+
+      <p>This lesson introduces the TOSSIM simulator. You will become
+        familiar with how to compile TOSSIM and use some of its
+        functionality. You will learn how to:</p>
+
+<p>
+
+<ul>
+
+<li>Compile TOSSIM.
+
+<li>Configure a simulation in Python and C++.
+
+<li>Inject packets.
+
+<li>Inspect variables.
+
+</ul>
+
+
+<h1>Introduction</h1>
+
+        TOSSIM simulates entire TinyOS applications. It works by
+        replacing components with simulation implementations. The
+        level at which components are replaced is very flexible: for
+        example, there is a simulation implementation of millisecond
+        timers that replaces HilTimerMilliC, while there is also an
+        implementation for atmega128 platforms that replaces the HPL
+        components of the hardware clocks. The former is general and
+        can be used for any platform, but lacks the fidelity of
+        capturing an actual chips behavior, as the latter
+        does. Similarly, TOSSIM can replace a packet-level
+        communication component for packet-level simulation, or
+        replace a low-level radio chip component for a more precise
+        simulation of the code execution.
+
+        TOSSIM is a discrete event simulator. When it runs, it pulls
+        events of the event queue (sorted by time) and executes them.
+        Depending on the level of simulation, simulation events can
+        represent hardware interrupts or high-level system events
+        (such as packet reception). Additionally, tasks are simulation
+        events, so that posting a task causes it to run a short time
+        (e.g., a few microseconds) in the future.
+
+        TOSSIM is a library: you must write a program that configures
+        a simulation and runs it. TOSSIM supports two programming
+        interfaces, Python and C++. Python allows you to interact with
+        a running simulation dynamically, like a powerful
+        debugger. However, as the interpretation can be a performance
+        bottleneck when obtaining results, TOSSIM also has a C++
+        interface. Usually, transforming code from one to the other is
+        very simple.
+
+        TOSSIM currently does not support gathering power
+        measurements.
+
+        <h1>Compiling TOSSIM</h1>
+
+        <p>TOSSIM is a TinyOS library. Its core code lives in <tt><a
+        href="../../../tos/lib/tossim">tos/lib/tossim</a></tt>. Every TinyOS
+        source directory has an optional <tt>sim</tt> subdirectory,
+        which contains simulation implementations of that package. For
+        example, <tt><a
+        href="../../../tos/chips/atm128/timersim">tos/chips/atm128/timer/sim</a></tt>
+        contains TOSSIM implementations of some of the Atmega128 timer
+        abstractions.</p>
+
+        <p>To compile TOSSIM, you pass the <tt>sim</tt> option to make:</p>
+
+        <pre>
+          $ cd apps/Blink
+          $ make micaz sim
+        </pre>
+
+        
+        
+        <p>Currently, the only platform TOSSIM supports is the
+        micaz. You should see output similar to this:</p>
+        <pre>
+          mkdir -p build/micaz
+            placing object files in build/micaz
+            writing XML schema to app.xml
+            compiling BlinkAppC to object file sim.o 
+          ncc -c -fPIC -o build/micaz/sim.o -g -O0 -tossim -fnesc-nido-tosnodes=1000 -fnesc-simulate -fnesc-nido-motenumber=sim_node\(\)   -finline-limit=100000 -Wall -Wshadow -DDEF_TOS_AM_GROUP=0x7d -Wnesc-all -target=micaz -fnesc-cfile=build/micaz/app.c -board=micasb  -Wno-nesc-data-race BlinkAppC.nc   -fnesc-dump=components -fnesc-dump=variables -fnesc-dump=constants -fnesc-dump=typedefs -fnesc-dump=interfacedefs -fnesc-dump=tags -fnesc-dumpfile=app.xml
+            compiling Python support into pytossim.o and tossim.o
+          g++ -c -shared -fPIC -o build/micaz/pytossim.o -g -O0  /home/pal/src/tinyos-2.x/tos/lib/tossim/tossim_wrap.cxx -I/usr/include/python2.3 -I/home/pal/src/tinyos-2.x/tos/lib/tossim -DHAVE_CONFIG_H
+          g++ -c -shared -fPIC -o build/micaz/tossim.o -g -O0  /home/pal/src/tinyos-2.x/tos/lib/tossim/tossim.c -I/usr/include/python2.3 -I/home/pal/src/tinyos-2.x/tos/lib/tossim
+            linking into shared object ./_TOSSIMmodule.so
+          g++ -shared build/micaz/pytossim.o build/micaz/sim.o build/micaz/tossim.o -lstdc++ -o _TOSSIMmodule.so
+          copying Python script interface TOSSIM.py from lib/tossim to local directory
+         </pre>
+
+        <p>Compiling TOSSIM has five basic steps. Let's go through
+        them one by one.</p>
+
+        <h2>Writing an XML schema</h2>
+
+        <pre>
+          writing XML schema to app.xml
+        </pre>
+
+        <p>The first thing the TOSSIM build process does is use
+        nesc-dump to produce an XML document that describes the
+        application. Among other things, this document descibes the
+        name and type of every variable.</p>
+
+        <h2>Compiling the TinyOS Application</h2>
+
+        <p>Besides introducing all of these new compilation steps, the
+        <tt>sim</tt> option changes the include paths of the
+        application. If the application has a series of includes</p>
+
+        <pre>
+          -Ia -Ib -Ic
+        </pre>
+
+        <p>Then the sim option transforms the list to</p>
+
+        <pre>
+          -Ia/sim -Ib/sim -Ic/sim -I%T/lib/tossim -Ia -Ib -Ic
+        </pre>
+          
+        <p>This means that any system-specific simulation
+        implementations will be used first, followed by generic TOSSIM
+        implementations, followed by standard implementations. The
+        <tt>sim</tt> option also passes a bunch of arguments to the
+        compiler, so it knows to compile for simulation.</p>
+
+        <p>The product of this step is an object file, <tt>sim.o</tt>,
+        which lives in the platform's build directory. This object
+        file has a set of C functions which configure the simulation
+        and control execution.</p>
+
+        <h2>Compiling the Programming Interface</h2>
+
+        <pre>
+            compiling Python support into pytossim.o and tossim.o
+          g++ -c -shared -fPIC -o build/micaz/pytossim.o -g -O0 \
+          /home/pal/src/tinyos-2.x/tos/lib/tossim/tossim_wrap.cxx \
+          -I/usr/include/python2.3 -I/home/pal/src/tinyos-2.x/tos/lib/tossim \
+          -DHAVE_CONFIG_H
+          g++ -c -shared -fPIC -o build/micaz/tossim.o -g -O0 \
+          /home/pal/src/tinyos-2.x/tos/lib/tossim/tossim.c \
+          -I/usr/include/python2.3 -I/home/pal/src/tinyos-2.x/tos/lib/tossim
+        </pre>
+        
+        <p>The next step compiles the support for the C++ and Python
+        programming interfaces. The Python interface is actually built
+        on top of the C++ interface. Calling a Python object calls a
+        C++ object, which then calls TOSSIM through the C
+        interface. <tt>tossim.o</tt> contains the C++ code, while
+        <tt>pytossim.o</tt> contains the Python support. These files
+        have to be compiled separately because C++ doesn't understand
+        nesC, and nesC doesn't understand C++.</p>
+
+        <h2>Building the shared object</h2>
+        
+        <pre>
+            linking into shared object ./_TOSSIMmodule.so
+          g++ -shared build/micaz/pytossim.o build/micaz/sim.o build/micaz/tossim.o -lstdc++ -o _TOSSIMmodule.so
+        </pre>
+
+        <p>The next to last step is to build a shared library that
+        contains the TOSSIM code, the C++ support, and the Python
+        support.</p>
+
+        <h2>Copying Python Support</h2>
+        
+        <pre>
+            copying Python script interface TOSSIM.py from lib/tossim to local directory
+        </pre>
+
+        <p>Finally, there is the Python code that calls into the
+        shared object. This code exists in <tt>lib/tossim</tt>, and
+        the make process copies it into the local directory.</p>
+
+        
+        <h1>Running TOSSIM with Python</h1>
+        
+        <p>Go into the <tt>RadioCountToLeds</tt> application and build
+          TOSSIM:</p>
+
+        <pre>
+           $ cd tinyos-2.x/apps/RadioCountToLeds
+           $ make micaz sim
+        </pre>
+
+        <p>We'll start with running a simulation in Python. You can either
+          write a script and just tell Python to run it, or you can
+          use Python interactively. We'll start with the latter. Fire
+          up your Python interpreter:</p>
+
+        <pre>
+           $ python
+        </pre>
+
+        <p>You should see a prompt like this:</p>
+
+        <pre>
+           Python 2.3.4 (#1, Nov  4 2004, 14:13:38)
+           [GCC 3.4.2 20041017 (Red Hat 3.4.2-6.fc3)] on linux2
+           Type "help", "copyright", "credits" or "license" for more information.
+           >>>
+        </pre>
+
+        <p>The first thing we need to do is import TOSSIM and create a
+        TOSSIM object. Type</p>
+
+        <pre>
+           >>> from TOSSIM import *
+           >>> t = Tossim([])
+        </pre>
+        
+        <p>The square brackets are an optional argument that lets you
+        access variables in the simulation. We'll get to how to use
+        that later. In this case, we're telling TOSSIM that there are
+        no variables that we want to look at. The way you run a TOSSIM
+        simulation is with the <tt>runNextEvent</tt> function. For
+        example:</p>
+
+        <pre>
+           >>> t.runNextEvent()
+           0
+        </pre>
+
+        <p>When you tell TOSSIM to run the next event, it returns
+        0. This means that there was no next event to run. The reason
+        is simple: we haven't told any nodes to boot. This snippet of
+        code will tell mote 32 to boot at time 45654 and run its first
+        event (booting):</p>
+
+        <pre>
+           >>> m = t.getNode(32);
+           >>> m.bootAtTime(45654);
+           >>> t.runNextEVent()
+           1
+        </pre>
+
+        <p>Now, <tt>runNextEvent</tt> returns 1, because there was an
+        event to run. But we have no way of knowing whether the node
+        has booted or not. We can find this out in one of two ways.
+        The first is that we can just ask it:</p>
+
+        <pre>
+           >>> m.isOn()
+           1
+           >>> m.turnOff()
+           >>> m.isOn()
+           0
+           >>> m.bootAtTime(560000)
+           >>> t.runNextEvent()
+           0
+           >>> t.runNextEvent()
+           1
+        </pre>        
+
+        <p>Note that the first <tt>runNextEvent</tt> returned 0. This
+        is because when we turned the mote off, there was still an
+        event in the queue, for its next timer tick. However, since
+        the mote was off when the event was handled in that call,
+        <tt>runNextEvent</tt> returned 0. The second call to
+        <tt>runNextEvent</tt> returned 1 for the second boot event, at
+        time 560000.</p>
+        
+        <h2>Debugging Statements</h2>
+        
+        <p>The second is that we can tell it to print something out
+        when it boots. TOSSIM has a debugging output system, called
+        <tt>dbg</tt>. There are four <tt>dbg</tt> calls:
+
+          <ul>
+            <li><tt>dbg</tt>: print a debugging statement preceded by the node ID.</li>
+            <li><tt>dbg_clear</tt>: print a debugging statement which is not preceded by the node ID. This allows you to easily print out complex data types, such as packets, without interspersing node IDs through the output.</li>
+            <li><tt>dbgerror</tt>: print an error statement preceded by the node ID</li>
+            <li><tt>dbgerror_clear</tt>: print an error statement which is not preceded by the node ID</li>
+          </ul>
+
+          
+          Go into <tt>RadioCountToLedsC</tt>
+          
+        
+<h1>Conclusions</h1>
+
+This lesson has introduced radio communications TinyOS 2.x.
+
+<a name=#related_docs>
+<h1>Related Documentation</h1>
+
+<ul>
+<li>[1] <a href="../tep111.html">TEP 111: message_t</a>
+<li>[2] <a href="../tep116.html">TEP 116: Packet Protocols</a>
+</ul>
+
+<hr>
+
+<p><b><a href="lesson6.html">Next Lesson &gt;</a></b> |&nbsp; <b><a
+ href="index.html">Top</a></b>
+
+</body>
+</html>
