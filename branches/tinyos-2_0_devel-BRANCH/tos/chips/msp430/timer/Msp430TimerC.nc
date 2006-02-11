@@ -1,4 +1,4 @@
-//$Id: Msp430TimerC.nc,v 1.1.2.1 2006-01-29 04:33:33 vlahan Exp $
+//$Id: Msp430TimerC.nc,v 1.1.2.2 2006-02-11 10:20:34 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
@@ -61,9 +61,9 @@ configuration Msp430TimerC
 implementation
 {
   components new Msp430TimerP( TAIV_, TAR_, TACTL_, TAIFG, TACLR, TAIE,
-               TASSEL0, TASSEL1 ) as Msp430TimerA
+               TASSEL0, TASSEL1, FALSE ) as Msp430TimerA
            , new Msp430TimerP( TBIV_, TBR_, TBCTL_, TBIFG, TBCLR, TBIE,
-               TBSSEL0, TBSSEL1 ) as Msp430TimerB
+               TBSSEL0, TBSSEL1, TRUE ) as Msp430TimerB
            , new Msp430TimerCapComP( TACCTL0_, TACCR0_ ) as Msp430TimerA0
            , new Msp430TimerCapComP( TACCTL1_, TACCR1_ ) as Msp430TimerA1
            , new Msp430TimerCapComP( TACCTL2_, TACCR2_ ) as Msp430TimerA2

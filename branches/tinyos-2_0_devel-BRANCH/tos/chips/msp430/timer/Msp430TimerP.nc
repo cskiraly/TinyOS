@@ -1,4 +1,4 @@
-//$Id: Msp430TimerP.nc,v 1.1.2.1 2006-01-29 04:33:34 vlahan Exp $
+//$Id: Msp430TimerP.nc,v 1.1.2.2 2006-02-11 10:20:34 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
@@ -32,7 +32,8 @@ generic module Msp430TimerP(
   uint16_t TxCLR,
   uint16_t TxIE,
   uint16_t TxSSEL0,
-  uint16_t TxSSEL1 )
+  uint16_t TxSSEL1,
+  bool isClockSourceAsync )
 {
   provides interface Msp430Timer as Timer;
   provides interface Msp430TimerEvent as Event[uint8_t n];
@@ -48,7 +49,21 @@ implementation
 
   async command uint16_t Timer.get()
   {
-    return TxR;
+    // CSS 10 Feb 2006: Brano Kusy notes MSP430 User's Guide, Section 12.2.1,
+    // Note says reading a counter may return garbage if its clock source is
+    // async.  The noted work around is to take a majority vote.
+
+    if( isClockSourceAsync ) {
+      atomic {
+        uint16_t t0;
+        uint16_t t1=TxR;
+        do { t0=t1; t1=TxR; } while( t0 != t1 );
+        return t1;
+      }
+    }
+    else {
+      return TxR;
+    }
   }
 
   async command bool Timer.isOverflowPending()
