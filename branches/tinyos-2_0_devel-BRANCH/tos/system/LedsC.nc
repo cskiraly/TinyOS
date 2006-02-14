@@ -1,4 +1,4 @@
-// $Id: LedsC.nc,v 1.1.2.7 2006-02-03 23:57:28 philipb Exp $
+// $Id: LedsC.nc,v 1.1.2.8 2006-02-14 17:50:11 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -26,12 +26,11 @@
 
 
 configuration LedsC {
-  provides interface Init;
   provides interface Leds;
 }
 implementation {
   components LedsP, PlatformLedsC;
-  Init = LedsP;
+
   Leds = LedsP;
 
   LedsP.Init <- PlatformLedsC.Init;
