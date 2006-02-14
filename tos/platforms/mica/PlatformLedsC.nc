@@ -1,4 +1,4 @@
-// $Id: PlatformLedsC.nc,v 1.1.2.7 2006-02-14 17:01:45 idgay Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.8 2006-02-14 17:50:11 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -42,7 +42,7 @@ implementation
   components HplAtm128GeneralIOC as IO;
   components PlatformP;
 
-  Init = PlatformP.LedsInit;
+  Init = PlatformP.MoteInit;
 
   Led0 = IO.PortA2;  // Pin A2 = Red LED
   Led1 = IO.PortA1;  // Pin A1 = Green LED
