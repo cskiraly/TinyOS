@@ -1,4 +1,4 @@
-// $Id: RadioCountToLedsC.nc,v 1.1.2.2 2005-08-08 03:30:40 scipio Exp $
+// $Id: RadioCountToLedsC.nc,v 1.1.2.3 2006-02-14 17:01:44 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -39,8 +39,8 @@
  *
  **/
 
-includes Timer;
-includes RadioCountToLeds;
+#include "Timer.h"
+#include "RadioCountToLeds.h"
 
 module RadioCountToLedsC {
   uses {

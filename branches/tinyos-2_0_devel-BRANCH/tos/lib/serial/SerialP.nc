@@ -1,4 +1,4 @@
-// $Id: SerialP.nc,v 1.1.2.7 2006-01-31 19:49:54 bengreenstein Exp $
+// $Id: SerialP.nc,v 1.1.2.8 2006-02-14 17:01:44 idgay Exp $
 /*									
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
@@ -35,7 +35,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.7 $
+ * Revision: $Revision: 1.1.2.8 $
  * 
  */
 
@@ -56,8 +56,8 @@
  */
 
 
-includes AM;
-includes crc;
+#include "AM.h"
+#include "crc.h"
 
 module SerialP {
 

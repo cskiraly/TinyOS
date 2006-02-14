@@ -1,4 +1,4 @@
-includes hardware;
+#include "hardware.h"
 
 module PlatformP{
   provides interface Init;

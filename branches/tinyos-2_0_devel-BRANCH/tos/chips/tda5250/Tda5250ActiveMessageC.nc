@@ -1,4 +1,4 @@
-// $Id: Tda5250ActiveMessageC.nc,v 1.1.2.2 2006-02-02 16:41:38 vlahan Exp $
+// $Id: Tda5250ActiveMessageC.nc,v 1.1.2.3 2006-02-14 17:01:43 idgay Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: Tda5250ActiveMessageC.nc,v 1.1.2.2 2006-02-02 16:41:38 vlahan Exp $
+ * Date last modified:  $Id: Tda5250ActiveMessageC.nc,v 1.1.2.3 2006-02-14 17:01:43 idgay Exp $
  *
  */
 
@@ -47,7 +47,7 @@
  */
 
 
-includes Timer;
+#include "Timer.h"
 
 configuration Tda5250ActiveMessageC {
   provides {

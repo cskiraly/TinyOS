@@ -34,10 +34,10 @@
  * ST M25P serial code flash.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.7 $ $Date: 2006-02-07 19:43:02 $
+ * @version $Revision: 1.1.2.8 $ $Date: 2006-02-14 17:01:43 $
  */
 
-includes Stm25p;
+#include "Stm25p.h"
 
 generic configuration BlockStorageC( volume_id_t volume_id ) {
 

@@ -32,9 +32,9 @@
  * @date   August 6 2005
  */
 
-// $Id: MainC.nc,v 1.1.2.4 2006-01-03 01:53:32 scipio Exp $
+// $Id: MainC.nc,v 1.1.2.5 2006-02-14 17:01:44 idgay Exp $
 
-includes hardware;
+#include "hardware.h"
 
 configuration MainC {
   provides interface Boot;

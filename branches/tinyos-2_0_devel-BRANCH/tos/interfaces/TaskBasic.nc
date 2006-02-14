@@ -1,4 +1,4 @@
-// $Id: TaskBasic.nc,v 1.1.2.6 2006-01-29 20:32:25 scipio Exp $
+// $Id: TaskBasic.nc,v 1.1.2.7 2006-02-14 17:01:43 idgay Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.
@@ -39,7 +39,7 @@
   */ 
 
 
-includes TinyError;
+#include "TinyError.h"
 
 interface TaskBasic {
 

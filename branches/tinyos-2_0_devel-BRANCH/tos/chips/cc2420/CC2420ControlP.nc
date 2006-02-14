@@ -31,10 +31,10 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.16 $ $Date: 2006-01-28 01:39:29 $
+ * @version $Revision: 1.1.2.17 $ $Date: 2006-02-14 17:01:42 $
  */
 
-includes Timer;
+#include "Timer.h"
 
 module CC2420ControlP {
 

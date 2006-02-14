@@ -1,4 +1,4 @@
-// $Id: SimpleRadioModel.nc,v 1.1.2.1 2005-12-19 23:51:20 scipio Exp $
+// $Id: SimpleRadioModel.nc,v 1.1.2.2 2006-02-14 17:01:44 idgay Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -32,7 +32,7 @@
  */ 
 
 
-includes TinyError;
+#include "TinyError.h"
 
 interface SimpleRadioModel {
   command void putOnAirTo(int dest, message_t* msg, bool ack, sim_time_t endTime);

@@ -1,4 +1,4 @@
-//$Id: SerialPacketInfo802_15_4P.nc,v 1.1.2.1 2005-08-07 21:56:15 scipio Exp $
+//$Id: SerialPacketInfo802_15_4P.nc,v 1.1.2.2 2006-02-14 17:01:44 idgay Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -30,7 +30,7 @@
  *
  */
 
-includes 802_15_4;
+#include "802_15_4.h"
 module SerialPacketInfo802_15_4P {
   provides interface SerialPacketInfo as Info;
 }

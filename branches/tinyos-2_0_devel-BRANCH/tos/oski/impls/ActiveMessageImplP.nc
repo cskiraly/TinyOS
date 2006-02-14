@@ -1,4 +1,4 @@
-// $Id: ActiveMessageImplP.nc,v 1.1.2.1 2005-08-08 04:07:55 scipio Exp $
+// $Id: ActiveMessageImplP.nc,v 1.1.2.2 2006-02-14 17:01:45 idgay Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -38,7 +38,7 @@
  * @date   January 5 2005
  */ 
 
-includes AM;
+#include "AM.h"
 
 configuration ActiveMessageImplP {
   provides {

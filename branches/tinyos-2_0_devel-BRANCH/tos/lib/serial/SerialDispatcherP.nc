@@ -1,4 +1,4 @@
-//$Id: SerialDispatcherP.nc,v 1.1.2.6 2006-02-07 05:23:23 jwhui Exp $
+//$Id: SerialDispatcherP.nc,v 1.1.2.7 2006-02-14 17:01:44 idgay Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -32,7 +32,7 @@
  *
  */
 
-includes Serial;
+#include "Serial.h"
 
 generic module SerialDispatcherP() {
   provides {

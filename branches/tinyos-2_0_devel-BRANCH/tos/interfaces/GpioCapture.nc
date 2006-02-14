@@ -1,4 +1,4 @@
-// $Id: GpioCapture.nc,v 1.1.2.1 2005-10-29 17:21:52 jwhui Exp $
+// $Id: GpioCapture.nc,v 1.1.2.2 2006-02-14 17:01:43 idgay Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -30,7 +30,7 @@
  *
  */
 
-includes TinyError;
+#include "TinyError.h"
 
 interface GpioCapture {
 

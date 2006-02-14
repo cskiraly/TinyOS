@@ -24,10 +24,10 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: SensorMts300P.nc,v 1.1.2.3 2005-10-20 05:23:47 mturon Exp $
+ *  $Id: SensorMts300P.nc,v 1.1.2.4 2006-02-14 17:01:46 idgay Exp $
  */
 
-includes Timer;
+#include "Timer.h"
 
 /**
  * This component is the "platform" of the sensorboard space.

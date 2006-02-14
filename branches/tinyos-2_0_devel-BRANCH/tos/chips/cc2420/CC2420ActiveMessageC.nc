@@ -34,11 +34,11 @@
  * @date August 28 2005
 
  * <pre>
- *  $Id: CC2420ActiveMessageC.nc,v 1.1.2.7 2006-01-29 17:49:13 scipio Exp $
+ *  $Id: CC2420ActiveMessageC.nc,v 1.1.2.8 2006-02-14 17:01:42 idgay Exp $
  * </pre>
  */
 
-includes CC2420;
+#include "CC2420.h"
 
 configuration CC2420ActiveMessageC {
   provides {

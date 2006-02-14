@@ -1,4 +1,4 @@
-// $Id: MainC.nc,v 1.1.2.4 2006-01-29 20:32:25 scipio Exp $
+// $Id: MainC.nc,v 1.1.2.5 2006-02-14 17:01:46 idgay Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -28,7 +28,7 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  *
- * Date last modified:  $Id: MainC.nc,v 1.1.2.4 2006-01-29 20:32:25 scipio Exp $
+ * Date last modified:  $Id: MainC.nc,v 1.1.2.5 2006-02-14 17:01:46 idgay Exp $
  */
 
 /**
@@ -40,7 +40,7 @@
  * @see    TEP 107: Boot Sequence
  */
 
-includes hardware;
+#include "hardware.h"
 
 configuration MainC {
   provides interface Boot;

@@ -30,7 +30,7 @@
 /**
  * @author Philip Buonadonna
  */
-includes hardware;
+#include "hardware.h"
 
 configuration PlatformLedsC
 {

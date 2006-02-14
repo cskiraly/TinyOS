@@ -1,4 +1,4 @@
-// $Id: HplMsp430GeneralIOP.nc,v 1.1.2.1 2006-01-27 23:28:12 jwhui Exp $
+// $Id: HplMsp430GeneralIOP.nc,v 1.1.2.2 2006-02-14 17:01:42 idgay Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -24,7 +24,7 @@
  * @author Joe Polastre
  */
 
-includes msp430regtypes;
+#include "msp430regtypes.h"
 
 generic module HplMsp430GeneralIOP(
 				uint8_t port_in_addr,

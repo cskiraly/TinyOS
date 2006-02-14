@@ -33,10 +33,10 @@
  * HAL abstraction for accessing theRAM of a ChipCon CC2420 radio.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-01-28 01:39:29 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-02-14 17:01:42 $
  */
 
-includes CC2420;
+#include "CC2420.h"
 
 interface CC2420Ram {
 

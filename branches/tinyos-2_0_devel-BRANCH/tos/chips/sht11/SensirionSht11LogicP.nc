@@ -29,8 +29,8 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
 
-includes Timer;
-includes SensirionSht11;
+#include "Timer.h"
+#include "SensirionSht11.h"
 
 /**
  * SensirionSht11LogicP contains the actual driver logic needed to
@@ -47,7 +47,7 @@ includes SensirionSht11;
  * waits to keep the Sensirion happy.
  *
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-01-30 22:53:16 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-02-14 17:01:43 $
  */
 
 generic module SensirionSht11LogicP() {

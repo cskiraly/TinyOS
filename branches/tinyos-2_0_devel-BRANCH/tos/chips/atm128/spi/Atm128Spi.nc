@@ -1,4 +1,4 @@
-/// $Id: Atm128Spi.nc,v 1.1.2.2 2006-01-27 22:04:19 mturon Exp $ 
+/// $Id: Atm128Spi.nc,v 1.1.2.3 2006-02-14 17:01:42 idgay Exp $ 
 
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -48,7 +48,7 @@
  * of the Atmega128 datasheet (rev. 2467M-AVR-11/04) for details.
  *
  * <pre>
- *  $Id: Atm128Spi.nc,v 1.1.2.2 2006-01-27 22:04:19 mturon Exp $
+ *  $Id: Atm128Spi.nc,v 1.1.2.3 2006-02-14 17:01:42 idgay Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -56,7 +56,7 @@
  * @date   September 8 2005
  */
 
-includes Atm128Spi;
+#include "Atm128Spi.h"
 
 interface Atm128Spi {
 

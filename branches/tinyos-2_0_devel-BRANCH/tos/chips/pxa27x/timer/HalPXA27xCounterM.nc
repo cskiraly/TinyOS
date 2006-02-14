@@ -36,7 +36,7 @@
  * 
  *  @author Phil Buonadonna
  */
-includes Timer;
+#include "Timer.h"
 
 generic module HalPXA27xCounterM(typedef frequency_tag, uint8_t resolution) 
 {

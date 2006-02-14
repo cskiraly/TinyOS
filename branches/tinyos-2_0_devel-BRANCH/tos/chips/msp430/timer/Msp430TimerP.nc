@@ -1,4 +1,4 @@
-//$Id: Msp430TimerP.nc,v 1.1.2.2 2006-02-11 10:20:34 cssharp Exp $
+//$Id: Msp430TimerP.nc,v 1.1.2.3 2006-02-14 17:01:43 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-includes msp430regtypes;
+#include "msp430regtypes.h"
 
 generic module Msp430TimerP(
   uint16_t TxIV_addr,
