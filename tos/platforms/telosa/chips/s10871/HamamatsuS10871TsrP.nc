@@ -29,14 +29,14 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
 
-includes Msp430Adc12;
+#include "Msp430Adc12.h"
 
 /**
  * HamamatsuS10871TsrP is a driver for a photosynthetically-active
  * radiation sensor available on the telosb platform. 
  *
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-01-30 22:46:04 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-02-14 17:01:46 $
  */
 
 module HamamatsuS10871TsrP {

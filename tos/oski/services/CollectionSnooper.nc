@@ -1,4 +1,4 @@
-// $Id: CollectionSnooper.nc,v 1.1.2.1 2005-01-11 03:33:04 scipio Exp $
+// $Id: CollectionSnooper.nc,v 1.1.2.2 2006-02-14 17:01:45 idgay Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -44,7 +44,7 @@
  * @date   January 10 2005
  */ 
 
-includes Collection;
+#include "Collection.h"
 
 generic configuration CollectionSnooper(collect_id_t id) {
   provides {

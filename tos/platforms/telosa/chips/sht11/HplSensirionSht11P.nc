@@ -29,14 +29,14 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
 
-includes Timer;
+#include "Timer.h"
 
 /**
  * HplSensirionSht11P is a low-level component that controls power for
  * the Sensirion SHT11 sensor on the telosb platform.
  *
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-01-30 22:55:44 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-02-14 17:01:46 $
  */
 
 module HplSensirionSht11P {

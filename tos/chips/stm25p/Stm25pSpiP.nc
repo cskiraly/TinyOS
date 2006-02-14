@@ -31,10 +31,10 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-01-29 18:06:19 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-02-14 17:01:43 $
  */
 
-includes crc;
+#include "crc.h"
 
 module Stm25pSpiP {
 

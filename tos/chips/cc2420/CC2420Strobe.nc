@@ -31,7 +31,7 @@
  * @date   August 28 2005
  */
 
-includes CC2420;
+#include "CC2420.h"
 
 interface CC2420Strobe {
 

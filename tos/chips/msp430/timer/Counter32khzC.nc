@@ -1,4 +1,4 @@
-//$Id: Counter32khzC.nc,v 1.1.2.5 2006-01-29 04:33:33 vlahan Exp $
+//$Id: Counter32khzC.nc,v 1.1.2.6 2006-02-14 17:01:43 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
@@ -26,7 +26,7 @@
 
 // Counter32khzC is the counter to be used for all 32khzs.
 
-includes Timer;
+#include "Timer.h"
 
 configuration Counter32khzC
 {

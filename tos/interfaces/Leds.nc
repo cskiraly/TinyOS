@@ -1,4 +1,4 @@
-// $Id: Leds.nc,v 1.1.2.5 2006-01-29 20:32:25 scipio Exp $
+// $Id: Leds.nc,v 1.1.2.6 2006-02-14 17:01:43 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2005-2005 The Regents of the University  of California.  
@@ -35,7 +35,7 @@
  * @author Philip Levis
  */
 
-includes Leds;
+#include "Leds.h"
 
 interface Leds {
 

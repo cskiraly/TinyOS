@@ -1,4 +1,4 @@
-//$Id: HdlcTranslateC.nc,v 1.1.2.2 2005-10-11 23:54:35 idgay Exp $
+//$Id: HdlcTranslateC.nc,v 1.1.2.3 2006-02-14 17:01:44 idgay Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -30,7 +30,7 @@
  *
  */
 
-includes Serial;
+#include "Serial.h"
 
 module HdlcTranslateC {
   provides interface SerialFrameComm;

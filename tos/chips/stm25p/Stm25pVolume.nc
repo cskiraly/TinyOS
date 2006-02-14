@@ -33,10 +33,10 @@
  * Abstraction to provide the id of a volume.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-01-28 01:39:30 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-02-14 17:01:43 $
  */
 
-includes Stm25p;
+#include "Stm25p.h"
 
 interface Stm25pVolume {
 

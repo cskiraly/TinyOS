@@ -1,4 +1,4 @@
-// $Id: TestBroadcastC.nc,v 1.1.2.4 2005-08-08 03:58:15 scipio Exp $
+// $Id: TestBroadcastC.nc,v 1.1.2.5 2006-02-14 17:01:45 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -37,7 +37,7 @@
  *
  **/
 
-includes Timer;
+#include "Timer.h"
 
 module TestBroadcastC {
   uses {

@@ -33,14 +33,14 @@
  * state information. I.e. calling <code>tx</done> will transmit a byte of
  * data in the mode (SPI or UART) the USART has been set to before.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-11 20:41:10 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-02-14 17:01:43 $
  * @author Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author Joe Polastre
  * ========================================================================
  */
  
-includes msp430usart;
+#include "msp430usart.h"
 
 interface HplMsp430Usart {
 

@@ -1,4 +1,4 @@
-// $Id: RadioSenseToLedsC.nc,v 1.1.2.3 2005-10-13 18:11:02 klueska Exp $
+// $Id: RadioSenseToLedsC.nc,v 1.1.2.4 2006-02-14 17:01:44 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -41,8 +41,8 @@
  *
  **/
 
-includes Timer;
-includes RadioSenseToLeds;
+#include "Timer.h"
+#include "RadioSenseToLeds.h"
 
 module RadioSenseToLedsC {
   uses {

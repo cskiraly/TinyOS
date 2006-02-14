@@ -1,4 +1,4 @@
-// $Id: TimerMilliImplC.nc,v 1.1.2.1 2005-05-17 21:25:23 scipio Exp $
+// $Id: TimerMilliImplC.nc,v 1.1.2.2 2006-02-14 17:01:45 idgay Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -40,7 +40,7 @@
  * @date   May 16 2005
  */ 
 
-includes Timer;
+#include "Timer.h"
 
 configuration TimerMilliImplC {
   provides interface Timer<TMilli> as TimerMilli[uint8_t id];

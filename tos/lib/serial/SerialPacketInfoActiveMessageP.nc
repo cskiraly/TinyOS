@@ -1,4 +1,4 @@
-//$Id: SerialPacketInfoActiveMessageP.nc,v 1.1.2.8 2006-01-19 00:35:04 scipio Exp $
+//$Id: SerialPacketInfoActiveMessageP.nc,v 1.1.2.9 2006-02-14 17:01:44 idgay Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -30,7 +30,7 @@
  *
  */
 
-includes Serial;
+#include "Serial.h"
 
 module SerialPacketInfoActiveMessageP {
   provides interface SerialPacketInfo as Info;

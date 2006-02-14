@@ -1,4 +1,4 @@
-/* $Id: PMICM.nc,v 1.1.2.1 2006-02-01 23:56:59 philipb Exp $ */
+/* $Id: PMICM.nc,v 1.1.2.2 2006-02-14 17:01:45 idgay Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -79,9 +79,9 @@
  */
 #define DISABLE_BUCK2 0	
 
-//includes trace;
-includes Timer;
-includes pmic;
+//#include "trace.h"
+#include "Timer.h"
+#include "pmic.h"
 
 module PMICM {
   provides{

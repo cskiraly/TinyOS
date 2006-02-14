@@ -29,15 +29,15 @@
  * - Description ----------------------------------------------------------
  * Implementation of UART0 lowlevel functionality - stateless.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-01-15 22:31:32 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-02-14 17:01:43 $
  * @author Jan Hauer 
  * @author Vlado Handziski
  * @author Joe Polastre
  * ========================================================================
  */
 
-includes msp430baudrates;
+#include "msp430baudrates.h"
 
 generic module Msp430UartP(uint32_t default_baudrate) {
 

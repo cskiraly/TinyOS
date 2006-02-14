@@ -1,4 +1,4 @@
-// $Id: TimerMilli.nc,v 1.1.2.4 2005-05-18 23:28:14 idgay Exp $
+// $Id: TimerMilli.nc,v 1.1.2.5 2006-02-14 17:01:45 idgay Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -36,7 +36,7 @@
  * @date   January 5 2005
  */ 
 
-includes Timer;
+#include "Timer.h"
 
 generic configuration TimerMilli()
 {

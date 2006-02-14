@@ -1,4 +1,4 @@
-// $Id: PlatformC.nc,v 1.1.2.2 2006-01-29 17:59:27 scipio Exp $
+// $Id: PlatformC.nc,v 1.1.2.3 2006-02-14 17:01:45 idgay Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -23,7 +23,7 @@
 /**
  * @author Joe Polastre and Cory Sharp
  */
-includes hardware;
+#include "hardware.h"
 
 configuration PlatformC
 {

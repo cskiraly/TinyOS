@@ -1,4 +1,4 @@
-// $Id: PlatformLedsC.nc,v 1.1.2.4 2006-02-03 23:57:28 philipb Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.5 2006-02-14 17:01:45 idgay Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -23,7 +23,7 @@
 /**
  * @author Joe Polastre
  */
-includes hardware;
+#include "hardware.h"
 
 configuration PlatformLedsC {
   provides interface GeneralIO as Led0;

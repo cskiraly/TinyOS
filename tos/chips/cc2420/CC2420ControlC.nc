@@ -33,11 +33,11 @@
  * Implementation for configuring a ChipCon CC2420 radio.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-01-30 22:24:28 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-02-14 17:01:42 $
  */
 
-includes CC2420;
-includes IEEE802154;
+#include "CC2420.h"
+#include "IEEE802154.h"
 
 configuration CC2420ControlC {
 

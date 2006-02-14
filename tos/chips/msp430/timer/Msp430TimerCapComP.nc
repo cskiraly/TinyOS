@@ -1,4 +1,4 @@
-//$Id: Msp430TimerCapComP.nc,v 1.1.2.1 2006-01-29 04:33:33 vlahan Exp $
+//$Id: Msp430TimerCapComP.nc,v 1.1.2.2 2006-02-14 17:01:43 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
@@ -22,7 +22,7 @@
 
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
-includes Msp430Timer;
+#include "Msp430Timer.h"
 
 generic module Msp430TimerCapComP(
     uint16_t TxCCTLx_addr,

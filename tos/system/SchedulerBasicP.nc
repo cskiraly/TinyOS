@@ -1,4 +1,4 @@
-// $Id: SchedulerBasicP.nc,v 1.1.2.4 2005-10-27 18:45:52 idgay Exp $
+// $Id: SchedulerBasicP.nc,v 1.1.2.5 2006-02-14 17:01:46 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: SchedulerBasicP.nc,v 1.1.2.4 2005-10-27 18:45:52 idgay Exp $
+ * Date last modified:  $Id: SchedulerBasicP.nc,v 1.1.2.5 2006-02-14 17:01:46 idgay Exp $
  *
  */
 
@@ -44,7 +44,7 @@
  * @date   January 19 2005
  */
 
-includes hardware;
+#include "hardware.h"
 
 module SchedulerBasicP {
   provides interface Scheduler;

@@ -29,7 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
 
-includes Msp430Adc12;
+#include "Msp430Adc12.h"
 
 module Msp430InternalVoltageP {
   provides interface Msp430Adc12Config;

@@ -1,4 +1,4 @@
-// $Id: TestAMC.nc,v 1.1.2.2 2005-08-08 03:30:41 scipio Exp $
+// $Id: TestAMC.nc,v 1.1.2.3 2006-02-14 17:01:44 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -37,7 +37,7 @@
  *
  **/
 
-includes Timer;
+#include "Timer.h"
 
 module TestAMC {
   uses {

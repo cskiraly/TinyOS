@@ -1,4 +1,4 @@
-//$Id: Serial802_5_4C.nc,v 1.1.2.5 2005-08-07 21:56:15 scipio Exp $
+//$Id: Serial802_5_4C.nc,v 1.1.2.6 2006-02-14 17:01:44 idgay Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -30,7 +30,7 @@
  *
  */
 
-includes Serial;
+#include "Serial.h"
 configuration Serial802_15_4C {
   provides {
     interface Send;

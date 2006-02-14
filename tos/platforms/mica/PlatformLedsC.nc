@@ -1,4 +1,4 @@
-// $Id: PlatformLedsC.nc,v 1.1.2.6 2006-02-03 23:57:28 philipb Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.7 2006-02-14 17:01:45 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -28,7 +28,7 @@
  * @author Martin Turon <mturon@xbow.com>
  */
 
-includes hardware;
+#include "hardware.h"
 
 configuration PlatformLedsC
 {
