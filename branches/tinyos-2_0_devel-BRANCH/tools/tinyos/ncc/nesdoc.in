@@ -89,6 +89,10 @@ for ($i = 0; $i <= $#ARGV; $i++) {
 	    $genhtml = 1;
 	    $strip = 1;
 	}
+	elsif (/^-preserve$/) {
+	    $preserve = 1;
+	    $strip = 1;
+	}
     }
     push @ncc_args, $_ if !$strip;
 }
@@ -139,6 +143,7 @@ open STDIN, "<&FORARCHIVE";
 $toscontainer = `dirname $tosdir`;
 chomp $toscontainer;
 push @archive_args, "--topdir=$toscontainer";
+push @archive_args, "--preserve" if $preserve;
 push @archive_args, "$docdir";
 unshift @archive_args, "$libprogs/nesdoc/archive.py";
 unshift @archive_args, $python;

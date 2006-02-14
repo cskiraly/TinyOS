@@ -11,7 +11,7 @@ TinyOS 1.x usage:
 
 TinyOS 2.x: collect documentation from a program:
 .br
-\fBnesdoc\fR -o \fIdocumentation-directory\fR
+\fBnesdoc\fR -o \fIdocumentation-directory\fR [\fB-preserve\fR]
         [\fB-new\fR] [\fB-target=\fIplatform\fR] [\fB-topdir=\fIdirectory\fR]
         [\fIncc-options\fR] \fIfiles...\fR
 
@@ -54,6 +54,13 @@ For more details, see the separate \fBnesdoc\fR documentation.
 .TP
 \fB-target=\fIplatform\fR
 Specify the platform for which documentation is generated.
+.TP
+\fB-preserve\fR
+By default, when collecting information, nesdoc overwrites existing XML
+descriptions of interfaces and components to ensure that they are up to 
+date. However, this is slow when generating documentation on a large 
+number of applications. If you pass the \fB-preserve\fR option, existing
+XML descriptions are not replaced.
 .TP
 \fB-html\fR
 Generate HTML pages for all the nesdoc information collected in 

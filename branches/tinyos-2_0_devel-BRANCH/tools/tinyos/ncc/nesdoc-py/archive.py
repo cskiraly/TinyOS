@@ -40,6 +40,7 @@ from sys import *
 from getopt import getopt
 from string import *
 from nesdoc.utils import *
+import os
 
 def check(x):
   if not x:
@@ -51,11 +52,12 @@ def get1(x, tag):
   return check(xml_tagfind(x, tag))
 
 def usage():
-  print "Usage: %s [-t dir] [--topdir dir] repository" % argv[0]
+  print "Usage: %s [-t dir] [--topdir dir] [--preserve] repository" % argv[0]
   print "  where -t/--topdir specify prefixes to remove from file names"
   print "  to create nice, package-like names for interface and components"
-  print "  (based on their full filename)"
-  print "  The XML input is read from stdin"
+  print "  (based on their full filename)."
+  print "  If --preserve is specified, existing XML files are preserved."
+  print "  The XML input is read from stdin."
 
 # Return package name for elem, or None if no valid name is found
 # (i.e., if the element's file name does not match any known topdir)
@@ -97,8 +99,10 @@ def canonicalisedir(dirname):
     return dirname
 
 # option processing. See usage string for details.
-(opts, args) = getopt(argv[1:], "t:", [ "topdir=" ])
-topdirs = map(lambda (x): canonicalisedir(x[1]), opts)
+(opts, args) = getopt(argv[1:], "t:", [ "topdir=", "preserve" ])
+topopts = filter(lambda (x): x[0] != "--preserve", opts)
+preserve = filter(lambda(x): x[0] == "--preserve", opts) != []
+topdirs = map(lambda (x): canonicalisedir(x[1]), topopts)
 if len(args) != 1:
   usage()
 
@@ -179,11 +183,14 @@ nmkdir("components")
 for x in interfacedefs.getElementsByTagName("interfacedef"):
   name = x.getAttribute("qname")
   nicename = x.getAttribute("nicename")
+  filename = "interfaces/%s.xml" % nicename
+  if preserve and os.path.exists(filename):
+    continue
   print "interface %s (%s)" % (name, nicename)
   doc = creator.createDocument(None, None, None)
   copy = x.cloneNode(True)
   doc.appendChild(copy)
-  ifile = file("interfaces/%s.xml" % nicename, "w")
+  ifile = file(filename, "w")
   doc.writexml(ifile)
   doc.unlink()
   ifile.close()
@@ -191,9 +198,13 @@ for x in interfacedefs.getElementsByTagName("interfacedef"):
 # save component definitions, excluding instantiations
 for x in components.getElementsByTagName("component"):
   if len(x.getElementsByTagName("instance")) == 0:
-    # not an intance
+    # not an instance
     name = x.getAttribute("qname")
     nicename = x.getAttribute("nicename")
+    filename = "components/%s.xml" % nicename
+    if preserve and os.path.exists(filename):
+      continue
+    
     print "component %s (%s)" % (name, nicename)
     doc = creator.createDocument(None, None, None)
     # copy component and create its specification
@@ -230,7 +241,7 @@ for x in components.getElementsByTagName("component"):
       refd.appendChild(qnameidx[qname].cloneNode(True))
     
     doc.appendChild(copy)
-    ifile = file("components/%s.xml" % nicename, "w")
+    ifile = file(filename, "w")
     doc.writexml(ifile)
     doc.unlink()
     ifile.close()
