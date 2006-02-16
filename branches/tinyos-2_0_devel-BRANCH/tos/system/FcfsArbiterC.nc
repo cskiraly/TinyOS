@@ -51,8 +51,8 @@
 
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.9 $
- * $Date: 2006-01-27 03:40:39 $ 
+ * $Revision: 1.1.2.10 $
+ * $Date: 2006-02-16 18:26:16 $ 
  * ======================================================================== 
  */
  
@@ -60,15 +60,16 @@
  * Please refer to TEP 108 for more information about this component and its
  * intended use.<br><br>
  *
- * This component provides the Resource, ArbiterInfo, and Resource Controller
- * interfaces and uses the ResourceConfigure interface as described in TEP 108.
- * It provides arbitration to a shared resource in an FCFS fashion.  An array
- * is used to keep track of which users have put in requests for the resource.
- * Upon the release of the resource by one of these users, the array is checked
- * and the next user (in FCFS order) that has a pending request
- * will ge granted control of the resource.  If there are no pending requests, then
- * the resource becomes idle and any user can put in a request and immediately receive
- * access to the Resource.
+ * This component provides the Resource, ArbiterInfo, and Resource
+ * Controller interfaces and uses the ResourceConfigure interface as
+ * described in TEP 108.  It provides arbitration to a shared resource in
+ * an FCFS fashion.  An array is used to keep track of which users have put
+ * in requests for the resource.  Upon the release of the resource by one
+ * of these users, the array is checked and the next user (in FCFS order)
+ * that has a pending request will ge granted control of the resource.  If
+ * there are no pending requests, then the resource becomes idle and any
+ * user can put in a request and immediately receive access to the
+ * Resource.
  *
  * @param <b>resourceName</b> -- The name of the Resource being shared
  * 
@@ -107,7 +108,7 @@ implementation {
   void grantNextRequest();
   
   bool requested(uint8_t id) {
-    return ( ( resQ[id] != NO_RES ) || ( qTail == id ) );
+    return resQ[id] != NO_RES || qTail == id;
   }
 
   /**  
@@ -215,11 +216,13 @@ implementation {
   async command void Resource.release[uint8_t id]() {
     uint8_t currentState;
     atomic {
-      if ( ( state == RES_BUSY ) && ( resId == id ) )
-        if(irp == TRUE)
+      if (state == RES_BUSY && resId == id) {
+        if (irp)
           resId = reqResId;
-	      else grantNextRequest();
-        currentState = state;
+	else grantNextRequest();
+	call ResourceConfigure.unconfigure[id]();
+      }
+      currentState = state;
     }
     if(currentState == RES_IDLE)
       signal ResourceController.idle();
@@ -329,5 +332,7 @@ implementation {
   default async event void ResourceController.idle() {
   }
   default async command void ResourceConfigure.configure[uint8_t id]() {
+  }
+  default async command void ResourceConfigure.unconfigure[uint8_t id]() {
   }
 }

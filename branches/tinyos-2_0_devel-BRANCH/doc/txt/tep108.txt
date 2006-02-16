@@ -10,8 +10,8 @@ Resource Arbitration
 :Authors: Kevin Klues, Philip Levis, David Gay, David Culler, Vlado Handziski
 
 :Draft-Created: 28-Mar-2005
-:Draft-Version: $Revision: 1.1.2.5 $
-:Draft-Modified: $Date: 2006-01-18 05:40:16 $
+:Draft-Version: $Revision: 1.1.2.6 $
+:Draft-Modified: $Date: 2006-02-16 18:26:16 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -354,6 +354,7 @@ Arbiters MAY provide a parameterized ResourceConfigure interface::
 
   interface ResourceConfigure {
     async command void configure();
+    async command void unconfigure();
   }
 
 
@@ -372,10 +373,11 @@ the Resource interface. For example::
   }
 
 
-If an arbiter uses the ResourceConfigure interface, before it signals the 
-Resource.granted() event and before it returns SUCCESS from a call to 
-Resource.immediateRequest(), it MUST call ResourceConfigure.configure()
-on the granted client ID.
+If an arbiter uses the ResourceConfigure interface, before it signals the
+Resource.granted() event and before it returns SUCCESS from a call to
+Resource.immediateRequest(), it MUST call ResourceConfigure.configure() on
+the granted client ID. Similarly, after a valid call to Resource.release(),
+it MUST call ResourceConfigure.unconfigure() on the releasing client ID.
 
 Using a parameterized interface that calls out rather than a decorator
 on the Resource interface simplifies code reuse. Using a decorator

@@ -22,8 +22,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-26 21:44:51 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-02-16 18:26:16 $ 
  * ======================================================================== 
  *
  */
@@ -47,4 +47,10 @@ interface ResourceConfigure {
    * Must always be used in conjuntion with the Resource interface.
    */
   async command void configure();
+
+  /**
+   * Used to unconfigure a resource just before releasing it.
+   * Must always be used in conjuntion with the Resource interface.
+   */
+  async command void unconfigure();
 } 
