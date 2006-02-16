@@ -1,4 +1,4 @@
-/// $Id: Atm128SpiP.nc,v 1.1.2.6 2006-01-29 18:06:19 scipio Exp $
+/// $Id: Atm128SpiP.nc,v 1.1.2.7 2006-02-16 19:02:14 idgay Exp $
 
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -63,7 +63,7 @@
  *
  *
  * <pre>
- *  $Id: Atm128SpiP.nc,v 1.1.2.6 2006-01-29 18:06:19 scipio Exp $
+ *  $Id: Atm128SpiP.nc,v 1.1.2.7 2006-02-16 19:02:14 idgay Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -126,11 +126,10 @@ implementation {
     call McuPowerState.update();
   }
   
-  async command error_t SpiByte.write( uint8_t tx, uint8_t* rx ) {
+  async command void SpiByte.write( uint8_t tx, uint8_t* rx ) {
     call Spi.write( tx );
     while ( !( SPSR & 0x80 ) );
     *rx = call Spi.read();
-    return SUCCESS;
   }
 
 

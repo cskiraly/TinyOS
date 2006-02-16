@@ -1,4 +1,4 @@
-/* $Id: AdcReadStreamClientC.nc,v 1.1.2.2 2006-01-27 19:35:31 idgay Exp $
+/* $Id: AdcReadStreamClientC.nc,v 1.1.2.3 2006-02-16 19:02:14 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -20,7 +20,10 @@
 
 generic configuration AdcReadStreamClientC() {
   provides interface ReadStream<uint16_t>;
-  uses interface Atm128AdcConfig;
+  uses {
+    interface Atm128AdcConfig;
+    interface ResourceConfigure;
+  }
 }
 implementation {
   components WireAdcStreamP, Atm128AdcC;
@@ -33,4 +36,5 @@ implementation {
   ReadStream = WireAdcStreamP.ReadStream[ID];
   Atm128AdcConfig = WireAdcStreamP.Atm128AdcConfig[ID];
   WireAdcStreamP.Resource[ID] -> Atm128AdcC.Resource[HAL_ID];
+  ResourceConfigure = Atm128AdcC.ResourceConfigure[HAL_ID];
 }

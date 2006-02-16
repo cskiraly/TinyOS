@@ -1,4 +1,4 @@
-/// $Id: Atm128AdcC.nc,v 1.1.2.6 2006-01-24 18:47:16 idgay Exp $
+/// $Id: Atm128AdcC.nc,v 1.1.2.7 2006-02-16 19:02:14 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -43,6 +43,7 @@ configuration Atm128AdcC
     interface Atm128AdcSingle;
     interface Atm128AdcMultiple;
   }
+  uses interface ResourceConfigure[uint8_t client];
 }
 implementation
 {
@@ -51,6 +52,7 @@ implementation
     new StdControlPowerManagerC() as PM;
 
   Resource = AdcArbiter;
+  ResourceConfigure = AdcArbiter;
   Atm128AdcSingle = Atm128AdcP;
   Atm128AdcMultiple = Atm128AdcP;
 

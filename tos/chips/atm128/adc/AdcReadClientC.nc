@@ -1,4 +1,4 @@
-/* $Id: AdcReadClientC.nc,v 1.1.2.2 2006-01-27 19:35:31 idgay Exp $
+/* $Id: AdcReadClientC.nc,v 1.1.2.3 2006-02-16 19:02:14 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -20,7 +20,10 @@
 
 generic configuration AdcReadClientC() {
   provides interface Read<uint16_t>;
-  uses interface Atm128AdcConfig;
+  uses {
+    interface Atm128AdcConfig;
+    interface ResourceConfigure;
+  }
 }
 implementation {
   components WireAdcP, Atm128AdcC;
@@ -33,4 +36,5 @@ implementation {
   Read = WireAdcP.Read[ID];
   Atm128AdcConfig = WireAdcP.Atm128AdcConfig[ID];
   WireAdcP.Resource[ID] -> Atm128AdcC.Resource[HAL_ID];
+  ResourceConfigure = Atm128AdcC.ResourceConfigure[HAL_ID];
 }
