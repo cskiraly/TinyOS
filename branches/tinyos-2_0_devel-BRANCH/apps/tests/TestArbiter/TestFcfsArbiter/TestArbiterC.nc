@@ -55,11 +55,11 @@
  * <br>
  *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
- * @version  $Revision: 1.1.2.1 $
- * @date $Date: 2006-01-30 17:46:59 $
+ * @version  $Revision: 1.1.2.2 $
+ * @date $Date: 2006-02-16 16:48:10 $
  */
 
-includes Timer;
+#include "Timer.h"
 
 module TestArbiterC {
   uses {

@@ -24,7 +24,7 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: TestI2CM.nc,v 1.1.1.1.2.1 2006-01-27 22:20:33 mturon Exp $
+ *  $Id: TestI2CM.nc,v 1.1.1.1.2.2 2006-02-16 16:48:12 idgay Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
 #define I2C_MDA300_ADC  0x94
 #define I2C_MDA300_EE   0xAE
 
-includes Timer;
+#include "Timer.h"
 
 module TestI2CM
 {

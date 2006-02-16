@@ -1,4 +1,4 @@
-// $Id: TestSerialC.nc,v 1.1.2.1 2006-01-16 01:09:29 bengreenstein Exp $
+// $Id: TestSerialC.nc,v 1.1.2.2 2006-02-16 16:48:12 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -47,8 +47,8 @@
  *
  **/
 
-includes Timer;
-includes TestSerial;
+#include "Timer.h"
+#include "TestSerial.h"
 
 module TestSerialC {
   uses {

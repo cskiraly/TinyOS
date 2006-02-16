@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.7 $
- * $Date: 2006-02-04 00:42:34 $
+ * $Revision: 1.1.2.8 $
+ * $Date: 2006-02-16 16:48:11 $
  * ========================================================================
  */
 
@@ -61,7 +61,7 @@
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * @author Philipp Huppertz (extended test FcfsPriorityArbiter)
  */
-includes Timer;
+#include "Timer.h"
 
 module TestPriorityArbiterC {
   uses {

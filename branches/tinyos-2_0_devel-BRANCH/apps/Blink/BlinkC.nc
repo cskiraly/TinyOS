@@ -1,4 +1,4 @@
-// $Id: BlinkC.nc,v 1.1.2.8 2006-01-18 22:21:12 scipio Exp $
+// $Id: BlinkC.nc,v 1.1.2.9 2006-02-16 16:48:07 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -34,7 +34,7 @@
  * Timer fires.
  **/
 
-includes Timer;
+#include "Timer.h"
 
 module BlinkC
 {

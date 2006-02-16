@@ -1,6 +1,6 @@
-// $Id: BlinkM.nc,v 1.1.2.1 2006-02-03 19:44:51 idgay Exp $
+// $Id: BlinkM.nc,v 1.1.2.2 2006-02-16 16:48:09 idgay Exp $
 
-includes Timer;
+#include "Timer.h"
 
 module BlinkM
 {
