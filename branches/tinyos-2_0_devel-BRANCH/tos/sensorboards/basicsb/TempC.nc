@@ -1,4 +1,4 @@
-/* $Id: TempC.nc,v 1.1.2.1 2006-02-03 21:11:42 idgay Exp $
+/* $Id: TempC.nc,v 1.1.2.2 2006-02-16 18:54:15 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -19,16 +19,9 @@ generic configuration TempC() {
   provides interface Read<uint16_t>;
 }
 implementation {
-  components TempReadP, TempDeviceP, new AdcReadClientC();
+  components new AdcReadClientC(), TempDeviceP;
 
-  enum {
-    RESID = unique(UQ_TEMPDEVICE),
-  };
-
-  Read = TempReadP.Read[RESID];
-  
-  TempReadP.ActualRead[RESID] -> AdcReadClientC;
-  TempReadP.Resource[RESID] -> TempDeviceP.Resource[RESID];
-
+  Read = AdcReadClientC;
   AdcReadClientC.Atm128AdcConfig -> TempDeviceP;
+  AdcReadClientC.ResourceConfigure -> TempDeviceP;
 }

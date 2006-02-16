@@ -1,4 +1,4 @@
-/* $Id: PhotoP.nc,v 1.1.2.4 2006-02-02 01:03:29 idgay Exp $
+/* $Id: PhotoP.nc,v 1.1.2.5 2006-02-16 18:54:15 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -14,7 +14,7 @@
 module PhotoP
 {
   provides {
-    interface StdControl;
+    interface ResourceConfigure;
     interface Atm128AdcConfig;
   }
   uses {
@@ -24,17 +24,6 @@ module PhotoP
 }
 implementation
 {
-  command error_t StdControl.start() {
-    call PhotoPin.makeOutput();
-    call PhotoPin.set();
-    return SUCCESS;
-  }
-
-  command error_t StdControl.stop() {
-    call PhotoPin.clr();
-    return SUCCESS;
-  }
-
   async command uint8_t Atm128AdcConfig.getChannel() {
     return call PhotoAdc.getChannel();
   }
@@ -45,5 +34,14 @@ implementation
 
   async command uint8_t Atm128AdcConfig.getPrescaler() {
     return ATM128_ADC_PRESCALE;
+  }
+
+  async command void ResourceConfigure.configure() {
+    call PhotoPin.makeOutput();
+    call PhotoPin.set();
+  }
+
+  async command void ResourceConfigure.unconfigure() {
+    call PhotoPin.clr();
   }
 }

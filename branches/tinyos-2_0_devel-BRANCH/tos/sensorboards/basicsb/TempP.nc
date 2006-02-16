@@ -1,4 +1,4 @@
-/* $Id: TempP.nc,v 1.1.2.3 2006-02-02 00:13:46 idgay Exp $
+/* $Id: TempP.nc,v 1.1.2.4 2006-02-16 18:54:15 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -14,7 +14,7 @@
 module TempP
 {
   provides {
-    interface StdControl;
+    interface ResourceConfigure;
     interface Atm128AdcConfig;
   }
   uses {
@@ -24,17 +24,6 @@ module TempP
 }
 implementation
 {
-  command error_t StdControl.start() {
-    call TempPin.makeOutput();
-    call TempPin.set();
-    return SUCCESS;
-  }
-
-  command error_t StdControl.stop() {
-    call TempPin.clr();
-    return SUCCESS;
-  }
-
   async command uint8_t Atm128AdcConfig.getChannel() {
     return call TempAdc.getChannel();
   }
@@ -45,5 +34,14 @@ implementation
 
   async command uint8_t Atm128AdcConfig.getPrescaler() {
     return ATM128_ADC_PRESCALE;
+  }
+
+  async command void ResourceConfigure.configure() {
+    call TempPin.makeOutput();
+    call TempPin.set();
+  }
+
+  async command void ResourceConfigure.unconfigure() {
+    call TempPin.clr();
   }
 }

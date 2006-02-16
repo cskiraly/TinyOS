@@ -1,4 +1,4 @@
-/* $Id: PhotoDeviceP.nc,v 1.1.2.1 2006-02-02 00:13:46 idgay Exp $
+/* $Id: PhotoDeviceP.nc,v 1.1.2.2 2006-02-16 18:54:15 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -18,22 +18,15 @@
 
 configuration PhotoDeviceP {
   provides {
-    interface Resource[uint8_t client];
+    interface ResourceConfigure;
     interface Atm128AdcConfig;
   }
 }
 implementation {
-  components new RoundRobinArbiterC(UQ_PHOTODEVICE) as PhotoArbiter,
-    new StdControlPowerManagerC() as PM, MainC, PhotoP, MicaBusC;
+  components PhotoP, MicaBusC;
 
-  Resource = PhotoArbiter;
+  ResourceConfigure = PhotoP;
   Atm128AdcConfig = PhotoP;
-
-  PM.Init <- MainC;
-  PM.StdControl -> PhotoP;
-  PM.ArbiterInit -> PhotoArbiter;
-  PM.ResourceController -> PhotoArbiter;
-  PM.ArbiterInfo -> PhotoArbiter;
 
   PhotoP.PhotoPin -> MicaBusC.PW1;
   PhotoP.PhotoAdc -> MicaBusC.Adc6;
