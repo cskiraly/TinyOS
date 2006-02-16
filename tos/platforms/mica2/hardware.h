@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.7 2006-02-02 01:03:17 idgay Exp $
+ *  $Id: hardware.h,v 1.1.2.8 2006-02-16 18:45:51 idgay Exp $
  */
 
 #ifndef HARDWARE_H
@@ -51,8 +51,5 @@ enum {
   CHANNEL_BATTERY    = ATM128_ADC_SNGL_ADC7,
   ATM128_ADC_PRESCALE = ATM128_ADC_PRESCALE_64  // normal mica2 prescaler value
 };
-
-#define UQ_VOLTAGEDEVICE "VoltageReadP.Resource"
-#define UQ_VOLTAGEDEVICE_STREAM "VoltageReadStreamP.Resource"
 
 #endif //HARDWARE_H

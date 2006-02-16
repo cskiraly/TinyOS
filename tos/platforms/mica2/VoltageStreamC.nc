@@ -1,4 +1,4 @@
-/* $Id: VoltageStreamC.nc,v 1.1.2.1 2006-02-03 21:15:12 idgay Exp $
+/* $Id: VoltageStreamC.nc,v 1.1.2.2 2006-02-16 18:45:51 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -19,17 +19,9 @@ generic configuration VoltageStreamC() {
   provides interface ReadStream<uint16_t>;
 }
 implementation {
-  components VoltageReadStreamP, VoltageDeviceP, new AdcReadStreamClientC();
+  components VoltageDeviceP, new AdcReadStreamClientC();
 
-  enum {
-    RESID = unique(UQ_VOLTAGEDEVICE),
-    STREAMID = unique(UQ_VOLTAGEDEVICE_STREAM)
-  };
-
-  ReadStream = VoltageReadStreamP.ReadStream[STREAMID];
-  
-  VoltageReadStreamP.ActualReadStream[STREAMID] -> AdcReadStreamClientC;
-  VoltageReadStreamP.Resource[STREAMID] -> VoltageDeviceP.Resource[RESID];
-
+  ReadStream = AdcReadStreamClientC;
   AdcReadStreamClientC.Atm128AdcConfig -> VoltageDeviceP;
+  AdcReadStreamClientC.ResourceConfigure -> VoltageDeviceP;
 }

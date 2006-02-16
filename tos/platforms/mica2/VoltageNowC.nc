@@ -1,4 +1,4 @@
-/* $Id: VoltageNowC.nc,v 1.1.2.1 2006-02-03 21:15:12 idgay Exp $
+/* $Id: VoltageNowC.nc,v 1.1.2.2 2006-02-16 18:45:51 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -20,17 +20,10 @@ generic configuration VoltageNowC() {
   provides interface ReadNow<uint16_t>;
 }
 implementation {
-  components VoltageDeviceP, new AdcReadNowClientC(), new NestedResourceC();
+  components new AdcReadNowClientC(), VoltageDeviceP;
 
-  enum {
-    RESID = unique(UQ_VOLTAGEDEVICE),
-  };
-
-  Resource = NestedResourceC;
   ReadNow = AdcReadNowClientC;
-
-  NestedResourceC.Resource1 -> VoltageDeviceP.Resource[RESID];
-  NestedResourceC.Resource2 -> AdcReadNowClientC;
-
+  Resource = AdcReadNowClientC;
   AdcReadNowClientC.Atm128AdcConfig -> VoltageDeviceP;
+  AdcReadNowClientC.ResourceConfigure -> VoltageDeviceP;
 }
