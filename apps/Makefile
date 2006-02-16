@@ -6,32 +6,45 @@
 # Author: 	Martin Turon
 # Date:		August 18, 2005
 #
-# One question: Why is Makefile syntax so cryptic?? 
-#
 ######################################################################
-# $Id: Makefile,v 1.1.2.1 2005-08-18 08:30:50 mturon Exp $
+# $Id: Makefile,v 1.1.2.2 2006-02-16 16:45:03 idgay Exp $
 
 # MAKECMDGOALS is the way to get the arguments passed into a Makefile ...
 TARGET=$(MAKECMDGOALS)
+NESDOC_TARGET=$(filter-out nesdoc,$(TARGET))
 
 # Here is a way to get the list of subdirectories in a Makefile ...
 ROOT=.
-SUBDIRS := ${dir ${wildcard ${ROOT}/*/ ${ROOT}/*/*/}}
+SUBDIRS := $(shell find * -type d)
 
 # Okay, match any target, and recurse the subdirectories
 %: 
 	@for i in $(SUBDIRS); do \
-	  if [ -d $$i ]; then \
-	    if [ -f $$i/Makefile ]; then \
-		echo Building ... $(PWD)/$$i; \
-		echo make $(TARGET); \
-		cd $$i; \
-		$(MAKE) $(TARGET); \
-	    else \
-		echo "***" no Makefile in directory: $(PWD)/$$i; \
-	    fi \
-	  else \
-		echo "***" skipping missing directory: $(PWD)/$$i; \
+	  HERE=$$PWD; \
+	  if [ -f $$i/Makefile ]; then \
+	      echo Building ... $(PWD)/$$i; \
+	      echo make $(TARGET); \
+	      cd $$i; \
+	      $(MAKE) $(TARGET); \
+	      cd $$HERE; \
 	  fi; \
 	done
 
+BASEDIR = $(shell pwd | sed 's@\(.*\)/apps.*$$@\1@' )
+# The output directory for generated documentation
+DOCDIR = $(BASEDIR)/doc/nesdoc
+
+nesdoc:
+	@echo This target rebuilds documentation for all known platforms.
+	@echo It DOES NOT overwrite any existing documentation, thus, it 
+	@echo is best run after deleting all old documentation.
+	@echo
+	@echo To delete all old documentation, delete the contents of the
+	@echo $(DOCDIR) directory.
+	@echo
+	@echo Press Enter to continue, or ^C to abort.
+	@read
+	for platform in `ncc -print-platforms`; do \
+	  $(MAKE) $$platform docs.nohtml.preserve; \
+	  nesdoc -o $(DOCDIR) -html -target=$$platform; \
+	done
