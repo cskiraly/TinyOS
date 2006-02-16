@@ -1,4 +1,4 @@
-// $Id: BlockStorageP.nc,v 1.1.2.6 2006-02-03 23:23:06 idgay Exp $
+// $Id: BlockStorageP.nc,v 1.1.2.7 2006-02-16 22:21:32 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -249,11 +249,9 @@ implementation
     call At45db.syncAll();
   }
 
-#if 0
-  command uint32_t BlockRead.getSize[blockstorage_t blockId]() {
+  command storage_len_t BlockRead.getSize[blockstorage_t blockId]() {
     return call At45dbVolume.volumeSize[blockId]();
   }
-#endif
 
   command error_t BlockRead.read[blockstorage_t id](storage_addr_t addr, void* buf, storage_len_t len) {
     return newRequest(S_READ, id, addr, buf, len);

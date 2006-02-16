@@ -34,7 +34,7 @@
  * TEP103.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.8 $ $Date: 2006-01-28 01:39:30 $
+ * @version $Revision: 1.1.2.9 $ $Date: 2006-02-16 22:21:32 $
  */
 
 #include "Storage.h"
@@ -103,5 +103,11 @@ interface BlockRead {
    */
   event void computeCrcDone( storage_addr_t addr, storage_len_t len,
 			     uint16_t crc, error_t error );
+
+  /**
+   * Report volume size in bytes.
+   * @return Volume size.
+   */
+  command storage_len_t getSize();
 
 }
