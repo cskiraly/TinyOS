@@ -3,11 +3,10 @@
 # 
 # A do-nothing platform. A good target for mig when using external types.
 #
-# $Id: .platform,v 1.1.2.1 2005-10-11 17:18:58 idgay Exp $
+# $Id: .platform,v 1.1.2.2 2006-02-16 22:16:15 idgay Exp $
 #
 push( @includes, qw(
 
-  %T/platforms/null
   %T/lib/timer
   %T/lib/serial
 
