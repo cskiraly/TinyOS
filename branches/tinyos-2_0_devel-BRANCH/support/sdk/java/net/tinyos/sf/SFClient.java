@@ -1,4 +1,4 @@
-// $Id: SFClient.java,v 1.1.2.1 2005-05-23 22:11:49 idgay Exp $
+// $Id: SFClient.java,v 1.1.2.2 2006-02-16 01:21:26 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -59,12 +59,7 @@ public class SFClient extends SFProtocol implements Runnable, PacketListenerIF {
 
     public SFClient(Socket socket, SerialForwarder serialForward,
 		    SFListen listenSvr) {
-	this(socket, serialForward, listenSvr, Platform.defaultPlatform);
-    }
-
-    public SFClient(Socket socket, SerialForwarder serialForward,
-		    SFListen listenSvr, int plat) {
-	super("", plat);
+	super("");
 	thread = new Thread(this);
         sf = serialForward;
         listenServer = listenSvr;

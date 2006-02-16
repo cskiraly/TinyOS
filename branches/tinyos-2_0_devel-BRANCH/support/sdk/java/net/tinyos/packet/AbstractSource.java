@@ -1,4 +1,4 @@
-// $Id: AbstractSource.java,v 1.1.2.2 2005-05-23 23:14:10 idgay Exp $
+// $Id: AbstractSource.java,v 1.1.2.3 2006-02-16 01:21:26 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -46,7 +46,6 @@ import net.tinyos.util.*;
 abstract public class AbstractSource implements PacketSource
 {
     protected String name;
-    protected int platform = Platform.defaultPlatform;
     protected boolean opened = false;
     protected Messenger messages;
 
@@ -61,10 +60,6 @@ abstract public class AbstractSource implements PacketSource
 
     public String getName() {
 	return name;
-    }
-
-    public int getPlatform() {
-	return platform;
     }
 
     synchronized public void open(Messenger messages) throws IOException {

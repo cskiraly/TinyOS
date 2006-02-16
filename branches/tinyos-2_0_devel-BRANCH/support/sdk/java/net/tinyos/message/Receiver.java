@@ -1,4 +1,4 @@
-// $Id: Receiver.java,v 1.1.2.1 2005-06-10 00:13:52 idgay Exp $
+// $Id: Receiver.java,v 1.1.2.2 2006-02-16 01:21:25 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -60,7 +60,6 @@ public class Receiver implements PacketListenerIF {
 
     Hashtable templateTbl; // Mapping from AM type to msgTemplate
     PhoenixSource source;
-    MessageFactory messageFactory;
     /**
      * Inner class representing a single MessageListener and its
      * associated Message template.
@@ -102,7 +101,6 @@ public class Receiver implements PacketListenerIF {
 	this.templateTbl = new Hashtable();
 	this.source = forwarder;
 	forwarder.registerPacketListener(this);
-	messageFactory = new MessageFactory(forwarder);
     }
 
     /**
@@ -145,22 +143,20 @@ public class Receiver implements PacketListenerIF {
     }
 
     public void packetReceived(byte[] packet) {
-	// XXX: hack: with the new packetsource format, packet does not
-	// contain a crc field, so numElements_data() will be wrong. But we
-	// access the data area via dataSet/dataGet, so we're ok.
-
-	//this is where the source comes in to create the correct packet 
-	final TOSMsg msg = messageFactory.createTOSMsg(packet);
-	
 	if (DEBUG) Dump.dump("Received message", packet);
 
-	Integer type = new Integer(msg.get_type());
+	if (packet[0] != Serial.TOS_SERIAL_ACTIVE_MESSAGE_ID)
+	    return; // not for us.
+
+	SerialPacket msg = new SerialPacket(packet, 1);
+	Integer type = new Integer(msg.get_header_type());
 	Vector vec = (Vector)templateTbl.get(type);
 	if (vec == null) {
-	    if (DEBUG) Dump.dump("Received packet with type "+msg.get_type()+", but no listeners registered", packet);
+	    if (DEBUG) Dump.dump("Received packet with type " + type +
+				 ", but no listeners registered", packet);
 	    return;
 	}
-	int length = msg.get_length();
+	int length = msg.get_header_length();
 
 	Enumeration en = vec.elements();
 	while (en.hasMoreElements()) {
@@ -172,7 +168,7 @@ public class Receiver implements PacketListenerIF {
 	    // different templates used for different listeners
 	    try {
 		received = temp.template.clone(length);
-		received.dataSet(msg.dataGet(), msg.offset_data(0), 0, length);
+		received.dataSet(msg.dataGet(), msg.offset_data(0) + msg.baseOffset(), 0, length);
 	    } catch (ArrayIndexOutOfBoundsException e) {
 		error(temp, "invalid length message received (too long)");
 		continue;
@@ -187,7 +183,7 @@ public class Receiver implements PacketListenerIF {
 		error(temp, "invalid length message received (too short)");
 		continue;
 	    }
-	    temp.listener.messageReceived(msg.get_addr(), received);
+	    temp.listener.messageReceived(msg.get_header_addr(), received);
 	}
     }
 }

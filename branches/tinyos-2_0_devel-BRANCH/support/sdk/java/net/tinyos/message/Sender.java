@@ -1,4 +1,4 @@
-// $Id: Sender.java,v 1.1.2.2 2005-08-12 23:35:08 scipio Exp $
+// $Id: Sender.java,v 1.1.2.3 2006-02-16 01:21:25 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -58,7 +58,6 @@ public class Sender {
     private static final boolean VERBOSE = false;
 
     PhoenixSource sender;
-    MessageFactory messageFactory;
 
     /**
      * Create a sender talking to PhoenixSource forwarder. The group id of
@@ -67,7 +66,6 @@ public class Sender {
      */
     public Sender(PhoenixSource forwarder) {
 	sender = forwarder;
-	messageFactory = new MessageFactory(forwarder);
     }
 
     /**
@@ -85,15 +83,18 @@ public class Sender {
 				  m.getClass().getName());
 	}
 
-	TOSMsg packet = messageFactory.createTOSMsg(data.length);
-	packet = messageFactory.createTOSMsg(packet.offset_data(0) + data.length);
-	packet.set_addr(moteId);
-	packet.set_type((short)amType);
-	packet.set_length((short)data.length);
+	SerialPacket packet =
+	    new SerialPacket(SerialPacket.offset_data(0) + data.length);
+	packet.set_header_addr(moteId);
+	packet.set_header_type((short)amType);
+	packet.set_header_length((short)data.length);
 	packet.dataSet(data, 0, packet.offset_data(0), data.length);
 
 	byte[] packetData = packet.dataGet();
-	sender.writePacket(packetData);
-	if (VERBOSE) Dump.dump("sent", packetData);
+	byte[] fullPacket = new byte[packetData.length + 1];
+	fullPacket[0] = Serial.TOS_SERIAL_ACTIVE_MESSAGE_ID;
+	System.arraycopy(packetData, 0, fullPacket, 1, packetData.length);
+	sender.writePacket(fullPacket);
+	if (VERBOSE) Dump.dump("sent", fullPacket);
     }
 }
