@@ -1,4 +1,4 @@
-// $Id: BlinkTaskC.nc,v 1.1.2.1 2006-02-09 17:06:12 idgay Exp $
+// $Id: BlinkTaskC.nc,v 1.1.2.2 2006-02-16 16:48:13 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -42,7 +42,7 @@
  * toggle the LED.
  **/
 
-includes Timer;
+#include "Timer.h"
 
 module BlinkTaskC
 {

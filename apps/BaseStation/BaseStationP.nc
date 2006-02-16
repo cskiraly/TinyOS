@@ -1,4 +1,4 @@
-// $Id: BaseStationP.nc,v 1.1.2.4 2005-10-31 19:53:52 scipio Exp $
+// $Id: BaseStationP.nc,v 1.1.2.5 2006-02-16 16:48:07 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: BaseStationP.nc,v 1.1.2.4 2005-10-31 19:53:52 scipio Exp $
+ * Revision:	$Id: BaseStationP.nc,v 1.1.2.5 2006-02-16 16:48:07 idgay Exp $
  */
   
 /* 
@@ -43,8 +43,8 @@
  * serial will be filtered by that same group id.
  */
 
-includes AM;
-includes Serial;
+#include "AM.h"
+#include "Serial.h"
 
 module BaseStationP {
   uses {

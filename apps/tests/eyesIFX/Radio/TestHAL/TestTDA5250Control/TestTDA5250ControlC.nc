@@ -30,7 +30,7 @@
  *
  **/
 
-includes Timer;
+#include "Timer.h"
 configuration TestTDA5250ControlC {
 }
 implementation {

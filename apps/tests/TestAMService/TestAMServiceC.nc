@@ -1,4 +1,4 @@
-// $Id: TestAMServiceC.nc,v 1.1.2.2 2005-10-11 21:44:35 cssharp Exp $
+// $Id: TestAMServiceC.nc,v 1.1.2.3 2006-02-16 16:48:09 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -37,7 +37,7 @@
  *
  **/
 
-includes Timer;
+#include "Timer.h"
 
 module TestAMServiceC {
   uses {

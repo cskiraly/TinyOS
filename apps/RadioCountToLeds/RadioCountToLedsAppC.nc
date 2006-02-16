@@ -1,4 +1,4 @@
-// $Id: RadioCountToLedsAppC.nc,v 1.1.2.4 2006-02-04 01:10:32 philipb Exp $
+// $Id: RadioCountToLedsAppC.nc,v 1.1.2.5 2006-02-16 16:48:07 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -37,7 +37,7 @@
  * @date   June 6 2005
  */
 
-includes RadioCountToLeds;
+#include "RadioCountToLeds.h"
 
 configuration RadioCountToLedsAppC {}
 implementation {

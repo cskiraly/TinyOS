@@ -24,10 +24,10 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: TestMts300P.nc,v 1.1.1.1 2005-11-05 16:38:04 kristinwright Exp $
+ *  $Id: TestMts300P.nc,v 1.1.1.1.2.1 2006-02-16 16:48:12 idgay Exp $
  */
 
-includes Timer;
+#include "Timer.h"
 
 /**
  * This application tests the mts300 sensorboard.

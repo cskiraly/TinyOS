@@ -1,4 +1,4 @@
-// $Id: RadioStressC.nc,v 1.1.2.6 2006-02-02 18:42:06 scipio Exp $
+// $Id: RadioStressC.nc,v 1.1.2.7 2006-02-16 16:48:08 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -39,8 +39,8 @@
  *
  **/
 
-includes Timer;
-includes RadioStress;
+#include "Timer.h"
+#include "RadioStress.h"
 
 module RadioStressC {
   uses {

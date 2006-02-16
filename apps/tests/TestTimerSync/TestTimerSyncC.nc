@@ -1,4 +1,4 @@
-// $Id: TestTimerSyncC.nc,v 1.1.2.3 2006-01-29 18:04:25 scipio Exp $
+// $Id: TestTimerSyncC.nc,v 1.1.2.4 2006-02-16 16:48:12 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -38,7 +38,7 @@
  *
  **/
 
-includes Timer;
+#include "Timer.h"
 
 module TestTimerSyncC {
   uses {

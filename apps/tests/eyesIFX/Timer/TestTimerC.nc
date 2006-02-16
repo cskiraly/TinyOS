@@ -30,7 +30,7 @@
  *
  **/
 
-includes Timer;
+#include "Timer.h"
 configuration TestTimerC {
 }
 implementation {
