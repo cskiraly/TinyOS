@@ -121,47 +121,35 @@ if ($print_target) {
 # First see if the directory for this platform was explicitly specified
 foreach $dir (@includes) {
     if ($dir =~ m!/$target/?$! && -f "$dir/.platform") {
-      if ($tossim) {
-	$platform_def = "$dir/sim/.platform";
-      }
-      else {
 	$platform_def = "$dir/.platform";
-      }
 	last;
     }
 }
 
 if (!-f $platform_def) {
-  if (opendir PLATFORMS, "$TOSDIR/$platform") {
-    foreach $dir (readdir PLATFORMS) {
-      if ($dir eq $target && -f "$TOSDIR/$platform/$dir/.platform") {
-	if ($tossim) {
-	  $platform_def = "$TOSDIR/$platform/$dir/sim/.platform";
-	} else {
-	  $platform_def = "$TOSDIR/$platform/$dir/.platform";
-	}
-	last;
-      }
-      if (-f "$TOSDIR/$platform/$dir/.family") {
-	if (opendir SUBPLATFORMS, "$TOSDIR/$platform/$dir") {
-	  foreach $subdir (readdir SUBPLATFORMS) {
-	    if ($subdir eq $target && -f "$TOSDIR/$platform/$dir/$subdir/.platform") {
-	      if ($tossim) {
-		$platform_def = "$TOSDIR/$platform/$dir/$subdir/sim/.platform";
-	      } else {
-		$platform_def = "$TOSDIR/$platform/$dir/$subdir/.platform";
-	      }
-	      $family_def = "$TOSDIR/$platform/$dir/.family";
-	      last;
-	    }
-	  }
-	  closedir SUBPLATFORMS;
-	}
-      }
+    # Next, check if it's a "plain" platform
+    if (-f "$TOSDIR/$platform/$target/.platform") {
+	$platform_def = "$TOSDIR/$platform/$target/.platform";
     }
-    closedir PLATFORMS;
-  }
+    else {
+	# Finally, see if it's in a platform family
+	opendir PLATFORMS, "$TOSDIR/$platform";
+	foreach $dir (readdir PLATFORMS) {
+	    if (-f "$TOSDIR/$platform/$dir/.family") {
+		if (-f "$TOSDIR/$platform/$dir/$target/.platform") {
+		    $platform_def = "$TOSDIR/$platform/$dir/$target/.platform";
+		    $family_def = "$TOSDIR/$platform/$dir/.family";
+		    last;
+		}
+	    }
+	}
+	closedir PLATFORMS;
+    }
 }
+
+# Use sim directory with tossim
+$platform_def =~ s!\.platform$!sim/.platform! if $tossim;
+$family_def =~ s!\.family$!sim/.family! if $tossim && $family_def;
 
 if (!-f $platform_def) {
     print STDERR "Unknown target $target\n";
@@ -179,23 +167,9 @@ if (!-f $platform_def) {
     exit 2;
 }
 
-do $platform_def;
-
-if (-f $family_def) {
-  do $family_def;
-}
-
-push @new_args, @opts;
-
-# documentation: set the default topdir based on TOSDIR
-my ($tosparent) = ($TOSDIR =~ m!^(.*)/.*?$!);
-unshift @new_args, "-topdir=$tosparent";
-
-unshift @new_args, "-fnesc-include=tos";
+# Setup sensor boards
+push @includes, map "%T/sensorboards/$_", @boards unless $nostdinc;
 unshift @new_args, map "-DBOARD_\U$_", @boards;
-unshift @new_args, "-DPLATFORM_\U$target";
-unshift @new_args, "$nescc";
-
 # Execute .sensor file in selected sensor board directories if it exists
 $i = 0;
 BOARD: while ($i <= $#boards) {
@@ -219,10 +193,24 @@ BOARD: while ($i <= $#boards) {
     $i++;
 }
 
+# Setup platform
+$platform_dir = $platform_def;
+$platform_dir =~ s!/\.platform$!!;
+push @includes, $platform_dir unless $nostdinc;
+do $platform_def;
+do $family_def if -f $family_def;
+unshift @new_args, "-DPLATFORM_\U$target";
+
+push @new_args, @opts;
+
+# old nesdoc: set the default topdir based on TOSDIR
+my ($tosparent) = ($TOSDIR =~ m!^(.*)/.*?$!);
+unshift @new_args, "-topdir=$tosparent";
+
+unshift @new_args, "-fnesc-include=tos";
+unshift @new_args, "$nescc";
+
 if (!$nostdinc) {
-    push @includes, map "%T/sensorboards/$_", @boards;
-    push @includes, map "%T/sensorboards/$_", @commonboards;
-    push @includes, "%T/$platform/$target";
     push @includes, map "%T/$platform/$_", @commonplatforms;
     push @includes, "%T/interfaces";
     push @includes, "%T/types";
@@ -300,18 +288,18 @@ sub all_platforms() {
   }
 
   if (opendir PLATFORMS, "$TOSDIR/$platform") {
-    foreach $d (readdir PLATFORMS) {
-      push_platform($d) if (-f "$TOSDIR/$platform/$d/.platform");
-      if (-f "$TOSDIR/$platform/$d/.family") {
-	if (opendir SUBPLATFORMS, "$TOSDIR/$platform/$d") {
-	  foreach $subdir (readdir SUBPLATFORMS) {
-	    push_platform($subdir) if (-f "$TOSDIR/$platform/$d/$subdir/.platform");
+      foreach $d (readdir PLATFORMS) {
+	  push_platform($d) if (-f "$TOSDIR/$platform/$d/.platform");
+	  if (-f "$TOSDIR/$platform/$d/.family") {
+	      if (opendir SUBPLATFORMS, "$TOSDIR/$platform/$d") {
+		  foreach $subdir (readdir SUBPLATFORMS) {
+		      push_platform($subdir) if (-f "$TOSDIR/$platform/$d/$subdir/.platform");
+		  }
+	      }
+	      closedir SUBPLATFORMS;
 	  }
-	}
-	closedir SUBPLATFORMS;
       }
-    }
-    closedir PLATFORMS;
+      closedir PLATFORMS;
   }
 
   return @platforms;
