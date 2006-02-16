@@ -1,4 +1,4 @@
-// $Id: SFProtocol.java,v 1.1.2.2 2005-05-23 23:14:10 idgay Exp $
+// $Id: SFProtocol.java,v 1.1.2.3 2006-02-16 01:21:26 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -34,80 +34,60 @@ package net.tinyos.packet;
 
 import java.io.*;
 
+/**
+ * This is the TinyOS 2.x serial forwarder protocol. It is incompatible
+ * with the TinyOS 1.x serial forwarder protocol to avoid accidentally
+ * mixing TinyOS 1.x and 2.x serial forwarders, applications, etc.
+ */
 abstract public class SFProtocol extends AbstractSource
 {
     // Protocol version, written at connection-open time
-    // 2 bytes: first byte is always 'T', second byte is
+    // 2 bytes: first byte is always 'U', second byte is
     // protocol version
     // The actual protocol used will be min(my-version, other-version)
     // current protocols:
     // ' ': initial protocol, no further connection data, packets are
-    //      1-byte length followed by n-bytes data
-    //      If platform is unspecified by constructor, platform is
-    //      the default platform.
-    // '!': add platform exchange at connection time, packets are
-    //      unchanged
-    //      If platform is unspecified by constructor, platform is
-    //      the platform returned at connection time (protocol error
-    //      if that is the unknown platform)
-    final static byte VERSION[] = {'T', '!'};
-    byte version; // The protocol version we're running (negotiated)
+    //      1-byte length followed by n-bytes data. Length must be at least 1.
+    final static byte VERSION[] = {'U', ' '};
+    int version; // The protocol version we're running (negotiated)
 
     protected InputStream is;
     protected OutputStream os;
 
     protected SFProtocol(String name) {
-	this(name, Platform.unknown);
+	super(name);
     }
     
-    protected SFProtocol(String name, int plat) {
-	super(name);
-	platform=plat;
-    }
-
     protected void openSource() throws IOException {
 	// Assumes streams are open
 	os.write(VERSION);
 	byte[] partner = readN(2);
 	
 	// Check that it's a valid header (min version is ' ')
-	if (!(partner[0] == VERSION[0] && (partner[1] & 0xff) >= ' '))
+	if (partner[0] != VERSION[0])
 	    throw new IOException("protocol error");
 	// Actual version is min received vs our version
-	version = partner[1];
-	if (VERSION[1] < version)
-	    version = VERSION[1];
+	version = partner[1] & 0xff;
+	int ourversion = VERSION[1] & 0xff;
+	if (ourversion < version)
+	    version = ourversion;
 
+	// Handle the different protocol versions (currently only one)
 	// Any connection-time data-exchange goes here
 	switch (version) {
 	case ' ':
-	    if (platform == Platform.unknown)
-		platform = Platform.defaultPlatform;
 	    break;
-	case '!': 
-	    byte f[]=new byte[4];
-	    f[0] = (byte) (platform       & 0xff);
-	    f[1] = (byte) (platform >> 8  & 0xff);
-	    f[2] = (byte) (platform >> 16 & 0xff);
-	    f[3] = (byte) (platform >> 24 & 0xff);
-	    os.write(f);
-	    byte[] received = readN(4);
-	    if (platform == Platform.unknown) {
-		platform = received[0] & 0xff |
-		    (received[1] & 0xff) << 8 |
-		    (received[2] & 0xff) <<16 |
-		    (received[3] & 0xff) <<24; 
-		if (platform == Platform.unknown) {
-		    throw new IOException("connecting to unknown platform from " + this);
-		}
-	    }
-	    break;
+	default:
+	    throw new IOException("bad protocol version");
 	}
     }
 	
     protected byte[] readSourcePacket() throws IOException {
 	// Protocol is straightforward: 1 size byte, <n> data bytes
 	byte[] size = readN(1);
+
+	if (size[0] == 0)
+	    throw new IOException("0-byte packet");
 	byte[] read = readN(size[0] & 0xff);
 	//Dump.dump("reading", read);
 	return read;
@@ -133,6 +113,8 @@ abstract public class SFProtocol extends AbstractSource
     protected boolean writeSourcePacket(byte[] packet) throws IOException {
 	if (packet.length > 255)
 	    throw new IOException("packet too long");
+	if (packet.length == 0)
+	    throw new IOException("packet too short");
 	//Dump.dump("writing", packet);
 	os.write((byte)packet.length);
 	os.write(packet);

@@ -1,4 +1,4 @@
-// $Id: BuildSource.java,v 1.1.2.3 2005-05-23 23:14:10 idgay Exp $
+// $Id: BuildSource.java,v 1.1.2.4 2006-02-16 01:21:26 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -132,7 +132,6 @@ public class BuildSource {
 	String args = parser.next();
 	PacketSource retVal = null;
 	
-
 	if (source.equals("sf"))
 	    retVal =  makeArgsSF(args);
 	if (source.equals("serial"))
@@ -143,7 +142,7 @@ public class BuildSource {
 	    retVal =  makeArgsTossimSerial(args);
 	if (source.equals("tossim-radio"))
 	    retVal =  makeArgsTossimRadio(args);
-	//System.err.println("Built a Packet source for "+Platform.getPlatformName(retVal.getPlatform()));
+
 	return retVal;
     }
 
@@ -152,21 +151,20 @@ public class BuildSource {
      */
     public static String sourceHelp() {
 	return
-"  sf@HOSTNAME:PORTNUMBER          - a serial forwarder\n" +
-"  serial@SERIALPORT:PLATFORM      - a mote connected to a serial port\n" +
-"                                    (using TOSBase protocol)\n" +
-"                                    PLATFORM specifies the platform\n" +
-"                                    (mica2, micaz, telos, etc) and implicitly\n"+
-"                                    the baud rate\n"+
-"  network@HOSTNAME:PORTNUMBER,PLATFORM - a mote whose serial port is accessed\n" +
-"                                     over the network (using TOSBase protocol)\n" +
-"  tossim-serial[@HOSTNAME]        - the serial port of tossim node 0\n"+
-"  tossim-radio[@HOSTNAME]         - the radios of tossim nodes\n"+
-"where BAUDRATE can be a specific baud rate or a mote model name\n"+
-"(e.g., mica2 or mica2dot). Specifying a mote model name picks the standard\n"+
-"baud-rate for that mote. PACKET-SIZE is the packet-size (default 36) for\n"+
-"old, broken protocols.\n" +
-"Examples: serial@COM1:mica2, serial@COM2:19200, sf@localhost:9000";
+"  - sf@HOSTNAME:PORTNUMBER\n" +
+"    A serial forwarder.\n" +
+"  - serial@SERIALPORT:BAUDRATE\n" +
+"    A mote connected to a serial port using the TinyOS 2.0 serial protocol.\n" +
+"     BAUDRATE is either a number or a platform name (selects platform's\n" +
+"     default baud rate).\n" +
+"  - network@HOSTNAME:PORTNUMBER\n" +
+"    A mote whose serial port is accessed over the network.\n" +
+"  - tossim-serial[@HOSTNAME]\n" +
+"    The serial port of tossim node 0.\n" +
+"  - tossim-radio[@HOSTNAME]\n" +
+"    The radios of tossim nodes.\n" +
+"\n" +
+"Examples: serial@COM1:mica2, serial@/dev/ttyUSB2:19200, sf@localhost:9000";
     }
 
     /**
@@ -198,8 +196,16 @@ public class BuildSource {
 	return new SFSource(host, port);
     }
 
-    private static int decodeBaudrate(String rate) {
-	return Platform.decodeBaudrate(rate);
+    private static int decodeBaudrate(String rateS) {
+	try {
+	    int rate = Platform.get(rateS);
+	    if (rate == -1)
+		rate = Integer.parseInt(rateS);
+	    if (rate > 0)
+		return rate;
+	}
+	catch (NumberFormatException e) { }
+	return -1;
     }
  
 
@@ -207,7 +213,7 @@ public class BuildSource {
      * Make a serial-port packet source. Serial packet sources report
      * missing acknowledgements via a false result to writePacket.
      * @param args "COMn[:baudrate]" ("COM1" if args is null)
-     *   baudrate is an integer or mote name (rene, mica, mica2, mica2dot).
+     *   baudrate is an integer or mote name
      *   The default baudrate is 19200.
      * @return The new packet source, or null if the arguments are invalid
      */
@@ -219,8 +225,9 @@ public class BuildSource {
 	String port = parser.next();
 	String platformOrBaud = parser.next();
 	int baudrate = decodeBaudrate(platformOrBaud);
-	int platform = Platform.decodePlatform(platformOrBaud);
-	return makeSerial(port, baudrate, platform);
+	if (baudrate < 0)
+	    return null;
+	return makeSerial(port, baudrate);
     }
 
     /**
@@ -230,9 +237,9 @@ public class BuildSource {
      * @param baudrate requested baudrate
      * @return The new packet source
      */ 
-    public static PacketSource makeSerial(String port, int baudrate, int platform) {
+    public static PacketSource makeSerial(String port, int baudrate) {
 	return new Packetizer("serial@" + port + ":" + baudrate,
-			      new SerialByteSource(port, baudrate), platform);
+			      new SerialByteSource(port, baudrate));
     }
 
     /**
@@ -249,17 +256,11 @@ public class BuildSource {
 	ParseArgs parser = new ParseArgs(args, ":,");
 	String host = parser.next();
 	String portS = parser.next();
-	String platformS = parser.next();
 	if (portS == null)
 	    return null;
 	int port = Integer.parseInt(portS);
-	int platform;
-	if (platformS == null) 
-	    platform = Platform.defaultPlatform;
-	else
-	    platform = Platform.decodePlatform(platformS);
 
-	return makeNetwork(host, port, platform);
+	return makeNetwork(host, port);
     }
 
     /**
@@ -270,9 +271,9 @@ public class BuildSource {
      * @param port tcp/ip port number
      * @return The new packet source
      */
-    public static PacketSource makeNetwork(String host, int port, int platform) {
+    public static PacketSource makeNetwork(String host, int port) {
 	return new Packetizer("network@" + host + ":" + port,
-			      new NetworkByteSource(host, port), platform);
+			      new NetworkByteSource(host, port));
     }
 
     // We create tossim sources using reflection to avoid depending on

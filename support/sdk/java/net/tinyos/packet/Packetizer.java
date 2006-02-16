@@ -1,4 +1,4 @@
-// $Id: Packetizer.java,v 1.1.2.6 2006-02-08 18:27:30 idgay Exp $
+// $Id: Packetizer.java,v 1.1.2.7 2006-02-16 01:21:26 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -73,15 +73,15 @@ public class Packetizer extends AbstractSource implements Runnable {
      */
     final static boolean DEBUG = false;
 
-    final static int SYNC_BYTE = 0x7e;
-    final static int ESCAPE_BYTE = 0x7d;
+    final static int SYNC_BYTE = Serial.HDLC_FLAG_BYTE;
+    final static int ESCAPE_BYTE = Serial.HDLC_CTLESC_BYTE;
     final static int MTU = 256;
     final static int ACK_TIMEOUT = 1000; // in milliseconds
 
-    final static int P_ACK = 64;
-    final static int P_PACKET_ACK = 65;
-    final static int P_PACKET_NO_ACK = 66;
-    final static int P_UNKNOWN = 255;
+    final static int P_ACK = Serial.SERIAL_PROTO_ACK;
+    final static int P_PACKET_ACK = Serial.SERIAL_PROTO_PACKET_ACK;
+    final static int P_PACKET_NO_ACK = Serial.SERIAL_PROTO_PACKET_NOACK;
+    final static int P_UNKNOWN = Serial.SERIAL_PROTO_PACKET_UNKNOWN;
 
     private ByteSource io;
     private boolean inSync;
@@ -98,10 +98,9 @@ public class Packetizer extends AbstractSource implements Runnable {
     /**
      * Packetizers are built using the makeXXX methods in BuildSource
      */
-    Packetizer(String name, ByteSource io, int plat) {
+    Packetizer(String name, ByteSource io) {
 	super(name);
 	this.io = io;
-	platform = plat;
 	inSync = false;
 	seqNo = 13;
 	reader = new Thread(this);
@@ -166,46 +165,35 @@ public class Packetizer extends AbstractSource implements Runnable {
     }
 
     protected byte[] readSourcePacket() throws IOException {
-     // Packetizer packet format is identical to PacketSource's
-      byte[] packet = readProtocolPacket(P_PACKET_NO_ACK,0);
-      if (packet.length >= 1 && packet[0] == (byte)0) {
-	byte[] realPacket = new byte[packet.length - 1];
-	System.arraycopy(packet, 1, realPacket, 0, realPacket.length);
-	return realPacket;     
-      }
-      else {
-	message("invalid tos-serial type: " + packet[0]);
-	return readSourcePacket();
-      }
+	// Packetizer packet format is identical to PacketSource's
+	for (;;) {
+	    byte[] packet = readProtocolPacket(P_PACKET_NO_ACK,0);
+	    if (packet.length >= 1) {
+		return packet;
+	    }
+	}
     }
 
   // Write an ack-ed packet
   protected boolean writeSourcePacket(byte[] packet) throws IOException {
-    byte type = 0; // AM-SERIAL
-    int sz = packet.length + 1;
+      writeFramedPacket(P_PACKET_ACK, ++seqNo, packet, packet.length);
 
-    byte[] realPacket = new byte[packet.length + 1];
-    realPacket[0] = 0; // AM serial packet
-    System.arraycopy(packet, 0, realPacket, 1, packet.length);
-    seqNo++;
-
-    writeFramedPacket(P_PACKET_ACK, seqNo, realPacket, realPacket.length);
-    long deadline = System.currentTimeMillis() + ACK_TIMEOUT;
-    for (;;) {
-      byte[] ack = readProtocolPacket(P_ACK, deadline);
-      if (ack == null) {
-        if (DEBUG) {
-          message(name + ": ACK timed out");
-        }
-        return false;
+      long deadline = System.currentTimeMillis() + ACK_TIMEOUT;
+      for (;;) {
+	  byte[] ack = readProtocolPacket(P_ACK, deadline);
+	  if (ack == null) {
+	      if (DEBUG) {
+		  message(name + ": ACK timed out");
+	      }
+	      return false;
+	  }
+	  if (ack[0] == (byte)seqNo) {
+	      if (DEBUG) {
+		  message(name + ": Rcvd ACK");
+	      }
+	      return true;
+	  }
       }
-      if (ack[0] == (byte)seqNo) {
-        if (DEBUG) {
-          message(name + ": Rcvd ACK");
-        }
-        return true;
-      }
-    }
     
   }
 

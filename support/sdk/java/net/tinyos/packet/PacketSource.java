@@ -1,4 +1,4 @@
-// $Id: PacketSource.java,v 1.1.2.2 2006-02-08 18:27:30 idgay Exp $
+// $Id: PacketSource.java,v 1.1.2.3 2006-02-16 01:21:26 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -36,13 +36,8 @@
     implicitly closes the mediator. It is not possible to reopen a mediator
     after it is closed (instead, a new mediator should be created).
 
-    The packet byte array must have the following format:
-    - a TinyOS TOS_Msg header (5 bytes):
-      address: 2 bytes, little endian
-      AM type: 1 byte
-      group: 1 byte
-      length: 1 byte
-    - 'length' data bytes
+    The packet byte array must be at least 1 byte long - the first byte
+    indicates the type of packet and is used to dispatch to upper layers.
 
     PacketSources are point-to-point and have "at most once" semantics.
     writePacket should return true only if the packet has been received
@@ -99,6 +94,4 @@ public interface PacketSource
      *   could not be written.
      */
     public boolean writePacket(byte[] packet) throws IOException;
-
-    public int getPlatform(); 
 }

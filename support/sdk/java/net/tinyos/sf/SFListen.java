@@ -1,4 +1,4 @@
-// $Id: SFListen.java,v 1.1.2.3 2006-02-03 01:26:32 idgay Exp $
+// $Id: SFListen.java,v 1.1.2.4 2006-02-16 01:21:26 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -93,7 +93,6 @@ public class SFListen extends Thread implements PacketListenerIF, PhoenixError {
 	    source.registerPacketListener(this);
 	    source.start();
 	
-	    sf.verbose.message("Platform " + Platform.getPlatformName(source.getPacketSource().getPlatform()));
 	    // open up our server socket
 	    try {
 		serverSocket = new ServerSocket(sf.serverPort);
@@ -108,8 +107,7 @@ public class SFListen extends Thread implements PacketListenerIF, PhoenixError {
 	    try {
 		for (;;) {
 		    Socket currentSocket = serverSocket.accept();
-		    SFClient newServicer =
-			new SFClient(currentSocket, sf, this, (source.getPacketSource()).getPlatform());
+		    SFClient newServicer = new SFClient(currentSocket, sf, this);
 		    clients.add(newServicer);
 		    newServicer.start();
 		}
