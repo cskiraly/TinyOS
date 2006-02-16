@@ -1,4 +1,4 @@
-/// $Id: VoltageP.nc,v 1.1.2.5 2006-02-02 01:03:17 idgay Exp $
+/// $Id: VoltageP.nc,v 1.1.2.6 2006-02-16 18:45:51 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -25,27 +25,17 @@
  * Internal component for voltage sensor reading.
  *
  * @author Hu Siquan <husq@xbow.com>
+ * @author David Gay
  */
 
 module VoltageP {
   provides {
-    interface StdControl;
+    interface ResourceConfigure;
     interface Atm128AdcConfig as VoltageConfig;
   }
-  uses interface GeneralIO as BAT_MON;	
+  uses interface GeneralIO as BatMon;	
 }
 implementation {
-  command error_t StdControl.start() {
-    call BAT_MON.makeOutput();
-    call BAT_MON.set();
-    return SUCCESS;
-  }
-
-  command error_t StdControl.stop() {
-    call BAT_MON.clr();
-    return SUCCESS;
-  }	
-
   async command uint8_t VoltageConfig.getChannel() {
     return CHANNEL_BATTERY;
   }
@@ -56,5 +46,14 @@ implementation {
 
   async command uint8_t VoltageConfig.getPrescaler() {
     return ATM128_ADC_PRESCALE;
+  }
+
+  async command void ResourceConfigure.configure() {
+    call BatMon.makeOutput();
+    call BatMon.set();
+  }
+
+  async command void ResourceConfigure.unconfigure() {
+    call BatMon.clr();
   }
 }

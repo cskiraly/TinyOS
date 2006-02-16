@@ -1,4 +1,4 @@
-/* $Id: VoltageC.nc,v 1.1.2.10 2006-02-03 21:15:12 idgay Exp $
+/* $Id: VoltageC.nc,v 1.1.2.11 2006-02-16 18:45:51 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -19,16 +19,9 @@ generic configuration VoltageC() {
   provides interface Read<uint16_t>;
 }
 implementation {
-  components VoltageReadP, VoltageDeviceP, new AdcReadClientC();
+  components new AdcReadClientC(), VoltageDeviceP;
 
-  enum {
-    RESID = unique(UQ_VOLTAGEDEVICE),
-  };
-
-  Read = VoltageReadP.Read[RESID];
-  
-  VoltageReadP.ActualRead[RESID] -> AdcReadClientC;
-  VoltageReadP.Resource[RESID] -> VoltageDeviceP.Resource[RESID];
-
+  Read = AdcReadClientC;
   AdcReadClientC.Atm128AdcConfig -> VoltageDeviceP;
+  AdcReadClientC.ResourceConfigure -> VoltageDeviceP;
 }
