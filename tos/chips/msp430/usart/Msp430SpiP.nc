@@ -28,8 +28,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * $Revision: 1.1.2.5 $
- * $Date: 2006-01-29 04:57:30 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-02-16 19:03:16 $
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  */
@@ -95,16 +95,15 @@ implementation {
     signal Resource.granted();
   }
 
-  async command error_t SpiByte.write( uint8_t tx, uint8_t* rx ) {
+  async command void SpiByte.write( uint8_t tx, uint8_t* rx ) {
     bool owner;
     atomic owner = isOwner;
-    if (owner != TRUE) return FAIL;
+    if (owner != TRUE) return;
     call HplUsart.disableRxIntr();
     call HplUsart.tx( tx );
     while( !call HplUsart.isRxIntrPending() );
     *rx = call HplUsart.rx();
     call HplUsart.enableRxIntr();
-    return SUCCESS;
   }
 
   default event void Resource.granted() {}

@@ -1,4 +1,4 @@
-// $Id: SpiByte.nc,v 1.1.2.1 2006-01-29 05:04:28 vlahan Exp $
+// $Id: SpiByte.nc,v 1.1.2.2 2006-02-16 19:03:18 idgay Exp $
 
 /*                                                                      tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
@@ -28,6 +28,8 @@ interface SpiByte
 {
   /**
    * Synchronous transmit and receive (can be in interrupt context)
+   * @param tx Byte to transmit
+   * @param rx Received byte is stored here.
    */
-  async command error_t write( uint8_t tx, uint8_t* rx );
+  async command void write( uint8_t tx, uint8_t* rx );
 }
