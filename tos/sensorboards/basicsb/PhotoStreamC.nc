@@ -1,4 +1,4 @@
-/* $Id: PhotoStreamC.nc,v 1.1.2.1 2006-02-03 21:11:42 idgay Exp $
+/* $Id: PhotoStreamC.nc,v 1.1.2.2 2006-02-16 18:54:15 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -19,17 +19,9 @@ generic configuration PhotoStreamC() {
   provides interface ReadStream<uint16_t>;
 }
 implementation {
-  components PhotoReadStreamP, PhotoDeviceP, new AdcReadStreamClientC();
+  components PhotoDeviceP, new AdcReadStreamClientC();
 
-  enum {
-    RESID = unique(UQ_PHOTODEVICE),
-    STREAMID = unique(UQ_PHOTODEVICE_STREAM)
-  };
-
-  ReadStream = PhotoReadStreamP.ReadStream[STREAMID];
-  
-  PhotoReadStreamP.ActualReadStream[STREAMID] -> AdcReadStreamClientC;
-  PhotoReadStreamP.Resource[STREAMID] -> PhotoDeviceP.Resource[RESID];
-
+  ReadStream = AdcReadStreamClientC;
   AdcReadStreamClientC.Atm128AdcConfig -> PhotoDeviceP;
+  AdcReadStreamClientC.ResourceConfigure -> PhotoDeviceP;
 }

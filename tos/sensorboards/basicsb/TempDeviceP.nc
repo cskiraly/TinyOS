@@ -1,4 +1,4 @@
-/* $Id: TempDeviceP.nc,v 1.1.2.1 2006-02-02 00:13:46 idgay Exp $
+/* $Id: TempDeviceP.nc,v 1.1.2.2 2006-02-16 18:54:15 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -18,22 +18,15 @@
 
 configuration TempDeviceP {
   provides {
-    interface Resource[uint8_t client];
+    interface ResourceConfigure;
     interface Atm128AdcConfig;
   }
 }
 implementation {
-  components new RoundRobinArbiterC(UQ_TEMPDEVICE) as TempArbiter,
-    new StdControlPowerManagerC() as PM, MainC, TempP, MicaBusC;
+  components TempP, MicaBusC;
 
-  Resource = TempArbiter;
+  ResourceConfigure = TempP;
   Atm128AdcConfig = TempP;
-
-  PM.Init <- MainC;
-  PM.StdControl -> TempP;
-  PM.ArbiterInit -> TempArbiter;
-  PM.ResourceController -> TempArbiter;
-  PM.ArbiterInfo -> TempArbiter;
 
   TempP.TempPin -> MicaBusC.PW2;
   TempP.TempAdc -> MicaBusC.Adc5;
