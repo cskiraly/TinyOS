@@ -16,12 +16,16 @@
  * build an AT45DB HPL by connecting it to a byte-at-a-time SPI interface,
  * and an HplAt45dbByte interface.
  *
+ * @param The number of bits needed to represent a sector size, e.g., 9
+ *   for the AT45DB041B.
+ *
  * @author David Gay
  */
 
-generic module HplAt45dbByteC() {
+generic module HplAt45dbByteC(int sectorSizeLog2) {
   provides interface HplAt45db;
   uses {
+    interface Resource;
     interface SpiByte as FlashSpi;
     interface HplAt45dbByte;
   }
@@ -43,9 +47,12 @@ implementation
     P_ERASE
   };
   uint8_t status = P_IDLE;
-  uint16_t computedCrc;
+  uint8_t flashCmd[4];
+  uint8_t *data;
+  at45pageoffset_t dataCount;
+  uint8_t dontCare;
 
-  task void complete() {
+  void complete(uint16_t crc) {
     uint8_t s = status;
 
     status = P_IDLE;
@@ -53,7 +60,7 @@ implementation
       {
       default: break;
       case P_READ_CRC:
-	signal HplAt45db.crcDone(computedCrc);
+	signal HplAt45db.crcDone(crc);
 	break;
       case P_FILL:
 	signal HplAt45db.fillDone();
@@ -76,20 +83,6 @@ implementation
       }
   }
 
-  event void HplAt45dbByte.idle() {
-    if (status == P_WAIT_COMPARE)
-      {
-	bool cstatus = call HplAt45dbByte.getCompareStatus();
-	call HplAt45dbByte.deselect();
-	signal HplAt45db.waitCompareDone(cstatus);
-      }
-    else
-      {
-	call HplAt45dbByte.deselect();
-	signal HplAt45db.waitIdleDone();
-      }
-  }
-
   void requestFlashStatus() {
     uint8_t dummy;
 
@@ -98,44 +91,24 @@ implementation
     call HplAt45dbByte.waitIdle();
   }
 
-  command void HplAt45db.waitIdle() {
-    status = P_WAIT_IDLE;
-    requestFlashStatus();
-  }
-
-  command void HplAt45db.waitCompare() {
-    status = P_WAIT_COMPARE;
-    requestFlashStatus();
-  }
-
-
-  void execCommand(uint8_t op, uint8_t reqCmd, uint8_t dontCare,
-		   at45page_t page, at45pageoffset_t offset,
-		   uint8_t *data, at45pageoffset_t dataCount, uint16_t crc) {
-    uint8_t cmd[4];
+  void doCommand() {
     uint8_t in = 0, out = 0;
     uint8_t *ptr;
     at45pageoffset_t count;
-    uint8_t lphase = P_SEND_CMD;
-
-    status = op;
+    uint8_t lphase;
+    uint16_t crc = (uint16_t)data;
 
     /* For a 3% speedup, we could use labels and goto *.
        But: very gcc-specific. Also, need to do
-              asm ("ijmp" : : "z" (state))
-	    instead of goto *state
+       asm ("ijmp" : : "z" (state))
+       instead of goto *state
     */
 
-    // page (2 bytes) and highest bit of offset
-    cmd[0] = reqCmd;
-    cmd[1] = page >> 7;
-    cmd[2] = page << 1 | offset >> 8;
-    cmd[3] = offset; // low-order 8 bits
-    ptr = cmd;
+    ptr = flashCmd;
+    lphase = P_SEND_CMD;
     count = 4 + dontCare;
 
     call HplAt45dbByte.select();
-
     for (;;)
       {
 	if (lphase == P_READ_CRC)
@@ -144,18 +117,16 @@ implementation
 
 	    --count;
 	    if (!count)
-	      {
-		computedCrc = crc;
-		break;
-	      }
+	      break;
 	  }
 	else if (lphase == P_SEND_CMD)
-	  { 
+	  {
+	    // Note: the dontCare bytes are read after the end of cmd...
 	    out = *ptr++;
 	    count--;
 	    if (!count)
 	      {
-		lphase = op;
+		lphase = status;
 		ptr = data;
 		count = dataCount;
 	      }
@@ -180,43 +151,102 @@ implementation
 	
 	call FlashSpi.write(out, &in);
       }
-
     call HplAt45dbByte.deselect();
-    post complete();
+    call Resource.release();
+
+    complete(crc);
+  }
+
+  event void Resource.granted() {
+    switch (status)
+      {
+      case P_WAIT_COMPARE: case P_WAIT_IDLE:
+	requestFlashStatus();
+	break;
+      default:
+	doCommand();
+	break;
+      }
+  }
+
+  void execCommand(uint8_t op, uint8_t reqCmd, uint8_t reqDontCare,
+		   at45page_t reqPage, at45pageoffset_t reqOffset,
+		   uint8_t *reqData, at45pageoffset_t reqCount) {
+    status = op;
+
+    // page (2 bytes) and highest bit of offset
+    flashCmd[0] = reqCmd;
+    flashCmd[1] = reqPage >> (16 - sectorSizeLog2);
+    flashCmd[2] = reqPage << (sectorSizeLog2 - 8) | reqOffset >> 8;
+    flashCmd[3] = reqOffset; // low-order 8 bits
+    data = reqData;
+    dataCount = reqCount;
+    dontCare = reqDontCare;
+
+    call Resource.request();
+  }
+
+  command void HplAt45db.waitIdle() {
+    status = P_WAIT_IDLE;
+    call Resource.request();
+  }
+
+  command void HplAt45db.waitCompare() {
+    status = P_WAIT_COMPARE;
+    call Resource.request();
+  }
+
+  event void HplAt45dbByte.idle() {
+    if (status == P_WAIT_COMPARE)
+      {
+	bool cstatus = call HplAt45dbByte.getCompareStatus();
+	call HplAt45dbByte.deselect();
+	signal HplAt45db.waitCompareDone(cstatus);
+      }
+    else
+      {
+	call HplAt45dbByte.deselect();
+	signal HplAt45db.waitIdleDone();
+      }
   }
 
   command void HplAt45db.fill(uint8_t cmd, at45page_t page) {
-    execCommand(P_FILL, cmd, 0, page, 0, NULL, 0, 0);
+    execCommand(P_FILL, cmd, 0, page, 0, NULL, 0);
   }
 
   command void HplAt45db.flush(uint8_t cmd, at45page_t page) {
-    execCommand(P_FLUSH, cmd, 0, page, 0, NULL, 0, 0);
+    execCommand(P_FLUSH, cmd, 0, page, 0, NULL, 0);
   }
 
   command void HplAt45db.compare(uint8_t cmd, at45page_t page) {
-    execCommand(P_COMPARE, cmd, 0, page, 0, NULL, 0, 0);
+    execCommand(P_COMPARE, cmd, 0, page, 0, NULL, 0);
   }
 
   command void HplAt45db.erase(uint8_t cmd, at45page_t page) {
-    execCommand(P_ERASE, cmd, 0, page, 0, NULL, 0, 0);
+    execCommand(P_ERASE, cmd, 0, page, 0, NULL, 0);
   }
 
   command void HplAt45db.read(uint8_t cmd,
-				  at45page_t page, at45pageoffset_t offset,
-				  uint8_t *data, at45pageoffset_t count) {
-    execCommand(P_READ, cmd, 2, page, offset, data, count, 0);
+			      at45page_t page, at45pageoffset_t offset,
+			      uint8_t *pdata, at45pageoffset_t count) {
+    execCommand(P_READ, cmd, 5, page, offset, pdata, count);
+  }
+
+  command void HplAt45db.readBuffer(uint8_t cmd, at45pageoffset_t offset,
+				    uint8_t *pdata, at45pageoffset_t count) {
+    execCommand(P_READ, cmd, 2, 0, offset, pdata, count);
   }
 
   command void HplAt45db.crc(uint8_t cmd,
-				 at45page_t page, at45pageoffset_t offset,
-				 at45pageoffset_t count,
-				 uint16_t baseCrc) {
-    execCommand(P_READ_CRC, cmd, 2, page, offset, NULL, count, baseCrc);
+			     at45page_t page, at45pageoffset_t offset,
+			     at45pageoffset_t count,
+			     uint16_t baseCrc) {
+    execCommand(P_READ_CRC, cmd, 2, page, offset, (uint8_t *)baseCrc, count);
   }
 
   command void HplAt45db.write(uint8_t cmd,
-				   at45page_t page, at45pageoffset_t offset,
-				   uint8_t *data, at45pageoffset_t count) {
-    execCommand(P_WRITE, cmd, 0, page, offset, data, count, 0);
+			       at45page_t page, at45pageoffset_t offset,
+			       uint8_t *pdata, at45pageoffset_t count) {
+    execCommand(P_WRITE, cmd, 0, page, offset, pdata, count);
   }
 }

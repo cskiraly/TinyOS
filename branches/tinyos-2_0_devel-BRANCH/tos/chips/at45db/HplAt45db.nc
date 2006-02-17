@@ -28,6 +28,7 @@ interface HplAt45db {
    * is complete.
    */
   command void waitIdle();
+
   /**
    * Signaled when the flash is idle.
    */
@@ -38,6 +39,7 @@ interface HplAt45db {
    * be signaled when that occurs.
    */
   command void waitCompare();
+
   /**
    * Signaled when the buffer-flash comparison is complete.
    * @param compareOk TRUE if the comparison succeeded, FALSE otherwise.
@@ -51,6 +53,7 @@ interface HplAt45db {
    * @param page Page to read (must be less than AT45_MAX_PAGES)
    */
   command void fill(uint8_t cmd, at45page_t page);
+
   /**
    * Signaled when fill command sent (use waitIdle to detect when
    * fill command completes)
@@ -68,6 +71,7 @@ interface HplAt45db {
    * @param page Page to write (must be less than AT45_MAX_PAGES)
    */
   command void flush(uint8_t cmd, at45page_t page);
+
   /**
    * Signaled when flush command sent (use waitIdle to detect when
    * flush command completes)
@@ -81,6 +85,7 @@ interface HplAt45db {
    * @param page Page to compare with (must be less than AT45_MAX_PAGES)
    */
   command void compare(uint8_t cmd, at45page_t page);
+
   /**
    * Signaled when compare command sent (use waitCompare to detect when
    * compare command completes and find out comparison result)
@@ -93,6 +98,7 @@ interface HplAt45db {
    * @param page Page to compare with (must be less than AT45_MAX_PAGES)
    */
   command void erase(uint8_t cmd, at45page_t page);
+
   /**
    * Signaled when erase command sent (use waitIdle to detect when
    * erase command completes)
@@ -103,7 +109,6 @@ interface HplAt45db {
    * Read from a flash buffer. readDone will be signaled.
    * @param cmd AT45_C_READ_BUFFER1 to read from buffer 1,
    *   AT45_C_READ_BUFFER2 to read from buffer 2
-   * @param page ignored (reserved for future use)
    * @param offset Offset in page at which to start reading - must be between
    *   0 and AT45_PAGE_SIZE - 1 
    * @param data Buffer in which to place read data. The buffer is "returned"
@@ -111,8 +116,24 @@ interface HplAt45db {
    * @param n Number of bytes to read (> 0). offset + n must be <= 
    *   AT45_PAGE_SIZE
    */
+  command void readBuffer(uint8_t cmd, at45pageoffset_t offset,
+		    uint8_t *PASS data, uint16_t n);
+
+  /**
+   * Read directly from flash. readDone will be signaled.
+   * @param cmd AT45_C_READ_CONTINUOUS or AT45_C_READ_PAGE. When the end of
+   *   a page is read, AT45_C_READ_CONTINUOUS continues on the next page,
+   *   while AT45_C_READ_PAGE continues at the start of the same page.
+   * @param page Page to read from
+   * @param offset Offset in page at which to start reading - must be between
+   *   0 and AT45_PAGE_SIZE - 1 
+   * @param data Buffer in which to place read data. The buffer is "returned"
+   *   at readDone time.
+   * @param n Number of bytes to read (> 0).
+   */
   command void read(uint8_t cmd, at45page_t page, at45pageoffset_t offset,
 		    uint8_t *PASS data, at45pageoffset_t n);
+
   /**
    * Signaled when data has been read from the buffer. The data buffer
    * is "returned".
@@ -142,8 +163,12 @@ interface HplAt45db {
   event void crcDone(uint16_t computedCrc);
 
   /**
-   * Write some data to a flash buffer. writeDone will be signaled.
-   * @param page ignored (reserved for future use)
+   * Write some data to a flash buffer, and optionally the flash itself. 
+   * writeDone will be signaled.
+   * @param cmd One of AT45_C_WRITE_BUFFER1/2 or AT45_C_WRITE_MEM_BUFFER1/2
+   *   to write respectively to buffer 1/2, or to buffer 1/2 and the 
+   *   specified main memory page.
+   * @param page Page to write when cmd is AT45_C_WRITE_MEM_BUFFER1/2
    * @param offset Offset in page at which to start writing - must be between
    *   0 and AT45_PAGE_SIZE - 1 
    * @param data Data to write. The buffer is "returned" at writeDone time.
@@ -152,6 +177,7 @@ interface HplAt45db {
    */
   command void write(uint8_t cmd, at45page_t page, at45pageoffset_t offset,
 		     uint8_t *PASS data, at45pageoffset_t n);
+
   /**
    * Signaled when data has been written to the buffer. The data buffer
    * is "returned".

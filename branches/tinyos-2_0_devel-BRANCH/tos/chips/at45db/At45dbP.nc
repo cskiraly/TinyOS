@@ -1,4 +1,4 @@
-// $Id: At45dbP.nc,v 1.1.2.2 2006-01-27 17:56:05 idgay Exp $
+// $Id: At45dbP.nc,v 1.1.2.3 2006-02-17 22:05:06 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -293,8 +293,8 @@ implementation
 	  if (buffer[selected].busy)
 	    call HplAt45db.waitIdle();
 	  else
-	    call HplAt45db.read(OP(AT45_C_READ_BUFFER), 0, reqOffset,
-				reqBuf, reqBytes);
+	    call HplAt45db.readBuffer(OP(AT45_C_READ_BUFFER), reqOffset,
+				      reqBuf, reqBytes);
 	  break;
 
 	case R_READCRC:
