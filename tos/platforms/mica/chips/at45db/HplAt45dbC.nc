@@ -1,4 +1,4 @@
-// $Id: HplAt45dbC.nc,v 1.1.2.3 2006-01-27 22:04:27 idgay Exp $
+// $Id: HplAt45dbC.nc,v 1.1.2.4 2006-02-17 22:05:07 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -20,10 +20,12 @@ configuration HplAt45dbC {
   provides interface HplAt45db @atmostonce();
 }
 implementation {
-  components new HplAt45dbByteC(), HplAt45dbIOC;
+  // 9 because the AT45DB041B has 264 byte pages (log2 page size rounded up)
+  components new HplAt45dbByteC(9), HplAt45dbIOC;
 
   HplAt45db = HplAt45dbByteC;
 
+  HplAt45dbByteC.Resource -> HplAt45dbIOC;
   HplAt45dbByteC.FlashSpi -> HplAt45dbIOC;
   HplAt45dbByteC.HplAt45dbByte -> HplAt45dbIOC;
 }

@@ -1,4 +1,4 @@
-// $Id: HplAt45dbIOC.nc,v 1.1.2.5 2006-02-03 23:23:06 idgay Exp $
+// $Id: HplAt45dbIOC.nc,v 1.1.2.6 2006-02-17 22:05:07 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -16,6 +16,7 @@
 
 configuration HplAt45dbIOC {
   provides {
+    interface Resource;
     interface SpiByte as FlashSpi;
     interface HplAt45dbByte;
   }
@@ -24,7 +25,9 @@ implementation {
   // Wire up byte I/O to At45db
   components HplAt45dbIOP, HplAtm128GeneralIOC as Pins, HplAtm128InterruptC, PlatformC;
   components BusyWaitMicroC;
+  components new NoArbiterC();
 
+  Resource = NoArbiterC;
   FlashSpi = HplAt45dbIOP;
   HplAt45dbByte = HplAt45dbIOP;
 
