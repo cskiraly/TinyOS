@@ -1,4 +1,4 @@
-// $Id: crc.h,v 1.1.2.4 2006-01-27 23:13:23 idgay Exp $
+// $Id: crc.h,v 1.1.2.5 2006-02-17 22:51:19 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -32,6 +32,10 @@
 #ifndef CRC_H
 #define CRC_H
 
+/* We don't want to duplicate this function inside binary components. */
+#ifdef NESC_BUILD_BINARY
+uint16_t crcByte(uint16_t oldCrc, uint8_t byte);
+#else
 /*
  * Default CRC function. Some microcontrollers may provide more efficient
  * implementations.
@@ -60,5 +64,6 @@ uint16_t crcByte(uint16_t crc, uint8_t b)
 
   return crc;
 }
+#endif
 
 #endif

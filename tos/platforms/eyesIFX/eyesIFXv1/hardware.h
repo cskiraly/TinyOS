@@ -26,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: hardware.h,v 1.1.2.3 2005-10-16 13:55:23 janhauer Exp $
+ * $Id: hardware.h,v 1.1.2.4 2006-02-17 22:51:19 idgay Exp $
  *
  */
 
@@ -108,6 +108,36 @@ void TOSH_FLASH_M25P_DP_bit(bool set) {
   TOSH_SET_UCLK0_PIN();
   TOSH_CLR_UCLK0_PIN();
 }
+
+inline void TOSH_wait(void)
+{
+  nop(); nop();
+}
+
+inline void uwait(uint16_t u) 
+{ 
+  /*
+  uint16_t i;
+  if (u < 500)
+    for (i=2; i < u; i++) { 
+      asm volatile("nop\n\t"
+                   "nop\n\t"
+                   "nop\n\t"
+                   "nop\n\t"
+                   ::);
+    }
+  else
+    for (i=0; i < u; i++) { 
+      asm volatile("nop\n\t"
+                   "nop\n\t"
+                   "nop\n\t"
+                   "nop\n\t"
+                   ::);
+    }
+  */
+  uint16_t t0 = TAR;
+  while((TAR - t0) <= u);
+} 
 
 void TOSH_FLASH_M25P_DP() {
   //  SIMO0, UCLK0

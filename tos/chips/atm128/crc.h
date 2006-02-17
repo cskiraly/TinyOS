@@ -1,4 +1,4 @@
-// $Id: crc.h,v 1.1.2.3 2006-01-27 23:13:22 idgay Exp $
+// $Id: crc.h,v 1.1.2.4 2006-02-17 22:51:19 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -31,6 +31,11 @@
 #ifndef CRC_H
 #define CRC_H
 
+/* We don't want to duplicate this fairly large function inside binary
+   components. */
+#ifdef NESC_BUILD_BINARY
+uint16_t crcByte(uint16_t oldCrc, uint8_t byte);
+#else
 uint16_t crcTable[256] PROGMEM = {
   0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
   0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
@@ -98,5 +103,6 @@ uint16_t crcByte(uint16_t oldCrc, uint8_t byte)
   return PRG_RDB(magic) | ((uint8_t)oldCrc ^ PRG_RDB(magic + 1)) << 8;
 #endif
 }
+#endif
 
 #endif

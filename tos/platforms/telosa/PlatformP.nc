@@ -3,12 +3,13 @@
 module PlatformP{
   provides interface Init;
   uses interface Init as Msp430ClockInit;
+  uses interface Init as MoteInit;
   uses interface Init as LedsInit;
 }
 implementation {
   command error_t Init.init() {
     call Msp430ClockInit.init();
-    TOSH_SET_PIN_DIRECTIONS();
+    call MoteInit.init();
     call LedsInit.init();
     return SUCCESS;
   }
