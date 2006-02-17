@@ -1,4 +1,4 @@
-// $Id: PlatformC.nc,v 1.1.2.3 2006-02-14 17:01:45 idgay Exp $
+// $Id: PlatformC.nc,v 1.1.2.4 2006-02-17 22:51:19 idgay Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -31,11 +31,10 @@ configuration PlatformC
 }
 implementation
 {
-  components PlatformP
-    , Msp430ClockC
-    ;
+  components PlatformP, MotePlatformC, Msp430ClockC;
 
   Init = PlatformP;
   PlatformP.Msp430ClockInit -> Msp430ClockC.Init;
+  PlatformP.MoteInit -> MotePlatformC;
 }
 

@@ -26,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: hardware.h,v 1.1.2.4 2005-10-16 13:55:23 janhauer Exp $
+ * $Id: hardware.h,v 1.1.2.5 2006-02-17 22:51:19 idgay Exp $
  *
  */
 
@@ -109,6 +109,12 @@ TOSH_ASSIGN_PIN(FLASH_CS, 1, 7);
 TOSH_ASSIGN_PIN(DEBUG_1, 1, 1);
 TOSH_ASSIGN_PIN(DEBUG_2, 1, 2);
 TOSH_ASSIGN_PIN(DEBUG_3, 1, 3);
+
+inline void uwait(uint16_t u) 
+{ 
+  uint16_t t0 = TAR;
+  while((TAR - t0) <= u);
+} 
 
 
 #undef atomic

@@ -1,4 +1,4 @@
-// $Id: msp430hardware.h,v 1.1.2.12 2005-10-27 21:04:15 idgay Exp $
+// $Id: msp430hardware.h,v 1.1.2.13 2006-02-17 22:51:19 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -142,150 +142,6 @@ void sig_##signame() __attribute__((interrupt (signame), wakeup, C))
 #define TOSH_INTERRUPT(signame) \
 void isr_##signame() __attribute__((interrupt (signame), signal, wakeup, C))
 
-inline void TOSH_wait(void)
-{
-  nop(); nop();
-}
-
-#define TOSH_CYCLE_TIME_NS 250
-
-inline void wait_250ns(void)
-{
-  // 4 MHz clock == 1 cycle per 250 ns
-  nop();
-}
-
-inline void uwait(uint16_t u) 
-{ 
-  /*
-  uint16_t i;
-  if (u < 500)
-    for (i=2; i < u; i++) { 
-      asm volatile("nop\n\t"
-                   "nop\n\t"
-                   "nop\n\t"
-                   "nop\n\t"
-                   ::);
-    }
-  else
-    for (i=0; i < u; i++) { 
-      asm volatile("nop\n\t"
-                   "nop\n\t"
-                   "nop\n\t"
-                   "nop\n\t"
-                   ::);
-    }
-  */
-  uint16_t t0 = TAR;
-  while((TAR - t0) <= u);
-} 
-
-void __nesc_disable_interrupt()
-{
-  dint();
-  nop();
-}
-
-void __nesc_enable_interrupt()
-{
-  eint();
-}
-
-bool are_interrupts_enabled()
-{
-  return ((READ_SR & SR_GIE) != 0);
-}
-
-typedef bool __nesc_atomic_t;
-
-__nesc_atomic_t __nesc_atomic_start(void) @spontaneous()
-{
-  __nesc_atomic_t result = are_interrupts_enabled();
-  __nesc_disable_interrupt();
-  return result;
-}
-
-void __nesc_atomic_end( __nesc_atomic_t reenable_interrupts ) @spontaneous()
-{
-  if( reenable_interrupts )
-    __nesc_enable_interrupt();
-}
-
-//Variable to keep track if Low Power Modes shoud not be used
-norace bool LPMode_disabled = FALSE;
-
-void LPMode_enable() {
-  LPMode_disabled = FALSE;
-}
-
-void LPMode_disable() {
-  LPMode_disabled = TRUE;
-}
-
-inline void TOSH_sleep() {
-  // The LPM we can go down to depends on the clocks used. We never go
-  // below LPM3, so ACLK is always enabled, also TimerB clock source
-  // is assumed to be ACLK.
-  // We check MSP430's TimerA, USART0/1, ADC12 peripheral modules if they
-  // use MCLK or SMCLK and switch to the lowest LPM that keeps 
-  // the required clock(s) running. 
-  //  extern uint8_t TOSH_sched_full;
-  //  extern volatile uint8_t TOSH_sched_free;
-  __nesc_atomic_t fInterruptFlags;
-  uint16_t LPMode_bits = 0;
-  
-  fInterruptFlags = __nesc_atomic_start(); 
-  
-  if (LPMode_disabled) { // || (TOSH_sched_full != TOSH_sched_free)) {
-    __nesc_atomic_end(fInterruptFlags);
-    return;
-  } else {
-    LPMode_bits = LPM3_bits;
-    // TimerA, USART0, USART1 check
-    if ( (((TACCTL0 & CCIE) || (TACCTL1 & CCIE) || (TACCTL2 & CCIE))
-         && ((TACTL & TASSEL_3) == TASSEL_2))
-      || ((ME1 & (UTXE0 | URXE0)) && (U0TCTL & SSEL1))
-      || ((ME2 & (UTXE1 | URXE1)) && (U1TCTL & SSEL1)) 
-#ifdef __msp430_have_usart0_with_i2c
-      // registers end in "nr" to prevent nesC race condition detection
-      || ((U0CTLnr & I2CEN) && (I2CTCTLnr & SSEL1) &&
-	  (I2CDCTLnr & I2CBUSY) && (U0CTLnr & SYNC) && (U0CTLnr & I2C))
-#endif	
-      )
-      LPMode_bits = LPM1_bits;
-    // ADC12 check  
-    if (ADC12CTL1 & ADC12BUSY){
-      if (!(ADC12CTL0 & MSC) && ((TACTL & TASSEL_3) == TASSEL_2))
-         LPMode_bits = LPM1_bits; // TimerA for ADC12 
-      else
-        switch (ADC12CTL1 & ADC12SSEL_3){
-          case ADC12SSEL_2: LPMode_bits = 0; break;
-          case ADC12SSEL_3: LPMode_bits = LPM1_bits; break;
-        }
-    }
-    LPMode_bits |= SR_GIE;
-    __asm__ __volatile__( "bis  %0, r2" : : "m" ((uint16_t)LPMode_bits) );
-  }
-}
-
-typedef uint8_t mcu_power_t @combine("mcombine");
-enum {
-  MSP430_POWER_ACTIVE = 0,
-  MSP430_POWER_LPM0   = 1,
-  MSP430_POWER_LPM1   = 2,
-  MSP430_POWER_LPM2   = 3,
-  MSP430_POWER_LPM3   = 4,
-  MSP430_POWER_LPM4   = 5
-};
-/** Combine function.  */
-mcu_power_t mcombine(mcu_power_t m1, mcu_power_t m2) {
-  return (m1 < m2)? m1: m2;
-}
-
-void __nesc_atomic_sleep()
-{
-  TOSH_sleep(); // XXX fixme XXX
-}
 
 #define SET_FLAG(port, flag) ((port) |= (flag))
 #define CLR_FLAG(port, flag) ((port) &= ~(flag))
@@ -307,6 +163,53 @@ void TOSH_SEL_##name##_IOFUNC() { MSP430REG_NORACE2(r,P##port##SEL); r &= ~hex; 
 
 #define TOSH_ASSIGN_PIN(name, port, bit) \
 TOSH_ASSIGN_PIN_HEX(name,port,(1<<(bit)))
+
+typedef uint8_t mcu_power_t @combine("mcombine");
+mcu_power_t mcombine(mcu_power_t m1, mcu_power_t m2) {
+  return (m1 < m2) ? m1: m2;
+}
+enum {
+  MSP430_POWER_ACTIVE = 0,
+  MSP430_POWER_LPM0   = 1,
+  MSP430_POWER_LPM1   = 2,
+  MSP430_POWER_LPM2   = 3,
+  MSP430_POWER_LPM3   = 4,
+  MSP430_POWER_LPM4   = 5
+};
+
+void __nesc_disable_interrupt(void)
+{
+  dint();
+  nop();
+}
+
+void __nesc_enable_interrupt(void)
+{
+  eint();
+}
+
+typedef bool __nesc_atomic_t;
+__nesc_atomic_t __nesc_atomic_start(void);
+void __nesc_atomic_end(__nesc_atomic_t reenable_interrupts);
+
+#ifndef NESC_BUILD_BINARY
+/* @spontaneous() functions should not be included when NESC_BUILD_BINARY
+   is #defined, to avoid duplicate functions definitions wheb binary
+   components are used. Such functions do need a prototype in all cases,
+   though. */
+__nesc_atomic_t __nesc_atomic_start(void) @spontaneous()
+{
+  __nesc_atomic_t result = ((READ_SR & SR_GIE) != 0);
+  __nesc_disable_interrupt();
+  return result;
+}
+
+void __nesc_atomic_end(__nesc_atomic_t reenable_interrupts) @spontaneous()
+{
+  if( reenable_interrupts )
+    __nesc_enable_interrupt();
+}
+#endif
 
 #endif//_H_msp430hardware_h
 

@@ -1,4 +1,4 @@
-//  $Id: atm128hardware.h,v 1.1.2.5 2006-01-27 23:13:22 idgay Exp $
+//  $Id: atm128hardware.h,v 1.1.2.6 2006-02-17 22:51:18 idgay Exp $
 
 /*                                                                     tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -85,6 +85,14 @@ inline void __nesc_disable_interrupt() {
 
 /* Defines data type for storing interrupt mask state during atomic. */
 typedef uint8_t __nesc_atomic_t;
+__nesc_atomic_t __nesc_atomic_start(void);
+void __nesc_atomic_end(__nesc_atomic_t original_SREG);
+
+#ifndef NESC_BUILD_BINARY
+/* @spontaneous() functions should not be included when NESC_BUILD_BINARY
+   is #defined, to avoid duplicate functions definitions wheb binary
+   components are used. Such functions do need a prototype in all cases,
+   though. */
 
 /* Saves current interrupt mask state and disables interrupts. */
 inline __nesc_atomic_t 
@@ -101,14 +109,7 @@ __nesc_atomic_end(__nesc_atomic_t original_SREG) @spontaneous()
 {
   SREG = original_SREG;
 }
-
-inline void
-__nesc_atomic_sleep()
-{
-  //sbi(MCUCR, SE);  power manager will enable/disable sleep
-  sei();  // Make sure interrupts are on, so we can wake up!
-  asm volatile ("sleep");
-}
+#endif
 
 /* Defines the mcu_power_t type for atm128 power management. */
 typedef uint8_t mcu_power_t @combine("mcombine");
@@ -127,6 +128,5 @@ enum {
 mcu_power_t mcombine(mcu_power_t m1, mcu_power_t m2) {
   return (m1 < m2)? m1: m2;
 }
-
 
 #endif //_H_atmega128hardware_H

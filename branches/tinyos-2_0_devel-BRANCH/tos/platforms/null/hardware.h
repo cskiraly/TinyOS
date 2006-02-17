@@ -1,5 +1,3 @@
-void inline uwait(int u_sec) { }
-
 inline void __nesc_enable_interrupt() { }
 inline void __nesc_disable_interrupt() { }
 
