@@ -1,4 +1,4 @@
-/* $Id: AdcStreamP.nc,v 1.1.2.1 2006-01-25 01:32:46 idgay Exp $
+/* $Id: AdcStreamP.nc,v 1.1.2.2 2006-02-17 00:26:47 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -51,7 +51,7 @@ module AdcStreamP {
   uses {
     interface Atm128AdcSingle;
     interface Atm128AdcConfig[uint8_t client];
-    command uint32_t calibrateMicro(uint32_t n);
+    interface Atm128Calibrate;
     interface Alarm<TMicro, uint32_t>;
   }
 }
@@ -121,9 +121,10 @@ implementation {
 
   task void readStreamDone() {
     uint8_t c = client;
+    uint32_t actualPeriod = call Atm128Calibrate.actualMicro(period);
 
     client = NSTREAM;
-    signal ReadStream.readDone[c](SUCCESS);
+    signal ReadStream.readDone[c](SUCCESS, actualPeriod);
   }
 
   task void readStreamFail() {
@@ -142,7 +143,7 @@ implementation {
       }
 
     client = NSTREAM;
-    signal ReadStream.readDone[c](FAIL);
+    signal ReadStream.readDone[c](FAIL, 0);
   }
 
   task void bufferDone() {
@@ -171,7 +172,7 @@ implementation {
     /* The first reading may be imprecise. So we just do a dummy read
        to get things rolling - this is indicated by setting count to 0 */
     count = 0;
-    period = call calibrateMicro(usPeriod);
+    period = call Atm128Calibrate.calibrateMicro(usPeriod);
     client = c;
     sample();
 

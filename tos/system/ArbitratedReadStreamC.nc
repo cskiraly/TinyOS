@@ -1,4 +1,4 @@
-/* $Id: ArbitratedReadStreamC.nc,v 1.1.2.2 2006-01-27 22:19:17 idgay Exp $
+/* $Id: ArbitratedReadStreamC.nc,v 1.1.2.3 2006-02-17 00:26:48 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -50,10 +50,10 @@ implementation {
     signal ReadStream.bufferDone[client](result, buf, count);
   }
 
-  event void Service.readDone[uint8_t client](error_t result)
+  event void Service.readDone[uint8_t client](error_t result, uint32_t actualPeriod)
   {
     call Resource.release[client]();
-    signal ReadStream.readDone[client](result);
+    signal ReadStream.readDone[client](result, actualPeriod);
   }
 
   event void Resource.granted[uint8_t client]() {
@@ -80,7 +80,7 @@ implementation {
   {
   }
 
-  default event void ReadStream.readDone[uint8_t client](error_t result)
+  default event void ReadStream.readDone[uint8_t client](error_t result, uint32_t actualPeriod)
   {
   }
 }

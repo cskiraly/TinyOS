@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-01-30 17:53:24 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2006-02-17 00:26:43 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -90,7 +90,7 @@ implementation
     streamSuccess = TRUE;
   }
 
-  event void ReadStream.readDone(error_t result)
+  event void ReadStream.readDone(error_t result, uint32_t actualPeriod)
   {
     if (result == SUCCESS && streamSuccess)
       call Leds.led2On();

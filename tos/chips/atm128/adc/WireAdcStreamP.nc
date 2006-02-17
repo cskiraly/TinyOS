@@ -1,4 +1,4 @@
-/* $Id: WireAdcStreamP.nc,v 1.1.2.1 2006-01-27 19:35:31 idgay Exp $
+/* $Id: WireAdcStreamP.nc,v 1.1.2.2 2006-02-17 00:26:47 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -35,6 +35,6 @@ implementation {
 
   AdcStreamP.Init <- MainC;
   AdcStreamP.Atm128AdcSingle -> Atm128AdcC;
-  AdcStreamP.calibrateMicro -> PlatformC;
+  AdcStreamP.Atm128Calibrate -> PlatformC;
   AdcStreamP.Alarm -> AlarmMicro32C;
 }

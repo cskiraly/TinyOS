@@ -1,4 +1,4 @@
-// $Id: InitMicroP.nc,v 1.1.2.5 2006-02-01 16:42:54 idgay Exp $
+// $Id: InitMicroP.nc,v 1.1.2.6 2006-02-17 00:26:48 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -10,7 +10,8 @@
  */
 /**
  * Internal mica-family timer component. Sets up hardware timer 3 to run
- * at cpu clock / 8, at boot time.
+ * at cpu clock / 8, at boot time. Assumes an ~8MHz CPU clock, replace
+ * this component if you are running at a radically different frequency.
  *
  * @author David Gay
  */

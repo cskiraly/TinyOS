@@ -1,4 +1,4 @@
-/// $Id: Atm128AdcMultiple.nc,v 1.1.2.3 2006-01-27 23:44:37 idgay Exp $
+/// $Id: Atm128AdcMultiple.nc,v 1.1.2.4 2006-02-17 00:26:47 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -80,10 +80,10 @@ interface Atm128AdcMultiple
    *   a one-sample delay.
    * @param leftJustify TRUE to place A/D result in high-order bits 
    *   (i.e., shifted left by 6 bits), low to place it in the low-order bits
-   * @param prescaler Prescaler value for the A/D conversion clock. Normally
-   *  this should be ATM128_ADC_PRESCALE to guarantee full precision. Other
-   *  prescalers can be used to get faster conversions. See the ATmega128
-   *  manual for details.
+   * @param prescaler Prescaler value for the A/D conversion clock. If you 
+   *  specify ATM128_ADC_PRESCALE, a prescaler will be chosen that guarantees
+   *  full precision. Other prescalers can be used to get faster conversions. 
+   *  See the ATmega128 manual for details.
    * @return TRUE if the conversion will be precise, FALSE if it will be 
    *   imprecise (due to a change in reference voltage, or switching to a
    *   differential input channel)
