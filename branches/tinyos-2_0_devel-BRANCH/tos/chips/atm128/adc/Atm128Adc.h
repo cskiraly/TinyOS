@@ -1,4 +1,4 @@
-// $Id: Atm128Adc.h,v 1.1.2.5 2006-01-27 23:13:22 idgay Exp $
+// $Id: Atm128Adc.h,v 1.1.2.6 2006-02-17 00:26:47 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -101,6 +101,10 @@ enum {
     ATM128_ADC_PRESCALE_32,
     ATM128_ADC_PRESCALE_64,
     ATM128_ADC_PRESCALE_128,
+
+    // This special value is used to ask the platform for the prescaler
+    // which gives full precision.
+    ATM128_ADC_PRESCALE
 };
 
 /* ADC Enable Settings */

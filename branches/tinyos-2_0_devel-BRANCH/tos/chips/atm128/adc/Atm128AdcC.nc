@@ -1,4 +1,4 @@
-/// $Id: Atm128AdcC.nc,v 1.1.2.7 2006-02-16 19:02:14 idgay Exp $
+/// $Id: Atm128AdcC.nc,v 1.1.2.8 2006-02-17 00:26:47 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -59,6 +59,7 @@ implementation
   PlatformC.SubInit -> Atm128AdcP;
 
   Atm128AdcP.HplAtm128Adc -> HplAtm128AdcC;
+  Atm128AdcP.Atm128Calibrate -> PlatformC;
 
   PM.Init <- MainC;
   PM.StdControl -> Atm128AdcP;

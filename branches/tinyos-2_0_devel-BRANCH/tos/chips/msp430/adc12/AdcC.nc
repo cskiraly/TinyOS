@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.9 $
- * $Date: 2006-01-31 18:43:40 $
+ * $Revision: 1.1.2.10 $
+ * $Date: 2006-02-17 00:26:48 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -206,7 +206,7 @@ implementation
     if (!entry || settings.inch == INPUT_CHANNEL_NONE){
       // no buffers available
       call ResourceReadStream.release[rsClient]();
-      signal ReadStream.readDone[rsClient]( FAIL );
+      signal ReadStream.readDone[rsClient]( FAIL, 0 );
       return;
     }
     owner = rsClient;
@@ -228,14 +228,14 @@ implementation
     call ResourceReadStream.release[owner]();
     if (!streamBuf[owner])
       // all posted buffers were filled
-      signal ReadStream.readDone[owner]( SUCCESS );
+      signal ReadStream.readDone[owner]( SUCCESS, usPeriod[owner] );
     else {
       // not all buffers were filled
       do {
         signal ReadStream.bufferDone[owner]( FAIL, (uint16_t *) streamBuf[owner], 0);
         streamBuf[owner] = streamBuf[owner]->next;
       } while (streamBuf[owner]);
-      signal ReadStream.readDone[owner]( FAIL );
+      signal ReadStream.readDone[owner]( FAIL, 0 );
     }
   }
 
@@ -293,7 +293,7 @@ implementation
   default async command void ResourceReadStream.release[uint8_t rsClient]() { }
   default event void ReadStream.bufferDone[uint8_t rsClient]( error_t result, 
 			 uint16_t* buf, uint16_t count ){}
-  default event void ReadStream.readDone[uint8_t rsClient]( error_t result ){ } 
+  default event void ReadStream.readDone[uint8_t rsClient]( error_t result, uint32_t actualPeriod ){ } 
 
   default async command error_t 
     SingleChannel.getSingleData[uint8_t client](const msp430adc12_channel_config_t *config)

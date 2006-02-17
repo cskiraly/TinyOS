@@ -1,4 +1,4 @@
-// $Id: MeasureClockC.nc,v 1.1.2.4 2006-01-27 23:13:23 idgay Exp $
+// $Id: MeasureClockC.nc,v 1.1.2.5 2006-02-17 00:26:48 idgay Exp $
 /*
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
@@ -9,12 +9,9 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Measure cpu clock frequency at boot time. Provides a command
- * (<code>cyclesPerJiffy</code>) to return the number of cpu cycles per
- * "jiffy"( 1/32768s) and a command (<code>calibrateMicro</code>) to 
- * convert a number of microseconds into "AlarmMicro microseconds".
- * An "AlarmMicro microsecond" is actually 8 cpu cycles (see 
- * AlarmMicro16C and AlarmMicro32C).
+ * Measure cpu clock frequency at boot time. Provides an Atm128Calibrate
+ * interface so that other components can adjust their calibration as
+ * needed.
  *
  * @author David Gay
  */
@@ -22,26 +19,22 @@
 #include "scale.h"
 
 module MeasureClockC {
-  /* This code MUST be called from PlatformP only, hence the exactlyonce */
-  provides interface Init @exactlyonce();
-
   provides {
     /**
-     * Return CPU cycles per 1/32768s.
-     * @return CPU cycles.
+     * This code MUST be called from PlatformP only, hence the exactlyonce.
      */
-    command uint16_t cyclesPerJiffy();
-
-    /**
-     * Convert n microseconds into a value suitable for use with
-     * AlarmMicro16C and AlarmMicro32C Alarms.
-     * @return (n + 122) * 244 / cyclesPerJiffy
-     */
-    command uint32_t calibrateMicro(uint32_t n);
+    interface Init @exactlyonce();
+    interface Atm128Calibrate;
   }
 }
 implementation 
 {
+  enum {
+    /* This is expected number of cycles per jiffy at the platform's
+       specified MHz. We are PLATFORM_MHZ == 1, 2, 4, 8 or 16. */
+    MAGIC = 488 / (16 / PLATFORM_MHZ)
+  };
+
   uint16_t cycles;
 
   command error_t Init.init() {
@@ -50,7 +43,7 @@ implementation
        with debugging on */
     atomic
       {
-	uint8_t now;
+	uint8_t now, wraps;
 	uint16_t start;
 
 	/* Setup timer0 to count 32 jiffies, and timer1 cpu cycles */
@@ -58,11 +51,24 @@ implementation
 	ASSR = 1 << AS0;
 	TCCR0 = 1 << CS01 | 1 << CS00;
 
-	/* Wait for a jiffy change */
+	/* Wait for 1s for counter to stablilize after power-up (yes, it
+	   really does take that long). That's 122 wrap arounds of timer 1
+	   at 8MHz. */
+	start = TCNT1;
+	for (wraps = MAGIC / 2; wraps; )
+	  {
+	    uint16_t next = TCNT1;
+
+	    if (next < start)
+	      wraps--;
+	    start = next;
+	  }
+
+	/* Wait for a TCNT0 change */
 	now = TCNT0;
 	while (TCNT0 == now) ;
 
-	/* Read cpu cycles and wait for next jiffy change */
+	/* Read cpu cycles and wait for next TCNT0 change */
 	start = TCNT1;
 	now = TCNT0;
 	while (TCNT0 == now) ;
@@ -78,11 +84,37 @@ implementation
     return SUCCESS;
   }
 
-  command uint16_t cyclesPerJiffy() {
+  async command uint16_t Atm128Calibrate.cyclesPerJiffy() {
     return cycles;
   }
 
-  command uint32_t calibrateMicro(uint32_t n) {
-    return scale32(n + 122, 244, cycles);
+  async command uint32_t Atm128Calibrate.calibrateMicro(uint32_t n) {
+    return scale32(n + MAGIC / 2, cycles, MAGIC);
+  }
+
+  async command uint32_t Atm128Calibrate.actualMicro(uint32_t n) {
+    return scale32(n + (cycles >> 1), MAGIC, cycles);
+  }
+
+  async command uint8_t Atm128Calibrate.adcPrescaler() {
+    /* This is also log2(cycles/3.05). But that's a pain to compute */
+    if (cycles >= 390)
+      return ATM128_ADC_PRESCALE_128;
+    if (cycles >= 195)
+      return ATM128_ADC_PRESCALE_64;
+    if (cycles >= 97)
+      return ATM128_ADC_PRESCALE_32;
+    if (cycles >= 48)
+      return ATM128_ADC_PRESCALE_16;
+    if (cycles >= 24)
+      return ATM128_ADC_PRESCALE_8;
+    if (cycles >= 12)
+      return ATM128_ADC_PRESCALE_4;
+    return ATM128_ADC_PRESCALE_2;
+  }
+
+  async command uint16_t Atm128Calibrate.baudrateRegister(uint32_t baudrate) {
+    // value is (cycles*32768) / (8*baudrate) - 1
+    return ((uint32_t)cycles << 12) / baudrate - 1;
   }
 }

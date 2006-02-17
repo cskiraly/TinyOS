@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.8 2006-02-16 18:45:51 idgay Exp $
+ *  $Id: hardware.h,v 1.1.2.9 2006-02-17 00:26:48 idgay Exp $
  */
 
 #ifndef HARDWARE_H
@@ -44,12 +44,15 @@
 #include <atm128hardware.h>
 #include <Atm128Adc.h>
 
-// A/D constants (channels, etc)
+// A/D channels
 enum {
   CHANNEL_RSSI       = ATM128_ADC_SNGL_ADC0,
   CHANNEL_THERMISTOR = ATM128_ADC_SNGL_ADC1,    // normally unpopulated
   CHANNEL_BATTERY    = ATM128_ADC_SNGL_ADC7,
-  ATM128_ADC_PRESCALE = ATM128_ADC_PRESCALE_64  // normal mica2 prescaler value
+};
+
+enum {
+  PLATFORM_MHZ = 8 // Approximate clock frequency (closest power of 2)
 };
 
 #endif //HARDWARE_H
