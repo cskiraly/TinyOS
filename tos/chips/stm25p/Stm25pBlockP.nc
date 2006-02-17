@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-01-28 01:39:30 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-02-17 22:13:22 $
  */
 
 module Stm25pBlockP {
@@ -78,7 +78,12 @@ implementation {
   command storage_addr_t StorageMap.getPhysicalAddress[ storage_block_t b ]( storage_addr_t addr ) {
     return call Sector.getPhysicalAddress[ b ]( addr );
   }
-
+  
+  command storage_len_t Read.getSize[ storage_block_t b ]() {
+    return ( (storage_len_t)call Sector.getNumSectors[ b ]() 
+	     << STM25P_SECTOR_SIZE_LOG2 );
+  }
+  
   command error_t Read.read[ storage_block_t b ]( storage_addr_t addr,
 						  void* buf,
 						  storage_len_t len ) {

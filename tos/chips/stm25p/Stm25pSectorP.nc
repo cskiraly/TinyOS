@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-02-07 19:43:02 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-02-17 22:13:22 $
  */
 
 #include <Stm25p.h>
@@ -200,13 +200,15 @@ implementation {
     m_len = num_sectors;
     m_cur_len = 0;
     
-    return call Spi.sectorErase( STM25P_VMAP[m_volumes[v]].base + m_cur_len );
+    return call Spi.sectorErase( STM25P_VMAP[m_volumes[v]].base + m_addr +
+				 m_cur_len );
     
   }
   
   async event void Spi.sectorEraseDone( uint8_t sector, error_t error ) {
     if ( ++m_cur_len < m_len )
-      call Spi.sectorErase( STM25P_VMAP[m_volumes[m_client]].base+m_cur_len );
+      call Spi.sectorErase( STM25P_VMAP[m_volumes[m_client]].base + m_addr +
+			    m_cur_len );
     else
       signalDone( error );
   }
