@@ -46,7 +46,7 @@ def check_volume(name, base, size):
   name = name.upper()
   if volumes.has_key(name):
     nfail("duplicate definition of volume %s" % name)
-  if not match("^[a-zA-Z0-0_]+$", name):
+  if not match("^[a-zA-Z0-9_]+$", name):
     nfail("invalid volume name %s" % name)
   volumes[name] = (base, size)
 
