@@ -1,5 +1,3 @@
-// $Id: RandomLfsrC.nc,v 1.1.2.3 2006-01-29 20:32:25 scipio Exp $
-
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
@@ -40,7 +38,7 @@
  * @author David Gay
  * @author Alec Woo
  * @date   Jan 20 2005
- * /
+ */
 
 configuration RandomLfsrC
 {
