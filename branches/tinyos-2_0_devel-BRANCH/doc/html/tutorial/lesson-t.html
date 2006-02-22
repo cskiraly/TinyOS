@@ -6,7 +6,7 @@
 </head>
 <body>
 
-$Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
+$Id: lesson-t.html,v 1.1.2.3 2006-02-22 02:56:37 scipio Exp $
 
 <div class="title">Lesson T: Simulation with TOSSIM</div>
 <div class="subtitle">Last Modified: Feb 9, 2006</div>
@@ -193,8 +193,8 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
           TOSSIM:</p>
 
         <pre>
-           $ cd tinyos-2.x/apps/RadioCountToLeds
-           $ make micaz sim
+$ cd tinyos-2.x/apps/RadioCountToLeds
+$ make micaz sim
         </pre>
 
         <p>We'll start with running a simulation in Python. You can either
@@ -203,24 +203,24 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
           up your Python interpreter:</p>
 
         <pre>
-           $ python
+$ python
         </pre>
 
         <p>You should see a prompt like this:</p>
 
         <pre>
-           Python 2.3.4 (#1, Nov  4 2004, 14:13:38)
-           [GCC 3.4.2 20041017 (Red Hat 3.4.2-6.fc3)] on linux2
-           Type "help", "copyright", "credits" or "license" for more information.
-           >>>
+Python 2.3.4 (#1, Nov  4 2004, 14:13:38)
+[GCC 3.4.2 20041017 (Red Hat 3.4.2-6.fc3)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>>
         </pre>
 
         <p>The first thing we need to do is import TOSSIM and create a
         TOSSIM object. Type</p>
 
         <pre>
-           >>> from TOSSIM import *
-           >>> t = Tossim([])
+>>> from TOSSIM import *
+>>> t = Tossim([])
         </pre>
         
         <p>The square brackets are an optional argument that lets you
@@ -231,8 +231,8 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
         example:</p>
 
         <pre>
-           >>> t.runNextEvent()
-           0
+>>> t.runNextEvent()
+0
         </pre>
 
         <p>When you tell TOSSIM to run the next event, it returns
@@ -242,10 +242,10 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
         event (booting):</p>
 
         <pre>
-           >>> m = t.getNode(32);
-           >>> m.bootAtTime(45654);
-           >>> t.runNextEVent()
-           1
+>>> m = t.getNode(32);
+>>> m.bootAtTime(45654);
+>>> t.runNextEVent()
+1
         </pre>
 
         <p>Now, <tt>runNextEvent</tt> returns 1, because there was an
@@ -254,16 +254,16 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
         The first is that we can just ask it:</p>
 
         <pre>
-           >>> m.isOn()
-           1
-           >>> m.turnOff()
-           >>> m.isOn()
-           0
-           >>> m.bootAtTime(560000)
-           >>> t.runNextEvent()
-           0
-           >>> t.runNextEvent()
-           1
+>>> m.isOn()
+1
+>>> m.turnOff()
+>>> m.isOn()
+0
+>>> m.bootAtTime(560000)
+>>> t.runNextEvent()
+0
+>>> t.runNextEvent()
+1
         </pre>        
 
         <p>Note that the first <tt>runNextEvent</tt> returned 0. This
@@ -293,11 +293,11 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
           to print out a debug message when it boots, such as this:</p>
 
         <pre>
-           event void Boot.booted() {
-             call Leds.led0On();
-             dbg("Boot", "Application booted.\n");
-             call AMControl.start();
-           }
+event void Boot.booted() {
+  call Leds.led0On();
+  dbg("Boot", "Application booted.\n");
+  call AMControl.start();
+}
         </pre>
 
         <p>Calls to the debugging calls take two or more
@@ -308,10 +308,10 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
           RadioCountToLedsC has this call:
 
         <pre>
-           event message_t* Receive.receive(message_t* bufPtr, void* payload, uint8_t len) {
-             dbg("RadioCountToLedsC", "Received packet of length %hhu.\n", len);
-             ...
-           }
+event message_t* Receive.receive(message_t* bufPtr, void* payload, uint8_t len) {
+  dbg("RadioCountToLedsC", "Received packet of length %hhu.\n", len);
+  ...
+}
         </pre>
 
         which prints out the length of received packet as an 8-bit unsigned value (%hhu).</p>
@@ -322,10 +322,10 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
         schedule a mote to boot as before:</p>
         
         <pre>
-           >>> from TOSSIM import *
-           >>> t = Tossim([])
-           >>> m = t.getNode(32);
-           >>> m.bootAtTime(45654);
+>>> from TOSSIM import *
+>>> t = Tossim([])
+>>> m = t.getNode(32);
+>>> m.bootAtTime(45654);
         </pre>
 
         <p>This time, however, we want to see the debugging message
@@ -342,18 +342,18 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
         TOSSIM to send Boot messages to this destination:
           
         <pre>
-           >>> import sys
-           >>> t.addChannel("Boot", sys.stdout);
-           1
+>>> import sys
+>>> t.addChannel("Boot", sys.stdout);
+1
         </pre>
 
           The return value shows that the channel was added successfully. Run the first
           simulation event, and the mote boots:
 
         <pre>
-           >>> t.runNextEvent()
-           DEBUG (32): Application booted.
-           1
+>>> t.runNextEvent()
+DEBUG (32): Application booted.
+1
         </pre>          </p>
 
         <p>The only difference between debug and error functions is
@@ -365,11 +365,11 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
           channels. Each channel name is delimited by commas:
 
           <pre>
-           event void Boot.booted() {
-             call Leds.led0On();
-             dbg("Boot,RadioCountToLedsC", "Application booted.\n");
-             call AMControl.start();
-           }
+event void Boot.booted() {
+  call Leds.led0On();
+  dbg("Boot,RadioCountToLedsC", "Application booted.\n");
+  call AMControl.start();
+}
           </pre>
 
           If a statement has multiple channels and those channels
@@ -380,29 +380,29 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
 
           
           <pre>
-           event void Boot.booted() {
-             call Leds.led0On();
-             dbg("Boot,RadioCountToLedsC", "Application booted.\n");
-             dbg("RadioCountToLedsC", "Application booted again.\n");
-             dbg("Boot", "Application booted a third time.\n");
-             call AMControl.start();
-           }
+event void Boot.booted() {
+  call Leds.led0On();
+  dbg("Boot,RadioCountToLedsC", "Application booted.\n");
+  dbg("RadioCountToLedsC", "Application booted again.\n");
+  dbg("Boot", "Application booted a third time.\n");
+  call AMControl.start();
+}
           </pre>
 
           when configured so
 
           <pre>
-           >>> import sys
-           >>> t.addChannel("Boot", sys.stdout)
-           >>> t.addChannel("RadioCountToLedsC", sys.stdout)
+>>> import sys
+>>> t.addChannel("Boot", sys.stdout)
+>>> t.addChannel("RadioCountToLedsC", sys.stdout)
           </pre>
 
           will print out this:
 
           <pre>
-           DEBUG (32): Application booted.
-           DEBUG (32): Application booted again.
-           DEBUG (32): Application booted a third time.
+DEBUG (32): Application booted.
+DEBUG (32): Application booted again.
+DEBUG (32): Application booted a third time.
           </pre></p>
 
 
@@ -412,11 +412,11 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
         output and a file named <tt>log.txt</tt>:
 
           <pre>
-           >>> import sys
-           >>> f = open("log.txt", "w")
-           >>> t.addChannel("Boot", f)
-           >>> t.addChannel("Boot", sys.stdout)
-           >>> t.addChannel("RadioCountToLedsC", sys.stdout)
+>>> import sys
+>>> f = open("log.txt", "w")
+>>> t.addChannel("Boot", f)
+>>> t.addChannel("Boot", sys.stdout)
+>>> t.addChannel("RadioCountToLedsC", sys.stdout)
           </pre>
         </p>
 
@@ -442,17 +442,17 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
 
         
         <pre>
-           >>> from TOSSIM import *
-           >>> t = Tossim([])
-           >>> r = t.radio()
-           >>> dir(r)
-           ['__class__', '__del__', '__delattr__', '__dict__', '__doc__',
-           '__getattr__', '__getattribute__', '__hash__', '__init__',
-           '__module__', '__new__', '__reduce__', '__reduce_ex__',
-           '__repr__', '__setattr__', '__str__', '__swig_getmethods__',
-           '__swig_setmethods__', '__weakref__', 'add', 'connected',
-           'gain', 'remove', 'setNoise', 'this', 'thisown',
-           <class 'TOSSIM.RadioPtr'>]
+>>> from TOSSIM import *
+>>> t = Tossim([])
+>>> r = t.radio()
+>>> dir(r)
+['__class__', '__del__', '__delattr__', '__dict__', '__doc__',
+'__getattr__', '__getattribute__', '__hash__', '__init__',
+'__module__', '__new__', '__reduce__', '__reduce_ex__',
+'__repr__', '__setattr__', '__str__', '__swig_getmethods__',
+'__swig_setmethods__', '__weakref__', 'add', 'connected',
+'gain', 'remove', 'setNoise', 'this', 'thisown',
+<class 'TOSSIM.RadioPtr'>]
         </pre>          
 
         <p>The first set of methods (with the double underscores) are
@@ -503,7 +503,7 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
         object is for a CSMA protocol. You get a reference to the MAC
         object by calling mac() on a Tossim object:
           <pre>
-           >>> mac = t.mac()
+>>> mac = t.mac()
           </pre>
 
           The default MAC object has a large number of functions, for
@@ -563,31 +563,31 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
           destination, and the gain, e.g.:
 
           <pre>
-           1  2 -54.0
+1  2 -54.0
           </pre>
 
           means that when 1 transmits 2 hears it at -54 dBm. Create a file <tt>topo.txt</tt>
           that looks like this:</p>
 
         <pre>
-           1  2 -54.0
-           2  1 -55.0
-           1  3 -60.0
-           3  1 -60.0
-           2  3 -64.0
-           3  2 -64.0
+1  2 -54.0
+2  1 -55.0
+1  3 -60.0
+3  1 -60.0
+2  3 -64.0
+3  2 -64.0
         </pre>
 
         <p>This script will read such a file:
 
           <pre>
-           >>> f = open("topo.txt", "r")
-           >>> lines = f.readlines()
-           >>> for line in lines:
-           ...   s = line.split()
-           ...   if (len(s) > 0):
-           ...     print " ", s[0], " ", s[1], " ", s[2];
-           ...     r.add(int(s[0]), int(s[1]), float(s[2]))
+>>> f = open("topo.txt", "r")
+>>> lines = f.readlines()
+>>> for line in lines:
+...   s = line.split()
+...   if (len(s) > 0):
+...     print " ", s[0], " ", s[1], " ", s[2];
+...     r.add(int(s[0]), int(s[1]), float(s[2]))
           </pre></p>
         
         
@@ -595,43 +595,45 @@ $Id: lesson-t.html,v 1.1.2.2 2006-02-14 02:51:21 scipio Exp $
         This is a complete script for simulating packet transmission with
           RadioCountToLedsC. Save it as a file <tt>test.py</tt>:</p>
         <pre>
-           from TOSSIM import *
-           import sys
+from TOSSIM import *
+import sys
 
-           t = Tossim([])
-           r = t.radio()
-           f = open("topo.txt", "r")
+t = Tossim([])
+r = t.radio()
+f = open("topo.txt", "r")
 
-           lines = f.readlines()
-           for line in lines:
-             s = line.split()
-             if (len(s) > 0):
-               print " ", s[0], " ", s[1], " ", s[2];
-               r.add(int(s[0]), int(s[1]), float(s[2]))
+lines = f.readlines()
+for line in lines:
+  s = line.split()
+  if (len(s) > 0):
+    print " ", s[0], " ", s[1], " ", s[2];
+    r.add(int(s[0]), int(s[1]), float(s[2]))
 
-           t.addChannel("RadioCountToLedsC", sys.stdout)
-           t.addChannel("Boot", sys.stdout)
+t.addChannel("RadioCountToLedsC", sys.stdout)
+t.addChannel("Boot", sys.stdout)
 
-           t.getNode(1).bootAtTime(100001);
-           t.getNode(2).bootAtTime(800008);
-           t.getNode(3).bootAtTime(1800009);
+t.getNode(1).bootAtTime(100001);
+t.getNode(2).bootAtTime(800008);
+t.getNode(3).bootAtTime(1800009);
 
-           r.setNoise(1, -80.0, 5.0)
-           r.setNoise(2, -80.0, 5.0)
-           r.setNoise(3, -80.0, 5.0)
+r.setNoise(1, -80.0, 5.0)
+r.setNoise(2, -80.0, 5.0)
+r.setNoise(3, -80.0, 5.0)
 
-           for i in range(0, 100):
-             t.runNextEvent()
-
+for i in range(0, 100):
+  t.runNextEvent()
         </pre>          
 
         <p>Run it by typing <tt>python test.py</tt>. You should see
           output that looks like this:</p>
 
         <pre>
-  1   2   -54.0
-  2   1   -55.0
-  1   3   -22.1
+1  2 -54.0
+2  1 -55.0
+1  3 -60.0
+3  1 -60.0
+2  3 -64.0
+3  2 -64.0
 DEBUG (1): Application booted.
 DEBUG (1): Application booted again.
 DEBUG (1): Application booted a third time.
@@ -657,15 +659,174 @@ DEBUG (2): RadioCountToLedsC: packet sent.
 DEBUG (3): RadioCountToLedsC: timer fired, counter is 2.
 DEBUG (3): RadioCountToLedsC: packet sent.
 DEBUG (1): Received packet of length 2.
-
         </pre>
-          
+
+        <p>If you set the noise to be 30 plus or minus 5 dBm instead
+        of 80 plus or minus 5 dBm, then nodes will never transmit, as
+        the default CCA threshold is -77 dBm. You'll see something
+        like this:</p>
+             <pre>
+1  2 -54.0
+2  1 -55.0
+1  3 -60.0
+3  1 -60.0
+2  3 -64.0
+3  2 -64.0
+DEBUG (1): Application booted.
+DEBUG (1): Application booted again.
+DEBUG (1): Application booted a third time.
+DEBUG (2): Application booted.
+DEBUG (2): Application booted again.
+DEBUG (2): Application booted a third time.
+DEBUG (3): Application booted.
+DEBUG (3): Application booted again.
+DEBUG (3): Application booted a third time.
+DEBUG (1): RadioCountToLedsC: timer fired, counter is 1.
+DEBUG (1): RadioCountToLedsC: packet sent.
+DEBUG (2): RadioCountToLedsC: timer fired, counter is 1.
+DEBUG (2): RadioCountToLedsC: packet sent.
+DEBUG (3): RadioCountToLedsC: timer fired, counter is 1.
+DEBUG (3): RadioCountToLedsC: packet sent.
+DEBUG (1): RadioCountToLedsC: timer fired, counter is 2.
+DEBUG (2): RadioCountToLedsC: timer fired, counter is 2.
+DEBUG (3): RadioCountToLedsC: timer fired, counter is 2.
+        </pre>
+
+        <p>Because the nodes backoff perpetually, they never transmit
+        the packet and so subsequent attempts to send fail. Although
+        it only takes a few simulation events to reach the first timer
+        firings, it takes many simulation events (approximately 4000)
+        to reach the second timer firings. This is because the nodes
+        have MAC backoff events. If you want to simulate in terms of
+        time, rather than events, you can always do something like
+        this, which simulates 5 seconds from the first node boot:</p>
+
+        <pre>
+t.runNextEvent();
+time = t.time()
+while (time + 50000000000 > t.time()):
+  t.runNextEvent()
+</pre>
+
+        <p>TOSSIM allows you to specify a network topology in terms of
+        gain. However, this raises the problem of coming up with a
+        topology. There are two approaches you can take. The first is
+        to take data from a real world network and input this into
+        TOSSIM. The second is to generate it from applying a
+        theoretical propagation model to a physical layout. TOSSIM has
+        an example of the first from the <A
+        HREF="https://mirage.berkeley.intel-research.net/">Mirage
+        testbed</A> at Intel Research Berkeley. The network topology
+        is from data gathered from one hundred micaZ nodes over an
+        eight hour period in February 2006. It can be found in <tt><A
+        HREF="../../../tos/lib/tossim/topologies/mirage-1.txt">tos/lib/tossim/topologies/mirage-1.txt</A></tt>, and has the following format:
+
+          <pre>
+noise n avg std
+gain src dest g
+          </pre>
+
+          where each statement is on a separate line. The <i>noise</i>
+          statement defines the noise observed at node <i>n</i> with
+          an average of <i>avg</i> and a standard deviation of
+          <i>std</i>.  The <i>gain</i> statement defines a propagation
+          gain <i>g</i> when <i>src</i> transmits to <i>dest</i>. This
+          is a snippet of python code that will parse this file
+          format:
+
+          <pre>
+f = open("mirage-1.txt", "r")
+
+lines = f.readlines()
+for line in lines:
+  s = line.split()
+  if (len(s) > 0):
+    if (s[0] == "gain"):
+      r.add(int(s[1]), int(s[2]), float(s[3]))
+    elif (s[0] == "noise"):
+      r.setNoise(int(s[1]), float(s[2]), float(s[3]))
+          </pre></p>
+
+        <p>TOSSIM has a tool for the second option of generating a
+        network topology using a theoretical propagation model. The
+        tool is written in Java and is
+        <tt>net.tinyos.sim.PropagationModel</tt>. The tool takes a
+        single command line parameter, the name of a configuration
+        file, e.g.:</p>
+
+        <pre>
+java net.tinyos.sim.PropagationModel config.txt
+        </pre>
+
+        <p>The format of a configuration file is beyond the scope of
+        this document: the tool has its own <A
+        HREF="">documentation</A>. TOSSIM has two sample configuration
+        files generated from the tool in
+        <tt>tos/lib/tossim/topologies</tt>. The first is <tt><A
+        HREF="">grid.txt</A></tt>, which is a 10x10 grid of nodes
+        spaced roughly 40 feet apart. Each node is placed randomly
+        within a 40'x40' "cell." The cells follow a strict grid. The
+        second file is <tt><A HREF="">scatter.txt</A></tt>, which is
+        100 nodes scattered randomly (with a uniform distribution)
+        over a 360'x360' area. Note that the tool uses random numbers,
+        these configuration files can generate multiple different
+        network topologies. Network topology files generated from the
+        tool follow the same format as <tt>mirage-1.txt</tt>.</p>
+
         <h1>Variables</h1>
 
         <p>TOSSIM allows you to inspect variables in a running TinyOS
-        program.
-        </p>
-      
+        program. Currently, you can only inspect basic types. For
+        example, you can't look at fields of structs, but you can look
+        at state variables.</p>
+
+        <p>When you compile TOSSIM, the make system generates a large
+        XML file that contains a lot of information about the TinyOS
+        program, including every component variable and its type. If
+        you want to examine the state of your program, then you need
+        to give TOSSIM this information so it can parse all of the
+        variables properly. You do this by instantiating a Python
+        object that parses the XML file to extract all of the relevant
+        information. You have to import the Python support package for
+        TOSSIM to do this:</p>
+
+        <pre>
+from tinyos.tossim.TossimApp import *
+
+n = NescApp()
+        </pre>
+
+        <p>Instantiating a <tt>NescApp</tt> can take quite a while:
+        Python has to parse through megabytes of XML. So be patient
+        (you only have to do it once). NescApp has two optional
+        arguments. The first is the name of the application being
+        loaded. The second is the XML file to load. The default for
+        the latter is <tt>app.xml</tt>, which is the name of the file
+        that the make system generates. The default for the former is
+        "Unknown App."  So this code behaves identically to that
+        above:</p>
+
+        <pre>
+from tinyos.tossim.TossimApp import *
+
+n = NescApp("Unknown App", "app.xml")
+        </pre>
+
+        <p>You fetch a list of variables from a NescApp object by
+        calling the function <tt>variables</tt> on the field
+        <tt>variables</tt>:</p>
+
+        <pre>
+vars = n.variables.variables()
+        </pre>
+
+        <p>To enable variable inspection, you pass this list to a
+        Tossim object when you instantiate it:</p>
+
+        <pre>
+t = Tossim(vars)
+        </pre>
+        
         
 <h1>Conclusions</h1>
 
