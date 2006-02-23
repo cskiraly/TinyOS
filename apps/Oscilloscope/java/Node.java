@@ -43,11 +43,27 @@ class Node {
 	    data = new int[INCREMENT];
 	}
 	if (newEnd > dataStart + data.length) {
-	    /* All the data won't fit. Extend or squish. */
-	    if (data.length == MAX_SIZE) {
-		/* Full. Squish. */
-		System.arraycopy(data, INCREMENT, data, 0, MAX_SIZE - INCREMENT);
-		dataStart += INCREMENT;
+	    /* Try extending first */
+	    if (data.length < MAX_SIZE) {
+		int newLength = (newEnd - dataStart + INCREMENT - 1) / INCREMENT * INCREMENT;
+		if (newLength >= MAX_SIZE)
+		    newLength = MAX_SIZE;
+
+		int[] newData = new int[newLength];
+		System.arraycopy(data, 0, newData, 0, data.length);
+		data = newData;
+
+	    }
+	    if (newEnd > dataStart + data.length) {
+		/* Still doesn't fit. Squish./
+		   We assume INCREMENT >= (newEnd - newDataIndex), and ensure
+		   that dataStart + data.length - INCREMENT = newDataIndex */
+		int newStart = newDataIndex + INCREMENT - data.length;
+
+		if (dataStart + data.length > newStart)
+		    System.arraycopy(data, newStart - dataStart, data, 0,
+				     data.length - (newStart - dataStart));
+		dataStart = newStart;
 	    }
 	    else {
 		/* Extend. */
