@@ -55,7 +55,7 @@ class Node {
 
 	    }
 	    if (newEnd > dataStart + data.length) {
-		/* Still doesn't fit. Squish./
+		/* Still doesn't fit. Squish.
 		   We assume INCREMENT >= (newEnd - newDataIndex), and ensure
 		   that dataStart + data.length - INCREMENT = newDataIndex */
 		int newStart = newDataIndex + INCREMENT - data.length;
@@ -64,13 +64,6 @@ class Node {
 		    System.arraycopy(data, newStart - dataStart, data, 0,
 				     data.length - (newStart - dataStart));
 		dataStart = newStart;
-	    }
-	    else {
-		/* Extend. */
-		int[] newData = new int[data.length + INCREMENT];
-
-		System.arraycopy(data, 0, newData, 0, data.length);
-		data = newData;
 	    }
 	}
 	/* Mark any missing data as invalid */
