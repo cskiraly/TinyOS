@@ -25,7 +25,11 @@ class Data {
        messageId * NREADINGS onwards. Tell parent if this is a new node. */
     void update(int nodeId, int messageId, int readings[]) {
 	if (nodeId >= nodes.length) {
-	    Node newNodes[] = new Node[nodes.length * 2];
+	    int newLength = nodes.length * 2;
+	    if (nodeId >= newLength)
+		newLength = nodeId + 1;
+
+	    Node newNodes[] = new Node[newLength];
 	    System.arraycopy(nodes, 0, newNodes, 0, nodes.length);
 	    nodes = newNodes;
 	}
