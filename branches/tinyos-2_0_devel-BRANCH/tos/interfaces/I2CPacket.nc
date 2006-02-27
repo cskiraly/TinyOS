@@ -1,4 +1,4 @@
-// $Id: I2CPacket.nc,v 1.1.2.2 2005-12-30 19:12:41 philipb Exp $
+// $Id: I2CPacket.nc,v 1.1.2.3 2006-02-27 22:00:42 philipb Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -29,24 +29,24 @@
  * every packet operation).
  *
  * @author Joe Polastre
- * Revision:  $Revision: 1.1.2.2 $
+ * Revision:  $Revision: 1.1.2.3 $
  */
 interface I2CPacket {
   /**
    * Perform an I2C read operation
    */
-  async command result_t readPacket(uint16_t _addr, uint8_t _length, uint8_t* _data);
+  async command error_t readPacket(uint16_t _addr, uint8_t _length, uint8_t* _data);
   /**
    * Perform an I2C write operation
    */
-  async command result_t writePacket(uint16_t _addr, uint8_t _length, uint8_t* _data);
+  async command error_t writePacket(uint16_t _addr, uint8_t _length, uint8_t* _data);
 
   /**
    * Notification that the read operation has completed
    */
-  async event void readPacketDone(uint16_t addr, uint8_t length, uint8_t* data, result_t success);
+  async event void readPacketDone(uint16_t addr, uint8_t length, uint8_t* data, error_t success);
   /**
    * Notification that the write operation has completed
    */
-  async event void writePacketDone(uint16_t addr, uint8_t length, uint8_t* data, result_t success);
+  async event void writePacketDone(uint16_t addr, uint8_t length, uint8_t* data, error_t success);
 }
