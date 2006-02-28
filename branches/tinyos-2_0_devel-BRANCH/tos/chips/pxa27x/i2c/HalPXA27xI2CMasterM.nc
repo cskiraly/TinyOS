@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xI2CMasterM.nc,v 1.1.2.1 2006-02-01 23:54:24 philipb Exp $ */
+/* $Id: HalPXA27xI2CMasterM.nc,v 1.1.2.2 2006-02-28 03:07:35 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -35,11 +35,14 @@
  * @author Phil Buonadonna
  */
 
-generic module HalPXA27xI2CM()
+#include <I2CFlags.h>
+
+module HalPXA27xI2CMasterM
 {
   provides interface Init;
-  provides interface I2CPacket;
+  provides interface I2CPacketAdv[uint8_t client];
 
+  //uses interface Resource as I2CResource;
   uses interface HplPXA27xI2C as I2C;
 
 }
@@ -47,30 +50,105 @@ generic module HalPXA27xI2CM()
 implementation
 {
 
+  enum {
+    I2C_STATE_IDLE,
+    I2C_STATE_READSTART,
+    I2C_STATE_READDATA,
+    I2C_STATE_WRITESTART,
+    I2C_STATE_WRITEDATA,
+    I2C_STATE_WRITESTOP,
+    I2C_STATE_ERROR
+  };
+
+  uint8_t mI2CState;
+  uint16_t curDevAddr;
+  uint8_t *curBuf, curBufLen, curBufIndex;
+
   command error_t Init.init() {
 
+    uint8_t mI2CState = I2C_STATE_IDLE;
+    
   }
 
-  async command result_t I2CPacket.readPacket(uint16_t addr, uint8_t length, uint8_t* data) {
+  async command error_t I2CPacketAdv.readPacket(uint16_t addr, uint8_t length, uint8_t* data, i2c_flags_t flags) {
+    error_t error = SUCCESS;
+    uint8_t tmpAddr;
 
+    atomic {
+      if (mI2CState == I2C_STATE_IDLE) {
+	mI2CState = I2C_STATE_READSTART;
+	curDevAddr = addr;
+	curBuf = data;
+	curBufLen = length;
+	curBufIndex = 0;
+      }
+      else {
+	error = EBUSY;
+      }
+    }
+
+    if (error) {
+      return error;
+    }
+
+    tmpAddr = (((addr << 1) & 0xFF) | 0x1);
+
+    call I2C.setIDBR(tmpAddr);
+
+    call I2C.setICR((call I2C.getICR() & ~ICR_ALDIE) | ICR_BEIE | ICR_ITEIE | ICR_SCLEA | ICR_TB | ICR_START);
+    
+    return error;
   }
 
-  async command result_t I2CPacket.writePacket(uint16_t addr, uint8_t length, uint8_t* data) {
+  async command error_t I2CPacketAdv.writePacket(uint16_t addr, uint8_t length, uint8_t* data, i2c_flags_t flags) {
 
   }
 
   async event void I2C.interruptI2C() {
+    uint32_t valISR;
 
+    valISR = call I2C.getISR();
+
+    switch (mI2CState) {
+    case I2C_STATE_IDLE:
+      // Should never get here. Reset all pending interrupts.
+      call I2C.setISR(valISR);
+      break;
+    case I2C_STATE_READSTART:
+      call I2C.setISR(ISR_ITE);
+      call I2C.setICR((call I2C.getICR()) & ~(ICR_ITEIE | ICR_ACKNAK | ICR_STOP | ICR_START));
+      call I2C.setICR((call I2C.getICR()) | (ICR_ALDIE | ICR_DRFIE | ICR_TB)); 
+      mI2CState = I2C_STATE_READ;
+
+      break;
+    case I2C_STATE_READ:
+      call I2C.setISR(ISR_IRF);
+      curBuf[curBufIndex] = call I2C.getIDBR();
+      curBufIndex++;
+      call I2C.setICR((call I2C.getICR()) | ICR_TB);
+      
+      break;
+    case I2C_STATE_WRITESTART:
+      break;
+    case I2C_STATE_WRITEDATA:
+      break;
+    case I2C_STATE_WRITESTOP:
+      break;
+    default:
+      break;
+    }
+
+      
     return;
   }
 
-  default async event void I2CPacket.readPacketDone(uint16_t addr, uint8_t length, 
-						    uint8_t* data, result_t success) {
+  default async event void I2CPacketAdv.readPacketDone(uint16_t addr, uint8_t length, 
+						    uint8_t* data, error_t error) {
     return;
   }
 
-  default async event void I2CPacket.writePacketDone(uint16_t addr, uint8_t length, 
-						     uint8_t* data, result_t success) { 
+  default async event void I2CPacketAdv.writePacketDone(uint16_t addr, uint8_t length, 
+						     uint8_t* data, error_t error) { 
     return;
   }
 }
