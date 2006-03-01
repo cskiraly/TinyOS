@@ -6,7 +6,7 @@
 </head>
 <body>
 
-$Id: lesson5.html,v 1.1.2.1 2006-02-08 08:51:43 prabal Exp $
+$Id: lesson5.html,v 1.1.2.2 2006-03-01 20:26:58 prabal Exp $
 
 <div class="title">Lesson 5: Communications</div>
 <div class="subtitle">Last Modified: Feb 1, 2006</div>
@@ -361,8 +361,6 @@ implementation {
   components LedsC;
   components BlinkToRadioC as App;
   components new TimerMilliC() as Timer0;
-
-  MainC.SoftwareInit -> LedsC;
 
   App.Boot -> MainC;
   App.Leds -> LedsC;
@@ -834,8 +832,8 @@ For this exercise, let's assume that the motes are telosb (if not,
 skip past the motelist part and program the mote using whatever the
 appropriate programmer parameters are for your hardware).  Assuming
 you are using a telosb, first open a Cygwin or Linux shell and cd to
-the <tt>apps/BlinkToRadio</tt> directory.  Then, insert the first
-telosb mote into an available USB port on the PC and type
+the <tt>apps/tutorials/BlinkToRadio</tt> directory.  Then, insert the
+first telosb mote into an available USB port on the PC and type
 <tt>motelist</tt> the at the Cygwin or Linux prompt ($).  You should
 see exactly one mote listed.  For example:
 
@@ -846,9 +844,9 @@ Reference  CommPort   Description
 UCC89MXV   COM17      Telos (Rev B 2004-09-27)
 </pre>
 
-<p>Now, assuming you are in the <tt>apps/BlinkToRadio</tt> directory,
-type <tt>make telosb install,1</tt>.  You should see a lot text scroll
-by that looks something like:
+<p>Now, assuming you are in the <tt>apps/tutorials/BlinkToRadio</tt>
+directory, type <tt>make telosb install,1</tt>.  You should see a lot
+text scroll by that looks something like:
 
 <pre>
 $ make telosb install,1
