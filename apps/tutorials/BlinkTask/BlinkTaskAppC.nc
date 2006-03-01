@@ -1,4 +1,4 @@
-// $Id: BlinkTaskAppC.nc,v 1.1.2.1 2006-02-09 17:06:12 idgay Exp $
+// $Id: BlinkTaskAppC.nc,v 1.1.2.2 2006-03-01 20:24:54 prabal Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -43,8 +43,6 @@ implementation
   components new TimerMilliC() as Timer0;
 
   BlinkTaskC -> MainC.Boot;
-  MainC.SoftwareInit -> LedsC;
-
   BlinkTaskC.Timer0 -> Timer0;
   BlinkTaskC.Leds -> LedsC;
 }

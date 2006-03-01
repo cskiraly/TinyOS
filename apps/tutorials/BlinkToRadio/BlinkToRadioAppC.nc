@@ -1,4 +1,4 @@
-// $Id: BlinkToRadioAppC.nc,v 1.1.2.1 2006-02-09 17:06:12 idgay Exp $
+// $Id: BlinkToRadioAppC.nc,v 1.1.2.2 2006-03-01 20:22:39 prabal Exp $
 
 /*
  * "Copyright (c) 2000-2006 The Regents of the University  of California.  
@@ -49,8 +49,6 @@ implementation {
   components ActiveMessageC;
   components new AMSenderC(AM_BLINKTORADIO);
   components new AMReceiverC(AM_BLINKTORADIO);
-
-  MainC.SoftwareInit -> LedsC;
 
   App.Boot -> MainC;
   App.Leds -> LedsC;
