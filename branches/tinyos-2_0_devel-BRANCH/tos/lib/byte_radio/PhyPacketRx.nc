@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-31 12:25:32 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-03-01 18:38:17 $
  * ========================================================================
  */
  
@@ -41,6 +41,12 @@
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  */ 
 interface PhyPacketRx {
+  /* FIXME: do this...
+  async event void detected();
+  
+  async command void reset();
+  */
+         
   /**
    * Start receiving a new packet header. This will also reset the current receiving state.
    */

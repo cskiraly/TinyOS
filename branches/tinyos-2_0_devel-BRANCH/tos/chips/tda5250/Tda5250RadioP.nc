@@ -27,8 +27,8 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.2 $
-* $Date: 2006-01-31 12:40:05 $
+* $Revision: 1.1.2.3 $
+* $Date: 2006-03-01 18:38:17 $
 * @author: Kevin Klues (klues@tkn.tu-berlin.de)
 * ========================================================================
 */
@@ -290,11 +290,14 @@ implementation {
       }
 
       async command error_t Tda5250Control.CCAMode() {
+        radioMode_t mode;
         atomic {
-          if(radioBusy() == FALSE)
+          if(radioBusy() == FALSE) {
             radioMode = RADIO_MODE_CCA_TRANSITION;
+          }
+          mode = radioMode;
         }
-        if(radioMode == RADIO_MODE_CCA_TRANSITION) {
+        if(mode == RADIO_MODE_CCA_TRANSITION) {
           call DataResource.release();
           call ConfigResource.request();
           return SUCCESS;

@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-31 09:58:25 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-03-01 18:38:17 $
  * ========================================================================
  */
 
@@ -48,14 +48,12 @@ module PacketSerializerP {
     interface Send;
     interface Receive;
     interface Packet;
-    interface PacketAcknowledgements;
 
   }
   uses {
     interface RadioByteComm;
     interface PhyPacketTx;
     interface PhyPacketRx;
-    interface Leds;
   }
 }
 implementation {
@@ -106,7 +104,7 @@ implementation {
     signal Receive.receive((message_t*)rxBufPtr, ((message_t*)rxBufPtr)->data, header->length);
     call PhyPacketRx.recvHeader();
   }
-
+  
   /* Radio Init  */
   command error_t Init.init(){
     atomic {
@@ -197,7 +195,7 @@ implementation {
   /* Radio Receive */
   async event void PhyPacketRx.recvHeaderDone() {
     byteCnt = (sizeof(message_header_t) - sizeof(message_radio_header_t));
-    getHeader(&rxMsg)->length = sizeof(message_radio_header_t);
+    getHeader(&rxMsg)->length = sizeof(message_radio_header_t); 
   }
 
   async event void RadioByteComm.rxByteReady(uint8_t data) {
@@ -260,21 +258,6 @@ implementation {
 
   command void* Send.getPayload(message_t* m) {
     return call Packet.getPayload(m, NULL);
-  }
-
-  
-  /* PacketAcknowledgements interface */
-
-  async command error_t PacketAcknowledgements.requestAck(message_t* msg) {
-    return FAIL;
-  }
-
-  async command error_t PacketAcknowledgements.noAck(message_t* msg) {
-    return SUCCESS;
-  }
-
-  async command bool PacketAcknowledgements.wasAcked(message_t* msg) {
-    return FALSE;
   }
 
 }
