@@ -1,4 +1,4 @@
-// $Id: Tda5250ActiveMessageC.nc,v 1.1.2.3 2006-02-14 17:01:43 idgay Exp $
+// $Id: Tda5250ActiveMessageC.nc,v 1.1.2.4 2006-03-01 18:38:17 phihup Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: Tda5250ActiveMessageC.nc,v 1.1.2.3 2006-02-14 17:01:43 idgay Exp $
+ * Date last modified:  $Id: Tda5250ActiveMessageC.nc,v 1.1.2.4 2006-03-01 18:38:17 phihup Exp $
  *
  */
 
@@ -63,7 +63,7 @@ configuration Tda5250ActiveMessageC {
 }
 implementation {
 
-  components Tda5250ActiveMessageP as AM, PacketSerializerC as Radio;
+  components Tda5250ActiveMessageP as AM, RadioDataLinkC as Radio;
   components ActiveMessageAddressC as Address;
 
   Init         = Radio;

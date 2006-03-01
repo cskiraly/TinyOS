@@ -29,8 +29,8 @@
 * - Description ---------------------------------------------------------
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.2 $
-* $Date: 2006-01-31 09:58:25 $
+* $Revision: 1.1.2.3 $
+* $Date: 2006-03-01 18:38:17 $
 * @author: Kevin Klues (klues@tkn.tu-berlin.de)
 * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
 * ========================================================================
@@ -86,7 +86,7 @@ uint16_t numPreambles;  // Number of preambles to send before the packet
     /* Radio Init */
     command error_t Init.init(){
       atomic {
-        phyState = STATE_NULL;
+        atomic phyState = STATE_NULL;
       }
       return SUCCESS;
     }
