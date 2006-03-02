@@ -1,4 +1,4 @@
-// $Id: TrickleTimerMilliC.nc,v 1.1.2.2 2006-01-19 00:35:03 scipio Exp $
+// $Id: TrickleTimerMilliC.nc,v 1.1.2.3 2006-03-02 19:24:27 gtolle Exp $
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -51,6 +51,7 @@ implementation {
   components new TimerMilliC();
   components new BitVectorC(count) as PendingVector;
   components new BitVectorC(count) as ChangeVector;
+  components LedsC;
   TrickleTimer = TrickleTimerImplP;
 
   TrickleTimerImplP.Timer -> TimerMilliC;
@@ -58,6 +59,7 @@ implementation {
   TrickleTimerImplP.Changed -> ChangeVector;
   TrickleTimerImplP.Pending -> PendingVector;
   
+  TrickleTimerImplP.Leds -> LedsC;
   MainC.SoftwareInit -> TrickleTimerImplP;
 }
 

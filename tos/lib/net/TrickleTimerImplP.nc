@@ -1,4 +1,4 @@
-// $Id: TrickleTimerImplP.nc,v 1.1.2.3 2006-01-19 21:31:46 scipio Exp $
+// $Id: TrickleTimerImplP.nc,v 1.1.2.4 2006-03-02 19:24:27 gtolle Exp $
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -54,6 +54,7 @@ generic module TrickleTimerImplP(uint16_t low,
     interface BitVector as Pending;
     interface BitVector as Changed;
     interface Random;
+    interface Leds;
   }
 }
 implementation {
@@ -127,10 +128,10 @@ implementation {
 	call Changed.set(id);
       }
       trickles[id].time = 0;
+      trickles[id].remainder = 0;
       generateTime(id);
       adjustTimer();
-    }
-    else {
+    } else {
       dbg("Trickle", "Resetting  trickle timer %hhu @ %s\n", id, sim_time_string());
     }
   }
@@ -163,20 +164,25 @@ implementation {
   
   /**
    * The trickle timer has fired. Signaled if C &gt; K.
-   */  
+   */
   event void Timer.fired() {
     uint8_t i;
-    uint16_t dt = (uint16_t)call Timer.getdt();
+    uint32_t dt = call Timer.getdt();
+
     for (i = 0; i < count; i++) {
-      uint16_t remaining = trickles[i].time;
+      uint32_t remaining = trickles[i].time;
       if (remaining != 0) {
 	remaining -= dt;
-	if (remaining == 0 && trickles[i].count < k) {
-	  atomic {
-	    call Pending.set(i);
+	if (remaining == 0) {
+	  if (trickles[i].count < k) {
+	    atomic {
+	      call Pending.set(i);
+	    }
+	    post timerTask();
 	  }
-	  generateTime(i);
 
+	  generateTime(i);
+	    
 	  /* Note that this logic is not the exact trickle algorithm.
 	   * Rather than C being reset at the beginning of an interval,
 	   * it is being reset at a firing point. This means that the
@@ -184,7 +190,6 @@ implementation {
 	   * range [tau/2, tau]. 
 	   */
 	  trickles[i].count = 0;
-	  post timerTask();
 	}
 	else {
 	  trickles[i].time = remaining;
