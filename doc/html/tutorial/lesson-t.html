@@ -6,7 +6,7 @@
 </head>
 <body>
 
-$Id: lesson-t.html,v 1.1.2.3 2006-02-22 02:56:37 scipio Exp $
+$Id: lesson-t.html,v 1.1.2.4 2006-03-07 02:08:22 scipio Exp $
 
 <div class="title">Lesson T: Simulation with TOSSIM</div>
 <div class="subtitle">Last Modified: Feb 9, 2006</div>
@@ -15,19 +15,19 @@ $Id: lesson-t.html,v 1.1.2.3 2006-02-22 02:56:37 scipio Exp $
         familiar with how to compile TOSSIM and use some of its
         functionality. You will learn how to:</p>
 
-<p>
-
-<ul>
-
-<li>Compile TOSSIM.
-
-<li>Configure a simulation in Python and C++.
-
-<li>Inject packets.
-
-<li>Inspect variables.
-
-</ul>
+      <p>
+        
+        <ul>
+          
+          <li>Compile TOSSIM.</li>
+          
+          <li>Configure a simulation in Python and C++.</li>
+            
+          <li>Inspect variables.</li>
+              
+          <li>Inject packets.</li>
+        </ul>
+      </p>
 
 
 <h1>Introduction</h1>
@@ -273,8 +273,41 @@ Type "help", "copyright", "credits" or "license" for more information.
         <tt>runNextEvent</tt> returned 0. The second call to
         <tt>runNextEvent</tt> returned 1 for the second boot event, at
         time 560000.</p>
-        
-        <h1>Debugging Statements</h1>
+
+
+        <p>A Tossim object has several useful functions. In Python,
+        you can generally see the signature of an object with the
+        <tt>dir</tt> function. E.g.:</p>
+
+        <pre>
+>>> t = Tossim([])
+>>> dir(t)
+['__class__', '__del__', '__delattr__', '__dict__', '__doc__', '__getattr__',
+'__getattribute__', '__hash__', '__init__', '__module__', '__new__',
+'__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__str__',
+'__swig_getmethods__', '__swig_setmethods__', '__weakref__', 'addChannel',
+'currentNode', 'getNode', 'init', 'mac', 'newPacket', 'radio', 'removeChannel',
+'runNextEvent', 'setCurrentNode', 'setTime', 'this', 'thisown', 'time', 'timeStr']
+        </pre>
+
+        <p>The most common utility functions are:</p>
+
+        <ul>
+          <li><b>currentNode()</b>: returns the ID of the current node.</li>
+          <li><b>getNode(id)</b>: returns an object representing a specific mote</li>
+          <li><b>runNextEvent()</b>: run a simulation event</li>
+          <li><b>time()</b>: return the current time in simulation ticks as a large integer </li>
+          <li><b>timeStr()</b>: return a string representation of the current time</li>
+          <li><b>init()</b>: initialize TOSSIM</li>
+          <li><b>mac()</b>: return the object representing the media access layer</li>
+          <li><b>radio()</b>: return the object representing the radio model</li>
+          <li><b>addChannel(ch, output)</b>: add <i>output</i> as an output to channel <i>ch</i> </li>
+          <li><b>removeChannel(ch, output)</b>: remove <i>output</i> as an output to channel <i>ch</i> </li>
+        </ul>
+
+        <p>The next section discusses the last two.</p>
+
+          <h1>Debugging Statements</h1>
         
         <p>The second approach to know whether a node is on is to tell
         it to print something out when it boots. TOSSIM has a
@@ -826,21 +859,368 @@ vars = n.variables.variables()
         <pre>
 t = Tossim(vars)
         </pre>
+
+        <p>The TOSSIM object now knows the names, sizes, and types of
+        all of the variables in the TinyOS application. This
+        information allows the TOSSIM support code to take C variables
+        and properly tranform them into Python variables. This
+        currently only works for simple types: if a component declares
+        a structure, you can't access its fields. But let's say we
+        want to read the counter in RadioCountToLedsC. Since each mote
+        in the network has its own instance of the variable, we need
+        to fetch it from a specific mote:</p>
+
+        <pre>
+m = t.getNode(0)
+v = m.getVariable("RadioCountToLedsC.counter")
+        </pre>
+
+        <p>The name of a variable is usually <i>C.V</i>, where
+        <i>C</i> is the component name and <i>V</i> is the variable.
+        In the case of generic components, the name is <i>C.N.V</i>,
+        where <i>N</i> is an integer that describes which instance.
+        Unfortunately, there is currently no easy way to know what
+        <i>N</i> is from nesC source, so you have to root through
+        <tt>app.c</tt> in order to know.</p>
+
+        <p>Once you have a variable object (<tt>v</tt> in the above
+        code), you can fetch its value with the <tt>getData()</tt>
+        function:</p>
+
+        <pre>
+counter = v.getData()
+        </pre>
+
+        <p>Because <tt>getData()</tt> transforms the underlying C type
+        into a Python type, you can then use its return value in
+        Python expressions. For example, this script will start a
+        simulation of five nodes and run it until node 0's counter
+        reaches 10:</p>
+
+        <pre>
+from sys import *
+from random import *
+from TOSSIM import *
+from tinyos.tossim.TossimApp import *
+
+n = NescApp()
+t = Tossim(n.variables.variables())
+r = t.radio()
+
+f = open("topo.txt", "r")
+lines = f.readlines()
+for line in lines:
+  s = line.split()
+  if (len(s) > 0):
+    if (s[0] == "gain"):
+      r.add(int(s[1]), int(s[2]), float(s[3]))
+    elif (s[0] == "noise"):
+      r.setNoise(int(s[1]), float(s[2]), float(s[3]))
+
+for i in range (0, 9):
+  m = t.getNode(i)
+  m.bootAtTime(randint(1000, 2000) * 1000000)
+
+m = t.getNode(0)
+v = m.getVariable("RadioCountToLedsC.counter")
+
+while (v.getData() < 10):
+  t.runNextEvent()
+
+        </pre>
+
+      <h1>Injecting Packets</h1>
+
+      <p>TOSSIM allows you to dynamically inject packets into a
+      network.  Packets can be scheduled to arrive at any time. If a
+      packet is scheduled to arrive in the past, then it arrives
+      immediately. Injected packets circumvent the radio stack: it is
+      possible for a node to receive an injected packet while it is in
+      the midst of receiving a packet from another node over its
+      radio.</p>
+
+      <p>TinyOS 2.0 has support for building Python packet objects.
+      Just like the standard Java toolchain, you can build a packet
+      class based on a C structure. The packet class gives you a full
+      set of packet field mutators and accessors. If an application
+      has a packet format, you can generate a packet class for it,
+      instantiate packet objects, set their fields, and have nodes
+      receive them.</p>
+
+      <p>The <tt>RadioCountToLeds</tt> application Makefile has an
+      example of how to do this. First, it adds the Python class as a
+      dependency for building the application. Whenever you compile
+      the app, if the Python class doesn't exist, make will build it
+      for you:</p>
+
+      <pre>
+BUILD_EXTRA_DEPS = RadioCountMsg.py RadioCountMsg.class
+      </pre>
+
+      <p>The Makefile also tells make how to generate RadioCountMsg.py:</p>
+
+      <pre>
+RadioCountMsg.py: RadioCountToLeds.h
+        mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=RadioCountMsg RadioCountToLeds.h RadioCountMsg -o $@
+      </pre>
+
+      <p>The rule says to generate RadioCountMsg.py by calling mig
+      with the python parameter.  The Makefile also has rules on how
+      to build Java class, but that's not important for TOSSIM. Since
+      we've been using RadioCountToLeds so far, the Python class
+      should be there already.</p>
+
+      <p>RadioCountMsg.py defines a packet format, but this packet is
+      contained in the data payload of another format. If a node is
+      sending a RadioCountMsg over AM, then the RadioCountMsg
+      structure is put into the AM payload, and might look something
+      like this:</p>
+
+      <center>
+        <table BORDER=1>
+          <TR>
+            <TD WIDTH=100 BGCOLOR="#ffa0a0">AM Header</TD>
+            <TD WIDTH=100 BGCOLOR="white">RadioCountMsg</TD>
+            <TD WIDTH=100 BGCOLOR="#ffa0a0">AM Footer</TD>
+          </TR>
+        </table>
+      </center>
+      
+      <p>If it is sending it over a routing protocol. the packet is
+      put in the routing payload, and might look something like this:</p>
+
+      <center>
+        <table BORDER=1>
+          <TR>
+            <TD WIDTH=100 BGCOLOR="#ffa0a0">AM Header</TD>
+            <TD WIDTH=100 BGCOLOR="#00a0ff">Routing Header</TD>
+            <TD WIDTH=100 BGCOLOR="white">RadioCountMsg</TD>
+            <TD WIDTH=100 BGCOLOR="#ffa0a0">AM Footer</TD>
+          </TR>
+        </table>
+      </center>
+
+      <p>If you want to send a RadioCountMsg to a node, then you need
+      to decide how to deliver it. In the simple AM case, you place
+      the RadioCountMsg structure in a basic AM packet. In the routing
+      case, you put it in a routing packet, which you then put inside
+      an AM packet. We'll only deal with the simple AM case here.</p>
+
+      <p>To get an AM packet which you can inject into TOSSIM, you
+      call the <tt>newPacket</tt> function on a Tossim object. The
+      returned object has the standard expected AM fields:
+      <i>destination</i>, <i>length</i>, <i>type</i>, and <i>data</i>,
+      as well as <i>strength</i>.</p>
+
+      <p>To include support for a packet format, you must import
+      it. For example, to include RadioCountMsg, you have to import
+      it:</p>
+
+      <pre>
+from RadioCountMsg import *
+      </pre>
+      
+      <p>This snippet of code, for example, creates a RadioCountMsg,
+      sets its counter to 7, creates an AM packet, stores the
+      RadioCountMsg in the AM packet, and configures the AM packet so
+      it will be received properly (destination and type):</p>
+
+      <pre>
+from RadioCountMsg import *
+
+msg = RadioCountMsg()
+msg.set_counter(7);
+pkt = t.newPacket();
+pkt.setData(msg.data)
+pkt.setType(msg.get_amType())
+pkt.setDestination(0)
+      </pre>
+
+
+      <p>The variable <tt>pkt</tt> is now an Active Message of the AM
+      type of RadioCountMsg with a destination of 0 that contains a
+      RadioCountMsg with a counter of 7. You can deliver this packet
+      to a node with the <tt>deliver</tt> function. The
+      <tt>deliver</tt> function takes two parameters, the destination
+      node and the time to deliver:</p>
+
+      <pre>
+pkt.deliver(0, t.time() + 3)
+      </pre>
+
+      <p>This call delivers pkt to node 0 at the current simulation
+      time plus 3 ticks (e.g., 3ns). There is also a
+      <tt>deliverNow</tt>, which has no time parameter. Note that if
+      the destination of <tt>pkt</tt> had been set to 1, then the
+      TinyOS application would not receive the packet, as it was
+      delivered to node 0.</p>
+
+      <p>Taken all together, this script starts a simulation,
+      configures the topology based on topo.txt, and delivers a packet
+      to node 0:</p>
+
+      <pre>
+import sys
+from TOSSIM import *
+from RadioCountMsg import *
+
+t = TOSSIM.Tossim([])
+m = t.mac();
+r = t.radio();
+
+t.addChannel("RadioCountToLedsC", sys.stdout);
+t.addChannel("LedsC", sys.stdout);
+
+for i in range(0, 2):
+  m = t.getNode(i);
+  m.bootAtTime(500000003 * i + 1);
+
+f = open("topo.txt", "r")
+lines = f.readlines()
+for line in lines:
+  s = line.split()
+  if (len(s) > 0):
+    if (s[0] == "gain"):
+      r.add(int(s[1]), int(s[2]), float(s[3]))
+    elif (s[0] == "noise"):
+      r.setNoise(int(s[1]), float(s[2]), float(s[3]))
+
+for i in range(0, 60):
+  t.runNextEvent();
+
+msg = RadioCountMsg()
+msg.set_counter(7);
+pkt = t.newPacket();
+pkt.setData(msg.data)
+pkt.setType(msg.get_amType())
+pkt.setDestination(0)
+
+print "Delivering " + msg.__str__() + " to 0 at " + str(t.time() + 3);
+pkt.deliver(0, t.time() + 3)
+
+
+for i in range(0, 20):
+  t.runNextEvent();
+      </pre>
+
+      <h1>C++</h1>
+
+      <p>Python is very useful because it is succinct, easy to write,
+      and can be used interactively. Interpretation, however, has a
+      significant cost: a Python/C transition on every event is a
+      significant cost (around 100%, so it runs at half the
+      speed). Additionally, it's often useful to step through code
+      with a standard debugger. TOSSIM also has support for C++, so
+      that it can be useful in these circumstances.  Because many of
+      the Python interfaces are merely wrappers around C++ objects,
+      much of the scripting stays the same. The two major exceptions
+      are inspecting variables and injecting packets.</p>
+
+      <p>In a C++ TOSSIM, there is no variable inspection. While it is
+      possible to request memory regions and cast them to the expected
+      structures, currently there is no good and simple way to do
+      so. The Python support goes through several steps in order to
+      convert variables into Python types, and this gets in the way of
+      C++. However, as the purpose of C++ is usually to run high
+      performance simulations (in which inspecting variables is a big
+      cost) or debugging (when you have a debugger), this generally
+      isn't a big problem.</p>
+
+      <p>There is a C++ <tt>Packet</tt> class, which the Python
+      version is a simple wrapper around. In order to inject packets
+      in C++, however, you must build C support for a packet type and
+      manually build the packet. There currently is no support in mig
+      with which to generate C/C++ packet structures, and since most
+      packets are nx_struct types, they cannot be parsed by
+      C/C++. Furthermore, as many of the fields are nx types, they are
+      big endian, while x86 processors are little endian. Still, if you
+      want to deliver a packet through C++, you can do so.</p>
+
+      <p>Usually, the C++ and Python versions of a program look pretty
+      similar. For example:</p>
+
+      <table WIDTH=800>
+
+        <TR><TD WIDTH=400><TD WIDTH=400></TR>
+        <TR><TD ALIGN=CENTER><b>Python</b></TD><TD ALIGN=CENTER><b>C++</b></TD></TR>
+        <TR>
+          <TD VALIGN=TOP>
+            <PRE>
+import TOSSIM
+import sys
+
+from RadioCountMsg import *
+
+t = TOSSIM.Tossim([])
+r = t.radio();
+
+for i in range(0, 999):
+  m = t.getNode(i);
+  m.bootAtTime(5000003 * i + 1);
+  r.setNoise(i, -77.0, 3.0);
+  for j in range (0, 2):
+    if (j != i):
+      r.add(i, j, -50.0);
+
+
+
+
+for i in range(0, 1000000):
+  t.runNextEvent();
+           </PRE>
+          </TD>
+          <TD VALIGN=TOP>
+            <PRE>
+#include &lt;tossim.h&gt;
+
+
+
+int main() {
+  Tossim* t = new Tossim(NULL);
+  Radio* r = t->radio();
+
+  for (int i = 0; i &lt; 999; i++) {
+    Mote* m = t->getNode(i);
+    m->bootAtTime(5000003 * i + 1);
+    r->setNoise(i, -77.0, 3);
+    for (int j = 0; j &lt; 2; j++) {
+      if (i != j) {
+        r->add(i, j, -50.0);
+      }
+    }
+  }
+
+  for (int i = 0; i &lt; 1000000; i++) {
+    t->runNextEvent();
+  }
+}
+            </PRE>
+          </TD>
+        </TR>
+      </TABLE>
+
+      <p>To compile a C++ TOSSIM, you have to compile the top-level
+      driver program (e.g, the one shown above) and link it against
+      TOSSIM. Usually the easiest way to do this is to link it against
+      the TOSSIM objects rather than the shared library. Often, it's
+      useful to have a separate Makefile to do this with. E.g.,
+      <tt>Makefile.Driver</tt>:</p>
+
+      <pre>
+all:
+        make micaz sim
+        g++ -g -c -o Driver.o Driver.c -I../../tos/lib/tossim/
+        g++ -o Driver Driver.o build/micaz/tossim.o build/micaz/sim.o
+      </pre>
         
-        
+
+      
 <h1>Conclusions</h1>
 
-This lesson has introduced radio communications TinyOS 2.x.
+This lesson introduced the basics of the TOSSIM simulator. It showed
+you how to configure a network, how to run a simulation, how to
+inspect variables, how to inject packets, and how to compile with C++.
 
-<a name=#related_docs>
-<h1>Related Documentation</h1>
-
-<ul>
-<li>[1] <a href="../tep111.html">TEP 111: message_t</a>
-<li>[2] <a href="../tep116.html">TEP 116: Packet Protocols</a>
-</ul>
-
-<hr>
 
 <p><b><a href="lesson6.html">Next Lesson &gt;</a></b> |&nbsp; <b><a
  href="index.html">Top</a></b>
