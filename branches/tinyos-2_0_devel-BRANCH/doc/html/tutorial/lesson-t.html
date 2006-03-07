@@ -6,7 +6,7 @@
 </head>
 <body>
 
-$Id: lesson-t.html,v 1.1.2.4 2006-03-07 02:08:22 scipio Exp $
+$Id: lesson-t.html,v 1.1.2.5 2006-03-07 02:18:35 scipio Exp $
 
 <div class="title">Lesson T: Simulation with TOSSIM</div>
 <div class="subtitle">Last Modified: Feb 9, 2006</div>
@@ -929,6 +929,11 @@ while (v.getData() < 10):
 
         </pre>
 
+      <p>The TOSSIM <A
+      HREF="../../../tos/lib/tossim/examples">examples</A>
+      subdirectory also has an example script, named
+      <tt>variables.py</tt>.</p>
+
       <h1>Injecting Packets</h1>
 
       <p>TOSSIM allows you to dynamically inject packets into a
@@ -1055,9 +1060,12 @@ pkt.deliver(0, t.time() + 3)
       TinyOS application would not receive the packet, as it was
       delivered to node 0.</p>
 
-      <p>Taken all together, this script starts a simulation,
+      <p>Taken all together, the following script starts a simulation,
       configures the topology based on topo.txt, and delivers a packet
-      to node 0:</p>
+      to node 0. It can also be found as <tt>packets.py</tt> in the TOSSIM <A
+      HREF="../../../tos/lib/tossim/examples/">examples</A>
+      subdirectory.
+
 
       <pre>
 import sys
@@ -1103,6 +1111,7 @@ for i in range(0, 20):
   t.runNextEvent();
       </pre>
 
+      
       <h1>C++</h1>
 
       <p>Python is very useful because it is succinct, easy to write,
