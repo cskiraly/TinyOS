@@ -5,7 +5,7 @@ import sys
 from TOSSIM import *
 from RadioCountMsg import *
 
-t = TOSSIM.Tossim([])
+t = Tossim([])
 m = t.mac();
 r = t.radio();
 
@@ -14,7 +14,7 @@ t.addChannel("LedsC", sys.stdout);
 
 for i in range(0, 2):
   m = t.getNode(i);
-  m.bootAtTime(500000003 * i + 1);
+  m.bootAtTime((31 + t.ticksPerSecond() / 10) * i + 1);
 
 f = open("topo.txt", "r")
 lines = f.readlines()

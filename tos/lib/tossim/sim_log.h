@@ -32,7 +32,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: sim_log.h,v 1.1.2.2 2005-12-19 23:51:20 scipio Exp $
+// $Id: sim_log.h,v 1.1.2.3 2006-03-07 02:35:48 scipio Exp $
 
 
 #ifndef SIM_LOG_H_INCLUDED
@@ -48,7 +48,7 @@ extern "C" {
 #endif
 
 void sim_log_init();
-bool sim_log_add_channel(char* output, FILE* file);
+void sim_log_add_channel(char* output, FILE* file);
 bool sim_log_remove_channel(char* output, FILE* file);
 void sim_log_commit_change();
 

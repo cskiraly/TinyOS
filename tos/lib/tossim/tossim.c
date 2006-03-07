@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tossim.c,v 1.1.2.8 2006-01-29 18:11:01 scipio Exp $
+// $Id: tossim.c,v 1.1.2.9 2006-03-07 02:35:48 scipio Exp $
 
 
 #include <stdint.h>
@@ -63,7 +63,7 @@ Variable::Variable(char* str, char* formatStr, int array, int which) {
     }
   }
 
-  printf("Creating %s realName: %s format: %s %s\n", name, realName, formatStr, array? "[]":"");
+  //  printf("Creating %s realName: %s format: %s %s\n", name, realName, formatStr, array? "[]":"");
 
   if (sim_mote_get_variable_info(mote, realName, &ptr, &len) == 0) {
     data = (char*)malloc(len + 1);
@@ -86,7 +86,7 @@ variable_string_t Variable::getData() {
     str.type = format;
     str.len = len;
     str.isArray = isArray;
-    printf("Getting %s %s %s\n", format, isArray? "[]":"", name);
+    //    printf("Getting %s %s %s\n", format, isArray? "[]":"", name);
     memcpy(data, ptr, len);
   }
   else {
@@ -155,7 +155,7 @@ Variable* Mote::getVariable(char* name) {
       }
     }
   }
-  printf("Getting variable %s of type %s %s\n", name, typeStr, isArray? "[]" : "");
+  //  printf("Getting variable %s of type %s %s\n", name, typeStr, isArray? "[]" : "");
   return new Variable(name, typeStr, isArray, nodeID);
 }
 
@@ -176,6 +176,10 @@ void Tossim::init() {
 
 long long int Tossim::time() {
   return sim_time();
+}
+
+long long int Tossim::ticksPerSecond() {
+  return sim_ticks_per_sec();
 }
 
 char* Tossim::timeStr() {
@@ -214,8 +218,8 @@ void Tossim::setCurrentNode(unsigned long nodeID) {
   sim_set_node(nodeID);
 }
 
-bool Tossim::addChannel(char* channel, FILE* file) {
-  return sim_add_channel(channel, file);
+void Tossim::addChannel(char* channel, FILE* file) {
+  sim_add_channel(channel, file);
 }
 
 bool Tossim::removeChannel(char* channel, FILE* file) {

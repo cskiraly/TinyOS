@@ -29,7 +29,7 @@
  * @date   Dec 10 2005
  */
 
-// $Id: sim_csma.h,v 1.1.2.2 2005-12-20 17:13:49 scipio Exp $
+// $Id: sim_csma.h,v 1.1.2.3 2006-03-07 02:35:48 scipio Exp $
 
 #ifndef SIM_CSMA_H_INCLUDED
 #define SIM_CSMA_H_INCLUDED
@@ -79,7 +79,7 @@
 #define SIM_CSMA_RXTX_DELAY 32
 #endif
 
-// 12 symbol delay + 11 bytes length * (2 bytes/symbol) = 32 symbols
+// 12 symbol delay + 11 bytes length * (2 bytes/symbol) = 34 symbols
 #ifndef SIM_CSMA_ACK_TIME
 #define SIM_CSMA_ACK_TIME 34
 #endif

@@ -10,8 +10,9 @@ m = t.getNode(0)
 
 for i in range(0, 1):
   m = t.getNode(i);
-  m.bootAtTime(50003 * i + 1);
-  print "Mote " + str(i) + " set to boot at " + str(50003 * i + 1);
+  time = ((79 + t.ticksPerSecond() / 100) * i + 1)
+  m.bootAtTime(time);
+  print "Mote " + str(i) + " set to boot at " + str(time);
 
 for i in range(0, 500):
   t.runNextEvent();

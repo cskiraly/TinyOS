@@ -95,6 +95,7 @@ class Radio(_object):
     def connected(*args): return _TOSSIM.Radio_connected(*args)
     def remove(*args): return _TOSSIM.Radio_remove(*args)
     def setNoise(*args): return _TOSSIM.Radio_setNoise(*args)
+    def setSensitivity(*args): return _TOSSIM.Radio_setSensitivity(*args)
 
 class RadioPtr(Radio):
     def __init__(self, this):
@@ -275,6 +276,7 @@ class Tossim(_object):
         except: pass
     def init(*args): return _TOSSIM.Tossim_init(*args)
     def time(*args): return _TOSSIM.Tossim_time(*args)
+    def ticksPerSecond(*args): return _TOSSIM.Tossim_ticksPerSecond(*args)
     def setTime(*args): return _TOSSIM.Tossim_setTime(*args)
     def timeStr(*args): return _TOSSIM.Tossim_timeStr(*args)
     def currentNode(*args): return _TOSSIM.Tossim_currentNode(*args)

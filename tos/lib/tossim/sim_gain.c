@@ -138,14 +138,14 @@ gain_entry_t* sim_gain_allocate_link(int mote) {
   return link;
 }
 
-void sim_gain_deallocate_link(gain_entry_t* link) {
+void sim_gain_deallocate_link(gain_entry_t* link) __attribute__ ((C, spontaneous)) {
   free(link);
 }
 
-void sim_gain_set_sensitivity(double s) {
+void sim_gain_set_sensitivity(double s) __attribute__ ((C, spontaneous)) {
   sensitivity = s;
 }
 
-double sim_gain_sensitivity() {
+double sim_gain_sensitivity() __attribute__ ((C, spontaneous)) {
   return sensitivity;
 }
