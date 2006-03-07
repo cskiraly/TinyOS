@@ -6,7 +6,7 @@
 </head>
 <body>
 
-$Id: lesson-t.html,v 1.1.2.5 2006-03-07 02:18:35 scipio Exp $
+$Id: lesson-t.html,v 1.1.2.6 2006-03-07 02:37:40 scipio Exp $
 
 <div class="title">Lesson T: Simulation with TOSSIM</div>
 <div class="subtitle">Last Modified: Feb 9, 2006</div>
@@ -248,6 +248,19 @@ Type "help", "copyright", "credits" or "license" for more information.
 1
         </pre>
 
+      <p>Instead of using raw simulation ticks, you can also use the
+      call <t>ticksPerSecond()</tt>. However, you want to be careful
+      to add some random bits into this number: having every node
+      perfectly synchronized and only different in phase in terms of
+          seconds can lead to strange results.</p>
+
+      <pre>
+>>> m = t.getNode(32);
+>>> m.bootAtTime(4 * t.ticksPerSecond() + 242119);
+>>> t.runNextEVent()
+1
+      </pre>
+
         <p>Now, <tt>runNextEvent</tt> returns 1, because there was an
         event to run. But we have no way of knowing whether the node
         has booted or not. We can find this out in one of two ways.
@@ -303,6 +316,7 @@ Type "help", "copyright", "credits" or "license" for more information.
           <li><b>radio()</b>: return the object representing the radio model</li>
           <li><b>addChannel(ch, output)</b>: add <i>output</i> as an output to channel <i>ch</i> </li>
           <li><b>removeChannel(ch, output)</b>: remove <i>output</i> as an output to channel <i>ch</i> </li>
+          <li><b>ticksPerSecond()</b>: return how many simulation ticks there are in a simulated second </li>
         </ul>
 
         <p>The next section discusses the last two.</p>
@@ -1072,7 +1086,7 @@ import sys
 from TOSSIM import *
 from RadioCountMsg import *
 
-t = TOSSIM.Tossim([])
+t = Tossim([])
 m = t.mac();
 r = t.radio();
 
@@ -1081,8 +1095,8 @@ t.addChannel("LedsC", sys.stdout);
 
 for i in range(0, 2):
   m = t.getNode(i);
-  m.bootAtTime(500000003 * i + 1);
-
+  m.bootAtTime((31 + t.ticksPerSecond() / 10) * i + 1);
+  
 f = open("topo.txt", "r")
 lines = f.readlines()
 for line in lines:
