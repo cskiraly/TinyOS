@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: sim_tossim.h,v 1.1.2.3 2006-01-31 19:25:50 scipio Exp $
+// $Id: sim_tossim.h,v 1.1.2.4 2006-03-07 02:35:48 scipio Exp $
 
 #ifndef SIM_TOSSIM_H_INCLUDED
 #define SIM_TOSSIM_H_INCLUDED
@@ -60,7 +60,7 @@ int sim_print_time(char* buf, int bufLen, sim_time_t time);
 int sim_print_now(char* buf, int bufLen);
 char* sim_time_string();
 
-bool sim_add_channel(char* channel, FILE* file);
+void sim_add_channel(char* channel, FILE* file);
 bool sim_remove_channel(char* channel, FILE* file);
   
 bool sim_run_next_event();

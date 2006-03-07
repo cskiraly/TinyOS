@@ -220,7 +220,7 @@ PyObject* listFromArray(char* type, char* ptr, int len) {
   double dval;
   int elementLen = lengthOfType(type);
   PyObject* list = PyList_New(0);
-  printf("Generating list of %s\n", type);
+  //printf("Generating list of %s\n", type);
   for (char* tmpPtr = ptr; tmpPtr < ptr + len; tmpPtr += elementLen) {
     PyList_Append(list, valueFromScalar(type, tmpPtr, elementLen));    
   }
@@ -242,11 +242,11 @@ PyObject* listFromArray(char* type, char* ptr, int len) {
 
 %typemap(python,out) variable_string_t {
   if ($1.isArray) {
-    printf("Generating array %s\n", $1.type);
+    //printf("Generating array %s\n", $1.type);
     $result = listFromArray  ($1.type, $1.ptr, $1.len);
   }
   else {
-    printf("Generating scalar %s\n", $1.type);
+    //printf("Generating scalar %s\n", $1.type);
     $result = valueFromScalar($1.type, $1.ptr, $1.len);
   }
   if ($result == NULL) {
@@ -290,11 +290,11 @@ PyObject* listFromArray(char* type, char* ptr, int len) {
         app->variableTypes[i] = PyString_AsString(format);
         if (strcmp(PyString_AsString(array), "array") == 0) {
           app->variableArray[i] = 1;
-          printf("%s is an array\n", PyString_AsString(name));
+          //printf("%s is an array\n", PyString_AsString(name));
         }
         else {
           app->variableArray[i] = 0;
-          printf("%s is a scalar\n", PyString_AsString(name));
+          //printf("%s is a scalar\n", PyString_AsString(name));
         }
       }
       else {
@@ -357,6 +357,7 @@ class Tossim {
   void init();
   
   long long int time();
+  long long int ticksPerSecond(); 
   void setTime(long long int time);
   char* timeStr();
 
@@ -364,7 +365,7 @@ class Tossim {
   Mote* getNode(unsigned long nodeID);
   void setCurrentNode(unsigned long nodeID);
 
-  bool addChannel(char* channel, FILE* file);
+  void addChannel(char* channel, FILE* file);
   bool removeChannel(char* channel, FILE* file);
 
   bool runNextEvent();

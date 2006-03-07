@@ -52,5 +52,6 @@ class Radio {
   bool connected(int src, int dest);
   void remove(int src, int dest);
   void setNoise(int node, double mean, double range);
+  void setSensitivity(double sensitivity);   
 };
 

@@ -908,7 +908,7 @@ PyObject* listFromArray(char* type, char* ptr, int len) {
   double dval;
   int elementLen = lengthOfType(type);
   PyObject* list = PyList_New(0);
-  printf("Generating list of %s\n", type);
+  //printf("Generating list of %s\n", type);
   for (char* tmpPtr = ptr; tmpPtr < ptr + len; tmpPtr += elementLen) {
     PyList_Append(list, valueFromScalar(type, tmpPtr, elementLen));    
   }
@@ -1496,6 +1496,23 @@ static PyObject *_wrap_Radio_setNoise(PyObject *self, PyObject *args) {
 }
 
 
+static PyObject *_wrap_Radio_setSensitivity(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    Radio *arg1 = (Radio *) 0 ;
+    double arg2 ;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"Od:Radio_setSensitivity",&obj0,&arg2)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_Radio,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    (arg1)->setSensitivity(arg2);
+    
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
 static PyObject * Radio_swigregister(PyObject *self, PyObject *args) {
     PyObject *obj;
     if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
@@ -1983,11 +2000,11 @@ static PyObject *_wrap_nesc_app_t_numVariables_set(PyObject *self, PyObject *arg
                     app->variableTypes[i] = PyString_AsString(format);
                     if (strcmp(PyString_AsString(array), "array") == 0) {
                         app->variableArray[i] = 1;
-                        printf("%s is an array\n", PyString_AsString(name));
+                        //printf("%s is an array\n", PyString_AsString(name));
                     }
                     else {
                         app->variableArray[i] = 0;
-                        printf("%s is a scalar\n", PyString_AsString(name));
+                        //printf("%s is a scalar\n", PyString_AsString(name));
                     }
                 }
                 else {
@@ -2050,11 +2067,11 @@ static PyObject *_wrap_nesc_app_t_numVariables_get(PyObject *self, PyObject *arg
                     app->variableTypes[i] = PyString_AsString(format);
                     if (strcmp(PyString_AsString(array), "array") == 0) {
                         app->variableArray[i] = 1;
-                        printf("%s is an array\n", PyString_AsString(name));
+                        //printf("%s is an array\n", PyString_AsString(name));
                     }
                     else {
                         app->variableArray[i] = 0;
-                        printf("%s is a scalar\n", PyString_AsString(name));
+                        //printf("%s is a scalar\n", PyString_AsString(name));
                     }
                 }
                 else {
@@ -2118,11 +2135,11 @@ static PyObject *_wrap_nesc_app_t_variableNames_set(PyObject *self, PyObject *ar
                     app->variableTypes[i] = PyString_AsString(format);
                     if (strcmp(PyString_AsString(array), "array") == 0) {
                         app->variableArray[i] = 1;
-                        printf("%s is an array\n", PyString_AsString(name));
+                        //printf("%s is an array\n", PyString_AsString(name));
                     }
                     else {
                         app->variableArray[i] = 0;
-                        printf("%s is a scalar\n", PyString_AsString(name));
+                        //printf("%s is a scalar\n", PyString_AsString(name));
                     }
                 }
                 else {
@@ -2186,11 +2203,11 @@ static PyObject *_wrap_nesc_app_t_variableNames_get(PyObject *self, PyObject *ar
                     app->variableTypes[i] = PyString_AsString(format);
                     if (strcmp(PyString_AsString(array), "array") == 0) {
                         app->variableArray[i] = 1;
-                        printf("%s is an array\n", PyString_AsString(name));
+                        //printf("%s is an array\n", PyString_AsString(name));
                     }
                     else {
                         app->variableArray[i] = 0;
-                        printf("%s is a scalar\n", PyString_AsString(name));
+                        //printf("%s is a scalar\n", PyString_AsString(name));
                     }
                 }
                 else {
@@ -2254,11 +2271,11 @@ static PyObject *_wrap_nesc_app_t_variableTypes_set(PyObject *self, PyObject *ar
                     app->variableTypes[i] = PyString_AsString(format);
                     if (strcmp(PyString_AsString(array), "array") == 0) {
                         app->variableArray[i] = 1;
-                        printf("%s is an array\n", PyString_AsString(name));
+                        //printf("%s is an array\n", PyString_AsString(name));
                     }
                     else {
                         app->variableArray[i] = 0;
-                        printf("%s is a scalar\n", PyString_AsString(name));
+                        //printf("%s is a scalar\n", PyString_AsString(name));
                     }
                 }
                 else {
@@ -2322,11 +2339,11 @@ static PyObject *_wrap_nesc_app_t_variableTypes_get(PyObject *self, PyObject *ar
                     app->variableTypes[i] = PyString_AsString(format);
                     if (strcmp(PyString_AsString(array), "array") == 0) {
                         app->variableArray[i] = 1;
-                        printf("%s is an array\n", PyString_AsString(name));
+                        //printf("%s is an array\n", PyString_AsString(name));
                     }
                     else {
                         app->variableArray[i] = 0;
-                        printf("%s is a scalar\n", PyString_AsString(name));
+                        //printf("%s is a scalar\n", PyString_AsString(name));
                     }
                 }
                 else {
@@ -2390,11 +2407,11 @@ static PyObject *_wrap_nesc_app_t_variableArray_set(PyObject *self, PyObject *ar
                     app->variableTypes[i] = PyString_AsString(format);
                     if (strcmp(PyString_AsString(array), "array") == 0) {
                         app->variableArray[i] = 1;
-                        printf("%s is an array\n", PyString_AsString(name));
+                        //printf("%s is an array\n", PyString_AsString(name));
                     }
                     else {
                         app->variableArray[i] = 0;
-                        printf("%s is a scalar\n", PyString_AsString(name));
+                        //printf("%s is a scalar\n", PyString_AsString(name));
                     }
                 }
                 else {
@@ -2458,11 +2475,11 @@ static PyObject *_wrap_nesc_app_t_variableArray_get(PyObject *self, PyObject *ar
                     app->variableTypes[i] = PyString_AsString(format);
                     if (strcmp(PyString_AsString(array), "array") == 0) {
                         app->variableArray[i] = 1;
-                        printf("%s is an array\n", PyString_AsString(name));
+                        //printf("%s is an array\n", PyString_AsString(name));
                     }
                     else {
                         app->variableArray[i] = 0;
-                        printf("%s is a scalar\n", PyString_AsString(name));
+                        //printf("%s is a scalar\n", PyString_AsString(name));
                     }
                 }
                 else {
@@ -2538,11 +2555,11 @@ static PyObject *_wrap_delete_nesc_app_t(PyObject *self, PyObject *args) {
                     app->variableTypes[i] = PyString_AsString(format);
                     if (strcmp(PyString_AsString(array), "array") == 0) {
                         app->variableArray[i] = 1;
-                        printf("%s is an array\n", PyString_AsString(name));
+                        //printf("%s is an array\n", PyString_AsString(name));
                     }
                     else {
                         app->variableArray[i] = 0;
-                        printf("%s is a scalar\n", PyString_AsString(name));
+                        //printf("%s is a scalar\n", PyString_AsString(name));
                     }
                 }
                 else {
@@ -2616,11 +2633,11 @@ static PyObject *_wrap_Variable_getData(PyObject *self, PyObject *args) {
     
     {
         if ((&result)->isArray) {
-            printf("Generating array %s\n", (&result)->type);
+            //printf("Generating array %s\n", (&result)->type);
             resultobj = listFromArray  ((&result)->type, (&result)->ptr, (&result)->len);
         }
         else {
-            printf("Generating scalar %s\n", (&result)->type);
+            //printf("Generating scalar %s\n", (&result)->type);
             resultobj = valueFromScalar((&result)->type, (&result)->ptr, (&result)->len);
         }
         if (resultobj == NULL) {
@@ -2682,11 +2699,11 @@ static PyObject *_wrap_new_Mote(PyObject *self, PyObject *args) {
                     app->variableTypes[i] = PyString_AsString(format);
                     if (strcmp(PyString_AsString(array), "array") == 0) {
                         app->variableArray[i] = 1;
-                        printf("%s is an array\n", PyString_AsString(name));
+                        //printf("%s is an array\n", PyString_AsString(name));
                     }
                     else {
                         app->variableArray[i] = 0;
-                        printf("%s is a scalar\n", PyString_AsString(name));
+                        //printf("%s is a scalar\n", PyString_AsString(name));
                     }
                 }
                 else {
@@ -2930,11 +2947,11 @@ static PyObject *_wrap_new_Tossim(PyObject *self, PyObject *args) {
                     app->variableTypes[i] = PyString_AsString(format);
                     if (strcmp(PyString_AsString(array), "array") == 0) {
                         app->variableArray[i] = 1;
-                        printf("%s is an array\n", PyString_AsString(name));
+                        //printf("%s is an array\n", PyString_AsString(name));
                     }
                     else {
                         app->variableArray[i] = 0;
-                        printf("%s is a scalar\n", PyString_AsString(name));
+                        //printf("%s is a scalar\n", PyString_AsString(name));
                     }
                 }
                 else {
@@ -2996,6 +3013,23 @@ static PyObject *_wrap_Tossim_time(PyObject *self, PyObject *args) {
     if(!PyArg_ParseTuple(args,(char *)"O:Tossim_time",&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_Tossim,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
     result = (long long)(arg1)->time();
+    
+    resultobj = PyLong_FromLongLong(result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_Tossim_ticksPerSecond(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    Tossim *arg1 = (Tossim *) 0 ;
+    long long result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:Tossim_ticksPerSecond",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_Tossim,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    result = (long long)(arg1)->ticksPerSecond();
     
     resultobj = PyLong_FromLongLong(result);
     return resultobj;
@@ -3104,7 +3138,6 @@ static PyObject *_wrap_Tossim_addChannel(PyObject *self, PyObject *args) {
     Tossim *arg1 = (Tossim *) 0 ;
     char *arg2 ;
     FILE *arg3 = (FILE *) 0 ;
-    bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj2 = 0 ;
     
@@ -3117,9 +3150,9 @@ static PyObject *_wrap_Tossim_addChannel(PyObject *self, PyObject *args) {
         }
         arg3 = PyFile_AsFile(obj2);
     }
-    result = (bool)(arg1)->addChannel(arg2,arg3);
+    (arg1)->addChannel(arg2,arg3);
     
-    resultobj = PyInt_FromLong((long)result);
+    Py_INCREF(Py_None); resultobj = Py_None;
     return resultobj;
     fail:
     return NULL;
@@ -3263,6 +3296,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"Radio_connected", _wrap_Radio_connected, METH_VARARGS },
 	 { (char *)"Radio_remove", _wrap_Radio_remove, METH_VARARGS },
 	 { (char *)"Radio_setNoise", _wrap_Radio_setNoise, METH_VARARGS },
+	 { (char *)"Radio_setSensitivity", _wrap_Radio_setSensitivity, METH_VARARGS },
 	 { (char *)"Radio_swigregister", Radio_swigregister, METH_VARARGS },
 	 { (char *)"new_Packet", _wrap_new_Packet, METH_VARARGS },
 	 { (char *)"delete_Packet", _wrap_delete_Packet, METH_VARARGS },
@@ -3321,6 +3355,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"delete_Tossim", _wrap_delete_Tossim, METH_VARARGS },
 	 { (char *)"Tossim_init", _wrap_Tossim_init, METH_VARARGS },
 	 { (char *)"Tossim_time", _wrap_Tossim_time, METH_VARARGS },
+	 { (char *)"Tossim_ticksPerSecond", _wrap_Tossim_ticksPerSecond, METH_VARARGS },
 	 { (char *)"Tossim_setTime", _wrap_Tossim_setTime, METH_VARARGS },
 	 { (char *)"Tossim_timeStr", _wrap_Tossim_timeStr, METH_VARARGS },
 	 { (char *)"Tossim_currentNode", _wrap_Tossim_currentNode, METH_VARARGS },

@@ -41,7 +41,7 @@ module SimMainP {
 implementation {
 
   int sim_main_start_mote() __attribute__ ((C, spontaneous)) {
-    char timeBuf[64];
+    char timeBuf[128];
     atomic {
       /* First, initialize the Scheduler so components can post
 	 tasks. Initialize all of the very hardware specific stuff, such
@@ -69,7 +69,7 @@ implementation {
     /* Enable interrupts now that system is ready. */
     __nesc_enable_interrupt();
 
-    sim_print_now(timeBuf, 64);
+    sim_print_now(timeBuf, 128);
     dbg("SimMainP", "Mote %li signaling boot at time %s.\n", sim_node(), timeBuf);
     signal Boot.booted();
     

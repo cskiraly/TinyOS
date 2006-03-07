@@ -1,4 +1,4 @@
-// $Id: sim_log.c,v 1.1.2.4 2006-01-10 16:47:53 idgay Exp $
+// $Id: sim_log.c,v 1.1.2.5 2006-03-07 02:35:48 scipio Exp $
 
 /*									tab:4
 * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -79,7 +79,6 @@ static void fillInOutput(int id, char* name) {
   int count = 0;
   char* newName = (char*)malloc(strlen(name) + 1);
   memset(newName, 0, strlen(name) + 1);
-
   // Count the outputs
   while (termination != NULL) {
     sim_log_channel_t* channel;
@@ -162,7 +161,7 @@ void sim_log_init() {
   
 }
 
-bool sim_log_add_channel(char* name, FILE* file) {
+void sim_log_add_channel(char* name, FILE* file) {
   sim_log_channel_t* channel;
   channel = (sim_log_channel_t*)hashtable_search(channelTable, name);
 
@@ -196,7 +195,6 @@ bool sim_log_add_channel(char* name, FILE* file) {
   channel->outputs[channel->numOutputs] = file;
   channel->numOutputs++;
 
-  return TRUE;
 }
 
 bool sim_log_remove_channel(char* output, FILE* file) {
