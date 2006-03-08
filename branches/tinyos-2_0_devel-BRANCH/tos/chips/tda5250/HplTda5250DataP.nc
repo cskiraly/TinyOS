@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-31 12:40:05 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-03-08 02:01:47 $
  * ========================================================================
  */
 
@@ -47,7 +47,6 @@ module HplTda5250DataP {
     interface GeneralIO as DATA;
     interface HplMsp430Usart as Usart;
     interface Resource as UartResource;
-    interface ArbiterInfo;
   }
 }
 
@@ -86,8 +85,8 @@ implementation {
     call UartResource.release();
   }
 
-  async command uint8_t Resource.getId() {
-    return TDA5250_UART_BUS_ID;
+  async command uint8_t Resource.isOwner() {
+    return call UartResource.isOwner();
   }
 
   event void UartResource.granted() {
@@ -96,20 +95,20 @@ implementation {
   }
 
   async command error_t HplTda5250Data.tx(uint8_t data) {
-    if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
+    if(call UartResource.isOwner())
      return FAIL;
     call Usart.tx(data);
     return SUCCESS;
   }
 
   async command bool HplTda5250Data.isTxDone() {
-    if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
+    if(call UartResource.isOwner())
       return FAIL;
     return call Usart.isTxEmpty();
   }
 
   async command error_t HplTda5250Data.enableTx() {
-    if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
+    if(call UartResource.isOwner())
       return FAIL;
     call Usart.setModeUART_TX();
     call Usart.setClockSource(SSEL_SMCLK);
@@ -119,7 +118,7 @@ implementation {
   }
 
   async command error_t HplTda5250Data.disableTx() {
-    if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
+    if(call UartResource.isOwner())
       return FAIL;
     call Usart.disableUARTTx();
     call Usart.disableTxIntr();
@@ -127,7 +126,7 @@ implementation {
   }
 
   async command error_t HplTda5250Data.enableRx() {
-    if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
+    if(call UartResource.isOwner())
       return FAIL;
     call Usart.setModeUART_RX();
     call Usart.setClockSource(SSEL_SMCLK);
@@ -137,7 +136,7 @@ implementation {
   }
 
   async command error_t HplTda5250Data.disableRx() {
-    if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
+    if(call UartResource.isOwner())
       return FAIL;
     call Usart.disableUARTRx();
     call Usart.disableRxIntr();
@@ -145,13 +144,13 @@ implementation {
   }
 
   async event void Usart.txDone() {
-    if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
+    if(call UartResource.isOwner())
       return;
     signal HplTda5250Data.txReady();
   }
 
   async event void Usart.rxDone(uint8_t data) {
-    if(call ArbiterInfo.userId() != TDA5250_UART_BUS_ID)
+    if(call UartResource.isOwner())
       return;
     signal HplTda5250Data.rxDone(data);
   }
