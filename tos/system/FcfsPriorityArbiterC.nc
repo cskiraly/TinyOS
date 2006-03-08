@@ -51,8 +51,8 @@
 
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-02-16 18:26:16 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2006-03-08 02:01:48 $
  * ========================================================================
  */
 
@@ -295,14 +295,17 @@ implementation {
   /**
    * Returns my user id.
    */
-  async command uint8_t Resource.getId[uint8_t id]() {
-    return id;
+  async command uint8_t Resource.isOwner[uint8_t id]() {
+    atomic {
+      if(resId == id) return true;
+      else return false;
+    }
   }
-  async command uint8_t LowPriorityClient.getId() {
-    return call Resource.getId[LOW_PRIORITY_CLIENT_ID]();
+  async command uint8_t LowPriorityClient.isOwner() {
+    return call Resource.isOwner[LOW_PRIORITY_CLIENT_ID]();
   }
-  async command uint8_t HighPriorityClient.getId() {
-    return call Resource.getId[HIGH_PRIORITY_CLIENT_ID]();
+  async command uint8_t HighPriorityClient.isOwner() {
+    return call Resource.isOwner[HIGH_PRIORITY_CLIENT_ID]();
   }
 
   //Grant a request to the next Pending user

@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-01-30 22:24:28 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-03-08 02:01:46 $
  */
 
 module CC2420SpiImplP {
@@ -119,8 +119,11 @@ implementation {
     }
   }
   
-  async command uint8_t Resource.getId[ uint8_t id ]() {
-    return id;
+  async command uint8_t Resource.isOwner[ uint8_t id ]() {
+    atomic {
+      if(m_holder == id) return true;
+      else return false;
+    }
   }
 
   event void SpiResource.granted() {

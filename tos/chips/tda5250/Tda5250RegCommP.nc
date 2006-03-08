@@ -28,8 +28,8 @@
  *
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-31 12:40:05 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-03-08 02:01:47 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -69,9 +69,9 @@ implementation {
      return SUCCESS;
    }
 
-   async command uint8_t Resource.getId() {
-// return TDA5250_SPI_BUS_ID;
-   return 255;
+   async command uint8_t Resource.isOwner() {
+//     return call SpiResource.isOwner();
+       return false;
    }
 
    async command void Resource.release() {
@@ -84,7 +84,7 @@ implementation {
 
    async command error_t Tda5250RegComm.writeByte(uint8_t address, uint8_t data) {
      uint8_t rxbyte;
-//     if(call ArbiterInfo.userId() != TDA5250_SPI_BUS_ID) {
+//     if(call SpiResource.isOwner()) {
 //       return FAIL;
 //     }
      call SpiByte.write(address,&rxbyte);
@@ -93,7 +93,7 @@ implementation {
    }
    async command error_t Tda5250RegComm.writeWord(uint8_t address, uint16_t data) {
       uint8_t rxbyte;
-//      if(call ArbiterInfo.userId() != TDA5250_SPI_BUS_ID)
+//      if(call SpiResource.isOwner())
 //        return FAIL;
       call SpiByte.write(address, &rxbyte);
       call SpiByte.write(((uint8_t) (data >> 8)),&rxbyte);
@@ -103,7 +103,7 @@ implementation {
 
    async command uint8_t Tda5250RegComm.readByte(uint8_t address){
       uint8_t rxbyte;
-//      if(call ArbiterInfo.userId() != TDA5250_SPI_BUS_ID)
+//      if(call SpiResource.isOwner())
 //        return 0x00;
       call SpiByte.write(address, &rxbyte);
 

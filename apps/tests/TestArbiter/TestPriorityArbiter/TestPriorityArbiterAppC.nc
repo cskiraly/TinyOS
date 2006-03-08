@@ -26,8 +26,8 @@
   * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
   * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   * - Revision -------------------------------------------------------------
-  * $Revision: 1.1.2.6 $
-  * $Date: 2006-02-04 00:42:54 $
+  * $Revision: 1.1.2.7 $
+  * $Date: 2006-03-08 02:01:43 $
   * ========================================================================
   */
 
@@ -91,7 +91,6 @@
     TestPriorityArbiterC.PowerManager -> Arbiter.LowPriorityClient;
     TestPriorityArbiterC.Client2 -> Arbiter.Resource[unique("Test.Arbiter.Resource")];
     TestPriorityArbiterC.Client1 -> Arbiter.Resource[unique("Test.Arbiter.Resource")];
-    TestPriorityArbiterC.ArbiterInfo -> Arbiter.ArbiterInfo;
 
     TestPriorityArbiterC.Leds -> LedsC;
   }

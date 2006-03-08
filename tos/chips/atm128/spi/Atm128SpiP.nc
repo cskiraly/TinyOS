@@ -1,4 +1,4 @@
-/// $Id: Atm128SpiP.nc,v 1.1.2.7 2006-02-16 19:02:14 idgay Exp $
+/// $Id: Atm128SpiP.nc,v 1.1.2.8 2006-03-08 02:01:44 klueska Exp $
 
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -63,7 +63,7 @@
  *
  *
  * <pre>
- *  $Id: Atm128SpiP.nc,v 1.1.2.7 2006-02-16 19:02:14 idgay Exp $
+ *  $Id: Atm128SpiP.nc,v 1.1.2.8 2006-03-08 02:01:44 klueska Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -300,8 +300,8 @@ implementation {
    }
  }
 
- async command uint8_t Resource.getId[uint8_t id]() {
-   return call ResourceArbiter.getId[id]();
+ async command uint8_t Resource.isOwner[uint8_t id]() {
+   return call ResourceArbiter.isOwner[id]();
  }
  
  event void ResourceArbiter.granted[ uint8_t id ]() {

@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-31 18:43:40 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-03-08 02:01:47 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -134,9 +134,9 @@ module Msp430RefVoltArbiterP
   {
   }
 
-  async command uint8_t ClientResource.getId[uint8_t client]()
+  async command uint8_t ClientResource.isOwner()
   {
-    return call AdcResource.getId[client]();
+    return call AdcResource.isOwner();
   }
 
   default event void ClientResource.granted[uint8_t client](){}

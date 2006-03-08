@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.8 $
- * $Date: 2006-02-16 16:48:11 $
+ * $Revision: 1.1.2.9 $
+ * $Date: 2006-03-08 02:01:43 $
  * ========================================================================
  */
 
@@ -71,7 +71,6 @@ module TestPriorityArbiterC {
     interface Resource as Client2;
     interface ResourceController as PowerManager;
     interface ResourceController as HighClient;
-    interface ArbiterInfo;
     interface BusyWait<TMicro,uint16_t>;
     interface Timer<TMilli> as TimerClient1;
     interface Timer<TMilli> as TimerClient2;
@@ -216,7 +215,7 @@ implementation {
   //  release it if its safe
       async event void HighClient.requested() {
     if (!resReq) {
-      if (call ArbiterInfo.userId() == call HighClient.getId() ) {
+      if ( call HighClient.isOwner() ) {
         post startHighClientSafePeriod();
       } else {}
       atomic {resReq = TRUE;}

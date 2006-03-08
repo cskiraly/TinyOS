@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-02-17 22:13:22 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-03-08 02:01:47 $
  */
 
 #include <Stm25p.h>
@@ -118,8 +118,8 @@ implementation {
     signal ClientResource.granted[ m_client ]();
   }
 
-  async command uint8_t ClientResource.getId[ storage_volume_t v ]() {
-    return call Stm25pResource.getId[v]();
+  async command uint8_t ClientResource.isOwner[ storage_volume_t v ]() {
+    return call Stm25pResource.isOwner[v]();
   }
 
   stm25p_addr_t physicalAddr( storage_volume_t v, stm25p_addr_t addr ) {

@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-02-14 17:01:43 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-03-08 02:01:47 $
  */
 
 #include "crc.h"
@@ -115,8 +115,8 @@ implementation {
     call SpiResource.release();
   }
 
-  async command uint8_t ClientResource.getId() {
-    return call SpiResource.getId();
+  async command uint8_t ClientResource.isOwner() {
+    return call SpiResource.isOwner();
   }
 
   stm25p_len_t calcReadLen() {

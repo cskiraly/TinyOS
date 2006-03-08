@@ -52,8 +52,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-26 21:44:51 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-03-08 02:01:48 $ 
  * ======================================================================== 
  */
  
@@ -106,10 +106,12 @@ interface ResourceController {
   async command void release();
 
   /**
-  *  Check what the id is for this instance of the parameterized
-  *  Resource interface.
-  */
-  async command uint8_t getId();
+   *  Check if the user of this interface is the current
+   *  owner of the Resource
+   *  @return TRUE  It is the owner <br>
+   *          FALSE It is not the owner
+   */
+  async command bool isOwner();
 
   /**
    * This event is signalled whenever the user of this interface

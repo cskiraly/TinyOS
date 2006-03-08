@@ -40,8 +40,8 @@ implementation {
     call ResourceConfigure.unconfigure();
   } 
 
-  async command uint8_t Resource.getId() {
-    return 0;
+  async command uint8_t Resource.isOwner() {
+    return true;
   }
 
   default async command void ResourceConfigure.configure() { }

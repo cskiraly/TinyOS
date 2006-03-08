@@ -26,8 +26,8 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.4 $
-* $Date: 2006-01-31 12:25:32 $
+* $Revision: 1.1.2.5 $
+* $Date: 2006-03-08 02:01:48 $
 * ========================================================================
 */
 
@@ -62,5 +62,4 @@ implementation {
   HplTda5250DataP.DATA -> Tda5250RadioIOC.Tda5250RadioDATA;
   HplTda5250DataP.Usart -> HplMsp430Usart0C;
   HplTda5250DataP.UartResource -> HplMsp430Usart0C.Resource[TDA5250_UART_BUS_ID];
-  HplTda5250DataP.ArbiterInfo -> HplMsp430Usart0C.ArbiterInfo;
 }

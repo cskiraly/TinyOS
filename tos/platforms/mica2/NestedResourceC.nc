@@ -1,4 +1,4 @@
-/* $Id: NestedResourceC.nc,v 1.1.2.1 2006-02-02 01:03:17 idgay Exp $
+/* $Id: NestedResourceC.nc,v 1.1.2.2 2006-03-08 02:01:48 klueska Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -56,7 +56,7 @@ implementation
     call Resource2.release();
   }
 
-  async command uint8_t Resource.getId() {
-    return call Resource1.getId();
+  async command uint8_t Resource.isOwner() {
+    return call Resource1.isOwner();
   }
 }
