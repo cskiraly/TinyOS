@@ -26,8 +26,8 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.2 $
-* $Date: 2006-02-01 17:44:18 $
+* $Revision: 1.1.2.3 $
+* $Date: 2006-03-08 18:01:55 $
 * ========================================================================
 */
 
@@ -270,7 +270,7 @@ implementation {
     call XTAL_CONFIG.set(((uint16_t)cap_val) & 0x003F);
   }
 
-  command void HplTda5250Config.SetRFPower(uint8_t value) {
+  async command void HplTda5250Config.SetRFPower(uint8_t value) {
     call RF_POWER.set(value);
   }
 

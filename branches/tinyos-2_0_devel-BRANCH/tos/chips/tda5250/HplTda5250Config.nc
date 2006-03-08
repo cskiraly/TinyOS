@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-02-01 17:44:18 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-03-08 18:01:54 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -334,7 +334,7 @@ interface HplTda5250Config {
    *
    * @param RF Power.
    */
-   command void SetRFPower(uint8_t value);
+   async command void SetRFPower(uint8_t value);
 
    /**
    * Sets the RSSI threshold for internal evaluation.
