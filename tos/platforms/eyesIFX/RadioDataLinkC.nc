@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  * provides preamble sampling csma with timestamping
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-03-01 18:38:17 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-03-08 16:54:03 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -66,8 +66,6 @@ implementation
     Init = Mac;
     Init = Llc;
         
-//     SplitControl = Radio;
-//     SplitControl = Mac;
     SplitControl = Llc;
     Llc.MacSplitControl -> Mac.SplitControl;
     Llc.RadioSplitControl -> Radio.SplitControl;
