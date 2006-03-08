@@ -60,7 +60,6 @@ module CsmaMacP {
 
       interface Random;
         
-      // FIXME Jiffy -> Milli
       interface Timer<TMilli> as MinClearTimer;
       interface Timer<TMilli> as RxPacketTimer;
       interface Timer<TMilli> as BackoffTimer;
@@ -135,7 +134,6 @@ implementation
      * the channel busy when trying to access it
     */
     uint8_t inBackoff;
-    
     
     /* on and off times for preamble sampling mode in jiffies */
     uint16_t slotModulo;
@@ -272,11 +270,11 @@ implementation
       }
       if(action) {
         window = 2 * iB;
-        slot = call Random.rand32();
+        slot = call Random.rand16();
         slot %= window;
         ++slot;
         slot *= (MINISLOT_TIME); 
-        slot += (call Random.rand32() & slotModulo);
+        slot += (call Random.rand16() & slotModulo);
         call BackoffTimer.startOneShot(slot);
         atomic {
           clearTFlag(&restartTimers, BACKOFF_TIMER);
@@ -483,16 +481,17 @@ implementation
       atomic {
         storeOldState(12);
         stopRxPacketTimer(FALSE);
-        if(isTFlagSet(&firedTimers, BACKOFF_TIMER)) {
+        if( isTFlagSet(&firedTimers, BACKOFF_TIMER) ) {
           macState = SW_CCA;
           setCCAMode();
-        } else {
-          if (macState != INIT) macState = RX;
+        } else if (macState != INIT) {
+          macState = RX;
           call PhyPacketRx.recvHeader();
         }
       }
-      // FIXME: getMetaData does not work
-      //atomic getMetaData(msg)->strength = rssiValue;
+      atomic {
+        (getMetadata(msg))->strength = rssiValue;
+      }
       signal Receive.receive(msg, payload, len);
       return msg;
     }
@@ -546,7 +545,7 @@ implementation
             storeOldState(21);
             markTFlag(&firedTimers, RX_PACKET_TIMER);
             stopRxPacketTimer(FALSE);
-            if(isTFlagSet(&firedTimers, BACKOFF_TIMER)) {
+            if( isTFlagSet(&firedTimers, BACKOFF_TIMER) ) {
               macState = SW_CCA;
               setCCAMode();
             } else {
@@ -603,7 +602,7 @@ implementation
         if(inBackoff == 0) {
           storeOldState(50);
           switch(macState) {
-            case SW_RX:
+            //case SW_RX:
             case RX:
               macState = SW_CCA;
               setCCAMode();
@@ -637,6 +636,7 @@ implementation
       atomic {
         if (call PacketSend.cancel(msg)) {
           stopBackoffTimer(FALSE);
+          stopMinClearTimer(FALSE);
           txBufPtr = 0;
           inBackoff = 0;
           macState = SW_RX;
@@ -697,6 +697,7 @@ implementation
             storeOldState(61);
             sendFailed = TRUE;
             stopBackoffTimer(TRUE);
+            inBackoff = 0;
           }
         } 
         stopMinClearTimer(TRUE);
