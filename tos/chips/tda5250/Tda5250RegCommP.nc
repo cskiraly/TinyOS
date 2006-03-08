@@ -28,8 +28,8 @@
  *
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-03-08 02:01:47 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-03-08 02:11:15 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -71,7 +71,7 @@ implementation {
 
    async command uint8_t Resource.isOwner() {
 //     return call SpiResource.isOwner();
-       return false;
+       return FALSE;
    }
 
    async command void Resource.release() {

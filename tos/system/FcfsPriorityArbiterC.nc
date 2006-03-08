@@ -51,8 +51,8 @@
 
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.7 $
- * $Date: 2006-03-08 02:01:48 $
+ * $Revision: 1.1.2.8 $
+ * $Date: 2006-03-08 02:11:17 $
  * ========================================================================
  */
 
@@ -297,8 +297,8 @@ implementation {
    */
   async command uint8_t Resource.isOwner[uint8_t id]() {
     atomic {
-      if(resId == id) return true;
-      else return false;
+      if(resId == id) return TRUE;
+      else return FALSE;
     }
   }
   async command uint8_t LowPriorityClient.isOwner() {

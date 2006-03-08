@@ -41,7 +41,7 @@ implementation {
   } 
 
   async command uint8_t Resource.isOwner() {
-    return true;
+    return TRUE;
   }
 
   default async command void ResourceConfigure.configure() { }
