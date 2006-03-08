@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-03-08 02:01:47 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-03-08 16:51:01 $
  * ========================================================================
  */
 
@@ -85,7 +85,7 @@ implementation {
     call UartResource.release();
   }
 
-  async command uint8_t Resource.isOwner() {
+  async command bool Resource.isOwner() {
     return call UartResource.isOwner();
   }
 
@@ -95,20 +95,20 @@ implementation {
   }
 
   async command error_t HplTda5250Data.tx(uint8_t data) {
-    if(call UartResource.isOwner())
+    if(call UartResource.isOwner() == FALSE)
      return FAIL;
     call Usart.tx(data);
     return SUCCESS;
   }
 
   async command bool HplTda5250Data.isTxDone() {
-    if(call UartResource.isOwner())
+    if(call UartResource.isOwner() == FALSE)
       return FAIL;
     return call Usart.isTxEmpty();
   }
 
   async command error_t HplTda5250Data.enableTx() {
-    if(call UartResource.isOwner())
+    if(call UartResource.isOwner() == FALSE)
       return FAIL;
     call Usart.setModeUART_TX();
     call Usart.setClockSource(SSEL_SMCLK);
@@ -118,7 +118,7 @@ implementation {
   }
 
   async command error_t HplTda5250Data.disableTx() {
-    if(call UartResource.isOwner())
+    if(call UartResource.isOwner() == FALSE)
       return FAIL;
     call Usart.disableUARTTx();
     call Usart.disableTxIntr();
@@ -126,7 +126,7 @@ implementation {
   }
 
   async command error_t HplTda5250Data.enableRx() {
-    if(call UartResource.isOwner())
+    if(call UartResource.isOwner() == FALSE)
       return FAIL;
     call Usart.setModeUART_RX();
     call Usart.setClockSource(SSEL_SMCLK);
@@ -136,7 +136,7 @@ implementation {
   }
 
   async command error_t HplTda5250Data.disableRx() {
-    if(call UartResource.isOwner())
+    if(call UartResource.isOwner() == FALSE)
       return FAIL;
     call Usart.disableUARTRx();
     call Usart.disableRxIntr();
@@ -144,13 +144,13 @@ implementation {
   }
 
   async event void Usart.txDone() {
-    if(call UartResource.isOwner())
+    if(call UartResource.isOwner() == FALSE)
       return;
     signal HplTda5250Data.txReady();
   }
 
   async event void Usart.rxDone(uint8_t data) {
-    if(call UartResource.isOwner())
+    if(call UartResource.isOwner() == FALSE)
       return;
     signal HplTda5250Data.rxDone(data);
   }

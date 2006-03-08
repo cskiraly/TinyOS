@@ -28,8 +28,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * $Revision: 1.1.2.7 $
- * $Date: 2006-03-08 02:01:47 $
+ * $Revision: 1.1.2.8 $
+ * $Date: 2006-03-08 16:50:59 $
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  */
@@ -80,7 +80,7 @@ implementation {
     return call UsartResource.request();
   }
 
-  async command uint8_t Resource.isOwner() {
+  async command bool Resource.isOwner() {
     return call UsartResource.isOwner();
   }
 
