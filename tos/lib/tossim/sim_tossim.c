@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: sim_tossim.c,v 1.1.2.5 2006-03-07 02:35:48 scipio Exp $
+// $Id: sim_tossim.c,v 1.1.2.6 2006-03-09 18:53:11 scipio Exp $
 
 
 #include <sim_tossim.h>
@@ -98,6 +98,7 @@ unsigned long sim_node() __attribute__ ((C, spontaneous)) {
 }
 void sim_set_node(unsigned long node) __attribute__ ((C, spontaneous)) {
   current_node = node;
+  TOS_NODE_ID = node;
 }
 
 bool sim_run_next_event() __attribute__ ((C, spontaneous)) {
