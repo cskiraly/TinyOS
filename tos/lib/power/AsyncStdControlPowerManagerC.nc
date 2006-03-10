@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-27 02:38:05 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-03-10 02:19:23 $ 
  * ======================================================================== 
  */
  
@@ -65,7 +65,6 @@ generic configuration AsyncStdControlPowerManagerC()
     interface PowerDownCleanup;
     interface Init as ArbiterInit;
     interface ResourceController;
-    interface ArbiterInfo;
   }
 }
 implementation {
