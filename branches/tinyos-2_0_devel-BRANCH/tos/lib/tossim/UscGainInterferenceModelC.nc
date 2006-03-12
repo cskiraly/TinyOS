@@ -1,4 +1,4 @@
-// $Id: UscGainInterferenceModelC.nc,v 1.1.2.4 2006-01-18 22:53:55 scipio Exp $
+// $Id: UscGainInterferenceModelC.nc,v 1.1.2.5 2006-03-12 20:47:02 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -46,9 +46,10 @@ module UscGainInterferenceModelC {
 
 implementation {
 
-  message_t* outgoing;
+  
+  message_t* outgoing; // If I'm sending, this is my outgoing packet
   bool requestAck;
-  bool receiving = 0;
+  bool receiving = 0;  // Whether or not I think I'm receiving a packet
   struct receive_message;
   typedef struct receive_message receive_message_t;
   
@@ -93,7 +94,7 @@ implementation {
   }
   
   void sim_gain_ack_handle(sim_event_t* evt)  {
-    if (outgoing != NULL && requestAck) {
+    if (outgoing != NULL && requestAck && sim_mote_is_on(sim_node())) {
       signal Model.acked(outgoing);
     }
     receiving = 0;
@@ -121,7 +122,7 @@ implementation {
   void sim_gain_schedule_ack(int source, sim_time_t t) {
     sim_event_t* ackEvent = (sim_event_t*)malloc(sizeof(sim_event_t));
     ackEvent->mote = source;
-    ackEvent->force = 0;
+    ackEvent->force = 1;
     ackEvent->cancelled = 0;
     ackEvent->time = t;
     ackEvent->handle = sim_gain_ack_handle;
@@ -140,6 +141,7 @@ implementation {
       }
       if (list != mine) {
 	if ((list->power - sim_gain_sensitivity()) < heardSignal()) {
+	  dbg("Gain", "Lost packet from %i as power %lf was too low\n", list->source, list->power);
 	  list->lost = 1;
 	}
       }
@@ -156,39 +158,63 @@ implementation {
     }
 
     if ((mine->power - sim_gain_sensitivity()) < heardSignal()) {
+      dbg("Gain", "Lost packet as power %lf was too low\n", mine->power);
       mine->lost = 1;
     }
     
     if (!mine->lost) {
       dbg_clear("Gain", "  -signaling reception.\n");
       signal Model.receive(mine->msg);
+      // If we scheduled an ack, receiving = 0 when it completes
       if (mine->ack && signal Model.shouldAck(mine->msg)) {
-	sim_gain_schedule_ack(mine->source, sim_time()); 
+	sim_gain_schedule_ack(mine->source, sim_time() + 1); 
       }
-      else { // If we scheduled an ack, receiving = 0 when it completes
+      // If no ack, then we're searching for new packets again
+      else { 
 	receiving = 0;
       }
-    }
+    } // If the packet was lost, then we're searching for new packets again
     else {
+      receiving = 0;
       dbg_clear("Gain", "  -packet was lost.\n");
     }
     free(mine);
   }
   
-
+  
   // Create a record that a node is receiving a packet,
   // enqueue a receive event to figure out what happens.
   void enqueue_receive_event(int source, sim_time_t endTime, message_t* msg, bool receive, double power) {
     sim_event_t* evt;
     receive_message_t* rcv = allocate_receive_message();
+    double sigStr = heardSignal();
     rcv->source = source;
     rcv->start = sim_time();
     rcv->end = endTime;
     rcv->power = power;
     rcv->msg = msg;
-    rcv->lost = (heardSignal() + sim_gain_sensitivity()) >= power || receiving;
-    if (power >= sim_gain_noise_mean(sim_node()) + sim_gain_noise_range(sim_node())) {
-      receiving = 1;
+    rcv->lost = 0;
+    
+    // If I'm off, I never receive the packet, but I need to keep track of
+    // it in case I turn on and someone else starts sending me a weaker
+    // packet. So I don't set receiving to 1, but I keep track of
+    // the signal strength.
+    if (!sim_mote_is_on(sim_node())) { 
+      dbg("Gain", "Lost packet from %i due to %i being off\n", source, sim_node());
+      rcv->lost = 1;
+    }
+    else {
+      if ((sigStr + sim_gain_sensitivity()) >= power) {
+	dbg("Gain", "Lost packet from %i due to power being too low (%f >= %f)\n", source, sigStr, power);
+	rcv->lost = 1;
+      }
+      else if (receiving) {
+	dbg("Gain", "Lost packet from %i due to being in the midst of a reception.\n", source);
+	rcv->lost = 1;
+      }
+      if (power >= sim_gain_noise_mean(sim_node()) + sim_gain_noise_range(sim_node())) {
+	receiving = 1;
+      }
     }
     rcv->next = outstandingReceptionHead;
     
@@ -199,9 +225,9 @@ implementation {
   
   void sim_gain_put(int dest, message_t* msg, sim_time_t endTime, bool receive, double power) {
     int prevNode = sim_node();
-    dbg("Gain", "Enqueing reception event for %i.\n", dest);
+    dbg("Gain", "Enqueing reception event for %i at %llu.\n", dest, endTime);
     sim_set_node(dest);
-    enqueue_receive_event(prevNode, endTime - 1, msg, receive, power);
+    enqueue_receive_event(prevNode, endTime, msg, receive, power);
     sim_set_node(prevNode);
   }
 
@@ -209,11 +235,11 @@ implementation {
     gain_entry_t* link = sim_gain_first(sim_node());
     requestAck = ack;
     outgoing = msg;
-    
+    dbg("Gain", "Node %i transmitting to %i, finishes at %llu.\n", sim_node(), dest, endTime);
+
     while (link != NULL) {
       int other = link->mote;
       sim_gain_put(other, msg, endTime, ack && (other == dest), power + link->gain);
-      dbg("Gain", "Node %i transmitting to %i.\n", sim_node(), dest);
       link = sim_gain_next(link);
     }
   }
@@ -230,7 +256,7 @@ implementation {
    evt->handle = sim_gain_receive_handle;
    evt->cleanup = sim_queue_cleanup_event;
    evt->cancelled = 0;
-   evt->force = 0;
+   evt->force = 1; // Need to keep track of air even when node is off
    evt->data = msg;
    return evt;
  }
