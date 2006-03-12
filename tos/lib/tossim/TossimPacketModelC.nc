@@ -1,4 +1,4 @@
-// $Id: TossimPacketModelC.nc,v 1.1.2.2 2006-01-04 22:07:23 scipio Exp $
+// $Id: TossimPacketModelC.nc,v 1.1.2.3 2006-03-12 20:47:02 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -223,7 +223,7 @@ implementation {
     else {
       message_t* rval = sending;
       sending = NULL;
-      dbg("TossimPacketModelC", "Failed to send packet due to busy channel.\n");
+      dbg("TossimPacketModelC", "PACKET: Failed to send packet due to busy channel.\n");
       signal Packet.sendDone(rval, EBUSY);
     }
   }
@@ -248,17 +248,21 @@ implementation {
     evt->time += duration;
     evt->handle = send_transmit_done;
 
-    dbg("TossimPacketModelC", "Broadcasting packet to everyone.\n");
+    dbg("TossimPacketModelC", "PACKET: Broadcasting packet to everyone.\n");
     call GainRadioModel.putOnAirTo(destNode, sending, metadata->ack, evt->time, 0.0);
     metadata->ack = 0;
 
     evt->time += (sim_csma_rxtx_delay() *  (sim_ticks_per_sec() / sim_csma_symbols_per_sec()));
+
+    dbg("TossimPacketModelC", "PACKET: Send done at %llu.\n", evt->time);
+	
     sim_queue_insert(evt);
   }
 
   void send_transmit_done(sim_event_t* evt) {
     message_t* rval = sending;
     sending = NULL;
+    dbg("TossimPacketModelC", "PACKET: Signaling send done at %llu.\n", sim_time());
     signal Packet.sendDone(rval, SUCCESS);
   }
 
