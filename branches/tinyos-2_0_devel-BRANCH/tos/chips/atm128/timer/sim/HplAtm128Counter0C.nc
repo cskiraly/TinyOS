@@ -32,7 +32,7 @@
  * @author David Gay <dgay@intel-research.net>
  */
 
-// $Id: HplAtm128Counter0C.nc,v 1.1.2.1 2006-01-15 23:44:54 scipio Exp $/// $Id: HplAtm128Timer2C.nc,
+// $Id: HplAtm128Counter0C.nc,v 1.1.2.2 2006-03-13 23:07:53 scipio Exp $/// $Id: HplAtm128Timer2C.nc,
 
 #include <Atm128Timer.h>
 #include <hardware.h>
@@ -308,15 +308,13 @@ implementation
       return;
     }
     else {
-      char time[128];
-      sim_print_now(time, 128);
       if (READ_BIT(ATM128_TIMSK, TOIE0)) {
 	CLR_BIT(ATM128_TIFR, TOV0);
-	dbg("HplAtm128Counter0C", "Overflow interrupt at %s\n", time);
+	dbg("HplAtm128Counter0C", "Overflow interrupt at %s\n", sim_time_string());
 	SIG_OVERFLOW0();
       }
       else {
-	dbg("HplAtm128Counter0C", "Setting overflow bit at %s\n", time);
+	dbg("HplAtm128Counter0C", "Setting overflow bit at %s\n", sim_time_string());
 	SET_BIT(ATM128_TIFR, TOV0);
       }
       configure_overflow(evt);
