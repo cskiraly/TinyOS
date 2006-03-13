@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.8 $ $Date: 2006-03-08 02:11:14 $
+ * @version $Revision: 1.1.2.9 $ $Date: 2006-03-13 18:46:27 $
  */
 
 module CC2420SpiImplP {
@@ -53,12 +53,13 @@ implementation {
 
   enum {
     RESOURCE_COUNT = uniqueCount( "CC2420Spi.Resource" ),
+    NO_HOLDER = 0xff,
   };
 
   norace uint16_t m_addr;
   bool m_resource_busy = FALSE;
   uint8_t m_requests = 0;
-  uint8_t m_holder;
+  uint8_t m_holder = NO_HOLDER;
 
   default event void Resource.granted[ uint8_t id ]() {
   }
@@ -90,44 +91,39 @@ implementation {
     return error;
   }
 
-  task void signalGranted_task() {
-    uint8_t holder;
-    atomic holder = m_holder;
-    signal Resource.granted[ holder ]();
-  }
-
   async command void Resource.release[ uint8_t id ]() {
     uint8_t i;
     atomic {
-      if ( m_holder != id || !m_resource_busy )
+      if ( m_holder != id )
 	return;
+      m_holder = NO_HOLDER;
       call SpiResource.release();
-      for ( i = m_holder + 1; ; i++ ) {
-	if ( i >= RESOURCE_COUNT )
-	  i = 0;
-	if ( m_requests & ( 1 << i ) ) {
-	  m_holder = i;
-	  m_requests &= ~( 1 << i );
-	  call SpiResource.request();
-	  return;
-	}
-	if ( i == m_holder ) {
-	  m_resource_busy = FALSE;
-	  return;
+      if ( !m_requests ) {
+	m_resource_busy = FALSE;
+      }
+      else {
+	for ( i = m_holder + 1; ; i++ ) {
+	  if ( i >= RESOURCE_COUNT )
+	    i = 0;
+	  if ( m_requests & ( 1 << i ) ) {
+	    m_holder = i;
+	    m_requests &= ~( 1 << i );
+	    call SpiResource.request();
+	    return;
+	  }
 	}
       }
     }
   }
   
   async command uint8_t Resource.isOwner[ uint8_t id ]() {
-    atomic {
-      if(m_holder == id) return TRUE;
-      else return FALSE;
-    }
+    atomic return m_holder == id;
   }
 
   event void SpiResource.granted() {
-    post signalGranted_task();
+    uint8_t holder;
+    atomic holder = m_holder;
+    signal Resource.granted[ holder ]();
   }
 
   async command cc2420_status_t Fifo.beginRead[ uint8_t addr ]( uint8_t* data, 
