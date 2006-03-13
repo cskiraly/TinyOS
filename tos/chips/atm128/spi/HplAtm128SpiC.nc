@@ -1,4 +1,4 @@
-/// $Id: HplAtm128SpiC.nc,v 1.1.2.3 2006-01-27 22:04:19 mturon Exp $
+/// $Id: HplAtm128SpiC.nc,v 1.1.2.4 2006-03-13 23:07:53 scipio Exp $
 
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -47,7 +47,7 @@
  * Configuration encapsulating the basic SPI HPL for the atm128.
  *
  * <pre>
- * $Id: HplAtm128SpiC.nc,v 1.1.2.3 2006-01-27 22:04:19 mturon Exp $
+ * $Id: HplAtm128SpiC.nc,v 1.1.2.4 2006-03-13 23:07:53 scipio Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -60,12 +60,14 @@ configuration HplAtm128SpiC {
 }
 implementation
 {
-    components HplAtm128GeneralIOC as IO, HplAtm128SpiP as HplSpi;
-    
-    SpiBus = HplSpi;
+  components HplAtm128GeneralIOC as IO, HplAtm128SpiP as HplSpi;
+  components McuSleepC;
+  
+  SpiBus = HplSpi;
 
-    HplSpi.SS   -> IO.PortB0;  // Slave set line
-    HplSpi.SCK  -> IO.PortB1;  // SPI clock line
-    HplSpi.MOSI -> IO.PortB2;  // Master out, slave in
-    HplSpi.MISO -> IO.PortB3;  // Master in, slave out
+  HplSpi.Mcu -> McuSleepC;
+  HplSpi.SS   -> IO.PortB0;  // Slave set line
+  HplSpi.SCK  -> IO.PortB1;  // SPI clock line
+  HplSpi.MOSI -> IO.PortB2;  // Master out, slave in
+  HplSpi.MISO -> IO.PortB3;  // Master in, slave out
 }
