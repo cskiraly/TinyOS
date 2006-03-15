@@ -27,39 +27,42 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
- *
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-29 04:57:30 $
- *
- * @author Jonathan Hui <jhui@archedrock.com>
  */
 
+/**
+ * An implementation of the SPI on USART0 for the MSP430. The current
+ * implementation defaults not using the DMA and performing the SPI
+ * transfers in software. To utilize the DMA, use Msp430SpiDma0P in
+ * place of Msp430SpiNoDma0P.
+ *
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-03-15 16:40:29 $
+ */
 
-configuration Msp430Spi0C {
+#include "msp430UsartResource.h"
 
-  provides interface Init;
-  provides interface Resource[ uint8_t id ];
-
+generic configuration Msp430Spi0C() {
+  
+  provides interface Resource;
   provides interface SpiByte;
-  provides interface SpiPacket[ uint8_t id ];
-
+  provides interface SpiPacket;
+  
 }
 
 implementation {
+  
+  enum {
+    CLIENT_ID = unique( MSP430_SPIO_BUS ),
+  };
+  
+  components Msp430SpiNoDma0P as SpiP;
+  Resource = SpiP.Resource[ CLIENT_ID ];
+  SpiByte = SpiP.SpiByte;
+  SpiPacket = SpiP.SpiPacket[ CLIENT_ID ];
 
-  components new Msp430SpiP() as SpiP;
-  components HplMsp430Usart0C as HplUsart;
-  components LedsC as Leds;
-
-  Init = SpiP;
-  Init = HplUsart;
-  Resource = SpiP;
-
-  SpiByte = SpiP;
-  SpiPacket = SpiP;
-
-  SpiP.UsartResource -> HplUsart;
-  SpiP.HplUsart -> HplUsart;
-  SpiP.Leds -> Leds;
-
+  components new Msp430Usart0C() as UsartC;
+  SpiP.UsartResource[ CLIENT_ID ] -> UsartC.Resource;
+  SpiP.Usart -> UsartC.HplMsp430Usart;
+  SpiP.UsartInterrupts -> UsartC.HplMsp430UsartInterrupts;
+  
 }

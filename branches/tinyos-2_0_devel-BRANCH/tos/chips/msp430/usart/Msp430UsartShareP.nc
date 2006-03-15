@@ -30,26 +30,31 @@
  */
 
 /**
- * HPL implementation of the Spi bus for a ST M25P chip connected to a
- * TI MSP430.
- *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-03-15 16:40:37 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-03-15 16:40:32 $
  */
 
-configuration HplStm25pSpiC {
-
-  provides interface Resource;
-  provides interface SpiByte;
-  provides interface SpiPacket;
-
+generic module Msp430UsartShareP() {
+  
+  provides interface HplMsp430UsartInterrupts as Interrupts[ uint8_t id ];
+  uses interface HplMsp430UsartInterrupts as RawInterrupts;
+  uses interface ArbiterInfo;
+  
 }
 
 implementation {
+  
+  async event void RawInterrupts.txDone() {
+    if ( call ArbiterInfo.inUse() )
+      signal Interrupts.txDone[ call ArbiterInfo.userId() ]();
+  }
+  
+  async event void RawInterrupts.rxDone( uint8_t data ) {
+    if ( call ArbiterInfo.inUse() )
+      signal Interrupts.rxDone[ call ArbiterInfo.userId() ]( data );
+  }
 
-  components new Msp430Spi0C() as SpiC;
-  Resource = SpiC;
-  SpiByte = SpiC;
-  SpiPacket = SpiC;
-
+  default async event void Interrupts.txDone[ uint8_t id ]() {}
+  default async event void Interrupts.rxDone[ uint8_t id ]( uint8_t data ) {}
+  
 }

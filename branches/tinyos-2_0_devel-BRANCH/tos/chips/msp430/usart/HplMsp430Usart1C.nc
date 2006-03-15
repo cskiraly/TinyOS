@@ -32,6 +32,7 @@
 configuration HplMsp430Usart1C {
   provides interface Init;
   provides interface HplMsp430Usart;
+  provides interface HplMsp430UsartInterrupts;
   provides interface Resource[ uint8_t id ];
   provides interface ResourceController;
   provides interface ArbiterInfo;
@@ -44,6 +45,7 @@ implementation {
   components new FcfsArbiterC(MSP430_HPLUSART1_RESOURCE) as Arbiter;
 
   HplMsp430Usart = HplUsartP;
+  HplMsp430UsartInterrupts = HplUsartP;
 
   Init = Arbiter;
   Resource = Arbiter;

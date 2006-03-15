@@ -34,23 +34,21 @@
  * connected to a TI MSP430 processor.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-01-29 17:59:27 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-03-15 16:40:36 $
  */
 
 generic configuration HplCC2420SpiC() {
-
-  provides interface Init;
+  
   provides interface Resource;
   provides interface SpiByte;
   provides interface SpiPacket;
-
+  
 }
 
 implementation {
 
-  components new Spi0C() as SpiC;
+  components new Msp430Spi0C() as SpiC;
   
-  Init = SpiC;
   Resource = SpiC;
   SpiByte = SpiC;
   SpiPacket = SpiC;

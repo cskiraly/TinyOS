@@ -27,42 +27,40 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
- *
- * $Revision: 1.1.2.5 $
- * $Date: 2006-02-07 05:22:39 $
- *
- * @author Jonathan Hui <jhui@archedrock.com>
  */
 
-#include "msp430UsartResource.h"
+/**
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-03-15 16:40:29 $
+ */
 
-generic configuration Spi0C() {
-
-  provides interface Init;
-  provides interface Resource;
-  provides interface ArbiterInfo;
+configuration Msp430SpiDma0P {
+  
+  provides interface Resource[ uint8_t id ];
   provides interface SpiByte;
-  provides interface SpiPacket;
-
+  provides interface SpiPacket[ uint8_t id ];
+  
+  uses interface Resource as UsartResource[ uint8_t id ];
+  uses interface HplMsp430Usart as Usart;
+  uses interface HplMsp430UsartInterrupts as UsartInterrupts;
+  
 }
 
 implementation {
-
-  enum {
-    CLIENT_ID = unique(MSP430_SPIO_BUS)
-  };
-
-  components new Msp430SpiP() as SpiP;
-  Init = HplUsart;
-
-  components HplMsp430Usart0C as HplUsart;
-  Init = SpiP.Init;
+  
+  components new Msp430SpiDmaP() as SpiP;
   Resource = SpiP.Resource;
-  ArbiterInfo = HplUsart;
-  SpiP.UsartResource -> HplUsart.Resource[ CLIENT_ID ];
   SpiByte = SpiP.SpiByte;
-  SpiPacket = SpiP.SpiPacket[ CLIENT_ID ];
-  SpiP.HplUsart -> HplUsart;
+  SpiPacket = SpiP.SpiPacket;
+  UsartResource = SpiP.UsartResource;
+  Usart = SpiP.Usart;
+  UsartInterrupts = SpiP.UsartInterrupts;
 
+  components Msp430DmaC as DmaC;
+  SpiP.DmaChannel1 -> DmaC.Channel1;
+  SpiP.DmaChannel2 -> DmaC.Channel2;
+  
+  components LedsC as Leds;
+  SpiP.Leds -> Leds;
+  
 }
-

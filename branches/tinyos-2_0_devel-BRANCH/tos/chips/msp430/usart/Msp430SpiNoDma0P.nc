@@ -30,26 +30,33 @@
  */
 
 /**
- * HPL implementation of the Spi bus for a ST M25P chip connected to a
- * TI MSP430.
- *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-03-15 16:40:37 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-03-15 16:40:29 $
  */
 
-configuration HplStm25pSpiC {
-
-  provides interface Resource;
+configuration Msp430SpiNoDma0P {
+  
+  provides interface Resource[ uint8_t id ];
   provides interface SpiByte;
-  provides interface SpiPacket;
-
+  provides interface SpiPacket[ uint8_t id ];
+  
+  uses interface Resource as UsartResource[ uint8_t id ];
+  uses interface HplMsp430Usart as Usart;
+  uses interface HplMsp430UsartInterrupts as UsartInterrupts;
+  
 }
 
 implementation {
-
-  components new Msp430Spi0C() as SpiC;
-  Resource = SpiC;
-  SpiByte = SpiC;
-  SpiPacket = SpiC;
-
+  
+  components new Msp430SpiNoDmaP() as SpiP;
+  Resource = SpiP.Resource;
+  SpiByte = SpiP.SpiByte;
+  SpiPacket = SpiP.SpiPacket;
+  UsartResource = SpiP.UsartResource;
+  Usart = SpiP.Usart;
+  UsartInterrupts = SpiP.UsartInterrupts;
+  
+  components LedsC as Leds;
+  SpiP.Leds -> Leds;
+  
 }

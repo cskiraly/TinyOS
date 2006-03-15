@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-01-26 02:21:58 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-03-15 16:40:32 $
  * ========================================================================
  */
 
@@ -42,7 +42,7 @@
  #define MSP430USARTRESOURCE_H
 
  #define MSP430_HPLUSART0_RESOURCE "Msp430Usart0.Resource"
- #define MSP430_SPIO_BUS MSP430_HPLUSART0_RESOURCE
+ #define MSP430_SPIO_BUS "Msp430Spi0.Resource"
  #define MSP430_UARTO_BUS MSP430_HPLUSART0_RESOURCE
  #define MSP430_I2CO_BUS MSP430_HPLUSART0_RESOURCE
 

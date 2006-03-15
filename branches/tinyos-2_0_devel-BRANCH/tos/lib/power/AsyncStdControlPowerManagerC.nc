@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-03-10 02:19:23 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-03-15 16:40:32 $ 
  * ======================================================================== 
  */
  
@@ -78,6 +78,5 @@ implementation {
  
   PowerManager.ArbiterInit  = ArbiterInit;
   PowerManager.ResourceController = ResourceController;
-  PowerManager.ArbiterInfo = ArbiterInfo;
 }
 
