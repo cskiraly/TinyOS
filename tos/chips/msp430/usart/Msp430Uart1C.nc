@@ -43,10 +43,11 @@ implementation {
   StdControl = UartP;
   SerialByteComm = UartP;
 
-  components HplMsp430Usart1C as HplUsart;
-  Init = HplUsart;
-  Resource = HplUsart;
-  ArbiterInfo = HplUsart;
-  UartP.HplUsart -> HplUsart;
+  components HplMsp430Usart1C as HplUsartC;
+  Init = HplUsartC;
+  Resource = HplUsartC;
+  ArbiterInfo = HplUsartC;
+  UartP.HplUsart -> HplUsartC;
+  UartP.HplUsartInterrupts -> HplUsartC;
 }
 

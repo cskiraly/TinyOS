@@ -30,15 +30,16 @@
  * Implementation of USART0 lowlevel functionality - stateless.
  * Setting a mode will by default disable USART-Interrupts.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-27 23:28:13 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-03-15 16:40:29 $
  * @author: Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author: Joe Polastre
  * ========================================================================
  */
 
 module HplMsp430Usart1P {
-  provides interface HplMsp430Usart as USART;
+  provides interface HplMsp430Usart as Usart;
+  provides interface HplMsp430UsartInterrupts as UsartInterrupts;
 
   uses interface HplMsp430GeneralIO as SIMO;
   uses interface HplMsp430GeneralIO as SOMI;
@@ -60,14 +61,14 @@ implementation
   
   TOSH_SIGNAL(UART1RX_VECTOR) {
     uint8_t temp = U1RXBUF;
-    signal USART.rxDone(temp);
+    signal UsartInterrupts.rxDone(temp);
   }
-  
+
   TOSH_SIGNAL(UART1TX_VECTOR) {
-    signal USART.txDone();
+    signal UsartInterrupts.txDone();
   }
-  
-  async command bool USART.isSPI() {
+
+  async command bool Usart.isSPI() {
     bool _ret = FALSE;
     atomic{
       if (ME2 & USPIE1)
@@ -76,7 +77,7 @@ implementation
     return _ret;
   }
   
-  async command bool USART.isUART() {
+  async command bool Usart.isUART() {
     bool _ret = FALSE;
     atomic {
       if ((ME2 & UTXE1) && (ME2 & URXE1))
@@ -85,7 +86,7 @@ implementation
     return _ret;
   }
   
-  async command bool USART.isUARTtx() {
+  async command bool Usart.isUARTtx() {
     bool _ret = FALSE;
     atomic {
       if (ME2 & UTXE1)
@@ -94,7 +95,7 @@ implementation
     return _ret;
   }
   
-  async command bool USART.isUARTrx() {
+  async command bool Usart.isUARTrx() {
     bool _ret = FALSE;
     atomic {
       if (ME2 & URXE1)
@@ -103,20 +104,20 @@ implementation
     return _ret;
   }
   
-  async command bool USART.isI2C() {
+  async command bool Usart.isI2C() {
     return FALSE;
   }
   
-  async command msp430_usartmode_t USART.getMode() {
-    if (call USART.isUART())
+  async command msp430_usartmode_t Usart.getMode() {
+    if (call Usart.isUART())
       return USART_UART;
-    else if (call USART.isUARTrx())
+    else if (call Usart.isUARTrx())
       return USART_UART_RX;
-    else if (call USART.isUARTtx())
+    else if (call Usart.isUARTtx())
       return USART_UART_TX;
-    else if (call USART.isSPI())
+    else if (call Usart.isSPI())
       return USART_SPI;
-    else if (call USART.isI2C())
+    else if (call Usart.isI2C())
       return USART_I2C;
     else
       return USART_NONE;
@@ -124,79 +125,79 @@ implementation
   
   /**
    * Sets the USART mode to one of the options from msp430_usartmode_t
-   * defined in MSP430USART.h
+   * defined in MSP430Usart.h
    */
-  async command void USART.setMode(msp430_usartmode_t _mode) {
+  async command void Usart.setMode(msp430_usartmode_t _mode) {
     switch (_mode) {
     case USART_UART:
-      call USART.setModeUART();
+      call Usart.setModeUART();
       break;
     case USART_UART_RX:
-      call USART.setModeUART_RX();
+      call Usart.setModeUART_RX();
       break;
     case USART_UART_TX:
-      call USART.setModeUART_TX();
+      call Usart.setModeUART_TX();
       break;
     case USART_SPI:
-      call USART.setModeSPI();
+      call Usart.setModeSPI();
       break;
     default:
       break;
     }
   }
   
-  async command void USART.enableUART() {
+  async command void Usart.enableUART() {
 //    TOSH_SEL_UTXD1_MODFUNC();
 //    TOSH_SEL_URXD1_MODFUNC();
     ME2 |= (UTXE1 | URXE1);   // USART1 UART module enable
   }
   
-  async command void USART.disableUART() {
+  async command void Usart.disableUART() {
     ME2 &= ~(UTXE1 | URXE1);   // USART0 UART module enable
     call UTXD.selectIOFunc();
     call URXD.selectIOFunc();
   }
   
-  async command void USART.enableUARTTx() {
+  async command void Usart.enableUARTTx() {
     ME2 |= UTXE1;   // USART0 UART Tx module enable
   }
   
-  async command void USART.disableUARTTx() {
+  async command void Usart.disableUARTTx() {
     ME2 &= ~UTXE1;   // USART0 UART Tx module enable
     call UTXD.selectIOFunc();
   }
   
-  async command void USART.enableUARTRx() {
+  async command void Usart.enableUARTRx() {
     ME2 |= URXE1;   // USART0 UART Rx module enable
   }
   
-  async command void USART.disableUARTRx() {
+  async command void Usart.disableUARTRx() {
     ME2 &= ~URXE1;  // USART0 UART Rx module disable
     call URXD.selectIOFunc();
   }
 
-  async command void USART.enableSPI() {
+  async command void Usart.enableSPI() {
     ME2 |= USPIE1;   // USART0 SPI module enable
   }
   
-  async command void USART.disableSPI() {
+  async command void Usart.disableSPI() {
     ME2 &= ~USPIE1;   // USART0 SPI module disable
     call SIMO.selectIOFunc();
     call SOMI.selectIOFunc();
     call UCLK.selectIOFunc();
   }
   
-  async command void USART.enableI2C() { }
+  async command void Usart.enableI2C() { }
   
-  async command void USART.disableI2C() { }
+  async command void Usart.disableI2C() { }
 
-  async command void USART.setModeSPI() {
+  async command void Usart.setModeSPI() {
     // check if we are already in SPI mode
-    if (call USART.getMode() == USART_SPI) 
+    if (call Usart.getMode() == USART_SPI) 
       return;
     
-    call USART.disableUART();
-    call USART.disableI2C();
+    call Usart.disableUART();
+    call Usart.disableI2C();
     
     atomic {
       call SIMO.selectModuleFunc();
@@ -283,14 +284,14 @@ implementation
     return;
   }
   
-  async command void USART.setModeUART_TX() {
+  async command void Usart.setModeUART_TX() {
     // check if we are already in UART mode
-    if (call USART.getMode() == USART_UART_TX) 
+    if (call Usart.getMode() == USART_UART_TX) 
       return;
 
-    call USART.disableSPI();
-    call USART.disableI2C();
-    call USART.disableUART();
+    call Usart.disableSPI();
+    call Usart.disableI2C();
+    call Usart.disableUART();
 
     atomic {   
       call UTXD.selectModuleFunc();
@@ -300,14 +301,14 @@ implementation
     return;
   }
   
-  async command void USART.setModeUART_RX() {
+  async command void Usart.setModeUART_RX() {
     // check if we are already in UART mode
-    if (call USART.getMode() == USART_UART_RX) 
+    if (call Usart.getMode() == USART_UART_RX) 
       return;
 
-    call USART.disableSPI();
-    call USART.disableI2C();
-    call USART.disableUART();
+    call Usart.disableSPI();
+    call Usart.disableI2C();
+    call Usart.disableUART();
 
     atomic {
       call UTXD.selectIOFunc();
@@ -317,14 +318,14 @@ implementation
     return;
   }
 
-  async command void USART.setModeUART() {
+  async command void Usart.setModeUART() {
     // check if we are already in UART mode
-    if (call USART.getMode() == USART_UART) 
+    if (call Usart.getMode() == USART_UART) 
       return;
 
-    call USART.disableSPI();
-    call USART.disableI2C();
-    call USART.disableUART();
+    call Usart.disableSPI();
+    call Usart.disableI2C();
+    call Usart.disableUART();
 
     atomic {
       call UTXD.selectModuleFunc();
@@ -335,13 +336,13 @@ implementation
   }
 
   // i2c enable bit is not set by default
-  async command void USART.setModeI2C() {
+  async command void Usart.setModeI2C() {
     // check if we are already in I2C mode
-    if (call USART.getMode() == USART_I2C) 
+    if (call Usart.getMode() == USART_I2C) 
       return;
 
-    call USART.disableUART();
-    call USART.disableSPI();
+    call Usart.disableUART();
+    call Usart.disableSPI();
 
     atomic {
       call SIMO.makeInput();
@@ -369,7 +370,7 @@ implementation
     return;
   }
  
-  async command void USART.setClockSource(uint8_t source) {
+  async command void Usart.setClockSource(uint8_t source) {
     atomic {
       l_ssel = source | 0x80;
       U1TCTL &= ~(SSEL_0 | SSEL_1 | SSEL_2 | SSEL_3);
@@ -377,7 +378,7 @@ implementation
     }
   }
   
-  async command void USART.setClockRate(uint16_t baudrate, uint8_t mctl) {
+  async command void Usart.setClockRate(uint16_t baudrate, uint8_t mctl) {
     atomic {
       l_br = baudrate;
       l_mctl = mctl;
@@ -387,7 +388,7 @@ implementation
     }
   }
 
-  async command bool USART.isTxIntrPending(){
+  async command bool Usart.isTxIntrPending(){
     if (IFG2 & UTXIFG1){
       IFG2 &= ~UTXIFG1;
       return TRUE;
@@ -395,14 +396,14 @@ implementation
     return FALSE;
   }
 
-  async command bool USART.isTxEmpty(){
+  async command bool Usart.isTxEmpty(){
     if (U1TCTL & TXEPT) {
       return TRUE;
     }
     return FALSE;
   }
   
-  async command bool USART.isRxIntrPending(){
+  async command bool Usart.isRxIntrPending(){
     if (IFG2 & URXIFG1){
       IFG2 &= ~URXIFG1;
       return TRUE;
@@ -410,43 +411,43 @@ implementation
     return FALSE;
   }
   
-  async command error_t USART.clrTxIntr(){
+  async command error_t Usart.clrTxIntr(){
     IFG1 &= ~UTXIFG0;
     return SUCCESS;
   }
 
-  async command error_t USART.clrRxIntr() {
+  async command error_t Usart.clrRxIntr() {
     IFG1 &= ~URXIFG0;
     return SUCCESS;
   }
   
-  async command void USART.disableRxIntr(){
+  async command void Usart.disableRxIntr(){
     IE2 &= ~URXIE1;    
   }
   
-  async command void USART.disableTxIntr(){
+  async command void Usart.disableTxIntr(){
     IE2 &= ~UTXIE1;  
   }
   
-  async command void USART.enableRxIntr(){
+  async command void Usart.enableRxIntr(){
     atomic {
       IFG2 &= ~URXIFG1;
       IE2 |= URXIE1;  
     }
   }
 
-  async command void USART.enableTxIntr(){
+  async command void Usart.enableTxIntr(){
     atomic {
       IFG2 &= ~UTXIFG1;
       IE2 |= UTXIE1;
     }
   }
   
-  async command void USART.tx(uint8_t data){
+  async command void Usart.tx(uint8_t data){
     atomic U1TXBUF = data;
   }
   
-  async command uint8_t USART.rx(){
+  async command uint8_t Usart.rx(){
     uint8_t value;
     atomic value = U1RXBUF;
     return value;

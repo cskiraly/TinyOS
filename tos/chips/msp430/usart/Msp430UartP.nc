@@ -29,8 +29,8 @@
  * - Description ----------------------------------------------------------
  * Implementation of UART0 lowlevel functionality - stateless.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-02-14 17:01:43 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2006-03-15 16:40:29 $
  * @author Jan Hauer 
  * @author Vlado Handziski
  * @author Joe Polastre
@@ -46,6 +46,7 @@ generic module Msp430UartP(uint32_t default_baudrate) {
   provides interface SerialByteComm;
   
   uses interface HplMsp430Usart as HplUsart;
+  uses interface HplMsp430UsartInterrupts as HplUsartInterrupts;
 }
 
 implementation {
@@ -82,11 +83,11 @@ implementation {
     return SUCCESS;
   }
 
-  async event void HplUsart.txDone() {
+  async event void HplUsartInterrupts.txDone() {
     signal SerialByteComm.putDone();
   }
 
-  async event void HplUsart.rxDone( uint8_t data ) {
+  async event void HplUsartInterrupts.rxDone( uint8_t data ) {
     signal SerialByteComm.get( data );
   }
 }

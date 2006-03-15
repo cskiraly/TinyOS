@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-01-30 22:24:28 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-03-15 16:40:26 $
  */
 
 configuration CC2420SpiP {
@@ -57,9 +57,6 @@ implementation {
   SpiP.SpiResource -> HplCC2420SpiC;
   SpiP.SpiByte -> HplCC2420SpiC;
   SpiP.SpiPacket -> HplCC2420SpiC;
-
-  components MainC;
-  MainC.SoftwareInit -> HplCC2420SpiC;
 
   components LedsC;
   SpiP.Leds -> LedsC;

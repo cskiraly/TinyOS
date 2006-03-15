@@ -25,19 +25,18 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * - Description ----------------------------------------------------------
+ */
+
+/**
  * Byte-level interface to control a USART. 
  * <p>The USART can be switched to SPI- or UART-mode. The interface follows
  * the convention of being stateless, thus a higher layer has to maintain
  * state information. I.e. calling <code>tx</done> will transmit a byte of
  * data in the mode (SPI or UART) the USART has been set to before.
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-02-14 17:01:43 $
+ *
  * @author Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author Joe Polastre
- * ========================================================================
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-03-15 16:40:29 $
  */
  
 #include "msp430usart.h"
@@ -218,17 +217,6 @@ interface HplMsp430Usart {
    * @return SUCCESS always.
    */
   async command uint8_t rx();
-
-  /**
-   * A byte of data is about to be transmitted, ie. the TXBuffer is
-   * empty and ready to accept next byte.
-   */
-  async event void txDone();
-
-  /**
-   * A byte of data has been received.
-   */
-  async event void rxDone(uint8_t data);
 
 }
 

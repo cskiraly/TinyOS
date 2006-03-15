@@ -30,8 +30,8 @@
  * Controlling the TDA5250 at the HPL layer for use with the MSP430 on the
  * eyesIFX platforms, Configuration.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-31 12:25:32 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-03-15 16:40:35 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -53,7 +53,7 @@ configuration Tda5250RegCommC {
   }
 }
 implementation {
-  components new Spi0C() as Spi
+  components new Msp430Spi0C() as Spi
            , Tda5250RegCommP
            , Tda5250RadioIOC
            , AD5200P

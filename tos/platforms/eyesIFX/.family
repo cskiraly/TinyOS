@@ -15,6 +15,7 @@ push( @includes, qw(
   %T/chips/ad5200
   %T/chips/msp430
   %T/chips/msp430/adc12
+  %T/chips/msp430/dma
   %T/chips/msp430/pins
   %T/chips/msp430/sensors
   %T/chips/msp430/usart

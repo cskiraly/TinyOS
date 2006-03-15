@@ -30,26 +30,40 @@
  */
 
 /**
- * HPL implementation of the Spi bus for a ST M25P chip connected to a
- * TI MSP430.
- *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-03-15 16:40:37 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-03-15 16:40:32 $
  */
 
-configuration HplStm25pSpiC {
-
-  provides interface Resource;
-  provides interface SpiByte;
-  provides interface SpiPacket;
-
+configuration Msp430UsartShare0P {
+  
+  provides interface HplMsp430Usart as Usart;
+  provides interface HplMsp430UsartInterrupts as Interrupts[ uint8_t id ];
+  provides interface Resource[ uint8_t id ];
+  provides interface ArbiterInfo;
+  
 }
 
 implementation {
-
-  components new Msp430Spi0C() as SpiC;
-  Resource = SpiC;
-  SpiByte = SpiC;
-  SpiPacket = SpiC;
+  
+  components HplMsp430Usart0C as UsartC;
+  Usart = UsartC;
+  
+  components new Msp430UsartShareP() as UsartShareP;
+  Interrupts = UsartShareP;
+  UsartShareP.RawInterrupts -> UsartC;
+  
+  components new FcfsArbiterC( MSP430_HPLUSART0_RESOURCE ) as ArbiterC;
+  Resource = ArbiterC;
+  ArbiterInfo = ArbiterC;
+  UsartShareP.ArbiterInfo -> ArbiterC;
+  
+  components new AsyncStdControlPowerManagerC() as PowerManagerC;
+  PowerManagerC.AsyncStdControl -> UsartC;
+  PowerManagerC.ArbiterInit -> ArbiterC;
+  PowerManagerC.ResourceController -> ArbiterC;
+  
+  components MainC;
+  MainC.SoftwareInit -> ArbiterC;
+  MainC.SoftwareInit -> PowerManagerC;
 
 }
