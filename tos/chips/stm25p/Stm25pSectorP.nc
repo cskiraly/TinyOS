@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.7 $ $Date: 2006-03-08 02:01:47 $
+ * @version $Revision: 1.1.2.8 $ $Date: 2006-03-15 16:49:54 $
  */
 
 #include <Stm25p.h>
@@ -40,6 +40,7 @@
 module Stm25pSectorP {
 
   provides interface Init;
+  provides interface SplitControl;
   provides interface Resource as ClientResource[ storage_volume_t volume ];
   provides interface Stm25pSector as Sector[ storage_volume_t volume ];
   provides interface Stm25pVolume as Volume[ storage_volume_t volume ];
@@ -66,11 +67,17 @@ implementation {
     S_ERASE,
     S_CRC,
   } stm25p_sector_state_t;
-
   norace stm25p_sector_state_t m_state;
 
-  norace storage_volume_t m_volumes[ NUM_VOLUMES ];
+  typedef enum {
+    S_NONE,
+    S_START,
+    S_STOP,
+  } stm25p_power_state_t;
+  norace stm25p_power_state_t m_power_state;
 
+  norace storage_volume_t m_volumes[ NUM_VOLUMES ];
+  
   norace storage_volume_t m_client;
   norace stm25p_addr_t m_addr;
   norace stm25p_len_t m_len;
@@ -78,7 +85,7 @@ implementation {
   norace uint8_t* m_buf;
   norace error_t m_error;
   norace uint16_t m_crc;
-
+  
   void bindVolume();
   void signalDone( error_t error );
   task void signalDone_task();
@@ -90,6 +97,20 @@ implementation {
     return SUCCESS;
   }
 
+  command error_t SplitControl.start() {
+    error_t error = call SpiResource.request();
+    if ( error == SUCCESS )
+      m_power_state = S_START;
+    return error;
+  }
+  
+  command error_t SplitControl.stop() {
+    error_t error = call SpiResource.request();
+    if ( error == SUCCESS )
+      m_power_state = S_STOP;
+    return error;
+  }
+  
   async command error_t ClientResource.request[ storage_volume_t v ]() {
     return call Stm25pResource.request[ v ]();
   }
@@ -97,7 +118,7 @@ implementation {
   async command error_t ClientResource.immediateRequest[ storage_volume_t v ]() {
     return FAIL;
   }
-
+  
   async command void ClientResource.release[ storage_volume_t v ]() {
     if ( m_client == v ) {
       m_state = S_IDLE;
@@ -111,8 +132,23 @@ implementation {
     m_client = v;
     call SpiResource.request();
   }
-
+  
   event void SpiResource.granted() {
+    error_t error;
+    stm25p_power_state_t power_state = m_power_state;
+    m_power_state = S_NONE;
+    if ( power_state == S_START ) {
+      error = call Spi.powerUp();
+      call SpiResource.release();
+      signal SplitControl.startDone( error );
+      return;
+    }
+    else if ( power_state == S_STOP ) {
+      error = call Spi.powerDown();
+      call SpiResource.release();
+      signal SplitControl.stopDone( error );
+      return;
+    }
     if ( m_volumes[ m_client ] == NOT_BOUND )
       m_volumes[ m_client ] = signal Volume.getVolumeId[ m_client ]();
     signal ClientResource.granted[ m_client ]();
@@ -260,6 +296,8 @@ implementation {
       break;
     case S_ERASE:
       signal Sector.eraseDone[ m_client ]( m_addr, m_len, m_error );
+      break;
+    default:
       break;
     }
   }

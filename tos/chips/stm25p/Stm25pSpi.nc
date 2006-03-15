@@ -33,10 +33,26 @@
  * SPI abstraction for the ST M25P family of serial code flash chips.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-01-28 01:39:30 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-03-15 16:49:55 $
  */
 
 interface Stm25pSpi {
+
+  /**
+   * Put chip into deep power down mode.
+   *
+   * @return SUCCESS if the request completed successfully, FAIL
+   * otherwise.
+   */
+  async command error_t powerDown();
+
+  /**
+   * Release chip from power down mode.
+   *
+   * @return SUCCESS if the request completed successfully, FAIL
+   * otherwise.
+   */
+  async command error_t powerUp();
   
   /**
    * Initiate a read operation. On SUCCESS, the <code>readDone</cdoe>
