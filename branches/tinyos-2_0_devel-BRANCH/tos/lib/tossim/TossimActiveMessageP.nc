@@ -1,4 +1,4 @@
-// $Id: TossimActiveMessageP.nc,v 1.1.2.5 2006-01-19 00:35:04 scipio Exp $
+// $Id: TossimActiveMessageP.nc,v 1.1.2.6 2006-03-16 19:59:11 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -108,11 +108,11 @@ implementation {
     memcpy(bufferPointer, msg, sizeof(message_t));
 
     if (call AMPacket.isForMe(msg)) {
-      dbg("AM", "Received active message (%p) of type %hhu and length %hhu for me.\n", bufferPointer, call AMPacket.type(bufferPointer), len);
+      dbg("AM", "Received active message (%p) of type %hhu and length %hhu for me @ %s.\n", bufferPointer, call AMPacket.type(bufferPointer), len, sim_time_string());
       bufferPointer = signal Receive.receive[call AMPacket.type(bufferPointer)](bufferPointer, payload, len);
     }
     else {
-      dbg("AM", "Snooped on active message of type %hhu and length %hhu for %hu.\n", call AMPacket.type(bufferPointer), len, call AMPacket.destination(bufferPointer));
+      dbg("AM", "Snooped on active message of type %hhu and length %hhu for %hu @ %s.\n", call AMPacket.type(bufferPointer), len, call AMPacket.destination(bufferPointer), sim_time_string());
       bufferPointer = signal Snoop.receive[call AMPacket.type(bufferPointer)](bufferPointer, payload, len);
     }
   }

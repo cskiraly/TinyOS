@@ -1,4 +1,4 @@
-// $Id: UscGainInterferenceModelC.nc,v 1.1.2.5 2006-03-12 20:47:02 scipio Exp $
+// $Id: UscGainInterferenceModelC.nc,v 1.1.2.6 2006-03-16 19:59:11 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -102,7 +102,7 @@ implementation {
 
   sim_event_t receiveEvent;
   // This clear threshold comes from the CC2420 data sheet
-  double clearThreshold = -77.0;
+  double clearThreshold = -95.0;
   bool collision = FALSE;
   message_t* incoming = NULL;
   int incomingSource;
