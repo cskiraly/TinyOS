@@ -45,7 +45,7 @@ enum {
 
 typedef nx_struct dissemination_message_t {
   nx_uint16_t key;
-  nx_int16_t seqno;
+  nx_uint32_t seqno;
   nx_uint8_t data[0];
 } dissemination_message_t;
 

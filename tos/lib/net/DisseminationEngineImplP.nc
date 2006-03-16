@@ -39,7 +39,7 @@
  * See TEP118 - Dissemination for details.
  * 
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-02 22:08:53 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-03-16 19:57:46 $
  */
 
 module DisseminationEngineImplP {
@@ -146,8 +146,8 @@ implementation {
       (dissemination_message_t*) payload;
 
     uint16_t key = dMsg->key;
-    uint16_t incomingSeqno = dMsg->seqno;
-    uint16_t currentSeqno = call DisseminationCache.requestSeqno[ key ]();
+    uint32_t incomingSeqno = dMsg->seqno;
+    uint32_t currentSeqno = call DisseminationCache.requestSeqno[ key ]();
 
     if ( currentSeqno == DISSEMINATION_SEQNO_UNKNOWN &&
 	 incomingSeqno != DISSEMINATION_SEQNO_UNKNOWN ) {
@@ -168,16 +168,16 @@ implementation {
       return msg;
     }
 
-    if ( (int16_t)( incomingSeqno - currentSeqno ) > 0 ) {
+    if ( (int32_t)( incomingSeqno - currentSeqno ) > 0 ) {
 
       call DisseminationCache.storeData[key]
 	( dMsg->data, 
 	  len - sizeof(dissemination_message_t),
 	  incomingSeqno );
-
+      dbg("Dissemination", "Received dissemination value 0x%08x,0x%08x @ %s\n", (int)key, (int)incomingSeqno, sim_time_string());
       call TrickleTimer.reset[ key ]();
 
-    } else if ( (int16_t)( incomingSeqno - currentSeqno ) == 0 ) {
+    } else if ( (int32_t)( incomingSeqno - currentSeqno ) == 0 ) {
       
       call TrickleTimer.incrementCounter[ key ]();
 
@@ -213,9 +213,9 @@ implementation {
   default command void 
     DisseminationCache.storeData[uint16_t key]( void* data, 
 						uint8_t size, 
-						uint16_t seqno ) {}
+						uint32_t seqno ) {}
 
-  default command uint16_t 
+  default command uint32_t 
     DisseminationCache.requestSeqno[uint16_t key]() { return 0; }
 
   default command error_t TrickleTimer.start[uint16_t key]() { return SUCCESS; }

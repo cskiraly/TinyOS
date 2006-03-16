@@ -39,7 +39,7 @@
  * @param t the type of the object that will be disseminated
  *
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-02 22:08:53 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-03-16 19:57:46 $
  */
 
 generic module DisseminatorP(typedef t) {
@@ -52,7 +52,10 @@ generic module DisseminatorP(typedef t) {
 }
 implementation {
   t valueCache;
-  uint16_t seqno;
+
+  // A sequence number is 32 bits. The top 16 bits are an incrementing
+  // counter, while the bottom 16 bits are a unique node identifier.
+  uint32_t seqno = DISSEMINATION_SEQNO_UNKNOWN;
 
   event void Boot.booted() {
     signal DisseminationCache.init();
@@ -64,7 +67,12 @@ implementation {
 
   command void DisseminationUpdate.change( t* newVal ) {
     memcpy( &valueCache, newVal, sizeof(t) );
-    seqno++; if ( seqno == DISSEMINATION_SEQNO_UNKNOWN ) { seqno++; }
+    /* Increment the counter and append the local node ID. */
+    seqno = seqno >> 16;
+    seqno++;
+    if ( seqno == DISSEMINATION_SEQNO_UNKNOWN ) { seqno++; }
+    seqno = seqno << 16;
+    seqno += TOS_NODE_ID;
     signal DisseminationCache.newData();
   }
 
@@ -74,13 +82,13 @@ implementation {
   }
 
   command void DisseminationCache.storeData( void* data, uint8_t size,
-					     uint16_t newSeqno ) {
+					     uint32_t newSeqno ) {
     memcpy( &valueCache, data, size < sizeof(t) ? size : sizeof(t) );
     seqno = newSeqno;
     signal DisseminationValue.changed();
   }
 
-  command uint16_t DisseminationCache.requestSeqno() {
+  command uint32_t DisseminationCache.requestSeqno() {
     return seqno;
   }
 

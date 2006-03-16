@@ -38,13 +38,13 @@
  * See TEP118 - Dissemination for details.
  * 
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-02 22:08:51 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-03-16 19:57:46 $
  */
 
 interface DisseminationCache {
   event void init();
   command void* requestData( uint8_t* size );
-  command void storeData( void* data, uint8_t size, uint16_t seqno );
-  command uint16_t requestSeqno();
+  command void storeData( void* data, uint8_t size, uint32_t seqno );
+  command uint32_t requestSeqno();
   event void newData();
 }
