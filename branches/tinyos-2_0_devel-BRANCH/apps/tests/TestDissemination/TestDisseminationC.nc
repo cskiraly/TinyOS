@@ -44,7 +44,7 @@
  * See TEP118 - Dissemination for details.
  * 
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-02 22:10:13 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-03-16 19:56:10 $
  */
 
 module TestDisseminationC {
@@ -62,8 +62,8 @@ module TestDisseminationC {
 }
 implementation {
   event void Boot.booted() {
-    if ( TOS_NODE_ID == 1 ) {
-      call Timer.startPeriodic(4000);
+    if ( TOS_NODE_ID % 4 == 1 ) {
+      call Timer.startPeriodic(20000);
     }
   }
 
@@ -74,12 +74,17 @@ implementation {
     call Leds.led1Toggle();
     call Update32.change( &newVal32 );
     call Update16.change( &newVal16 );
+    dbg("TestDisseminationC", "TestDisseminationC: Timer fired.\n");
   }
 
   event void Value32.changed() {
     const uint32_t* newVal = call Value32.get();
     if ( *newVal == 0xDEADBEEF ) {
       call Leds.led0Toggle();
+      dbg("TestDisseminationC", "Received new correct 32-bit value @ %s.\n", sim_time_string());
+    }
+    else {
+      dbg("TestDisseminationC", "Received new incorrect 32-bit value.\n");
     }
   }
 
@@ -87,6 +92,10 @@ implementation {
     const uint16_t* newVal = call Value16.get();
     if ( *newVal == 0xABCD ) {
       call Leds.led1Toggle();
+      dbg("TestDisseminationC", "Received new correct 16-bit value @ %s.\n", sim_time_string());
+    }
+    else {
+      dbg("TestDisseminationC", "Received new incorrect 16-bit value: 0x%hx\n", *newVal);
     }
   }
 }
