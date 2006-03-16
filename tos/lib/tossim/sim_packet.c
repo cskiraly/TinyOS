@@ -30,7 +30,7 @@
  * @date   Jan 2 2006
  */
 
-// $Id: sim_packet.c,v 1.1.2.2 2006-01-15 22:31:32 scipio Exp $
+// $Id: sim_packet.c,v 1.1.2.3 2006-03-16 19:59:11 scipio Exp $
 
 #include <sim_packet.h>
 #include <message.h>
@@ -97,5 +97,6 @@ sim_packet_t* sim_packet_allocate () __attribute__ ((C, spontaneous)){
 }
 
 void sim_packet_free(sim_packet_t* p) __attribute__ ((C, spontaneous)) {
+  printf("sim_packet.c: Freeing packet %p\n", p);
   free(p);
 }
