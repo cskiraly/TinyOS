@@ -10,8 +10,8 @@ TinyOS 2.x Boot Sequence
 :Author: Philip Levis 
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2006-03-19 22:19:32 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -97,7 +97,7 @@ needs one. The StdControl interface combines component initialization
 initialized by RealMain, it must also be started. Separating these two
 leads to more flexible power management, and distinguishes required
 low-level components that must always be running (such as a Timer)
-from high level components that requires (such as an
+from high level components that can be power managed (such as an
 application). Finally, some components that need to often need to be
 started by main, such as a radio, do not follow a synchronous
 start/stop model. In this case, some components can't operate properly
@@ -179,22 +179,37 @@ others that are application specific.
 
 Interrupts are not enabled until all calls to Init.init have returned.
 If a component's initialization needs to handle interrupts, it can
-do one of two things:
+do one of three things:
 
   1) If a status flag for the interrupt exists, the Init.init()
      implementations SHOULD use a spin loop to test for when
      an interrupt has been issued.
   2) If no such flag exists, the Init.init() implementation MAY
-     temporarily enable interrupts. It MUST NOT call any other
-     component or return until it has re-disabled interrupts.
+     temporarily enable interrupts, if doing so will not cause any other
+     components to handle an interrupt. That is, if a component enables
+     an interrupt, it MUST NOT enable interrupts whose handlers would
+     invoke any other component.
+  3) If no such flag exists and there is no way to isolate which
+     interrupt handlers are called, then the component MUST rely
+     on mechanisms outside the Init sequence, such as SplitControl.
 
-As 2) means that interrupts may be temporarily enabled during
-initialization, components that control interrupts SHOULD NOT 
-cause interrupts to fire after their Init.init() returns. 
-However, it is possible that other components will cause an
-interrupt to fire due to hardware interactions or semantics.
-Therefore, a component MUST properly handle interrupts at
-all times.
+The boot sequence assumes that 1) is by far the dominant case. There
+are, however, possible situations where a component might need to
+handle an interrupt because of, e.g., hardware limitations (no pending
+flag) or to catch a brief edge transition. In these cases, a component
+can handle an interrupt in the boot sequence only if doing so will not
+cause any other component to handle an interrupt. As they have all
+been written assuming that interrupts are not enabled until after Init
+completes, making one of them handle an interrupt could cause it to 
+fail.
+
+Depending on what capabilities the hardware provides, there are
+several ways to meet these requirements. The simplest is to push these
+initialization edge cases out of the main boot sequence, e.g., into
+SplitControl. A second possibility is to redirect the interrupt table,
+if the MCU supports doing so. Whichever mechanism is chosen, extreme
+care needs to be used in order to not disrupt the operation of other
+components.
 
 Unless part of a hardware abstraction architecture (HAA)[tep2]_, the 
 Init.init() command MUST NOT call any commands or signal any
