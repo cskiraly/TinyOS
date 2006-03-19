@@ -10,8 +10,8 @@ Schedulers and Tasks
 :Author: Philip Levis and Cory Sharp
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2006-03-19 22:19:32 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -87,6 +87,13 @@ elements, the ``post`` returns fail. This model has several issues:
   2) As a given task can be posted multiple times, it can consume more than one element in the buffer
   3) All tasks from all components share a single resource: one misbehaving component cause other's posts to fail
 
+
+Fundamentally, in order for a component A to repost a task after post
+failure, another component B must call a function on it (either a
+command or event). E.g., component A must schedule a timer, or expect
+a retry from its client. However, as many of these systems might
+depend on tasks as well (e.g., timers), it is possible that an
+overflowing task queue can cause the entire system to fail.
 
 The combination of the above three issues mean that one misbehaving
 component can cause TinyOS to hang. Consider, for example, this
@@ -165,10 +172,11 @@ deadline first tasks vs. priority tasks).
 The basic task in TinyOS 2.x is parameterless and FIFO. Tasks continue
 to follow the nesC semantics of task and post, which are linguistic
 shortcuts for declaring a TaskBasic interface and wiring it to the
-Scheduler component. A scheduler provides a task interface as a
-parameterized interface. Every task that wires to the interface uses
-the unique() function to obtain a unique identifier, which the
-scheduler uses to dispatch tasks.
+Scheduler component. Appendix A describes how these shortcuts can be
+configured. A scheduler provides a task interface as a parameterized
+interface. Every task that wires to the interface uses the unique()
+function to obtain a unique identifier, which the scheduler uses to
+dispatch tasks.
 
 For example, the standard TinyOS Scheduler has this signature:
 
@@ -222,7 +230,7 @@ keywords are used.
 
 The SchedulerBasic implementation uses these identifiers as its queue
 entries. When TinyOS tells the Scheduler to run a task, it pulls the
-next identifier off the queue and uses it dispatches on the
+next identifier off the queue and uses it to dispatch on the
 parameterized TaskBasic interface.
 
 
@@ -377,3 +385,62 @@ TaskHighPriority with the key "TinyScheduler.TaskHighPriority":
 
 
  
+Appendix A: Changing the Scheduler
+====================================================================
+
+The nesC compiler transforms the ``post`` and ``task`` keywords into
+nesC interfaces, wirings, and calls. By default, the statement::
+
+module a {
+  ...
+}
+implementation {
+  task x() {
+    ...
+    post x();
+  }
+
+}
+
+
+is effectively::
+
+module a {
+  ...
+  provides interface TaskBasic as x;
+}
+implementation {
+  event void x.runTask() {
+    ...
+    call x.postTask();
+  }
+}
+
+Specifically, TinyOS maps a task with name *T* to a TaskBasic
+interface with name *T*. Posting *T* is a call to T.postTask(), and
+the task body is T.runTask(). Finally, *T* is automatically wired to
+TinySchedulerC with a unique() call.
+
+While the fact that tasks are transformed into interfaces is built in
+to the nesC compiler, the exact names can be configured. Each
+platform's ``.platform`` file passes the ``-fnesc-scheduler`` option
+to the compiler. The standard option is::
+
+  -fnesc-scheduler=TinySchedulerC,TinySchedulerC.TaskBasic,TaskBasic,TaskBasic,runTask,postTask
+
+There are 6 strings passed. They are:
+
+  1) The name of the scheduler component to wire the interface
+     to (TinySchedulerC).
+  2) The unique string used when wiring to the scheduler component's
+     parameterized interface (TinySchedulerC.TaskBasic).
+  3) The name of the interface on the scheduler component (TaskBasic).
+  4) The name of the interface type (TaskBasic).
+  5) The name of the event for running the task (runTask).
+  6) The name of the command for posting the task (postTask).
+
+
+The nescc man page has further details.
+
+
+
