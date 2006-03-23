@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.11 $ $Date: 2006-01-28 01:39:29 $
+ * @version $Revision: 1.1.2.12 $ $Date: 2006-03-23 21:10:56 $
  */
 
 module CC2420TransmitP {
@@ -51,6 +51,7 @@ module CC2420TransmitP {
   uses interface Resource as SpiResource;
   uses interface CC2420Fifo as TXFIFO;
   uses interface CC2420Ram as TXFIFO_RAM;
+  uses interface CC2420Register as TXCTRL;
   uses interface CC2420Strobe as SNOP;
   uses interface CC2420Strobe as STXON;
   uses interface CC2420Strobe as STXONCCA;
@@ -85,6 +86,7 @@ implementation {
   
   norace message_t* m_msg;
   norace bool m_cca;
+  norace uint8_t m_tx_power;
   cc2420_transmit_state_t m_state = S_STOPPED;
   bool m_receiving = FALSE;
   uint16_t m_prev_time;
@@ -136,6 +138,7 @@ implementation {
       call CaptureSFD.captureRisingEdge();
       m_state = S_STARTED;
       m_receiving = FALSE;
+      m_tx_power = 0;
     }
     return SUCCESS;
   }
@@ -227,7 +230,16 @@ implementation {
 
   void loadTXFIFO() {
     cc2420_header_t* header = getHeader( m_msg );
+    uint8_t tx_power = getMetadata( m_msg )->tx_power;
+    if ( !tx_power )
+      tx_power = CC2420_DEF_RFPOWER;
     call CSN.clr();
+    if ( m_tx_power != tx_power )
+      call TXCTRL.write( ( 2 << CC2420_TXCTRL_TXMIXBUF_CUR ) |
+			 ( 3 << CC2420_TXCTRL_PA_CURRENT ) |
+			 ( 1 << CC2420_TXCTRL_RESERVED ) |
+			 ( tx_power << CC2420_TXCTRL_PA_LEVEL ) );
+    m_tx_power = tx_power;
     call TXFIFO.write( (uint8_t*)header, header->length - 1 );
   }
   
@@ -406,7 +418,7 @@ implementation {
 	   msg_header->dsn == ack_header->dsn ) {
 	stopBackoffTimer();
 	msg_metadata->ack = TRUE;
-	msg_metadata->strength = ack_buf[ length - 1 ];
+	msg_metadata->rssi = ack_buf[ length - 1 ];
 	msg_metadata->lqi = ack_buf[ length ] & 0x7f;
 	signalDone(SUCCESS);
       }

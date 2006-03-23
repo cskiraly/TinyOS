@@ -29,7 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-01-28 01:08:24 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-03-23 21:10:56 $
  */
 
 #ifndef __CC2420_H__
@@ -53,7 +53,8 @@ typedef nx_struct cc2420_footer_t {
 } cc2420_footer_t;
 
 typedef nx_struct cc2420_metadata_t {
-  nx_uint8_t strength;
+  nx_uint8_t tx_power;
+  nx_uint8_t rssi;
   nx_uint8_t lqi;
   nx_bool crc;
   nx_bool ack;
@@ -71,6 +72,10 @@ typedef nx_struct cc2420_packet_t {
 
 #ifndef CC2420_DEF_CHANNEL
 #define CC2420_DEF_CHANNEL 11
+#endif
+
+#ifndef CC2420_DEF_RFPOWER
+#define CC2420_DEF_RFPOWER 31
 #endif
 
 enum {

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
@@ -30,35 +30,42 @@
  */
 
 /**
- * @author Alec Woo <awoo@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-01-29 17:50:45 $
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-03-23 21:11:29 $
  */
 
-module CC2420MetadataP{
-  provides interface CC2420Metadata;
-}
+interface CC2420Packet {
+  
+  /**
+   * Get transmission power setting for current packet.
+   *
+   * @param the message
+   */
+  async command uint8_t getPower( message_t* p_msg );
 
-implementation{
+  /**
+   * Set transmission power for a given packet. Valid ranges are
+   * between 0 and 31.
+   *
+   * @param p_msg the message.
+   * @param power transmission power.
+   */
+  async command void setPower( message_t* p_msg, uint8_t power );
+  
+  /**
+   * Get rssi value for a given packet. For received packets, it is
+   * the received signal strength when receiving that packet. For sent
+   * packets, it is the received signal strength of the ack if an ack
+   * was received.
+   */
+  async command int8_t getRssi( message_t* p_msg );
 
-  command uint8_t CC2420Metadata.linkQual(message_t* pMsg){
-    uint8_t result;
-    cc2420_metadata_t * mdata = (cc2420_metadata_t *) pMsg->metadata;
-
-    // Assume range is 64 from 48 (lowest) to 112 (highest) 
-    if(mdata->lqi <48) 
-      result = 0;
-    else if (mdata->lqi > 112)
-      result = 255;
-    else 
-      // (lqi - 48)/64 * 256
-      result = (mdata->lqi - 48) << 2; 
-
-    return result;    
-  }
-
-  command int16_t CC2420Metadata.rssi(message_t* pMsg){
-    cc2420_metadata_t * mdata = (cc2420_metadata_t *) pMsg->metadata;
-    return ((int16_t) mdata->strength - (int16_t) 45); // do no scaling for now    
-  }
-
+  /**
+   * Get lqi value for a given packet. For received packets, it is the
+   * link quality indicator value when receiving that packet. For sent
+   * packets, it is the link quality indicator value of the ack if an
+   * ack was received.
+   */
+  async command uint8_t getLqi( message_t* p_msg );
+  
 }
