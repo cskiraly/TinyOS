@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2005 Arched Rock Corporation
+/**
+ * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,32 +27,60 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
- *
- * $ Revision: $
- * $ Date: $
- *
- * @author Gilman Tolle <gtolle@archedrock.com>
- * @author Alec Woo <awoo@archedrock.com>
- * @author Philip Levis
  */
 
-interface CC2420Metadata {
+/**
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-03-23 21:11:29 $
+ */
 
-  /*
-   * @param msg Message that contains the metadata
-   *
-   * @return Should return a linear scale of the link quality from 0-100% using uint8_t
-   * 
-   * (0 means 0% and 255 means 100%)
-   */
-  command uint8_t linkQual(message_t* pMsg);
+module CC2420PacketC {
 
-  /*
-   * @param msg Message that contains the metadata
-   *
-   * @return Should return signal strength dBm using int16_t
-   * 
-   */
-  command int16_t rssi(message_t* pMsg);
+  provides interface CC2420Packet;
+  provides interface PacketAcknowledgements as Acks;
+
+}
+
+implementation {
+
+  cc2420_header_t* getHeader( message_t* msg ) {
+    return (cc2420_header_t*)( msg->data - sizeof( cc2420_header_t ) );
+  }
+
+  cc2420_metadata_t* getMetadata( message_t* msg ) {
+    return (cc2420_metadata_t*)msg->metadata;
+  }
+
+  async command error_t Acks.requestAck( message_t* p_msg ) {
+    getHeader( p_msg )->fcf |= 1 << IEEE154_FCF_ACK_REQ;
+    return SUCCESS;
+  }
+
+  async command error_t Acks.noAck( message_t* p_msg ) {
+    getHeader( p_msg )->fcf &= ~(1 << IEEE154_FCF_ACK_REQ);
+    return SUCCESS;
+  }
+
+  async command bool Acks.wasAcked( message_t* p_msg ) {
+    return getMetadata( p_msg )->ack;
+  }
+
+  async command void CC2420Packet.setPower( message_t* p_msg, uint8_t power ) {
+    if ( power > 31 )
+      power = 31;
+    getMetadata( p_msg )->tx_power = power;
+  }
+
+  async command uint8_t CC2420Packet.getPower( message_t* p_msg ) {
+    return getMetadata( p_msg )->tx_power;
+  }
+   
+  async command int8_t CC2420Packet.getRssi( message_t* p_msg ) {
+    return getMetadata( p_msg )->rssi;
+  }
+
+  async command error_t CC2420Packet.getLqi( message_t* p_msg ) {
+    return getMetadata( p_msg )->lqi;
+  }
 
 }

@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.9 $ $Date: 2006-01-28 01:39:29 $
+ * @version $Revision: 1.1.2.10 $ $Date: 2006-03-23 21:10:56 $
  */
 
 module CC2420CsmaP {
@@ -39,10 +39,9 @@ module CC2420CsmaP {
   provides interface Init;
   provides interface SplitControl;
   provides interface Send;
-  provides interface PacketAcknowledgements as Acks;
 
   uses interface Resource;
-  uses interface CC2420Config;
+  uses interface CC2420Power;
   uses interface AsyncStdControl as SubControl;
   uses interface CC2420Transmit;
   uses interface CsmaBackoff;
@@ -99,23 +98,23 @@ implementation {
     m_state = S_STARTING;
 
     m_dsn = call Random.rand16();
-    call CC2420Config.startVReg();
+    call CC2420Power.startVReg();
 
     return SUCCESS;
 
   }
 
-  async event void CC2420Config.startVRegDone() {
+  async event void CC2420Power.startVRegDone() {
     call Resource.request();
   }
 
   event void Resource.granted() {
-    call CC2420Config.startOscillator();
+    call CC2420Power.startOscillator();
   }
 
-  async event void CC2420Config.startOscillatorDone() {
+  async event void CC2420Power.startOscillatorDone() {
     call SubControl.start();
-    call CC2420Config.rxOn();
+    call CC2420Power.rxOn();
     call Resource.release();
     post startDone_task();
   }
@@ -133,7 +132,7 @@ implementation {
     m_state = S_STOPPING;
 
     call SubControl.stop();
-    call CC2420Config.stopVReg();
+    call CC2420Power.stopVReg();
     post stopDone_task();
 
     return SUCCESS;
@@ -143,20 +142,6 @@ implementation {
   task void stopDone_task() {
     m_state = S_STOPPED;
     signal SplitControl.stopDone( SUCCESS );
-  }
-
-  async command error_t Acks.requestAck( message_t* msg ) {
-    getHeader( msg )->fcf |= 1 << IEEE154_FCF_ACK_REQ;
-    return SUCCESS;
-  }
-  
-  async command error_t Acks.noAck( message_t* msg ) {
-    getHeader( msg )->fcf &= ~(1 << IEEE154_FCF_ACK_REQ);
-    return SUCCESS;
-  }
-  
-  async command bool Acks.wasAcked( message_t* msg ) {
-    return getMetadata( msg )->ack;
   }
 
   command error_t Send.cancel( message_t* p_msg ) {
@@ -185,7 +170,7 @@ implementation {
       header->fcf |= 1 << IEEE154_FCF_ACK_REQ;
     header->src = call AMPacket.address();
     metadata->ack = FALSE;
-    metadata->strength = 0;
+    metadata->rssi = 0;
     metadata->lqi = 0;
     metadata->time = 0;
 

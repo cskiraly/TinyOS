@@ -34,7 +34,7 @@
  * @date August 28 2005
 
  * <pre>
- *  $Id: CC2420ActiveMessageC.nc,v 1.1.2.8 2006-02-14 17:01:42 idgay Exp $
+ *  $Id: CC2420ActiveMessageC.nc,v 1.1.2.9 2006-03-23 21:10:56 jwhui Exp $
  * </pre>
  */
 
@@ -49,8 +49,8 @@ configuration CC2420ActiveMessageC {
     interface Receive as Snoop[am_id_t id];
     interface AMPacket;
     interface Packet;
+    interface CC2420Packet;
     interface PacketAcknowledgements;
-    interface CC2420Metadata;
   }
 }
 implementation {
@@ -58,7 +58,6 @@ implementation {
   components CC2420ActiveMessageP as AM;
   components CC2420CsmaC as Radio;
   components ActiveMessageAddressC as Address;
-  components CC2420MetadataP as RadioStats;
   
   Init         = Radio;
   SplitControl = Radio;
@@ -68,12 +67,15 @@ implementation {
   Receive  = AM.Receive;
   Snoop    = AM.Snoop;
   AMPacket = AM;
-  PacketAcknowledgements = Radio;
-  CC2420Metadata = RadioStats;
   
   AM.SubSend    -> Radio.Send;
   AM.SubReceive -> Radio.Receive;
   AM.amAddress -> Address;
   Radio.AMPacket -> AM;
+
+  components CC2420PacketC;
+  CC2420Packet = CC2420PacketC;
+  PacketAcknowledgements = CC2420PacketC;
+
 
 }

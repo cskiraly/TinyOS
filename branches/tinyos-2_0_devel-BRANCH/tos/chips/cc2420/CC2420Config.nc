@@ -31,82 +31,43 @@
 
 /**
  * An HAL abstraction of the ChipCon CC2420 radio. This abstraction
- * deals specifically with radio configurations.
+ * deals specifically with radio configurations. All get() and set()
+ * commands are single-phase. After setting some values, a call to
+ * sync() is required for the changes to propagate to the cc2420
+ * hardware chip. This interface allows setting multiple parameters
+ * before calling sync().
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-01-28 01:39:29 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-03-23 21:10:56 $
  */
 
 interface CC2420Config {
 
   /**
-   * Start the voltage regulator on the CC2420. On SUCCESS,
-   * <code>startVReg()</code> will be signalled when the voltage
-   * regulator is fully on.
+   * Sync configuration changes with the radio hardware. This only
+   * applies to set commands below.
    *
    * @return SUCCESS if the request was accepted, FAIL otherwise.
    */
-  async command error_t startVReg();
+  command error_t sync();
+  event void syncDone( error_t error );
 
   /**
-   * Signals that the voltage regulator has been started.
+   * Change the channel of the radio.
    */
-  async event void startVRegDone();
-  
-  /**
-   * Stop the voltage regulator immediately.
-   *
-   * @return SUCCESS always
-   */
-  async command error_t stopVReg();
+  command uint8_t getChannel();
+  command void setChannel( uint8_t channel );
 
   /**
-   * Start the oscillator. On SUCCESS, <code>startOscillator</code>
-   * will be signalled when the oscillator has been started.
-   *
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * Change the short address of the radio.
    */
-  async command error_t startOscillator();
+  command uint16_t getShortAddr();
+  command void setShortAddr( uint16_t address );
 
   /**
-   * Signals that the oscillator has been started.
+   * Change the PAN address of the radio.
    */
-  async event void startOscillatorDone();
-
-  /**
-   * Stop the oscillator.
-   *
-   * @return SUCCESS if the oscillator was stopped, FAIL otherwise.
-   */
-  async command error_t stopOscillator();
-
-  /**
-   * Enable RX.
-   *
-   * @return SUCCESS if receive mode has been enabled, FAIL otherwise.
-   */
-  async command error_t rxOn();
-
-  /**
-   * Disable RX.
-   *
-   * @return SUCCESS if receive mode has been disabled, FAIL otherwise.
-   */
-  async command error_t rfOff();
-
-  /**
-   * @return SUCCESS if the channel was set successfully, FAIL
-   * otherwise.
-   */
-  async command error_t setChannel( uint8_t channel );
-
-  /**
-   * Change the transmit power of the CC2420 radio.
-   *
-   * @param power power to transmit. Valid values are 0 - 31.
-   * @return SUCCESS if the transmit power was set successfully, FAIL
-   * otherwise.
-   */
-  async command error_t setTxPower( uint8_t power );
+  command uint16_t getPanAddr();
+  command void setPanAddr( uint16_t address );
 
 }

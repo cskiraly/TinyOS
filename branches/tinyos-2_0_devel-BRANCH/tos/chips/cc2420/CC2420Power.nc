@@ -30,57 +30,70 @@
  */
 
 /**
- * Implementation of the transmit path for the ChipCon CC2420 radio.
+ * An HAL abstraction of the ChipCon CC2420 radio. This abstraction
+ * deals specifically with radio power operations (e.g. voltage
+ * regulator, oscillator, etc). However, it does not include
+ * transmission power, see the CC2420Config interface.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.7 $ $Date: 2006-03-23 21:10:56 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-03-23 21:10:56 $
  */
 
-configuration CC2420TransmitC {
+interface CC2420Power {
 
-  provides interface Init;
-  provides interface AsyncStdControl;
-  provides interface CC2420Transmit;
-  provides interface CsmaBackoff;
-  provides interface RadioTimeStamping;
+  /**
+   * Start the voltage regulator on the CC2420. On SUCCESS,
+   * <code>startVReg()</code> will be signalled when the voltage
+   * regulator is fully on.
+   *
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
+  async command error_t startVReg();
 
-}
+  /**
+   * Signals that the voltage regulator has been started.
+   */
+  async event void startVRegDone();
+  
+  /**
+   * Stop the voltage regulator immediately.
+   *
+   * @return SUCCESS always
+   */
+  async command error_t stopVReg();
 
-implementation {
+  /**
+   * Start the oscillator. On SUCCESS, <code>startOscillator</code>
+   * will be signalled when the oscillator has been started.
+   *
+   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   */
+  async command error_t startOscillator();
 
-  components CC2420TransmitP;
-  Init = Alarm;
-  Init = CC2420TransmitP;
-  AsyncStdControl = CC2420TransmitP;
-  CC2420Transmit = CC2420TransmitP;
-  CsmaBackoff = CC2420TransmitP;
-  RadioTimeStamping = CC2420TransmitP;
+  /**
+   * Signals that the oscillator has been started.
+   */
+  async event void startOscillatorDone();
 
-  components AlarmMultiplexC as Alarm;
-  CC2420TransmitP.BackoffTimer -> Alarm;
+  /**
+   * Stop the oscillator.
+   *
+   * @return SUCCESS if the oscillator was stopped, FAIL otherwise.
+   */
+  async command error_t stopOscillator();
 
-  components HplCC2420PinsC as Pins;
-  CC2420TransmitP.CCA -> Pins.CCA;
-  CC2420TransmitP.CSN -> Pins.CSN;
-  CC2420TransmitP.SFD -> Pins.SFD;
+  /**
+   * Enable RX.
+   *
+   * @return SUCCESS if receive mode has been enabled, FAIL otherwise.
+   */
+  async command error_t rxOn();
 
-  components HplCC2420InterruptsC as Interrupts;
-  CC2420TransmitP.CaptureSFD -> Interrupts.CaptureSFD;
-
-  components new CC2420SpiC() as Spi;
-  CC2420TransmitP.SpiResource -> Spi;
-  CC2420TransmitP.SNOP        -> Spi.SNOP;
-  CC2420TransmitP.STXON       -> Spi.STXON;
-  CC2420TransmitP.STXONCCA    -> Spi.STXONCCA;
-  CC2420TransmitP.SFLUSHTX    -> Spi.SFLUSHTX;
-  CC2420TransmitP.TXCTRL      -> Spi.TXCTRL;
-  CC2420TransmitP.TXFIFO      -> Spi.TXFIFO;
-  CC2420TransmitP.TXFIFO_RAM  -> Spi.TXFIFO_RAM;
-
-  components CC2420ReceiveC;
-  CC2420TransmitP.CC2420Receive -> CC2420ReceiveC;
-
-  components LedsC as Leds;
-  CC2420TransmitP.Leds -> Leds;
+  /**
+   * Disable RX.
+   *
+   * @return SUCCESS if receive mode has been disabled, FAIL otherwise.
+   */
+  async command error_t rfOff();
 
 }

@@ -33,7 +33,7 @@
  * Basic implementation of a CSMA MAC for the ChipCon CC2420 radio.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.8 $ $Date: 2006-02-14 17:01:42 $
+ * @version $Revision: 1.1.2.9 $ $Date: 2006-03-23 21:10:56 $
  */
 
 #include "CC2420.h"
@@ -46,7 +46,6 @@ configuration CC2420CsmaC {
 
   provides interface Send;
   provides interface Receive;
-  provides interface PacketAcknowledgements as Acks;
 
   uses interface AMPacket;
 
@@ -59,14 +58,13 @@ implementation {
   Init = CsmaP;
   SplitControl = CsmaP;
   Send = CsmaP;
-  Acks = CsmaP;
   AMPacket = CsmaP;
 
   components CC2420ControlC;
   Init = CC2420ControlC;
   AMPacket = CC2420ControlC;
   CsmaP.Resource -> CC2420ControlC;
-  CsmaP.CC2420Config -> CC2420ControlC;
+  CsmaP.CC2420Power -> CC2420ControlC;
 
   components CC2420TransmitC;
   Init = CC2420TransmitC;

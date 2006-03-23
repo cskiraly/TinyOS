@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.8 $ $Date: 2006-01-28 01:39:29 $
+ * @version $Revision: 1.1.2.9 $ $Date: 2006-03-23 21:10:56 $
  */
 
 module CC2420ReceiveP {
@@ -230,7 +230,7 @@ implementation {
     uint8_t length = buf[ 0 ];
     
     metadata->crc = buf[ length ] >> 7;
-    metadata->strength = buf[ length - 1 ];
+    metadata->rssi = buf[ length - 1 ];
     metadata->lqi = buf[ length ] & 0x7f;
     m_p_rx_buf = signal Receive.receive( m_p_rx_buf, m_p_rx_buf->data, 
 					 length );
