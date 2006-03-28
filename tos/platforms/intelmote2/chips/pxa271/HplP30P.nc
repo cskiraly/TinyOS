@@ -1,4 +1,4 @@
-/* $Id: HplP30P.nc,v 1.1.2.1 2006-02-20 23:56:48 philipb Exp $ */
+/* $Id: HplP30P.nc,v 1.1.2.2 2006-03-28 00:03:08 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -42,8 +42,8 @@ implementation {
   volatile uint16_t * devBaseAddress = (uint16_t *)(0x0);
 
   async command error_t HplP30.progWord(uint32_t addr, uint16_t word) {
-    uint32_t tmp = 0,result;
     volatile uint16_t *blkAddress = (uint16_t *)addr;
+    uint32_t result;
 
     *devBaseAddress = P30_READ_CLRSTATUS;
     *blkAddress = P30_WRITE_WORDPRGSETUP;
@@ -62,45 +62,52 @@ implementation {
     return SUCCESS;
 
   }
-  async command error_t HplP30.progBuffer(uint32_t addr, uint16_t *data, uint8_t len) {
-#if 0   
-    uint32_t tmp = 0,result;
-    asm volatile (
-		  ".align 5\n\t"
-		  "strh %[cmd1],[%[BA]]\n\t"
-		  "strh %[wcnt],[%[BA]]\n\t"
-		  "1:\n\t"
-		  "ldrh "
-		  "ldrh %[tmpout],[%[BA]]\n\t"
-		  "ands %[tmpout],%[tmpin],%[flag]\n\t"
-		  "beq 1b\n\t"
-		  "ldrh %[result],[%[BA]]\n\t"
-		  "strh %[cmd4],[%[DBA]]\n\t"
-		  "ldrh %[tmpout],[%[DBA]]\n\t"
-		  : [tmpout] "=r" (tmp),
-		  [result] "=r" (result)
-		  : [cmd1] "r" (P30_WRITE_BUFPRG), 
-		  [cmd2] "r" (P30_WRITE_WORDPROGSETUP),
-		  [data] "r" (word),
-		  [cmd4] "r" (P30_READ_READARRAY),
-		  [DBA] "r" (0x0),
-		  [BA] "r" (addr),
-		  [tmpin] "r" (tmp),
-		  [flag] "i" (P30_SR_DWS)
-		  );
 
-    if (result & (P30_SR_WS | P30_SR_VPPS)) {
-      return FAIL:
+  async command error_t HplP30.progBuffer(uint32_t addr, uint16_t *data, uint8_t len) {
+    volatile uint16_t *blkAddress = (uint16_t *)addr;
+    uint32_t i,result;
+    error_t error = SUCCESS;
+
+    if (len <= 0) {
+      error = EINVAL;
+      goto done;
     }
 
-    return SUCCESS;
-#endif
-    return FAIL;
+    *devBaseAddress = P30_READ_CLRSTATUS;
+    *blkAddress = P30_WRITE_BUFPRG;
+
+    result = *blkAddress;
+    if ((result & P30_SR_DWS) == 0) {
+      error = FAIL;
+      goto cleanup;
+    }
+
+    *blkAddress = len-1;
+    
+    for (i=0;i<len;i++) {
+      blkAddress[i] = data[i];
+    }
+    
+    *blkAddress = P30_WRITE_BUFPRGCONFIRM;
+
+    do {
+      result = *blkAddress;
+    } while ((result & P30_SR_DWS) == 0);
+
+    if (result & (P30_SR_PS | P30_SR_VPPS)) {
+      error = FAIL;
+      goto done;
+    }
+  cleanup:
+    *blkAddress = P30_READ_READARRAY;
+  done:
+    return error;
+
   }
 
   async command error_t HplP30.blkErase(uint32_t blkaddr) {
-    uint32_t tmp = 0,result;
-    uint16_t *blkAddress = (uint16_t *)blkaddr;
+    volatile uint16_t *blkAddress = (uint16_t *)blkaddr;
+    uint32_t result;
 
     *devBaseAddress = P30_READ_CLRSTATUS;
     *blkAddress = P30_ERASE_BLKSETUP;
@@ -112,7 +119,7 @@ implementation {
 
     *blkAddress = P30_READ_READARRAY;
 
-    if (result & (P30_SR_DWS | P30_SR_VPPS | P30_SR_BLS)) {
+    if (result & (P30_SR_ES | P30_SR_VPPS | P30_SR_BLS)) {
       return FAIL;
     }
 
@@ -121,12 +128,13 @@ implementation {
   }
 
   async command error_t HplP30.blkLock(uint32_t blkaddr) {
+    volatile uint16_t *blkAddress = (uint16_t) blkaddr;
 
     asm volatile (
 		  ".align 5\n\t"
-		  "strh %0,[%[3]]\n\t"
-		  "strh %1,[%[3]]\n\t"
-		  "strh %2,[%[3]]\n\t"
+		  "strh %0,[%3]\n\t"
+		  "strh %1,[%3]\n\t"
+		  "strh %2,[%3]\n\t"
 		  : 
 		  :"r" (P30_LOCK_SETUP), 
 		  "r" (P30_LOCK_LOCK), 
