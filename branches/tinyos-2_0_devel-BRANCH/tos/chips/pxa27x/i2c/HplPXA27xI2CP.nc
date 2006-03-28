@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xI2CP.nc,v 1.1.2.1 2006-02-01 23:54:24 philipb Exp $ */
+/* $Id: HplPXA27xI2CP.nc,v 1.1.2.2 2006-03-28 02:16:02 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -29,7 +29,9 @@
  * DAMAGE.
  */
 /**
- * The Private Hpl Interface for the I2C components.
+ * The Private Hpl Interface for the I2C components. Handles enabling of the 
+ * clock for the interface.  It DOES NOT affect the I2C_IUE bit of the ICR
+ * register.
  * 
  * @param dev The I2C to use. 0 = Standard I2c, 1 = Power I2C
  *

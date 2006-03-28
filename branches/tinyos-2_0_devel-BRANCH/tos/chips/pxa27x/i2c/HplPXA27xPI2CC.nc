@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xPI2CC.nc,v 1.1.2.1 2006-02-01 23:54:24 philipb Exp $ */
+/* $Id: HplPXA27xPI2CC.nc,v 1.1.2.2 2006-03-28 02:16:02 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -30,7 +30,6 @@
  */
 configuration HplPXA27xPI2CC
 {
-  provides interface Init;
   provides interface HplPXA27xI2C as I2C;
 }
 
@@ -38,9 +37,10 @@ implementation
 {
   components new HplPXA27xI2CP(1);
   components HplPXA27xInterruptM;
+  components PlatformP;
 
-  Init = HplPXA27xI2CP;
   I2C = HplPXA27xI2CP;
 
+  HplPXA27xI2CP.Init <- PlatformP.InitL1;
   HplPXA27xI2CP.I2CIrq -> HplPXA27xInterruptM.PXA27xIrq[PPID_PWR_I2C];
 }
