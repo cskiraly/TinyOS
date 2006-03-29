@@ -26,16 +26,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Description ---------------------------------------------------------
- *  Preamble Sample LinkLayerControl
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-03-01 18:38:17 $
+ */
+ 
+ /**
+ *  LinkLayerControl.
+ *
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
  * ========================================================================
  */
-
 configuration LinkLayerControlC {
    provides {
      interface Init;

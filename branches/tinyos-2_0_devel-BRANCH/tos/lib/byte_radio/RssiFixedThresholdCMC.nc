@@ -26,15 +26,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Description ---------------------------------------------------------
- * Radio configuration.
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-03-01 18:38:17 $
- * @author: Kevin Klues (klues@tkn.tu-berlin.de)
- * ========================================================================
  */
-
+ 
+ /**
+ * Configuration for the fixed Rssi Threshold module.
+ *
+ * @author: Kevin Klues (klues@tkn.tu-berlin.de)
+ */
 configuration RssiFixedThresholdCMC
 {
   provides {

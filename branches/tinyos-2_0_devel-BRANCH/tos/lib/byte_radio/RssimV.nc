@@ -25,17 +25,28 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * - Description ----------------------------------------------------------
- * 
+ */
+ 
+ /**
  * Interface to RSSI measurement in SI unit mV
  *
- * - Author --------------------------------------------------------------
  * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
- * ========================================================================
- */
-	
+ */	
 interface RssimV {
-    async command error_t getData();
-    async event error_t dataReady(uint16_t data);
+  /**
+   * Start reading the Rssi value in mV.
+   * 
+   * @returns SUCCESS on success
+   *          FAIL otherwise.
+  */
+  command error_t getData();
+  
+  /**
+   * Indicates that the Rssi data has been read.
+   *
+   * @param data - Rssi in mV
+   * @return SUCCESS on success
+   *         FAIL otherwise.
+  */
+  async event error_t dataReady(uint16_t data);
 }

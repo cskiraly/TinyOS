@@ -26,16 +26,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Description ---------------------------------------------------------
- * Control interface for RSSI components that use a floating threshold
- * - Revision -------------------------------------------------------------
- * @author: Kevin Klues (klues@tkn.tu-berlin.de)
- * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
- * ========================================================================
- */
+*/
 
+/**
+* Control interface for RSSI components that use a floating threshold.
+*
+* @author: Kevin Klues (klues@tkn.tu-berlin.de)
+* @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
+*/
 interface ChannelMonitorControl
 {
-    async command error_t updateNoiseFloor();
-    event error_t updateNoiseFloorDone();
+  /**
+  * Update the noise floor.
+  *
+  * @return SUCCESS if the noise floor can be updated
+  *         FAIL otherwise.
+  */
+  async command error_t updateNoiseFloor();
+  
+  /**
+  * Indicates that the noise floor has been updated.
+  */
+  event void updateNoiseFloorDone();
 }

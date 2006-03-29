@@ -26,24 +26,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Description ---------------------------------------------------------
- * Data interface for RSSI components that use a floating threshold
- * - Revision -------------------------------------------------------------
- * @author: Kevin Klues (klues@tkn.tu-berlin.de)
- * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
- * ========================================================================
  */
 
+/**
+ * Data interface for RSSI components that use a floating threshold
+ *
+ * @author: Kevin Klues (klues@tkn.tu-berlin.de)
+ * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
+ */
 interface ChannelMonitorData
 {
-    /** conversion of mV and dB: gradient = mV/dB **/
-    async command error_t setGradient(int16_t grad);
+    /** 
+     * Sets the gradient for the conversion of mV and dB. 
+     *
+     *  @param grad - grad = mV/dB
+     */
+    async command void setGradient(int16_t grad);
+    
+    /**
+     * Returns the currently used gradient to convert between
+     * dB and mV.
+     *
+     * @return The currently used gradient.
+     */ 
     async command int16_t getGradient();
 
-    /** get SNR in dB -- starts a measurement **/
+    /** 
+     * Starts the SNR measurement 
+     * 
+     * @returns SUCCESS on success
+     *          FAIL otherwise.
+     */
     async command error_t getSnr();
-    async event error_t getSnrDone(int16_t snr);
+    
+    /*
+     * Returns the SNR value in dB.
+     *
+     * @param snr - The SNR value in dB.
+    */
+    async event void getSnrDone(int16_t snr);
 
-    /** get the noisefloor in mV **/
+    /** 
+     * Get the noisefloor in mV.
+     *
+     * @return The noise floor in mV.
+     */
     async command uint16_t getNoiseFloor();
 }

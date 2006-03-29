@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-03-01 18:38:17 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-03-29 18:03:09 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
  * ========================================================================
@@ -106,7 +106,12 @@ implementation
 
     // last rssi reading
     int16_t rssi;           // rssi in [mV]
-    
+        /* Helper function */
+        void signalFailure() {
+          atomic {
+            for(;;) { ;};
+          }
+        }
     /****************  Tasks  *******************/
     task void UpdateNoiseFloorTask();
     task void GetChannelStateTask();
@@ -150,6 +155,7 @@ implementation
         error_t res = SUCCESS;
         atomic {
             rssi = data;
+            if(data < 200) signalFailure();
             switch(state) 
             {
                 case CCA:
@@ -299,10 +305,9 @@ implementation
 
 
     /**************** ChannelMonitorData ************/  
-    async command error_t ChannelMonitorData.setGradient(int16_t grad) {
+    async command void ChannelMonitorData.setGradient(int16_t grad) {
         // needed to convert RSSI into dB
         atomic gradient = grad;
-        return SUCCESS;
     }
     
     async command int16_t ChannelMonitorData.getGradient() {
@@ -351,7 +356,6 @@ implementation
         signal ChannelMonitorData.getSnrDone(snr);
     }
 
-    default async event error_t ChannelMonitorData.getSnrDone(int16_t snr) {
-        return SUCCESS;
+    default async event void ChannelMonitorData.getSnrDone(int16_t snr) {
     }
 }

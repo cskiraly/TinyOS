@@ -27,13 +27,14 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-03-01 18:38:17 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-03-29 18:03:09 $
  * ========================================================================
  */
 
 #include "crc.h"
 #include "message.h"
+#include "radiopacketfunctions.h"
 
 /**
  * PacketSerializerP module
@@ -45,10 +46,9 @@
 module PacketSerializerP {
   provides {
     interface Init;
-    interface Send;
+    interface AsyncSend;
     interface Receive;
     interface Packet;
-
   }
   uses {
     interface RadioByteComm;
@@ -75,30 +75,7 @@ implementation {
   void TransmitNextByte();
   void ReceiveNextByte(uint8_t data);
 
-  /* Packet structure accessor functions
-   * note: platform-independant radiostructures are called message_radio_header_t & message_radio_footer_t */
-  message_radio_header_t* getHeader(message_t* amsg) {
-    return (message_radio_header_t*)(amsg->data - sizeof(message_radio_header_t));
-  }
-
-  message_radio_footer_t* getFooter(message_t* amsg) {
-    return (message_radio_footer_t*)(amsg->footer);
-  }
-
-  message_radio_metadata_t* getMetadata(message_t* amsg) {
-    return (message_radio_metadata_t*)((uint8_t*)amsg->footer + sizeof(message_radio_footer_t));
-  }
-
   /* Task Declarations  */
-  task void SendDoneSuccessTask() {
-    signal Send.sendDone((message_t*)txBufPtr, SUCCESS);
-  }
-  task void SendDoneCancelTask() {
-    signal Send.sendDone((message_t*)txBufPtr, ECANCEL);
-  }
-  task void SendDoneFailTask() {
-    signal Send.sendDone((message_t*)txBufPtr, FAIL);
-  }
   task void ReceiveTask() {
     message_radio_header_t* header = getHeader((message_t*)(&rxMsg));
     signal Receive.receive((message_t*)rxBufPtr, ((message_t*)rxBufPtr)->data, header->length);
@@ -117,7 +94,7 @@ implementation {
   }
 
   /*- Radio Send */
-  command error_t Send.send(message_t* msg, uint8_t len) {
+  async command error_t AsyncSend.send(message_t* msg, uint8_t len) {
     message_radio_header_t* header = getHeader(msg);
     atomic {
       crc = 0;
@@ -130,27 +107,18 @@ implementation {
     return SUCCESS;
   }
 
-  command error_t Send.cancel(message_t* msg) {
-    if(msg != (message_t*)txBufPtr)
-      return FAIL;
-    else return call PhyPacketTx.cancel();
-  }
-
-
   async event void PhyPacketTx.sendHeaderDone(error_t error) {
     if(error == SUCCESS)
       TransmitNextByte();
-    else if(error == ECANCEL)
-      post SendDoneCancelTask();
-    else post SendDoneFailTask();
+    else 
+      signal AsyncSend.sendDone((message_t*)txBufPtr, FAIL);
   }
 
   async event void RadioByteComm.txByteReady(error_t error) {
     if(error == SUCCESS)
       TransmitNextByte();
-    else if(error == ECANCEL)
-      post SendDoneCancelTask();
-    else post SendDoneFailTask();
+    else 
+      signal AsyncSend.sendDone((message_t*)txBufPtr, FAIL);
   }
 
   void TransmitNextByte() {
@@ -184,11 +152,10 @@ implementation {
 
   async event void PhyPacketTx.sendFooterDone(error_t error) {
     if(error == SUCCESS) {
-      post SendDoneSuccessTask();
+      signal AsyncSend.sendDone((message_t*)txBufPtr, SUCCESS);
     }
-    else if(error == ECANCEL)
-      post SendDoneCancelTask();
-    else post SendDoneFailTask();
+    else   
+      signal AsyncSend.sendDone((message_t*)txBufPtr, FAIL);
   }
 
 
@@ -219,6 +186,16 @@ implementation {
     }
   }
 
+  command void* Receive.getPayload(message_t* msg, uint8_t* len) {
+    if (len != NULL) {
+      *len = (getHeader(msg))->length;
+    }
+    return (void*)msg->data;
+  }
+
+  command uint8_t Receive.payloadLength(message_t* msg) {
+    return (getHeader(msg))->length;
+  }
 
   /* Packet interface */
       
@@ -243,21 +220,4 @@ implementation {
     }
     return (void*)msg->data;
   }
-
-  command void* Receive.getPayload(message_t* m, uint8_t* len) {
-    call Packet.getPayload(m, len);
-  }
-
-  command uint8_t Receive.payloadLength(message_t* m) {
-    return call Packet.payloadLength(m);
-  }
-
-  command uint8_t Send.maxPayloadLength() {
-    return call Packet.maxPayloadLength();
-  }
-
-  command void* Send.getPayload(message_t* m) {
-    return call Packet.getPayload(m, NULL);
-  }
-
 }

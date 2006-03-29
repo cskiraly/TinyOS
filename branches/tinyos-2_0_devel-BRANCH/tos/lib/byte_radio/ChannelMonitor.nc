@@ -25,28 +25,41 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+ 
+ 
+ /**
+ * Channel Monitor interface.
  *
- * - Description ----------------------------------------------------------
- * Controlling the radio.
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-03-01 18:38:17 $
+ * Provides commands and events concerning the channel state.
+ *
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
- 
 interface ChannelMonitor {
-    // start to check whether the channel is clear
+    /** 
+    * Start observing the channel.
+    * Either the event channelBusy() or channelIdle() will be indicated.
+    *
+    * @return SUCCESS on succes
+    *         FAIL otherwise.
+    */
     async command error_t start();
 
-    // result: channel is busy
-    async event error_t channelBusy();
+    /**
+     *  Indicates that the channel is busy.
+     */
+    async event void channelBusy();
 
-    // result: channel is idle
-    async event error_t channelIdle();
+    /** 
+     *  Indicates that the channel is idle.
+     */
+    async event void channelIdle();
     
-    // tell the channel monitor that the last busy event
-    // actually indicated a message
+    /**
+     * Tells the channel monitor that the last busy event
+     * actually indicated a message.
+     */
     async command void rxSuccess();
 }
 
