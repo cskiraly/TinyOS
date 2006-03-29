@@ -25,17 +25,13 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * - Description ----------------------------------------------------------
- * 
+ */
+ 
+ /**
  * Component to measure the RSSI value using the reference voltage  
  * 
- * - Author --------------------------------------------------------------
  * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
- * ========================================================================
  */
-
-
 configuration RssiRefVoltC
 {
     provides interface RssimV;
@@ -45,10 +41,11 @@ implementation
 {
     components 
         RssiRefVoltP,
-        new RssiSensorC();
+    new RssiSensorMacC();
 
     StdControl = RssiRefVoltP;
     
     RssimV = RssiRefVoltP;
-    RssiRefVoltP.RssiQueryAdc -> RssiSensorC.Read;
+    RssiRefVoltP.RssiQueryAdc -> RssiSensorMacC;
+    RssiRefVoltP.RssiAdcResource -> RssiSensorMacC;
 }

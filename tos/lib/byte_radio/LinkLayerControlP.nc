@@ -48,6 +48,7 @@
  * ========================================================================
  */
 
+#include "radiopacketfunctions.h"
 #include "message.h"
 
 module LinkLayerControlP {
@@ -84,25 +85,12 @@ implementation
 #endif
     }
     
-    message_radio_header_t* getHeader(message_t* amsg) {
-      return (message_radio_header_t*)(amsg->data - sizeof(message_radio_header_t));
-    }
-    
-    message_radio_footer_t* getFooter(message_t* amsg) {
-      return (message_radio_footer_t*)(amsg->footer);
-    }
-
-    message_radio_metadata_t* getMetadata(message_t* amsg) {
-      return (message_radio_metadata_t*)((uint8_t*)amsg->footer + sizeof(message_radio_footer_t));
-    }
-    
     /**************** Init  *****************/
     command error_t Init.init(){
         atomic {
             seqNo = 0;
             splitStateError = EOFF;
         }
-//        call Leds.init();
         return SUCCESS;
     }
 
@@ -223,7 +211,9 @@ implementation
       return FALSE;
     }
 
-    /* Send / Receive interfaces */
+    
+    
+    
     
 }
 

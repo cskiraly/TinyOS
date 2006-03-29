@@ -42,7 +42,8 @@ module RssiRefVoltP
       interface RssimV; 
     }
     uses {     
-      interface Read<uint16_t> as RssiQueryAdc;
+      interface ReadNow<uint16_t> as RssiQueryAdc;
+      interface Resource as RssiAdcResource;
     }
 }
 implementation
@@ -61,31 +62,37 @@ implementation
     }
      
     /**************** RSSI ADC ****************/
-    task void ReadRssi() {
-        if(call RssiQueryAdc.read() == FAIL) {
-            post ReadRssi();
-        }
-    }
-
     uint16_t adjustReading(uint16_t data) {
         uint32_t reading;
         atomic reading = data;
         return (uint16_t)((reading*REFVOLTAGE)/MAX_ADC_VALUE);
     }
 
-    event void RssiQueryAdc.readDone(error_t result, uint16_t data) {
+    async event void RssiQueryAdc.readDone(error_t error, uint16_t data) {
+      if (error == SUCCESS) {
         signal RssimV.dataReady(adjustReading(data));
+        call RssiAdcResource.release();
+      } else {
+        call RssiQueryAdc.read();
+      }
     }
 
 
+    /**************** RSSI Ressource ****************/
+    event void RssiAdcResource.granted() {
+      call RssiQueryAdc.read();
+    }
+    
     /**************** RSSImV ****************/
-    async command error_t RssimV.getData() {
-//         error_t res = call RssiQueryAdc.read();
-//         if(res == FAIL) {
-//             res = post ReadRssi();
-//         } 
-//         return res;
-        return post ReadRssi();
+    command error_t RssimV.getData() {
+      error_t error;
+      // FIXME:
+//       if (call RssiAdcResource.immediateRequest() != SUCCESS) {
+        error = call RssiAdcResource.request();
+//       } else {
+//         error = call RssiQueryAdc.read();
+//       }
+      return error;
     }
 
     default async event error_t RssimV.dataReady(uint16_t data) {
