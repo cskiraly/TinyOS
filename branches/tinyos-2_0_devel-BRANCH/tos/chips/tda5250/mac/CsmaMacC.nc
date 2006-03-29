@@ -45,7 +45,7 @@ configuration CsmaMacC {
     interface ChannelMonitorData;
   }
   uses {
-    interface Send as PacketSend;
+    interface AsyncSend as PacketSend;
     interface Receive as PacketReceive;
         
     interface Packet;
@@ -80,6 +80,7 @@ implementation {
     
     CsmaMacP.CcaStdControl -> Cca.StdControl;
     CsmaMacP.ChannelMonitor -> Cca.ChannelMonitor;
+    CsmaMacP.ChannelMonitorData -> Cca.ChannelMonitorData;
     CsmaMacP.ChannelMonitorControl -> Cca.ChannelMonitorControl;
     CsmaMacP.Random -> RandomLfsrC;
 
