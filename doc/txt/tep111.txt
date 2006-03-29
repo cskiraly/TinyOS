@@ -10,8 +10,8 @@ message_t
 :Author: Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.5 $
-:Draft-Modified: $Date: 2006-01-15 20:13:00 $
+:Draft-Version: $Revision: 1.1.2.6 $
+:Draft-Modified: $Date: 2006-03-29 01:04:17 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -136,7 +136,7 @@ message_t structure is defined in ``tos/types/message.h``::
   typedef nx_struct message_t {
     nx_uint8_t header[sizeof(message_header_t)];
     nx_uint8_t data[TOSH_DATA_LENGTH];
-    nx_uint8_t footer[sizeof(message_header_t)];
+    nx_uint8_t footer[sizeof(message_footer_t)];
     nx_uint8_t metadata[sizeof(message_metadata_t)];
   } message_t;
 
@@ -254,7 +254,7 @@ Defining a message_t header as a union of the underlying link layer headers
 means that, in terms of C structures, a packet may not be contiguous. For
 example, consider this case::
 
-  typedef struct header_b {
+  typedef struct header_a {
     nx_uint8_t a;
   } header_a_t;
 
@@ -276,7 +276,7 @@ of HeaderA and HeaderB, there will be a padding byte after ``header_a_t.a``.
 However, some radios require that packets passed to them are contiguous.
 
 The packet for a link layer does not necessarily start at the beginning
-of the message_t. Instead, is starts at a negative offset from the
+of the message_t. Instead, it starts at a negative offset from the
 data field.  When a link layer component needs to read or write protocol 
 header fields, it MUST compute the location of the header as a negative 
 offset from the data field. The padding bytes that C introduces for

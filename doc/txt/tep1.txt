@@ -10,8 +10,8 @@ TEP Structure and Keywords
 :Author: Philip Levis
 
 :Draft-Created: 18-Oct-2004
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2005-10-31 22:16:36 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2006-03-29 01:04:17 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -140,7 +140,7 @@ follow all current BCPs.
 Documentary TEPs describe a system or protocol that exists; a
 documentary TEP MUST reference an implementation that a reader can
 easily obtain. Compliance with Documentary TEPs is entirely OPTIONAL;
-they exist is to simplify interoperability when it is needed, and to
+they exist to simplify interoperability when it is needed, and to
 document TinyOS service implementations.
 
 Informational TEPs provide information that is of interest to the

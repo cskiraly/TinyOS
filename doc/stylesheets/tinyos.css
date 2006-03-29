@@ -1,5 +1,5 @@
 /* 
- * $Id: tinyos.css,v 1.1.2.1 2005-11-01 00:47:53 scipio Exp $ 
+ * $Id: tinyos.css,v 1.1.2.2 2006-03-29 01:04:17 scipio Exp $ 
  */
 body {	
 	background: #FFFFFF; 
@@ -126,6 +126,13 @@ ul.links {
 	font-weight: normal;
         font-size: medium;
 }
+.sublink {
+        font-family: Helvetica, sans-serif;
+	font-weight: normal;
+        font-size: large;
+	padding: .2em 0em 0em 4em;
+}
+
 
 code { 
 	font-family: monospace; 
