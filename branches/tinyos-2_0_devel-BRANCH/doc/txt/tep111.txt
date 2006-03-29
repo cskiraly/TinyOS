@@ -10,8 +10,8 @@ message_t
 :Author: Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.6 $
-:Draft-Modified: $Date: 2006-03-29 01:04:17 $
+:Draft-Version: $Revision: 1.1.2.7 $
+:Draft-Modified: $Date: 2006-03-29 06:02:52 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -152,8 +152,11 @@ this in greater depth.
 
 Every link layer defines its header, footer, and metadata
 structures. These structures MUST be external structs, and all of
-their fields MUST be external types, in order to ensure cross-platform
-compatibility.  For example, the CC1000 radio implementation defines
+their fields MUST be external types, for two reasons. First, this
+ensures cross-platform compatibility. Second, it allows structures
+to be aligned on byte boundaries, circumventing issues with the 
+alignment of packet buffers and field offsets within them.
+For example, the CC1000 radio implementation defines
 its structures in ``CC1000Msg.h``::
 
   typedef nx_struct cc1000_header {
@@ -175,7 +178,7 @@ its structures in ``CC1000Msg.h``::
     nx_uint8_t receiveSecurityMode;
   } cc1000_metadata_t;
 
-Each link layer defines its structres, but a **platform** is
+Each link layer defines its structures, but a **platform** is
 responsible for defining ``message_header_t``, ``message_footer_t``,
 and ``message_metadata_t``. This is because a platform may have
 multiple link layers, and so only it can resolve which structures are
@@ -233,6 +236,7 @@ named ``AMPacket`` which provides access commands to AM fields. In
 TinyOS 1.x, a component would directly access ``TOS_Msg.addr``;
 in TinyOS 2.x, a component calls ``AMPacket.getAddress(msg)``.
 
+
 3.1 message_header_t
 ----------------------------------------------------------------
 
@@ -289,6 +293,26 @@ returns the field ``a``. Its code looks like this::
     header_a_t* hdr = (header_a_t*)(msg->data - sizeof(header_a_t));
     return hdr->a;
   }
+
+Because this code is a bit unwieldy, many data link layers have an 
+internal helper function that just returns a pointer to a header::
+
+  header_a_t* getHeader(message_t* msg) {
+    return (header_a_t*)(msg->data - sizeof(header_a_t));
+  }
+  ...
+  command uint8_t APacket.a(message_t* msg) {
+    header_a_t* hdr = getHeader(msg);
+    return hdr->a;
+  }
+  
+
+Note that this only works for the data link header. As discussed in 
+TEP 116[_tep116], higher level protocols must use a payload offset. 
+A common approach to provide accessors is to have a helper function
+which correctly casts the location of a structure into a structure pointer.
+
+
 
 
 We can trust the C compiler to optimize the call into a static offset
@@ -349,3 +373,5 @@ encapsulate a packet.
 ====================================================================
 
 .. [tep113] TEP 113: Serial Communication.
+.. [tep116] TEP 116: Packet Protocols.
+
