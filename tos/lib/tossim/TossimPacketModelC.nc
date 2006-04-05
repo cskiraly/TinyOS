@@ -1,4 +1,4 @@
-// $Id: TossimPacketModelC.nc,v 1.1.2.3 2006-03-12 20:47:02 scipio Exp $
+// $Id: TossimPacketModelC.nc,v 1.1.2.4 2006-04-05 18:21:02 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -149,6 +149,11 @@ implementation {
       dbgerror("TossimPacketModelC", "TossimPacketModelC: Send.send() called, but not initialized!\n");
       return EOFF;
     }
+    if (!running) {
+      dbgerror("TossimPacketModelC", "TossimPacketModelC: Send.send() called, but not running!\n");
+      return EOFF;
+
+    }
     if (sending != NULL) {
       return EBUSY;
     }
@@ -267,17 +272,25 @@ implementation {
   }
 
   event void GainRadioModel.receive(message_t* msg) {
-    signal Packet.receive(msg);
+    if (running) {
+      signal Packet.receive(msg);
+    }
   }
 
   event void GainRadioModel.acked(message_t* msg) {
-    tossim_metadata_t* metadata = getMetadata(sending);
-    metadata->ack = 1;
+    if (running) {
+      tossim_metadata_t* metadata = getMetadata(sending);
+      metadata->ack = 1;
+    }
   }
 
   event bool GainRadioModel.shouldAck(message_t* msg) {
-    return signal Packet.shouldAck(msg);
+    if (running) {
+      return signal Packet.shouldAck(msg);
+    }
+    else {
+      return FALSE;
+    }
   }
-
 }
 
