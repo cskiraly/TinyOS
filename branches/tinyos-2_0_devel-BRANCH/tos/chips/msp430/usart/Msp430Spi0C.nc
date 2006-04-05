@@ -36,7 +36,7 @@
  * place of Msp430SpiNoDma0P.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-03-15 16:40:29 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-04-05 18:44:55 $
  */
 
 #include "msp430UsartResource.h"
@@ -55,14 +55,13 @@ implementation {
     CLIENT_ID = unique( MSP430_SPIO_BUS ),
   };
   
-  components Msp430SpiNoDma0P as SpiP;
+  components Msp430SpiDma0P as SpiP;
   Resource = SpiP.Resource[ CLIENT_ID ];
   SpiByte = SpiP.SpiByte;
   SpiPacket = SpiP.SpiPacket[ CLIENT_ID ];
 
   components new Msp430Usart0C() as UsartC;
   SpiP.UsartResource[ CLIENT_ID ] -> UsartC.Resource;
-  SpiP.Usart -> UsartC.HplMsp430Usart;
   SpiP.UsartInterrupts -> UsartC.HplMsp430UsartInterrupts;
   
 }
