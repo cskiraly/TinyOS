@@ -33,7 +33,7 @@
  * Provides an interface for USART0 on the MSP430.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-15 16:40:29 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-04-05 18:44:55 $
  */
 
 generic configuration Msp430Usart0C() {
@@ -55,7 +55,9 @@ implementation {
   
   Resource = UsartShareP.Resource[ CLIENT_ID ];
   ArbiterInfo = UsartShareP.ArbiterInfo;
-  HplMsp430Usart = UsartShareP;
   HplMsp430UsartInterrupts = UsartShareP.Interrupts[ CLIENT_ID ];
 
+  components HplMsp430Usart0C as UsartC;
+  HplMsp430Usart = UsartC;
+  
 }

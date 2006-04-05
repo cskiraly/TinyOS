@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-15 16:40:29 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-04-05 18:44:55 $
  */
 
 configuration Msp430SpiNoDma0P {
@@ -41,7 +41,6 @@ configuration Msp430SpiNoDma0P {
   provides interface SpiPacket[ uint8_t id ];
   
   uses interface Resource as UsartResource[ uint8_t id ];
-  uses interface HplMsp430Usart as Usart;
   uses interface HplMsp430UsartInterrupts as UsartInterrupts;
   
 }
@@ -53,8 +52,10 @@ implementation {
   SpiByte = SpiP.SpiByte;
   SpiPacket = SpiP.SpiPacket;
   UsartResource = SpiP.UsartResource;
-  Usart = SpiP.Usart;
   UsartInterrupts = SpiP.UsartInterrupts;
+
+  components HplMsp430Usart0C as UsartC;
+  SpiP.Usart -> UsartC;
   
   components LedsC as Leds;
   SpiP.Leds -> Leds;
