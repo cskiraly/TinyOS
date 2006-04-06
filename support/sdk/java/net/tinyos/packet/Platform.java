@@ -13,7 +13,12 @@ class Platform {
     static int get(String name) {
 	if (platforms == null) {
 	    platforms = new Hashtable();
-	    BaudRate.init();
+            try {
+	      BaudRate.init();
+            }
+            catch (Exception e) {
+              System.err.println("Failed to initialize baud rates for platforms. Serial communication may not work properly.");
+            }
 	}
 	Object val = platforms.get(name);
 
