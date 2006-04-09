@@ -6,7 +6,7 @@
 </head>
 <body>
 
-$Id: lesson-t.html,v 1.1.2.6 2006-03-07 02:37:40 scipio Exp $
+$Id: lesson-t.html,v 1.1.2.7 2006-04-09 17:58:03 scipio Exp $
 
 <div class="title">Lesson T: Simulation with TOSSIM</div>
 <div class="subtitle">Last Modified: Feb 9, 2006</div>
@@ -540,7 +540,7 @@ DEBUG (32): Application booted a third time.
           <li><b>threshold()</b>: Return the CCA threshold.</li>
 
           <li><b>setThreshold(val)</b>: Set the CCA threshold value in
-            dBm.The default is -77.</li>
+            dBm.The default is -95.</li>
           
         </ul>
 
@@ -663,9 +663,9 @@ t.getNode(1).bootAtTime(100001);
 t.getNode(2).bootAtTime(800008);
 t.getNode(3).bootAtTime(1800009);
 
-r.setNoise(1, -80.0, 5.0)
-r.setNoise(2, -80.0, 5.0)
-r.setNoise(3, -80.0, 5.0)
+r.setNoise(1, -100.0, 5.0)
+r.setNoise(2, -100.0, 5.0)
+r.setNoise(3, -100.0, 5.0)
 
 for i in range(0, 100):
   t.runNextEvent()
@@ -710,7 +710,7 @@ DEBUG (1): Received packet of length 2.
 
         <p>If you set the noise to be 30 plus or minus 5 dBm instead
         of 80 plus or minus 5 dBm, then nodes will never transmit, as
-        the default CCA threshold is -77 dBm. You'll see something
+        the default CCA threshold is -95 dBm. You'll see something
         like this:</p>
              <pre>
 1  2 -54.0
@@ -1180,7 +1180,7 @@ r = t.radio();
 for i in range(0, 999):
   m = t.getNode(i);
   m.bootAtTime(5000003 * i + 1);
-  r.setNoise(i, -77.0, 3.0);
+  r.setNoise(i, -99.0, 3.0);
   for j in range (0, 2):
     if (j != i):
       r.add(i, j, -50.0);
@@ -1205,7 +1205,7 @@ int main() {
   for (int i = 0; i &lt; 999; i++) {
     Mote* m = t->getNode(i);
     m->bootAtTime(5000003 * i + 1);
-    r->setNoise(i, -77.0, 3);
+    r->setNoise(i, -99.0, 3);
     for (int j = 0; j &lt; 2; j++) {
       if (i != j) {
         r->add(i, j, -50.0);
