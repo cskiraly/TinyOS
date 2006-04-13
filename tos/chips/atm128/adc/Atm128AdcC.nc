@@ -1,4 +1,4 @@
-/// $Id: Atm128AdcC.nc,v 1.1.2.8 2006-02-17 00:26:47 idgay Exp $
+/// $Id: Atm128AdcC.nc,v 1.1.2.9 2006-04-13 17:38:02 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -65,5 +65,4 @@ implementation
   PM.StdControl -> Atm128AdcP;
   PM.ArbiterInit -> AdcArbiter;
   PM.ResourceController -> AdcArbiter;
-  PM.ArbiterInfo -> AdcArbiter;
 }
