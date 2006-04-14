@@ -1,4 +1,4 @@
-// $Id: sim_log.c,v 1.1.2.5 2006-03-07 02:35:48 scipio Exp $
+// $Id: sim_log.c,v 1.1.2.6 2006-04-14 21:06:31 scipio Exp $
 
 /*									tab:4
 * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -164,17 +164,21 @@ void sim_log_init() {
 void sim_log_add_channel(char* name, FILE* file) {
   sim_log_channel_t* channel;
   channel = (sim_log_channel_t*)hashtable_search(channelTable, name);
-
+  
   // If there's no current entry, allocate one, initialize it,
   // and insert it.
   if (channel == NULL) {
+    char* newName = (char*)malloc(strlen(name) + 1);
+    strcpy(newName, name);
+    newName[strlen(name)] = 0;
+    
     channel = (sim_log_channel_t*)malloc(sizeof(sim_log_channel_t));
-    channel->name = name;
+    channel->name = newName;
     channel->numOutputs = 0;
     channel->size = DEFAULT_CHANNEL_SIZE;
     channel->outputs = (FILE**)malloc(sizeof(FILE*) * channel->size);
     memset(channel->outputs, 0, sizeof(FILE*) * channel->size);
-    hashtable_insert(channelTable, name, channel);
+    hashtable_insert(channelTable, newName, channel);
   }
 
   // If the channel output table is full, double the size of
@@ -194,7 +198,7 @@ void sim_log_add_channel(char* name, FILE* file) {
 
   channel->outputs[channel->numOutputs] = file;
   channel->numOutputs++;
-
+  sim_log_commit_change();
 }
 
 bool sim_log_remove_channel(char* output, FILE* file) {
@@ -241,7 +245,7 @@ void sim_log_debug(uint16_t id, char* string, const char* format, ...) {
     FILE* file = outputs[id].files[i];
     va_start(args, format);
     fprintf(file, "DEBUG (%i): ", (int)sim_node());
-    vfprintf(file, format, args);
+    vfprintf(file, format, args); 
     fflush(file);
   }
 }
