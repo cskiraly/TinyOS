@@ -32,7 +32,7 @@
  * @author David Gay <dgay@intel-research.net>
  */
 
-// $Id: HplAtm128Counter0C.nc,v 1.1.2.2 2006-03-13 23:07:53 scipio Exp $/// $Id: HplAtm128Timer2C.nc,
+// $Id: HplAtm128Counter0C.nc,v 1.1.2.3 2006-04-14 00:32:24 scipio Exp $/// $Id: HplAtm128Timer2C.nc,
 
 #include <Atm128Timer.h>
 #include <hardware.h>
@@ -146,7 +146,8 @@ implementation
     }
     
     ctrl = call Timer0Ctrl.getControl();
-    ctrl.bits.cs = s;
+    ctrl.flat &= ~(0x7);
+    ctrl.flat |= (s & 0x7);
     call Timer0Ctrl.setControl(ctrl);  
 
     if (currentScale != s) {
