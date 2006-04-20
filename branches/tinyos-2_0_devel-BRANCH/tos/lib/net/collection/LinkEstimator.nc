@@ -1,3 +1,4 @@
+/* $Id: LinkEstimator.nc,v 1.1.2.2 2006-04-20 15:47:04 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -20,6 +21,11 @@
  *
  */
 
+/** Provides an additive quality measure for a neighbor. The
+ * provided quality increases when the true link quality increases.
+ *  @author Rodrigo Fonseca
+ *  @date   $Date: 2006-04-20 15:47:04 $
+ */
 interface LinkEstimator {
     command uint8_t getLinkQuality(uint16_t neighbor);
     command uint8_t getReverseQuality(uint16_t neighbor);

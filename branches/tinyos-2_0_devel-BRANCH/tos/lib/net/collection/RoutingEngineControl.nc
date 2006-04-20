@@ -20,16 +20,18 @@
  *
  */
 
+/** Controls for the routing engine.
+ *  @author Rodrigo Fonseca
+ *  @date   $Date: 2006-04-20 15:47:04 $
+ */
+
+
 interface RoutingEngineControl {
     /** Initialize the routing header of the given message. This will write
      *  to the routing header assuming the message is originating at the
      *  local node. This includes setting the destination address. */
-    command result_t initializeRH(message_t *msg, uint8_t tree_id);
+    command error_t initializeRH(message_t *msg, uint8_t tree_id);
     /** Get the size in bytes of the routing engine header */
     command uint8_t getHeaderSize();
-    /** Set the current node as a root in the tree with given tree_id */
-    command result_t startRoot(uint8_t tree_id);
-    /** Stop the current node from being a root in the tree tree_id */
-    command result_t stopRoot(uint8_t tree_id);
 }
 
