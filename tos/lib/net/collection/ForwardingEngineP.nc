@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.1 2006-04-21 00:47:21 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.2 2006-04-21 00:51:35 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-04-21 00:47:21 $
+ *  @date   $Date: 2006-04-21 00:51:35 $
  */
 
    
@@ -32,10 +32,10 @@ generic module ForwardingEngineP() {
   provides {
     interface Init;
     interface StdControl;
-    interface Send;
-    interface Receive;
-    interface Receive as Snoop;
-    interface Intercept;
+    interface Send[collection_id_t id];
+    interface Receive[collection_id_t id];
+    interface Receive as Snoop[collection_id_t id];
+    interface Intercept[collection_id_t id];
     interface Packet;
   }
   uses {
@@ -55,7 +55,6 @@ implementation {
   bool running = FALSE;
   bool radioOn = FALSE;
   bool ackPending = FALSE;
-  typedef nx_uint8_t collection_id_t;
   
   typedef nx_struct network_header_t {
     nx_am_addr_t origin;
@@ -87,11 +86,20 @@ implementation {
   }
 
   task void sendTask();
+
+  network_header_t* getHeader(message_t* m) {
+    return (network_header_t*)call SubPacket.getPayload(m, NULL);
+  }
   
-  command error_t Send.send(message_t* msg, uint8_t len) {
+  command error_t Send.send[collection_id_t id](message_t* msg, uint8_t len) {
+    network_header_t* hdr;
     if (!running) {return EOFF;}
     
-    call Packet.setPayloadLength(msg, len);
+    call Packet.setPayloadLength(msg, len + sizeof(network_header_t));
+    hdr = getHeader(msg);
+    hdr->origin = TOS_NODE_ID;
+    hdr->id = id;
+    
     if (call SendQueue.push(msg) == SUCCESS) {
       if (radioOn && call SendQueue.size() == 1) {
         post sendTask();
