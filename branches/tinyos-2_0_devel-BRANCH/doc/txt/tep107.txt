@@ -10,8 +10,8 @@ TinyOS 2.x Boot Sequence
 :Author: Philip Levis 
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2006-03-19 22:19:32 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-04-23 22:00:50 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -211,13 +211,14 @@ if the MCU supports doing so. Whichever mechanism is chosen, extreme
 care needs to be used in order to not disrupt the operation of other
 components.
 
-Unless part of a hardware abstraction architecture (HAA)[tep2]_, the 
-Init.init() command MUST NOT call any commands or signal any
-events, except for calling Init.init() on other components. An HAA
+Unless part of a hardware abstraction architecture (HAA)[tep2]_, the
+Init.init() command MUST NOT assume that other components have been
+initialized unless it has initialized them, and MUST NOT call any
+functional interfaces on any components that might be shared. An HAA
 component MAY make other calls to initialize hardware state. A
-component that is not part of an HAA SHOULD NOT call Init.init() on 
-other components unless it needs to enforce a temporal ordering on 
-initialization. 
+component that is not part of an HAA SHOULD NOT call Init.init() on
+other components unless it needs to enforce a temporal ordering on
+initialization.
 
 If a component A depends on another component, B, 
 which needs to be initialized, then A SHOULD wire B's Init directly 
