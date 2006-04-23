@@ -10,8 +10,8 @@ Schedulers and Tasks
 :Author: Philip Levis and Cory Sharp
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2006-03-19 22:19:32 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-04-23 22:00:49 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -130,22 +130,6 @@ introduce new kinds of tasks beyond the basic use case. TinyOS
 actualizes this by keeping ``post`` and ``task`` for the basic case,
 and introducing task interfaces for additional ones. 
 
-Task interfaces allow users to extend the syntax and semantics of
-tasks. Generally, a task interface has an ``async`` command, ``post``,
-and an event, ``run``. The exact signature of these functions are
-up to the interface. For example, a task interface that allows a task
-to take an integer parameter could look like this:
-
-|  ``interface TaskParameter {``
-|    ``async error_t command postTask(uint16_t param);``
-|    ``event void runTask(uin16_t param);``
-|  ``}``
-
-Using this task interface, a component could post a task with a
-``uint16_t`` parameter. When the scheduler runs the task, it will
-signal the ``runTask`` event with the passed parameter, which contains
-the task's logic.
-
 The semantics of tasks in TinyOS 2.x are different than those in 1.x.
 This change is based on experiences with the limitations and run time
 errors that the 1.x model introduces. **In TinyOS 2.x, a basic post will
@@ -158,6 +142,44 @@ These semantics prevent several problems, such as the inability to
 signal completion of split-phase events because the task queue is
 full, task queue overflow at initialization, and unfair task
 allocation by components that post a task many times.
+
+Task interfaces allow users to extend the syntax and semantics of
+tasks. Generally, a task interface has an ``async`` command, ``post``,
+and an event, ``run``. The exact signature of these functions are
+up to the interface. For example, a task interface that allows a task
+to take an integer parameter could look like this:
+
+|  ``interface TaskParameter {``
+|    ``async error_t command postTask(uint16_t param);``
+|    ``event void runTask(uint16_t param);``
+|  ``}``
+
+Using this task interface, a component could post a task with a
+``uint16_t`` parameter. When the scheduler runs the task, it will
+signal the ``runTask`` event with the passed parameter, which contains
+the task's logic. Note, however, that this does not save any RAM: if
+anything, it will cost RAM as space must be allocated in the scheduler
+and may then also be allocated in the component. Furthermore, as
+there can only be one copy of a task outstanding at any time, it
+is just as simple to store the variable in the component. E.g.,
+rather than::
+
+call TaskParameter.postTask(34);
+...
+event void TaskParameter.runTask(uint15_t param) {
+...
+}
+
+
+One can do this::
+
+param = 34;
+post parameterTask();
+...
+task void parameterTask() {
+  // use param here
+}
+
 
 
 4. The Scheduler in TinyOS 2.x
