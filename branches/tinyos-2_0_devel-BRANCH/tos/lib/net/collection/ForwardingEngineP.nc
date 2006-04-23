@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.3 2006-04-23 20:27:10 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.4 2006-04-23 21:24:39 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-04-23 20:27:10 $
+ *  @date   $Date: 2006-04-23 21:24:39 $
  */
 
    
@@ -209,7 +209,7 @@ implementation {
     }
     else if (call Pool.size() < Pool.maxSize()) {
       // A successfully forwarded packet.
-      call Pool.push(msg);
+      call Pool.put(msg);
     }
     else {
       // It's a forwarded packet, but there's no room the pool;
@@ -227,7 +227,7 @@ implementation {
       return m;
     }
     else {
-      message_t* newMsg = call Pool.pop();
+      message_t* newMsg = call Pool.get();
       uint8_t len = call SubPacket.payloadLength(m);x
       call Packet.setPayloadLength(m, len + sizeof(network_header_t));
       call Queue.push(m);
