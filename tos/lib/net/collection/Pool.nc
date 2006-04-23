@@ -1,4 +1,4 @@
-/* $Id: Pool.nc,v 1.1.2.1 2006-04-23 20:27:10 scipio Exp $ */
+/* $Id: Pool.nc,v 1.1.2.2 2006-04-23 21:24:39 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-04-23 20:27:10 $
+ *  @date   $Date: 2006-04-23 21:24:39 $
  */
 
    
@@ -34,6 +34,6 @@ interface Pool<t> {
   command uint8_t size();
   command uint8_t maxSize();
 
-  command t* pop();
-  command error_t push(t* newVal);
+  command t* put();
+  command error_t get(t* newVal);
 }
