@@ -1,4 +1,4 @@
-/* $Id: platform_message.h,v 1.1.2.1 2006-01-15 22:31:33 scipio Exp $
+/* $Id: platform_message.h,v 1.1.2.2 2006-04-23 21:59:22 scipio Exp $
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
  *
  * @author Philip Levis
  * @date   May 16 2005
- * Revision:  $Revision: 1.1.2.1 $
+ * Revision:  $Revision: 1.1.2.2 $
  */
 
 
@@ -44,16 +44,16 @@
 #include "Serial.h"
 
 typedef union message_header {
-  CC1KHeader cc1k;
+  cc1000_header_t cc1k;
   serial_header_t serial;
 } message_header_t;
 
 typedef union message_footer {
-  CC1KFooter cc1k;
+  cc1000_footer_t cc1k;
 } message_footer_t;
 
 typedef union message_metadata {
-  CC1KMetadata cc1k;
+  cc1000_metadata_t cc1k;
 } message_metadata_t;
 
 #endif

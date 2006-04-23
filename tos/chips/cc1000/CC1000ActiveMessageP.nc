@@ -1,4 +1,4 @@
-// $Id: CC1000ActiveMessageP.nc,v 1.1.2.4 2006-01-27 18:46:00 idgay Exp $
+// $Id: CC1000ActiveMessageP.nc,v 1.1.2.5 2006-04-23 21:59:22 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -51,14 +51,14 @@ module CC1000ActiveMessageP {
 }
 implementation {
 
-  CC1KHeader* getHeader(message_t* amsg) {
-    return (CC1KHeader*)(amsg->data - sizeof(CC1KHeader));
+  cc1000_header_t* getHeader(message_t* amsg) {
+    return (cc1000_header_t*)(amsg->data - sizeof(cc1000_header_t));
   }
   
   command error_t AMSend.send[am_id_t id](am_addr_t addr,
 					  message_t* amsg,
 					  uint8_t len) {
-    CC1KHeader* header = getHeader(amsg);
+    cc1000_header_t* header = getHeader(amsg);
     header->type = id;
     header->addr = addr;
     header->group = TOS_AM_GROUP;
@@ -113,12 +113,12 @@ implementation {
   }
  
   command am_addr_t AMPacket.destination(message_t* amsg) {
-    CC1KHeader* header = getHeader(amsg);
+    cc1000_header_t* header = getHeader(amsg);
     return header->addr;
   }
 
   command void AMPacket.setDestination(message_t* amsg, am_addr_t addr) {
-    CC1KHeader* header = getHeader(amsg);
+    cc1000_header_t* header = getHeader(amsg);
     header->addr = addr;
   }
   
@@ -128,12 +128,12 @@ implementation {
   }
 
   command am_id_t AMPacket.type(message_t* amsg) {
-    CC1KHeader* header = getHeader(amsg);
+    cc1000_header_t* header = getHeader(amsg);
     return header->type;
   }
 
   command void AMPacket.setType(message_t* amsg, am_id_t type) {
-    CC1KHeader* header = getHeader(amsg);
+    cc1000_header_t* header = getHeader(amsg);
     header->type = type;
   }
   

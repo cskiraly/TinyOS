@@ -8,11 +8,11 @@ typedef nx_struct CC1KHeader {
   nx_uint8_t length;
   nx_am_group_t group;
   nx_am_id_t type;
-} CC1KHeader;
+} cc1000_header_t;
 
 typedef nx_struct CC1KFooter {
   nxle_uint16_t crc;  
-} CC1KFooter;
+} cc1000_footer_t;
 
 typedef nx_struct CC1KMetadata {
   nx_uint16_t strength;
@@ -20,6 +20,6 @@ typedef nx_struct CC1KMetadata {
   nx_uint16_t time;
   nx_uint8_t sendSecurityMode;
   nx_uint8_t receiveSecurityMode;  
-} CC1KMetadata;
+} cc1000_metadata_t;
 
 #endif

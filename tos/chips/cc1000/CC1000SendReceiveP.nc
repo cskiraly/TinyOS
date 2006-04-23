@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.12 2006-01-20 23:08:13 idgay Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.13 2006-04-23 21:59:22 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -129,16 +129,16 @@ implementation
 
   /* Packet structure accessor functions. Note that everything is
    * relative to the data field. */
-  CC1KHeader* getHeader(message_t* amsg) {
-    return (CC1KHeader*)(amsg->data - sizeof(CC1KHeader));
+  cc1000_header_t* getHeader(message_t* amsg) {
+    return (cc1000_header_t*)(amsg->data - sizeof(cc1000_header_t));
   }
 
-  CC1KFooter* getFooter(message_t* amsg) {
-    return (CC1KFooter*)(amsg->footer);
+  cc1000_footer_t* getFooter(message_t* amsg) {
+    return (cc1000_footer_t*)(amsg->footer);
   }
   
-  CC1KMetadata* getMetadata(message_t* amsg) {
-    return (CC1KMetadata*)((uint8_t*)amsg->footer + sizeof(CC1KFooter));
+  cc1000_metadata_t* getMetadata(message_t* amsg) {
+    return (cc1000_metadata_t*)((uint8_t*)amsg->footer + sizeof(cc1000_footer_t));
   }
   
   /* State transition functions */
@@ -160,10 +160,10 @@ implementation
   }
 
   void enterRxState() {
-    CC1KHeader* header = getHeader(rxBufPtr);
+    cc1000_header_t* header = getHeader(rxBufPtr);
     radioState = RX_STATE;
     header->length = sizeof rxBufPtr->data;
-    count = sizeof(message_header_t) - sizeof(CC1KHeader);
+    count = sizeof(message_header_t) - sizeof(cc1000_header_t);
     runningCrc = 0;
   }
 
@@ -192,7 +192,7 @@ implementation
     // The count increment happens before the first byte is read from the
     // packet, so we subtract one from the real packet start point to
     // compensate.
-    count = (sizeof(message_header_t) - sizeof(CC1KHeader)) -1; 
+    count = (sizeof(message_header_t) - sizeof(cc1000_header_t)) -1; 
   }
 
   void enterTxCrcState() {
@@ -247,8 +247,8 @@ implementation
 	if (f.txBusy)
 	  return FAIL;
 	else {
-	  CC1KHeader* header = getHeader(msg);
-	  CC1KMetadata* md = getMetadata(msg);
+	  cc1000_header_t* header = getHeader(msg);
+	  cc1000_metadata_t* md = getMetadata(msg);
 	  f.txBusy = TRUE;
 	  header->length = len;
 	  txBufPtr = msg;
@@ -295,7 +295,7 @@ implementation
   }
 
   void txData() {
-    CC1KHeader* txHeader = getHeader(txBufPtr);
+    cc1000_header_t* txHeader = getHeader(txBufPtr);
     sendNextByte();
     
     if (count < txHeader->length + sizeof(message_header_t))
@@ -354,7 +354,7 @@ implementation
 
 	if (rxShiftBuf == ACK_WORD)
 	  {
-	    CC1KMetadata* txMetadata = getMetadata(txBufPtr);
+	    cc1000_metadata_t* txMetadata = getMetadata(txBufPtr);
 	    txMetadata->ack = 1;
 	    enterTxDoneState();
 	    return;
@@ -362,7 +362,7 @@ implementation
       }
     if (count >= MAX_ACK_WAIT)
       {
-	CC1KMetadata* txMetadata = getMetadata(txBufPtr);
+	cc1000_metadata_t* txMetadata = getMetadata(txBufPtr);
 	txMetadata->ack = 0;
 	enterTxDoneState();
       }
@@ -468,7 +468,7 @@ implementation
   }
   
   async event void RssiRx.readDone(error_t result, uint16_t data) {
-    CC1KMetadata* rxMetadata = getMetadata(rxBufPtr);
+    cc1000_metadata_t* rxMetadata = getMetadata(rxBufPtr);
 
     if (result != SUCCESS)
       rxMetadata->strength = 0;
@@ -478,7 +478,7 @@ implementation
 
   void rxData(uint8_t in) {
     uint8_t nextByte;
-    CC1KHeader* rxHeader = getHeader(rxBufPtr);
+    cc1000_header_t* rxHeader = getHeader(rxBufPtr);
 
     // rxLength is the offset into a message_t at which the packet
     // data ends: it is NOT equal to the number of bytes received,
@@ -503,16 +503,16 @@ implementation
 
     // Jump to CRC when we reach the end of data
     if (count == rxLength) {
-      count = offsetof(message_t, footer) + offsetof(CC1KFooter, crc);
+      count = offsetof(message_t, footer) + offsetof(cc1000_footer_t, crc);
     }
 
-    if (count == (offsetof(message_t, footer) + sizeof(CC1KFooter)))
+    if (count == (offsetof(message_t, footer) + sizeof(cc1000_footer_t)))
       packetReceived();
   }
 
   void packetReceived() {
-    CC1KFooter* rxFooter = getFooter(rxBufPtr);
-    CC1KHeader* rxHeader = getHeader(rxBufPtr);
+    cc1000_footer_t* rxFooter = getFooter(rxBufPtr);
+    cc1000_header_t* rxHeader = getHeader(rxBufPtr);
     // Packet filtering based on bad CRC's is done at higher layers.
     // So sayeth the TOS weenies.
     rxFooter->crc = (rxFooter->crc == runningCrc);
@@ -543,7 +543,7 @@ implementation
 
   task void signalPacketReceived() {
     message_t *pBuf;
-    CC1KHeader* pHeader;
+    cc1000_header_t* pHeader;
     atomic
       {
 	if (radioState != RECEIVED_STATE)
@@ -620,7 +620,7 @@ implementation
   }
 
   command uint8_t Packet.payloadLength(message_t* msg) {
-    CC1KHeader* header = getHeader(msg);
+    cc1000_header_t* header = getHeader(msg);
     return header->length;
   }
  
@@ -634,20 +634,20 @@ implementation
 
   command void* Packet.getPayload(message_t* msg, uint8_t* len) {
     if (len != NULL) {
-      CC1KHeader* header = getHeader(msg);
+      cc1000_header_t* header = getHeader(msg);
       *len = header->length;
     }
     return (void*)msg->data;
   }
 
   async command error_t PacketAcknowledgements.requestAck(message_t* msg) {
-    CC1KMetadata* md = getMetadata(msg);
+    cc1000_metadata_t* md = getMetadata(msg);
     md->ack = 1;
     return SUCCESS;
   }
 
   async command error_t PacketAcknowledgements.noAck(message_t* msg) {
-    CC1KMetadata* md = getMetadata(msg);
+    cc1000_metadata_t* md = getMetadata(msg);
     md->ack = 1;
     return SUCCESS;
   }
@@ -669,7 +669,7 @@ implementation
   }
 
   async command bool PacketAcknowledgements.wasAcked(message_t* msg) {
-    CC1KMetadata* md = getMetadata(msg);
+    cc1000_metadata_t* md = getMetadata(msg);
     return md->ack;
   }
   // Default events for radio send/receive coordinators do nothing.
