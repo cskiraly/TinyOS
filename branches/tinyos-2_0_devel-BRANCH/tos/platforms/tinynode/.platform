@@ -6,13 +6,13 @@
 
 push( @includes, qw(
 
-  %T/tos/platforms/tinynode/chips/xe1205
-  %T/tos/platforms/tinynode/chips/mm74hc595
+  %T/platforms/tinynode/chips/xe1205
+  %T/platforms/tinynode/chips/mm74hc595
 
-  %T/tos/chips/xe1205/conf
-  %T/tos/chips/xe1205/phy
-  %T/tos/chips/xe1205/mac
-  %T/tos/chips/xe1205
+  %T/chips/xe1205/conf
+  %T/chips/xe1205/phy
+  %T/chips/xe1205/mac
+  %T/chips/xe1205
 
   %T/../beta/tos/chips/mm74hc595
 
