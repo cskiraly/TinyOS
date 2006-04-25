@@ -51,8 +51,8 @@
 
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.12 $
- * $Date: 2006-03-08 02:11:17 $ 
+ * $Revision: 1.1.2.13 $
+ * $Date: 2006-04-25 23:45:21 $ 
  * ======================================================================== 
  */
  
@@ -152,7 +152,7 @@ implementation {
   } 
 
   async command error_t ResourceController.request() {
-    call Resource.request[CONTROLLER_ID]();
+    return call Resource.request[CONTROLLER_ID]();
   }
   
   /**
