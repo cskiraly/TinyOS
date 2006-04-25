@@ -1,4 +1,4 @@
-/// $Id: McuSleepC.nc,v 1.1.2.4 2006-01-27 22:32:24 mturon Exp $
+/// $Id: McuSleepC.nc,v 1.1.2.5 2006-04-25 23:49:14 idgay Exp $
 
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -29,7 +29,7 @@
  * Szewczyk's 1.x code in HPLPowerManagementM.nc.
  *
  * <pre>
- *  $Id: McuSleepC.nc,v 1.1.2.4 2006-01-27 22:32:24 mturon Exp $
+ *  $Id: McuSleepC.nc,v 1.1.2.5 2006-04-25 23:49:14 idgay Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -47,14 +47,13 @@ module McuSleepC {
   }
 }
 implementation {
-  bool dirty = TRUE;
-  mcu_power_t powerState = ATM128_POWER_IDLE;
+  /* There is no dirty bit management because the sleep mode depends on
+     the amount of time remaining in timer0. */
 
   /* Note that the power values are maintained in an order
    * based on their active components, NOT on their values.
    * Look at atm128hardware.h and page 42 of the ATmeg128
    * manual (figure 17).*/
-  // NOTE: This table should be in progmem.
   const_uint8_t atm128PowerBits[ATM128_POWER_DOWN + 1] = {
     0,
     (1 << SM0),
@@ -85,15 +84,19 @@ implementation {
     else if (UCSR1B & (1 << TXCIE | 1 << RXCIE)) { // UART
       return ATM128_POWER_IDLE;
     }
-    // ADC is enbaled
+    // ADC is enabled
     else if (bit_is_set(ADCSR, ADEN)) { 
       return ATM128_POWER_ADC_NR;
     }
     // How soon for the timer to go off?
-    else if (TIMSK & (1<<OCIE0 | 1<<TOIE0)) {
+    else if (TIMSK & (1 << OCIE0 | 1 << TOIE0)) {
+      // force waiting for timer0 update (overflow glitches otherwise)
+      TCCR0 = TCCR0;
+      while (ASSR & (1 << TCN0UB | 1 << OCR0UB | 1 << TCR0UB))
+	;
       diff = OCR0 - TCNT0;
-      if (diff < 16) 
-	return ATM128_POWER_IDLE;
+      if (diff < 16 || TCNT0 > 240) 
+	return ATM128_POWER_EXT_STANDBY;
       return ATM128_POWER_SAVE;
     }
     else {
@@ -101,32 +104,22 @@ implementation {
     }
   }
   
-  void computePowerState() {
-    powerState = mcombine(getPowerState(),
-			  call McuPowerOverride.lowestState());
-  }
-  
   async command void McuSleep.sleep() {
-    if (dirty) {
-      uint8_t temp;
-      computePowerState();
-      //dirty = 0;
-      temp = MCUCR;
-      temp &= 0xe3;
-      temp |= read_uint8_t(&atm128PowerBits[powerState]) | (1 << SE);
-      MCUCR = temp;
-    }
+    uint8_t powerState;
+
+    powerState = mcombine(getPowerState(), call McuPowerOverride.lowestState());
+    MCUCR =
+      (MCUCR & 0xe3) | 1 << SE | read_uint8_t(&atm128PowerBits[powerState]);
+
     sei();
     asm volatile ("sleep");
     cli();
   }
 
   async command void McuPowerState.update() {
-    atomic dirty = 1;
   }
 
- default async command mcu_power_t McuPowerOverride.lowestState() {
-   return ATM128_POWER_IDLE;
- }
-
+  default async command mcu_power_t McuPowerOverride.lowestState() {
+    return ATM128_POWER_DOWN;
+  }
 }
