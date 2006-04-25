@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.13 2006-04-23 21:59:22 scipio Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.14 2006-04-25 23:46:17 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -653,7 +653,7 @@ implementation
   }
 
   command void* Receive.getPayload(message_t* m, uint8_t* len) {
-    call Packet.getPayload(m, len);
+    return call Packet.getPayload(m, len);
   }
 
   command uint8_t Receive.payloadLength(message_t* m) {
