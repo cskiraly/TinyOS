@@ -1,4 +1,4 @@
-// $Id: LedsP.nc,v 1.1.2.3 2006-01-03 02:11:58 scipio Exp $
+// $Id: LedsP.nc,v 1.1.2.4 2006-04-25 23:45:04 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -55,60 +55,54 @@ implementation {
     return SUCCESS;
   }
 
+  /* Note: the call is inside the dbg, as it's typically a read of a volatile
+     location, so can't be deadcode eliminated */
+#define DBGLED(n) \
+  dbg("LedsC", "LEDS: Led" #n " %s.\n", call Led ## n .get() ? "off" : "on");
+
   async command void Leds.led0On() {
-    dbg("LedsC", "LEDS: Led 1 on.\n");
     call Led0.clr();
+    DBGLED(0);
   }
 
   async command void Leds.led0Off() {
-    dbg("LedsC", "LEDS: Led 1 off.\n");
     call Led0.set();
+    DBGLED(0);
   }
 
   async command void Leds.led0Toggle() {
     call Led0.toggle();
-    // this should be removed by dead code elimination when compiled for
-    // the physical motes
-    if (call Led0.get())
-      dbg("LedsC", "LEDS: Led 1 off.\n");
-    else
-      dbg("LedsC", "LEDS: Led 1 on.\n");
+    DBGLED(0);
   }
 
   async command void Leds.led1On() {
-    dbg("LedsC", "LEDS: Led 2 on.\n");
     call Led1.clr();
+    DBGLED(1);
   }
 
   async command void Leds.led1Off() {
-    dbg("LedsC", "LEDS: Led 2 off.\n");
     call Led1.set();
+    DBGLED(1);
   }
 
   async command void Leds.led1Toggle() {
     call Led1.toggle();
-    if (call Led1.get())
-      dbg("LedsC", "LEDS: Led 2 off.\n");
-    else
-      dbg("LedsC", "LEDS: Led 2 on.\n");
+    DBGLED(1);
   }
 
   async command void Leds.led2On() {
-    dbg("LedsC", "LEDS: Led 3 on.\n");
     call Led2.clr();
+    DBGLED(2);
   }
 
   async command void Leds.led2Off() {
-    dbg("LedsC", "LEDS: Led 3 off.\n");
     call Led2.set();
+    DBGLED(2);
   }
 
   async command void Leds.led2Toggle() {
     call Led2.toggle();
-    if (call Led2.get())
-      dbg("LedsC", "LEDS: Led 3 off.\n");
-    else
-      dbg("LedsC", "LEDS: Led 3 on.\n");
+    DBGLED(2);
   }
 
   async command uint8_t Leds.get() {
