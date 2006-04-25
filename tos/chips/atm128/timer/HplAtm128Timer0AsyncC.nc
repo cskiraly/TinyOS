@@ -1,4 +1,4 @@
-/// $Id: HplAtm128Timer0AsyncC.nc,v 1.1.2.3 2006-01-27 17:56:06 idgay Exp $
+/// $Id: HplAtm128Timer0AsyncC.nc,v 1.1.2.4 2006-04-25 23:52:03 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -57,7 +57,11 @@ implementation
   async command uint8_t  Timer.get() { return TCNT0; }
 
   //=== Set/clear the current timer value. ==============================
-  async command void Timer.set(uint8_t t)  { TCNT0 = t; }
+  async command void Timer.set(uint8_t t)  {
+    while (ASSR & 1 << TCN0UB)
+      ;
+    TCNT0 = t;
+  }
 
   //=== Read the current timer scale. ===================================
   async command uint8_t Timer.getScale() { return TCCR0 & 0x7; }
@@ -79,6 +83,8 @@ implementation
 
   //=== Write the control registers. ====================================
   async command void TimerCtrl.setControl( Atm128TimerControl_t x ) { 
+    while (ASSR & 1 << TCR0UB)
+      ;
     TCCR0 = x.flat; 
   }
 
@@ -117,28 +123,7 @@ implementation
     return (call TimerCtrl.getInterruptFlag()).bits.tov0; 
   }
 
-  inline void stabiliseOverflow() {
-    /* From the atmel manual:
-
-    During asynchronous operation, the synchronization of the interrupt
-    flags for the asynchronous timer takes three processor cycles plus one
-    timer cycle.  The timer is therefore advanced by at least one before
-    the processor can read the timer value causing the setting of the
-    interrupt flag. The output compare pin is changed on the timer clock
-    and is not synchronized to the processor clock.
-
-    So: if the timer is = 0, wait till it's = 1, except if
-    - we're currently in the overflow interrupt handler
-    - or, the overflow flag is already set
-    */
-
-    if (!inOverflow)
-      while (!TCNT0 && !overflowed())
-	;
-  }
-
   async command bool Timer.test()  { 
-    stabiliseOverflow();
     return overflowed();
   }
   async command bool Timer.isOn()  { 
@@ -161,30 +146,29 @@ implementation
   async command void Compare.set(uint8_t t)   { 
     atomic
       {
-	/* Setting the compare register while the timer is = 0 on async timers
-	   seems to be a bad idea... (lost overflow interrupts). So
-	   call stabiliseOverflow here too. */
-	stabiliseOverflow();
-
-	/* Re the comment above: it's a bad idea to wake up at time 0, as
-	   we'll just spin when setting the next deadline. Try and reduce
-	   the likelihood by delaying the interrupt...
-	*/
-	if (t == 0 || t >= 0xfe)
-	  t = 1;
-
+	while (ASSR & 1 << OCR0UB)
+	  ;
 	OCR0 = t; 
       }
   }
 
   //=== Timer interrupts signals ========================================
+  void stabiliseTimer0() {
+    TCCR0 = TCCR0;
+    while (ASSR & 1 << TCR0UB)
+      ;
+  }
+
   default async event void Compare.fired() { }
-  AVR_NONATOMIC_HANDLER(SIG_OUTPUT_COMPARE0) {
+  AVR_ATOMIC_HANDLER(SIG_OUTPUT_COMPARE0) {
+    stabiliseTimer0();
+    __nesc_enable_interrupt();
     signal Compare.fired();
   }
 
   default async event void Timer.overflow() { }
   AVR_ATOMIC_HANDLER(SIG_OVERFLOW0) {
+    stabiliseTimer0();
     inOverflow = TRUE;
     signal Timer.overflow();
     inOverflow = FALSE;
