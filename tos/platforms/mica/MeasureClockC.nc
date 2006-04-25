@@ -1,4 +1,4 @@
-// $Id: MeasureClockC.nc,v 1.1.2.5 2006-02-17 00:26:48 idgay Exp $
+// $Id: MeasureClockC.nc,v 1.1.2.6 2006-04-25 23:52:48 idgay Exp $
 /*
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
@@ -80,6 +80,9 @@ implementation
 	ASSR = TCCR1B = TCCR0 = 0;
 	TCNT0 = 0;
 	TCNT1 = 0;
+	ETIFR = TIFR = 0xff;
+	while (ASSR & (1 << TCN0UB | 1 << OCR0UB | 1 << TCR0UB))
+	  ;
       }
     return SUCCESS;
   }
