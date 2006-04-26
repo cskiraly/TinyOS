@@ -1,4 +1,4 @@
-/* $Id: TreeRoutingEngineImplP.nc,v 1.1.2.2 2006-04-26 14:39:47 rfonseca76 Exp $ */
+/* $Id: TreeRoutingEngineImplP.nc,v 1.1.2.3 2006-04-26 14:50:52 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -24,7 +24,7 @@
 /*
  *  @author Rodrigo Fonseca
  *  Based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
- *  @date   $Date: 2006-04-26 14:39:47 $
+ *  @date   $Date: 2006-04-26 14:50:52 $
  */
 generic module TreeRoutingEngineImplP(uint8_t routingTableSize) {
     provides {
@@ -36,6 +36,7 @@ generic module TreeRoutingEngineImplP(uint8_t routingTableSize) {
     uses {
         interface AMSend as BeaconSend;
         interface AMReceive as BeaconReceive;
+        interface LinkSrcPacket;
         interface TreeNeighborTable as RoutingTable;
         interface LinkEstimator;
         interface Timer<TMilli> as BeaconTimer;
@@ -124,7 +125,7 @@ implementation {
         beacon_msg_t* rcvBeacon;
 
         //need to get the am_addr_t of the source
-        from = call LinkSrcPacket.src(msg);
+        from = call LinkSrcPacket.getSrc(msg);
         rcvBeacon = (beacon_msg_t*)payload;
 
         //update neighbor table
