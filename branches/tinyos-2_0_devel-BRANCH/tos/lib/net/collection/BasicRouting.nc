@@ -1,4 +1,4 @@
-/* $Id: BasicRouting.nc,v 1.1.2.2 2006-04-20 15:47:04 rfonseca76 Exp $ */
+/* $Id: BasicRouting.nc,v 1.1.2.3 2006-04-26 14:41:46 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -23,12 +23,10 @@
 
 /** BasicRouting is to be implemented by all routing engines.
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-04-20 15:47:04 $
+ *  @date   $Date: 2006-04-26 14:41:46 $
  */
 interface BasicRouting {
     /** Get a set of neighbors that make progress towards the destination.
-     * @param tree_id : the network address of the message, the id of the 
-     *                  collection tree to send the message to
      * @param nextHops: pointer to an array where to store the next hops found.
      *                  This array is allocated at the caller. If the message
      *                  is to be received by the local node, nextHops will 
@@ -38,6 +36,6 @@ interface BasicRouting {
      *            is to be received locally, n will be set to 1.
      * @return : if the result is FAIL, n cannot be used.
      */
-    command error_t getNextHops(uint8_t tree_id, uint16_t* nextHops, uint8_t* n);
+    command error_t getNextHops(am_addr_t* nextHops, uint8_t* n);
 }
 
