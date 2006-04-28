@@ -1,4 +1,4 @@
-// $Id: Alarm32khz16C.nc,v 1.1.2.4 2006-02-17 00:26:48 idgay Exp $
+// $Id: AlarmOne16C.nc,v 1.1.2.1 2006-04-28 23:18:57 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -23,16 +23,16 @@
  * @author David Gay <dgay@intel-research.net>
  */
 
-#include "Atm128Timer.h"
+#include <MicaTimer.h>
 
-generic configuration Alarm32khz16C()
+generic configuration AlarmOne16C()
 {
-  provides interface Alarm<T32khz, uint16_t>;
+  provides interface Alarm<TOne, uint16_t>;
 }
 implementation
 {
-  components HplAtm128Timer1C as HWTimer, Init32khzP,
-    new Atm128AlarmC(T32khz, uint16_t, 2) as NAlarm;
+  components HplAtm128Timer1C as HWTimer, InitOneP,
+    new Atm128AlarmC(TOne, uint16_t, 3) as NAlarm;
   
   enum {
     COMPARE_ID = unique(UQ_TIMER1_COMPARE)

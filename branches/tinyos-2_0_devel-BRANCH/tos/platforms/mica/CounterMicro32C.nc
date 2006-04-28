@@ -1,4 +1,4 @@
-// $Id: CounterMicro32C.nc,v 1.1.2.2 2006-01-27 21:52:11 idgay Exp $
+// $Id: CounterMicro32C.nc,v 1.1.2.3 2006-04-28 23:18:57 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -17,6 +17,8 @@
  * @author David Gay <dgay@intel-research.net>
  */
 
+#include <MicaTimer.h>
+
 configuration CounterMicro32C
 {
   provides interface Counter<TMicro, uint32_t>;
@@ -24,7 +26,7 @@ configuration CounterMicro32C
 implementation
 {
   components CounterMicro16C as Counter16, 
-    new TransformCounterC(TMicro, uint32_t, TMicro, uint16_t, 0, uint16_t)
+    new TransformCounterC(TMicro, uint32_t, TMicro, uint16_t, 0, counter_three_overflow_t)
       as Transform32;
 
   Counter = Transform32;

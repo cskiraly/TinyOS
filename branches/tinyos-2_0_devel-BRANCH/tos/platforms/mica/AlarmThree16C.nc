@@ -1,4 +1,4 @@
-// $Id: AlarmMicro16C.nc,v 1.1.2.4 2006-02-17 00:26:48 idgay Exp $
+// $Id: AlarmThree16C.nc,v 1.1.2.1 2006-04-28 23:18:57 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -25,16 +25,16 @@
  * @author David Gay <dgay@intel-research.net>
  */
 
-#include "Atm128Timer.h"
+#include <MicaTimer.h>
 
-generic configuration AlarmMicro16C()
+generic configuration AlarmThree16C()
 {
-  provides interface Alarm<TMicro, uint16_t>;
+  provides interface Alarm<TThree, uint16_t>;
 }
 implementation
 {
-  components HplAtm128Timer3C as HWTimer, InitMicroP,
-    new Atm128AlarmC(TMicro, uint16_t, 100) as NAlarm;
+  components HplAtm128Timer3C as HWTimer, InitThreeP,
+    new Atm128AlarmC(TThree, uint16_t, 100) as NAlarm;
   
   enum {
     COMPARE_ID = unique(UQ_TIMER3_COMPARE)

@@ -1,4 +1,4 @@
-// $Id: CounterMicro16C.nc,v 1.1.2.3 2006-01-27 21:52:11 idgay Exp $
+// $Id: CounterOne16C.nc,v 1.1.2.1 2006-04-28 23:18:57 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -9,22 +9,24 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * 16-bit microsecond Counter component as per TEP102 HAL guidelines. The
- * mica family microsecond clock is built on hardware timer 3, and actually
- * runs at CPU frequency / 8. You can use the MeasureClockC.cyclesPerJiffy() 
+ * 16-bit 32kHz Counter component as per TEP102 HAL guidelines. The mica
+ * family 32kHz clock is built on hardware timer 1, and actually runs at
+ * CPU frequency / 256. You can use the MeasureClockC.cyclesPerJiffy()
  * command to figure out the exact frequency.
  *
  * @author David Gay <dgay@intel-research.net>
  */
 
-configuration CounterMicro16C
+#include <MicaTimer.h>
+
+configuration CounterOne16C
 {
-  provides interface Counter<TMicro, uint16_t>;
+  provides interface Counter<TOne, uint16_t>;
 }
 implementation
 {
-  components HplAtm128Timer3C as HWTimer, InitMicroP,
-    new Atm128CounterC(TMicro, uint16_t) as NCounter;
+  components HplAtm128Timer1C as HWTimer, InitOneP,
+    new Atm128CounterC(TOne, uint16_t) as NCounter;
   
   Counter = NCounter;
   NCounter.Timer -> HWTimer;

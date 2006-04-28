@@ -1,4 +1,4 @@
-// $Id: Init32khzP.nc,v 1.1.2.5 2006-02-17 00:26:48 idgay Exp $
+// $Id: InitThreeP.nc,v 1.1.2.1 2006-04-28 23:18:57 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -9,18 +9,20 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Internal mica-family timer component. Sets up hardware timer 1 to run
- * at cpu clock / 256, at boot time. Assumes an ~8MHz CPU clock, replace
+ * Internal mica-family timer component. Sets up hardware timer 3 to run
+ * at cpu clock / 8, at boot time. Assumes an ~8MHz CPU clock, replace
  * this component if you are running at a radically different frequency.
  *
  * @author David Gay
  */
 
-configuration Init32khzP { }
-implementation {
-  components PlatformC, HplAtm128Timer1C as HWTimer,
-    new Atm128TimerInitC(uint16_t, ATM128_CLK16_DIVIDE_256) as Init32khz;
+#include <MicaTimer.h>
 
-  PlatformC.SubInit -> Init32khz;
-  Init32khz.Timer -> HWTimer;
+configuration InitThreeP { }
+implementation {
+  components PlatformC, HplAtm128Timer3C as HWTimer,
+    new Atm128TimerInitC(uint16_t, MICA_PRESCALER_THREE) as InitThree;
+
+  PlatformC.SubInit -> InitThree;
+  InitThree.Timer -> HWTimer;
 }

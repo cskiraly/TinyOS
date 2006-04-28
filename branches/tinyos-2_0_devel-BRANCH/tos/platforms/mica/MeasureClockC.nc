@@ -1,4 +1,4 @@
-// $Id: MeasureClockC.nc,v 1.1.2.6 2006-04-25 23:52:48 idgay Exp $
+// $Id: MeasureClockC.nc,v 1.1.2.7 2006-04-28 23:18:57 idgay Exp $
 /*
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
@@ -16,7 +16,8 @@
  * @author David Gay
  */
 
-#include "scale.h"
+#include <MicaTimer.h>
+#include <scale.h>
 
 module MeasureClockC {
   provides {
@@ -31,7 +32,7 @@ implementation
 {
   enum {
     /* This is expected number of cycles per jiffy at the platform's
-       specified MHz. We are PLATFORM_MHZ == 1, 2, 4, 8 or 16. */
+       specified MHz. Assumes PLATFORM_MHZ == 1, 2, 4, 8 or 16. */
     MAGIC = 488 / (16 / PLATFORM_MHZ)
   };
 
