@@ -1,4 +1,4 @@
-// $Id: Counter32khz32C.nc,v 1.1.2.3 2006-04-28 23:18:57 idgay Exp $
+// $Id: Counter32khz32C.nc,v 1.1.2.4 2006-04-28 23:27:22 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -25,7 +25,7 @@ configuration Counter32khz32C
 }
 implementation
 {
-  components Counter32khz16C as Counter16, 
+  components CounterOne16C as Counter16, 
     new TransformCounterC(T32khz, uint32_t, T32khz, uint16_t, 0, counter_one_overflow_t)
       as Transform32;
 

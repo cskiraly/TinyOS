@@ -1,4 +1,4 @@
-// $Id: MicaTimer.h,v 1.1.2.1 2006-04-28 23:18:57 idgay Exp $
+// $Id: MicaTimer.h,v 1.1.2.2 2006-04-28 23:27:22 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -9,6 +9,7 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 #ifndef MICATIMER_H
+#define MICATIMER_H
 
 /* This file defines the rates at which the mica family's atmega128 timer 1
    and 3 timers run at. The goal is to present the user with microsend and
@@ -34,6 +35,7 @@
    provided by PlatformC.
 */
 
+#include <Timer.h>
 #include <Atm128Timer.h>
 
 /* Some types for the non-standard rates that mica timers might be running
@@ -65,7 +67,7 @@ enum {
   MICA_DIVIDE_THREE_FOR_MICRO_LOG2 = 0
 };
 
-#elsif MHZ == 2
+#elif MHZ == 2
 typedef T32khz TOne;
 typedef T2mhz TThree;
 typedef uint16_t counter_one_overflow_t;
@@ -78,7 +80,7 @@ enum {
   MICA_DIVIDE_THREE_FOR_MICRO_LOG2 = 1
 };
 
-#elsif MHZ == 4
+#elif MHZ == 4
 typedef T64khz TOne;
 typedef T4mhz TThree;
 typedef uint32_t counter_one_overflow_t;
@@ -91,7 +93,7 @@ enum {
   MICA_DIVIDE_THREE_FOR_MICRO_LOG2 = 2
 };
 
-#elsif MHZ == 8
+#elif MHZ == 8
 typedef T32khz TOne;
 typedef TMicro TThree;
 typedef uint16_t counter_one_overflow_t;
@@ -104,6 +106,8 @@ enum {
   MICA_DIVIDE_THREE_FOR_MICRO_LOG2 = 0
 };
 
+#else
+#error "Unknown clock rate. MHZ must be defined to one of 1, 2, 4, or 8."
 #endif
 
 enum {
