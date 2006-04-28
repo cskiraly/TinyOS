@@ -1,4 +1,4 @@
-// $Id: Alarm32khz32C.nc,v 1.1.2.2 2006-01-27 21:52:11 idgay Exp $
+// $Id: Alarm32khz32C.nc,v 1.1.2.3 2006-04-28 23:18:57 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -21,14 +21,16 @@
  * @author David Gay <dgay@intel-research.net>
  */
 
+#include <MicaTimer.h>
+
 generic configuration Alarm32khz32C()
 {
   provides interface Alarm<T32khz, uint32_t>;
 }
 implementation
 {
-  components new Alarm32khz16C() as Alarm16, Counter32khz32C as Counter32,
-    new TransformAlarmC(T32khz, uint32_t, T32khz, uint16_t, 0)
+  components new AlarmOne16C() as Alarm16, Counter32khz32C as Counter32,
+    new TransformAlarmC(T32khz, uint32_t, TOne, uint16_t, MICA_DIVIDE_ONE_FOR_32KHZ_LOG2)
       as Transform32;
 
   Alarm = Transform32;

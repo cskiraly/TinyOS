@@ -1,4 +1,4 @@
-// $Id: AlarmMicro32C.nc,v 1.1.2.2 2006-01-27 21:52:11 idgay Exp $
+// $Id: AlarmMicro32C.nc,v 1.1.2.3 2006-04-28 23:18:57 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -23,15 +23,17 @@
  * @author David Gay <dgay@intel-research.net>
  */
 
+#include <MicaTimer.h>
+
 generic configuration AlarmMicro32C()
 {
   provides interface Alarm<TMicro, uint32_t>;
 }
 implementation
 {
-  components new AlarmMicro16C() as Alarm16, CounterMicro32C as Counter32,
-    new TransformAlarmC(TMicro, uint32_t, TMicro, uint16_t, 0)
-      as Transform32;
+  components new AlarmThree16C() as Alarm16, CounterMicro32C as Counter32,
+    new TransformAlarmC(TMicro, uint32_t, TThree, uint16_t,
+			MICA_DIVIDE_THREE_FOR_MICRO_LOG2) as Transform32;
 
   Alarm = Transform32;
   Transform32.AlarmFrom -> Alarm16;
