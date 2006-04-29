@@ -1,4 +1,4 @@
-/* $Id: PoolP.nc,v 1.1.2.1 2006-04-23 20:27:10 scipio Exp $ */
+/* $Id: PoolP.nc,v 1.1.2.2 2006-04-29 18:58:44 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,8 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-04-23 20:27:10 $
+ *  @author Kyle Jamieson
+ *  @date   $Date: 2006-04-29 18:58:44 $
  */
 
 generic module PoolP(typedef pool_t, uint8_t size) {
@@ -58,18 +59,18 @@ implementation {
     return size;
   }
 
-  command t* Pool.pop() {
-    if (free == 0) {
-      return NULL;
-    }
-    else {
+  command t* Pool.get() {
+    if (free) {
       t* rval = queue[index];
       queue[index] = NULL;
       free--;
       index = (index + 1) % size;
+      return rval;
     }
+    return NULL;
   }
-  command error_t Pool.push(t* newVal) {
+
+  command error_t Pool.put(t* newVal) {
     if (free >= size) {
       return FAIL;
     }

@@ -1,4 +1,4 @@
-/* $Id: Pool.nc,v 1.1.2.2 2006-04-23 21:24:39 scipio Exp $ */
+/* $Id: Pool.nc,v 1.1.2.3 2006-04-29 18:58:44 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,8 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-04-23 21:24:39 $
+ *  @author Kyle Jamieson
+ *  @date   $Date: 2006-04-29 18:58:44 $
  */
 
    
@@ -34,6 +35,10 @@ interface Pool<t> {
   command uint8_t size();
   command uint8_t maxSize();
 
-  command t* put();
-  command error_t get(t* newVal);
+  // Put an object of type t back into the pool.
+  command error_t put(t* newVal);
+
+  // Get a pointer to an object of type t from the pool, or NULL if we
+  // are out of t.
+  command t* get();
 }
