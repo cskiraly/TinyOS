@@ -1,4 +1,4 @@
-/* $Id: LinkSrcPacket.nc,v 1.1.2.1 2006-04-26 14:51:08 rfonseca76 Exp $ */
+/* $Id: LinkSrcPacket.nc,v 1.1.2.2 2006-04-30 20:16:30 gnawali Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -24,10 +24,12 @@
 /*
  *  @author Rodrigo Fonseca
  *  Based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
- *  @date   $Date: 2006-04-26 14:51:08 $
+ *  @date   $Date: 2006-04-30 20:16:30 $
  */
+
+// Om: added the keyword "command"
 
 interface LinkSrcPacket {
     /** Returns the am_addr of the link this message came from */
-    am_addr_t getSrc(message_t* msg);
+    command am_addr_t getSrc(message_t* msg);
 }
