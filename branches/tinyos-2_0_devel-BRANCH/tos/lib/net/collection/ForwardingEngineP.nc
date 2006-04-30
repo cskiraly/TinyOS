@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.4 2006-04-23 21:24:39 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.5 2006-04-30 17:53:56 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,11 +24,11 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-04-23 21:24:39 $
+ *  @date   $Date: 2006-04-30 17:53:56 $
  */
 
    
-generic module ForwardingEngineP(uint8_t messagePoolSize) {
+generic module ForwardingEngineP() {
   provides {
     interface Init;
     interface StdControl;
