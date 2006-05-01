@@ -1,8 +1,7 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: mica2dot.target,v 1.1.2.2 2006-02-02 00:34:11 jwhui Exp $
+#$Id: mica2dot.target,v 1.1.2.3 2006-05-01 17:19:05 idgay Exp $
 
 PLATFORM = mica2dot
-SENSORBOARD ?= basicsb
 PROGRAMMER_PART ?= -dpart=ATmega128 --wr_fuse_e=ff
 PFLAGS += -finline-limit=100000
 
