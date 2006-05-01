@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.2 2006-05-01 06:07:15 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.3 2006-05-01 06:35:21 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -53,12 +53,12 @@ module LinkEstimatorP {
 
 implementation {
 
-#define NEIGHBOR_TABLE_SIZE 5
+#define NEIGHBOR_TABLE_SIZE 10
 #define NEIGHBOR_AGE_TIMER 4096
 
   enum {
     VALID_ENTRY = 0x1,
-    EVICT_QUALITY_THRESHOLD = 0x50,
+    EVICT_QUALITY_THRESHOLD = 0x20,
     MAX_AGE = 6,
     MAX_PKT_GAP = 10,
     MAX_QUALITY = 0xff,
@@ -138,7 +138,7 @@ implementation {
     }
 
     hdr->ll_addr = call SubAMPacket.address();
-    hdr->seq = linkEstSeq++; linkEstSeq++;
+    hdr->seq = linkEstSeq++;
     hdr->linkest_footer_offset = sizeof(linkest_header_t) + len;
     dbg("LI", "newlen2 = %d\n", newlen);
     if (j > 0) {
@@ -388,6 +388,7 @@ implementation {
       }
       if (nidx == INVALID_RVAL) {
 	nidx = findWorstNeighborIdx();
+	signal LinkEstimator.evicted(NeighborTable[nidx].ll_addr);
 	dbg("LI", "Going to replace neighbor idx: %d\n", nidx);
 	if (nidx != INVALID_RVAL) {
 	  initNeighborIdx(nidx, hdr->ll_addr);
