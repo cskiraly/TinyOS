@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.7 2006-01-29 18:01:55 scipio Exp $
+/* $Id: RandRWC.nc,v 1.1.2.8 2006-05-01 19:19:29 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -25,6 +25,8 @@ module RandRWC {
     interface Leds;
     interface BlockRead;
     interface BlockWrite;
+    interface AMSend;
+    interface SplitControl as SerialControl;
   }
 }
 implementation {
@@ -72,22 +74,35 @@ implementation {
   int count;
   uint32_t addr, len;
   uint16_t offset;
+  message_t reportmsg;
+
+  void report(error_t e) {
+    uint8_t *msg = call AMSend.getPayload(&reportmsg);
+
+    msg[0] = e;
+    if (call AMSend.send(AM_BROADCAST_ADDR, &reportmsg, 1) != SUCCESS)
+      call Leds.led0On();
+  }
+
+  event void AMSend.sendDone(message_t* msg, error_t error) {
+    if (error != SUCCESS)
+      call Leds.led0On();
+  }
+
+  void fail(error_t e) {
+    call Leds.led0On();
+    report(e);
+  }
 
   bool scheck(error_t r) __attribute__((noinline)) {
     if (r != SUCCESS)
-      call Leds.led0On();
-    return r == SUCCESS;
-  }
-
-  bool rcheck(error_t r) {
-    if (r != SUCCESS)
-      call Leds.led0On();
+      fail(r);
     return r == SUCCESS;
   }
 
   bool bcheck(bool b) {
     if (!b)
-      call Leds.led0On();
+      fail(FAIL);
     return b;
   }
 
@@ -102,7 +117,19 @@ implementation {
   }
 
   event void Boot.booted() {
+    call SerialControl.start();
+  }
+
+  event void SerialControl.stopDone(error_t e) { }
+
+  event void SerialControl.startDone(error_t e) {
     int i;
+
+    if (e != SUCCESS)
+      {
+	call Leds.led0On();
+	return;
+      }
 
     resetSeed();
     for (i = 0; i < sizeof data; i++)
@@ -111,12 +138,12 @@ implementation {
     if (TOS_NODE_ID & 1)
       {
 	state = S_ERASE;
-	rcheck(call BlockWrite.erase());
+	scheck(call BlockWrite.erase());
       }
     else
       {
 	state = S_VERIFY;
-	rcheck(call BlockRead.verify());
+	scheck(call BlockRead.verify());
       }
   }
 
@@ -124,11 +151,12 @@ implementation {
     if (++count == NWRITES)
       {
 	call Leds.led1On();
+	report(0xc0);
       }
     else
       {
 	setParameters();
-	rcheck(call BlockRead.read(addr, rdata, len));
+	scheck(call BlockRead.read(addr, rdata, len));
       }
   }
 
@@ -137,12 +165,12 @@ implementation {
       {
 	call Leds.led2Toggle();
 	state = S_COMMIT;
-	rcheck(call BlockWrite.commit());
+	scheck(call BlockWrite.commit());
       }
     else
       {
 	setParameters();
-	rcheck(call BlockWrite.write(addr, data + offset, len));
+	scheck(call BlockWrite.write(addr, data + offset, len));
       }
   }
 
@@ -169,10 +197,13 @@ implementation {
 	  {
 	    call Leds.led2Toggle();
 	    state = S_VERIFY;
-	    rcheck(call BlockRead.verify());
+	    scheck(call BlockRead.verify());
 	  }
 	else
-	  call Leds.led1On();
+	  {
+	    call Leds.led1On();
+	    report(0x80);
+	  }
       }
   }
 
@@ -195,4 +226,5 @@ implementation {
 
   event void BlockRead.computeCrcDone(storage_addr_t x, storage_len_t y, uint16_t z, error_t result) {
   }
+
 }

@@ -1,4 +1,4 @@
-/* $Id: RandRWAppC.nc,v 1.1.2.3 2006-02-04 01:10:33 philipb Exp $
+/* $Id: RandRWAppC.nc,v 1.1.2.4 2006-05-01 19:19:28 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -19,10 +19,13 @@
 configuration RandRWAppC { }
 implementation {
   components RandRWC, new BlockStorageC(VOLUME_BLOCKTEST),
-    MainC, LedsC, PlatformC;
+    MainC, LedsC, PlatformC, SerialActiveMessageC;
 
   MainC.Boot <- RandRWC;
-  
+  MainC.SoftwareInit -> SerialActiveMessageC;
+
+  RandRWC.SerialControl -> SerialActiveMessageC;
+  RandRWC.AMSend -> SerialActiveMessageC.AMSend[1];
   RandRWC.BlockRead -> BlockStorageC.BlockRead;
   RandRWC.BlockWrite -> BlockStorageC.BlockWrite;
   RandRWC.Leds -> LedsC;
