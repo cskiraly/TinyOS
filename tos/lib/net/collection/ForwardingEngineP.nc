@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.6 2006-05-01 01:46:17 kasj78 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.7 2006-05-01 16:43:32 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-05-01 01:46:17 $
+ *  @date   $Date: 2006-05-01 16:43:32 $
  */
 
    
@@ -93,7 +93,7 @@ implementation {
 
   event void RadioControl.startDone() {
     radioOn = TRUE;
-    if (!Queue.isEmpty()) {
+    if (!SendQueue.empty()) {
       post sendTask();
     }
   }
@@ -138,7 +138,7 @@ implementation {
     qe->msg = msg;
     qe->client = client;
     
-    if (call SendQueue.push(qe) == SUCCESS) {
+    if (call SendQueue.enqueue(qe) == SUCCESS) {
       if (radioOn && call SendQueue.size() == 1) {
         post sendTask();
       }
@@ -153,7 +153,7 @@ implementation {
   // queue until it is successfully sent.
   task void sendTask() {
     if (!call UnicastNameFreeRouting.hasRoute() ||
-         call SendQueue.isEmpty() || 
+         call SendQueue.empty() || 
          sending) {
       return;
     }
@@ -215,7 +215,7 @@ implementation {
     }
     else if (getHeader(qe->msg)->origin == TOS_NODE_ID) {
       network_header_t* hdr;
-      call SendQueue.pop();
+      call SendQueue.dequeue();
       hdr = getHeader(qe->msg);
       if (qe->client < CLIENT_COUNT)
         signal Send.sendDone[qe->client](msg, SUCCESS);
@@ -243,7 +243,7 @@ implementation {
 
       uint8_t len = call SubPacket.payloadLength(m);x
       call Packet.setPayloadLength(m, len + sizeof(network_header_t));
-      if (call SendQueue.push(qe))
+      if (call SendQueue.enqueue(qe))
         return newMsg;
       else {
         call ForwardPool.put(newMsg);
