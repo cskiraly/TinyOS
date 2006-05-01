@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.1 2006-04-25 05:27:21 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.2 2006-05-01 06:07:15 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -25,7 +25,7 @@
  */
 
 /*
- @ authors Omprakash Gnawali
+ @ author Omprakash Gnawali
  @ Created: April 24, 2006
  */
 
@@ -39,6 +39,7 @@ module LinkEstimatorP {
     interface LinkEstimator;
     interface Init;
     interface Packet;
+    interface LinkSrcPacket;
   }
 
   uses {
@@ -52,8 +53,18 @@ module LinkEstimatorP {
 
 implementation {
 
-#define NEIGHBOR_TABLE_SIZE 10
+#define NEIGHBOR_TABLE_SIZE 5
 #define NEIGHBOR_AGE_TIMER 4096
+
+  enum {
+    VALID_ENTRY = 0x1,
+    EVICT_QUALITY_THRESHOLD = 0x50,
+    MAX_AGE = 6,
+    MAX_PKT_GAP = 10,
+    MAX_QUALITY = 0xff,
+    INVALID_RVAL = 0xff,
+    INVALID_NEIGHBOR_ADDR = 0xff
+  };
 
   // neighbor table
   typedef struct neighbor_table_entry {
@@ -61,12 +72,13 @@ implementation {
     uint8_t lastseq;
     uint8_t rcvcnt;
     uint8_t failcnt;
-    uint8_t age;
     uint8_t flags;
+    uint8_t inage;
+    uint8_t outage;
     uint8_t inquality;
     uint8_t outquality;
   } neighbor_table_entry_t;
- 
+
   // for outgoing link estimator message
   // so that we can compute bi-directional quality
   typedef nx_struct neighbor_stat_entry {
@@ -74,11 +86,17 @@ implementation {
     nx_int8_t inquality;
   } neighbor_stat_entry_t;
   
+  typedef nx_struct linkest_footer {
+    nx_uint16_t num_entries;
+    neighbor_stat_entry_t neighborList[1];
+  } linkest_footer_t;
+
   // link estimator header added to
   // every message passing thru' the link estimator
   typedef nx_struct linkest_header {
     nx_am_addr_t ll_addr;
     nx_uint8_t seq;
+    nx_uint8_t linkest_footer_offset;
   } linkest_header_t;
 
   neighbor_table_entry_t NeighborTable[NEIGHBOR_TABLE_SIZE];
@@ -90,81 +108,243 @@ implementation {
     return (linkest_header_t*)call SubPacket.getPayload(m, NULL);
   }
 
-  uint8_t addLinkEstHeader(message_t *msg, uint8_t len) {
+  linkest_footer_t* getFooter(message_t* m, uint8_t len) {
+    return (linkest_footer_t*)(len + (uint8_t *)call Packet.getPayload(m,NULL));
+  }
+
+  uint8_t addLinkEstHeaderAndFooter(message_t *msg, uint8_t len) {
     uint8_t newlen;
     linkest_header_t *hdr;
-
-    newlen = len + sizeof(linkest_header_t);
+    linkest_footer_t *footer;
+    uint8_t i, j;
+    dbg("LI", "newlen1 = %d\n", len);
+    newlen = len + sizeof(linkest_header_t) + sizeof(linkest_footer_t);
     call Packet.setPayloadLength(msg, newlen);
     hdr = getHeader(msg);
-    hdr->ll_addr = TOS_NODE_ID; //link id, but TOS_NODE_ID for now
-    hdr->seq = linkEstSeq++;
+    footer = getFooter(msg, len);
+    footer->num_entries = 0;
+    j = 0;
+    for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
+      if (NeighborTable[i].flags & VALID_ENTRY) {
+	footer->neighborList[j].ll_addr = NeighborTable[i].ll_addr;
+	footer->neighborList[j].inquality = NeighborTable[i].inquality;
+
+	dbg("LI", "Loaded on footer: %d %d %d\n", j, footer->neighborList[j].ll_addr,
+	    footer->neighborList[j].inquality);
+
+	j = ++footer->num_entries;
+
+      }
+    }
+
+    hdr->ll_addr = call SubAMPacket.address();
+    hdr->seq = linkEstSeq++; linkEstSeq++;
+    hdr->linkest_footer_offset = sizeof(linkest_header_t) + len;
+    dbg("LI", "newlen2 = %d\n", newlen);
+    if (j > 0) {
+      newlen += j * sizeof(neighbor_stat_entry_t);
+    }
+    dbg("LI", "newlen3 = %d\n", newlen);
     return newlen;
   }
 
-  // Either a timer or a command will trigger this
-  void send_neighbor_table() {
-    neighbor_stat_entry_t* entry;
-    uint8_t pktlen;
-    char* buf;
-
-    buf = (char *) call Packet.getPayload(&neighborTablePkt, NULL);
-    entry = (neighbor_stat_entry_t *)buf;
-    // dump NeighborTable[0..n-1] to entry,
-    // one by one, getting next slot in the payload
-    pktlen = addLinkEstHeader(&neighborTablePkt, numNeighbors * sizeof(neighbor_stat_entry_t));
-    call AMSend.send(AM_BROADCAST_ADDR, &neighborTablePkt, pktlen);
-  }
-
-  uint8_t searchNeighbor(uint16_t nodeid) {
-    // return idx to NeighborTable
-    return 0;
-  }
-
-  void ageNeighbors() {
-    // increment age for each neighbor
-    // time out neighbors
-  }
 
   uint8_t computeBidirLinkQuality(uint8_t inQuality, uint8_t outQuality) {
     // estimator specific function to compute bi-directional quality
-    return 0;
+    return ((inQuality + outQuality) >> 1);
+  }
+
+
+  void initNeighborIdx(uint8_t i, am_addr_t ll_addr) {
+    neighbor_table_entry_t *ne;
+    ne = &NeighborTable[i];
+    ne->ll_addr = ll_addr;
+    ne->lastseq = 0;
+    ne->rcvcnt = 0;
+    ne->failcnt = 0;
+    ne->flags = VALID_ENTRY;
+    ne->inage = 0;
+    ne->outage = 0;
+    ne->inquality = 0;
+    ne->outquality = 0;
+  }
+ 
+  uint8_t findIdx(am_addr_t ll_addr) {
+    uint8_t i;
+    for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
+      if (NeighborTable[i].flags & VALID_ENTRY) {
+	if (NeighborTable[i].ll_addr == ll_addr) {
+	  return i;
+	}
+      }
+    }
+    return INVALID_RVAL;
+  }
+
+  uint8_t findEmptyNeighborIdx() {
+    uint8_t i;
+    for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
+      if (NeighborTable[i].flags & VALID_ENTRY) {
+      } else {
+	return i;
+      }
+    }
+      return INVALID_RVAL;
+  }
+
+  uint8_t findWorstNeighborIdx() {
+    uint8_t i, worstNeighborIdx, worstQuality, thisQuality;
+
+    worstNeighborIdx = INVALID_RVAL;
+    worstQuality = MAX_QUALITY;
+    for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
+      if (NeighborTable[i].flags & VALID_ENTRY) {
+	thisQuality = computeBidirLinkQuality(NeighborTable[i].inquality,
+					      NeighborTable[i].outquality);
+	if ((thisQuality < worstQuality) && (thisQuality < EVICT_QUALITY_THRESHOLD)) {
+	  worstNeighborIdx = i;
+	  worstQuality = thisQuality;
+	}
+      }
+    }
+    return worstNeighborIdx;
+  }
+
+  void updateReverseQuality(am_addr_t neighbor, uint8_t outquality) {
+    uint8_t idx;
+    idx = findIdx(neighbor);
+    if (idx != INVALID_RVAL) {
+      NeighborTable[idx].outquality = outquality;
+      NeighborTable[idx].outage = MAX_AGE;
+    }
+  }
+
+  void updateNeighborEntryIdx(uint8_t idx, uint8_t seq) {
+    uint8_t packetGap;
+
+    packetGap = seq - NeighborTable[idx].lastseq;
+    dbg("LI", "updateNeighborEntryIdx: prevseq %d, curseq %d, gap %d\n",
+	NeighborTable[idx].lastseq, seq, packetGap);
+    NeighborTable[idx].lastseq = seq;
+    NeighborTable[idx].rcvcnt++;
+    NeighborTable[idx].inage = MAX_AGE;
+    if (packetGap > 0) {
+      NeighborTable[idx].failcnt += packetGap - 1;
+    }
+    if (packetGap > MAX_PKT_GAP) {
+      NeighborTable[idx].failcnt = 0;
+      NeighborTable[idx].rcvcnt = 1;
+      NeighborTable[idx].outage = 0;
+      NeighborTable[idx].outquality = 0;
+      NeighborTable[idx].inquality = 0;
+    }
+  }
+
+
+  void updateNeighborTableEst() {
+    uint8_t i, totalPkt;
+    neighbor_table_entry_t *ne;
+    
+    for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
+      ne = &NeighborTable[i];
+      if (ne->flags & VALID_ENTRY) {
+	if (ne->inage > 0)
+	  ne->inage--;
+	if (ne->outage > 0)
+	  ne->outage--;
+
+	if ((ne->inage == 0) && (ne->outage == 0)) {
+	  ne->flags ^= VALID_ENTRY;
+	} else {
+	  totalPkt = ne->rcvcnt + ne->failcnt;
+	  if (totalPkt == 0) {
+	    ne->inquality = 0;
+	  } else {
+	    ne->inquality = (255 * ne->rcvcnt) / totalPkt;
+	  }
+	  ne->rcvcnt = 0;
+	  ne->failcnt = 0;
+	}
+      }
+    }
+  }
+
+  void print_neighbor_table() {
+    uint8_t i, totalPkt;
+    neighbor_table_entry_t *ne;
+    for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
+      ne = &NeighborTable[i];
+      if (ne->flags & VALID_ENTRY) {
+	dbg("LI", "%d:%d inQ=%d, inA=%d, outQ=%d, outA=%d, rcv=%d, fail=%d, biQ=%d\n",
+	    i, ne->ll_addr, ne->inquality, ne->inage, ne->outquality, ne->outage,
+	    ne->rcvcnt, ne->failcnt, computeBidirLinkQuality(ne->inquality, ne->outquality));
+      }
+    }
+  }
+
+  void initNeighborTable() {
+    uint8_t i;
+
+    for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
+      NeighborTable[i].flags = 0;
+    }
   }
 
   command error_t Init.init() {
+    uint8_t i;
     dbg("LI", "Link estimator init\n");
-    call Timer.startOneShot(NEIGHBOR_AGE_TIMER);
+    initNeighborTable();
+    call Timer.startPeriodic(NEIGHBOR_AGE_TIMER);
     return SUCCESS;
   }
 
   event void Timer.fired() {
     dbg("LI", "Linkestimator timer fired\n");
-    ageNeighbors();
-    call Timer.startOneShot(NEIGHBOR_AGE_TIMER);
+    print_neighbor_table();
+    updateNeighborTableEst();
+    print_neighbor_table();
   }
 
   command uint8_t LinkEstimator.getLinkQuality(uint16_t neighbor) {
-    // call searchNeighbor
-    // return computeBidirLinkQuality(NeighborTable[..].inquality,
-    //                                NeighborTable[..].outquality)
-    return 0;
+    uint8_t idx;
+    idx = findIdx(neighbor);
+    if (idx == INVALID_RVAL) {
+      return 0;
+    } else {
+      return computeBidirLinkQuality(NeighborTable[idx].inquality,
+				     NeighborTable[idx].outquality);
+    };
   }
 
   command uint8_t LinkEstimator.getReverseQuality(uint16_t neighbor) {
-    // call searchNeighbor
-    // return NeighborTable[..].inquality
-    return 0;
+    uint8_t idx;
+    idx = findIdx(neighbor);
+    if (idx == INVALID_RVAL) {
+      return 0;
+    } else {
+      return NeighborTable[idx].inquality;
+    };
   }
 
   command uint8_t LinkEstimator.getForwardQuality(uint16_t neighbor) {
-    // call searchNeighbor
-    // return NeighborTable[..].outquality
-    return 0;
+    uint8_t idx;
+    idx = findIdx(neighbor);
+    if (idx == INVALID_RVAL) {
+      return 0;
+    } else {
+      return NeighborTable[idx].outquality;
+    };
+  }
+
+  command am_addr_t LinkSrcPacket.getSrc(message_t* msg) {
+    linkest_header_t* hdr = getHeader(msg);
+    return hdr->ll_addr;
   }
 
   command error_t Send.send(am_addr_t addr, message_t* msg, uint8_t len) {
     uint8_t newlen;
-    newlen = addLinkEstHeader(msg, len);
+    newlen = addLinkEstHeaderAndFooter(msg, len);
+    dbg("LI", "Sending seq: %d\n", linkEstSeq);
     return call AMSend.send(addr, msg, newlen);
   }
 
@@ -184,14 +364,66 @@ implementation {
     return call Packet.getPayload(msg, NULL);
   }
 
-  event message_t* SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
+
+  printOutboundQualities(linkest_footer_t* f) {
+  }
+
+  event message_t* SubReceive.receive(message_t* msg,
+				      void* payload,
+				      uint8_t len) {
+    uint8_t nidx;
     if (call SubAMPacket.destination(msg) == AM_BROADCAST_ADDR) {
       linkest_header_t* hdr = getHeader(msg);
+      linkest_footer_t* footer;
       dbg("LI", "Got seq: %d from link: %d\n", hdr->seq, hdr->ll_addr);
+
+      print_neighbor_table();
+
+      atomic {
       // update neighbor table with this information
+      nidx = findIdx(hdr->ll_addr);
+      if (nidx == INVALID_RVAL) {
+	nidx = findEmptyNeighborIdx();
+	initNeighborIdx(nidx, hdr->ll_addr);
+      }
+      if (nidx == INVALID_RVAL) {
+	nidx = findWorstNeighborIdx();
+	dbg("LI", "Going to replace neighbor idx: %d\n", nidx);
+	if (nidx != INVALID_RVAL) {
+	  initNeighborIdx(nidx, hdr->ll_addr);
+	}
+      }
+      if (nidx != INVALID_RVAL) {
+	updateNeighborEntryIdx(nidx, hdr->seq);
+      }
+      }
+
+      if (hdr->linkest_footer_offset > 0) {
+	dbg("LI", "There is a linkest footer in this packet: %d\n", hdr->linkest_footer_offset);
+	footer = (linkest_footer_t*) (hdr->linkest_footer_offset +
+				      (uint8_t *)call SubPacket.getPayload(msg, NULL));
+
+	dbg("LI", "Number of footer entries: %d\n", footer->num_entries);
+
+	{
+	  uint8_t i, my_ll_addr;
+	  my_ll_addr = call SubAMPacket.address();
+	  for (i = 0; i < footer->num_entries; i++) {
+	    dbg("LI", "%d %d %d\n", i, footer->neighborList[i].ll_addr,
+		footer->neighborList[i].inquality);
+	    if (footer->neighborList[i].ll_addr == my_ll_addr) {
+	      updateReverseQuality(hdr->ll_addr, footer->neighborList[i].inquality);
+	    }
+	  }
+	}
+
+      }
+
     }
-    // we need to send hdr->ll_addr to the routing layer, don't know how to do that.
-    return signal Receive.receive(msg, call Packet.getPayload(msg, NULL), call Packet.payloadLength(msg));
+    
+    return signal Receive.receive(msg,
+				  call Packet.getPayload(msg, NULL),
+				  call Packet.payloadLength(msg));
   }
 
   command void* Receive.getPayload(message_t* msg, uint8_t* len) {
@@ -225,5 +457,6 @@ implementation {
     }
     return payload + sizeof(linkest_header_t);
   }
+
 }
 
