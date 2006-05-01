@@ -1,6 +1,6 @@
-/// $Id: Atm128I2CMasterC.nc,v 1.1.2.1 2006-01-27 22:19:36 mturon Exp $
+/// $Id: Atm128I2CMasterC.nc,v 1.1.2.2 2006-05-01 21:50:50 scipio Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,15 +22,22 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
+/**
+ * @author Martin Turon <mturon@xbow.com>
+ * @author Philip Levis
+ */
 
-generic configuration HalI2CMasterC (uint8_t device)
-{
-    provides interface HalI2CMaster as I2CDevice;
+configuration Atm128I2CMasterC {
+  provides interface AsyncStdControl;
+  provides interface I2CPacket;
 }
 implementation {
-    components HplI2CBusC, new HalI2CMasterP(device);
-
-    I2CDevice = HalI2CMasterP;
-    HalI2CMasterP.I2C -> HplI2CBusC;
+  components HplAtm128I2CBusC, new Atm128I2CMasterP();
+  components NoLedsC, LedsC;
+  
+  AsyncStdControl = Atm128I2CMasterP;
+  I2CPacket = Atm128I2CMasterP;
+  Atm128I2CMasterP.I2C -> HplAtm128I2CBusC;
+  Atm128I2CMasterP.WriteLeds -> NoLedsC;
+  Atm128I2CMasterP.ReadLeds -> LedsC;
 }

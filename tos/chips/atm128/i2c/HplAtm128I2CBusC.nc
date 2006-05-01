@@ -1,4 +1,4 @@
-/// $Id: HplAtm128I2CBusC.nc,v 1.1.2.1 2006-01-27 22:19:36 mturon Exp $
+/// $Id: HplAtm128I2CBusC.nc,v 1.1.2.2 2006-05-01 21:50:50 scipio Exp $
 
 /*
  *  Copyright (c) 2004-2006 Crossbow Technology, Inc.
@@ -31,25 +31,19 @@
  * two-wire-interface (TWI) hardware subsystem.
  *
  * @author Martin Turon <mturon@xbow.com>
+ * @author Philip Levis
  *
- * @version    2005/9/11    mturon     Initial version
+ * @version    $Id: HplAtm128I2CBusC.nc,v 1.1.2.2 2006-05-01 21:50:50 scipio Exp $
  */
-configuration HplI2CBusC
-{
-    provides interface HplI2CBus as I2C;
+
+configuration HplAtm128I2CBusC {
+  provides interface HplAtm128I2CBus as I2C;
 }
 implementation {
 
-    components LedsC
-    	, HplAtm128GeneralIOC
-    	, BusyWaitMicroC
-    	, HplI2CBusP
-    	;
+  components HplAtm128GeneralIOC as IO, HplAtm128I2CBusP as Bus;
   
-    I2C = HplI2CBusP.I2C;
-    
-    HplI2CBusP.Leds -> LedsC;
-    HplI2CBusP.uWait -> BusyWaitMicroC;
-    HplI2CBusP.I2CClk -> HplAtm128GeneralIOC.PortD0;
-    HplI2CBusP.I2CData -> HplAtm128GeneralIOC.PortD1;
+  I2C         = Bus.I2C;
+  Bus.I2CClk  -> IO.PortD0;
+  Bus.I2CData -> IO.PortD1;
 }

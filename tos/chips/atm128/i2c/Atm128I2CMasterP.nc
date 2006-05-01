@@ -1,4 +1,4 @@
-/// $Id: Atm128I2CMasterP.nc,v 1.1.2.1 2006-01-27 22:19:36 mturon Exp $
+/// $Id: Atm128I2CMasterP.nc,v 1.1.2.2 2006-05-01 21:50:50 scipio Exp $
 
 /*
  *  Copyright (c) 2004-2005 Crossbow Technology, Inc.
@@ -33,164 +33,248 @@
  * two-wire-interface (TWI) hardware subsystem.
  *
  * @author Martin Turon <mturon@xbow.com>
+ * @author Philip Levis
  *
- * @version    2005/9/11    mturon     Initial version
+ * @version $Id: Atm128I2CMasterP.nc,v 1.1.2.2 2006-05-01 21:50:50 scipio Exp $
  */
-generic module HalI2CMasterP (uint8_t device)
-{
-    provides {
-	interface HalI2CMaster as I2CDevice;
-    }
-    uses {
-	interface HplI2CBus as I2C;
-    }
+generic module Atm128I2CMasterP() {
+  provides interface AsyncStdControl;
+  provides interface I2CPacket;
+  
+  uses interface HplAtm128I2CBus as I2C;
+  uses interface Leds as ReadLeds;
+  uses interface Leds as WriteLeds;
 }
 implementation {
-    enum {
-	I2C_READY,
-	I2C_PING,
-	I2C_READ,
-	I2C_WRITE,
-    };
+  task void readDoneTask();
+  task void writeDoneTask();
 
-    uint8_t i2cMode;      //!< What type of transaction are we working on?
-    uint8_t i2cOffset;    //!< Offset address into device memmap to read/write
-     int8_t i2cLength;    //!< Length of data to read/write
+  enum {
+    I2C_OFF     = 0,
+    I2C_IDLE    = 1,
+    I2C_READING = 2,
+    I2C_WRITING = 3,
+    I2C_SPINOUT = 10000,
+  } atm128_i2c_state_t;
 
-    norace uint8_t *i2cData;     //!< Pointer to next data byte
+  uint8_t state = I2C_OFF;
+  
+  uint8_t packetAddr;
+  uint8_t* packetPtr;
+  uint8_t packetLen;
 
-    /**
-     * An efficient I2C engine for the ATmega128.  This task handles state 
-     * transitions triggered by the .symbolDone() interrupt of the hardware
-     * I2C subsystem.  The hardware stores actual subtransaction state in 
-     * the status register.  The type of user transaction (i2cMode) drives 
-     * this engine at a higher level.  
-     *
-     * @author   Martin Turon
-     *
-     * @version  2005/9/10    mturon      Initial version
-     */
-    void task i2cEngine() {
-	uint8_t state = call I2C.status();
+  async command error_t AsyncStdControl.start() {
+    atomic {
+      if (state == I2C_OFF) {
+	call I2C.init(FALSE);
+	call I2C.enable(TRUE);
+	call I2C.enableAck(TRUE);
+	state = I2C_IDLE;
+	return SUCCESS;
+      }
+      else {
+	return FAIL;
+      }
+    }
+  }
 
-	switch (i2cMode) {
-	    case I2C_PING:
-	    case I2C_READ:
-		switch (state) {
-		    case ATM128_I2C_START:
-			call I2C.deviceRead(device);   // talk in read mode
-			call I2C.send();
-			break;
-			
-		    case ATM128_I2C_MR_SLA_ACK:
-		    case ATM128_I2C_MR_DATA_ACK:
-			if (i2cLength-- > 0) {
-			    // if data left, read next byte
-			    call I2C.send();
-			} else {
-			    // otherwise, complete with success
-			    call I2C.end();
-	    
-			    if (i2cMode == I2C_PING) {	
-				    signal I2CDevice.pingDone(SUCCESS);
-			    } else {
-				    
-					signal I2CDevice.readDone();   
-			    }
+  async command error_t AsyncStdControl.stop() {
+    atomic {
+      if (state == I2C_IDLE) {
+	call I2C.enable(FALSE);
+	call I2C.enableInterrupt(FALSE);
+	call I2C.clearInterruptPending();
+	call I2C.off();
+	state = I2C_OFF;
+	return SUCCESS;
+      }
+      else {
+	return FAIL;
+      }
+    }
+  }
 
-			    i2cMode = I2C_READY;
-			}
-			break;
-			
-		    default:
-			call I2C.end();
-			i2cMode = I2C_READY;
-			// signal error
-		}
-		break;
+  error_t i2c_abort() {
+    call I2C.enableInterrupt(FALSE);
+    call I2C.stop();
+    call I2C.clearInterruptPending();
+    return FAIL;
+  }
 
-	    case I2C_WRITE:
-		switch (state) {
-		    case ATM128_I2C_START:
-			call I2C.deviceWrite(device);  // talk in write mode
-			call I2C.send();
-			break;
+  bool i2c_wait() {
+    uint16_t i;
+    for (i = 0; i < I2C_SPINOUT; i++) {
+      if (call I2C.isInterruptPending()) {
+	return TRUE;
+      }
+    }
+    return FALSE;
+  }
+  
+  async command error_t I2CPacket.read(uint8_t addr, uint8_t* data, uint8_t len) {
+    uint8_t localLen;
+    bool waitSuccess;
+    atomic {
+      if (state == I2C_IDLE) {
+	state = I2C_READING;
+      }
+      else if (state == I2C_OFF) {
+	return EOFF;
+      }
+      else {
+	return EBUSY;
+      }
+    }
+    /* This follows the procedure described on page 209 of the atmega128L
+     * data sheet. It is synchronous (does not handle interrupts).*/
+    atomic {
+      packetAddr = addr;
+      packetPtr = data;
+      packetLen = len;
+      localLen = len;
+    }
+    /* Clear interrupt pending, send the I2C start command and abort
+       if we're not in the start state.*/
+    call I2C.enableInterrupt(FALSE);
+    call I2C.start();
+    waitSuccess = i2c_wait();
+    if (!waitSuccess || call I2C.status() != ATM128_I2C_START) {
+      call ReadLeds.led1On();
+      return i2c_abort();
+    }
+    
+    /* Clear the start bit, write the address and abort if we're not in
+       the right state. */
+    call I2C.write(addr | ATM128_I2C_SLA_READ);
+    /* We don't need to clear the interrupt pending bit because
+       clearing the start bit will do so automatically (it reads TWINT
+       to be 1, then writes that back). */
+    call I2C.clearStart();
+    waitSuccess = i2c_wait();
+    if (!waitSuccess) {
+      call ReadLeds.led1On();
+      return i2c_abort();
+    }
+    else if (call I2C.status() != ATM128_I2C_MR_SLA_ACK) {
+      call ReadLeds.led2On();
+      return i2c_abort();
+    }
+    
+    /* Read in the data bytes. */
+    for (len = 0; len < localLen; len++) {
+      call I2C.clearInterruptPending();
+      data[len] = call I2C.read();
+      waitSuccess = i2c_wait();
+      if (!waitSuccess) {
+	call ReadLeds.led2On();	
+	return i2c_abort();
+      }
+      else if (call I2C.status() != ATM128_I2C_MR_DATA_ACK) {
+	call ReadLeds.led2On();
+	return i2c_abort();
+      }
+    }
+    /* Send a stop condition and clear TWINT to send it. */
+    call I2C.stop();
+    post readDoneTask();
+    return SUCCESS;
+  }
 
-		    case ATM128_I2C_MW_SLA_ACK:
-		    case ATM128_I2C_MW_DATA_ACK:
-			if (i2cLength-- > 0) {
-			    // if data left, write next byte
-			    call I2C.set(*i2cData);
-			    call I2C.send();
-			} else {
-			    // otherwise, clean exit
-			    call I2C.end();
-			    i2cMode = I2C_READY;			    
-			    signal I2CDevice.writeDone();
-			}
-			break;
-
-		    default:
-			call I2C.end();
-			i2cMode = I2C_READY;
-			// signal error
-		}
-		break;
-	}
-
-	if (i2cMode == I2C_READY) return;
-
-	// start timeout timer
+  async command error_t I2CPacket.write(uint8_t addr, uint8_t* data, uint8_t len) {
+    uint8_t localLen;
+    bool waitSuccess;
+    atomic {
+      if (state == I2C_IDLE) {
+	state = I2C_READING;
+      }
+      else if (state == I2C_OFF) {
+	return EOFF;
+      }
+      else {
+	return EBUSY;
+      }
+    }
+    /* This follows the procedure described on page 209 of the atmega128L
+     * data sheet. It is synchronous (does not handle interrupts).*/
+    atomic {
+      packetAddr = addr;
+      packetPtr = data;
+      packetLen = len;
+      localLen = len;
+    }
+    /* Clear interrupt pending, send the I2C start command and abort
+       if we're not in the start state.*/
+    call I2C.enableInterrupt(FALSE);
+    call I2C.start();
+    waitSuccess = i2c_wait();
+    if (!waitSuccess || call I2C.status() != ATM128_I2C_START) {
+      call WriteLeds.led0On();
+      return i2c_abort();
+    }
+    
+    /* Clear the start bit, write the address and abort if we're not in
+       the right state. */
+    call I2C.write(addr | ATM128_I2C_SLA_WRITE);
+    /* We don't need to clear the interrupt pending bit because
+       clearing the start bit will do so automatically (it reads TWINT
+       to be 1, then writes that back). */
+    call I2C.clearStart();
+    waitSuccess = i2c_wait();
+    if (!waitSuccess || call I2C.status() != ATM128_I2C_MW_SLA_ACK) {
+      call WriteLeds.led1On();
+      return i2c_abort();
+    }
+    
+    /* Read in the data bytes. */
+    for (len = 0; len < localLen; len++) {
+      call I2C.write(data[len]);
+      call I2C.clearInterruptPending();
+      waitSuccess = i2c_wait();
+      if (!waitSuccess) {
+	call WriteLeds.led1On();	
+	return i2c_abort();
+      }
+      else if (call I2C.status() != ATM128_I2C_MW_DATA_ACK) {
+	call WriteLeds.led2On();
+	return i2c_abort();
+      }
     }
 
-  /** Ping a I2C slave device to see if it exists. */
-  command error_t I2CDevice.ping() {
-      if (i2cMode != I2C_READY) 
-	  return FAIL;
+    /* Send a stop condition and clear TWINT to send it. */
+    call I2C.stop();
+    post writeDoneTask();
+    return SUCCESS;
+  }
+  
+  task void readDoneTask() {
+    uint8_t addr;
+    uint8_t len;
+    uint8_t* ptr;
 
-      i2cMode   = I2C_PING;
-      i2cData   = NULL;
-      i2cLength = 0;
-      call I2C.begin();
-      return SUCCESS;
+    atomic {
+      addr = packetAddr;
+      len = packetLen;
+      ptr = packetPtr;
+      state = I2C_IDLE;
+    }
+    
+    signal I2CPacket.readDone(addr, ptr, len, SUCCESS);
+  }
+  
+  task void writeDoneTask() {
+    uint8_t addr;
+    uint8_t len;
+    uint8_t* ptr;
+
+    atomic {
+      addr = packetAddr;
+      len = packetLen;
+      ptr = packetPtr;
+      state = I2C_IDLE;
+    }
+    
+    signal I2CPacket.writeDone(addr, ptr, len, SUCCESS);
   }
 
-  /** Write a byte sequence to an I2C slave device. */
-  command error_t I2CDevice.write(uint8_t *data, uint8_t length) {
-      if (i2cMode != I2C_READY) 
-	  return FAIL;
-
-      i2cMode   = I2C_WRITE;
-      i2cData   = data;
-      i2cLength = length;
-      call I2C.begin();
-      return SUCCESS;
-  }
-
-  /** Read a byte sequence from an I2C slave device. */
-  command error_t I2CDevice.read(uint8_t *data, uint8_t length) {
-      if (i2cMode != I2C_READY) 
-	  return FAIL;
-
-      i2cMode   = I2C_READ;
-      i2cData   = data;
-      i2cLength = length;
-      call I2C.begin();
-      return SUCCESS;
-  }
-
-  default event void I2CDevice.pingDone  (error_t result) {}
-  default event void I2CDevice.readDone  () {}
-  default event void I2CDevice.writeDone () {}
-
-  /** Intercept interrupt signal when pending symbol completes. */
-  async event void I2C.symbolSent() { 
-      if (call I2C.status() == ATM128_I2C_MW_DATA_ACK) {
-	  // If reading, grab the next data byte.
-	  if (i2cData != NULL) 
-	      *i2cData++ = call I2C.get();
-      }
-      // Queue up handling for next symbol
-      post i2cEngine();
-  }
+  async event void I2C.symbolSent() {}
 }
