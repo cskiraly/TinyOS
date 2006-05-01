@@ -1,4 +1,4 @@
-// $Id: Atm128I2C.h,v 1.1.2.3 2006-01-27 23:13:22 idgay Exp $
+// $Id: Atm128I2C.h,v 1.1.2.4 2006-05-01 21:50:50 scipio Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -27,8 +27,8 @@
 #ifndef _H_Atm128I2C_h
 #define _H_Atm128I2C_h
 
-#define ATM128_I2C_SLA_W 0x00
-#define ATM128_I2C_SLA_R 0x01
+#define ATM128_I2C_SLA_WRITE 0x00
+#define ATM128_I2C_SLA_READ 0x01
 
 typedef uint8_t Atm128_TWBR_t;  //!< Two Wire Bit Rate Register
 typedef uint8_t Atm128_TWDR_t;  //!< Two Wire Data Register

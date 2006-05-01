@@ -1,4 +1,4 @@
-/// $Id: HplAtm128I2CBus.nc,v 1.1.2.1 2006-01-27 22:19:36 mturon Exp $
+/// $Id: HplAtm128I2CBus.nc,v 1.1.2.2 2006-05-01 21:50:50 scipio Exp $
 
 /*
  *  Copyright (c) 2004-2005 Crossbow Technology, Inc.
@@ -33,44 +33,41 @@
  * two-wire-interface (TWI) hardware subsystem.
  *
  * @author Martin Turon <mturon@xbow.com>
+ * @author Philip Levis
  *
- * @version    2005/9/11    mturon     Initial version
+ * @version  $Id: HplAtm128I2CBus.nc,v 1.1.2.2 2006-05-01 21:50:50 scipio Exp $
  */
-interface HplI2CBus {
+interface HplAtm128I2CBus {
 
-    command void init();    //!< Initialize i2c clock speed
+  async command void init(bool hasExternalPulldown);
+  async command void off();
+  
+  async command uint8_t status();
+  
+  // Transaction interface
+  async command void start();   //!< Start bus transaction (send start symbol)
+  async command bool isStarting();
+  async command void clearStart();
+  
+  async command void stop();    //!< End bus transaction
+  async command bool isStopping();
 
-    // Transaction interface
-    command void begin();   //!< Start bus transaction (send start symbol)
-    command void end();     //!< End bus transaction
-    command void send();    //!< Send next byte of transaction
+  // Data interface
+  async command void write(uint8_t data);
+  async command uint8_t read();
 
-    // Data interface
-    command error_t ping (uint8_t dev);              //!< Ping device
-    command error_t write(uint8_t dev, uint8_t data);  //!< Write to device
-    command error_t read (uint8_t dev, uint8_t *data); //!< Read from device
+  async command void enableAck(bool enable);
+  async command bool isAckEnabled();
+  async command void enableInterrupt(bool enable);
+  async command bool isInterruptEnabled();
+  async command bool isInterruptPending();
+  async command void clearInterruptPending();
+  
+  async event void symbolSent();
+  
+  async command void enable(bool enable);
+  async command bool isEnabled();
 
-    command error_t writeBuffer(uint8_t dev, uint8_t *data, int8_t len);
-    command error_t readBuffer (uint8_t dev, uint8_t *data, int8_t len);
+  async command bool hasWriteCollided();
 
-    async command uint8_t get();               //!< Get data register
-    async command void    set(uint8_t data);   //!< Set data register
-
-    async command void deviceRead (uint8_t addr); //!< Set device to read
-    async command void deviceWrite(uint8_t addr); //!< Set device to write
-
-    async command Atm128I2CControl_t getControl();
-    async command Atm128I2CStatus_t  getStatus();
-
-    async command void setControl( Atm128I2CControl_t x );
-    async command void setStatus ( Atm128I2CStatus_t x );
-    
-    async command uint8_t status();
-    async command bool    isDone();
-    async command error_t waitDone();
-
-//    async command void enable(); 
-//    async command void disable();
-
-    async event void symbolSent();
 }
