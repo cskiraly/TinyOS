@@ -34,6 +34,7 @@
  *
  * @author David Gay
  */
+
 module BusyWaitMicroC
 {
   provides interface BusyWait<TMicro,uint16_t>;
@@ -43,6 +44,28 @@ implementation
   inline async command void BusyWait.wait(uint16_t dt) {
   /* In most cases (constant arg), the test is elided at compile-time */
   if (dt)
+#if MHZ == 1
+    {
+      dt = (dt + 3) >> 2;
+    /* loop takes 4 cycles. */
+      asm volatile (
+"1:	sbiw	%0,1\n"
+"	brne	1b" : "+w" (dt));
+    }
+#elif MHZ == 2
+    {
+      dt = (dt + 1) >> 1;
+    /* loop takes 4 cycles. */
+      asm volatile (
+"1:	sbiw	%0,1\n"
+"	brne	1b" : "+w" (dt));
+    }
+#elif MHZ == 4
+    /* loop takes 4 cycles. */
+    asm volatile (
+"1:	sbiw	%0,1\n"
+"	brne	1b" : "+w" (dt));
+#elif MHZ == 8
     /* loop takes 8 cycles. this is 1uS if running on an internal 8MHz
        clock, and 1.09uS if running on the external crystal. */
     asm volatile (
@@ -50,5 +73,8 @@ implementation
 "	adiw	%0,1\n"
 "	sbiw	%0,1\n"
 "	brne	1b" : "+w" (dt));
+#else
+#error "Unknown clock rate. MHZ must be defined to one of 1, 2, 4, or 8."
+#endif
   }
 }
