@@ -1,4 +1,4 @@
-// $Id: Atm128Calibrate.nc,v 1.1.2.1 2006-02-17 00:26:47 idgay Exp $
+// $Id: Atm128Calibrate.nc,v 1.1.2.2 2006-05-01 16:44:24 idgay Exp $
 /*
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
@@ -32,15 +32,14 @@ interface Atm128Calibrate {
 
   /**
    * Convert n microseconds into a value suitable for use with
-   * AlarmMicro16C and AlarmMicro32C Alarms.
+   * AlarmMicro32C Alarms.
    * @param n Time in microseconds.
    * @return AlarmMicro argument that best approximates n microseconds.
    */
   async command uint32_t calibrateMicro(uint32_t n);
 
   /**
-   * Convert values used by AlarmMicro16C and AlarmMicro32C Alarms into
-   * actual microseconds.
+   * Convert values used by AlarmMicro32C Alarms into actual microseconds.
    * @param n A time expressed in AlarmMicro time units.
    * @return Time in microseconds that corresponds to AlarmMicro argument n.
    */
