@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.5 2006-04-30 17:53:56 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.6 2006-05-01 01:46:17 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-04-30 17:53:56 $
+ *  @date   $Date: 2006-05-01 01:46:17 $
  */
 
    
@@ -45,7 +45,8 @@ generic module ForwardingEngineP() {
     interface Packet as SubPacket;
     interface UnicastNameFreeRouting;
     interface SplitControl as RadioControl;
-    interface Queue<message_t*> as SendQueue;
+    interface Queue<fe_queue_entry_t *> as SendQueue;
+    interface Pool<fe_queue_entry_t> as QEntryPool;
     interface Pool<message_t> as ForwardPool;
     interface Timer<TMilli> as SendTimer;
     interface PacketAcknowledgments;
@@ -71,13 +72,14 @@ implementation {
   /* Keeps track of whether the packet on the head of the queue
    * is being used, and control access to the data-link layer.*/
   bool sending = FALSE;
-  typedef nx_struct network_header_t {
-    nx_am_addr_t origin;
-    collection_id_t id;
-  } network_header_t;
- 
-  
-  command error_t Init.init() {}
+
+  enum {
+    CLIENT_COUNT = uniqueCount(UQ_COLLECTION_CLIENT)
+  };
+
+  command error_t Init.init() {
+    return SUCCESS;
+  }
 
   command error_t StdControl.start() {
     running = TRUE;
@@ -116,16 +118,27 @@ implementation {
     return (network_header_t*)call SubPacket.getPayload(m, NULL);
   }
   
-  command error_t Send.send[collection_id_t id](message_t* msg, uint8_t len) {
+  command error_t Send.send[uint8_t client](message_t* msg, uint8_t len) {
     network_header_t* hdr;
+    fe_queue_entry_t *qe;
+
     if (!running) {return EOFF;}
     
     call Packet.setPayloadLength(msg, len + sizeof(network_header_t));
     hdr = getHeader(msg);
     hdr->origin = TOS_NODE_ID;
     hdr->id = id;
+
+    if (call QEntryPool.empty()) {
+      // Queue pool is empty; fail the send.
+      return EBUSY;
+    }
+
+    qe = call QEntryPool.get();
+    qe->msg = msg;
+    qe->client = client;
     
-    if (call SendQueue.push(msg) == SUCCESS) {
+    if (call SendQueue.push(qe) == SUCCESS) {
       if (radioOn && call SendQueue.size() == 1) {
         post sendTask();
       }
@@ -140,8 +153,8 @@ implementation {
   // queue until it is successfully sent.
   task void sendTask() {
     if (!call UnicastNameFreeRouting.hasRoute() ||
-	call Queue.isEmpty() ||
-	sending) {
+         call SendQueue.isEmpty() || 
+         sending) {
       return;
     }
     else if (call RootControl.isRoot()) {
@@ -149,13 +162,13 @@ implementation {
     }
     else {
       error_t eval;
-      message_t* msg = call Queue.head();
-      uint8_t payloadLen = call SubPacket.payloadLen(msg);
+      fe_queue_entry_t* qe = call SendQueue.head();
+      uint8_t payloadLen = call SubPacket.payloadLen(qe->msg);
       am_addr_t dest = call UnicastNameFreeRouting.nextHop();
       
-      ackPending = (call PacketAcknowledgments.requestAck(msg) == SUCCESS);
+      ackPending = (call PacketAcknowledgments.requestAck(qe->msg) == SUCCESS);
       
-      eval = call AMSend.send(dest, msg, payloadLen);
+      eval = call AMSend.send(dest, qe->msg, payloadLen);
       if (eval == SUCCESS) {
 	// Successfully submitted to the data-link layer.
 	sending = TRUE;
@@ -178,7 +191,8 @@ implementation {
   }
 
   event void SubSend.sendDone(message_t* msg, error_t error) {
-    if (msg != call SendQueue.head()) {
+    fe_queue_entry_t *qe = call SendQueue.head();
+    if (qe->msg != msg) {
       // Not our packet, something is very wrong...
       return;
     }
@@ -199,17 +213,18 @@ implementation {
       r += 128;
       call SendTimer.startOneShot(r);
     }
-    else if (getHeader(msg)->origin == TOS_NODE_ID) {
+    else if (getHeader(qe->msg)->origin == TOS_NODE_ID) {
       network_header_t* hdr;
-      msg = call SendQueue.pop();
-      hdr = getHeader(msg);
-      signal Send.sendDone[hdr->id](msg, SUCCESS);
+      call SendQueue.pop();
+      hdr = getHeader(qe->msg);
+      if (qe->client < CLIENT_COUNT)
+        signal Send.sendDone[qe->client](msg, SUCCESS);
       sending = FALSE;
       post sendTask();
     }
     else if (call Pool.size() < Pool.maxSize()) {
       // A successfully forwarded packet.
-      call Pool.put(msg);
+      call ForwardPool.put(qe->msg);
     }
     else {
       // It's a forwarded packet, but there's no room the pool;
@@ -219,20 +234,26 @@ implementation {
   }
 
   message_t* forward(message_t* m) {
-    if (call Pool.isEmpty() ||
-	call SendQueue.push(m) != SUCCESS) {
-      // No forwarding entries free, or the send queue is full;
-      // the latter should never occur without the former, unless
-      // someone is submitting more packets than they should.
-      return m;
-    }
-    else {
-      message_t* newMsg = call Pool.get();
+    if (!call ForwardPool.empty() && !call QEntryPool.empty()) {
+      message_t* newMsg = call ForwardPool.get();
+      fe_queue_entry_t *qe = call QEntryPool.get();
+
+      qe->msg = m;
+      qe->client = CLIENT_COUNT;
+
       uint8_t len = call SubPacket.payloadLength(m);x
       call Packet.setPayloadLength(m, len + sizeof(network_header_t));
-      call Queue.push(m);
-      return newMsg;
+      if (call SendQueue.push(qe))
+        return newMsg;
+      else {
+        call ForwardPool.put(newMsg);
+        call QEntryPool.put(qe);
+      }
     }
+    
+    // We'll have to drop the packet on the floor: not enough
+    // resources available to forward.
+    return m;
   }
   
   event message_t* SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
