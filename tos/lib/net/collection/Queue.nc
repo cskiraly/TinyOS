@@ -1,4 +1,4 @@
-/* $Id: Queue.nc,v 1.1.2.1 2006-04-21 00:47:21 scipio Exp $ */
+/* $Id: Queue.nc,v 1.1.2.2 2006-05-01 16:43:07 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,8 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-04-21 00:47:21 $
+ *  @author Kyle Jamieson
+ *  @date   $Date: 2006-05-01 16:43:07 $
  */
 
    
@@ -35,6 +36,6 @@ interface Queue<t> {
   command uint8_t maxSize();
 
   command t head();
-  command t pop();
-  command error_t push(t newVal);
+  command t dequeue();
+  command error_t enqueue(t newVal);
 }

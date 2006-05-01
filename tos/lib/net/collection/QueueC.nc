@@ -1,4 +1,4 @@
-/* $Id: QueueC.nc,v 1.1.2.1 2006-04-21 00:47:21 scipio Exp $ */
+/* $Id: QueueC.nc,v 1.1.2.2 2006-05-01 16:43:07 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,11 +24,11 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-04-21 00:47:21 $
+ *  @date   $Date: 2006-05-01 16:43:07 $
  */
 
    
-generic module QueueC(uint8_t QUEUE_SIZE, typedef queue_type) {
+generic module QueueC(typedef queue_type, uint8_t QUEUE_SIZE) {
   provides {
     interface Queue<t>;
   }
@@ -57,7 +57,7 @@ implementation {
     return queue[head];
   }
 
-  command queue_type Queue.pop() {
+  command queue_type Queue.dequeue() {
     queue_type t = call Queue.head();
     if (!Queue.empty()) {
       head++;
@@ -67,7 +67,7 @@ implementation {
     return t;
   }
 
-  command error_t Queue.push(queue_type newVal) {
+  command error_t Queue.enqueue(queue_type newVal) {
     if (Queue.size() < Queue.maxSize()) {
       queue[tail] = newVal;
       tail++;
