@@ -1,4 +1,4 @@
-/// $Id: TempP.nc,v 1.1.2.1 2006-04-28 23:27:59 idgay Exp $
+/// $Id: TempP.nc,v 1.1.2.2 2006-05-01 17:19:08 idgay Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -43,7 +43,7 @@ implementation {
     return CHANNEL_BATTERY_THERMISTOR;
   }
 
-  async command uint8_t TempConfig.getRefTemp() {
+  async command uint8_t TempConfig.getRefVoltage() {
     return ATM128_ADC_VREF_OFF;
   }
 
