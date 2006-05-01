@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.10 2006-05-01 16:44:24 idgay Exp $
+ *  $Id: hardware.h,v 1.1.2.11 2006-05-01 19:20:52 idgay Exp $
  */
 
 #ifndef HARDWARE_H
@@ -56,5 +56,9 @@ enum {
    (this value must be a power of 2, see MicaTimer.h and MeasureClockC.nc) */
 #define MHZ 8
 #endif
+
+enum {
+  PLATFORM_BAUDRATE = 57600L
+};
 
 #endif //HARDWARE_H
