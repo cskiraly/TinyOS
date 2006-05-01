@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.9 2006-05-01 16:44:24 idgay Exp $
+ *  $Id: hardware.h,v 1.1.2.10 2006-05-01 19:20:52 idgay Exp $
  */
 
 #ifndef HARDWARE_H
@@ -53,6 +53,10 @@
 // A/D channels
 enum {
   CHANNEL_THERMISTOR = ATM128_ADC_SNGL_ADC1    // normally unpopulated
+};
+
+enum {
+  PLATFORM_BAUDRATE = 57600L
 };
 
 #endif //HARDWARE_H
