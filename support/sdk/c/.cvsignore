@@ -15,3 +15,6 @@ aclocal.m4
 config.log
 config.status
 stamp-h1
+serialprotocol.h
+serialpacket.c
+serialpacket.h

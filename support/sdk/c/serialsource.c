@@ -22,6 +22,7 @@
 #undef DEBUG
 
 #include "serialsource.h"
+#include "serialprotocol.h"
 
 typedef int bool;
 
@@ -33,13 +34,13 @@ enum {
   BUFSIZE = 256,
   MTU = 256,
   ACK_TIMEOUT = 1000000, /* in us */
-  SYNC_BYTE = 0x7e,
-  ESCAPE_BYTE = 0x7d,
+  SYNC_BYTE = SERIAL_HDLC_FLAG_BYTE,
+  ESCAPE_BYTE = SERIAL_HDLC_CTLESC_BYTE,
 
-  P_ACK = 64,
-  P_PACKET_ACK = 65,
-  P_PACKET_NO_ACK = 66,
-  P_UNKNOWN = 255
+  P_ACK = SERIAL_SERIAL_PROTO_ACK,
+  P_PACKET_ACK = SERIAL_SERIAL_PROTO_PACKET_ACK,
+  P_PACKET_NO_ACK = SERIAL_SERIAL_PROTO_PACKET_NOACK,
+  P_UNKNOWN = SERIAL_SERIAL_PROTO_PACKET_UNKNOWN
 };
 
 struct packet_list
