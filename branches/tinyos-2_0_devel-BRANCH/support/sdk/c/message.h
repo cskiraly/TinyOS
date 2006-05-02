@@ -19,10 +19,10 @@ typedef struct tmsg tmsg_t;
 
 void tmsg_fail(void);
 
-tmsg_t *new_tmsg(void *packet, int len);
+tmsg_t *new_tmsg(void *packet, size_t len);
 void free_tmsg(tmsg_t *msg);
 void *tmsg_data(tmsg_t *msg);
-int tmsg_length(tmsg_t *msg);
+size_t tmsg_length(tmsg_t *msg);
 
 uint64_t tmsg_read_ule(tmsg_t *msg, size_t bit_offset, size_t bit_length);
 int64_t tmsg_read_le(tmsg_t *msg, size_t bit_offset, size_t bit_length);
