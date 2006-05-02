@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.3 2006-05-01 06:35:21 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.4 2006-05-02 01:37:10 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -54,7 +54,7 @@ module LinkEstimatorP {
 implementation {
 
 #define NEIGHBOR_TABLE_SIZE 10
-#define NEIGHBOR_AGE_TIMER 4096
+#define NEIGHBOR_AGE_TIMER 8192
 
   enum {
     VALID_ENTRY = 0x1,
@@ -63,7 +63,9 @@ implementation {
     MAX_PKT_GAP = 10,
     MAX_QUALITY = 0xff,
     INVALID_RVAL = 0xff,
-    INVALID_NEIGHBOR_ADDR = 0xff
+    INVALID_NEIGHBOR_ADDR = 0xff,
+    INFINITY = 0xff,
+    ALPHA = 2 // (out of 10, thus 0.2)
   };
 
   // neighbor table
@@ -150,8 +152,7 @@ implementation {
 
 
   uint8_t computeBidirLinkQuality(uint8_t inQuality, uint8_t outQuality) {
-    // estimator specific function to compute bi-directional quality
-    return ((inQuality + outQuality) >> 1);
+    return ((inQuality * outQuality) >> 8);
   }
 
 
@@ -244,6 +245,7 @@ implementation {
   void updateNeighborTableEst() {
     uint8_t i, totalPkt;
     neighbor_table_entry_t *ne;
+    uint8_t newEst;
     
     for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
       ne = &NeighborTable[i];
@@ -258,9 +260,10 @@ implementation {
 	} else {
 	  totalPkt = ne->rcvcnt + ne->failcnt;
 	  if (totalPkt == 0) {
-	    ne->inquality = 0;
+	    ne->inquality = (ALPHA * ne->inquality) / 10;
 	  } else {
-	    ne->inquality = (255 * ne->rcvcnt) / totalPkt;
+	    newEst = (255 * ne->rcvcnt) / totalPkt;
+	    ne->inquality = (ALPHA * ne->inquality + (10-ALPHA) * newEst)/10;
 	  }
 	  ne->rcvcnt = 0;
 	  ne->failcnt = 0;
@@ -305,14 +308,46 @@ implementation {
     print_neighbor_table();
   }
 
+  // EETX (Extra Expected number of Transmission)
+  // EETX = ETX - 1
+  // computeEETX returns EETX*10
+
+  uint8_t computeEETX(uint8_t q1) {
+    uint16_t q;
+    if (q1 > 0) {
+      q =  2550 / q1 - 10;
+      if (q > 255) {
+	q = INFINITY;
+      }
+      return (uint8_t)q;
+    } else {
+      return INFINITY;
+    }
+  }
+
+  uint8_t computeBidirEETX(uint8_t q1, uint8_t q2) {
+    uint16_t q;
+    if ((q1 > 0) && (q2 > 0)) {
+      q =  65025 / q1;
+      q = (10*q) / q2 - 10;
+      if (q > 255) {
+	q = INFINITY;
+      }
+      return (uint8_t)q;
+    } else {
+      return INFINITY;
+    }
+  }
+
+
   command uint8_t LinkEstimator.getLinkQuality(uint16_t neighbor) {
     uint8_t idx;
     idx = findIdx(neighbor);
     if (idx == INVALID_RVAL) {
-      return 0;
+      return INFINITY;
     } else {
-      return computeBidirLinkQuality(NeighborTable[idx].inquality,
-				     NeighborTable[idx].outquality);
+      return computeBidirEETX(NeighborTable[idx].inquality,
+			      NeighborTable[idx].outquality);
     };
   }
 
@@ -320,19 +355,20 @@ implementation {
     uint8_t idx;
     idx = findIdx(neighbor);
     if (idx == INVALID_RVAL) {
-      return 0;
+      return INFINITY;
     } else {
-      return NeighborTable[idx].inquality;
+      return computeEETX(NeighborTable[idx].inquality);
     };
   }
 
   command uint8_t LinkEstimator.getForwardQuality(uint16_t neighbor) {
     uint8_t idx;
+    uint16_t q;
     idx = findIdx(neighbor);
     if (idx == INVALID_RVAL) {
-      return 0;
+      return INFINITY;
     } else {
-      return NeighborTable[idx].outquality;
+      return computeEETX(NeighborTable[idx].outquality);
     };
   }
 
@@ -364,10 +400,6 @@ implementation {
     return call Packet.getPayload(msg, NULL);
   }
 
-
-  printOutboundQualities(linkest_footer_t* f) {
-  }
-
   event message_t* SubReceive.receive(message_t* msg,
 				      void* payload,
 				      uint8_t len) {
@@ -379,7 +411,6 @@ implementation {
 
       print_neighbor_table();
 
-      atomic {
       // update neighbor table with this information
       nidx = findIdx(hdr->ll_addr);
       if (nidx == INVALID_RVAL) {
@@ -396,7 +427,6 @@ implementation {
       }
       if (nidx != INVALID_RVAL) {
 	updateNeighborEntryIdx(nidx, hdr->seq);
-      }
       }
 
       if (hdr->linkest_footer_offset > 0) {
