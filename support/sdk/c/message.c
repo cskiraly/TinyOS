@@ -15,10 +15,10 @@
 
 struct tmsg {
   uint8_t *data;
-  int len;
+  size_t len;
 };
 
-tmsg_t *new_tmsg(void *packet, int len)
+tmsg_t *new_tmsg(void *packet, size_t len)
 {
   tmsg_t *x = malloc(sizeof(tmsg_t));
 
@@ -41,7 +41,7 @@ void *tmsg_data(tmsg_t *msg)
   return msg->data;
 }
 
-int tmsg_length(tmsg_t *msg)
+size_t tmsg_length(tmsg_t *msg)
 {
   return msg->len;
 }
@@ -67,7 +67,7 @@ static int64_t u2s(uint64_t x, size_t length)
     return x;
 }
 
-uint64_t tmsg_uread_le(tmsg_t *msg, size_t offset, size_t length)
+uint64_t tmsg_read_ule(tmsg_t *msg, size_t offset, size_t length)
 {
   uint64_t x = 0;
 
@@ -107,10 +107,10 @@ uint64_t tmsg_uread_le(tmsg_t *msg, size_t offset, size_t length)
 
 int64_t tmsg_read_le(tmsg_t *msg, size_t offset, size_t length)
 {
-  return u2s(tmsg_uread_le(msg, offset, length), length);
+  return u2s(tmsg_read_ule(msg, offset, length), length);
 }
 
-void tmsg_uwrite_le(tmsg_t *msg, size_t offset, size_t length, uint64_t x)
+void tmsg_write_ule(tmsg_t *msg, size_t offset, size_t length, uint64_t x)
 {
   if (boundsp(msg, offset, length))
     {
@@ -153,10 +153,10 @@ void tmsg_uwrite_le(tmsg_t *msg, size_t offset, size_t length, uint64_t x)
 
 void tmsg_write_le(tmsg_t *msg, size_t offset, size_t length, int64_t value)
 {
-  tmsg_uwrite_le(msg, offset, length, value);
+  tmsg_write_ule(msg, offset, length, value);
 }
 
-uint64_t tmsg_uread_be(tmsg_t *msg, size_t offset, size_t length)
+uint64_t tmsg_read_ube(tmsg_t *msg, size_t offset, size_t length)
 {
   uint64_t x = 0;
 
@@ -196,10 +196,10 @@ uint64_t tmsg_uread_be(tmsg_t *msg, size_t offset, size_t length)
 
 int64_t tmsg_read_be(tmsg_t *msg, size_t offset, size_t length)
 {
-  return u2s(tmsg_uread_be(msg, offset, length), length);
+  return u2s(tmsg_read_ube(msg, offset, length), length);
 }
 
-void tmsg_uwrite_be(tmsg_t *msg, size_t offset, size_t length, uint64_t x)
+void tmsg_write_ube(tmsg_t *msg, size_t offset, size_t length, uint64_t x)
 {
   if (boundsp(msg, offset, length))
     {
@@ -245,7 +245,7 @@ void tmsg_uwrite_be(tmsg_t *msg, size_t offset, size_t length, uint64_t x)
 
 void tmsg_write_be(tmsg_t *msg, size_t offset, size_t length, int64_t value)
 {
-  tmsg_uwrite_be(msg, offset, length, value);
+  tmsg_write_ube(msg, offset, length, value);
 }
 
 /* u2f and f2u convert raw 32-bit values to/from float. This code assumes
@@ -276,20 +276,20 @@ static uint32_t f2u(float x)
 
 float tmsg_read_float_le(tmsg_t *msg, size_t offset)
 {
-  return u2f(tmsg_uread_le(msg, offset, 32));
+  return u2f(tmsg_read_ule(msg, offset, 32));
 }
 
 void tmsg_write_float_le(tmsg_t *msg, size_t offset, float x)
 {
-  tmsg_uwrite_le(msg, offset, 32, f2u(x));
+  tmsg_write_ule(msg, offset, 32, f2u(x));
 }
 
 float tmsg_read_float_be(tmsg_t *msg, size_t offset)
 {
-  return u2f(tmsg_uread_be(msg, offset, 32));
+  return u2f(tmsg_read_ube(msg, offset, 32));
 }
 
 void tmsg_write_float_be(tmsg_t *msg, size_t offset, float x)
 {
-  tmsg_uwrite_be(msg, offset, 32, f2u(x));
+  tmsg_write_ube(msg, offset, 32, f2u(x));
 }
