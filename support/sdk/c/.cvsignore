@@ -18,3 +18,4 @@ stamp-h1
 serialprotocol.h
 serialpacket.c
 serialpacket.h
+prettylisten
