@@ -10,8 +10,8 @@ Schedulers and Tasks
 :Author: Philip Levis and Cory Sharp
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.3 $
-:Draft-Modified: $Date: 2006-04-23 22:00:49 $
+:Draft-Version: $Revision: 1.1.2.4 $
+:Draft-Modified: $Date: 2006-05-03 18:18:35 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -85,7 +85,7 @@ elements, the ``post`` returns fail. This model has several issues:
 
   1) Some components do not have a reasonable response to a failed ``post``
   2) As a given task can be posted multiple times, it can consume more than one element in the buffer
-  3) All tasks from all components share a single resource: one misbehaving component cause other's posts to fail
+  3) All tasks from all components share a single resource: one misbehaving component can cause other's posts to fail
 
 
 Fundamentally, in order for a component A to repost a task after post
@@ -170,8 +170,18 @@ event void TaskParameter.runTask(uint15_t param) {
 ...
 }
 
+The semantics of tasks in TinyOS 2.x are different than those in 1.x.
+This change is based on experiences with the limitations and run time
+errors that the 1.x model introduces. **In TinyOS 2.x, a basic post will
+only fail if the task has already been posted and has not started
+execution.** A task can always run, but can only have one outstanding
+post at any time.  2.x achieves these semantics by allocating a single 
+byte of state per task. While a very large number of tasks could make 
+this overhead noticable, it is not significant in practice.
+If a component needs to post a task several times, then the end of 
+the task logic can repost itself as need be.
 
-One can do this::
+For example, one can do this::
 
 param = 34;
 post parameterTask();
@@ -179,8 +189,6 @@ post parameterTask();
 task void parameterTask() {
   // use param here
 }
-
-
 
 4. The Scheduler in TinyOS 2.x
 ====================================================================
@@ -193,33 +201,37 @@ deadline first tasks vs. priority tasks).
 
 The basic task in TinyOS 2.x is parameterless and FIFO. Tasks continue
 to follow the nesC semantics of task and post, which are linguistic
-shortcuts for declaring a TaskBasic interface and wiring it to the
-Scheduler component. Appendix A describes how these shortcuts can be
+shortcuts for declaring an  interface and wiring it to the
+scheduler component. Appendix A describes how these shortcuts can be
 configured. A scheduler provides a task interface as a parameterized
 interface. Every task that wires to the interface uses the unique()
 function to obtain a unique identifier, which the scheduler uses to
 dispatch tasks.
 
-For example, the standard TinyOS Scheduler has this signature:
+For example, the standard TinyOS scheduler has this signature:
 
-|  ``module SchedulerBasic {``
+|  ``module SchedulerBasicP {``
 |    ``provides interface Scheduler;``
 |    ``provides interface TaskBasic[uint8_t taskID];``
+|    ``uses interface McuSleep;``
 |  ``}``
 
 A scheduler MUST provide a parameterized TaskBasic interface.
 If a call to TaskBasic.postTask() returns SUCCESS, the scheduler MUST run it
 eventually. The scheduler MUST return SUCCESS to a TaskBasic.postTask()
 operation unless it is not the first call to TaskBasic.postTask() since
-that task's TaskBasic.runTask() event has been signaled.
+that task's TaskBasic.runTask() event has been signaled. The 
+McuSleep interface is used for microcontroller power management;
+its workings are explained in TEP 112[3]_.
 
 A scheduler MUST provide the Scheduler interface. 
 The Scheduler interface has commands for initialization and running
 tasks, and is used by TinyOS to execute tasks.
 
-|  ``interface SchedulerRun {``
+|  ``interface Scheduler {``
 |    ``command void init();``
 |    ``command bool runNextTask(bool sleep);``
+|    ``command void taskLoop();``
 |  ``}``
 
 The init() command initializes the task queue and scheduler data
@@ -231,7 +243,9 @@ FALSE, then the command will return immediately with FALSE as a return
 value. If sleep is TRUE, then the command MUST NOT return until a task
 is executed, and SHOULD put the CPU to sleep until a new task arrives.
 Calls of runNextTask(FALSE) may return TRUE or FALSE; calls of
-runNextTask(TRUE) always return TRUE. 
+runNextTask(TRUE) always return TRUE.   The taskLoop() command tells
+the scheduler to enter an infinite task-running loop, putting the MCU
+into a low power state when the processor is idle: it never returns.
 
 This is the TaskBasic interface:
 
@@ -242,16 +256,16 @@ This is the TaskBasic interface:
 
 When a component declares a task with the ``task`` keyword in nesC, it
 is implicitly declaring that it uses an instance of the TaskBasic
-interface: the task body is the run event. When a component uses the
-``post`` keyword, it calls the post command. Each TaskBasic MUST be
-wired to the Scheduler with a unique identifier as its parameter. 
+interface: the task body is the runTask event. When a component uses the
+``post`` keyword, it calls the postTask command. Each TaskBasic MUST be
+wired to the scheduler with a unique identifier as its parameter. 
 The parameter MUST be obtained with the ``unique`` function in nesC, 
-with a key of ``"BasicScheduler.TaskBasic"``. The nesC compiler
+with a key of ``"TinySchedulerC.TaskBasic"``. The nesC compiler
 automatically does this wiring when the ``task`` and ``post``
 keywords are used.
 
-The SchedulerBasic implementation uses these identifiers as its queue
-entries. When TinyOS tells the Scheduler to run a task, it pulls the
+The SchedulerBasicP implementation uses these identifiers as its queue
+entries. When TinyOS tells the scheduler to run a task, it pulls the
 next identifier off the queue and uses it to dispatch on the
 parameterized TaskBasic interface.
 
@@ -259,81 +273,83 @@ parameterized TaskBasic interface.
 5. Replacing the Scheduler
 ====================================================================
 
-The TinyOS scheduler is presented as a component named TinyScheduler.
+The TinyOS scheduler is presented as a component named TinySchedulerC.
 The default TinyOS scheduler implementation is a module named
-SchedulerBasic; the default Scheduler component is a configuration
-that provides wire-through of SchedulerBasic.
+SchedulerBasicP; the default scheduler component is a configuration
+that provides wire-through of SchedulerBasicP.
 
 To replace the scheduler for a particular application, a developer
-SHOULD put a configuration named Scheduler in the application
-directory: this will replace the default. The Scheduler component
+SHOULD put a configuration named TinySchedulerC in the application
+directory: this will replace the default. The scheduler component
 provides a wire-through of the desired scheduler implementation. All
 scheduler implementations SHOULD provide a parameterize TaskBasic
-interface, as SchedulerBasic does; this supports nesC post statements
-and task declarations. All scheduler implementations MUST provide
-the Scheduler interface.
+interface, as SchedulerBasicP does; this supports nesC post statements
+and task declarations. If a scheduler does not provide the TaskBasic
+interface, compiling applications requires modifying the standard
+ncc scheduler parameters (as described in Appendix A). All scheduler 
+implementations MUST provide the Scheduler interface.
 
 For example, imagine a hypothetical scheduler that provides earliest
-deadline first tasks, which are provided through the TaskEDF
+deadline first tasks, which are provided through the TaskEdf
 interface:
 
-|  ``interface TaskEDF {``
+|  ``interface TaskEdf {``
 |    ``async command error_t postTask(uint16_t deadlineMs);``
 |    ``event void runTask();``
 |  ``}``
 
-The scheduler implementation is named SchedulerEDF, and provides both
-TaskBasic and TaskEDF interfaces:
+The scheduler implementation is named SchedulerEdfP, and provides both
+TaskBasic and TaskEdf interfaces:
 
-|  ``module SchedulerEDF {``
+|  ``module SchedulerEdfP {``
 |    ``provides interface Scheduler;``
 |    ``provides interface TaskBasic[uint8_t taskID];``
-|    ``provides interface TaskEDF[uint8_t taskID];``
+|    ``provides interface TaskEdf[uint8_t taskID];``
 |  ``}``
 
-An application that wants to use SchedulerEDF instead of
-SchedulerBasic includes a configuration named TinyScheduler, which
-exports all of SchedulerEDF's interfaces:
+An application that wants to use SchedulerEdfP instead of
+SchedulerBasicP includes a configuration named TinySchedulerC, which
+exports all of SchedulerEdfP's interfaces:
 
-|  ``configuration TinyScheduler {``
+|  ``configuration TinySchedulerC {``
 |    ``provides interface Scheduler;``
 |    ``provides interface TaskBasic[uint8_t taskID];``
-|    ``provides interface TaskEDF[uint8_t taskID];``
+|    ``provides interface TaskEdf[uint8_t taskID];``
 |  ``}``
 |  ``implementation {``
-|    ``components SchedulerEDF;``
-|    ``Scheduler = SchedulerEDF;``
-|    ``TaskBasic = SchedulerEDF;``
-|    ``TaskEDF   = SchedulerEDF;``
+|    ``components SchedulerEdfP;``
+|    ``Scheduler = SchedulerEdf;``
+|    ``TaskBasic = SchedulerEdfP;``
+|    ``TaskEDF   = SchedulerEdfP;``
 |  ``}``
 
 For a module to have an earliest deadline first task, it uses the
-TaskEDF interface. Its configuration SHOULD wire it to TinyScheduler.
-The key used for task unique identifiers MUST be "TinyScheduler.TaskInterface",
+TaskEdf interface. Its configuration SHOULD wire it to TinySchedulerC.
+The key used for task unique identifiers MUST be "TinySchedulerC.TaskInterface",
 where *TaskInterface* is the name of the new task interface as presented
-by the scheduler.  For example, the module SomethingM requires two EDF
+by the scheduler.  For example, the module SomethingP requires two EDF
 tasks:
 
 |  ``configuration SomethingC {``
 |    ``...``
 |  ``}``
 |  ``implementation {``
-|    ``components SomethingM, TinyScheduler;``
-|    ``SomethingM.SendTask -> TinyScheduler.TaskEDF["TinyScheduler.TaskEDF"];``
-|    ``SomethingM.SenseTask -> TinyScheduler.TaskEDF["TinyScheduler.TaskEDF"];``
+|    ``components SomethingP, TinySchedulerC;``
+|    ``SomethingP.SendTask -> TinySchedulerC.TaskEdf["TinySchedulerC.TaskEdf"];``
+|    ``SomethingP.SenseTask -> TinySchedulerC.TaskEdf["TinySchedulerC.TaskEdf"];``
 |  ``}``
 
-The module SomethingM also has a basic task. The nesC compiler
+The module SomethingP also has a basic task. The nesC compiler
 automatically transforms task keywords into BasicTask interfaces and
 wires them appropriately. Therefore, for basic tasks, a component
 author can either use the ``task`` and ``post`` keywords or use a TaskBasic
 interface. A component SHOULD use the keywords whenever possible, and it
 MUST NOT mix the two syntaxes for a given task.  This is an example
-implementation of SomethingM that uses keywords for basic tasks:
+implementation of SomethingP that uses keywords for basic tasks:
 
-|  ``module SomethingM {``
-|    ``uses interface TaskEDF as SendTask``
-|    ``uses interface TaskEDF as SenseTask``
+|  ``module SomethingP {``
+|    ``uses interface TaskEdf as SendTask``
+|    ``uses interface TaskEdf as SenseTask``
 |  ``}``
 |  ``implementation {``
 |    ``// The TaskBasic, written with keywords``
@@ -355,20 +371,20 @@ a scheduler which provides two instances of TaskBasic: standard
 tasks and high-priority tasks. The scheduler always selects a task
 for the high priority queue before the standard queue:
 
-|  ``configuration TinyScheduler {``
+|  ``configuration TinySchedulerC {``
 |    ``provides interface Scheduler;``
 |    ``provides interface TaskBasic[uint8_t taskID];``
 |    ``provides interface TaskBasic[uint8_t taskID] as TaskHighPriority;``
 |  ``}``
 
 A component that uses a high priority task would then wire to
-TaskHighPriority with the key "TinyScheduler.TaskHighPriority":
+TaskHighPriority with the key "TinySchedulerC.TaskHighPriority":
 
 |  ``configuration SomethingElseC {``
 |  ``}``
 |  ``implementation {``
-|    ``components TinyScheduler, SomethingElseM;``
-|    ``SomethingElseM.RetransmitTask -> TinyScheduler.TaskHighPriority[unique("TinyScheduler.TaskHighPriority")];``
+|    ``components TinySchedulerC as Sched, SomethingElseP;``
+|    ``SomethingElseP.RetransmitTask -> Sched.TaskHighPriority[unique("TinySchedulerC.TaskHighPriority")];``
 |  ``}``
 
 
@@ -405,6 +421,7 @@ TaskHighPriority with the key "TinyScheduler.TaskHighPriority":
    Embedded Systems." In *Proceedings of the ACM SIGPLAN 2003 Conference on
    Programming Language Design and Implementation (PLDI).* 
 
+.. [3] TEP 112: Microcontroller Power Management.
 
  
 Appendix A: Changing the Scheduler
