@@ -46,10 +46,25 @@ size_t tmsg_length(tmsg_t *msg)
   return msg->len;
 }
 
+static void (*failfn)(void);
+
 void tmsg_fail(void)
 {
+  if (failfn)
+    failfn();
 }
 
+void (*tmsg_set_fail(void (*fn)(void)))(void)
+{
+  void (*oldfn)(void) = failfn;
+
+  failfn = fn;
+
+  return oldfn;
+}
+
+/* Check if a specified bit field is in range for a buffer, and invoke
+   tmsg_fail if not. Return TRUE if in range, FALSE otherwise */
 static int boundsp(tmsg_t *msg, size_t offset, size_t length)
 {
   if (offset + length <= msg->len * 8)
@@ -59,6 +74,8 @@ static int boundsp(tmsg_t *msg, size_t offset, size_t length)
   return 0;
 }
 
+/* Convert 2's complement 'length' bit integer 'x' from unsigned to signed
+ */
 static int64_t u2s(uint64_t x, size_t length)
 {
   if (x & 1ULL << (length - 1))
@@ -77,11 +94,11 @@ uint64_t tmsg_read_ule(tmsg_t *msg, size_t offset, size_t length)
       size_t bit_offset = offset & 7;
       size_t shift = 0;
 
-      // all in one byte case
+      /* all in one byte case */
       if (length + bit_offset <= 8)
 	return (msg->data[byte_offset] >> bit_offset) & ((1 << length) - 1);
 
-      // get some high order bits
+      /* get some high order bits */
       if (offset > 0)
 	{
 	  x = msg->data[byte_offset] >> bit_offset;
@@ -97,7 +114,7 @@ uint64_t tmsg_read_ule(tmsg_t *msg, size_t offset, size_t length)
 	  length -= 8;
 	}
 
-      // data from last byte
+      /* data from last byte */
       if (length > 0)
 	x |= (uint64_t)(msg->data[byte_offset] & ((1 << length) - 1)) << shift;
     }
@@ -118,7 +135,7 @@ void tmsg_write_ule(tmsg_t *msg, size_t offset, size_t length, uint64_t x)
       size_t bit_offset = offset & 7;
       size_t shift = 0;
 
-      // all in one byte case
+      /* all in one byte case */
       if (length + bit_offset <= 8)
 	{
 	  msg->data[byte_offset] = 
@@ -127,7 +144,7 @@ void tmsg_write_ule(tmsg_t *msg, size_t offset, size_t length, uint64_t x)
 	  return;
 	}
 
-      // set some high order bits
+      /* set some high order bits */
       if (bit_offset > 0)
 	{
 	  msg->data[byte_offset] =
@@ -144,7 +161,7 @@ void tmsg_write_ule(tmsg_t *msg, size_t offset, size_t length, uint64_t x)
 	  length -= 8;
 	}
 
-      // data for last byte
+      /* data for last byte */
       if (length > 0)
 	msg->data[byte_offset] = 
 	  (msg->data[byte_offset] & ~((1 << length) - 1)) | x >> shift;
@@ -165,12 +182,12 @@ uint64_t tmsg_read_ube(tmsg_t *msg, size_t offset, size_t length)
       size_t byte_offset = offset >> 3;
       size_t bit_offset = offset & 7;
 
-      // All in one byte case
+      /* All in one byte case */
       if (length + bit_offset <= 8)
 	return (msg->data[byte_offset] >> (8 - bit_offset - length)) &
 	  ((1 << length) - 1);
 
-      // get some high order bits
+      /* get some high order bits */
       if (bit_offset > 0)
 	{
 	  length -= 8 - bit_offset;
@@ -184,7 +201,7 @@ uint64_t tmsg_read_ube(tmsg_t *msg, size_t offset, size_t length)
 	  x |= (uint64_t)msg->data[byte_offset++] << length;
 	}
 
-      // data from last byte
+      /* data from last byte */
       if (length > 0)
 	x |= msg->data[byte_offset] >> (8 - length);
 
@@ -206,7 +223,7 @@ void tmsg_write_ube(tmsg_t *msg, size_t offset, size_t length, uint64_t x)
       size_t byte_offset = offset >> 3;
       size_t bit_offset = offset & 7;
 
-      // all in one byte case
+      /* all in one byte case */
       if (length + bit_offset <= 8) {
 	size_t mask = ((1 << length) - 1) << (8 - bit_offset - length);
 
@@ -215,7 +232,7 @@ void tmsg_write_ube(tmsg_t *msg, size_t offset, size_t length, uint64_t x)
 	return;
       }
 
-      // set some high order bits
+      /* set some high order bits */
       if (bit_offset > 0)
 	{
 	  size_t mask = (1 << (8 - bit_offset)) - 1;
@@ -232,7 +249,7 @@ void tmsg_write_ube(tmsg_t *msg, size_t offset, size_t length, uint64_t x)
 	  msg->data[byte_offset++] = x >> length;
 	}
 
-      // data for last byte
+      /* data for last byte */
       if (length > 0)
 	{
 	  size_t mask = (1 << (8 - length)) - 1;
