@@ -1,4 +1,4 @@
-// $Id: Message.java,v 1.1.2.3 2006-02-08 18:27:30 idgay Exp $
+// $Id: Message.java,v 1.1.2.4 2006-05-03 16:48:33 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -453,7 +453,7 @@ public class Message implements Cloneable {
 	// get some high order bits
 	if (bitOffset > 0) {
 	    length -= 8 - bitOffset;
-	    val = (ubyte(byteOffset) & ((1 << (8 - bitOffset)) - 1)) << length;
+	    val = (long)(ubyte(byteOffset) & ((1 << (8 - bitOffset)) - 1)) << length;
 	    byteOffset++;
 	}
 
