@@ -5,8 +5,8 @@ SERIAL_H = $(TOS)/lib/serial/Serial.h
 
 BUILT_SOURCES = serialpacket.h serialprotocol.h
 
-bin_PROGRAMS=sf sflisten sfsend seriallisten
-noinst_PROGRAMS=prettylisten
+bin_PROGRAMS=sf 
+noinst_PROGRAMS=prettylisten sflisten sfsend seriallisten
 noinst_LIBRARIES=libmote.a
 
 sf_SOURCES = sf.c
