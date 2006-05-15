@@ -1,0 +1,14 @@
+BASE_DIR = $(TOSROOT)/apps/tests/TestRadioPM/lib
+
+CFLAGS += -I$(BASE_DIR)/serialDebug
+CFLAGS += -I$(BASE_DIR)/timeSync
+CFLAGS += -I$(BASE_DIR)/radioPM
+CFLAGS += -I$(BASE_DIR)/radioPM/types
+CFLAGS += -I$(BASE_DIR)/radioPM/system
+CFLAGS += -I$(BASE_DIR)/radioPM/interfaces
+CFLAGS += -I$(BASE_DIR)/radioPM/components/sleepSchedulers/bss
+CFLAGS += -I$(BASE_DIR)/radioPM/components/sleepSchedulers/sss
+CFLAGS += -I$(BASE_DIR)/radioPM/components/sleepSchedulers/lpl
+
+# CFLAGS += -I$(BASE_DIR)/radioPM/radios/cc1000
+CFLAGS += -I$(BASE_DIR)/radioPM/radios/cc2420

@@ -1,0 +1,24 @@
+BASE_DIR = $(TOSROOT)/apps/tests/TestRadioPM/lib/
+
+CFLAGS += -I$(BASE_DIR)/serialDebug
+CFLAGS += -I$(BASE_DIR)/timeSync
+CFLAGS += -I$(BASE_DIR)/radioPM
+CFLAGS += -I$(BASE_DIR)/radioPM/types
+CFLAGS += -I$(BASE_DIR)/radioPM/system
+CFLAGS += -I$(BASE_DIR)/radioPM/interfaces
+CFLAGS += -I$(BASE_DIR)/radioPM/protocols/Peas
+CFLAGS += -I$(BASE_DIR)/radioPM/protocols/ReceivingApp
+CFLAGS += -I$(BASE_DIR)/radioPM/protocols/SendingApp
+CFLAGS += -I$(BASE_DIR)/radioPM/components/abstractions/DutyCycleTimes
+CFLAGS += -I$(BASE_DIR)/radioPM/components/abstractions/RadioDutyCycling
+CFLAGS += -I$(BASE_DIR)/radioPM/components/abstractions/LowPowerListening
+CFLAGS += -I$(BASE_DIR)/radioPM/components/sleepSchedulers/bss
+CFLAGS += -I$(BASE_DIR)/radioPM/components/sleepSchedulers/sss
+CFLAGS += -I$(BASE_DIR)/radioPM/components/sleepSchedulers/lpl
+
+# CFLAGS += -I$(BASE_DIR)/radioPM/components/aggregators/PeasDutyCycling
+CFLAGS += -I$(BASE_DIR)/radioPM/components/aggregators/RadioDutyCycling
+# CFLAGS += -I$(BASE_DIR)/radioPM/components/aggregators/PeasPriorityDutyCycling
+
+# CFLAGS += -I$(BASE_DIR)/radioPM/radios/cc1000
+CFLAGS += -I$(BASE_DIR)/radioPM/radios/cc2420
