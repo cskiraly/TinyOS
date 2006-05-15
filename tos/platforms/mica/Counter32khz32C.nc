@@ -1,4 +1,4 @@
-// $Id: Counter32khz32C.nc,v 1.1.2.2 2006-01-27 21:52:11 idgay Exp $
+// $Id: Counter32khz32C.nc,v 1.1.2.2.6.1 2006-05-15 18:35:33 klueska Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -17,14 +17,16 @@
  * @author David Gay <dgay@intel-research.net>
  */
 
+#include <MicaTimer.h>
+
 configuration Counter32khz32C
 {
   provides interface Counter<T32khz, uint32_t>;
 }
 implementation
 {
-  components Counter32khz16C as Counter16, 
-    new TransformCounterC(T32khz, uint32_t, T32khz, uint16_t, 0, uint16_t)
+  components CounterOne16C as Counter16, 
+    new TransformCounterC(T32khz, uint32_t, T32khz, uint16_t, 0, counter_one_overflow_t)
       as Transform32;
 
   Counter = Transform32;

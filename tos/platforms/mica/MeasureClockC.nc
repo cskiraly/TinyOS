@@ -1,4 +1,4 @@
-// $Id: MeasureClockC.nc,v 1.1.2.5 2006-02-17 00:26:48 idgay Exp $
+// $Id: MeasureClockC.nc,v 1.1.2.5.2.1 2006-05-15 18:35:33 klueska Exp $
 /*
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
@@ -16,7 +16,8 @@
  * @author David Gay
  */
 
-#include "scale.h"
+#include <MicaTimer.h>
+#include <scale.h>
 
 module MeasureClockC {
   provides {
@@ -31,7 +32,7 @@ implementation
 {
   enum {
     /* This is expected number of cycles per jiffy at the platform's
-       specified MHz. We are PLATFORM_MHZ == 1, 2, 4, 8 or 16. */
+       specified MHz. Assumes PLATFORM_MHZ == 1, 2, 4, 8 or 16. */
     MAGIC = 488 / (16 / PLATFORM_MHZ)
   };
 
@@ -80,6 +81,9 @@ implementation
 	ASSR = TCCR1B = TCCR0 = 0;
 	TCNT0 = 0;
 	TCNT1 = 0;
+	ETIFR = TIFR = 0xff;
+	while (ASSR & (1 << TCN0UB | 1 << OCR0UB | 1 << TCR0UB))
+	  ;
       }
     return SUCCESS;
   }

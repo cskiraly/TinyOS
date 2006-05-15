@@ -1,0 +1,25 @@
+Miscelaneous notes on the TreeRoutingP module details.
+Rodrigo Fonseca
+
+Timer has period P jittered with +- P/2
+
+RouteInfo:
+    metric is a 16 bit number that measures quality to the root. See below.
+    hopcount
+    parent: a link neighbor address (next hop)
+
+Root:
+    rootControl interface.
+    if isRoot()
+      parent = self
+      hopcount = 0
+      metric = 0
+      has_route = true
+      
+
+Update task updates the parent before sending out beacon.
+This is not done right when you receive a beacon, because the qualities may change right before you send. This is a policy question, anyway, and can be changed easily.
+
+Quality is converted to a 'path metric' by evaluateMetric().
+Path metric is ADDITIVE along a path, and smaller metric is always better.
+Currently, it is 10*ETX along the path.

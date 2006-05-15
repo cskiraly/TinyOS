@@ -76,7 +76,7 @@ implementation
 
   /* Return low 16 bits of next 32 bit random number */
   async command uint16_t Random.rand16() {
-    return call Random.rand32();
+    return (uint16_t)call Random.rand32();
   }
 
 #if 0

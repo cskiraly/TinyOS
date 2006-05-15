@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.9 2006-02-17 00:26:48 idgay Exp $
+ *  $Id: hardware.h,v 1.1.2.9.2.1 2006-05-15 18:35:33 klueska Exp $
  */
 
 #ifndef HARDWARE_H
@@ -51,8 +51,14 @@ enum {
   CHANNEL_BATTERY    = ATM128_ADC_SNGL_ADC7,
 };
 
+#ifndef MHZ
+/* Clock rate is ~8MHz except if specified by user 
+   (this value must be a power of 2, see MicaTimer.h and MeasureClockC.nc) */
+#define MHZ 8
+#endif
+
 enum {
-  PLATFORM_MHZ = 8 // Approximate clock frequency (closest power of 2)
+  PLATFORM_BAUDRATE = 57600L
 };
 
 #endif //HARDWARE_H
