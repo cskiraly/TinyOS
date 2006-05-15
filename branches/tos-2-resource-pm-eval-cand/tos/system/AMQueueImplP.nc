@@ -1,4 +1,4 @@
-// $Id: AMQueueImplP.nc,v 1.1.2.2.6.1 2006-05-15 18:35:35 klueska Exp $
+// $Id: AMQueueImplP.nc,v 1.1.2.2.6.2 2006-05-15 19:08:28 klueska Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *

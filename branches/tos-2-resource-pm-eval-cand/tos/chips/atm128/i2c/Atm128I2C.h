@@ -1,4 +1,4 @@
-// $Id: Atm128I2C.h,v 1.1.2.3.6.1 2006-05-15 18:35:29 klueska Exp $
+// $Id: Atm128I2C.h,v 1.1.2.3.6.2 2006-05-15 19:08:27 klueska Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.

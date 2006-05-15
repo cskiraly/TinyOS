@@ -10,8 +10,8 @@ Schedulers and Tasks
 :Author: Philip Levis and Cory Sharp
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.2.2.1 $
-:Draft-Modified: $Date: 2006-05-15 18:35:28 $
+:Draft-Version: $Revision: 1.1.2.2.2.2 $
+:Draft-Modified: $Date: 2006-05-15 19:08:27 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::

@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: mica2dot.target,v 1.1.2.2.6.1 2006-05-15 18:35:28 klueska Exp $
+#$Id: mica2dot.target,v 1.1.2.2.6.2 2006-05-15 19:08:27 klueska Exp $
 
 PLATFORM = mica2dot
 PROGRAMMER_PART ?= -dpart=ATmega128 --wr_fuse_e=ff

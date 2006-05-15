@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.8.2.1 2006-05-15 18:35:34 klueska Exp $
+ *  $Id: hardware.h,v 1.1.2.8.2.2 2006-05-15 19:08:28 klueska Exp $
  */
 
 #ifndef HARDWARE_H

@@ -1,4 +1,4 @@
-// $Id: SerialP.nc,v 1.1.2.8.2.1 2006-05-15 18:35:32 klueska Exp $
+// $Id: SerialP.nc,v 1.1.2.8.2.2 2006-05-15 19:08:28 klueska Exp $
 /*									
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
@@ -35,7 +35,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.8.2.1 $
+ * Revision: $Revision: 1.1.2.8.2.2 $
  * 
  */
 

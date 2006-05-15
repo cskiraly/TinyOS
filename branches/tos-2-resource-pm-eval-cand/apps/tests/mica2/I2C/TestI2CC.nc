@@ -1,4 +1,4 @@
-// $Id: TestI2CC.nc,v 1.2.2.2 2006-05-15 18:35:27 klueska Exp $
+// $Id: TestI2CC.nc,v 1.2.2.3 2006-05-15 19:08:25 klueska Exp $
 
 /**
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.

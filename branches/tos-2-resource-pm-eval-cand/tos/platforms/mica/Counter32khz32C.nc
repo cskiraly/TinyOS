@@ -1,4 +1,4 @@
-// $Id: Counter32khz32C.nc,v 1.1.2.2.6.1 2006-05-15 18:35:33 klueska Exp $
+// $Id: Counter32khz32C.nc,v 1.1.2.2.6.2 2006-05-15 19:08:28 klueska Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
