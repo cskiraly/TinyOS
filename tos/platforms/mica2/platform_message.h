@@ -1,4 +1,4 @@
-/* $Id: platform_message.h,v 1.1.2.1.6.1 2006-05-15 18:35:33 klueska Exp $
+/* $Id: platform_message.h,v 1.1.2.1.6.2 2006-05-15 19:08:28 klueska Exp $
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
  *
  * @author Philip Levis
  * @date   May 16 2005
- * Revision:  $Revision: 1.1.2.1.6.1 $
+ * Revision:  $Revision: 1.1.2.1.6.2 $
  */
 
 

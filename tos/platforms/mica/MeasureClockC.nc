@@ -1,4 +1,4 @@
-// $Id: MeasureClockC.nc,v 1.1.2.5.2.1 2006-05-15 18:35:33 klueska Exp $
+// $Id: MeasureClockC.nc,v 1.1.2.5.2.2 2006-05-15 19:08:28 klueska Exp $
 /*
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.

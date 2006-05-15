@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.12.6.1 2006-05-15 18:35:29 klueska Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.12.6.2 2006-05-15 19:08:27 klueska Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  

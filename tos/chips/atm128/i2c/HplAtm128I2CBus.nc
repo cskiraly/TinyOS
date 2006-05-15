@@ -1,4 +1,4 @@
-/// $Id: HplAtm128I2CBus.nc,v 1.1.2.1.6.1 2006-05-15 18:35:29 klueska Exp $
+/// $Id: HplAtm128I2CBus.nc,v 1.1.2.1.6.2 2006-05-15 19:08:27 klueska Exp $
 
 /*
  *  Copyright (c) 2004-2005 Crossbow Technology, Inc.
@@ -35,7 +35,7 @@
  * @author Martin Turon <mturon@xbow.com>
  * @author Philip Levis
  *
- * @version  $Id: HplAtm128I2CBus.nc,v 1.1.2.1.6.1 2006-05-15 18:35:29 klueska Exp $
+ * @version  $Id: HplAtm128I2CBus.nc,v 1.1.2.1.6.2 2006-05-15 19:08:27 klueska Exp $
  */
 interface HplAtm128I2CBus {
 

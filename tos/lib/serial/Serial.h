@@ -1,4 +1,4 @@
-//$Id: Serial.h,v 1.1.2.11.6.1 2006-05-15 18:35:32 klueska Exp $
+//$Id: Serial.h,v 1.1.2.11.6.2 2006-05-15 19:08:28 klueska Exp $
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
  *

@@ -29,7 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6.2.1 $ $Date: 2006-05-15 18:35:29 $
+ * @version $Revision: 1.1.2.6.2.2 $ $Date: 2006-05-15 19:08:27 $
  */
 
 #ifndef __CC2420_H__

@@ -24,7 +24,7 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: TestI2CM.nc,v 1.2.2.2 2006-05-15 18:35:27 klueska Exp $
+ *  $Id: TestI2CM.nc,v 1.2.2.3 2006-05-15 19:08:26 klueska Exp $
  */
 
 /**
