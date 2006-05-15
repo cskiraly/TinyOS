@@ -1,4 +1,4 @@
-// $Id: TossimPacketModelC.nc,v 1.1.2.4 2006-04-05 18:21:02 scipio Exp $
+// $Id: TossimPacketModelC.nc,v 1.1.2.5 2006-05-15 16:39:18 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -178,11 +178,10 @@ implementation {
     // in the range of backoff times, and multiply it by the
     // sim_time per symbol.
     sim_time_t backoff = sim_random();
-    dbg("TossimPacketModelC", "Starting CMSA.\n");
     backoff %= (sim_csma_init_high() - sim_csma_init_low());
     backoff += sim_csma_init_low();
     backoff *= (sim_ticks_per_sec() / sim_csma_symbols_per_sec());
-
+    dbg("TossimPacketModelC", "Starting CMSA with %lli.\n", backoff);
     first_sample = sim_time() + backoff;
 
     sendEvent.mote = sim_node();
