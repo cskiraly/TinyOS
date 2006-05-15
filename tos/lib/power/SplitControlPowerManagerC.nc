@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-03-10 02:19:23 $ 
+ * $Revision: 1.1.2.3.2.1 $
+ * $Date: 2006-05-15 18:23:15 $ 
  * ======================================================================== 
  */
  
@@ -62,8 +62,8 @@ generic configuration SplitControlPowerManagerC() {
     interface SplitControl;
 
     interface PowerDownCleanup;
-    interface Init as ArbiterInit;
     interface ResourceController;
+    interface ArbiterInfo;
   }
 }
 implementation {
@@ -75,7 +75,7 @@ implementation {
 
   PowerManager.PowerDownCleanup = PowerDownCleanup;
  
-  PowerManager.ArbiterInit  = ArbiterInit;
   PowerManager.ResourceController = ResourceController;
+  PowerManager.ArbiterInfo = ArbiterInfo;
 }
 

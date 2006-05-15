@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-27 02:38:05 $ 
+ * $Revision: 1.1.2.3.6.1 $
+ * $Date: 2006-05-15 18:23:15 $ 
  * ======================================================================== 
  */
  
@@ -66,7 +66,6 @@ generic configuration AsyncStdControlDeferredPowerManagerC(uint32_t delay)
     interface AsyncStdControl;
 
     interface PowerDownCleanup;
-    interface Init as ArbiterInit;
     interface ResourceController;
     interface ArbiterInfo;
   }
@@ -81,7 +80,6 @@ implementation {
 
   PowerManager.PowerDownCleanup = PowerDownCleanup;
  
-  PowerManager.ArbiterInit  = ArbiterInit;
   PowerManager.ResourceController = ResourceController;
   PowerManager.ArbiterInfo = ArbiterInfo;
 

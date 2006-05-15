@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-27 02:38:04 $ 
+ * $Revision: 1.1.2.2.6.1 $
+ * $Date: 2006-05-15 18:23:14 $ 
  * ======================================================================== 
  */
  
@@ -57,7 +57,6 @@ generic module AsyncDeferredPowerManagerP(uint32_t delay) {
     interface AsyncStdControl;
 
     interface PowerDownCleanup;
-    interface Init as ArbiterInit;
     interface ResourceController;
     interface ArbiterInfo;
     interface Timer<TMilli> as TimerMilli;
@@ -77,12 +76,11 @@ implementation {
   command error_t Init.init() {
     f.stopping = FALSE;
     f.requested = FALSE;
-    call ArbiterInit.init();
     call ResourceController.immediateRequest();
     return SUCCESS;
   }
 
-  async event void ResourceController.requested() {
+  event void ResourceController.requested() {
     if(f.stopping == FALSE) {
       call AsyncStdControl.start();
       call ResourceController.release();
@@ -90,7 +88,7 @@ implementation {
     else atomic f.requested = TRUE;
   }
 
-  async event void ResourceController.idle() {
+  event void ResourceController.idle() {
     if(!(call ArbiterInfo.inUse()))
       post timerTask();
   }
