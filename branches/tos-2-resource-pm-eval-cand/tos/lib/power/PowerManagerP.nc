@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-03-10 02:19:23 $ 
+ * $Revision: 1.1.2.3.2.1 $
+ * $Date: 2006-05-15 18:23:15 $ 
  * ======================================================================== 
  */
  
@@ -54,8 +54,8 @@ generic module PowerManagerP() {
     interface SplitControl;
 
     interface PowerDownCleanup;
-    interface Init as ArbiterInit;
     interface ResourceController;
+    interface ArbiterInfo;
   }
 }
 implementation {
@@ -77,12 +77,11 @@ implementation {
   command error_t Init.init() {
     f.stopping = FALSE;
     f.requested = FALSE;
-    call ArbiterInit.init();
     call ResourceController.immediateRequest();
     return SUCCESS;
   }
 
-  async event void ResourceController.requested() {
+  event void ResourceController.requested() {
     if(f.stopping == FALSE)
       post startTask();
     else atomic f.requested = TRUE;
@@ -100,7 +99,7 @@ implementation {
     call ResourceController.release();
   }
   
-  async event void ResourceController.idle() {
+  event void ResourceController.idle() {
     if(call ResourceController.immediateRequest() == SUCCESS) {
       f.stopping = TRUE;
       call PowerDownCleanup.cleanup();

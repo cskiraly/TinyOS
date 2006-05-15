@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-03-15 16:40:32 $ 
+ * $Revision: 1.1.2.4.2.1 $
+ * $Date: 2006-05-15 18:23:15 $ 
  * ======================================================================== 
  */
  
@@ -63,8 +63,8 @@ generic configuration AsyncStdControlPowerManagerC()
     interface AsyncStdControl;
 
     interface PowerDownCleanup;
-    interface Init as ArbiterInit;
     interface ResourceController;
+    interface ArbiterInfo;
   }
 }
 implementation {
@@ -76,7 +76,7 @@ implementation {
 
   PowerManager.PowerDownCleanup = PowerDownCleanup;
  
-  PowerManager.ArbiterInit  = ArbiterInit;
   PowerManager.ResourceController = ResourceController;
+  PowerManager.ArbiterInfo = ArbiterInfo;
 }
 
