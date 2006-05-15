@@ -1,4 +1,4 @@
-// $Id: AMQueueP.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
+// $Id: AMQueueP.nc,v 1.1.2.3 2006-05-15 16:42:04 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -36,7 +36,11 @@ configuration AMQueueP {
 }
 
 implementation {
-  components AMQueueImplP, ActiveMessageC;
+  enum {
+    NUM_CLIENTS = uniqueCount(UQ_AMQUEUE_SEND)
+  };
+  
+  components new AMQueueImplP(NUM_CLIENTS), ActiveMessageC;
 
   Send = AMQueueImplP;
   AMQueueImplP.AMSend -> ActiveMessageC;

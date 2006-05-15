@@ -1,4 +1,4 @@
-// $Id: AMQueueImplP.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
+// $Id: AMQueueImplP.nc,v 1.1.2.3 2006-05-15 16:42:04 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -31,7 +31,7 @@
 
 #include "AM.h"
 
-module AMQueueImplP {
+generic module AMQueueImplP(int numClients) {
   provides interface Send[uint8_t client];
   uses{
     interface AMSend[am_id_t id];
@@ -45,7 +45,6 @@ implementation {
   
   enum {
     QUEUE_EMPTY = 255,
-    NUM_CLIENTS = uniqueCount(UQ_AMQUEUE_SEND),
   };
 
   typedef struct {
@@ -53,7 +52,7 @@ implementation {
   } queue_entry_t;
   
   uint8_t current = QUEUE_EMPTY;
-  queue_entry_t queue[NUM_CLIENTS];
+  queue_entry_t queue[numClients];
 
 
   void tryToSend();
@@ -65,8 +64,8 @@ implementation {
       initial = 0;
     }
     i = initial;
-    for (; i < (initial + NUM_CLIENTS); i++) {
-      uint8_t client = (uint8_t)i % NUM_CLIENTS;
+    for (; i < (initial + numClients); i++) {
+      uint8_t client = (uint8_t)i % numClients;
       if (queue[client].msg != NULL) {
 	current = client;
 	return;
@@ -77,13 +76,14 @@ implementation {
   
   
   command error_t Send.send[uint8_t clientId](message_t* msg,
-					    uint8_t len) {
-    if (clientId > NUM_CLIENTS) {return FAIL;}
+                                              uint8_t len) {
+    if (clientId > numClients) {return FAIL;}
     if (queue[clientId].msg != NULL) {return EBUSY;}
     dbg("AMQueue", "AMQueue: request to send from %hhu (%p): passed checks\n", clientId, msg);
 
     queue[clientId].msg = msg;
-
+    call Packet.setPayloadLength(msg, len);
+    
     if (current == QUEUE_EMPTY) {
       error_t err;
       am_id_t amId = call AMPacket.type(msg);
@@ -105,7 +105,7 @@ implementation {
   }
 
   command error_t Send.cancel[uint8_t clientId](message_t* msg) {
-    if (clientId > NUM_CLIENTS ||         // Not a valid client    
+    if (clientId > numClients ||         // Not a valid client    
 	queue[clientId].msg == NULL ||    // No packet pending
 	queue[clientId].msg != msg) {     // Not the right packet
       return FAIL;
