@@ -1,4 +1,4 @@
-//$Id: Serial.h,v 1.1.2.11 2006-01-15 22:31:32 scipio Exp $
+//$Id: Serial.h,v 1.1.2.12 2006-05-15 16:44:17 scipio Exp $
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
  *
@@ -70,6 +70,8 @@
 #include "AM.h"
 
 typedef uint8_t uart_id_t;
+
+#define UQ_SERIALQUEUE_SEND "SerialQueueP.Send"
 
 enum {
   HDLC_FLAG_BYTE	   = 0x7e,
