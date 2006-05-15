@@ -1,4 +1,4 @@
-// $Id: SerialAMSenderC.nc,v 1.1.2.1 2006-05-15 16:44:17 scipio Exp $
+// $Id: SerialAMSenderC.nc,v 1.1.2.2 2006-05-15 16:46:54 scipio Exp $
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -49,7 +49,7 @@ implementation {
   components new AMQueueEntryP(AMId) as AMQueueEntryP;
   components SerialAMQueueP, SerialActiveMessageC as AM;
 
-  AMQueueEntryP.Send -> SerialAMQueueP.Send[unique(UQ_AMQUEUE_SEND)];
+  AMQueueEntryP.Send -> SerialAMQueueP.Send[unique(UQ_SERIALQUEUE_SEND)];
   AMQueueEntryP.AMPacket -> AM;
   
   AMSend = AMQueueEntryP;
