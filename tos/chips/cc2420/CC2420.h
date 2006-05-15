@@ -29,7 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-03-23 21:10:56 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-05-15 14:17:38 $
  */
 
 #ifndef __CC2420_H__
@@ -71,7 +71,7 @@ typedef nx_struct cc2420_packet_t {
 #endif
 
 #ifndef CC2420_DEF_CHANNEL
-#define CC2420_DEF_CHANNEL 11
+#define CC2420_DEF_CHANNEL 26
 #endif
 
 #ifndef CC2420_DEF_RFPOWER
