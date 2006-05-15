@@ -52,7 +52,7 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.9.2.1 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-05-15 18:17:59 $ 
  * ======================================================================== 
  */
@@ -61,7 +61,7 @@
  * Please refer to TEP 108 for more information about this interface and its
  * intended use.<br><br>
  *
- * The Resource interface can be used to gain access to
+ * The ImmediateResource interface can be used to gain access to
  * shared resources.  It is always offered as a parameterized
  * interface, and its users gain access to the resource through some
  * predefined arbitration policy.
@@ -69,29 +69,20 @@
  * @author Kevin Klues (klueska@cs.wustl.edu)
  */
 
-interface Resource {
+interface ImmediateResource {
   /**
-   * Request access to a shared resource. You must call release()
-   * when you are done with it.
+   * Request immediate access to a shared resource. You must call 
+   * release() when you are done with it.
    *
-   * @return SUCCESS When a request has been accepted. The granted()
-   *                 event will be signaled once you have control of the
-   *                 resource.<br>
-   *         EBUSY You have already requested this resource and a
-   *               granted event is pending
+   * @return SUCCESS You now have cotnrol of the resource.<br>
+   *         EBUSY The resource is busy.  You must try again later
    */
-  command error_t request();
-
-  /**
-   * You are now in control of the resource. Note that this event
-   * is NOT signaled when immediateRequest() succeeds.
-   */
-  event void granted();
+  async command error_t request();
    
   /**
    * Release a shared resource you previously acquired.
    */
-  command void release();
+  async command void release();
 
   /**
    *  Check if the user of this interface is the current

@@ -52,8 +52,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-03-08 02:01:48 $ 
+ * $Revision: 1.1.2.3.2.1 $
+ * $Date: 2006-05-15 18:17:59 $ 
  * ======================================================================== 
  */
  
@@ -83,8 +83,8 @@ interface ResourceController {
    *         EBUSY You have already requested this resource and a
    *               granted event is pending
   */
-  async command error_t request();
-   
+  command error_t request();
+
   /**
   * Request immediate access to a shared resource. You must call
   * release() when you are done with it.
@@ -92,7 +92,7 @@ interface ResourceController {
   * @return SUCCESS You now have cotnrol of the resource.<br>
   *         EBUSY The resource is busy.  You must try again later
   */
-  async command error_t immediateRequest();
+  command error_t immediateRequest();
 
   /**
   * You are now in control of the resource. Note that this event
@@ -103,7 +103,7 @@ interface ResourceController {
   /**
   * Release a shared resource you previously acquired.
   */
-  async command void release();
+  command void release();
 
   /**
    *  Check if the user of this interface is the current
@@ -119,12 +119,12 @@ interface ResourceController {
    * it.  You may want to consider releasing a resource based on this
    * event
    */
-  async event void requested();
+  event void requested();
 
   /**
    * Event sent to the resource controller whenever a resource goes idle.
    * That is to say, whenever no one currently owns the resource, and there
    * are no more pending requests
    */
-  async event void idle(); 
+  event void idle();
 }

@@ -52,7 +52,7 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.9.2.1 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-05-15 18:17:59 $ 
  * ======================================================================== 
  */
@@ -61,15 +61,18 @@
  * Please refer to TEP 108 for more information about this interface and its
  * intended use.<br><br>
  *
- * The Resource interface can be used to gain access to
- * shared resources.  It is always offered as a parameterized
- * interface, and its users gain access to the resource through some
- * predefined arbitration policy.
+ * This interface is an extension of the Resource interface.  It has all of the
+ * commands and events present in the Resource interface, along with two additional
+ * events.  These events allow the user of this interface to be notified whenever
+ * someone requests the use of a resource or whenever the resource becomes idle.
+ * One could use this interface to control access to a resource by always
+ * taking control of a resource whenever it has gone idle and deciding when to
+ * release it based on requests from other users.
  *
- * @author Kevin Klues (klueska@cs.wustl.edu)
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 
-interface Resource {
+interface AsyncResourceController {
   /**
    * Request access to a shared resource. You must call release()
    * when you are done with it.
@@ -79,19 +82,28 @@ interface Resource {
    *                 resource.<br>
    *         EBUSY You have already requested this resource and a
    *               granted event is pending
-   */
-  command error_t request();
+  */
+  async command error_t request();
 
   /**
-   * You are now in control of the resource. Note that this event
-   * is NOT signaled when immediateRequest() succeeds.
-   */
+  * Request immediate access to a shared resource. You must call
+  * release() when you are done with it.
+  *
+  * @return SUCCESS You now have cotnrol of the resource.<br>
+  *         EBUSY The resource is busy.  You must try again later
+  */
+  async command error_t immediateRequest();
+
+  /**
+  * You are now in control of the resource. Note that this event
+  * is NOT signaled when immediateRequest() succeeds.
+  */
   event void granted();
    
   /**
-   * Release a shared resource you previously acquired.
-   */
-  command void release();
+  * Release a shared resource you previously acquired.
+  */
+  async command void release();
 
   /**
    *  Check if the user of this interface is the current
@@ -100,4 +112,19 @@ interface Resource {
    *          FALSE It is not the owner
    */
   async command bool isOwner();
+
+  /**
+   * This event is signalled whenever the user of this interface
+   * currently has control of the resource, and another user requests
+   * it.  You may want to consider releasing a resource based on this
+   * event
+   */
+  event void requested();
+
+  /**
+   * Event sent to the resource controller whenever a resource goes idle.
+   * That is to say, whenever no one currently owns the resource, and there
+   * are no more pending requests
+   */
+  event void idle();
 }
