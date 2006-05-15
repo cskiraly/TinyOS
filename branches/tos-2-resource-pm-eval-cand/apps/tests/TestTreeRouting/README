@@ -1,0 +1,4 @@
+This is a simple configuration and test driver to test tree building and link estimation. Currently to be used in simulation, because it does not have any debugging or state output to the radio.
+
+Rodrigo Fonseca
+

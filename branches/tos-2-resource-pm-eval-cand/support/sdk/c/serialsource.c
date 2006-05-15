@@ -22,6 +22,7 @@
 #undef DEBUG
 
 #include "serialsource.h"
+#include "serialprotocol.h"
 
 typedef int bool;
 
@@ -33,13 +34,13 @@ enum {
   BUFSIZE = 256,
   MTU = 256,
   ACK_TIMEOUT = 1000000, /* in us */
-  SYNC_BYTE = 0x7e,
-  ESCAPE_BYTE = 0x7d,
+  SYNC_BYTE = SERIAL_HDLC_FLAG_BYTE,
+  ESCAPE_BYTE = SERIAL_HDLC_CTLESC_BYTE,
 
-  P_ACK = 64,
-  P_PACKET_ACK = 65,
-  P_PACKET_NO_ACK = 66,
-  P_UNKNOWN = 255
+  P_ACK = SERIAL_SERIAL_PROTO_ACK,
+  P_PACKET_ACK = SERIAL_SERIAL_PROTO_PACKET_ACK,
+  P_PACKET_NO_ACK = SERIAL_SERIAL_PROTO_PACKET_NOACK,
+  P_UNKNOWN = SERIAL_SERIAL_PROTO_PACKET_UNKNOWN
 };
 
 struct packet_list
@@ -205,6 +206,7 @@ static int buggyread(serial_source src, void *buffer, int n)
 	{
 	  cnt = -1;
 	  errno = EAGAIN;
+	  printf("foo\n");
 	}
       return cnt;
     }
@@ -272,7 +274,7 @@ serial_source open_serial_source(const char *device, int baud_rate,
 
       if (src)
 	{
-	  memset(src, 0, sizeof src);
+	  memset(src, 0, sizeof *src);
 	  src->fd = fd;
 	  src->non_blocking = non_blocking;
 	  src->message = message;
@@ -390,7 +392,7 @@ static void push_protocol_packet(serial_source src,
 				 uint8_t type, uint8_t *packet, uint8_t len)
 {
   /* I'm assuming short queues */
-  struct packet_list *entry = malloc(sizeof *packet), **last;
+  struct packet_list *entry = malloc(sizeof *entry), **last;
 
   if (!entry)
     {
