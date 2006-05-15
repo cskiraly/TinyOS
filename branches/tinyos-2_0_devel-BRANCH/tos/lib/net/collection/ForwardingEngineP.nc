@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.7 2006-05-01 16:43:32 kasj78 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.8 2006-05-15 16:48:04 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-05-01 16:43:32 $
+ *  @date   $Date: 2006-05-15 16:48:04 $
  */
 
    
@@ -40,8 +40,8 @@ generic module ForwardingEngineP() {
   }
   uses {
     interface AMSend;
-    interface AMReceive as SubReceive;
-    interface AMReceive as SubSnoop;
+    interface Receive as SubReceive;
+    interface Receive as SubSnoop;
     interface Packet as SubPacket;
     interface UnicastNameFreeRouting;
     interface SplitControl as RadioControl;
@@ -241,7 +241,7 @@ implementation {
       qe->msg = m;
       qe->client = CLIENT_COUNT;
 
-      uint8_t len = call SubPacket.payloadLength(m);x
+      uint8_t len = call SubPacket.payloadLength(m);
       call Packet.setPayloadLength(m, len + sizeof(network_header_t));
       if (call SendQueue.enqueue(qe))
         return newMsg;
