@@ -52,7 +52,7 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.9.2.1 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-05-15 18:17:59 $ 
  * ======================================================================== 
  */
@@ -69,7 +69,7 @@
  * @author Kevin Klues (klueska@cs.wustl.edu)
  */
 
-interface Resource {
+interface AsyncResource {
   /**
    * Request access to a shared resource. You must call release()
    * when you are done with it.
@@ -80,7 +80,7 @@ interface Resource {
    *         EBUSY You have already requested this resource and a
    *               granted event is pending
    */
-  command error_t request();
+  async command error_t request();
 
   /**
    * You are now in control of the resource. Note that this event
@@ -91,7 +91,7 @@ interface Resource {
   /**
    * Release a shared resource you previously acquired.
    */
-  command void release();
+  async command void release();
 
   /**
    *  Check if the user of this interface is the current
