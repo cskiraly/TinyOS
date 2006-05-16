@@ -17,6 +17,8 @@ implementation {
   components new ForwardingEngineP as FE;
   components new TimerMilliC() as FETimer;
 
+  Send = FE;
+
   FE.ForwardPool -> ForwardPool;
   FE.SendQueue -> QueueC;
 
@@ -44,5 +46,4 @@ implementation {
   FE.UnicastNameFreeRouting -> RE.Routing;
   FE.RadioControl ->
   FE.QEntryPool ->
-
 }
