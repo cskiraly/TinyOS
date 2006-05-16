@@ -1,6 +1,11 @@
 Miscelaneous notes on the TreeRoutingP module details.
 Rodrigo Fonseca
 
+The RoutingTable is a table with information about *routing* information of neighbors: their hopcount, quality, etc. It is used to periodically choose the best route, and to find backup routes.
+
+It is strictly a subset of the LinkEstimator table, meaning that no node that is not in the link estimator table is in the routing table. However, not all neighbors will be here. The policy for managing this table is a generalization of the regular tree routing: we keep the K best paths to *a* root.
+
+
 Timer has period P jittered with +- P/2
 
 RouteInfo:
