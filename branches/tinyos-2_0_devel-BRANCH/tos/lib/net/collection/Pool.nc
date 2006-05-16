@@ -1,4 +1,4 @@
-/* $Id: Pool.nc,v 1.1.2.3 2006-04-29 18:58:44 kasj78 Exp $ */
+/* $Id: Pool.nc,v 1.1.2.4 2006-05-16 17:36:42 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,12 +25,11 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-04-29 18:58:44 $
+ *  @date   $Date: 2006-05-16 17:36:42 $
  */
 
    
 interface Pool<t> {
-
   command bool empty();
   command uint8_t size();
   command uint8_t maxSize();

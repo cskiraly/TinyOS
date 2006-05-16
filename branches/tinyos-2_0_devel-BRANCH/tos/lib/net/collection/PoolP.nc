@@ -1,4 +1,4 @@
-/* $Id: PoolP.nc,v 1.1.2.2 2006-04-29 18:58:44 kasj78 Exp $ */
+/* $Id: PoolP.nc,v 1.1.2.3 2006-05-16 17:36:42 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,15 +25,16 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-04-29 18:58:44 $
+ *  @date   $Date: 2006-05-16 17:36:42 $
  */
 
 generic module PoolP(typedef pool_t, uint8_t size) {
-  provides interface Init;
-  provides interface Pool<pool_t>;
+  provides {
+    interface Init;
+    interface Pool<pool_t>;
+  }
 }
 implementation {
-
   uint8_t free;
   uint8_t index;
   pool_t* queue[size];
@@ -59,9 +60,9 @@ implementation {
     return size;
   }
 
-  command t* Pool.get() {
+  command pool_t* Pool.get() {
     if (free) {
-      t* rval = queue[index];
+      pool_t* rval = queue[index];
       queue[index] = NULL;
       free--;
       index = (index + 1) % size;
@@ -70,7 +71,7 @@ implementation {
     return NULL;
   }
 
-  command error_t Pool.put(t* newVal) {
+  command error_t Pool.put(pool_t* newVal) {
     if (free >= size) {
       return FAIL;
     }

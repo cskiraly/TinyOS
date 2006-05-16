@@ -1,4 +1,4 @@
-/* $Id: QueueC.nc,v 1.1.2.2 2006-05-01 16:43:07 kasj78 Exp $ */
+/* $Id: QueueC.nc,v 1.1.2.3 2006-05-16 17:36:42 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,19 +24,17 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-05-01 16:43:07 $
+ *  @date   $Date: 2006-05-16 17:36:42 $
  */
 
    
-generic module QueueC(typedef queue_type, uint8_t QUEUE_SIZE) {
-  provides {
-    interface Queue<t>;
-  }
+generic module QueueC(typedef queue_t, uint8_t QUEUE_SIZE) {
+  provides interface Queue<queue_t>;
 }
 
 implementation {
 
-  queue_type queue[QUEUE_SIZE];
+  queue_t queue[QUEUE_SIZE];
   uint8_t head = 0;
   uint8_t tail = 0;
   uint8_t size = 0;
@@ -53,13 +51,13 @@ implementation {
     return QUEUE_SIZE;
   }
 
-  command queue_type Queue.head() {
+  command queue_t Queue.head() {
     return queue[head];
   }
 
-  command queue_type Queue.dequeue() {
-    queue_type t = call Queue.head();
-    if (!Queue.empty()) {
+  command queue_t Queue.dequeue() {
+    queue_t t = call Queue.head();
+    if (!call Queue.empty()) {
       head++;
       head %= QUEUE_SIZE;
       size--;
@@ -67,8 +65,8 @@ implementation {
     return t;
   }
 
-  command error_t Queue.enqueue(queue_type newVal) {
-    if (Queue.size() < Queue.maxSize()) {
+  command error_t Queue.enqueue(queue_t newVal) {
+    if (call Queue.size() < call Queue.maxSize()) {
       queue[tail] = newVal;
       tail++;
       size++;

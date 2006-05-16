@@ -1,4 +1,4 @@
-/* $Id: PoolC.nc,v 1.1.2.1 2006-04-23 20:27:10 scipio Exp $ */
+/* $Id: PoolC.nc,v 1.1.2.2 2006-05-16 17:36:42 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,16 +24,16 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-04-23 20:27:10 $
+ *  @date   $Date: 2006-05-16 17:36:42 $
  */
 
-generic module PoolC(typedef pool_t, uint8_t size) {
+generic configuration PoolC(typedef pool_t, uint8_t POOL_SIZE) {
   provides interface Pool<pool_t>;
-}
-implementation {
-  components MainC, new PoolP(pool_t, size);
+} 
 
-  MainC.SofwareInit -> PoolP;
+implementation {
+  components MainC, new PoolP(pool_t, POOL_SIZE);
+
+  MainC.SoftwareInit -> PoolP;
   Pool = PoolP;
-  
 }
