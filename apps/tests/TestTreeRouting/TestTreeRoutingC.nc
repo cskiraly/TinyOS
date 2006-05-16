@@ -10,7 +10,8 @@ implementation {
     components TestTreeRoutingP;
 
     components new TreeRoutingEngineP(TREE_ROUTING_TABLE_SIZE) as RE;
-    components LinkEstimatorP as LE;
+    //components LinkEstimatorP as LE;
+    components LinkEstimatorDummyP as LE;
 
     TestTreeRoutingP.Boot -> MainC;
     TestTreeRoutingP.RadioControl -> ActiveMessageC;
