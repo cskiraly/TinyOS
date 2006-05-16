@@ -4,13 +4,14 @@ module TestTreeRoutingP {
     uses interface StdControl as TreeControl;
     uses interface SplitControl as RadioControl;
     uses interface RootControl;
+    uses interface Timer;
 }
 implementation {
     event void Boot.booted() {
         call Init.init();
         call RadioControl.start();
         call TreeControl.start();
-        if (TOS_NODE_ID == 0) {
+        if (TOS_NODE_ID == 0 || TOS_NODE_ID == 173) {
             call RootControl.setRoot();
         }
 
