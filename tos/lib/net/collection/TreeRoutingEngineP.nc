@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #define TEST_INSERT
-/* $Id: TreeRoutingEngineP.nc,v 1.1.2.3 2006-05-16 22:51:33 rfonseca76 Exp $ */
+/* $Id: TreeRoutingEngineP.nc,v 1.1.2.4 2006-05-17 17:53:00 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -29,7 +29,7 @@
  *  Acknowledgment: based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
  *                           MultiHopLQI
  *                           
- *  @date   $Date: 2006-05-16 22:51:33 $
+ *  @date   $Date: 2006-05-17 17:53:00 $
  *  @see Net2-WG
  */
 
@@ -92,6 +92,7 @@ implementation {
 
 
     command error_t Init.init() {
+        uint8_t maxLength;
         radioOn = FALSE;
         running = FALSE;
         parentChanges = 0;
@@ -100,7 +101,9 @@ implementation {
         routingTableInit();
         my_ll_addr = call AMPacket.address();
         beaconMsg = call BeaconSend.getPayload(&beaconMsgBuffer);
-        dbg("TreeRoutingCtl","TreeRouting initialized!\n");
+        maxLength = call BeaconSend.maxPayloadLength();
+        dbg("TreeRoutingCtl","TreeRouting initialized. (used payload:%d max payload:%d!\n", 
+              sizeof(beaconMsg), maxLength);
 #ifdef TEST_INSERT
         victim = 0;
 #endif
@@ -252,7 +255,7 @@ implementation {
 
         eval = call BeaconSend.send(AM_BROADCAST_ADDR, 
                                     &beaconMsgBuffer, 
-                                    sizeof(beaconMsgBuffer));
+                                    sizeof(beaconMsg));
         if (eval == SUCCESS) {
             sending = TRUE;
         } else if (eval == EOFF) {
