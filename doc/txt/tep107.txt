@@ -10,8 +10,8 @@ TinyOS 2.x Boot Sequence
 :Author: Philip Levis 
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.3 $
-:Draft-Modified: $Date: 2006-04-23 22:00:50 $
+:Draft-Version: $Revision: 1.1.2.4 $
+:Draft-Modified: $Date: 2006-05-17 00:48:16 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -160,21 +160,21 @@ others that are application specific.
 |  ``}``
 |  ``implementation {``
 |    ``int main() __attribute__ ((C, spontaneous)) {``
-|      ``call Scheduler.init();``
-|      `` ``
-|      ``call PlatformInit.init();``
-|      ``while(call Scheduler.runNextTask(FALSE));``
-|      `` ``
-|      ``call SoftwareInit.init();``
-|      ``while(call Scheduler.runNextTask(FALSE));``
-|      `` ``
-|      ``__nesc_enable_interrupts();``
-|      `` ``
-|      ``signal Boot.booted();``
-|      ``while(1) {``
-|        ``call Scheduler.runNextTask(TRUE);``
+|      ``atomic {
+|        ``call Scheduler.init();``
+|        ``call PlatformInit.init();``
+|        ``while (call Scheduler.runNextTask());``
+|        ``call SoftwareInit.init();``
+|        ``while (call Scheduler.runNextTask());``
 |      ``}``
+|      ``__nesc_enable_interrupt();``
+|      ``signal Boot.booted();``
+|      ``call Scheduler.taskLoop();``
+|      ``return -1;``
 |    ``}``
+|    ``default command error_t PlatformInit.init() { return SUCCESS; }``
+|    ``default command error_t SoftwareInit.init() { return SUCCESS; }``
+|    ``default event void Boot.booted() { }``
 |  ``}``
 
 Interrupts are not enabled until all calls to Init.init have returned.
