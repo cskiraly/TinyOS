@@ -10,8 +10,8 @@ message_t
 :Author: Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.7 $
-:Draft-Modified: $Date: 2006-03-29 06:02:52 $
+:Draft-Version: $Revision: 1.1.2.8 $
+:Draft-Modified: $Date: 2006-05-17 00:26:40 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -224,10 +224,10 @@ This ensures that enough space is allocated for all underlying link layers.
 A TinyOS component MUST NOT access any message_t fields directly besides
 its top-level structures: 
 
-  o header
-  o data
-  o footer
-  o metadata
+* header
+* data
+* footer
+* metadata
 
 That is, a TinyOS component MUST NOT access any sub-fields of these
 structures. Components above the link layer MUST access packet fields
@@ -338,24 +338,103 @@ implementation dependent. For example, a link layer can store a full
 packet as a contiguous area of memory. In this case, a short packet
 will store the footer within the ``data`` field of the structure.
 
-The placement of the packet footer is implementation dependent.
+The placement of the packet footer is implementation dependent: it
+does not have to lie within the footer field. For example, if a link
+layer receives a short packet, the footer, if contiguous with the rest
+of the packet, might actually reside within the data field. It is up
+to the link layer implementation where the footer is stored;
+correspondingly, components other than the one responsible for its
+placement MUST access the footer only through interfaces.
 
-The footer starts at the start of the footer field, and metadata
-begins at the start of the metadata field. However, data link
-components MUST NOT directly access these fields, as their structure
-is platform dependent. A component MUST cast these fields to link
-specific structures.
+3.3 message_metadata_t
+----------------------------------------------------------------
 
-The basic issue driving these design considerations is that the C
-naming layout of message_t fields is platform specific. As a data link
-implementation may be used on many platforms, an implementation cannot
-depend on a particular C naming. An implementation can depend on there
-being enough space for its header and footer in message_t.
+The message_metadata_t stores the data associated with a packet that
+is not part of a wire format. Fields in the message_metadata_t are
+never transmitted. Examples of fields that might be in a
+message_metadata_t are a timestamps, an acknowledgment bit, or a
+retransmission count.
+
+3.4 message_t Layout
+----------------------------------------------------------------
+
+The message_t structure is designed so that multiple link layers that
+have different header sizes can exchange packets without a data copy.
+Its definition ensures that there is sufficient allocation for every
+link layer. The layout of a packet in memory is not necessarily the
+same as the structure definition.  The basic issue driving these
+design considerations is that the C naming layout of message_t fields
+is platform specific. As a data link implementation may be used on
+many platforms, an implementation cannot depend on a particular C
+naming. An implementation can depend on there being enough space for
+its header and footer in message_t.
 
 Following this approach means that the packet header and data payload
 are contiguous in memory, which allows other communication
 abstractions (such as a UART, see TEP 113[_tep113]) to easily
 encapsulate a packet.
+
+For example, consider the message_t layout on the Telos platform, which
+has two link layers: serial communication and the CC2420::
+
+  typedef union message_header {
+    cc2420_header_t cc2420;
+    serial_header_t serial;
+  } message_header_t;
+
+  typedef union TOSRadioFooter {
+    cc2420_footer_t cc2420;
+  } message_footer_t;
+
+  typedef union TOSRadioMetadata {
+    cc2420_metadata_t cc2420;
+  } message_metadata_t;
+
+
+The serial stack packets do not have a footer or metadata. The CC2420
+has several metadata fields (7 bytes), but no footer. These are the
+headers for the two link layers::
+
+  typedef nx_struct serial_header {
+    nx_am_addr_t addr;
+    nx_uint8_t length;
+    nx_am_group_t group;
+    nx_am_id_t type;
+  } serial_header_t;
+
+  typedef nx_struct cc2420_header_t {
+    nxle_uint8_t length;
+    nxle_uint16_t fcf;
+    nxle_uint8_t dsn;
+    nxle_uint16_t destpan;
+    nxle_uint16_t dest;
+    nxle_uint16_t src;
+    nxle_uint8_t type;
+  } cc2420_header_t;
+
+
+The serial header is 5 bytes long, while the CC2420 header is 11 bytes
+long. This means that the message_t header is 11 bytes. When the
+serial stack builds a packet, it places the first byte of its header
+offset 6 bytes from the beginning of the message_t, so that its
+header is contiguous with the data payload. This shows the layout
+of a 12-byte packet for the CC2420 and serial stacks along side the
+full message_t structure::
+
+              11 bytes         TOSH_DATA_LENGTH         7 bytes
+            +-----------+-----------------------------++-------+
+  message_t |  header   |          data               || meta  |
+            +-----------+-----------------------------++-------+
+              
+            +-----------+------------+                 +-------+
+  CC2420    |  header   |   data     |   unused        | meta  |
+            +-----------+------------+                 +-------+
+  
+                  +-----+------------+                 +-------+
+  Serial          | hdr |   data     |   unused        | meta  |
+                  +-----+------------+                 +-------+
+
+
 
 4. Author's Address
 ====================================================================
