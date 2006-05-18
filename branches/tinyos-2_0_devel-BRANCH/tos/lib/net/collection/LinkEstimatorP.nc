@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.4 2006-05-02 01:37:10 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.5 2006-05-18 01:27:00 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -58,6 +58,10 @@ implementation {
 
   enum {
     VALID_ENTRY = 0x1,
+    NEW_ENTRY = 0x2
+  };
+
+  enum {
     EVICT_QUALITY_THRESHOLD = 0x20,
     MAX_AGE = 6,
     MAX_PKT_GAP = 10,
@@ -85,11 +89,10 @@ implementation {
   // so that we can compute bi-directional quality
   typedef nx_struct neighbor_stat_entry {
     nx_am_addr_t ll_addr;
-    nx_int8_t inquality;
+    nx_uint8_t inquality;
   } neighbor_stat_entry_t;
   
   typedef nx_struct linkest_footer {
-    nx_uint16_t num_entries;
     neighbor_stat_entry_t neighborList[1];
   } linkest_footer_t;
 
@@ -98,7 +101,7 @@ implementation {
   typedef nx_struct linkest_header {
     nx_am_addr_t ll_addr;
     nx_uint8_t seq;
-    nx_uint8_t linkest_footer_offset;
+    nx_uint8_t num_entries;
   } linkest_header_t;
 
   neighbor_table_entry_t NeighborTable[NEIGHBOR_TABLE_SIZE];
@@ -120,11 +123,8 @@ implementation {
     linkest_footer_t *footer;
     uint8_t i, j;
     dbg("LI", "newlen1 = %d\n", len);
-    newlen = len + sizeof(linkest_header_t) + sizeof(linkest_footer_t);
-    call Packet.setPayloadLength(msg, newlen);
     hdr = getHeader(msg);
     footer = getFooter(msg, len);
-    footer->num_entries = 0;
     j = 0;
     for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
       if (NeighborTable[i].flags & VALID_ENTRY) {
@@ -134,19 +134,16 @@ implementation {
 	dbg("LI", "Loaded on footer: %d %d %d\n", j, footer->neighborList[j].ll_addr,
 	    footer->neighborList[j].inquality);
 
-	j = ++footer->num_entries;
+	j++;
 
       }
     }
 
     hdr->ll_addr = call SubAMPacket.address();
     hdr->seq = linkEstSeq++;
-    hdr->linkest_footer_offset = sizeof(linkest_header_t) + len;
+    hdr->num_entries = j;
+    newlen = sizeof(linkest_header_t) + len + j*sizeof(linkest_footer_t);
     dbg("LI", "newlen2 = %d\n", newlen);
-    if (j > 0) {
-      newlen += j * sizeof(neighbor_stat_entry_t);
-    }
-    dbg("LI", "newlen3 = %d\n", newlen);
     return newlen;
   }
 
@@ -294,7 +291,6 @@ implementation {
   }
 
   command error_t Init.init() {
-    uint8_t i;
     dbg("LI", "Link estimator init\n");
     initNeighborTable();
     call Timer.startPeriodic(NEIGHBOR_AGE_TIMER);
@@ -363,7 +359,6 @@ implementation {
 
   command uint8_t LinkEstimator.getForwardQuality(uint16_t neighbor) {
     uint8_t idx;
-    uint16_t q;
     idx = findIdx(neighbor);
     if (idx == INVALID_RVAL) {
       return INFINITY;
@@ -381,6 +376,15 @@ implementation {
     uint8_t newlen;
     newlen = addLinkEstHeaderAndFooter(msg, len);
     dbg("LI", "Sending seq: %d\n", linkEstSeq);
+	{
+	  uint8_t ii;
+	  uint8_t* b;
+	  b = (uint8_t *)call SubPacket.getPayload(msg, NULL);
+	  for(ii=0; ii<newlen; ii++)
+	    dbg_clear("LI", "%x ", (uint8_t *)b[ii]);
+	}
+	dbg_clear("LI", "\n");
+
     return call AMSend.send(addr, msg, newlen);
   }
 
@@ -404,6 +408,21 @@ implementation {
 				      void* payload,
 				      uint8_t len) {
     uint8_t nidx;
+
+
+
+    dbg("LI", "LI receiving packet, buf addr: %x\n", payload);
+	{
+	  uint8_t ii;
+	  uint8_t* b;
+	  //	  b = (uint8_t *)call SubPacket.getPayload(msg, NULL);
+	  b = (uint8_t *)msg->data;
+	  for(ii=0; ii<call SubPacket.payloadLength(msg); ii++)
+	    dbg_clear("LI", "%x ", (uint8_t *)b[ii]);
+	}
+	dbg_clear("LI", "\n");
+
+
     if (call SubAMPacket.destination(msg) == AM_BROADCAST_ADDR) {
       linkest_header_t* hdr = getHeader(msg);
       linkest_footer_t* footer;
@@ -429,26 +448,31 @@ implementation {
 	updateNeighborEntryIdx(nidx, hdr->seq);
       }
 
-      if (hdr->linkest_footer_offset > 0) {
-	dbg("LI", "There is a linkest footer in this packet: %d\n", hdr->linkest_footer_offset);
-	footer = (linkest_footer_t*) (hdr->linkest_footer_offset +
-				      (uint8_t *)call SubPacket.getPayload(msg, NULL));
+      if (hdr->num_entries > 0) {
+	dbg("LI", "There is a linkest footer in this packet\n");
+	dbg("LI", "size of linkestfooter %d\n", sizeof(linkest_footer_t));
+	footer = (linkest_footer_t*) ((uint8_t *)call SubPacket.getPayload(msg, NULL)
+				      + call SubPacket.payloadLength(msg)
+				      - hdr->num_entries*sizeof(linkest_footer_t));
+				      
 
-	dbg("LI", "Number of footer entries: %d\n", footer->num_entries);
+	dbg("LI", "Number of footer entries: %d\n", hdr->num_entries);
 
 	{
 	  uint8_t i, my_ll_addr;
 	  my_ll_addr = call SubAMPacket.address();
-	  for (i = 0; i < footer->num_entries; i++) {
+	  for (i = 0; i < hdr->num_entries; i++) {
 	    dbg("LI", "%d %d %d\n", i, footer->neighborList[i].ll_addr,
 		footer->neighborList[i].inquality);
 	    if (footer->neighborList[i].ll_addr == my_ll_addr) {
+	      dbg("LI", "Found my reverse link to %d\n", hdr->ll_addr);
 	      updateReverseQuality(hdr->ll_addr, footer->neighborList[i].inquality);
 	    }
 	  }
 	}
 
       }
+      print_neighbor_table();
 
     }
     
@@ -470,11 +494,20 @@ implementation {
   }
 
   command uint8_t Packet.payloadLength(message_t* msg) {
-    return call SubPacket.payloadLength(msg) - sizeof(linkest_header_t);
+    linkest_header_t *hdr;
+    hdr = getHeader(msg);
+    return call SubPacket.payloadLength(msg)
+      - sizeof(linkest_header_t)
+      - sizeof(linkest_footer_t)*hdr->num_entries;
   }
 
   command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
-    call SubPacket.setPayloadLength(msg, len + sizeof(linkest_header_t));
+    linkest_header_t *hdr;
+    hdr = getHeader(msg);
+    call SubPacket.setPayloadLength(msg,
+				    len
+				    + sizeof(linkest_header_t)
+				    + sizeof(linkest_footer_t)*hdr->num_entries);
   }
 
   command uint8_t Packet.maxPayloadLength() {
@@ -483,8 +516,10 @@ implementation {
 
   command void* Packet.getPayload(message_t* msg, uint8_t* len) {
     uint8_t* payload = call SubPacket.getPayload(msg, len);
+    linkest_header_t *hdr;
+    hdr = getHeader(msg);
     if (len != NULL) {
-      *len -= sizeof(linkest_header_t);
+      *len = *len - sizeof(linkest_header_t) - sizeof(linkest_footer_t)*hdr->num_entries;
     }
     return payload + sizeof(linkest_header_t);
   }
