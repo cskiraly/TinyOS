@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.6: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
 <title>Schedulers and Tasks</title>
 <meta name="author" content="Philip Levis and Cory Sharp" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-02-08 21:59:15 $
-:version: $Revision: 1.1.2.3 $
+:date: $Date: 2006-05-18 23:08:14 $
+:version: $Revision: 1.1.2.4 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -280,6 +280,7 @@ ul.auto-toc {
 </style>
 </head>
 <body>
+<div class="document" id="schedulers-and-tasks">
 <h1 class="title">Schedulers and Tasks</h1>
 <table class="docinfo" frame="void" rules="none">
 <col class="docinfo-name" />
@@ -299,15 +300,14 @@ ul.auto-toc {
 <td>Philip Levis and Cory Sharp</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">10-Dec-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.1</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.4</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2005-10-31</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-05-03</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
 </tbody>
 </table>
-<div class="document" id="schedulers-and-tasks">
 <div class="note">
 <p class="first admonition-title">Note</p>
 <p class="last">This memo documents a part of TinyOS for the TinyOS Community, and
@@ -374,9 +374,15 @@ elements, the <tt class="docutils literal"><span class="pre">post</span></tt> re
 <ol class="arabic simple">
 <li>Some components do not have a reasonable response to a failed <tt class="docutils literal"><span class="pre">post</span></tt></li>
 <li>As a given task can be posted multiple times, it can consume more than one element in the buffer</li>
-<li>All tasks from all components share a single resource: one misbehaving component cause other's posts to fail</li>
+<li>All tasks from all components share a single resource: one misbehaving component can cause other's posts to fail</li>
 </ol>
 </blockquote>
+<p>Fundamentally, in order for a component A to repost a task after post
+failure, another component B must call a function on it (either a
+command or event). E.g., component A must schedule a timer, or expect
+a retry from its client. However, as many of these systems might
+depend on tasks as well (e.g., timers), it is possible that an
+overflowing task queue can cause the entire system to fail.</p>
 <p>The combination of the above three issues mean that one misbehaving
 component can cause TinyOS to hang. Consider, for example, this
 scenario (a real and encountered problem on the Telos platform):</p>
@@ -411,23 +417,6 @@ remain simple and easy to use, but that it should be possible to
 introduce new kinds of tasks beyond the basic use case. TinyOS
 actualizes this by keeping <tt class="docutils literal"><span class="pre">post</span></tt> and <tt class="docutils literal"><span class="pre">task</span></tt> for the basic case,
 and introducing task interfaces for additional ones.</p>
-<p>Task interfaces allow users to extend the syntax and semantics of
-tasks. Generally, a task interface has an <tt class="docutils literal"><span class="pre">async</span></tt> command, <tt class="docutils literal"><span class="pre">post</span></tt>,
-and an event, <tt class="docutils literal"><span class="pre">run</span></tt>. The exact signature of these functions are
-up to the interface. For example, a task interface that allows a task
-to take an integer parameter could look like this:</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">TaskParameter</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">async</span> <span class="pre">error_t</span> <span class="pre">command</span> <span class="pre">postTask(uint16_t</span> <span class="pre">param);</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">event</span> <span class="pre">void</span> <span class="pre">runTask(uin16_t</span> <span class="pre">param);</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
-<p>Using this task interface, a component could post a task with a
-<tt class="docutils literal"><span class="pre">uint16_t</span></tt> parameter. When the scheduler runs the task, it will
-signal the <tt class="docutils literal"><span class="pre">runTask</span></tt> event with the passed parameter, which contains
-the task's logic.</p>
 <p>The semantics of tasks in TinyOS 2.x are different than those in 1.x.
 This change is based on experiences with the limitations and run time
 errors that the 1.x model introduces. <strong>In TinyOS 2.x, a basic post will
@@ -439,6 +428,54 @@ then the end of the task logic can repost itself as need be.</p>
 signal completion of split-phase events because the task queue is
 full, task queue overflow at initialization, and unfair task
 allocation by components that post a task many times.</p>
+<p>Task interfaces allow users to extend the syntax and semantics of
+tasks. Generally, a task interface has an <tt class="docutils literal"><span class="pre">async</span></tt> command, <tt class="docutils literal"><span class="pre">post</span></tt>,
+and an event, <tt class="docutils literal"><span class="pre">run</span></tt>. The exact signature of these functions are
+up to the interface. For example, a task interface that allows a task
+to take an integer parameter could look like this:</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">TaskParameter</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">async</span> <span class="pre">error_t</span> <span class="pre">command</span> <span class="pre">postTask(uint16_t</span> <span class="pre">param);</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">event</span> <span class="pre">void</span> <span class="pre">runTask(uint16_t</span> <span class="pre">param);</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+</div>
+<p>Using this task interface, a component could post a task with a
+<tt class="docutils literal"><span class="pre">uint16_t</span></tt> parameter. When the scheduler runs the task, it will
+signal the <tt class="docutils literal"><span class="pre">runTask</span></tt> event with the passed parameter, which contains
+the task's logic. Note, however, that this does not save any RAM: if
+anything, it will cost RAM as space must be allocated in the scheduler
+and may then also be allocated in the component. Furthermore, as
+there can only be one copy of a task outstanding at any time, it
+is just as simple to store the variable in the component. E.g.,
+rather than:</p>
+<pre class="literal-block">
+call TaskParameter.postTask(34);
+...
+event void TaskParameter.runTask(uint15_t param) {
+  ...
+}
+</pre>
+<p>The semantics of tasks in TinyOS 2.x are different than those in 1.x.
+This change is based on experiences with the limitations and run time
+errors that the 1.x model introduces. <strong>In TinyOS 2.x, a basic post will
+only fail if the task has already been posted and has not started
+execution.</strong> A task can always run, but can only have one outstanding
+post at any time.  2.x achieves these semantics by allocating a single 
+byte of state per task. While a very large number of tasks could make 
+this overhead noticable, it is not significant in practice.
+If a component needs to post a task several times, then the end of 
+the task logic can repost itself as need be.</p>
+<p>For example, one can do this:</p>
+<pre class="literal-block">
+param = 34;
+post parameterTask();
+...
+task void parameterTask() {
+  // use param here
+}
+</pre>
 </div>
 <div class="section" id="the-scheduler-in-tinyos-2-x">
 <h1><a name="the-scheduler-in-tinyos-2-x">4. The Scheduler in TinyOS 2.x</a></h1>
@@ -449,17 +486,19 @@ the policy of reconciling different task types (e.g., earliest
 deadline first tasks vs. priority tasks).</p>
 <p>The basic task in TinyOS 2.x is parameterless and FIFO. Tasks continue
 to follow the nesC semantics of task and post, which are linguistic
-shortcuts for declaring a TaskBasic interface and wiring it to the
-Scheduler component. A scheduler provides a task interface as a
-parameterized interface. Every task that wires to the interface uses
-the unique() function to obtain a unique identifier, which the
-scheduler uses to dispatch tasks.</p>
-<p>For example, the standard TinyOS Scheduler has this signature:</p>
+shortcuts for declaring an  interface and wiring it to the
+scheduler component. Appendix A describes how these shortcuts can be
+configured. A scheduler provides a task interface as a parameterized
+interface. Every task that wires to the interface uses the unique()
+function to obtain a unique identifier, which the scheduler uses to
+dispatch tasks.</p>
+<p>For example, the standard TinyOS scheduler has this signature:</p>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">module</span> <span class="pre">SchedulerBasic</span> <span class="pre">{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">module</span> <span class="pre">SchedulerBasicP</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
 <div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">Scheduler;</span></tt></div>
 <div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">TaskBasic[uint8_t</span> <span class="pre">taskID];</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uses</span> <span class="pre">interface</span> <span class="pre">McuSleep;</span></tt></div>
 </div>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 </div>
@@ -467,15 +506,18 @@ scheduler uses to dispatch tasks.</p>
 If a call to TaskBasic.postTask() returns SUCCESS, the scheduler MUST run it
 eventually. The scheduler MUST return SUCCESS to a TaskBasic.postTask()
 operation unless it is not the first call to TaskBasic.postTask() since
-that task's TaskBasic.runTask() event has been signaled.</p>
+that task's TaskBasic.runTask() event has been signaled. The 
+McuSleep interface is used for microcontroller power management;
+its workings are explained in TEP 112[3]_.</p>
 <p>A scheduler MUST provide the Scheduler interface. 
 The Scheduler interface has commands for initialization and running
 tasks, and is used by TinyOS to execute tasks.</p>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">SchedulerRun</span> <span class="pre">{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">Scheduler</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
 <div class="line"><tt class="docutils literal"><span class="pre">command</span> <span class="pre">void</span> <span class="pre">init();</span></tt></div>
 <div class="line"><tt class="docutils literal"><span class="pre">command</span> <span class="pre">bool</span> <span class="pre">runNextTask(bool</span> <span class="pre">sleep);</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">command</span> <span class="pre">void</span> <span class="pre">taskLoop();</span></tt></div>
 </div>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 </div>
@@ -488,7 +530,9 @@ FALSE, then the command will return immediately with FALSE as a return
 value. If sleep is TRUE, then the command MUST NOT return until a task
 is executed, and SHOULD put the CPU to sleep until a new task arrives.
 Calls of runNextTask(FALSE) may return TRUE or FALSE; calls of
-runNextTask(TRUE) always return TRUE.</p>
+runNextTask(TRUE) always return TRUE.   The taskLoop() command tells
+the scheduler to enter an infinite task-running loop, putting the MCU
+into a low power state when the processor is idle: it never returns.</p>
 <p>This is the TaskBasic interface:</p>
 <div class="line-block">
 <div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">TaskBasic</span> <span class="pre">{</span></tt></div>
@@ -500,79 +544,81 @@ runNextTask(TRUE) always return TRUE.</p>
 </div>
 <p>When a component declares a task with the <tt class="docutils literal"><span class="pre">task</span></tt> keyword in nesC, it
 is implicitly declaring that it uses an instance of the TaskBasic
-interface: the task body is the run event. When a component uses the
-<tt class="docutils literal"><span class="pre">post</span></tt> keyword, it calls the post command. Each TaskBasic MUST be
-wired to the Scheduler with a unique identifier as its parameter. 
+interface: the task body is the runTask event. When a component uses the
+<tt class="docutils literal"><span class="pre">post</span></tt> keyword, it calls the postTask command. Each TaskBasic MUST be
+wired to the scheduler with a unique identifier as its parameter. 
 The parameter MUST be obtained with the <tt class="docutils literal"><span class="pre">unique</span></tt> function in nesC, 
-with a key of <tt class="docutils literal"><span class="pre">&quot;BasicScheduler.TaskBasic&quot;</span></tt>. The nesC compiler
+with a key of <tt class="docutils literal"><span class="pre">&quot;TinySchedulerC.TaskBasic&quot;</span></tt>. The nesC compiler
 automatically does this wiring when the <tt class="docutils literal"><span class="pre">task</span></tt> and <tt class="docutils literal"><span class="pre">post</span></tt>
 keywords are used.</p>
-<p>The SchedulerBasic implementation uses these identifiers as its queue
-entries. When TinyOS tells the Scheduler to run a task, it pulls the
-next identifier off the queue and uses it dispatches on the
+<p>The SchedulerBasicP implementation uses these identifiers as its queue
+entries. When TinyOS tells the scheduler to run a task, it pulls the
+next identifier off the queue and uses it to dispatch on the
 parameterized TaskBasic interface.</p>
 </div>
 <div class="section" id="replacing-the-scheduler">
 <h1><a name="replacing-the-scheduler">5. Replacing the Scheduler</a></h1>
-<p>The TinyOS scheduler is presented as a component named TinyScheduler.
+<p>The TinyOS scheduler is presented as a component named TinySchedulerC.
 The default TinyOS scheduler implementation is a module named
-SchedulerBasic; the default Scheduler component is a configuration
-that provides wire-through of SchedulerBasic.</p>
+SchedulerBasicP; the default scheduler component is a configuration
+that provides wire-through of SchedulerBasicP.</p>
 <p>To replace the scheduler for a particular application, a developer
-SHOULD put a configuration named Scheduler in the application
-directory: this will replace the default. The Scheduler component
+SHOULD put a configuration named TinySchedulerC in the application
+directory: this will replace the default. The scheduler component
 provides a wire-through of the desired scheduler implementation. All
 scheduler implementations SHOULD provide a parameterize TaskBasic
-interface, as SchedulerBasic does; this supports nesC post statements
-and task declarations. All scheduler implementations MUST provide
-the Scheduler interface.</p>
+interface, as SchedulerBasicP does; this supports nesC post statements
+and task declarations. If a scheduler does not provide the TaskBasic
+interface, compiling applications requires modifying the standard
+ncc scheduler parameters (as described in Appendix A). All scheduler 
+implementations MUST provide the Scheduler interface.</p>
 <p>For example, imagine a hypothetical scheduler that provides earliest
-deadline first tasks, which are provided through the TaskEDF
+deadline first tasks, which are provided through the TaskEdf
 interface:</p>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">TaskEDF</span> <span class="pre">{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">TaskEdf</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
 <div class="line"><tt class="docutils literal"><span class="pre">async</span> <span class="pre">command</span> <span class="pre">error_t</span> <span class="pre">postTask(uint16_t</span> <span class="pre">deadlineMs);</span></tt></div>
 <div class="line"><tt class="docutils literal"><span class="pre">event</span> <span class="pre">void</span> <span class="pre">runTask();</span></tt></div>
 </div>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 </div>
-<p>The scheduler implementation is named SchedulerEDF, and provides both
-TaskBasic and TaskEDF interfaces:</p>
+<p>The scheduler implementation is named SchedulerEdfP, and provides both
+TaskBasic and TaskEdf interfaces:</p>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">module</span> <span class="pre">SchedulerEDF</span> <span class="pre">{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">module</span> <span class="pre">SchedulerEdfP</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
 <div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">Scheduler;</span></tt></div>
 <div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">TaskBasic[uint8_t</span> <span class="pre">taskID];</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">TaskEDF[uint8_t</span> <span class="pre">taskID];</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">TaskEdf[uint8_t</span> <span class="pre">taskID];</span></tt></div>
 </div>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 </div>
-<p>An application that wants to use SchedulerEDF instead of
-SchedulerBasic includes a configuration named TinyScheduler, which
-exports all of SchedulerEDF's interfaces:</p>
+<p>An application that wants to use SchedulerEdfP instead of
+SchedulerBasicP includes a configuration named TinySchedulerC, which
+exports all of SchedulerEdfP's interfaces:</p>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">TinyScheduler</span> <span class="pre">{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">TinySchedulerC</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
 <div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">Scheduler;</span></tt></div>
 <div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">TaskBasic[uint8_t</span> <span class="pre">taskID];</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">TaskEDF[uint8_t</span> <span class="pre">taskID];</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">TaskEdf[uint8_t</span> <span class="pre">taskID];</span></tt></div>
 </div>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 <div class="line"><tt class="docutils literal"><span class="pre">implementation</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">components</span> <span class="pre">SchedulerEDF;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">Scheduler</span> <span class="pre">=</span> <span class="pre">SchedulerEDF;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">TaskBasic</span> <span class="pre">=</span> <span class="pre">SchedulerEDF;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">TaskEDF</span>&nbsp;&nbsp; <span class="pre">=</span> <span class="pre">SchedulerEDF;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">components</span> <span class="pre">SchedulerEdfP;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">Scheduler</span> <span class="pre">=</span> <span class="pre">SchedulerEdf;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">TaskBasic</span> <span class="pre">=</span> <span class="pre">SchedulerEdfP;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">TaskEDF</span>&nbsp;&nbsp; <span class="pre">=</span> <span class="pre">SchedulerEdfP;</span></tt></div>
 </div>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 </div>
 <p>For a module to have an earliest deadline first task, it uses the
-TaskEDF interface. Its configuration SHOULD wire it to TinyScheduler.
-The key used for task unique identifiers MUST be &quot;TinyScheduler.TaskInterface&quot;,
+TaskEdf interface. Its configuration SHOULD wire it to TinySchedulerC.
+The key used for task unique identifiers MUST be &quot;TinySchedulerC.TaskInterface&quot;,
 where <em>TaskInterface</em> is the name of the new task interface as presented
-by the scheduler.  For example, the module SomethingM requires two EDF
+by the scheduler.  For example, the module SomethingP requires two EDF
 tasks:</p>
 <div class="line-block">
 <div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">SomethingC</span> <span class="pre">{</span></tt></div>
@@ -582,24 +628,24 @@ tasks:</p>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 <div class="line"><tt class="docutils literal"><span class="pre">implementation</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">components</span> <span class="pre">SomethingM,</span> <span class="pre">TinyScheduler;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">SomethingM.SendTask</span> <span class="pre">-&gt;</span> <span class="pre">TinyScheduler.TaskEDF[&quot;TinyScheduler.TaskEDF&quot;];</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">SomethingM.SenseTask</span> <span class="pre">-&gt;</span> <span class="pre">TinyScheduler.TaskEDF[&quot;TinyScheduler.TaskEDF&quot;];</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">components</span> <span class="pre">SomethingP,</span> <span class="pre">TinySchedulerC;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">SomethingP.SendTask</span> <span class="pre">-&gt;</span> <span class="pre">TinySchedulerC.TaskEdf[&quot;TinySchedulerC.TaskEdf&quot;];</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">SomethingP.SenseTask</span> <span class="pre">-&gt;</span> <span class="pre">TinySchedulerC.TaskEdf[&quot;TinySchedulerC.TaskEdf&quot;];</span></tt></div>
 </div>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 </div>
-<p>The module SomethingM also has a basic task. The nesC compiler
+<p>The module SomethingP also has a basic task. The nesC compiler
 automatically transforms task keywords into BasicTask interfaces and
 wires them appropriately. Therefore, for basic tasks, a component
 author can either use the <tt class="docutils literal"><span class="pre">task</span></tt> and <tt class="docutils literal"><span class="pre">post</span></tt> keywords or use a TaskBasic
 interface. A component SHOULD use the keywords whenever possible, and it
 MUST NOT mix the two syntaxes for a given task.  This is an example
-implementation of SomethingM that uses keywords for basic tasks:</p>
+implementation of SomethingP that uses keywords for basic tasks:</p>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">module</span> <span class="pre">SomethingM</span> <span class="pre">{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">module</span> <span class="pre">SomethingP</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">uses</span> <span class="pre">interface</span> <span class="pre">TaskEDF</span> <span class="pre">as</span> <span class="pre">SendTask</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uses</span> <span class="pre">interface</span> <span class="pre">TaskEDF</span> <span class="pre">as</span> <span class="pre">SenseTask</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uses</span> <span class="pre">interface</span> <span class="pre">TaskEdf</span> <span class="pre">as</span> <span class="pre">SendTask</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">uses</span> <span class="pre">interface</span> <span class="pre">TaskEdf</span> <span class="pre">as</span> <span class="pre">SenseTask</span></tt></div>
 </div>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 <div class="line"><tt class="docutils literal"><span class="pre">implementation</span> <span class="pre">{</span></tt></div>
@@ -626,7 +672,7 @@ a scheduler which provides two instances of TaskBasic: standard
 tasks and high-priority tasks. The scheduler always selects a task
 for the high priority queue before the standard queue:</p>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">TinyScheduler</span> <span class="pre">{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">TinySchedulerC</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
 <div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">Scheduler;</span></tt></div>
 <div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">TaskBasic[uint8_t</span> <span class="pre">taskID];</span></tt></div>
@@ -635,14 +681,14 @@ for the high priority queue before the standard queue:</p>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 </div>
 <p>A component that uses a high priority task would then wire to
-TaskHighPriority with the key &quot;TinyScheduler.TaskHighPriority&quot;:</p>
+TaskHighPriority with the key &quot;TinySchedulerC.TaskHighPriority&quot;:</p>
 <div class="line-block">
 <div class="line"><tt class="docutils literal"><span class="pre">configuration</span> <span class="pre">SomethingElseC</span> <span class="pre">{</span></tt></div>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 <div class="line"><tt class="docutils literal"><span class="pre">implementation</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">components</span> <span class="pre">TinyScheduler,</span> <span class="pre">SomethingElseM;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">SomethingElseM.RetransmitTask</span> <span class="pre">-&gt;</span> <span class="pre">TinyScheduler.TaskHighPriority[unique(&quot;TinyScheduler.TaskHighPriority&quot;)];</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">components</span> <span class="pre">TinySchedulerC</span> <span class="pre">as</span> <span class="pre">Sched,</span> <span class="pre">SomethingElseP;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">SomethingElseP.RetransmitTask</span> <span class="pre">-&gt;</span> <span class="pre">Sched.TaskHighPriority[unique(&quot;TinySchedulerC.TaskHighPriority&quot;)];</span></tt></div>
 </div>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 </div>
@@ -686,6 +732,67 @@ Embedded Systems.&quot; In <em>Proceedings of the ACM SIGPLAN 2003 Conference on
 Programming Language Design and Implementation (PLDI).</em></td></tr>
 </tbody>
 </table>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="id3">[3]</a></td><td>TEP 112: Microcontroller Power Management.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="appendix-a-changing-the-scheduler">
+<h1><a name="appendix-a-changing-the-scheduler">Appendix A: Changing the Scheduler</a></h1>
+<p>The nesC compiler transforms the <tt class="docutils literal"><span class="pre">post</span></tt> and <tt class="docutils literal"><span class="pre">task</span></tt> keywords into
+nesC interfaces, wirings, and calls. By default, the statement:</p>
+<pre class="literal-block">
+module a {
+  ...
+}
+implementation {
+  task x() {
+    ...
+    post x();
+  } 
+
+}
+</pre>
+<p>is effectively:</p>
+<pre class="literal-block">
+module a {
+  ...
+  provides interface TaskBasic as x;
+}
+implementation {
+  event void x.runTask() {
+    ...
+    call x.postTask();
+  }
+}
+</pre>
+<p>Specifically, TinyOS maps a task with name <em>T</em> to a TaskBasic
+interface with name <em>T</em>. Posting <em>T</em> is a call to T.postTask(), and
+the task body is T.runTask(). Finally, <em>T</em> is automatically wired to
+TinySchedulerC with a unique() call.</p>
+<p>While the fact that tasks are transformed into interfaces is built in
+to the nesC compiler, the exact names can be configured. Each
+platform's <tt class="docutils literal"><span class="pre">.platform</span></tt> file passes the <tt class="docutils literal"><span class="pre">-fnesc-scheduler</span></tt> option
+to the compiler. The standard option is:</p>
+<pre class="literal-block">
+-fnesc-scheduler=TinySchedulerC,TinySchedulerC.TaskBasic,TaskBasic,TaskBasic,runTask,postTask
+</pre>
+<p>There are 6 strings passed. They are:</p>
+<blockquote>
+<ol class="arabic simple">
+<li>The name of the scheduler component to wire the interface
+to (TinySchedulerC).</li>
+<li>The unique string used when wiring to the scheduler component's
+parameterized interface (TinySchedulerC.TaskBasic).</li>
+<li>The name of the interface on the scheduler component (TaskBasic).</li>
+<li>The name of the interface type (TaskBasic).</li>
+<li>The name of the event for running the task (runTask).</li>
+<li>The name of the command for posting the task (postTask).</li>
+</ol>
+</blockquote>
+<p>The nescc man page has further details.</p>
 </div>
 </div>
 </body>

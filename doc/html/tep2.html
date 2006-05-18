@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.6: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
 <title>Hardware Abstraction Architecture</title>
 <meta name="author" content="Vlado Handziski, Joseph Polastre, Jan-Hinrich Hauer, Cory Sharp, Adam Wolisz and David Culler" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-02-08 21:59:15 $
-:version: $Revision: 1.1.2.3 $
+:date: $Date: 2006-05-18 23:08:14 $
+:version: $Revision: 1.1.2.4 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -280,6 +280,7 @@ ul.auto-toc {
 </style>
 </head>
 <body>
+<div class="document" id="hardware-abstraction-architecture">
 <h1 class="title">Hardware Abstraction Architecture</h1>
 <table class="docinfo" frame="void" rules="none">
 <col class="docinfo-name" />
@@ -307,7 +308,6 @@ ul.auto-toc {
 </tr>
 </tbody>
 </table>
-<div class="document" id="hardware-abstraction-architecture">
 <div class="note">
 <p class="first admonition-title">Note</p>
 <p class="last">This document specifies a Best Current Practices for the TinyOS
@@ -399,7 +399,7 @@ applications. As we move from the hardware towards this top interface,
 the components become less and less hardware dependent, giving the
 developer more freedom in the design and the implementation of
 reusable applications.</p>
-<a class="target" id="fig-1" name="fig-1"></a><pre class="literal-block">
+<pre class="literal-block" id="fig-1">
                                 +-----------------------------+
                                 |                             |
                                 | Cross-platform applications |
@@ -593,7 +593,7 @@ which the correlation between the consecutive samples has a
 significant influence, the programmer of the MAC might directly use
 the <tt class="docutils literal"><span class="pre">MSP430ADC12Multiple</span></tt> interface of the <em>HAL</em> component as it
 provides much finer control over the conversion process.</p>
-<a class="target" id="fig-2" name="fig-2"></a><pre class="literal-block">
+<pre class="literal-block" id="fig-2">
 StdControl                        
        | ADCSingle            
        |    |  ADCMultiple                 

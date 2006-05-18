@@ -10,8 +10,8 @@ Schedulers and Tasks
 :Author: Philip Levis and Cory Sharp
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.4 $
-:Draft-Modified: $Date: 2006-05-03 18:18:35 $
+:Draft-Version: $Revision: 1.1.2.5 $
+:Draft-Modified: $Date: 2006-05-18 23:08:14 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -164,11 +164,11 @@ there can only be one copy of a task outstanding at any time, it
 is just as simple to store the variable in the component. E.g.,
 rather than::
 
-call TaskParameter.postTask(34);
-...
-event void TaskParameter.runTask(uint15_t param) {
-...
-}
+  call TaskParameter.postTask(34);
+  ...
+  event void TaskParameter.runTask(uint15_t param) {
+    ...
+  }
 
 The semantics of tasks in TinyOS 2.x are different than those in 1.x.
 This change is based on experiences with the limitations and run time
@@ -183,12 +183,12 @@ the task logic can repost itself as need be.
 
 For example, one can do this::
 
-param = 34;
-post parameterTask();
-...
-task void parameterTask() {
-  // use param here
-}
+  param = 34;
+  post parameterTask();
+  ...
+  task void parameterTask() {
+    // use param here
+  }
 
 4. The Scheduler in TinyOS 2.x
 ====================================================================
@@ -430,30 +430,30 @@ Appendix A: Changing the Scheduler
 The nesC compiler transforms the ``post`` and ``task`` keywords into
 nesC interfaces, wirings, and calls. By default, the statement::
 
-module a {
-  ...
-}
-implementation {
-  task x() {
+  module a {
     ...
-    post x();
   }
-
-}
+  implementation {
+    task x() {
+      ...
+      post x();
+    } 
+  
+  }
 
 
 is effectively::
 
-module a {
-  ...
-  provides interface TaskBasic as x;
-}
-implementation {
-  event void x.runTask() {
+  module a {
     ...
-    call x.postTask();
+    provides interface TaskBasic as x;
   }
-}
+  implementation {
+    event void x.runTask() {
+      ...
+      call x.postTask();
+    }
+  }
 
 Specifically, TinyOS maps a task with name *T* to a TaskBasic
 interface with name *T*. Posting *T* is a call to T.postTask(), and
