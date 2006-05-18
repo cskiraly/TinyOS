@@ -1,0 +1,642 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<title>Collection</title>
+<meta name="author" content="Rodrigo Fonseca, Omprakash Gnawali, and Kyle Jamieson" />
+<style type="text/css">
+
+/*
+:Author: David Goodger
+:Contact: goodger@users.sourceforge.net
+:date: $Date: 2006-05-18 23:07:25 $
+:version: $Revision: 1.1.2.1 $
+:copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+*/
+body {
+  font-family: Times;
+  font-size: 16px;
+}
+
+.first {
+  margin-top: 0 ! important }
+
+.last {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (& remove this text!) to get bold-faced definition list terms
+dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.attention, div.caution, div.danger, div.error, div.hint,
+div.important, div.note, div.tip, div.warning, div.admonition {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.hint p.admonition-title, div.important p.admonition-title,
+div.note p.admonition-title, div.tip p.admonition-title,
+div.admonition p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em }
+
+div.footer, div.header {
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin-left: 1em ;
+  border: medium outset ;
+  padding: 0em 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1 {
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+}
+
+h1.title {
+ text-align: center;
+ font-size: 32px;
+}
+
+h2 {
+ font-size: 16px;
+ font-family: Arial, sans-serif;
+}
+
+h2.subtitle {
+  text-align: center }
+
+h3 {
+ font-size: 12px;
+ font-family: Arial, sans-serif;
+}
+
+hr {
+  width: 75% }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font-family: serif ;
+  font-size: 100% }
+
+pre.line-block {
+  font-family: serif ;
+  font-size: 100% }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em ;
+  background-color: #eeeeee }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.option-argument {
+  font-style: italic }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+table {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.citation {
+  border-left: solid thin gray ;
+  padding-left: 0.5ex }
+
+table.docinfo {
+  margin: 2em 4em;
+}
+
+table.footnote {
+  border-left: solid thin black ;
+  padding-left: 0.5ex }
+
+td, th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+th.docinfo-name, th.field-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap;
+  }
+
+h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
+  font-size: 100% }
+
+tt {
+  background-color: #eeeeee }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="collection">
+<h1 class="title">Collection</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr class="field"><th class="docinfo-name">TEP:</th><td class="field-body">119</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Group:</th><td class="field-body">Net2 Working Group</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Type:</th><td class="field-body">Documentary</td>
+</tr>
+<tr><th class="docinfo-name">Status:</th>
+<td>Draft</td></tr>
+<tr class="field"><th class="docinfo-name">TinyOS-Version:</th><td class="field-body">2.x</td>
+</tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Rodrigo Fonseca, Omprakash Gnawali, and Kyle Jamieson</td></tr>
+<tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">09-Feb-2006</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
+</tr>
+</tbody>
+</table>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">This memo documents a part of TinyOS for the TinyOS Community, and
+requests discussion and suggestions for improvements.  Distribution
+of this memo is unlimited. This memo is in full compliance with
+TEP 1.</p>
+</div>
+<div class="section" id="abstract">
+<h1><a name="abstract">Abstract</a></h1>
+<p>The memo documents the interfaces, components, and semantics used by
+collection protocol in TinyOS 2.x. Collection provides a best-effort,
+multihop delivery of packets to the root of a specified tree.</p>
+</div>
+<div class="section" id="introduction">
+<h1><a name="introduction">1. Introduction</a></h1>
+<p>One of the most common functions that a sensor network performs is
+collection of data from the network to a base station. Upon generating
+data, either by sensing or other means, a node uses the collection
+protocol to send the data to a base station. The data is forwarded by
+the nodes between the sender and the base station towards the base
+station. Processing, visualization, and archival of data is done at
+the base station.</p>
+<p>Often there MAY be multiple such base stations or gateway nodes
+(referred to as roots in the rest of the document) in a collection
+tree that spans a network. Furthermore, there can be multiple trees in
+a single network as a result of running different protocols; each
+protocol building its own tree. Collection provides a best-effort,
+multihop delivery of packets to the root of a specified tree. In
+addition, collection provides mechanism to intercept packets for
+in-network processing and snoop the packets in transit.</p>
+<p>The proposed collection protocol uses two principals to encourage
+evolution of components and ease of use: modularization and tree-based
+naming. The neighbor management and link estimation are are decoupled
+from the routing protocol. So are routing protocol and the forwarding
+element. This modularization allows these components to evolve
+independently while maximizing reuse of existing components. Using
+tree based naming lesses the burden on applications while determining
+the end point of collection. The discovery and selection of root is
+performed internally by collection.</p>
+<p>Different applications desire different properties in a collection
+protocol. Some applications might have ADUs larger than the ones that
+are directly accomodated by the collection interface. Some
+applications might require reliable delivery of data. While collection
+does not address these and many other specific needs of an
+application, it provides interfaces and components on top of which
+these services can be built.</p>
+<p>The rest of this document describes a set of components and interfaces
+for a collection service outlined above.</p>
+</div>
+<div class="section" id="collection-interfaces">
+<h1><a name="collection-interfaces">2. Collection interfaces</a></h1>
+<p>A node can perform four different roles in collection: producer,
+consumer, snooper, and in-network processor. Depending on their role,
+the nodes use different interfaces to interact with the collection
+component.</p>
+<p>The nodes that generate data to be sent to the root are producers. The
+producers use the Send interface[_tep116] to send data to the root of
+the collection tree. The collection tree identifier is be specified as
+a parameter to Send during instantiation.</p>
+<p>Root nodes that receive data from the network are consumers. The
+consumers use the Receive interface[_tep116] to receive a message
+delivered by collection. The collection tree identifier is be
+specified as a parameter to Receive during instantiation.</p>
+<p>The nodes that overhear messages in transit are snoopers. The snoopers
+use the Receive interface[_tep116] to receive a snooped message. The
+collection tree identifier is be specified as a parameter to Receive
+during instantiation.</p>
+<p>The nodes can process a packet that are in transit. These in-network
+processors use the Intercept interface [_tep116] to receive and
+update a packet. The collection tree identifier is be specified as a
+parameter to Intercept during instantiation.</p>
+<p>A node is configured to become a root by using the RootControl
+interface. RootControl.setRoot() MUST make the current node a root of
+the tree specified during instantiation. RootControl.unsetRoot() MUST
+make the current root no longer a root in the tree specified during
+instantiation. RootControl.unsetRoot() MAY be called on a node that is
+not a root.</p>
+<dl class="docutils">
+<dt>interface RootControl {</dt>
+<dd>command error_t setRoot();
+command error_t unsetRoot();
+command bool isRoot();</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 109)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p>}</p>
+</div>
+<div class="section" id="collection-service">
+<h1><a name="collection-service">3 Collection Service</a></h1>
+<p>A collection service MUST provide one component, CollectionC,
+which has the following signature:</p>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 118)</p>
+Literal block expected; none found.</div>
+<dl class="docutils">
+<dt>generic configuration CollectionC {</dt>
+<dd><dl class="first docutils">
+<dt>provides {</dt>
+<dd>interface Send[uint8_t tree_id]
+interface Receive[uint8_t tree_id];
+interface Intercept[uint8_t tree_id];
+interface Receive as Snoop[uint8_t tree_id];
+interface Packet;
+interface RootControl[uint8_t tree_id];</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 126)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p class="last">}</p>
+</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 127)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p>}</p>
+<p>CollectionC.Receive.receive is signalled at the root when a collection
+packet matching the tree_id arrives at a node. CollectionC.Send.send
+returns EBUSY only if there is a send request outstanding on this
+CollectionC. CollectionC.Intercept.receive is signalled when a
+collection packet is received with destination the address matching
+the local address node. CollectionC.Snoop.receive is signalled when a
+collection packet matching the tree_id is received.</p>
+<p>RootControl.setRoot() is called to make a node into a root of the
+collection tree. CollectionC SHOULD NOT configure a node as a root by
+default.</p>
+</div>
+<div class="section" id="collection-components">
+<h1><a name="collection-components">4 Collection Components</a></h1>
+<p>Collection consists of three components: LinkEstimatorP,
+MTreeRoutingTreeP, and ForwardingEngineP.</p>
+<div class="section" id="linkestimatorp">
+<h2><a name="linkestimatorp">4.1 LinkEstimatorP</a></h2>
+<p>LinkEstimatorP estimates the quality of link to or from each
+neighbor. Link estimation can be done in a variety of ways, and we do
+not impose one here. It is decoupled from the establishment of
+routes. There is a narrow interface (LinkEstimator) between the link
+estimator and the routing engine. The one requirement is that the
+quality returned is standardized. A larger return value from
+LinkEstimator.getQuality(), LinkEstimator.getforwardQuality(),
+LinkEstimator.getreserveQuality() MUST imply that the link to the
+neighbor is estimated to be of a higher quality than the one that
+results in a smaller return value. The range of value SHOULD be
+[0,255] and the variation in link quality in that range SHOULD be
+linear. Radio provided values such as LQI or RSI, beacon based link
+estimation to compute ETX, or their combination are some possible
+approaches to estimating link qualities. LinkEstimatorP MAY have its
+own control messages to compute bi-directional link qualities.</p>
+<p>typedef uint16_t neighbor_t</p>
+<dl class="docutils">
+<dt>LinkEstimatorP {</dt>
+<dd><dl class="first docutils">
+<dt>provides {</dt>
+<dd>interface LinkEstimator;
+interface NeighborTable;</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 173)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p class="last">}</p>
+</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 174)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p>}</p>
+<dl class="docutils">
+<dt>interface LinkEstimator {</dt>
+<dd>command uint8_t getLinkQuality(neighbot_t neighbor);
+command uint8_t getReverseQuality(neighbot_t neighbor);
+command uint8_t getForwardQuality(neighbot_t neighbor);</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 180)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p>}</p>
+<dl class="docutils">
+<dt>interface NeighborTable {</dt>
+<dd>event void evicted(neighbot_t neighbor)</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 184)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p>}</p>
+</div>
+<div class="section" id="mtreeroutingtreep">
+<h2><a name="mtreeroutingtreep">4.2 MTreeRoutingTreeP</a></h2>
+<p>LinkEstimatorP is responsible for computing routes to the roots of a
+tree. It uses NeighborTable and LinkEstimator interfaces to learn
+about the nodes in the neighbor table maintained by LinkEstimatorP and
+the quality of links to and from the neighbors. The routing protocol
+on which collection is implemented MUST be a tree-based routing
+protocol with a single or multiple roots. MTreeRoutingTreeP SHOULD
+allow a node to be configured as a root or a non-root node
+dynamically. MTreeRoutingTreeP MAY maintain multiple next hops to a
+root.</p>
+<dl class="docutils">
+<dt>MTreeRoutingEngineP</dt>
+<dd><dl class="first docutils">
+<dt>provides {</dt>
+<dd>interface REControl[uint8_t tree_id];
+interface RootControl[uint8_t tree_id];
+interface Routing[uint8_t tree_id];</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 205)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p>} 
+uses {</p>
+<div class="system-message">
+<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">txt/tep119.txt</tt>, line 207)</p>
+Unexpected indentation.</div>
+<blockquote>
+interface LinkEstimator;
+interface NeighborTable;
+interface AMSend[COLLECTION_CONTROL_AM_ID];
+interface Receive[COLLECTION_CONTROL_AM_ID];</blockquote>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 211)</p>
+Block quote ends without a blank line; unexpected unindent.</div>
+<p class="last">}</p>
+</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 212)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p>}</p>
+<dl class="docutils">
+<dt>interface REControl {</dt>
+<dd><p class="first">command error_t initializeRH(message_t <a href="#id1" name="id2"><span class="problematic" id="id2">*</span></a>msg);
+command uint8_t getHeaderSize();</p>
+<div class="last system-message" id="id1">
+<p class="system-message-title">System Message: <a name="id1">WARNING/2</a> (<tt class="docutils">txt/tep119.txt</tt>, line 215); <em><a href="#id2">backlink</a></em></p>
+Inline emphasis start-string without end-string.</div>
+</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 217)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p>}</p>
+<dl class="docutils">
+<dt>interface Routing {</dt>
+<dd>command result_t getNextHops(neighbor_t* nextHops, uint8_t* n);</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 222)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p>}</p>
+</div>
+<div class="section" id="forwardingenginep">
+<h2><a name="forwardingenginep">4.3 ForwardingEngineP</a></h2>
+<p>ForwardingEngineP component provides all the top level interface
+(except RootControl) which is used by an application to interact with
+CollectionC.</p>
+<dl class="docutils">
+<dt>ForwardingEngineP {</dt>
+<dd><dl class="first docutils">
+<dt>provides {</dt>
+<dd>interface Send[uint8_t tree_id]
+interface Receive[uint8_t tree_id];
+interface Intercept;
+interface Snoop;
+interface Packet;</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 239)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p>}
+uses {</p>
+<div class="system-message">
+<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">txt/tep119.txt</tt>, line 241)</p>
+Unexpected indentation.</div>
+<blockquote>
+interface REControl;
+interface Routing[uint8_t tree_id];
+interface SendMsg[COLLECTION_DATA_AM_ID];
+interface ReceiveMsg[COLLECTION_DATA_AM_ID];</blockquote>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 245)</p>
+Block quote ends without a blank line; unexpected unindent.</div>
+<p class="last">}</p>
+</dd>
+</dl>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 246)</p>
+Definition list ends without a blank line; unexpected unindent.</div>
+<p>}</p>
+<p>The forwarding engine MUST must try to transmit a collection packet to
+the first next hop. The forwarding engine MAY perform network-level
+retransmissions to alternate next hops returned by Routing.getNextHops
+should the trasmission to the firstnext hop fail. This might allow
+recoveries in routing on time scales shorter than those required for
+route convergence, and leverages routing engines that can provide
+multiple next hops towards a given destination.</p>
+</div>
+</div>
+<div class="section" id="author-s-address">
+<h1><a name="author-s-address">5. Author's Address</a></h1>
+<div class="line-block">
+<div class="line">Rodrigo Fonseca </div>
+<div class="line">473 Soda Hall</div>
+<div class="line">Berkeley, CA 94720-1776</div>
+<div class="line"><br /></div>
+<div class="line">phone - +1 510 642-8919</div>
+<div class="line">email - <a class="reference" href="mailto:rfonseca&#64;cs.berkeley.edu">rfonseca&#64;cs.berkeley.edu</a></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line">Omprakash Gnawali</div>
+<div class="line">Ronald Tutor Hall (RTH) 418 </div>
+<div class="line">3710 S. McClintock Avenue</div>
+<div class="line">Los Angeles, CA 90089 </div>
+<div class="line"><br /></div>
+<div class="line">phone - +1 213 821-5627</div>
+<div class="line">email - <a class="reference" href="mailto:gnawali&#64;usc.edu">gnawali&#64;usc.edu</a></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line">Kyle Jamieson</div>
+<div class="line">The Stata Center</div>
+<div class="line">32 Vassar St.</div>
+<div class="line">Cambridge, MA 02139 </div>
+<div class="line"><br /></div>
+<div class="line">email - <a class="reference" href="mailto:jamieson&#64;csail.mit.edu">jamieson&#64;csail.mit.edu</a></div>
+</div>
+</div>
+<div class="section" id="citations">
+<h1><a name="citations">6. Citations</a></h1>
+<table class="docutils citation" frame="void" id="tep116" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="tep116">[tep116]</a></td><td>TEP 116: Packet Protocols</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>
