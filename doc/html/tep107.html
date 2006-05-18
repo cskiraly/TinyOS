@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-02-08 21:59:15 $
-:version: $Revision: 1.1.2.3 $
+:date: $Date: 2006-05-18 02:58:46 $
+:version: $Revision: 1.1.2.4 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -299,9 +299,9 @@ ul.auto-toc {
 <td>Philip Levis</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">10-Dec-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.1</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.4</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2005-10-31</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-05-17</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -392,7 +392,7 @@ needs one. The StdControl interface combines component initialization
 initialized by RealMain, it must also be started. Separating these two
 leads to more flexible power management, and distinguishes required
 low-level components that must always be running (such as a Timer)
-from high level components that requires (such as an
+from high level components that can be power managed (such as an
 application). Finally, some components that need to often need to be
 started by main, such as a radio, do not follow a synchronous
 start/stop model. In this case, some components can't operate properly
@@ -437,12 +437,13 @@ sequence signals when it has completed.</p>
 </div>
 <div class="section" id="id1">
 <h1><a name="id1">4. TinyOS 2.x Boot Sequence</a></h1>
-<p>The module RealMain implements the standard TinyOS 2.x boot sequence.
-The configuration Main wires some of RealMain's interfaces to
-components that implement standard abstractions and exports the
-others that are application specific.</p>
+<p>The module RealMainP implements the standard TinyOS 2.x boot sequence.
+The configuration MainC wires some of RealMainP's interfaces to
+components that implement standard abstractions and exports the others
+that are application specific. Code above the Hardware Independent
+Layer (TEP 2) SHOULD wire to MainC and not RealMainP.</p>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">module</span> <span class="pre">RealMain</span> <span class="pre">{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">module</span> <span class="pre">RealMainP</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
 <div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">Booted;</span></tt></div>
 <div class="line"><tt class="docutils literal"><span class="pre">uses</span> <span class="pre">{</span></tt></div>
@@ -458,59 +459,153 @@ others that are application specific.</p>
 <div class="line-block">
 <div class="line"><tt class="docutils literal"><span class="pre">int</span> <span class="pre">main()</span> <span class="pre">__attribute__</span> <span class="pre">((C,</span> <span class="pre">spontaneous))</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">Scheduler.init();</span></tt></div>
-<div class="line">`` ``</div>
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">PlatformInit.init();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">while(call</span> <span class="pre">Scheduler.runNextTask(FALSE));</span></tt></div>
-<div class="line">`` ``</div>
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">SoftwareInit.init();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">while(call</span> <span class="pre">Scheduler.runNextTask(FALSE));</span></tt></div>
-<div class="line">`` ``</div>
-<div class="line"><tt class="docutils literal"><span class="pre">__nesc_enable_interrupts();</span></tt></div>
-<div class="line">`` ``</div>
-<div class="line"><tt class="docutils literal"><span class="pre">signal</span> <span class="pre">Boot.booted();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">while(1)</span> <span class="pre">{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">atomic</span> <span class="pre">{</span></tt></div>
 <div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">Scheduler.runNextTask(TRUE);</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">Scheduler.init();</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">PlatformInit.init();</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">while</span> <span class="pre">(call</span> <span class="pre">Scheduler.runNextTask());</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">SoftwareInit.init();</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">while</span> <span class="pre">(call</span> <span class="pre">Scheduler.runNextTask());</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">__nesc_enable_interrupt();</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">signal</span> <span class="pre">Boot.booted();</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">Scheduler.taskLoop();</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">return</span> <span class="pre">-1;</span></tt></div>
+</div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">default</span> <span class="pre">command</span> <span class="pre">error_t</span> <span class="pre">PlatformInit.init()</span> <span class="pre">{</span> <span class="pre">return</span> <span class="pre">SUCCESS;</span> <span class="pre">}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">default</span> <span class="pre">command</span> <span class="pre">error_t</span> <span class="pre">SoftwareInit.init()</span> <span class="pre">{</span> <span class="pre">return</span> <span class="pre">SUCCESS;</span> <span class="pre">}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">default</span> <span class="pre">event</span> <span class="pre">void</span> <span class="pre">Boot.booted()</span> <span class="pre">{</span> <span class="pre">}</span></tt></div>
 </div>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 </div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+<div class="section" id="initialization">
+<h2><a name="initialization">4.1 Initialization</a></h2>
+<p>The first step in the boot sequence is initializing the system:</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">atomic</span> <span class="pre">{</span></tt></div>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">Scheduler.init();</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">PlatformInit.init();</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">while</span> <span class="pre">(call</span> <span class="pre">Scheduler.runNextTask());</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">SoftwareInit.init();</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">while</span> <span class="pre">(call</span> <span class="pre">Scheduler.runNextTask());</span></tt></div>
 </div>
 <div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
 </div>
+<p>The boot sequence has three separate initializations: Scheduler,
+PlatformInit, and SoftwareInit. The boot configuration (MainC) wires
+the first two automatically, to TinySchedulerC (discussed in TEP 106)
+and to PlatformC:</p>
+<pre class="literal-block">
+configuration MainC {
+  provides interface Boot;
+  uses interface Init as SoftwareInit;
+}
+implementation {
+  components PlatformC, RealMainP, TinySchedulerC;  
+
+  RealMainP.Scheduler -&gt; TinySchedulerC;
+  RealMainP.PlatformInit -&gt; PlatformC;
+
+  // Export the SoftwareInit and Booted for applications
+  SoftwareInit = RealMainP.SoftwareInit;
+  Boot = RealMainP;
+}
+</pre>
+<p>MainC exports the Boot and SoftwareInit interfaces for applications to
+wire to. TinySchedulerC is the standard name for the TinyOS
+scheduler. As the initialization sequence requires being able to run
+tasks, the boot sequence initializes it first. The second step of
+initialization is to call PlatformInit.init(), which MainC wires to a
+component named PlatformC. PlatformInit is for initializations which
+must follow a very specific order due to hidden dependencies, e.g., as
+part of making the overall hardware platform operable. One example of
+this sort of initialization is clock calibration. Because PlatformInit
+calls the component PlatformC, each platform can specify the requires
+initialization order. As these hidden dependencies must be due to
+hardware, the sequence is platform-specific.</p>
+<p>Components whose initialization does not directly depend on hardware
+resources SHOULD wire to MainC.SoftwareInit. If a component requires a
+specific initialization ordering, then it is responsible for
+establishing that ordering. Due to the semantics of Init, this is
+usually quite rare; a component SHOULD NOT introduce initialization
+dependencies unless they are required.</p>
+<p>One common approach is for a configuration to &quot;auto-wire&quot; the
+initialization routines of its internal components. The configuration
+does not provide an Init interface. Virtualized services (TEP 108)
+often take this approach, as the service, rather than the clients, is
+what needs to be initialized. For example, the standard Timer
+virtualization (TEP 102), TimerMilliC, wires to TimerMilliP, which is
+a very simple configuration that takes the underlying implementation
+(HilTimerMilliC) and wires it to MainC:</p>
+<pre class="literal-block">
+configuration TimerMilliP {
+  provides interface Timer&lt;TMilli&gt; as TimerMilli[uint8_t id];
+}
+implementation {
+  components HilTimerMilliC, MainC;
+  MainC.SoftwareInit -&gt; HilTimerMilliC;
+  TimerMilli = HilTimerMilliC; 
+}
+</pre>
+<p>Rather than require an application to wire HilTimerMilliC to MainC,
+TimerMilliP does it automatically. When a component instantiates a
+TimerMilliC, that names TimerMilliP, which will automatically make
+sure that the timer system is initialized when TinyOS boots.</p>
+</div>
+<div class="section" id="interrupts-in-initialization">
+<h2><a name="interrupts-in-initialization">4.2 Interrupts in Initialization</a></h2>
 <p>Interrupts are not enabled until all calls to Init.init have returned.
 If a component's initialization needs to handle interrupts, it can
-do one of two things:</p>
+do one of three things:</p>
 <blockquote>
 <ol class="arabic simple">
 <li>If a status flag for the interrupt exists, the Init.init()
 implementations SHOULD use a spin loop to test for when
 an interrupt has been issued.</li>
 <li>If no such flag exists, the Init.init() implementation MAY
-temporarily enable interrupts. It MUST NOT call any other
-component or return until it has re-disabled interrupts.</li>
+temporarily enable interrupts, if doing so will not cause any other
+components to handle an interrupt. That is, if a component enables
+an interrupt, it MUST NOT enable interrupts whose handlers would
+invoke any other component. Furthermore, when Init.init() exits,
+the interrupts must be disabled.</li>
+<li>If no such flag exists and there is no way to isolate which
+interrupt handlers are called, then the component MUST rely
+on mechanisms outside the Init sequence, such as SplitControl.</li>
 </ol>
 </blockquote>
-<p>As 2) means that interrupts may be temporarily enabled during
-initialization, components that control interrupts SHOULD NOT 
-cause interrupts to fire after their Init.init() returns. 
-However, it is possible that other components will cause an
-interrupt to fire due to hardware interactions or semantics.
-Therefore, a component MUST properly handle interrupts at
-all times.</p>
-<p>Unless part of a hardware abstraction architecture (HAA)[tep2]_, the 
-Init.init() command MUST NOT call any commands or signal any
-events, except for calling Init.init() on other components. An HAA
+<p>The boot sequence assumes that 1) is by far the dominant case. There
+are, however, possible situations where a component might need to
+handle an interrupt because of, e.g., hardware limitations (no pending
+flag) or to catch a brief edge transition. In these cases, a component
+can handle an interrupt in the boot sequence only if doing so will not
+cause any other component to handle an interrupt. As they have all
+been written assuming that interrupts are not enabled until after Init
+completes, making one of them handle an interrupt could cause it to 
+fail.</p>
+<p>Depending on what capabilities the hardware provides, there are
+several ways to meet these requirements. The simplest is to push these
+initialization edge cases out of the main boot sequence, e.g., into
+SplitControl. A second possibility is to redirect the interrupt table,
+if the MCU supports doing so. Whichever mechanism is chosen, extreme
+care needs to be used in order to not disrupt the operation of other
+components.</p>
+<p>Unless part of a hardware abstraction architecture (HAA)[tep2]_, the
+Init.init() command MUST NOT assume that other components have been
+initialized unless it has initialized them, and MUST NOT call any
+functional interfaces on any components that might be shared. An HAA
 component MAY make other calls to initialize hardware state. A
-component that is not part of an HAA SHOULD NOT call Init.init() on 
-other components unless it needs to enforce a temporal ordering on 
+component that is not part of an HAA SHOULD NOT call Init.init() on
+other components unless it needs to enforce a temporal ordering on
 initialization.</p>
 <p>If a component A depends on another component, B, 
 which needs to be initialized, then A SHOULD wire B's Init directly 
 to the boot sequence, unless there is a temporal ordering requirement to
 the initialization. The purpose of this convention is to simplify
 component initialization and the initialization sequence.</p>
+</div>
 </div>
 <div class="section" id="author-s-address">
 <h1><a name="author-s-address">5. Author's Address</a></h1>

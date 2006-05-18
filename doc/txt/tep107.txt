@@ -10,8 +10,8 @@ TinyOS 2.x Boot Sequence
 :Author: Philip Levis 
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.4 $
-:Draft-Modified: $Date: 2006-05-17 00:48:16 $
+:Draft-Version: $Revision: 1.1.2.5 $
+:Draft-Modified: $Date: 2006-05-18 02:58:46 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -144,13 +144,14 @@ sequence signals when it has completed.
 4. TinyOS 2.x Boot Sequence
 ====================================================================
 
-The module RealMain implements the standard TinyOS 2.x boot sequence.
-The configuration Main wires some of RealMain's interfaces to
-components that implement standard abstractions and exports the
-others that are application specific.
+The module RealMainP implements the standard TinyOS 2.x boot sequence.
+The configuration MainC wires some of RealMainP's interfaces to
+components that implement standard abstractions and exports the others
+that are application specific. Code above the Hardware Independent
+Layer (TEP 2) SHOULD wire to MainC and not RealMainP.
 
  
-|  ``module RealMain {``
+|  ``module RealMainP {``
 |    ``provides interface Booted;``
 |    ``uses {``
 |      ``interface Scheduler;``
@@ -160,7 +161,7 @@ others that are application specific.
 |  ``}``
 |  ``implementation {``
 |    ``int main() __attribute__ ((C, spontaneous)) {``
-|      ``atomic {
+|      ``atomic {``
 |        ``call Scheduler.init();``
 |        ``call PlatformInit.init();``
 |        ``while (call Scheduler.runNextTask());``
@@ -177,6 +178,88 @@ others that are application specific.
 |    ``default event void Boot.booted() { }``
 |  ``}``
 
+4.1 Initialization
+--------------------------------------------------------------------
+
+The first step in the boot sequence is initializing the system:
+
+|      ``atomic {``
+|        ``call Scheduler.init();``
+|        ``call PlatformInit.init();``
+|        ``while (call Scheduler.runNextTask());``
+|        ``call SoftwareInit.init();``
+|        ``while (call Scheduler.runNextTask());``
+|      ``}``
+
+
+The boot sequence has three separate initializations: Scheduler,
+PlatformInit, and SoftwareInit. The boot configuration (MainC) wires
+the first two automatically, to TinySchedulerC (discussed in TEP 106)
+and to PlatformC::
+
+  configuration MainC {
+    provides interface Boot;
+    uses interface Init as SoftwareInit;
+  }
+  implementation {
+    components PlatformC, RealMainP, TinySchedulerC;  
+  
+    RealMainP.Scheduler -> TinySchedulerC;
+    RealMainP.PlatformInit -> PlatformC;
+  
+    // Export the SoftwareInit and Booted for applications
+    SoftwareInit = RealMainP.SoftwareInit;
+    Boot = RealMainP;
+  }
+
+
+MainC exports the Boot and SoftwareInit interfaces for applications to
+wire to. TinySchedulerC is the standard name for the TinyOS
+scheduler. As the initialization sequence requires being able to run
+tasks, the boot sequence initializes it first. The second step of
+initialization is to call PlatformInit.init(), which MainC wires to a
+component named PlatformC. PlatformInit is for initializations which
+must follow a very specific order due to hidden dependencies, e.g., as
+part of making the overall hardware platform operable. One example of
+this sort of initialization is clock calibration. Because PlatformInit
+calls the component PlatformC, each platform can specify the requires
+initialization order. As these hidden dependencies must be due to
+hardware, the sequence is platform-specific.
+
+Components whose initialization does not directly depend on hardware
+resources SHOULD wire to MainC.SoftwareInit. If a component requires a
+specific initialization ordering, then it is responsible for
+establishing that ordering. Due to the semantics of Init, this is
+usually quite rare; a component SHOULD NOT introduce initialization
+dependencies unless they are required.
+
+One common approach is for a configuration to "auto-wire" the
+initialization routines of its internal components. The configuration
+does not provide an Init interface. Virtualized services (TEP 108)
+often take this approach, as the service, rather than the clients, is
+what needs to be initialized. For example, the standard Timer
+virtualization (TEP 102), TimerMilliC, wires to TimerMilliP, which is
+a very simple configuration that takes the underlying implementation
+(HilTimerMilliC) and wires it to MainC::
+
+  configuration TimerMilliP {
+    provides interface Timer<TMilli> as TimerMilli[uint8_t id];
+  }
+  implementation {
+    components HilTimerMilliC, MainC;
+    MainC.SoftwareInit -> HilTimerMilliC;
+    TimerMilli = HilTimerMilliC; 
+  }
+
+Rather than require an application to wire HilTimerMilliC to MainC,
+TimerMilliP does it automatically. When a component instantiates a
+TimerMilliC, that names TimerMilliP, which will automatically make
+sure that the timer system is initialized when TinyOS boots.
+
+
+4.2 Interrupts in Initialization
+--------------------------------------------------------------------
+
 Interrupts are not enabled until all calls to Init.init have returned.
 If a component's initialization needs to handle interrupts, it can
 do one of three things:
@@ -188,7 +271,8 @@ do one of three things:
      temporarily enable interrupts, if doing so will not cause any other
      components to handle an interrupt. That is, if a component enables
      an interrupt, it MUST NOT enable interrupts whose handlers would
-     invoke any other component.
+     invoke any other component. Furthermore, when Init.init() exits,
+     the interrupts must be disabled.
   3) If no such flag exists and there is no way to isolate which
      interrupt handlers are called, then the component MUST rely
      on mechanisms outside the Init sequence, such as SplitControl.
