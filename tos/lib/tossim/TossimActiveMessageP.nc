@@ -1,4 +1,4 @@
-// $Id: TossimActiveMessageP.nc,v 1.1.2.7 2006-05-15 16:39:18 scipio Exp $
+// $Id: TossimActiveMessageP.nc,v 1.1.2.8 2006-05-18 00:18:26 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -103,9 +103,10 @@ implementation {
 
   event void Model.receive(message_t* msg) {
     uint8_t len;
-    void* payload = call Packet.getPayload(msg, &len);
+    void* payload;
     
     memcpy(bufferPointer, msg, sizeof(message_t));
+    payload = call Packet.getPayload(bufferPointer, &len);
 
     if (call AMPacket.isForMe(msg)) {
       dbg("AM", "Received active message (%p) of type %hhu and length %hhu for me @ %s.\n", bufferPointer, call AMPacket.type(bufferPointer), len, sim_time_string());
