@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.6: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
 <title>TinyOS 2.x Boot Sequence</title>
 <meta name="author" content="Philip Levis" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-05-18 02:58:46 $
-:version: $Revision: 1.1.2.4 $
+:date: $Date: 2006-05-18 23:19:15 $
+:version: $Revision: 1.1.2.5 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -280,6 +280,7 @@ ul.auto-toc {
 </style>
 </head>
 <body>
+<div class="document" id="tinyos-2-x-boot-sequence">
 <h1 class="title">TinyOS 2.x Boot Sequence</h1>
 <table class="docinfo" frame="void" rules="none">
 <col class="docinfo-name" />
@@ -299,15 +300,14 @@ ul.auto-toc {
 <td>Philip Levis</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">10-Dec-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.4</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.5</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-05-17</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-05-18</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
 </tbody>
 </table>
-<div class="document" id="tinyos-2-x-boot-sequence">
 <div class="note">
 <p class="first admonition-title">Note</p>
 <p class="last">This memo documents a part of TinyOS for the TinyOS Community, and
@@ -403,9 +403,12 @@ radio start completion event.</p>
 <h1><a name="tinyos-2-x-boot-interfaces">3. TinyOS 2.x Boot Interfaces</a></h1>
 <p>The TinyOS 2.x boot sequence uses three interfaces:</p>
 <blockquote>
-o Init, for initializing component/hardware state
-o Scheduler, for initializing and running tasks
-o Boot, for signalling that the system has successfully booted</blockquote>
+<ul class="simple">
+<li>Init, for initializing component/hardware state</li>
+<li>Scheduler, for initializing and running tasks</li>
+<li>Boot, for signalling that the system has successfully booted</li>
+</ul>
+</blockquote>
 <p>The Init interface has a single command, init():</p>
 <div class="line-block">
 <div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">Init</span> <span class="pre">{</span></tt></div>
