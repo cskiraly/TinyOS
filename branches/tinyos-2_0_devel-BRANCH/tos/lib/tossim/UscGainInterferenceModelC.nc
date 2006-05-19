@@ -1,4 +1,4 @@
-// $Id: UscGainInterferenceModelC.nc,v 1.1.2.7 2006-05-15 16:39:18 scipio Exp $
+// $Id: UscGainInterferenceModelC.nc,v 1.1.2.8 2006-05-19 19:45:04 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -97,7 +97,6 @@ implementation {
     if (outgoing != NULL && requestAck && sim_mote_is_on(sim_node())) {
       signal Model.acked(outgoing);
     }
-    receiving = 0;
   }
 
   sim_event_t receiveEvent;
@@ -176,10 +175,8 @@ implementation {
         dbg_clear("Gain", " scheduling ack.\n");
 	sim_gain_schedule_ack(mine->source, sim_time() + 1); 
       }
-      // If no ack, then we're searching for new packets again
-      else { 
-	receiving = 0;
-      }
+      // We're searching for new packets again
+      receiving = 0;
     } // If the packet was lost, then we're searching for new packets again
     else {
       receiving = 0;
