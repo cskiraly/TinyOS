@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.8 2006-05-15 16:48:04 rfonseca76 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.9 2006-05-19 21:28:19 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,18 +24,19 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-05-15 16:48:04 $
+ *  @date   $Date: 2006-05-19 21:28:19 $
  */
 
+#include <ForwardingEngine.h>
    
 generic module ForwardingEngineP() {
   provides {
     interface Init;
     interface StdControl;
-    interface Send[collection_id_t id];
-    interface Receive[collection_id_t id];
-    interface Receive as Snoop[collection_id_t id];
-    interface Intercept[collection_id_t id];
+    interface Send[uint8_t client];
+    interface Receive[uint8_t client];
+    interface Receive as Snoop[uint8_t client];
+    interface Intercept[uint8_t client];
     interface Packet;
   }
   uses {
@@ -49,7 +50,7 @@ generic module ForwardingEngineP() {
     interface Pool<fe_queue_entry_t> as QEntryPool;
     interface Pool<message_t> as ForwardPool;
     interface Timer<TMilli> as SendTimer;
-    interface PacketAcknowledgments;
+    interface PacketAcknowledgements;
     interface Random;
     interface RootControl;
   }
@@ -91,13 +92,17 @@ implementation {
     return SUCCESS;
   }
 
-  event void RadioControl.startDone() {
-    radioOn = TRUE;
-    if (!SendQueue.empty()) {
-      post sendTask();
+  task void sendTask();
+  
+  event void RadioControl.startDone(error_t err) {
+    if (err == SUCCESS) {
+      radioOn = TRUE;
+      if (!call SendQueue.empty()) {
+        post sendTask();
+      }
     }
   }
-
+  
   event void UnicastNameFreeRouting.routeFound() {
     post sendTask();
   }
@@ -108,8 +113,10 @@ implementation {
     // operation on the routeFound event
   }
   
-  event void RadioControl.stopDone() {
-    radioOn = FALSE;
+  event void RadioControl.stopDone(error_t err) {
+    if (err == SUCCESS) {
+      radioOn = FALSE;
+    }
   }
 
   task void sendTask();
@@ -166,7 +173,7 @@ implementation {
       uint8_t payloadLen = call SubPacket.payloadLen(qe->msg);
       am_addr_t dest = call UnicastNameFreeRouting.nextHop();
       
-      ackPending = (call PacketAcknowledgments.requestAck(qe->msg) == SUCCESS);
+      ackPending = (call PacketAcknowledgements.requestAck(qe->msg) == SUCCESS);
       
       eval = call AMSend.send(dest, qe->msg, payloadLen);
       if (eval == SUCCESS) {
@@ -205,7 +212,7 @@ implementation {
       call SendTimer.startOneShot(r);
     }
     // AckPending is for case when DL cannot support acks
-    else if (ackPending && !call PacketAcknowledgments.wasAcked(msg)) {
+    else if (ackPending && !call PacketAcknowledgements.wasAcked(msg)) {
       // immediate retransmission is the worst thing to do.
       // Retry in 128-255ms
       uint16_t r = call Random.rand16();
