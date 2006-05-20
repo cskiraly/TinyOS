@@ -1,4 +1,4 @@
-/* $Id: LinkEstimator.nc,v 1.1.2.3 2006-05-01 06:28:04 gnawali Exp $ */
+/* $Id: LinkEstimator.nc,v 1.1.2.4 2006-05-20 05:11:40 gnawali Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -24,13 +24,30 @@
 /** Provides an additive quality measure for a neighbor. The
  * provided quality increases when the true link quality increases.
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-05-01 06:28:04 $
+ *  @author Omprakash Gnawali
+ *  @date   $Date: 2006-05-20 05:11:40 $
  */
+
+/* Quality of a link is defined by the implementor of this interface.
+ * It could be ETX, PRR, etc.
+ */
+
 interface LinkEstimator {
-    command uint8_t getLinkQuality(uint16_t neighbor);
-    command uint8_t getReverseQuality(uint16_t neighbor);
-    command uint8_t getForwardQuality(uint16_t neighbor);
-    event void evicted(am_addr_t neighbor);
+  
+  /* get bi-directional link quality for link to the neighbor */
+  command uint8_t getLinkQuality(uint16_t neighbor);
+
+  /* get quality of the link from neighbor to this node */
+  command uint8_t getReverseQuality(uint16_t neighbor);
+
+  /* get quality of the link from this node to the neighbor */
+  command uint8_t getForwardQuality(uint16_t neighbor);
+
+  /* insert this neighbor into the neighbor table */
+  command error_t insertNeighbor(am_addr_t neighbor);
+
+  /* signal when this neighbor is evicted from the neighbor table */
+  event void evicted(am_addr_t neighbor);
 }
 
 
