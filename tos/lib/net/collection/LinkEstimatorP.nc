@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.5 2006-05-18 01:27:00 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.6 2006-05-20 05:12:21 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -53,23 +53,46 @@ module LinkEstimatorP {
 
 implementation {
 
-#define NEIGHBOR_TABLE_SIZE 10
-#define NEIGHBOR_AGE_TIMER 8192
+  // Number of entries in the neighbor table
+#define NEIGHBOR_TABLE_SIZE 5
+  // Timer that determines how often beacons should be
+  // sent and link estimate updated
+#define LINKEST_TIMER 4096
 
+
+  // Flags for the neighbor table entry
   enum {
-    VALID_ENTRY = 0x1,
-    NEW_ENTRY = 0x2
+    VALID_ENTRY = 0x1, 
+    // A link becomes mature after
+    // TABLEUPDATE_INTERVAL*LINKEST_TIMER
+    MATURE_ENTRY = 0x2,
+    // Flag to indicate that this link has received the
+    // first sequence number
+    INIT_ENTRY = 0x4
   };
 
   enum {
-    EVICT_QUALITY_THRESHOLD = 0x20,
+    // If inbound link quality is above this threshold
+    // do not evict a link
+    EVICT_QUALITY_THRESHOLD = 0x50,
+    // maximum link update rounds before we expire the link
     MAX_AGE = 6,
+    // if received sequence number if larger than the last sequence
+    // number by this gap, we reinitialize the link
     MAX_PKT_GAP = 10,
     MAX_QUALITY = 0xff,
     INVALID_RVAL = 0xff,
     INVALID_NEIGHBOR_ADDR = 0xff,
     INFINITY = 0xff,
-    ALPHA = 2 // (out of 10, thus 0.2)
+    // update the link estimate this often
+    TABLEUPDATE_INTERVAL = 4,
+    // send a beacon this often unless user of
+    // this component is sending a beacon atleast
+    // at this rate
+    BEACON_INTERVAL = 2,
+    // decay the link estimate using this alpha
+    // we use a denominator of 10, so this corresponds to 0.2
+    ALPHA = 2 
   };
 
   // neighbor table
@@ -91,7 +114,8 @@ implementation {
     nx_am_addr_t ll_addr;
     nx_uint8_t inquality;
   } neighbor_stat_entry_t;
-  
+
+  // we put the above neighbor entry in the footer
   typedef nx_struct linkest_footer {
     neighbor_stat_entry_t neighborList[1];
   } linkest_footer_t;
@@ -104,19 +128,35 @@ implementation {
     nx_uint8_t num_entries;
   } linkest_header_t;
 
+  // keep information about links from the neighbors
   neighbor_table_entry_t NeighborTable[NEIGHBOR_TABLE_SIZE];
+  // link estiamtion sequence, increment every time a beacon is sent
   uint8_t linkEstSeq = 0;
-  uint8_t numNeighbors = 0;
-  message_t neighborTablePkt;
+  // use this message buffer
+  // when this component needs to generate a message because
+  // the user of this component is not sending packets frequently enough
+  message_t linkEstPkt;
+  // flag that prevents from sending linkest beacon before sendDone
+  // for previous send is flagged.
+  bool beaconBusy = FALSE;
+  // we update the quality estimate when curEstInterval == TABLEUPDATE_INTERVAL
+  uint8_t curEstInterval = 0;
+  // we send out beacon if curBeaconInterval == BEACON_INTERVAL
+  uint8_t curBeaconInterval = 0;
 
+  // get the link estimation header in the packet
   linkest_header_t* getHeader(message_t* m) {
     return (linkest_header_t*)call SubPacket.getPayload(m, NULL);
   }
 
+  // get the link estimation footer (neighbor entries) in the packet
   linkest_footer_t* getFooter(message_t* m, uint8_t len) {
     return (linkest_footer_t*)(len + (uint8_t *)call Packet.getPayload(m,NULL));
   }
 
+  // add the link estimation header (seq no) and link estimation
+  // footer (neighbor entries) in the packet. Call just before sending
+  // the packet.
   uint8_t addLinkEstHeaderAndFooter(message_t *msg, uint8_t len) {
     uint8_t newlen;
     linkest_header_t *hdr;
@@ -148,11 +188,14 @@ implementation {
   }
 
 
+  // given in and out quality, return the bi-directional link quality
+  // q = q1 * q2 / 256
   uint8_t computeBidirLinkQuality(uint8_t inQuality, uint8_t outQuality) {
     return ((inQuality * outQuality) >> 8);
   }
 
 
+  // initialize the given entry in the table for neighbor ll_addr
   void initNeighborIdx(uint8_t i, am_addr_t ll_addr) {
     neighbor_table_entry_t *ne;
     ne = &NeighborTable[i];
@@ -160,13 +203,14 @@ implementation {
     ne->lastseq = 0;
     ne->rcvcnt = 0;
     ne->failcnt = 0;
-    ne->flags = VALID_ENTRY;
-    ne->inage = 0;
-    ne->outage = 0;
+    ne->flags = (INIT_ENTRY | VALID_ENTRY);
+    ne->inage = MAX_AGE;
+    ne->outage = MAX_AGE;
     ne->inquality = 0;
     ne->outquality = 0;
   }
- 
+
+  // find the index to the entry for neighbor ll_addr
   uint8_t findIdx(am_addr_t ll_addr) {
     uint8_t i;
     for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
@@ -179,6 +223,7 @@ implementation {
     return INVALID_RVAL;
   }
 
+  // find an empty slot in the neighbor table
   uint8_t findEmptyNeighborIdx() {
     uint8_t i;
     for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
@@ -190,24 +235,37 @@ implementation {
       return INVALID_RVAL;
   }
 
-  uint8_t findWorstNeighborIdx() {
+  // find the index to the worst neighbor if inbound link
+  // quality to is less than the given threshold
+  uint8_t findWorstNeighborIdx(uint8_t filterThreshold) {
     uint8_t i, worstNeighborIdx, worstQuality, thisQuality;
 
     worstNeighborIdx = INVALID_RVAL;
     worstQuality = MAX_QUALITY;
     for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
-      if (NeighborTable[i].flags & VALID_ENTRY) {
-	thisQuality = computeBidirLinkQuality(NeighborTable[i].inquality,
-					      NeighborTable[i].outquality);
-	if ((thisQuality < worstQuality) && (thisQuality < EVICT_QUALITY_THRESHOLD)) {
-	  worstNeighborIdx = i;
-	  worstQuality = thisQuality;
-	}
+      if (!(NeighborTable[i].flags & VALID_ENTRY)) {
+	dbg("LI", "Invalid so continuing\n");
+	continue;
+      }
+      if (!(NeighborTable[i].flags & MATURE_ENTRY)) {
+	dbg("LI", "Not mature, so continuing\n");
+	continue;
+      }
+      thisQuality = NeighborTable[i].inquality;
+      if (thisQuality < worstQuality) {
+	worstNeighborIdx = i;
+	worstQuality = thisQuality;
       }
     }
-    return worstNeighborIdx;
+    if (worstQuality <= filterThreshold) {
+      return worstNeighborIdx;
+    } else {
+      return INVALID_RVAL;
+    }
   }
 
+  // update the quality of the link link: self->neighbor
+  // this is found in the entries in the footer of incoming message
   void updateReverseQuality(am_addr_t neighbor, uint8_t outquality) {
     uint8_t idx;
     idx = findIdx(neighbor);
@@ -217,8 +275,17 @@ implementation {
     }
   }
 
+  // we received seq from the neighbor in idx
+  // update the last seen seq, receive and fail count
+  // refresh the age
   void updateNeighborEntryIdx(uint8_t idx, uint8_t seq) {
     uint8_t packetGap;
+
+    if (NeighborTable[idx].flags & INIT_ENTRY) {
+      dbg("LI", "Init entry update\n");
+      NeighborTable[idx].lastseq = seq;
+      NeighborTable[idx].flags ^= INIT_ENTRY;
+    }
 
     packetGap = seq - NeighborTable[idx].lastseq;
     dbg("LI", "updateNeighborEntryIdx: prevseq %d, curseq %d, gap %d\n",
@@ -239,10 +306,15 @@ implementation {
   }
 
 
+  // update the inbound link quality by
+  // munging receive, fail count since last update
   void updateNeighborTableEst() {
     uint8_t i, totalPkt;
     neighbor_table_entry_t *ne;
     uint8_t newEst;
+    uint8_t minPkt;
+
+    minPkt = TABLEUPDATE_INTERVAL / BEACON_INTERVAL;
     
     for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
       ne = &NeighborTable[i];
@@ -255,7 +327,13 @@ implementation {
 	if ((ne->inage == 0) && (ne->outage == 0)) {
 	  ne->flags ^= VALID_ENTRY;
 	} else {
+	  dbg("LI", "Making link: %d mature\n", i);
+	  ne->flags |= MATURE_ENTRY;
 	  totalPkt = ne->rcvcnt + ne->failcnt;
+	  dbg("LI", "MinPkt: %d, totalPkt: %d\n", minPkt, totalPkt);
+	  if (totalPkt < minPkt) {
+	    totalPkt = minPkt;
+	  }
 	  if (totalPkt == 0) {
 	    ne->inquality = (ALPHA * ne->inquality) / 10;
 	  } else {
@@ -269,8 +347,9 @@ implementation {
     }
   }
 
+  // print the neighbor table. for debugging.
   void print_neighbor_table() {
-    uint8_t i, totalPkt;
+    uint8_t i;
     neighbor_table_entry_t *ne;
     for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
       ne = &NeighborTable[i];
@@ -282,6 +361,18 @@ implementation {
     }
   }
 
+  // print the packet. for debugging.
+  void print_packet(message_t* msg, uint8_t len) {
+    uint8_t i;
+    uint8_t* b;
+
+    b = (uint8_t *)msg->data;
+    for(i=0; i<len; i++)
+      dbg_clear("LI", "%x ", b[i]);
+    dbg_clear("LI", "\n");
+  }
+
+  // initialize the neighbor talbe in the very beginning
   void initNeighborTable() {
     uint8_t i;
 
@@ -290,24 +381,58 @@ implementation {
     }
   }
 
+  // initialize the link estimator
   command error_t Init.init() {
     dbg("LI", "Link estimator init\n");
     initNeighborTable();
-    call Timer.startPeriodic(NEIGHBOR_AGE_TIMER);
+    call Timer.startPeriodic(LINKEST_TIMER);
     return SUCCESS;
   }
 
+  // originate the beacon by the link estimator
+  // this happens only if the user of this
+  // component did not send an outgoing message
+  // fast enough (at least once every BEACON_INTERVAL)
+  task void sendLinkEstBeacon() {
+    uint8_t newlen;
+    if (!beaconBusy) {
+      newlen = addLinkEstHeaderAndFooter(&linkEstPkt, 0);
+
+      dbg("LI", "Sending seq because noone sent: %d\n", linkEstSeq);
+      print_packet(&linkEstPkt, newlen);
+
+      if (call AMSend.send(AM_BROADCAST_ADDR, &linkEstPkt, newlen) == SUCCESS) {
+	beaconBusy = TRUE;
+      }
+    }
+  }
+
+
+  // link estimation timer, update the estimate or
+  // send beacon if it is time
   event void Timer.fired() {
     dbg("LI", "Linkestimator timer fired\n");
-    print_neighbor_table();
-    updateNeighborTableEst();
-    print_neighbor_table();
+
+    curEstInterval = (curEstInterval + 1) % TABLEUPDATE_INTERVAL;
+    if (curEstInterval == 0) {
+      dbg("LI", "updating neighbor table\n");
+      print_neighbor_table();
+      updateNeighborTableEst();
+      print_neighbor_table();
+    }
+
+    curBeaconInterval = (curBeaconInterval + 1) % BEACON_INTERVAL;
+    if (curBeaconInterval == (BEACON_INTERVAL - 1)) {
+      dbg("LI", "Sending LinkEst beacon\n");
+      curBeaconInterval = 0;
+      post sendLinkEstBeacon();
+    }
+
   }
 
   // EETX (Extra Expected number of Transmission)
   // EETX = ETX - 1
   // computeEETX returns EETX*10
-
   uint8_t computeEETX(uint8_t q1) {
     uint16_t q;
     if (q1 > 0) {
@@ -321,6 +446,9 @@ implementation {
     }
   }
 
+  // BidirETX = 1 / (q1*q2)
+  // BidirEETX = BidirETX - 1
+  // computeBidirEETX return BidirEETX*10
   uint8_t computeBidirEETX(uint8_t q1, uint8_t q2) {
     uint16_t q;
     if ((q1 > 0) && (q2 > 0)) {
@@ -335,8 +463,8 @@ implementation {
     }
   }
 
-
-  command uint8_t LinkEstimator.getLinkQuality(uint16_t neighbor) {
+  // return bi-directional link quality to the neighbor
+  command uint8_t LinkEstimator.getLinkQuality(am_addr_t neighbor) {
     uint8_t idx;
     idx = findIdx(neighbor);
     if (idx == INVALID_RVAL) {
@@ -347,7 +475,8 @@ implementation {
     };
   }
 
-  command uint8_t LinkEstimator.getReverseQuality(uint16_t neighbor) {
+  // return the quality of the link: neighor->self
+  command uint8_t LinkEstimator.getReverseQuality(am_addr_t neighbor) {
     uint8_t idx;
     idx = findIdx(neighbor);
     if (idx == INVALID_RVAL) {
@@ -357,7 +486,8 @@ implementation {
     };
   }
 
-  command uint8_t LinkEstimator.getForwardQuality(uint16_t neighbor) {
+  // return the quality of the link: self->neighbor
+  command uint8_t LinkEstimator.getForwardQuality(am_addr_t neighbor) {
     uint8_t idx;
     idx = findIdx(neighbor);
     if (idx == INVALID_RVAL) {
@@ -367,31 +497,65 @@ implementation {
     };
   }
 
+  // insert the neighbor at any cost (if there is a room for it)
+  // even if eviction of a perfectly fine neighbor is called for
+  command error_t LinkEstimator.insertNeighbor(am_addr_t neighbor) {
+    uint8_t nidx;
+
+    nidx = findIdx(neighbor);
+    if (nidx != INVALID_RVAL) {
+      dbg("LI", "insert: Found the entry, no need to insert\n");
+      return SUCCESS;
+    }
+
+    nidx = findEmptyNeighborIdx();
+    if (nidx != INVALID_RVAL) {
+      dbg("LI", "insert: inserted into the empty slot\n");
+      initNeighborIdx(nidx, neighbor);
+      return SUCCESS;
+    } else {
+      nidx = findWorstNeighborIdx(MAX_QUALITY);
+      if (nidx != INVALID_RVAL) {
+	dbg("LI", "insert: inserted by replacing an entry for neighbor: %d\n",
+	    NeighborTable[nidx].ll_addr);
+	signal LinkEstimator.evicted(NeighborTable[nidx].ll_addr);
+	initNeighborIdx(nidx, neighbor);
+	return SUCCESS;
+      }
+    }
+    return FAIL;
+  }
+
+  // get the link layer source address for the incoming packet
   command am_addr_t LinkSrcPacket.getSrc(message_t* msg) {
     linkest_header_t* hdr = getHeader(msg);
     return hdr->ll_addr;
   }
 
+  // user of link estimator calls send here
+  // slap the header and footer before sending the message
   command error_t Send.send(am_addr_t addr, message_t* msg, uint8_t len) {
     uint8_t newlen;
+
+    curBeaconInterval = 0;
+
     newlen = addLinkEstHeaderAndFooter(msg, len);
     dbg("LI", "Sending seq: %d\n", linkEstSeq);
-	{
-	  uint8_t ii;
-	  uint8_t* b;
-	  b = (uint8_t *)call SubPacket.getPayload(msg, NULL);
-	  for(ii=0; ii<newlen; ii++)
-	    dbg_clear("LI", "%x ", (uint8_t *)b[ii]);
-	}
-	dbg_clear("LI", "\n");
-
+    print_packet(msg, newlen);
     return call AMSend.send(addr, msg, newlen);
   }
 
+  // done sending the message that originated at the
+  // estimator or the user of this component
   event void AMSend.sendDone(message_t* msg, error_t error ) {
-    return signal Send.sendDone(msg, error);
+    if (msg == &linkEstPkt) {
+      beaconBusy = FALSE;
+    } else {
+      return signal Send.sendDone(msg, error);
+    }
   }
 
+  // cascade the send call down
   command uint8_t Send.cancel(message_t* msg) {
     return call AMSend.cancel(msg);
   }
@@ -404,24 +568,17 @@ implementation {
     return call Packet.getPayload(msg, NULL);
   }
 
+  // new messages are received here
+  // update the neighbor table with the header
+  // and footer in the message
+  // then signal the user of this component
   event message_t* SubReceive.receive(message_t* msg,
 				      void* payload,
 				      uint8_t len) {
     uint8_t nidx;
 
-
-
     dbg("LI", "LI receiving packet, buf addr: %x\n", payload);
-	{
-	  uint8_t ii;
-	  uint8_t* b;
-	  //	  b = (uint8_t *)call SubPacket.getPayload(msg, NULL);
-	  b = (uint8_t *)msg->data;
-	  for(ii=0; ii<call SubPacket.payloadLength(msg); ii++)
-	    dbg_clear("LI", "%x ", (uint8_t *)b[ii]);
-	}
-	dbg_clear("LI", "\n");
-
+    print_packet(msg, len);
 
     if (call SubAMPacket.destination(msg) == AM_BROADCAST_ADDR) {
       linkest_header_t* hdr = getHeader(msg);
@@ -431,33 +588,47 @@ implementation {
       print_neighbor_table();
 
       // update neighbor table with this information
+      // find the neighbor
+      // if found
+      //   update the entry
+      // else
+      //   find an empty entry
+      //   if found
+      //     initialize the entry
+      //   else
+      //     find a bad neighbor to be evicted
+      //     if found
+      //       evict the neighbor and init the entry
+      //     else
+      //       we can not accomodate this neighbor in the table
       nidx = findIdx(hdr->ll_addr);
-      if (nidx == INVALID_RVAL) {
+      if (nidx != INVALID_RVAL) {
+	dbg("LI", "Found the entry so updating\n");
+	updateNeighborEntryIdx(nidx, hdr->seq);
+      } else {
 	nidx = findEmptyNeighborIdx();
-	initNeighborIdx(nidx, hdr->ll_addr);
-      }
-      if (nidx == INVALID_RVAL) {
-	nidx = findWorstNeighborIdx();
-	signal LinkEstimator.evicted(NeighborTable[nidx].ll_addr);
-	dbg("LI", "Going to replace neighbor idx: %d\n", nidx);
 	if (nidx != INVALID_RVAL) {
+	  dbg("LI", "Found an empty entry\n");
 	  initNeighborIdx(nidx, hdr->ll_addr);
+	  updateNeighborEntryIdx(nidx, hdr->seq);
+	} else {
+	  nidx = findWorstNeighborIdx(EVICT_QUALITY_THRESHOLD);
+	  if (nidx != INVALID_RVAL) {
+	    dbg("LI", "Evicted neighbor %d at idx %d\n",
+		NeighborTable[nidx].ll_addr, nidx);
+	    signal LinkEstimator.evicted(NeighborTable[nidx].ll_addr);
+	    initNeighborIdx(nidx, hdr->ll_addr);
+	  } else {
+	    dbg("LI", "No room in the table\n");
+	  }
 	}
       }
-      if (nidx != INVALID_RVAL) {
-	updateNeighborEntryIdx(nidx, hdr->seq);
-      }
 
-      if (hdr->num_entries > 0) {
-	dbg("LI", "There is a linkest footer in this packet\n");
-	dbg("LI", "size of linkestfooter %d\n", sizeof(linkest_footer_t));
+      if ((nidx != INVALID_RVAL) && (hdr->num_entries > 0)) {
+	dbg("LI", "Number of footer entries: %d\n", hdr->num_entries);
 	footer = (linkest_footer_t*) ((uint8_t *)call SubPacket.getPayload(msg, NULL)
 				      + call SubPacket.payloadLength(msg)
 				      - hdr->num_entries*sizeof(linkest_footer_t));
-				      
-
-	dbg("LI", "Number of footer entries: %d\n", hdr->num_entries);
-
 	{
 	  uint8_t i, my_ll_addr;
 	  my_ll_addr = call SubAMPacket.address();
@@ -470,7 +641,6 @@ implementation {
 	    }
 	  }
 	}
-
       }
       print_neighbor_table();
 
@@ -493,6 +663,8 @@ implementation {
     call SubPacket.clear(msg);
   }
 
+  // subtract the space occupied by the link estimation
+  // header and footer from the incoming payload size
   command uint8_t Packet.payloadLength(message_t* msg) {
     linkest_header_t *hdr;
     hdr = getHeader(msg);
@@ -501,6 +673,8 @@ implementation {
       - sizeof(linkest_footer_t)*hdr->num_entries;
   }
 
+  // account for the space used by header and footer
+  // while setting the payload length
   command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
     linkest_header_t *hdr;
     hdr = getHeader(msg);
@@ -514,6 +688,7 @@ implementation {
     return call SubPacket.maxPayloadLength() - sizeof(linkest_header_t);
   }
 
+  // application payload pointer is just past the link estimation header
   command void* Packet.getPayload(message_t* msg, uint8_t* len) {
     uint8_t* payload = call SubPacket.getPayload(msg, len);
     linkest_header_t *hdr;
@@ -523,6 +698,5 @@ implementation {
     }
     return payload + sizeof(linkest_header_t);
   }
-
 }
 
