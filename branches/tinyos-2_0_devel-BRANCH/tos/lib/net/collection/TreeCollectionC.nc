@@ -1,10 +1,15 @@
+#include "Collection.h"
 #include "TreeCollection.h"
 
 configuration TreeCollectionC {
   provides {
     interface Send[uint8_t client];
+    interface Packet;
   }
+
+  uses interface CollectionId[uint8_t client];
 }
+
 implementation {
   enum {
     CLIENT_COUNT = uniqueCount(UQ_COLLECTION_CLIENT),
@@ -14,25 +19,25 @@ implementation {
   };
 
   components new PoolC(message_t, FORWARD_COUNT) as ForwardPool;
-  components new QueueC(message_t*, QUEUE_SIZE);
+  components new QueueC(fe_queue_entry_t*, QUEUE_SIZE);
   components new ForwardingEngineP() as Forwarder;
   components new TimerMilliC() as FETimer;
 
   Send = Forwarder;
+  Packet = Forwarder;
 
   Forwarder.ForwardPool -> ForwardPool;
   Forwarder.SendQueue -> QueueC;
 
   components new TreeRoutingEngineP(TREE_ROUTING_TABLE_SIZE) as Router;
   components new TimerMilliC() as REBeaconTimer;
-  components new RandomC() as RERandom;
   components LinkEstimatorP as Estimator;
+  components RandomC;
 
   components new AMSenderC(AM_COLLECTION_DATA);
   components new AMReceiverC(AM_COLLECTION_DATA);
   components new AMSnooperC(AM_COLLECTION_DATA);
   
-
   Router.BeaconSend -> Estimator.Send;
   Router.BeaconReceive -> Estimator.Receive;
   Router.LinkEstimator -> Estimator.LinkEstimator;
@@ -42,7 +47,7 @@ implementation {
   Router.RadioControl -> ActiveMessageC;
 
   Router.BeaconTimer -> BeaconTimer;
-  Router.Random -> RERandom;
+  Router.Random -> RandomC;
   
   Forwarder.AMSend -> AMSenderC;
   Forwarder.SubReceive -> AMReceiverC;
