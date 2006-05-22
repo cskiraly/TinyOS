@@ -23,14 +23,14 @@
 /**
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.1 $
- * @date $Date: 2006-05-15 18:16:17 $
+ * @version $Revision: 1.1.2.2 $
+ * @date $Date: 2006-05-22 22:38:36 $
  */
  
 generic module AsyncFcfsQueueC(uint8_t size) {
   provides {
     interface Init;
-    interface AsyncQueue as FcfsQueue;
+    interface AsyncQueue<uint8_t> as FcfsQueue;
   }
 }
 implementation {
@@ -39,6 +39,7 @@ implementation {
   uint8_t resQ[size];
   uint8_t qHead = NO_ENTRY;
   uint8_t qTail = NO_ENTRY;
+  uint8_t current_size;
   
   bool inQueue(uint8_t id) {
     return resQ[id] != NO_ENTRY || qTail == id;
@@ -46,10 +47,11 @@ implementation {
 
   command error_t Init.init() {
     memset(resQ, NO_ENTRY, sizeof(resQ));
+    current_size = 0;
     return SUCCESS;
   }  
 
-  async command uint8_t FcfsQueue.pop() {
+  async command uint8_t FcfsQueue.dequeue() {
     atomic {
       if(qHead != NO_ENTRY) {
         uint8_t id = qHead;
@@ -57,13 +59,14 @@ implementation {
         if(qHead == NO_ENTRY)
           qTail = NO_ENTRY;
         resQ[id] = NO_ENTRY;
+        current_size--;
         return id;
       }
       return NO_ENTRY;
     }
   }
   
-  async command error_t FcfsQueue.push(uint8_t id) {
+  async command error_t FcfsQueue.enqueue(uint8_t id) {
     atomic {
       if(!inQueue(id)) {
         if(qHead == NO_ENTRY)
@@ -71,16 +74,29 @@ implementation {
 	      else
   	      resQ[qTail] = id;
 	      qTail = id;
+        current_size++;
         return SUCCESS;
       }
       return EBUSY;
     }
   }
 
-  async command bool FcfsQueue.isEmpty() {
+  async command bool FcfsQueue.empty() {
     atomic {
       if(qHead == NO_ENTRY) return TRUE;
       return FALSE;
     }
   }
+
+  async command uint8_t FcfsQueue.size() {
+    atomic return current_size;
+  }
+
+  async command uint8_t FcfsQueue.maxSize() {
+    atomic return size;
+  }
+
+  async command uint8_t FcfsQueue.head() {
+    atomic return qHead;
+  }    
 }

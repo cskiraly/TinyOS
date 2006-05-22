@@ -51,8 +51,8 @@
 
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-05-15 18:15:34 $ 
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-05-22 22:39:13 $ 
  * ======================================================================== 
  */
  
@@ -80,27 +80,24 @@
 generic module AsyncArbiterP(uint8_t controllerId) {
   provides {
     interface AsyncResource[uint8_t id];
-    interface AsyncResourceController;
+    interface ImmediateResource[uint8_t id];
     interface ArbiterInfo;
   }
   uses {
     interface ResourceConfigure[uint8_t id];
-    interface AsyncQueue as Queue;
+    interface AsyncQueue<uint8_t> as Queue;
   }
 }
 implementation {
 
   enum {RES_IDLE, RES_GRANTING, RES_BUSY};
   enum {NO_RES = 0xFF};
-  enum {CONTROLLER_ID = controllerId};
 
   uint8_t state = RES_IDLE;
   uint8_t resId = NO_RES;
   uint8_t reqResId;
   
   task void grantedTask();
-  task void requestedTask();
-  task void idleTask();
   
   /**
     Request the use of the shared resource
@@ -128,17 +125,11 @@ implementation {
         post grantedTask();
         return SUCCESS;
       }
-      if(resId == CONTROLLER_ID)
-        post requestedTask();
-      return call Queue.push(id);
+      return call Queue.enqueue(id);
     }
-  } 
-
-  async command error_t AsyncResourceController.request() {
-    call AsyncResource.request[CONTROLLER_ID]();
   }
 
-  async command error_t AsyncResourceController.immediateRequest() {
+  async command error_t ImmediateResource.immediateRequest() {
     atomic {
       if(state == RES_IDLE) {
         state = RES_BUSY;
@@ -165,7 +156,7 @@ implementation {
     bool released = FALSE;
     atomic {
       if (state == RES_BUSY && resId == id) {
-        reqResId = call Queue.pop();
+        reqResId = call Queue.dequeue();
         if(reqResId != NO_RES) {
           state = RES_GRANTING;
           post grantedTask();

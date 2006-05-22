@@ -23,14 +23,14 @@
 /**
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.1 $
- * @date $Date: 2006-05-15 18:16:17 $
+ * @version $Revision: 1.1.2.2 $
+ * @date $Date: 2006-05-22 22:38:36 $
  */
  
 generic module FcfsQueueC(uint8_t size) {
   provides {
     interface Init;
-    interface Queue as FcfsQueue;
+    interface Queue<uint8_t> as FcfsQueue;
   }
 }
 implementation {
@@ -39,6 +39,7 @@ implementation {
   uint8_t resQ[size];
   uint8_t qHead = NO_ENTRY;
   uint8_t qTail = NO_ENTRY;
+  uint8_t current_size;
   
   bool inQueue(uint8_t id) {
     return resQ[id] != NO_ENTRY || qTail == id;
@@ -46,35 +47,50 @@ implementation {
 
   command error_t Init.init() {
     memset(resQ, NO_ENTRY, sizeof(resQ));
+    current_size = 0;
     return SUCCESS;
   }  
 
-  command uint8_t FcfsQueue.pop() {
+  command uint8_t FcfsQueue.dequeue() {
     if(qHead != NO_ENTRY) {
       uint8_t id = qHead;
       qHead = resQ[qHead];
       if(qHead == NO_ENTRY)
         qTail = NO_ENTRY;
       resQ[id] = NO_ENTRY;
+      current_size--;
       return id;
     }
     return NO_ENTRY;
   }
   
-  command error_t FcfsQueue.push(uint8_t id) {
+  command error_t FcfsQueue.enqueue(uint8_t id) {
     if(!inQueue(id)) {
       if(qHead == NO_ENTRY)
 	      qHead = id;
 	    else
 	      resQ[qTail] = id;
 	    qTail = id;
+      current_size++;
       return SUCCESS;
     }
     return EBUSY;
   }
 
-  command bool FcfsQueue.isEmpty() {
+  command bool FcfsQueue.empty() {
     if(qHead == NO_ENTRY) return TRUE;
     return FALSE;
   }
+
+  command uint8_t FcfsQueue.size() {
+    return current_size;
+  }
+
+  command uint8_t FcfsQueue.maxSize() {
+    return size;
+  }
+
+  command uint8_t FcfsQueue.head() {
+    return qHead;
+  }    
 }
