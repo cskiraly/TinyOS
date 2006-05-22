@@ -23,14 +23,14 @@
 /**
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.1 $
- * @date $Date: 2006-05-15 18:16:17 $
+ * @version $Revision: 1.1.2.2 $
+ * @date $Date: 2006-05-22 22:38:36 $
  */
  
 generic module RoundRobinQueueC(uint8_t size) {
   provides {
     interface Init;
-    interface Queue as RoundRobinQueue;
+    interface Queue<uint8_t> as RoundRobinQueue;
   }
 }
 implementation {
@@ -38,6 +38,7 @@ implementation {
 
   uint8_t resQ[(size-1)/8 + 1];
   uint8_t last = 0;
+  uint8_t current_size;
   
   bool inQueue(uint8_t id) {
     return resQ[id / 8] & (1 << (id % 8));
@@ -49,10 +50,11 @@ implementation {
 
   command error_t Init.init() {
     memset(resQ, NO_ENTRY, sizeof(resQ));
+    current_size = 0;
     return SUCCESS;
   }  
 
-  command uint8_t RoundRobinQueue.pop() {
+  command uint8_t RoundRobinQueue.dequeue() {
     int i;
     
     for (i = last+1; ; i++) {
@@ -63,24 +65,48 @@ implementation {
       if (inQueue(i)) {
         clearEntry(i);
         last = i;
+        current_size--;
         return i;
       }
     }
     return NO_ENTRY;
   }
   
-  command error_t RoundRobinQueue.push(uint8_t id) {
+  command error_t RoundRobinQueue.enqueue(uint8_t id) {
     if (!inQueue(id)) {
       resQ[id / 8] |=  1 << (id % 8);
+      current_size++;
       return SUCCESS;
     }
     return EBUSY;
   }
 
-  command bool RoundRobinQueue.isEmpty() {
+  command bool RoundRobinQueue.empty() {
     int i;
     for (i = 0; i<sizeof(resQ); i++)
       if(resQ[i] > 0) return FALSE;
     return TRUE;
+  }
+
+  command uint8_t RoundRobinQueue.size() {
+    return current_size;
+  }
+  
+  command uint8_t RoundRobinQueue.maxSize() {
+    return size;
+  }
+  
+  command uint8_t RoundRobinQueue.head() {
+    int i;
+    
+    for (i = last+1; ; i++) {
+      if(i == size)
+        i = 0;
+      if (i == last)
+        break;
+      if (inQueue(i))
+        return i;
+    }
+    return NO_ENTRY;
   }
 }
