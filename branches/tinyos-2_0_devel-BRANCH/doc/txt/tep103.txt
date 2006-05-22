@@ -10,8 +10,8 @@ Permanent Data Storage (Flash)
 :Author: David Gay, Jonathan Hui
 
 :Draft-Created: 27-Sep-2004
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2006-02-14 19:32:23 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-05-22 17:22:43 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 
@@ -169,8 +169,9 @@ a. Implementation: chip dependent
 b. Presentation: chip dependent
 c. Atmel AT45DB:
 
-   interface {
+::
 
+   interface {
      command void write(at45page_t page, at45pageoffset_t offset,
                         void *PASS data, at45pageoffset_t n);
      event void writeDone(error_t error);
@@ -197,7 +198,9 @@ c. Atmel AT45DB:
 
    }
 
-d. Intel Strataflash (should extend to other memory-mapped NOR flashes)::
+d. Intel Strataflash (should extend to other memory-mapped NOR flashes):
+
+::
 
    interface { /* In flux until higher level stuff written */
 
@@ -214,7 +217,9 @@ d. Intel Strataflash (should extend to other memory-mapped NOR flashes)::
 
    }
 
-e. STMicroelectronics M25P::
+e. STMicroelectronics M25P:
+
+::
 
    interface {
      command error_t read(stm25p_addr_t addr, void* buf, stm25p_addr_t len);
@@ -246,18 +251,18 @@ c. Space allocation
 
    The volume table MUST be specified by an xml file that is placed in
    the application's directory (where one types 'make'). The xml file
-   specifies the allocation as follows:
+   specifies the allocation as follows: ::
 
-   <volume_table>
-     <volume name="DELUGE0" size="65536" />
-     <volume name="CONFIGLOG" size="65536" />
-     <volume name="DATALOG" size="131072" />
-     <volume name="GOLDENIMAGE" size="65536" base="983040" />
-   </volume_table>
+     <volume_table>
+       <volume name="DELUGE0" size="65536" />
+       <volume name="CONFIGLOG" size="65536" />
+       <volume name="DATALOG" size="131072" />
+       <volume name="GOLDENIMAGE" size="65536" base="983040" />
+     </volume_table>
 
    The name and size parameters are required, while base is
    optional. The name is a string containing one or more characters in
-   [a-zA-Z0-9_], while size and base are in bytes. Each storage chip
+   [a-zA-Z0-9\_], while size and base are in bytes. Each storage chip
    MUST provide a compile-time tool that translates the allocation
    specification to chip-specific nesc code. There is no constraint on
    how this is done or what code is produced, except that the
@@ -269,7 +274,7 @@ c. Space allocation
    physical allocation cannot be satisfied, an error should be given
    at compile time.
 
-   The compile-time tool MUST prepend 'VOLUME_' to each volume name in
+   The compile-time tool MUST prepend 'VOLUME\_' to each volume name in
    the xml file and '#define' each resulting name to map to a unique
    integer. To use the volume, the client passes the macro to the
    generic component as follows:
@@ -279,7 +284,9 @@ c. Space allocation
    If the named volume is not in the specification, nesc will give a
    compile-time error since the string will be undefined.
 
-d. Large objects::
+d. Large objects:
+
+::
 
    interface BlockWrite {
      command error_t write(storage_addr_t addr, void* buf, 
@@ -306,7 +313,9 @@ d. Large objects::
 				    uint16_t crc, error_t error );
    }
 
-e. Large sequential objects::
+e. Large sequential objects:
+
+::
 
    interface LogWrite {
      command error_t erase();
@@ -334,7 +343,9 @@ e. Large sequential objects::
    The circular-vs-linear distinction is made by offering separate
    instances of the LogData, LogRead interfaces.
 
-f. Small objects::
+f. Small objects:
+
+::
 
    interface ConfigStorage {
      command error_t read(addr_t addr, void* dest, addr_t len);
