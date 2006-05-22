@@ -8,8 +8,9 @@
  */
 
 #include "Collection.h"
+#include "TreeCollection.h"
 
-generic configuration CollectionSenderC(collection_id_t CollectId) {
+generic configuration CollectionSenderC(collection_id_t collectid) {
   provides {
     interface Send;
     interface Packet;
@@ -17,7 +18,7 @@ generic configuration CollectionSenderC(collection_id_t CollectId) {
 }
 
 implementation {
-  components TreeCollectionC;
-
-  Send = TreeCollectionC.Send[unique(UQ_COLLECTION_CLIENT)];
+  components new CollectionSenderP(collectid, unique(UQ_COLLECTION_CLIENT));
+  Send = CollectionSenderP;
+  Packet = CollectionSenderP;
 }

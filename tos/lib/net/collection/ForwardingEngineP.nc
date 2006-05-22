@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.9 2006-05-19 21:28:19 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.10 2006-05-22 14:44:18 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-05-19 21:28:19 $
+ *  @date   $Date: 2006-05-22 14:44:18 $
  */
 
 #include <ForwardingEngine.h>
@@ -40,19 +40,20 @@ generic module ForwardingEngineP() {
     interface Packet;
   }
   uses {
-    interface AMSend;
+    interface AMSend as SubSend;
     interface Receive as SubReceive;
     interface Receive as SubSnoop;
     interface Packet as SubPacket;
     interface UnicastNameFreeRouting;
     interface SplitControl as RadioControl;
-    interface Queue<fe_queue_entry_t *> as SendQueue;
+    interface Queue<fe_queue_entry_t*> as SendQueue;
     interface Pool<fe_queue_entry_t> as QEntryPool;
     interface Pool<message_t> as ForwardPool;
     interface Timer<TMilli> as SendTimer;
     interface PacketAcknowledgements;
     interface Random;
     interface RootControl;
+    interface CollectionId[uint8_t client];
   }
 }
 implementation {
@@ -134,7 +135,7 @@ implementation {
     call Packet.setPayloadLength(msg, len + sizeof(network_header_t));
     hdr = getHeader(msg);
     hdr->origin = TOS_NODE_ID;
-    hdr->id = id;
+    hdr->id = call CollectionId.fetch[client]();
 
     if (call QEntryPool.empty()) {
       // Queue pool is empty; fail the send.
@@ -170,12 +171,12 @@ implementation {
     else {
       error_t eval;
       fe_queue_entry_t* qe = call SendQueue.head();
-      uint8_t payloadLen = call SubPacket.payloadLen(qe->msg);
+      uint8_t payloadLen = call SubPacket.payloadLength(qe->msg);
       am_addr_t dest = call UnicastNameFreeRouting.nextHop();
       
       ackPending = (call PacketAcknowledgements.requestAck(qe->msg) == SUCCESS);
       
-      eval = call AMSend.send(dest, qe->msg, payloadLen);
+      eval = call SubSend.send(dest, qe->msg, payloadLen);
       if (eval == SUCCESS) {
 	// Successfully submitted to the data-link layer.
 	sending = TRUE;
@@ -229,7 +230,7 @@ implementation {
       sending = FALSE;
       post sendTask();
     }
-    else if (call Pool.size() < Pool.maxSize()) {
+    else if (call ForwardPool.size() < call ForwardPool.maxSize()) {
       // A successfully forwarded packet.
       call ForwardPool.put(qe->msg);
     }
@@ -244,11 +245,11 @@ implementation {
     if (!call ForwardPool.empty() && !call QEntryPool.empty()) {
       message_t* newMsg = call ForwardPool.get();
       fe_queue_entry_t *qe = call QEntryPool.get();
+      uint8_t len = call SubPacket.payloadLength(m);
 
       qe->msg = m;
       qe->client = CLIENT_COUNT;
 
-      uint8_t len = call SubPacket.payloadLength(m);
       call Packet.setPayloadLength(m, len + sizeof(network_header_t));
       if (call SendQueue.enqueue(qe))
         return newMsg;
@@ -263,17 +264,21 @@ implementation {
     return m;
   }
   
-  event message_t* SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
-    if (call AMPacket.isForMe(msg)) {
+  event message_t* 
+  SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
+    if (call SubPacket.isForMe(msg)) {
       // Three cases:
       //   1) I'm the root, signal receive
       //   2) I'm on the routing path, but suppress the packet
       //   3) In on the routing path, and forward it
       if (call RootControl.isRoot()) {
 	network_header_t* hdr = getHeader(msg);
+  collection_id_t collectid = hdr->id;
+
 	return signal Receive.receive(msg, call Packet.getPayload(msg), call Packet.payloadLength(msg));
       }
-      else if (!signal Intercept.intercept(msg, call Packet.getPayload(msg), call Packet.payloadLength(msg))) {
+      else if (!signal Intercept.forward(msg, call
+        Packet.getPayload(msg, &len), call Packet.payloadLength(msg))) {
 	return msg;
       }
       else {
