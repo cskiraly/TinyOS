@@ -10,8 +10,8 @@ TinyOS 2.x Boot Sequence
 :Author: Philip Levis 
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.6 $
-:Draft-Modified: $Date: 2006-05-18 23:19:15 $
+:Draft-Version: $Revision: 1.1.2.7 $
+:Draft-Modified: $Date: 2006-05-22 17:10:36 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -222,7 +222,7 @@ component named PlatformC. PlatformInit is for initializations which
 must follow a very specific order due to hidden dependencies, e.g., as
 part of making the overall hardware platform operable. One example of
 this sort of initialization is clock calibration. Because PlatformInit
-calls the component PlatformC, each platform can specify the requires
+calls the component PlatformC, each platform can specify the required
 initialization order. As these hidden dependencies must be due to
 hardware, the sequence is platform-specific.
 
