@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.6 2006-05-20 05:12:21 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.7 2006-05-23 18:46:06 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -452,7 +452,7 @@ implementation {
   uint8_t computeBidirEETX(uint8_t q1, uint8_t q2) {
     uint16_t q;
     if ((q1 > 0) && (q2 > 0)) {
-      q =  65025 / q1;
+      q =  65025u / q1;
       q = (10*q) / q2 - 10;
       if (q > 255) {
 	q = INFINITY;
