@@ -30,42 +30,40 @@
  */
 
 /**
- * Write interface for the block storage abstraction described in
+ * Write interface for the log storage abstraction described in
  * TEP103.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.9 $ $Date: 2006-05-23 21:57:47 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-05-23 21:57:52 $
  */
 
 #include "Storage.h"
 
-interface BlockWrite {
+interface LogWrite {
   
   /**
-   * Initiate a write operation within a given volume. On SUCCESS, the
-   * <code>writeDone</code> event will signal completion of the
-   * operation.
+   * Append data to a given volume. On SUCCESS, the <code>appendDone</code> 
+   * event will signal completion of the operation.
    * 
-   * @param addr starting address to begin write.
    * @param buf buffer to write data from.
    * @param len number of bytes to write.
    * @return SUCCESS if the request was accepted, FAIL otherwise.
    */
-  command error_t write( storage_addr_t addr, void* buf, storage_len_t len );
+  command error_t append(void* buf, storage_len_t len);
 
   /**
-   * Signals the completion of a write operation. However, data is not
+   * Signals the completion of an append operation. However, data is not
    * guaranteed to survive a power-cycle unless a commit operation has
    * been completed.
    *
-   * @param addr starting address of write.
    * @param buf buffer that written data was read from.
-   * @param len number of bytes written.
+   * @param len number of bytes actually written.
    * @param error notification of how the operation went.
    */
-  event void writeDone( storage_addr_t addr, void* buf, storage_len_t len, 
-			error_t error );
+  event void appendDone(void* buf, storage_len_t len, error_t error);
   
+  command uint32_t currentOffset();
+
   /**
    * Initiate an erase operation. On SUCCESS, the
    * <code>eraseDone</code> event will signal completion of the
@@ -80,26 +78,22 @@ interface BlockWrite {
    *
    * @param error notification of how the operation went.
    */
-  event void eraseDone( error_t error );
+  event void eraseDone(error_t error);
 
   /**
-   * Initiate a commit operation and finialize any additional writes
-   * to the volume. A verify operation from <code>BlockRead</code> can
-   * be done to check if the data has been modified since. A commit
-   * operation must be issued to ensure that data is stored in
-   * non-volatile storage. On SUCCES, the <code>commitDone</code>
-   * event will signal completion of the operation.
+   * Ensure all writes are present on flash, and that failure in subsequent
+   * writes cannot cause loss of earlier writes. On SUCCES, the 
+   * <code>commitDone</code> event will signal completion of the operation.
    *
    * @return SUCCESS if the request was accepted, FAIL otherwise.
    */
-  command error_t commit();
+  command error_t sync();
 
   /**
-   * Signals the completion of a commit operation. All written data is
-   * flushed to non-volatile storage after this event.
+   * Signals the successful or unsuccessful completion of a sync operation. 
    *
    * @param error notification of how the operation went.
    */
-  event void commitDone( error_t error );
+  event void syncDone(error_t error);
   
 }
