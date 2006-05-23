@@ -1,6 +1,6 @@
 /**
  * @author Kyle Jamieson
- * @version $Id: TestCollectionC.nc,v 1.1.2.1 2006-05-16 17:48:21 kasj78 Exp $
+ * @version $Id: TestCollectionC.nc,v 1.1.2.2 2006-05-23 20:42:12 kasj78 Exp $
  */
 
 #include <message.h>
@@ -23,6 +23,9 @@ implementation {
     if ( TOS_NODE_ID % 4 == 1 ) {
       call Timer.startPeriodic(20000);
     }
+  }
+  
+  event void Send.sendDone(message_t* m, error_t error) {
   }
 
   event void Timer.fired() {
