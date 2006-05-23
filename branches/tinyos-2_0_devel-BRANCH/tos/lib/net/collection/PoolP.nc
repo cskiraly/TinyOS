@@ -1,4 +1,4 @@
-/* $Id: PoolP.nc,v 1.1.2.3 2006-05-16 17:36:42 kasj78 Exp $ */
+/* $Id: PoolP.nc,v 1.1.2.4 2006-05-23 20:55:00 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-05-16 17:36:42 $
+ *  @date   $Date: 2006-05-23 20:55:00 $
  */
 
 generic module PoolP(typedef pool_t, uint8_t size) {
@@ -47,6 +47,7 @@ implementation {
     }
     free = size;
     index = 0;
+    return SUCCESS;
   }
   
   command bool Pool.empty() {
