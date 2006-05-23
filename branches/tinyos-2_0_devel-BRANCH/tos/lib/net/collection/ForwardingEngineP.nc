@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.11 2006-05-23 20:43:04 kasj78 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.12 2006-05-23 20:55:55 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-05-23 20:43:04 $
+ *  @date   $Date: 2006-05-23 20:55:55 $
  */
 
 #include <ForwardingEngine.h>
@@ -135,7 +135,7 @@ implementation {
     call Packet.setPayloadLength(msg, len + sizeof(network_header_t));
     hdr = getHeader(msg);
     hdr->origin = TOS_NODE_ID;
-    hdr->id = call CollectionId.fetch[client]();
+    hdr->collectid = call CollectionId.fetch[client]();
 
     if (call QEntryPool.empty()) {
       // Queue pool is empty; fail the send.
@@ -283,7 +283,7 @@ implementation {
     network_header_t* hdr = getHeader(msg);
     uint8_t netlen;
     collection_id_t collectid;
-    collectid = hdr->id;
+    collectid = hdr->collectid;
 
     // If I'm the root, signal receive. 
     if (call RootControl.isRoot())
@@ -322,7 +322,7 @@ implementation {
   event message_t* 
   SubSnoop.receive(message_t* msg, void *payload, uint8_t len) {
     network_header_t* hdr = getHeader(msg);
-    return signal Snoop.receive[hdr->id] (msg, (void *)(hdr + 1), 
+    return signal Snoop.receive[hdr->collectid] (msg, (void *)(hdr + 1), 
                                           len - sizeof(network_header_t));
   }
   

@@ -3,7 +3,7 @@
 
 typedef nx_struct {
   nx_am_addr_t origin;
-  collection_id_t id;
+  nx_uint8_t collectid;
 } network_header_t;
 
 typedef struct {
