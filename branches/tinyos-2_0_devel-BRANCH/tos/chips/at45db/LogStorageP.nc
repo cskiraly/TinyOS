@@ -54,9 +54,24 @@ module LogStorageP {
 implementation
 {
   enum {
+    F_SYNC = 1,
+    F_CIRCLED = 2,
+    F_LASTVALID = 4,
+    F_FIRSTVALID = 8
+  };
+
+  nx_struct pageinfo {
+    nx_uint16_t magic;
+    nx_uint32_t offset;
+    nx_uint8_t firstRecordOffset, lastRecordOffset;
+    nx_uint8_t flags;
+    nx_uint16_t crc;
+  };
+
+  enum {
     N = uniqueCount(UQ_LOG_STORAGE),
     NO_CLIENT = 0xff,
-    PAGE_SIZE = 1 << AT45_PAGE_SIZE_LOG2,
+    PAGE_SIZE = AT45_PAGE_SIZE - sizeof(nx_struct pageinfo),
     PERSISTENT_MAGIC = 0x4256,
   };
 
@@ -69,12 +84,9 @@ implementation
   };
 
   enum {
-    F_SYNC = 1
-  };
-
-  enum {
     META_IDLE,
     META_LOCATE,
+    META_LOCATELAST,
     META_READ,
     META_WRITE
   };
@@ -83,13 +95,7 @@ implementation
   uint8_t metaState;
   at45page_t firstPage, lastPage;
   storage_len_t len;
-
-  nx_struct pageinfo {
-    nx_uint16_t magic;
-    nx_uint16_t lastRecordOffset;
-    nx_uint8_t flags;
-    nx_uint16_t crc;
-  } metadata;
+  nx_struct pageinfo metadata;
 
 
   struct {
@@ -125,6 +131,19 @@ implementation
        on next read */
     s[client].rpage = page - 1;
     s[client].rend = s[client].roffset = 0;
+  }
+
+  void crcPage(at45page_t page) {
+    call At45db.computeCrc(page, 0,
+			   PAGE_SIZE + offsetof(nx_struct pageinfo, crc), 0);
+  }
+
+  void readMetadata(at45page_t page) {
+    call At45db.read(page, PAGE_SIZE, &metadata, sizeof metadata);
+  }
+
+  void writeMetadata(at45page_t page) {
+    call At45db.write(page, PAGE_SIZE, &metadata, sizeof metadata);
   }
 
   /* ------------------------------------------------------------------ */
@@ -253,10 +272,47 @@ implementation
   /* Locate log boundaries						*/
   /* ------------------------------------------------------------------ */
 
+  void locateLastRecord() {
+    if (firstPage == firstVolumePage())
+      {
+	/* Nothing valid found. We're done (log is empty). */
+	s[client].positionKnown = TRUE;
+	startRequest();
+      }
+    else
+      readMetadata(--firstPage);
+  }
+
+  void locateLastReadDone() {
+    if (metadata.magic == PERSISTENT_MAGIC && metadata.flags & F_LASTVALID)
+      crcPage(firstPage);
+    else
+      locateLastRecord();
+  }
+
+  void locateLastCrcDone(uint16_t crc) {
+    if (crc == metadata.crc)
+      {
+	/* We've found the last valid page with a record-end */
+	s[client].positionKnown = TRUE;
+	if (metadata.flags & F_SYNC) /* must start on next page */
+	  setWritePage(firstPage + 1);
+	else
+	  {
+	    s[client].wpage = firstPage;
+	    s[client].woffset = metadata.lastRecordOffset;
+	  }
+	startRequest();
+      }
+    else
+      locateLastRecord();
+  }
+
   void located() {
-    metaState = META_IDLE;
-    s[client].positionKnown = TRUE;
-    startRequest();
+    metaState = META_LOCATELAST;
+    /* firstPage is one after last valid page, but the last page with
+       a record end may be some pages earlier. Search for it. */
+    locateLastRecord();
   }
 
   at45page_t locateCurrentPage() {
@@ -267,22 +323,11 @@ implementation
     if ((int)lastPage - (int)firstPage < 0)
       located();
     else
-      call At45db.read(locateCurrentPage(), PAGE_SIZE, &metadata, sizeof metadata);
+      readMetadata(locateCurrentPage());
   }
 
   void locateGreaterThan() {
-    at45page_t currentPage = locateCurrentPage();
-
-    /* This must be the greatest valid page found so far. Update
-       write position. */
-    if (metadata.flags & F_SYNC) /* must start on next page */
-      setWritePage(currentPage + 1);
-    else
-      {
-	s[client].wpage = currentPage;
-	s[client].woffset = metadata.lastRecordOffset;
-      }
-    firstPage = currentPage + 1;
+    firstPage = locateCurrentPage() + 1;
     locateBinarySearch();
   }
 
@@ -293,8 +338,7 @@ implementation
 
   void locateReadDone() {
     if (metadata.magic == PERSISTENT_MAGIC)
-      call At45db.computeCrc(locateCurrentPage(), 0,
-			     PAGE_SIZE + offsetof(nx_struct pageinfo, crc), 0);
+      crcPage(locateCurrentPage());
     else
       locateLessThan();
   }
@@ -351,10 +395,7 @@ implementation
   
   void appendWriteDone() {
     if (s[client].woffset == PAGE_SIZE) /* Time to write metadata */
-      {
-	metadata.flags = 0; // regular metadata
-	wmetadataStart();
-      }
+      wmetadataStart();
     else
       endRequest(SUCCESS);
   }
@@ -364,9 +405,8 @@ implementation
       endRequest(FAIL);
     else
       {
-	/* Set lastRecordOffset in case we need to write more metadata (see
-	   wmetadataStart) */
-	metadata.lastRecordOffset = PAGE_SIZE;
+	/* Setup metadata in case we overflow this page too */
+	metadata.flags = 0;
 	appendContinue();
       }
   }
@@ -375,6 +415,7 @@ implementation
     /* Set lastRecordOffset in case we need to write metadata (see
        wmetadataStart) */
     metadata.lastRecordOffset = s[client].woffset;
+    metadata.flags = F_LASTVALID;
     appendContinue();
   }
 
@@ -387,7 +428,7 @@ implementation
       endRequest(SUCCESS);
     else
       {
-	metadata.flags = F_SYNC;
+	metadata.flags = F_SYNC | F_LASTVALID;
 	metadata.lastRecordOffset = s[client].woffset;
 	wmetadataStart();
       }
@@ -402,8 +443,7 @@ implementation
   /* ------------------------------------------------------------------ */
 
   void wmetadataStart() {
-    /* The caller ensures that metadata.flags and lastRecordOffset are
-       set correctly. */
+    /* The caller ensures that metadata is set correctly. */
     metaState = META_WRITE;
     call At45db.computeCrc(s[client].wpage, 0, PAGE_SIZE, 0);
 
@@ -427,7 +467,7 @@ implementation
     metadata.crc = crc;
 
     // And save it
-    call At45db.write(s[client].wpage - 1, PAGE_SIZE, &metadata, sizeof metadata);
+    writeMetadata(s[client].wpage - 1);
   }
 
   void wmetadataWriteDone() {
@@ -488,13 +528,12 @@ implementation
 
   void rmetadataStart() {
     metaState = META_READ;
-    call At45db.read(s[client].rpage + 1, PAGE_SIZE, &metadata, sizeof metadata);
+    readMetadata(s[client].rpage + 1);
   }
 
   void rmetadataReadDone() {
     if (metadata.magic == PERSISTENT_MAGIC)
-      call At45db.computeCrc(s[client].rpage + 1, 0,
-			     PAGE_SIZE + offsetof(nx_struct pageinfo, crc), 0);
+      crcPage(s[client].rpage + 1);
     else
       endRequest(ESIZE);
   }
@@ -555,6 +594,7 @@ implementation
 	switch (metaState)
 	  {
 	  case META_LOCATE: locateReadDone(); break;
+	  case META_LOCATELAST: locateLastReadDone(); break;
 	  case META_READ: rmetadataReadDone(); break;
 	  case META_IDLE: readContinue(); break;
 	  }					    
@@ -568,6 +608,7 @@ implementation
 	switch (metaState)
 	  {
 	  case META_LOCATE: locateCrcDone(crc); break;
+	  case META_LOCATELAST: locateLastCrcDone(crc); break;
 	  case META_WRITE: wmetadataCrcDone(crc); break;
 	  case META_READ: rmetadataCrcDone(crc); break;
 	  }
