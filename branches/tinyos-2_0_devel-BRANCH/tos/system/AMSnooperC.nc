@@ -1,4 +1,4 @@
-// $Id: AMSnooperC.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
+// $Id: AMSnooperC.nc,v 1.1.2.3 2006-05-23 18:00:04 scipio Exp $
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -42,9 +42,9 @@ generic configuration AMSnooperC(am_id_t AMId) {
 }
 
 implementation {
-  components ActiveMessageImpl;
+  components ActiveMessageImplP;
 
-  Receive = ActiveMessageImpl.Snoop[AMId];
-  Packet = ActiveMessageImpl;
-  AMPacket = ActiveMessageImpl;
+  Receive = ActiveMessageImplP.Snoop[AMId];
+  Packet = ActiveMessageImplP;
+  AMPacket = ActiveMessageImplP;
 }
