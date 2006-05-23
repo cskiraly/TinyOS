@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-19 21:27:34 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-05-23 20:42:13 $
  */
 
 configuration TestNetworkAppC {}
@@ -19,10 +19,10 @@ implementation {
   components new DemoSensorC();
 
   TestNetworkC.Boot -> MainC;
-  TestDisseminationC.Leds -> LedsC;
-  TestDisseminationC.Timer -> TimerMilliC;
-  TestDisseminationC.RadioControl -> ActiveMessageC;
-  TestDisseminationC.DisseminationPeriod -> Object16C;
-  TestDisseminationC.Send -> CollectionSenderC;
+  TestNetworkC.RadioControl -> ActiveMessageC;
+  TestNetworkC.Leds -> LedsC;
+  TestNetworkC.Timer -> TimerMilliC;
+  TestNetworkC.DisseminationPeriod -> Object16C;
+  TestNetworkC.Send -> CollectionSenderC;
+  TestNetworkC.ReadSensor -> DemoSensorC;
 }
-

@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-19 21:27:34 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-05-23 20:42:13 $
  */
 
 #include <Timer.h>
@@ -19,7 +19,7 @@ module TestNetworkC {
   uses interface DisseminationValue<uint16_t> as DisseminationPeriod;
   uses interface Send;
   uses interface Leds;
-  uses interface Read<uint16_t>;
+  uses interface Read<uint16_t> as ReadSensor;
   uses interface Timer<TMilli>;
 }
 implementation {
@@ -44,7 +44,7 @@ implementation {
   
   event void Timer.fired() {
     call Leds.led1Toggle();
-    if (busy || call Read.read() != SUCCESS) {
+    if (busy || call ReadSensor.read() != SUCCESS) {
       call Leds.led0On();
       return;
     }
@@ -53,7 +53,7 @@ implementation {
     busy = TRUE;
   }
 
-  event void Read.readDone(error_t err, uint16_t val) {
+  event void ReadSensor.readDone(error_t err, uint16_t val) {
     TestNetworkMsg* msg = (TestNetworkMsg*)call Send.getPayload(&packet);
     msg->data = val;
     if (err != SUCCESS ||
