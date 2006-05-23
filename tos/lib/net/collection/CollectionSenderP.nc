@@ -14,5 +14,5 @@ implementation {
   
   Send = Collector.Send[clientid];
   Packet = Collector.Packet;
-  Collector.CollectionId[clientid] = CollectionIdP;
+  Collector.CollectionId[clientid] -> CollectionIdP;
 }

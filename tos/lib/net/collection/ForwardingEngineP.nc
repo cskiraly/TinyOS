@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.10 2006-05-22 14:44:18 kasj78 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.11 2006-05-23 20:43:04 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-05-22 14:44:18 $
+ *  @date   $Date: 2006-05-23 20:43:04 $
  */
 
 #include <ForwardingEngine.h>
@@ -34,9 +34,9 @@ generic module ForwardingEngineP() {
     interface Init;
     interface StdControl;
     interface Send[uint8_t client];
-    interface Receive[uint8_t client];
-    interface Receive as Snoop[uint8_t client];
-    interface Intercept[uint8_t client];
+    interface Receive[collection_id_t id];
+    interface Receive as Snoop[collection_id_t id];
+    interface Intercept[collection_id_t id];
     interface Packet;
   }
   uses {
@@ -48,8 +48,8 @@ generic module ForwardingEngineP() {
     interface SplitControl as RadioControl;
     interface Queue<fe_queue_entry_t*> as SendQueue;
     interface Pool<fe_queue_entry_t> as QEntryPool;
-    interface Pool<message_t> as ForwardPool;
-    interface Timer<TMilli> as SendTimer;
+    interface Pool<message_t> as MessagePool;
+    interface Timer<TMilli> as RetxmitTimer;
     interface PacketAcknowledgements;
     interface Random;
     interface RootControl;
@@ -156,6 +156,20 @@ implementation {
       return FAIL;
     }
   }
+
+  command error_t Send.cancel[uint8_t client](message_t* msg) {
+    // XXX TODO: cancel not implemented yet.
+    return FAIL;
+  }
+
+  command uint8_t Send.maxPayloadLength[uint8_t client]() {
+    return call Packet.maxPayloadLength();
+  }
+
+  command void* Send.getPayload[uint8_t client](message_t* msg) {
+    return call Packet.getPayload(msg, NULL);
+  }
+
   
   // Note that we don't actually remove the packet from the
   // queue until it is successfully sent.
@@ -165,9 +179,9 @@ implementation {
          sending) {
       return;
     }
-    else if (call RootControl.isRoot()) {
-      loopback();
-    }
+//    else if (call RootControl.isRoot()) {
+//      loopback(); 
+//    }
     else {
       error_t eval;
       fe_queue_entry_t* qe = call SendQueue.head();
@@ -210,7 +224,7 @@ implementation {
       uint16_t r = call Random.rand16();
       r &= 0x1ff;
       r += 512;
-      call SendTimer.startOneShot(r);
+      call RetxmitTimer.startOneShot(r);
     }
     // AckPending is for case when DL cannot support acks
     else if (ackPending && !call PacketAcknowledgements.wasAcked(msg)) {
@@ -219,7 +233,7 @@ implementation {
       uint16_t r = call Random.rand16();
       r &= 0x7f;
       r += 128;
-      call SendTimer.startOneShot(r);
+      call RetxmitTimer.startOneShot(r);
     }
     else if (getHeader(qe->msg)->origin == TOS_NODE_ID) {
       network_header_t* hdr;
@@ -230,9 +244,9 @@ implementation {
       sending = FALSE;
       post sendTask();
     }
-    else if (call ForwardPool.size() < call ForwardPool.maxSize()) {
+    else if (call MessagePool.size() < call MessagePool.maxSize()) {
       // A successfully forwarded packet.
-      call ForwardPool.put(qe->msg);
+      call MessagePool.put(qe->msg);
     }
     else {
       // It's a forwarded packet, but there's no room the pool;
@@ -242,8 +256,8 @@ implementation {
   }
 
   message_t* forward(message_t* m) {
-    if (!call ForwardPool.empty() && !call QEntryPool.empty()) {
-      message_t* newMsg = call ForwardPool.get();
+    if (!call MessagePool.empty() && !call QEntryPool.empty()) {
+      message_t* newMsg = call MessagePool.get();
       fe_queue_entry_t *qe = call QEntryPool.get();
       uint8_t len = call SubPacket.payloadLength(m);
 
@@ -254,7 +268,7 @@ implementation {
       if (call SendQueue.enqueue(qe))
         return newMsg;
       else {
-        call ForwardPool.put(newMsg);
+        call MessagePool.put(newMsg);
         call QEntryPool.put(qe);
       }
     }
@@ -266,58 +280,73 @@ implementation {
   
   event message_t* 
   SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
-    if (call SubPacket.isForMe(msg)) {
-      // Three cases:
-      //   1) I'm the root, signal receive
-      //   2) I'm on the routing path, but suppress the packet
-      //   3) In on the routing path, and forward it
-      if (call RootControl.isRoot()) {
-	network_header_t* hdr = getHeader(msg);
-  collection_id_t collectid = hdr->id;
+    network_header_t* hdr = getHeader(msg);
+    uint8_t netlen;
+    collection_id_t collectid;
+    collectid = hdr->id;
 
-	return signal Receive.receive(msg, call Packet.getPayload(msg), call Packet.payloadLength(msg));
-      }
-      else if (!signal Intercept.forward(msg, call
-        Packet.getPayload(msg, &len), call Packet.payloadLength(msg))) {
-	return msg;
-      }
-      else {
-	return forward(msg);
-      }
-    }
+    // If I'm the root, signal receive. 
+    if (call RootControl.isRoot())
+      return signal Receive.receive[collectid](msg, 
+                        call Packet.getPayload(msg, &netlen), 
+                        call Packet.payloadLength(msg));
+    // I'm on the routing path and Intercept indicates that I
+    // should not forward the packet.
+    else if (!signal Intercept.forward[collectid](msg, 
+                        call Packet.getPayload(msg, &netlen), 
+                        call Packet.payloadLength(msg)))
+      return msg;
+    else
+      return forward(msg);
   }
 
-  event message_t* SubSnoop.receive(message_t* msg) {
+  command void* 
+  Receive.getPayload[collection_id_t id](message_t* msg, uint8_t* len) {
+    return call Packet.getPayload(msg, NULL);
+  }
+
+  command uint8_t
+  Receive.payloadLength[collection_id_t id](message_t *msg) {
+    return call Packet.payloadLength(msg);
+  }
+
+  command void *
+  Snoop.getPayload[collection_id_t id](message_t *msg, uint8_t *len) {
+    return call Packet.getPayload(msg, NULL);
+  }
+
+  command uint8_t Snoop.payloadLength[collection_id_t id](message_t *msg) {
+    return call Packet.payloadLength(msg);
+  }
+
+  event message_t* 
+  SubSnoop.receive(message_t* msg, void *payload, uint8_t len) {
     network_header_t* hdr = getHeader(msg);
-    return Snoop.receive[hdr->id](msg);
+    return signal Snoop.receive[hdr->id] (msg, (void *)(hdr + 1), 
+                                          len - sizeof(network_header_t));
   }
   
-  event void SendTimer.fired() {
+  event void RetxmitTimer.fired() {
     sending = FALSE;
     post sendTask();
   }
   
-  command uint8_t Send.maxPayloadLength() {
-    return Packet.maxPayloadLength();
-  }
-
-  command void* Send.getPayload(message_t* msg) {
-    return Packet.getPayload(msg, NULL);
-  }
-
   command void Packet.clear(message_t* msg) {
     call SubPacket.clear(msg);
   }
   
   command uint8_t Packet.payloadLength(message_t* msg) {
-    return SubPacket.payloadLength(msg) - sizeof(network_header_t);
+    return call SubPacket.payloadLength(msg) - sizeof(network_header_t);
   }
-  command uint8_t Packet.setPayloadLength(message_t* msg, uint8_t len) {
+
+  command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
     call SubPacket.setPayloadLength(msg, len + sizeof(network_header_t));
   }
+  
   command uint8_t Packet.maxPayloadLength() {
-    return SubPacket.maxPayloadLength() - sizeof(network_header_t);
+    return call SubPacket.maxPayloadLength() - sizeof(network_header_t);
   }
+
   command void* Packet.getPayload(message_t* msg, uint8_t* len) {
     uint8_t* payload = call SubPacket.getPayload(msg, len);
     if (len != NULL) {
@@ -325,6 +354,30 @@ implementation {
     }
     return payload + sizeof(network_header_t);
   }
-  
-  
+
+  default event void
+  Send.sendDone[uint8_t client](message_t *msg, error_t error) {
+  }
+
+  default event bool
+  Intercept.forward[collection_id_t collectid](message_t* msg, void* payload, 
+                                               uint16_t len) {
+    return TRUE;
+  }
+
+  default event message_t *
+  Receive.receive[collection_id_t collectid](message_t *msg, void *payload,
+                                             uint8_t len) {
+    return msg;
+  }
+
+  default event message_t *
+  Snoop.receive[collection_id_t collectid](message_t *msg, void *payload,
+                                           uint8_t len) {
+    return msg;
+  }
+
+  default command collection_id_t CollectionId.fetch[uint8_t client]() {
+    return 0;
+  }
 }
