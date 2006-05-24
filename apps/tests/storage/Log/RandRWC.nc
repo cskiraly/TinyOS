@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.2 2006-05-24 00:31:30 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.3 2006-05-24 16:13:45 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -31,14 +31,6 @@ module RandRWC {
 }
 implementation {
   enum {
-    S_ERASE,
-    S_WRITE,
-    S_COMMIT,
-    S_VERIFY,
-    S_READ
-  } state;
-
-  enum {
     SIZE = 1024L * 256,
     NWRITES = SIZE / 4096,
   };
@@ -46,6 +38,8 @@ implementation {
   uint16_t shiftReg;
   uint16_t initSeed;
   uint16_t mask;
+
+  void done();
 
   /* Return the next 16 bit random number */
   uint16_t rand() {
@@ -71,7 +65,7 @@ implementation {
   }
   
   uint8_t data[512], rdata[512];
-  int count;
+  int count, testCount;
   uint32_t len;
   uint16_t offset;
   message_t reportmsg;
@@ -94,6 +88,11 @@ implementation {
     report(e);
   }
 
+  void success() {
+    call Leds.led1On();
+    report(0x80);
+  }
+
   bool scheck(error_t r) __attribute__((noinline)) {
     if (r != SUCCESS)
       fail(r);
@@ -113,12 +112,6 @@ implementation {
       offset = sizeof data - len;
   }
 
-  event void Boot.booted() {
-    call SerialControl.start();
-  }
-
-  event void SerialControl.stopDone(error_t e) { }
-
   void nextRead() {
     if (count == NWRITES)
       count = 0;
@@ -128,12 +121,19 @@ implementation {
     scheck(call LogRead.read(rdata, len));
   }
 
+  event void LogRead.readDone(void* buf, storage_len_t rlen, error_t result) __attribute__((noinline)) {
+    if (result == ESIZE && rlen == 0 /*&& count == 1*/)
+      done();
+    else if (scheck(result) && bcheck(rlen == len && buf == rdata && memcmp(data + offset, rdata, rlen) == 0))
+      nextRead();
+  }
+
+  event void LogRead.seekDone(error_t error) {
+  }
+
   void nextWrite() {
     if (count++ == NWRITES)
-      {
-	state = S_COMMIT;
-	scheck(call LogWrite.sync());
-      }
+      scheck(call LogWrite.sync());
     else
       {
 	setParameters();
@@ -148,71 +148,86 @@ implementation {
 
   event void LogWrite.eraseDone(error_t result) {
     if (scheck(result))
-      {
-	call Leds.led2On();
-	if (TOS_NODE_ID & 3)
-	  {
-	    state = S_WRITE;
-	    count = 0;
-	    resetSeed();
-	    nextWrite();
-	  }
-	else
-	  {
-	    call Leds.led1On();
-	    report(0x90);
-	  }
-      }
+      done();
   }
 
   event void LogWrite.syncDone(error_t result) {
     if (scheck(result))
-      {
-	call Leds.led1On();
-	report(0x80);
-      }
+      done();
   }
 
-  event void LogRead.readDone(void* buf, storage_len_t rlen, error_t result) __attribute__((noinline)) {
-    if (result == ESIZE && rlen == 0 /*&& count == 1*/)
-      {
-	call Leds.led1On();
-	report(0xc0);
-	return;
-      }
-    if (scheck(result) && bcheck(rlen == len && buf == rdata && memcmp(data + offset, rdata, rlen) == 0))
-      nextRead();
-  }
-
-  event void SerialControl.startDone(error_t e) {
+  event void Boot.booted() {
     int i;
 
+    resetSeed();
+    for (i = 0; i < sizeof data; i++)
+      data[i++] = rand() >> 8;
+
+    call SerialControl.start();
+  }
+
+  event void SerialControl.stopDone(error_t e) { }
+
+  event void SerialControl.startDone(error_t e) {
     if (e != SUCCESS)
       {
 	call Leds.led0On();
 	return;
       }
 
-    resetSeed();
-    for (i = 0; i < sizeof data; i++)
-      data[i++] = rand() >> 8;
+    testCount = 0;
+    done();
+  }
 
-    switch (TOS_NODE_ID & 3)
+  enum { A_ERASE = 1, A_READ, A_WRITE };
+
+  void doAction(int act) {
+    switch (act)
       {
-      case 0: case 1:
-	state = S_ERASE;
+      case A_ERASE:
 	scheck(call LogWrite.erase());
 	break;
-      case 3:
+      case A_WRITE:
 	resetSeed();
+	count = 0;
 	nextWrite();
 	break;
-      case 2:
+      case A_READ:
+	resetSeed();
+	count = 0;
 	nextRead();
 	break;
       }
   }
 
-  event void LogRead.seekDone(error_t error) {
+  const uint8_t actions[] = {
+    A_ERASE, 
+    A_READ,
+    A_WRITE,
+    A_READ,
+    A_WRITE,
+    A_WRITE,
+    A_WRITE,
+    A_READ,
+    A_ERASE,
+    A_READ
+  };
+
+  void done() {
+    if (testCount)
+      call Leds.led2Toggle();
+
+    if (TOS_NODE_ID & 3)
+      {
+	if (testCount)
+	  success();
+	else
+	  doAction(TOS_NODE_ID & 3);
+      }
+    else if (testCount < sizeof actions)
+      doAction(actions[testCount]);
+    else
+      success();
+    testCount++;
   }
 }
