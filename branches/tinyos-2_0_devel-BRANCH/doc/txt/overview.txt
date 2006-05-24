@@ -14,7 +14,7 @@ TinyOS 2.0 Overview
 1. Introduction
 ====================================================================
 
-TinyOS 2.0 is a clear slate redesign and re-implementation of TinyOS.
+TinyOS 2.0 is a clean slate redesign and re-implementation of TinyOS.
 Its development was motivated by our belief that many aspects of 1.x
 strain to meet requirements and uses that were not foreseen
 when it was designed and implemented. The structure and interfaces 1.x
@@ -87,8 +87,11 @@ the following platforms:
  * eyesIFXv2
  * intelmote2
  * mica2
+ * mica2dot
  * micaZ
  * telosb
+ * tinynode
+ * btnode3
 
 
 3. Scheduler
@@ -136,7 +139,7 @@ to be powered up and started at boot. That is no longer the case: the
 boot sequence only initializes components. When it has completed
 initializing the scheduler, hardware, and software, the boot sequence
 signals the ``Boot.booted`` event. The top-level application component
-should handle this event and start services accordingly. Details on
+handles this event and start services accordingly. Details on
 the new boot sequence can be found in TEP 107: TinyOS 2.x Boot
 Sequence[TEP107_].
 
@@ -227,7 +230,12 @@ the active message system queues and sends these outstanding packets.
 This is different than the QueuedSendC approach of 1.x, in which there
 is an N-deep queue that is shared among all senders. With N AMSenderC 
 components, there is an N-deep queue where each sender has a single
-reserved entry.
+reserved entry. This means that each AMSenderC receives 
+1/n of the available post-MAC transmission opportunities,  where
+n is the number of AMSenderC components with outstanding packets.
+In the worst case, n is the number of components; even when every
+protocol and component that sends packets is trying to send a packet,
+each one will receive its fair share of transmission opportunities.
 
 Further information on message_t can be found in TEP 111:
 message_t[TEP111_], while further information on AM can be
@@ -312,9 +320,20 @@ of the microcontroller and the power state of devices. The former,
 discussed in TEP 112: Microcontroller Power Management[TEP112_],
 is computed in a chip-specific manner by examining which devices 
 and interrupt souces are active. The latter, discussed in
-TEP 115: Power Management of Non-Virtualised Devices, is handled
-through resource abiters.
+TEP 115: Power Management of Non-Virtualised Devices{TEP115_], is handled
+through resource abiters. Fully virtualized services have their
+own, individual power management policies.
 
+12. Network Protocols
+====================================================================
+
+TinyOS 2.0 provides simple reference implementations of two of 
+the most basic protocols used in mote networks: dissemination
+and collection. Dissemination reliably delivers small (fewer 
+than 20 byte) data items to every node in a network, while
+collection builds a routing tree rooted at a sink node. Together,
+these two protocols enable a wide range of data collection
+applications. 
 
 12. Conclusion
 ====================================================================
@@ -331,10 +350,13 @@ dissemination), and further power management abstractions.
 ====================================================================
 
 TinyOS 2.0 is the result of a lot of hard work from a lot of people,
-including (but not limited to) David Gay, Cory Sharp, Vlado Handziski,
-Jan Hauer, Kevin Klues, Joe Polastre, Jonathan Hui, Prabal Dutta, 
+including (but not limited to) David Gay, Philip Levis, Cory Sharp, 
+Vlado Handziski, Jan Hauer, Kevin Klues, Joe Polastre, Jonathan Hui, 
+Prabal Dutta, 
 Gilman Tolle, Martin Turon, Phil Buonodonna, Ben Greenstein, David Culler, 
-Kristin Wright, Ion Yannopoulos, and Phil Levis. 
+Kristin Wright, Ion Yannopoulos, Henri Dubois-Ferriere, Jan Beutel, 
+Robert Szewczyk, Rodrigo Fonseca, Kyle Jamieson, Omprakash Gnawali,
+and Kristin Wright.
 
 
 14. Author's Address
@@ -353,35 +375,34 @@ Kristin Wright, Ion Yannopoulos, and Phil Levis.
 15. Citations
 ====================================================================
 
-.. [TEP1] TEP 1: TEP Structure and Keywords
+.. [TEP1] TEP 1: TEP Structure and Keywords. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep1.html?pathrev=tinyos-2_0_devel-BRANCH
 
-.. [TEP2] TEP 2: Hardware Abstraction Architecture. 
+.. [TEP2] TEP 2: Hardware Abstraction Architecture. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep2.html?pathrev=tinyos-2_0_devel-BRANCH
 
-.. [TEP3] TEP 3: Coding Standard
+.. [TEP3] TEP 3: Coding Standard. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep3.html?pathrev=tinyos-2_0_devel-BRANCH
 
-.. [TEP101] TEP 101: Analog-to-Digital Converters. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep101.txt?view=markup
+.. [TEP101] TEP 101: Analog-to-Digital Converters. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep101.html?pathrev=tinyos-2_0_devel-BRANCH
 
-.. [TEP102] TEP 102: Timers. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep102.txt?view=markup
+.. [TEP102] TEP 102: Timers. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep102.html?pathrev=tinyos-2_0_devel-BRANCH
 
-.. [TEP106] TEP 106: Schedulers and Tasks. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep106.txt?view=markup
+.. [TEP106] TEP 106: Schedulers and Tasks. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep106.html?pathrev=tinyos-2_0_devel-BRANCH
 
-.. [TEP107] TEP 107: Boot Sequence. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep107.txt?view=markup
+.. [TEP107] TEP 107: Boot Sequence. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep107.html?pathrev=tinyos-2_0_devel-BRANCH
 
-.. [TEP108] TEP 108: message_t. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep108.txt?view=markup
+.. [TEP108] TEP 108: message_t. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep108.html?pathrev=tinyos-2_0_devel-BRANCH
 
-.. [TEP109] TEP 109: Sensorboards. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep109.txt?view=markup
+.. [TEP109] TEP 109: Sensorboards. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep109.html?pathrev=tinyos-2_0_devel-BRANCH
 
-.. [TEP110] TEP 110: Service Distributions. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep110.txt?view=markup
+.. [TEP110] TEP 110: Service Distributions. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep110.html?pathrev=tinyos-2_0_devel-BRANCH
 
-.. [TEP111] TEP 111: message_t. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep111.txt?view=markup
+.. [TEP111] TEP 111: message_t. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep111.html?pathrev=tinyos-2_0_devel-BRANCH
 
-.. [TEP112] TEP 112: Microcontroller Power Management. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep112.txt?view=markup
+.. [TEP112] TEP 112: Microcontroller Power Management. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep112.html?pathrev=tinyos-2_0_devel-BRANCH
 
-.. [TEP113] TEP 113: Serial Communication. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep113.txt?view=markup
+.. [TEP113] TEP 113: Serial Communication. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep113.html?pathrev=tinyos-2_0_devel-BRANCH
  
-.. [TEP114] TEP 114: SIDs: Source and Sink Independent Drivers. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep114.txt?view=markup
+.. [TEP114] TEP 114: SIDs: Source and Sink Independent Drivers. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep114.html?pathrev=tinyos-2_0_devel-BRANCH
  
-.. [TEP115] TEP 115: Power Management of Non-Virtualised Devices. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep115.txt?view=markup
+.. [TEP115] TEP 115: Power Management of Non-Virtualised Devices. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep115.html?pathrev=tinyos-2_0_devel-BRANCH
  
-.. [TEP116] TEP 116: Packet Protocols. http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-2.x/doc/txt/tep116.txt?view=markup
- 
+.. [TEP116] TEP 116: Packet Protocols. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep116.html?pathrev=tinyos-2_0_devel-BRANCH
