@@ -1,4 +1,4 @@
-// $Id: LogStorageC.nc,v 1.1.2.1 2006-05-23 21:57:02 idgay Exp $
+// $Id: LogStorageC.nc,v 1.1.2.2 2006-05-24 17:40:50 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -22,8 +22,8 @@ generic configuration LogStorageC(volume_id_t volid) {
   provides {
     interface LogWrite as LinearWrite;
     interface LogRead as LinearRead;
-    //interface LogWrite as CircularWrite;
-    //interface LogRead as CircularRead;
+    interface LogWrite as CircularWrite;
+    interface LogRead as CircularRead;
   }
 }
 implementation {
@@ -36,8 +36,8 @@ implementation {
 
   LinearWrite = LogStorageP.LinearWrite[LOG_ID];
   LinearRead = LogStorageP.LinearRead[LOG_ID];
-  //CircularWrite = LogStorageP.CircularWrite[LOG_ID];
-  //CircularRead = LogStorageP.CircularRead[LOG_ID];
+  CircularWrite = LogStorageP.CircularWrite[LOG_ID];
+  CircularRead = LogStorageP.CircularRead[LOG_ID];
 
   LogStorageP.At45dbVolume[LOG_ID] -> StorageManagerP.At45dbVolume[volid];
   LogStorageP.Resource[LOG_ID] -> At45dbC.Resource[RESOURCE_ID];

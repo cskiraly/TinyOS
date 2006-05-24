@@ -110,6 +110,7 @@ implementation
     uint32_t wpos;		/* Bytes since start of logging */
     at45page_t wpage;		/* Current write page */
     at45pageoffset_t woffset;	/* Offset on current write page */
+    uint32_t rpos;		/* Bytes since start of logging */
     at45page_t rpage;		/* Current read page */
     at45pageoffset_t roffset;	/* Offset on current read page */
     at45pageoffset_t rend;	/* Last valid offset on current read page */
@@ -133,10 +134,11 @@ implementation
     s[client].woffset = 0;
   }
 
-  void setReadPage(at45page_t page) {
+  void readFromBeginning() {
     /* Set position to end of previous page, to force page advance
        on next read */
-    s[client].rpage = page - 1;
+    s[client].rpos = 0;
+    s[client].rpage = firstVolumePage() - 1;
     s[client].rend = s[client].roffset = 0;
     s[client].rvalid = TRUE;
   }
@@ -161,8 +163,8 @@ implementation
   void emptyLog() {
     s[client].positionKnown = TRUE;
     s[client].wpos = 0;
-    setWritePage(firstPage); 
-    setReadPage(firstPage);
+    setWritePage(firstVolumePage()); 
+    readFromBeginning();
   }
 
   /* ------------------------------------------------------------------ */
@@ -272,7 +274,7 @@ implementation
   }
 
   command uint32_t LinearRead.currentOffset[logstorage_t id]() {
-    return 0;
+    return s[id].rpos;
   }
 
   command error_t LinearRead.seek[logstorage_t id](uint32_t offset) {
@@ -300,7 +302,7 @@ implementation
   }
 
   command uint32_t CircularRead.currentOffset[logstorage_t id]() {
-    return 0;
+    return s[id].rpos;
   }
 
   command error_t CircularRead.seek[logstorage_t id](uint32_t offset) {
@@ -380,7 +382,7 @@ implementation
 	    invalidateReadPointer();
 	  }
 	else
-	  setReadPage(firstVolumePage());
+	  readFromBeginning();
 
 	startRequest();
       }
@@ -531,7 +533,9 @@ implementation
   void wmetadataStart() {
     /* The caller ensures that metadata is set correctly. */
     metaState = META_WRITE;
-    call At45db.computeCrc(s[client].wpage, 0, PAGE_SIZE, 0);
+    firstPage = s[client].wpage; // remember page to commit
+    metadata.pos = s[client].wpos - s[client].woffset;
+    call At45db.computeCrc(firstPage, 0, PAGE_SIZE, 0);
 
     /* We move to the next page now. If writing the metadata fails, we'll
        simply leave the invalid page in place. Trying to recover seems
@@ -549,7 +553,6 @@ implementation
     uint8_t i, *md;
 
     metadata.magic = PERSISTENT_MAGIC;
-    metadata.pos = s[client].wpos;
     if (s[client].circled)
       metadata.flags |= F_CIRCLED;
 
@@ -560,15 +563,15 @@ implementation
     metadata.crc = crc;
 
     // And save it
-    writeMetadata(s[client].wpage - 1);
+    writeMetadata(firstPage);
   }
 
   void wmetadataWriteDone() {
     metaState = META_IDLE;
     if (s[client].request == S_SYNC)
-      call At45db.sync(s[client].wpage - 1);
+      call At45db.sync(firstPage);
     else
-      call At45db.flush(s[client].wpage - 1);
+      call At45db.flush(firstPage);
   }
 
   /* ------------------------------------------------------------------ */
@@ -614,6 +617,7 @@ implementation
 
     s[client].buf += count;
     len -= count;
+    s[client].rpos += count;
     s[client].roffset = offset + count;
 
     call At45db.read(s[client].rpage, offset, buf, count);
@@ -629,6 +633,7 @@ implementation
 
   void continueReadAt(at45pageoffset_t roffset) {
     metaState = META_IDLE;
+    s[client].rpos = metadata.pos + roffset;
     s[client].rpage = firstPage;
     s[client].roffset = roffset;
     s[client].rend =
@@ -648,9 +653,9 @@ implementation
 	  endRequest(ESIZE);
 	else
 	  {
-	    /* The current write page has no metadata yet, but we
-	       can assume it's valid */
-	    metadata.flags = 0; /* Current write page cannot be SYNC */
+	    /* The current write page has no metadata yet, so we fake it */
+	    metadata.flags = 0;
+	    metadata.pos = s[client].wpos - s[client].woffset;
 	    continueReadAt(0);
 	  }
       }
