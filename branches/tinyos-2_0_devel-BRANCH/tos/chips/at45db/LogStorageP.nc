@@ -184,6 +184,7 @@ implementation
 	return;
       }
 
+    metaState = META_IDLE;
     switch (s[client].request)
       {
       case S_ERASE: eraseStart(); break;
@@ -232,11 +233,11 @@ implementation
 		     uint8_t *buf, storage_len_t length) {
     if (s[id].request != S_IDLE)
       return FAIL;
-    
+
     /* You can make the transition from linear->circular once. */
     if (s[id].circular && !circular)
       return FAIL;
-    s[id].circular = TRUE;
+    s[id].circular = circular;
 
     setupRequest(newRequest, id, buf, length);
     call Resource.request[id]();
@@ -247,7 +248,6 @@ implementation
   event void Resource.granted[logstorage_t id]() {
     client = id;
     len = s[client].len;
-    metaState = META_IDLE;
     startRequest();
   }
 
