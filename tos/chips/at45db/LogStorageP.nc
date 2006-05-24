@@ -42,8 +42,8 @@ module LogStorageP {
   provides {
     interface LogWrite as LinearWrite[logstorage_t logId];
     interface LogRead as LinearRead[logstorage_t logId];
-    //interface LogWrite as CircularWrite[logstorage_t logId];
-    //interface LogRead as CircularRead[logstorage_t logId];
+    interface LogWrite as CircularWrite[logstorage_t logId];
+    interface LogRead as CircularRead[logstorage_t logId];
   }
   uses {
     interface At45db;
@@ -56,14 +56,13 @@ implementation
   enum {
     F_SYNC = 1,
     F_CIRCLED = 2,
-    F_LASTVALID = 4,
-    F_FIRSTVALID = 8
+    F_LASTVALID = 4
   };
 
   nx_struct pageinfo {
     nx_uint16_t magic;
-    nx_uint32_t offset;
-    nx_uint8_t firstRecordOffset, lastRecordOffset;
+    nx_uint32_t pos;
+    nx_uint8_t lastRecordOffset;
     nx_uint8_t flags;
     nx_uint16_t crc;
   };
@@ -97,7 +96,6 @@ implementation
   storage_len_t len;
   nx_struct pageinfo metadata;
 
-
   struct {
     /* The latest request made for this client, and it's arguments */
     uint8_t request; 
@@ -106,6 +104,10 @@ implementation
 
     /* Log r/w positions */
     bool positionKnown : 1;
+    bool circular : 1;
+    bool circled : 1;
+    bool rvalid : 1;
+    uint32_t wpos;		/* Bytes since start of logging */
     at45page_t wpage;		/* Current write page */
     at45pageoffset_t woffset;	/* Offset on current write page */
     at45page_t rpage;		/* Current read page */
@@ -122,6 +124,11 @@ implementation
   }
 
   void setWritePage(at45page_t page) {
+    if (s[client].circular && page == lastVolumePage())
+      {
+	s[client].circled = TRUE;
+	page = firstVolumePage();
+      }
     s[client].wpage = page;
     s[client].woffset = 0;
   }
@@ -131,6 +138,11 @@ implementation
        on next read */
     s[client].rpage = page - 1;
     s[client].rend = s[client].roffset = 0;
+    s[client].rvalid = TRUE;
+  }
+
+  void invalidateReadPointer() {
+    s[client].rvalid = FALSE;
   }
 
   void crcPage(at45page_t page) {
@@ -144,6 +156,13 @@ implementation
 
   void writeMetadata(at45page_t page) {
     call At45db.write(page, PAGE_SIZE, &metadata, sizeof metadata);
+  }
+
+  void emptyLog() {
+    s[client].positionKnown = TRUE;
+    s[client].wpos = 0;
+    setWritePage(firstPage); 
+    setReadPage(firstPage);
   }
 
   /* ------------------------------------------------------------------ */
@@ -184,13 +203,22 @@ implementation
     s[c].request = S_IDLE;
     call Resource.release[c]();
 
-    switch (request)
-      {
-      case S_ERASE: signal LinearWrite.eraseDone[c](ok); break;
-      case S_APPEND: signal LinearWrite.appendDone[c](ptr, actualLen, ok); break;
-      case S_SYNC: signal LinearWrite.syncDone[c](ok); break;
-      case S_READ: signal LinearRead.readDone[c](ptr, actualLen, ok); break;
-      }
+    if (s[c].circular)
+      switch (request)
+	{
+	case S_ERASE: signal CircularWrite.eraseDone[c](ok); break;
+	case S_APPEND: signal CircularWrite.appendDone[c](ptr, actualLen, ok); break;
+	case S_SYNC: signal CircularWrite.syncDone[c](ok); break;
+	case S_READ: signal CircularRead.readDone[c](ptr, actualLen, ok); break;
+	}
+    else
+      switch (request)
+	{
+	case S_ERASE: signal LinearWrite.eraseDone[c](ok); break;
+	case S_APPEND: signal LinearWrite.appendDone[c](ptr, actualLen, ok); break;
+	case S_SYNC: signal LinearWrite.syncDone[c](ok); break;
+	case S_READ: signal LinearRead.readDone[c](ptr, actualLen, ok); break;
+	}
   }
 
   void setupRequest(uint8_t newRequest, logstorage_t id,
@@ -200,10 +228,16 @@ implementation
     s[id].len = length;
   }
 
-  error_t newRequest(uint8_t newRequest, logstorage_t id,
+  error_t newRequest(uint8_t newRequest, logstorage_t id, bool circular,
 		     uint8_t *buf, storage_len_t length) {
     if (s[id].request != S_IDLE)
       return FAIL;
+    
+    /* You can make the transition from linear->circular once. */
+    if (s[id].circular && !circular)
+      return FAIL;
+    s[id].circular = TRUE;
+
     setupRequest(newRequest, id, buf, length);
     call Resource.request[id]();
 
@@ -218,23 +252,23 @@ implementation
   }
 
   command error_t LinearWrite.append[logstorage_t id](void* buf, storage_len_t length) {
-    return newRequest(S_APPEND, id, buf, length);
+    return newRequest(S_APPEND, id, FALSE, buf, length);
   }
 
   command uint32_t LinearWrite.currentOffset[logstorage_t id]() {
-   return 0;
+   return s[id].wpos;
   }
 
   command error_t LinearWrite.erase[logstorage_t id]() {
-    return newRequest(S_ERASE, id, NULL, 0);
+    return newRequest(S_ERASE, id, FALSE, NULL, 0);
   }
 
   command error_t LinearWrite.sync[logstorage_t id]() {
-    return newRequest(S_SYNC, id, NULL, 0);
+    return newRequest(S_SYNC, id, FALSE, NULL, 0);
   }
 
   command error_t LinearRead.read[logstorage_t id](void* buf, storage_len_t length) {
-    return newRequest(S_READ, id, buf, length);
+    return newRequest(S_READ, id, FALSE, buf, length);
   }
 
   command uint32_t LinearRead.currentOffset[logstorage_t id]() {
@@ -245,6 +279,33 @@ implementation
     return FAIL;
   }
 
+  command error_t CircularWrite.append[logstorage_t id](void* buf, storage_len_t length) {
+    return newRequest(S_APPEND, id, TRUE, buf, length);
+  }
+
+  command uint32_t CircularWrite.currentOffset[logstorage_t id]() {
+    return s[id].wpos;
+  }
+
+  command error_t CircularWrite.erase[logstorage_t id]() {
+    return newRequest(S_ERASE, id, TRUE, NULL, 0);
+  }
+
+  command error_t CircularWrite.sync[logstorage_t id]() {
+    return newRequest(S_SYNC, id, TRUE, NULL, 0);
+  }
+
+  command error_t CircularRead.read[logstorage_t id](void* buf, storage_len_t length) {
+    return newRequest(S_READ, id, TRUE, buf, length);
+  }
+
+  command uint32_t CircularRead.currentOffset[logstorage_t id]() {
+    return 0;
+  }
+
+  command error_t CircularRead.seek[logstorage_t id](uint32_t offset) {
+    return FAIL;
+  }
   /* ------------------------------------------------------------------ */
   /* Erase								*/
   /* ------------------------------------------------------------------ */
@@ -253,9 +314,7 @@ implementation
     /* We erase backwards. That leaves the first two pages in the cache */
     if (lastPage == firstPage)
       {
-	s[client].positionKnown = TRUE;
-	setReadPage(firstPage);
-	setWritePage(firstPage);
+	emptyLog();
 	endRequest(SUCCESS);
       }
     else
@@ -276,7 +335,7 @@ implementation
     if (firstPage == firstVolumePage())
       {
 	/* Nothing valid found. We're done (log is empty). */
-	s[client].positionKnown = TRUE;
+	emptyLog();
 	startRequest();
       }
     else
@@ -302,6 +361,27 @@ implementation
 	    s[client].wpage = firstPage;
 	    s[client].woffset = metadata.lastRecordOffset;
 	  }
+	s[client].wpos = metadata.pos + metadata.lastRecordOffset;
+
+	/* If we're on the first pass (no F_CIRCLED flag), the read
+	   pointer starts at the beginning of the flash. Otherwise,
+	   we invalidate it, which will force read requests to find
+	   the first valid page after the current write pointer. */
+	s[client].circled = (metadata.flags & F_CIRCLED) != 0;
+	if (s[client].circled)
+	  {
+	    if (!s[client].circular) // oops
+	      {
+		/* Maybe treating the log as empty would be better? */
+		endRequest(FAIL);
+		return;
+	      }
+
+	    invalidateReadPointer();
+	  }
+	else
+	  setReadPage(firstVolumePage());
+
 	startRequest();
       }
     else
@@ -337,7 +417,7 @@ implementation
   }
 
   void locateReadDone() {
-    if (metadata.magic == PERSISTENT_MAGIC)
+    if (metadata.magic == PERSISTENT_MAGIC && s[client].wpos < metadata.pos)
       crcPage(locateCurrentPage());
     else
       locateLessThan();
@@ -345,7 +425,10 @@ implementation
 
   void locateCrcDone(uint16_t crc) {
     if (crc == metadata.crc)
-      locateGreaterThan();
+      {
+	s[client].wpos = metadata.pos + 1;
+	locateGreaterThan();
+      }
     else
       locateLessThan();
   }
@@ -355,10 +438,11 @@ implementation
     metaState = META_LOCATE;
     firstPage = firstVolumePage();
     lastPage = lastVolumePage() - 1;
-    setReadPage(firstPage);
-    // We set the valid page to the largest valid page found. But there
-    // may be no valid pages, so we need to set the default value here.
-    setWritePage(firstPage); 
+    /* We track the page with the largest position found. We store
+       largest-offset-found+1, so that we can use 0 as a value smaller
+       than all valid positions. Note that wpos is set correctly once
+       we find the actual last page. */
+    s[client].wpos = 0;
     locateBinarySearch();
   }
 
@@ -386,9 +470,11 @@ implementation
       count = len;
     else
       count = PAGE_SIZE - offset;
+
     s[client].buf += count;
+    s[client].wpos += count;
+    s[client].woffset += count;
     len -= count;
-    s[client].woffset = offset + count;
 
     call At45db.write(s[client].wpage, offset, buf, count);
   }
@@ -453,12 +539,19 @@ implementation
        shuts down after a failed write, so nothing is really going to
        happen after that anyway). */
     setWritePage(s[client].wpage + 1);
+
+    /* Invalidate read pointer if we reach it's page */
+    if (s[client].wpage == s[client].rpage)
+      invalidateReadPointer();
   }
 
   void wmetadataCrcDone(uint16_t crc) {
     uint8_t i, *md;
 
     metadata.magic = PERSISTENT_MAGIC;
+    metadata.pos = s[client].wpos;
+    if (s[client].circled)
+      metadata.flags |= F_CIRCLED;
 
     // Include metadata in crc
     md = (uint8_t *)&metadata;
@@ -493,12 +586,20 @@ implementation
 	return;
       }
 
+    if (!s[client].rvalid)
+      {
+	/* Find a valid page after wpage */
+	s[client].rpage = s[client].wpage;
+	rmetadataStart();
+	return;
+      }
+
     if (s[client].rpage == s[client].wpage)
       end = s[client].woffset;
 
     if (offset == end)
       {
-	if (s[client].rpage + 1 == lastVolumePage() ||
+	if ((s[client].rpage + 1 == lastVolumePage() && !s[client].circular) ||
 	    s[client].rpage == s[client].wpage)
 	  endRequest(ESIZE);
 	else
@@ -526,30 +627,61 @@ implementation
   /* Read block metadata						*/
   /* ------------------------------------------------------------------ */
 
-  void rmetadataStart() {
-    metaState = META_READ;
-    readMetadata(s[client].rpage + 1);
+  void continueReadAt(at45pageoffset_t roffset) {
+    metaState = META_IDLE;
+    s[client].rpage = firstPage;
+    s[client].roffset = roffset;
+    s[client].rend =
+      metadata.flags & F_SYNC ? metadata.lastRecordOffset : PAGE_SIZE;
+    s[client].rvalid = TRUE;
+    readContinue();
+  }
+
+  void rmetadataContinue() {
+    if (++firstPage == lastVolumePage())
+      firstPage = firstVolumePage();
+    if (firstPage == s[client].wpage)
+      {
+	if (!s[client].rvalid)
+	  /* We cannot find a record boundary to start at (we've just
+	     walked through the whole log...). Give up. */
+	  endRequest(ESIZE);
+	else
+	  {
+	    /* The current write page has no metadata yet, but we
+	       can assume it's valid */
+	    metadata.flags = 0; /* Current write page cannot be SYNC */
+	    continueReadAt(0);
+	  }
+      }
+    else
+      readMetadata(firstPage);
   }
 
   void rmetadataReadDone() {
     if (metadata.magic == PERSISTENT_MAGIC)
-      crcPage(s[client].rpage + 1);
+      crcPage(firstPage);
     else
       endRequest(ESIZE);
   }
 
   void rmetadataCrcDone(uint16_t crc) {
-    if (crc == metadata.crc)
-      {
-	metaState = META_IDLE;
-	s[client].rpage++;
-	s[client].roffset = 0;
-	s[client].rend =
-	  metadata.flags & F_SYNC ? metadata.lastRecordOffset : PAGE_SIZE;
-	readContinue();
-      }
-    else
-      endRequest(ESIZE);
+    if (!s[client].rvalid)
+      if (crc == metadata.crc && metadata.flags & F_LASTVALID)
+	continueReadAt(metadata.lastRecordOffset);
+      else
+	rmetadataContinue();
+    else 
+      if (crc == metadata.crc)
+	continueReadAt(0);
+      else
+	endRequest(ESIZE);
+  }
+
+  void rmetadataStart() {
+    metaState = META_READ;
+    firstPage = s[client].rpage;
+    rmetadataContinue();
   }
 
   /* ------------------------------------------------------------------ */
@@ -620,8 +752,15 @@ implementation
   default event void LinearRead.readDone[logstorage_t logId](void* buf, storage_len_t l, error_t error) { }
   default event void LinearRead.seekDone[logstorage_t logId](error_t error) {}
 
+  default event void CircularWrite.appendDone[logstorage_t logId](void* buf, storage_len_t l, error_t error) { }
+  default event void CircularWrite.eraseDone[logstorage_t logId](error_t error) { }
+  default event void CircularWrite.syncDone[logstorage_t logId](error_t error) { }
+  default event void CircularRead.readDone[logstorage_t logId](void* buf, storage_len_t l, error_t error) { }
+  default event void CircularRead.seekDone[logstorage_t logId](error_t error) {}
+
   default command at45page_t At45dbVolume.remap[logstorage_t logId](at45page_t volumePage) {return 0;}
   default command storage_len_t At45dbVolume.volumeSize[logstorage_t logId]() {return 0;}
   default async command error_t Resource.request[logstorage_t logId]() {return SUCCESS;}
   default async command void Resource.release[logstorage_t logId]() { }
+
 }
