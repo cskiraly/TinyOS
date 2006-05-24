@@ -75,17 +75,19 @@ implementation
   };
 
   enum {
-    S_IDLE,
-    S_ERASE,
-    S_APPEND,
-    S_SYNC,
-    S_READ,
+    R_IDLE,
+    R_ERASE,
+    R_APPEND,
+    R_SYNC,
+    R_READ,
+    R_SEEK
   };
 
   enum {
     META_IDLE,
     META_LOCATE,
     META_LOCATELAST,
+    META_SEEK,
     META_READ,
     META_WRITE
   };
@@ -178,9 +180,10 @@ implementation
   void locateStart();
   void rmetadataStart();
   void wmetadataStart();
+  void seekStart();
 
   void startRequest() {
-    if (!s[client].positionKnown && s[client].request != S_ERASE)
+    if (!s[client].positionKnown && s[client].request != R_ERASE)
       {
 	locateStart();
 	return;
@@ -189,10 +192,11 @@ implementation
     metaState = META_IDLE;
     switch (s[client].request)
       {
-      case S_ERASE: eraseStart(); break;
-      case S_APPEND: appendStart(); break;
-      case S_SYNC: syncStart(); break;
-      case S_READ: readStart(); break;
+      case R_ERASE: eraseStart(); break;
+      case R_APPEND: appendStart(); break;
+      case R_SYNC: syncStart(); break;
+      case R_READ: readStart(); break;
+      case R_SEEK: seekStart(); break;
       }
   }
 
@@ -203,24 +207,24 @@ implementation
     void *ptr = s[c].buf - actualLen;
     
     client = NO_CLIENT;
-    s[c].request = S_IDLE;
+    s[c].request = R_IDLE;
     call Resource.release[c]();
 
     if (s[c].circular)
       switch (request)
 	{
-	case S_ERASE: signal CircularWrite.eraseDone[c](ok); break;
-	case S_APPEND: signal CircularWrite.appendDone[c](ptr, actualLen, ok); break;
-	case S_SYNC: signal CircularWrite.syncDone[c](ok); break;
-	case S_READ: signal CircularRead.readDone[c](ptr, actualLen, ok); break;
+	case R_ERASE: signal CircularWrite.eraseDone[c](ok); break;
+	case R_APPEND: signal CircularWrite.appendDone[c](ptr, actualLen, ok); break;
+	case R_SYNC: signal CircularWrite.syncDone[c](ok); break;
+	case R_READ: signal CircularRead.readDone[c](ptr, actualLen, ok); break;
 	}
     else
       switch (request)
 	{
-	case S_ERASE: signal LinearWrite.eraseDone[c](ok); break;
-	case S_APPEND: signal LinearWrite.appendDone[c](ptr, actualLen, ok); break;
-	case S_SYNC: signal LinearWrite.syncDone[c](ok); break;
-	case S_READ: signal LinearRead.readDone[c](ptr, actualLen, ok); break;
+	case R_ERASE: signal LinearWrite.eraseDone[c](ok); break;
+	case R_APPEND: signal LinearWrite.appendDone[c](ptr, actualLen, ok); break;
+	case R_SYNC: signal LinearWrite.syncDone[c](ok); break;
+	case R_READ: signal LinearRead.readDone[c](ptr, actualLen, ok); break;
 	}
   }
 
@@ -233,7 +237,7 @@ implementation
 
   error_t newRequest(uint8_t newRequest, logstorage_t id, bool circular,
 		     uint8_t *buf, storage_len_t length) {
-    if (s[id].request != S_IDLE)
+    if (s[id].request != R_IDLE)
       return FAIL;
 
     /* You can make the transition from linear->circular once. */
@@ -254,7 +258,7 @@ implementation
   }
 
   command error_t LinearWrite.append[logstorage_t id](void* buf, storage_len_t length) {
-    return newRequest(S_APPEND, id, FALSE, buf, length);
+    return newRequest(R_APPEND, id, FALSE, buf, length);
   }
 
   command uint32_t LinearWrite.currentOffset[logstorage_t id]() {
@@ -262,15 +266,15 @@ implementation
   }
 
   command error_t LinearWrite.erase[logstorage_t id]() {
-    return newRequest(S_ERASE, id, FALSE, NULL, 0);
+    return newRequest(R_ERASE, id, FALSE, NULL, 0);
   }
 
   command error_t LinearWrite.sync[logstorage_t id]() {
-    return newRequest(S_SYNC, id, FALSE, NULL, 0);
+    return newRequest(R_SYNC, id, FALSE, NULL, 0);
   }
 
   command error_t LinearRead.read[logstorage_t id](void* buf, storage_len_t length) {
-    return newRequest(S_READ, id, FALSE, buf, length);
+    return newRequest(R_READ, id, FALSE, buf, length);
   }
 
   command uint32_t LinearRead.currentOffset[logstorage_t id]() {
@@ -278,11 +282,11 @@ implementation
   }
 
   command error_t LinearRead.seek[logstorage_t id](uint32_t offset) {
-    return FAIL;
+    return newRequest(R_SEEK, id, FALSE, (void *)(offset >> 16), offset);
   }
 
   command error_t CircularWrite.append[logstorage_t id](void* buf, storage_len_t length) {
-    return newRequest(S_APPEND, id, TRUE, buf, length);
+    return newRequest(R_APPEND, id, TRUE, buf, length);
   }
 
   command uint32_t CircularWrite.currentOffset[logstorage_t id]() {
@@ -290,15 +294,15 @@ implementation
   }
 
   command error_t CircularWrite.erase[logstorage_t id]() {
-    return newRequest(S_ERASE, id, TRUE, NULL, 0);
+    return newRequest(R_ERASE, id, TRUE, NULL, 0);
   }
 
   command error_t CircularWrite.sync[logstorage_t id]() {
-    return newRequest(S_SYNC, id, TRUE, NULL, 0);
+    return newRequest(R_SYNC, id, TRUE, NULL, 0);
   }
 
   command error_t CircularRead.read[logstorage_t id](void* buf, storage_len_t length) {
-    return newRequest(S_READ, id, TRUE, buf, length);
+    return newRequest(R_READ, id, TRUE, buf, length);
   }
 
   command uint32_t CircularRead.currentOffset[logstorage_t id]() {
@@ -306,7 +310,7 @@ implementation
   }
 
   command error_t CircularRead.seek[logstorage_t id](uint32_t offset) {
-    return FAIL;
+    return newRequest(R_SEEK, id, TRUE, (void *)(offset >> 16), offset);
   }
   /* ------------------------------------------------------------------ */
   /* Erase								*/
@@ -332,6 +336,10 @@ implementation
   /* ------------------------------------------------------------------ */
   /* Locate log boundaries						*/
   /* ------------------------------------------------------------------ */
+
+  at45page_t locateCurrentPage() {
+    return firstPage + ((lastPage - firstPage + 1) >> 1);
+  }
 
   void locateLastRecord() {
     if (firstPage == firstVolumePage())
@@ -395,10 +403,6 @@ implementation
     /* firstPage is one after last valid page, but the last page with
        a record end may be some pages earlier. Search for it. */
     locateLastRecord();
-  }
-
-  at45page_t locateCurrentPage() {
-    return firstPage + ((lastPage - firstPage + 1) >> 1);
   }
 
   void locateBinarySearch() {
@@ -568,7 +572,7 @@ implementation
 
   void wmetadataWriteDone() {
     metaState = META_IDLE;
-    if (s[client].request == S_SYNC)
+    if (s[client].request == R_SYNC)
       call At45db.sync(firstPage);
     else
       call At45db.flush(firstPage);
@@ -690,6 +694,121 @@ implementation
   }
 
   /* ------------------------------------------------------------------ */
+  /* Seek. UNTESTED, PROBABLY DOESN'T WORK.				*/
+  /* ------------------------------------------------------------------ */
+
+  at45page_t seekCurrentPage() {
+    return firstPage + ((lastPage - firstPage + 1) >> 1);
+  }
+
+  at45page_t seekRealPage(at45page_t cpage) {
+    if (s[client].circled)
+      {
+	cpage += s[client].wpage + 1;
+	if (cpage >= lastVolumePage())
+	  cpage -= lastVolumePage() - firstVolumePage();
+
+	return cpage;
+      }
+    else
+      return firstVolumePage() + cpage;
+  }
+
+  void seekBinarySearch() {
+    if ((int)lastPage - (int)firstPage < 0)
+      {
+	/* It must be before the beginning, so we must be in the circled
+	   case. Leave it up to the next read. */
+	invalidateReadPointer();
+	endRequest(SUCCESS);
+      }
+    else
+      readMetadata(seekRealPage(seekCurrentPage()));
+  }
+
+  void seekReadDone() {
+    crcPage(seekRealPage(seekCurrentPage()));
+  }
+
+  void seekCrcDone(uint16_t crc) {
+    at45page_t cpage = seekCurrentPage();
+
+    if (metadata.magic == PERSISTENT_MAGIC && crc == metadata.crc)
+      {
+	uint32_t pageStart = metadata.pos, pageEnd;
+
+	if (metadata.flags & F_SYNC)
+	  pageEnd = pageStart + metadata.lastRecordOffset;
+	else
+	  pageEnd = pageStart + PAGE_SIZE;
+	if (s[client].rpos >= pageStart)
+	  {
+	    if (s[client].rpos < pageEnd)
+	      {
+		s[client].rpage = seekRealPage(seekCurrentPage());
+		s[client].roffset = s[client].rpos - pageStart;
+		s[client].rend = 
+		  metadata.flags & F_SYNC ? metadata.lastRecordOffset : PAGE_SIZE;
+		endRequest(SUCCESS);
+		return;
+	      }
+	    firstPage = cpage + 1;
+	  }
+	else
+	  lastPage = cpage - 1;
+	seekBinarySearch();
+      }
+    else
+      /* The first page after wpage may be invalid (from an earlier
+	 failure). Seeks that have searched all the way to there indicate
+	 a seek before the beginning of the log. 
+	 All other failures indicate a corrupted page in the log, in
+	 which case we fail the seek */
+      if (cpage == 0)
+	{
+	  invalidateReadPointer();
+	  endRequest(SUCCESS);
+	}
+      else
+	endRequest(FAIL);
+  }
+
+  /* Locate a specific offset. */
+  void seekStart() {
+    uint32_t offset = (uint32_t)(uint16_t)s[client].buf << 16 | s[client].len;
+
+    if (offset > s[client].wpos)
+      offset = s[client].wpos; // don't go beyond end
+
+    s[client].rpos = offset;
+    s[client].rvalid = TRUE;
+
+    // The last page's metadata isn't written to flash yet. Special case it.
+    if (offset >= s[client].wpos - s[client].woffset)
+      {
+	s[client].rpage = s[client].wpage;
+	s[client].roffset = offset - (s[client].wpos - s[client].woffset);
+	s[client].rend = PAGE_SIZE;
+	endRequest(SUCCESS);
+      }
+    else
+      {
+	metaState = META_SEEK;
+
+	/* Page numbers are relative to the beginning of the log, which is
+	   firstVolumePage() when the log hasn't circled, and wpage+1 when
+	   it has */
+	firstPage = 0;
+	if (s[client].circled)
+	  lastPage = (call At45dbVolume.volumeSize[client]() >> AT45_PAGE_SIZE_LOG2) - 2;
+	else
+	  lastPage = s[client].wpage - firstVolumePage() - 1;
+
+	seekBinarySearch();
+      }
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Dispatch HAL operations to current user op				*/
   /* ------------------------------------------------------------------ */
 
@@ -732,6 +851,7 @@ implementation
 	  {
 	  case META_LOCATE: locateReadDone(); break;
 	  case META_LOCATELAST: locateLastReadDone(); break;
+	  case META_SEEK: seekReadDone(); break;
 	  case META_READ: rmetadataReadDone(); break;
 	  case META_IDLE: readContinue(); break;
 	  }					    
@@ -746,6 +866,7 @@ implementation
 	  {
 	  case META_LOCATE: locateCrcDone(crc); break;
 	  case META_LOCATELAST: locateLastCrcDone(crc); break;
+	  case META_SEEK: seekCrcDone(crc); break;
 	  case META_WRITE: wmetadataCrcDone(crc); break;
 	  case META_READ: rmetadataCrcDone(crc); break;
 	  }
