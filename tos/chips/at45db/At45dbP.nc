@@ -1,4 +1,4 @@
-// $Id: At45dbP.nc,v 1.1.2.3 2006-02-17 22:05:06 idgay Exp $
+// $Id: At45dbP.nc,v 1.1.2.4 2006-05-25 18:23:46 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -72,6 +72,7 @@ implementation
     R_READCRC,
     R_WRITE,
     R_ERASE,
+    R_COPY,
     R_SYNC,
     R_SYNCALL,
     R_FLUSH,
@@ -267,6 +268,19 @@ implementation
 	    }
 	  break;
 
+	case R_COPY:
+	  if (!buffer[selected].clean) // flush any modifications
+	    flushBuffer();
+	  else
+	    {
+	      // Just redesignate as destination page, and mark it dirty.
+	      // It will eventually be flushed, completing the copy.
+	      buffer[selected].page = reqOffset;
+	      buffer[selected].clean = FALSE;
+	      post taskSuccess();
+	    }
+	  break;
+
 	case R_SYNC: case R_SYNCALL:
 	  if (buffer[selected].clean && buffer[selected].unchecked)
 	    {
@@ -348,9 +362,8 @@ implementation
       }
   }
 
-  void newRequest(uint8_t req, at45page_t page,
-		      at45pageoffset_t offset,
-		      void *reqdata, at45pageoffset_t n) {
+  void newRequest(uint8_t req, at45page_t page, at45pageoffset_t offset,
+		  void *reqdata, at45pageoffset_t n) {
     request = req;
 
     reqBuf = reqdata;
@@ -396,6 +409,11 @@ implementation
 
   command void At45db.erase(at45page_t page, uint8_t eraseKind) {
     newRequest(R_ERASE, page, eraseKind, NULL, 0);
+  }
+
+  command void At45db.copyPage(at45page_t from, at45page_t to) {
+    /* Assumes at45pageoffset_t can hold an at45page_t. A little icky */
+    newRequest(R_COPY, from, to, NULL, 0);
   }
 
   void syncOrFlush(at45page_t page, uint8_t newReq) {

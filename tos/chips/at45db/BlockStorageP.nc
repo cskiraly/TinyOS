@@ -1,4 +1,4 @@
-// $Id: BlockStorageP.nc,v 1.1.2.7 2006-02-16 22:21:32 idgay Exp $
+// $Id: BlockStorageP.nc,v 1.1.2.8 2006-05-25 18:23:46 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -43,6 +43,7 @@ module BlockStorageP {
   provides {
     interface BlockWrite[blockstorage_t blockId];
     interface BlockRead[blockstorage_t blockId];
+    interface At45dbBlockLog as BLog[blockstorage_t blockId];
   }
   uses {
     interface At45db;
@@ -63,7 +64,7 @@ implementation
   };
 
   enum {
-    N = uniqueCount(UQ_BLOCK_STORAGE),
+    N = uniqueCount(UQ_BLOCK_STORAGE) + uniqueCount(UQ_LOG_STORAGE),
     NO_CLIENT = 0xff
   };
 
@@ -73,12 +74,42 @@ implementation
 
   /* The requests */
   uint8_t state[N]; /* automatically initialised to S_IDLE */
+  uint8_t flipped[N / 8];
   uint8_t *bufPtr[N];
   storage_addr_t curAddr[N];
   storage_len_t requestedLength[N];
 
   storage_addr_t maxAddr[N];
   uint8_t sig[8];
+
+  inline int logClient(blockstorage_t id) {
+    return id >= uniqueCount(UQ_BLOCK_STORAGE);
+  }
+
+  at45page_t pageRemap(at45page_t p) {
+    return call BLog.remap[client](p);
+  }
+
+  command at45page_t BLog.npages[blockstorage_t id]() {
+    return call At45dbVolume.volumeSize[id]() >> (AT45_PAGE_SIZE_LOG2 + 1);
+  }
+
+  command at45page_t BLog.remap[blockstorage_t id](at45page_t page) {
+    if (logClient(id) && call BLog.flipped[id]())
+      page += call At45dbVolume.volumeSize[id]() >> (AT45_PAGE_SIZE_LOG2 + 1);
+    return call At45dbVolume.remap[id](page);
+  }
+
+  command void BLog.setFlip[blockstorage_t blockId](bool flip) {
+    if (flip)
+      flipped[blockId >> 3] |= 1 << (blockId & 7);
+    else
+      flipped[blockId >> 3] &= ~(1 << (blockId & 7));
+  }
+
+  inline command bool BLog.flipped[blockstorage_t blockId]() {
+    return (flipped[blockId >> 3] & (1 << (blockId & 7))) != 0;
+  }
 
   void verifySignature();
   void commitSignature();
@@ -109,7 +140,28 @@ implementation
     client = blockId;
     bytesRemaining = requestedLength[client];
     crc = 0;
-    continueRequest();
+
+    if (logClient(blockId) && state[blockId] == S_WRITE &&
+	signal BLog.writeHook[blockId]())
+      /* Log write intercept. We'll get a writeContinue when it's
+	 time to resume. */
+      client = NO_CLIENT;
+    else
+      continueRequest();
+  }
+
+  default event bool BLog.writeHook[blockstorage_t blockId]() {
+    return FALSE;
+  }
+
+  void signalDone(error_t result);
+
+  command void BLog.writeContinue[blockstorage_t blockId](error_t error) {
+    client = blockId;
+    if (error == SUCCESS)
+      continueRequest();
+    else
+      signalDone(error);
   }
 
   void actualSignal(error_t result) {
@@ -171,12 +223,13 @@ implementation
 
   void calcRequest(storage_addr_t addr, at45page_t *page,
 		   at45pageoffset_t *offset, at45pageoffset_t *count) {
-    *page = call At45dbVolume.remap[client](addr >> AT45_PAGE_SIZE_LOG2);
+    *page = pageRemap(addr >> AT45_PAGE_SIZE_LOG2);
     *offset = addr & ((1 << AT45_PAGE_SIZE_LOG2) - 1);
     if (bytesRemaining < (1 << AT45_PAGE_SIZE_LOG2) - *offset)
       *count = bytesRemaining;
     else
       *count = (1 << AT45_PAGE_SIZE_LOG2) - *offset;
+
   }
 
   void continueRequest() {
@@ -239,8 +292,7 @@ implementation
     state[client] = S_COMMIT2;
     /* Note: bytesRemaining is 0, so multipageDone will go straight to
        signalDone */
-    call At45db.write(call At45dbVolume.remap[client](0),
-			 1 << AT45_PAGE_SIZE_LOG2, sig, sizeof sig);
+    call At45db.write(pageRemap(0), 1 << AT45_PAGE_SIZE_LOG2, sig, sizeof sig);
   }
 
   /* Called once signature written. Ensure writes complete. */
@@ -309,8 +361,9 @@ implementation
       signalDone(result);
   }
 
-  event void At45db.flushDone(error_t result) {
-  }
+  event void At45db.flushDone(error_t result) { }
+
+  event void At45db.copyPageDone(error_t error) { }
 
   default event void BlockWrite.writeDone[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t result) { }
   default event void BlockWrite.eraseDone[uint8_t id](error_t result) { }
