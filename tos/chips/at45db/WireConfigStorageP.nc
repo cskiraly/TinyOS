@@ -17,7 +17,10 @@
 
 configuration WireConfigStorageP { }
 implementation {
-  components ConfigStorageP, At45dbC;
+  components ConfigStorageP, BlockStorageP, At45dbC;
 
   ConfigStorageP.At45db -> At45dbC;
+  ConfigStorageP.BlockRead -> BlockStorageP;
+  ConfigStorageP.BlockWrite -> BlockStorageP;
+  ConfigStorageP.BConfig <- BlockStorageP;
 }
