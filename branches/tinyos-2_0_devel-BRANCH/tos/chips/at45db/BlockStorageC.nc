@@ -1,4 +1,4 @@
-// $Id: BlockStorageC.nc,v 1.1.2.5 2006-01-27 00:57:20 idgay Exp $
+// $Id: BlockStorageC.nc,v 1.1.2.6 2006-05-25 22:57:19 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -26,7 +26,7 @@ generic configuration BlockStorageC(volume_id_t volid) {
 }
 implementation {
   enum {
-    BLOCK_ID = unique(UQ_BLOCK_STORAGE),
+    BLOCK_ID = unique(UQ_BLOCK_STORAGE) + uniqueCount(UQ_CONFIG_STORAGE),
     RESOURCE_ID = unique(UQ_AT45DB)
   };
     
