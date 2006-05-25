@@ -30,14 +30,14 @@
  */
 
 /**
- * HplTaosTSL256x is the Hpl inteface to the Taos TSL256x series 
+ * HplTSL256x is the Hpl inteface to the Taos TSL256x series 
  * Light-to-Digital converters.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-23 20:58:28 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-05-25 22:55:48 $
  */
 
-interface HplTaosTSL256x {
+interface HplTSL256x {
 
 
   command error_t measureCh0();

@@ -33,11 +33,11 @@
  * Types and definitions for the Taos TSL256x sensor
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-23 20:58:28 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-05-25 22:55:48 $
  */
 
-#ifndef _TAOSTSL256X_H
-#define _TAOSTSL256X_H
+#ifndef _TSL256X_H
+#define _TSL256X_H
 
 #define TSL256X_PTR_CONTROL	(0x0)
 #define TSL256X_PTR_TIMING	(0x1)
@@ -70,4 +70,4 @@
 #define TSL256X_INTERRUPT_PERSIST(_x) ((_x) & 0xF)
 
 
-#endif /* _TAOSTSL256X_H */
+#endif /* _TSL256X_H */
