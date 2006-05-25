@@ -30,14 +30,14 @@
  */
 
 /**
- * TITMP175 is the Hal inteface to the Texas Instrument TMP175 
+ * HplTMP175 is the HPL inteface to the Texas Instrument TMP175 
  * Digital Temperature Sensor. 
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-23 20:58:10 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-05-25 22:54:34 $
  */
 
-interface HplTITMP175 {
+interface HplTMP175 {
 
   /**
    * Starts a temperature measurement.
