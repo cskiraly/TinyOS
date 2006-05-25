@@ -1,4 +1,4 @@
-// $Id: NoLedsP.nc,v 1.1.2.1 2005-08-07 20:33:56 scipio Exp $
+// $Id: NoLedsP.nc,v 1.1.2.2 2006-05-25 17:37:17 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -50,5 +50,5 @@ implementation {
   async command void Leds.led2Toggle() {}
 
   async command uint8_t Leds.get() {return 0;}
-  async command void Leds.set(uint8_t) {}
+  async command void Leds.set(uint8_t val) {}
 }
