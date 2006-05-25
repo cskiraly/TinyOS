@@ -98,62 +98,65 @@ implementation
     uint8_t lphase;
     uint16_t crc = (uint16_t)data;
 
-    /* For a 3% speedup, we could use labels and goto *.
-       But: very gcc-specific. Also, need to do
-       asm ("ijmp" : : "z" (state))
-       instead of goto *state
-    */
-
-    ptr = flashCmd;
-    lphase = P_SEND_CMD;
-    count = 4 + dontCare;
-
-    call HplAt45dbByte.select();
-    for (;;)
+    if (dataCount) // skip 0-byte ops
       {
-	if (lphase == P_READ_CRC)
-	  {
-	    crc = crcByte(crc, in);
+	/* For a 3% speedup, we could use labels and goto *.
+	   But: very gcc-specific. Also, need to do
+	   asm ("ijmp" : : "z" (state))
+	   instead of goto *state
+	*/
 
-	    --count;
-	    if (!count)
-	      break;
-	  }
-	else if (lphase == P_SEND_CMD)
+	ptr = flashCmd;
+	lphase = P_SEND_CMD;
+	count = 4 + dontCare;
+
+	call HplAt45dbByte.select();
+	for (;;)
 	  {
-	    // Note: the dontCare bytes are read after the end of cmd...
-	    out = *ptr++;
-	    count--;
-	    if (!count)
+	    if (lphase == P_READ_CRC)
 	      {
-		lphase = status;
-		ptr = data;
-		count = dataCount;
+		crc = crcByte(crc, in);
+
+		--count;
+		if (!count)
+		  break;
 	      }
-	  }
-	else if (lphase == P_READ)
-	  {
-	    *ptr++ = in;
-	    --count;
-	    if (!count)
-	      break;
-	  }
-	else if (lphase == P_WRITE)
-	  {
-	    if (!count)
-	      break;
+	    else if (lphase == P_SEND_CMD)
+	      {
+		// Note: the dontCare bytes are read after the end of cmd...
+		out = *ptr++;
+		count--;
+		if (!count)
+		  {
+		    lphase = status;
+		    ptr = data;
+		    count = dataCount;
+		  }
+	      }
+	    else if (lphase == P_READ)
+	      {
+		*ptr++ = in;
+		--count;
+		if (!count)
+		  break;
+	      }
+	    else if (lphase == P_WRITE)
+	      {
+		if (!count)
+		  break;
 
-	    out = *ptr++;
-	    --count;
-	  }
-	else /* P_COMMAND */
-	  break;
+		out = *ptr++;
+		--count;
+	      }
+	    else /* P_COMMAND */
+	      break;
 	
-	call FlashSpi.write(out, &in);
+	    call FlashSpi.write(out, &in);
+	  }
+	call HplAt45dbByte.deselect();
       }
-    call HplAt45dbByte.deselect();
-    call Resource.release();
 
+    call Resource.release();
     complete(crc);
   }
 
@@ -211,19 +214,19 @@ implementation
   }
 
   command void HplAt45db.fill(uint8_t cmd, at45page_t page) {
-    execCommand(P_FILL, cmd, 0, page, 0, NULL, 0);
+    execCommand(P_FILL, cmd, 0, page, 0, NULL, 1);
   }
 
   command void HplAt45db.flush(uint8_t cmd, at45page_t page) {
-    execCommand(P_FLUSH, cmd, 0, page, 0, NULL, 0);
+    execCommand(P_FLUSH, cmd, 0, page, 0, NULL, 1);
   }
 
   command void HplAt45db.compare(uint8_t cmd, at45page_t page) {
-    execCommand(P_COMPARE, cmd, 0, page, 0, NULL, 0);
+    execCommand(P_COMPARE, cmd, 0, page, 0, NULL, 1);
   }
 
   command void HplAt45db.erase(uint8_t cmd, at45page_t page) {
-    execCommand(P_ERASE, cmd, 0, page, 0, NULL, 0);
+    execCommand(P_ERASE, cmd, 0, page, 0, NULL, 1);
   }
 
   command void HplAt45db.read(uint8_t cmd,

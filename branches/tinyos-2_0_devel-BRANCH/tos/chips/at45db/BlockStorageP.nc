@@ -1,4 +1,4 @@
-// $Id: BlockStorageP.nc,v 1.1.2.8 2006-05-25 18:23:46 idgay Exp $
+// $Id: BlockStorageP.nc,v 1.1.2.9 2006-05-25 22:31:28 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -43,7 +43,7 @@ module BlockStorageP {
   provides {
     interface BlockWrite[blockstorage_t blockId];
     interface BlockRead[blockstorage_t blockId];
-    interface At45dbBlockLog as BLog[blockstorage_t blockId];
+    interface At45dbBlockConfig as BConfig[blockstorage_t blockId];
   }
   uses {
     interface At45db;
@@ -64,7 +64,7 @@ implementation
   };
 
   enum {
-    N = uniqueCount(UQ_BLOCK_STORAGE) + uniqueCount(UQ_LOG_STORAGE),
+    N = uniqueCount(UQ_BLOCK_STORAGE) + uniqueCount(UQ_CONFIG_STORAGE),
     NO_CLIENT = 0xff
   };
 
@@ -74,7 +74,7 @@ implementation
 
   /* The requests */
   uint8_t state[N]; /* automatically initialised to S_IDLE */
-  uint8_t flipped[N / 8];
+  uint8_t flipped[(N + 7) / 8];
   uint8_t *bufPtr[N];
   storage_addr_t curAddr[N];
   storage_len_t requestedLength[N];
@@ -82,32 +82,32 @@ implementation
   storage_addr_t maxAddr[N];
   uint8_t sig[8];
 
-  inline int logClient(blockstorage_t id) {
+  inline int configClient(blockstorage_t id) {
     return id >= uniqueCount(UQ_BLOCK_STORAGE);
   }
 
   at45page_t pageRemap(at45page_t p) {
-    return call BLog.remap[client](p);
+    return call BConfig.remap[client](p);
   }
 
-  command at45page_t BLog.npages[blockstorage_t id]() {
+  command at45page_t BConfig.npages[blockstorage_t id]() {
     return call At45dbVolume.volumeSize[id]() >> (AT45_PAGE_SIZE_LOG2 + 1);
   }
 
-  command at45page_t BLog.remap[blockstorage_t id](at45page_t page) {
-    if (logClient(id) && call BLog.flipped[id]())
+  command at45page_t BConfig.remap[blockstorage_t id](at45page_t page) {
+    if (configClient(id) && call BConfig.flipped[id]())
       page += call At45dbVolume.volumeSize[id]() >> (AT45_PAGE_SIZE_LOG2 + 1);
     return call At45dbVolume.remap[id](page);
   }
 
-  command void BLog.setFlip[blockstorage_t blockId](bool flip) {
+  command void BConfig.setFlip[blockstorage_t blockId](bool flip) {
     if (flip)
       flipped[blockId >> 3] |= 1 << (blockId & 7);
     else
       flipped[blockId >> 3] &= ~(1 << (blockId & 7));
   }
 
-  inline command bool BLog.flipped[blockstorage_t blockId]() {
+  inline command bool BConfig.flipped[blockstorage_t blockId]() {
     return (flipped[blockId >> 3] & (1 << (blockId & 7))) != 0;
   }
 
@@ -141,8 +141,8 @@ implementation
     bytesRemaining = requestedLength[client];
     crc = 0;
 
-    if (logClient(blockId) && state[blockId] == S_WRITE &&
-	signal BLog.writeHook[blockId]())
+    if (configClient(blockId) && state[blockId] == S_WRITE &&
+	signal BConfig.writeHook[blockId]())
       /* Log write intercept. We'll get a writeContinue when it's
 	 time to resume. */
       client = NO_CLIENT;
@@ -150,13 +150,13 @@ implementation
       continueRequest();
   }
 
-  default event bool BLog.writeHook[blockstorage_t blockId]() {
+  default event bool BConfig.writeHook[blockstorage_t blockId]() {
     return FALSE;
   }
 
   void signalDone(error_t result);
 
-  command void BLog.writeContinue[blockstorage_t blockId](error_t error) {
+  command void BConfig.writeContinue[blockstorage_t blockId](error_t error) {
     client = blockId;
     if (error == SUCCESS)
       continueRequest();
@@ -213,7 +213,10 @@ implementation
 	  if (crc == (sig[0] | (uint16_t)sig[1] << 8))
 	    actualSignal(SUCCESS);
 	  else
-	    actualSignal(FAIL);
+	    {
+	      maxAddr[client] = 0;
+	      actualSignal(FAIL);
+	    }
 	  break;
 	default: post signalSuccess(); break;
 	}
@@ -317,13 +320,25 @@ implementation
   void verifySignature() {
     if (sig[6] == 0xb1 && sig[7] == 0x0c)
       {
-	maxAddr[client] = sig[2] | (uint32_t)sig[3] << 8 |
+	uint32_t max = sig[2] | (uint32_t)sig[3] << 8 |
 	  (uint32_t)sig[4] << 16 | (uint32_t)sig[5] << 24;
-	setupRequest(S_VERIFY2, client, 0, NULL, maxAddr[client]);
-	signal Resource.granted[client]();
+	storage_len_t vsize;
+
+	if (configClient(client))
+	  vsize = call BConfig.npages[client]() << AT45_PAGE_SIZE_LOG2;
+	else
+	  vsize = call At45dbVolume.volumeSize[client]();
+
+	/* Ignore maxAddress values that are too large */
+	if (max <= vsize)
+	  {
+	    maxAddr[client] = max;
+	    setupRequest(S_VERIFY2, client, 0, NULL, max);
+	    signal Resource.granted[client]();
+	    return;
+	  }
       }
-    else
-      actualSignal(FAIL);
+    actualSignal(FAIL);
   }
 
   command error_t BlockRead.computeCrc[blockstorage_t id](storage_addr_t addr, storage_len_t len) {

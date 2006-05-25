@@ -1,4 +1,4 @@
-// $Id: ConfigStorageP.nc,v 1.1.2.1 2006-05-25 18:23:46 idgay Exp $
+// $Id: ConfigStorageP.nc,v 1.1.2.2 2006-05-25 22:31:28 idgay Exp $
 
 /*									tab:4
  * Copyright (c) 2002-2006 Intel Corporation
@@ -26,7 +26,7 @@ module ConfigStorageP {
   }
   uses {
     interface At45db;
-    interface At45dbBlockLog as BLog[configstorage_t id];
+    interface At45dbBlockConfig as BConfig[configstorage_t id];
     interface BlockRead[configstorage_t id];
     interface BlockWrite[configstorage_t id];
   }
@@ -58,7 +58,7 @@ implementation
   };
 
   enum {
-    N = uniqueCount(UQ_LOG_STORAGE),
+    N = uniqueCount(UQ_CONFIG_STORAGE),
     NO_CLIENT = 0xff,
   };
 
@@ -75,7 +75,7 @@ implementation
       return FAIL;
 
     state[id] = S_MOUNT;
-    call BLog.setFlip(FALSE);
+    call BConfig.setFlip[id](FALSE);
     call BlockRead.read[id](0, &lowVersion[id], sizeof lowVersion[id]);
 
     return SUCCESS;
@@ -85,16 +85,16 @@ implementation
     if (error != SUCCESS)
       {
 	state[id] = S_STOPPED;
-	signal SplitControl.startDone(FAIL);
+	signal SplitControl.startDone[id](FAIL);
       }
-    else if (!call BLog.flipped[id]())
+    else if (!call BConfig.flipped[id]())
       {
-	call BLog.setFlip(TRUE);
+	call BConfig.setFlip[id](TRUE);
 	call BlockRead.read[id](0, &highVersion[id], sizeof highVersion[id]);
       }
     else
       {
-	call BLog.setFlip[id](highVersion[id] > lowVersion[id]);
+	call BConfig.setFlip[id](highVersion[id] > lowVersion[id]);
 	call BlockRead.verify[id]();
       }
   }
@@ -102,19 +102,19 @@ implementation
   void mountVerifyDone(uint8_t id, error_t error) {
     if (error != SUCCESS) // try the other half?
       {
-	bool flipped = call BLog.flipped[id]();
+	bool flipped = call BConfig.flipped[id]();
 
 	if ((highVersion[id] > lowVersion[id]) == flipped)
 	  {
-	    call BLog.setFlip[id](!flipped);
-	    call BLog.verify[id]();
+	    call BConfig.setFlip[id](!flipped);
+	    call BlockRead.verify[id]();
 	    return;
 	  }
 	/* both halves bad, just declare success and use the current half :-) 
 	   (we did need to verify to find the end-of-block) */
       }
     state[id] = S_CLEAN;
-    signal SplitControl.startDone(SUCCESS);
+    signal SplitControl.startDone[id](SUCCESS);
   }
 
   command error_t SplitControl.stop[uint8_t id]() {
@@ -135,20 +135,22 @@ implementation
 
     if (!(state[id] == S_CLEAN || state[id] == S_DIRTY))
       return FAIL;
-    return call BlockWrite.write(addr + sizeof(uint32_t), buf, len);
+    return call BlockWrite.write[id](addr + sizeof(uint32_t), buf, len);
   }
 
   void copyCopyPageDone(error_t error);
   void writeContinue(error_t error);
 
-  event bool BLog.writeHook[configstorage_t id]() {
+  event bool BConfig.writeHook[configstorage_t id]() {
     if (state[id] == S_DIRTY) // no work if already dirty
       return FALSE;
 
     /* Time to do the copy, version update dance */
     client = id;
-    nextPage = call BLog.npages[id]();
+    nextPage = call BConfig.npages[id]();
     copyCopyPageDone(SUCCESS);
+
+    return TRUE;
   }
 
   void copyCopyPageDone(error_t error) {
@@ -159,7 +161,7 @@ implementation
 	uint32_t *version;
 
 	// Set version number
-	if (call BLog.flipped[client]())
+	if (call BConfig.flipped[client]())
 	  {
 	    lowVersion[client] = highVersion[client] + 1;
 	    version = &lowVersion[client];
@@ -169,17 +171,19 @@ implementation
 	    highVersion[client] = lowVersion[client] + 1;
 	    version = &highVersion[client];
 	  }
-	call At45db.write(call BLog.remap[client](0), 0,
+	call At45db.write(call BConfig.remap[client](0), 0,
 			  version, sizeof *version);
       }
     else
       {
-	at45page_t from = --nextPage, to = nextPage;
+	at45page_t from, to, npages = call BConfig.npages[client]();
 
-	if (call BLog.flipped[client]())
-	  from += npages();
+	to = from = call BConfig.remap[client](--nextPage);
+	if (call BConfig.flipped[client]())
+	  to -= npages;
 	else
-	  to += npages();
+	  to += npages;
+
 	call At45db.copyPage(from, to);
       }
   }
@@ -187,7 +191,7 @@ implementation
   void copyWriteDone(error_t error) {
     if (error == SUCCESS)
       {
-	call BLog.setFlip[client](!call BLog.flipped[client]);
+	call BConfig.setFlip[client](!call BConfig.flipped[client]());
 	state[client] = S_DIRTY;
       }
     writeContinue(error);
@@ -197,13 +201,13 @@ implementation
     uint8_t id = client;
 
     client = NO_CLIENT;
-    signal BLog.writeContinue[id]();
+    call BConfig.writeContinue[id](error);
   }
 
   command error_t ConfigStorage.commit[configstorage_t id]() {
     /* Call BlockWrite.commit */
-    /* Could special-case attempt to commit clean log */
-    return call BlockWrite[id].commit();
+    /* Could special-case attempt to commit clean block */
+    return call BlockWrite.commit[id]();
   }
 
   void commitDone(configstorage_t id, error_t error) {
@@ -224,8 +228,7 @@ implementation
   }
 
   event void BlockWrite.writeDone[configstorage_t id]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {
-    signal ConfigStorage.writeDone(addr - sizeof(uint32_t), buf, len, error);
-    }
+    signal ConfigStorage.writeDone[id](addr - sizeof(uint32_t), buf, len, error);
   }
 
   event void BlockWrite.commitDone[configstorage_t id]( error_t error ) {
@@ -249,4 +252,33 @@ implementation
   event void At45db.flushDone(error_t error) {}
   event void At45db.readDone(error_t error) {}
   event void At45db.computeCrcDone(error_t error, uint16_t crc) {}
+
+  default event void SplitControl.startDone[configstorage_t id](error_t error) { }
+  default event void ConfigStorage.readDone[configstorage_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t error) {}
+  default event void ConfigStorage.writeDone[configstorage_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t error) {}
+  default event void ConfigStorage.commitDone[configstorage_t id](error_t error) {}
+
+  default command void BConfig.setFlip[configstorage_t id](bool flip) {}
+  default command bool BConfig.flipped[configstorage_t id]() {
+    return FALSE;
+  }
+  default command void BConfig.writeContinue[configstorage_t id](error_t error) {}
+  default command at45page_t BConfig.npages[configstorage_t id]() {
+    return 0;
+  }
+  default command at45page_t BConfig.remap[configstorage_t id](at45page_t page) {
+    return AT45_MAX_PAGES;
+  }
+  default command error_t BlockRead.read[configstorage_t id]( storage_addr_t addr, void* buf, storage_len_t len ) {
+    return SUCCESS;
+  }
+  default command error_t BlockRead.verify[configstorage_t id]() {
+    return SUCCESS;
+  }
+  default command error_t BlockWrite.write[configstorage_t id]( storage_addr_t addr, void* buf, storage_len_t len ) {
+    return SUCCESS;
+  }
+  default command error_t BlockWrite.commit[configstorage_t id]() {
+    return SUCCESS;
+  }
 }

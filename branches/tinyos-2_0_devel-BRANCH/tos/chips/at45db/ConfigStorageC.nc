@@ -1,4 +1,4 @@
-// $Id: ConfigStorageC.nc,v 1.1.2.1 2006-05-25 18:23:46 idgay Exp $
+// $Id: ConfigStorageC.nc,v 1.1.2.2 2006-05-25 22:31:28 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -39,7 +39,7 @@ implementation {
 
   ConfigStorageP.BlockRead[CONFIG_ID] -> BlockStorageP.BlockRead[BLOCK_ID];
   ConfigStorageP.BlockWrite[CONFIG_ID] -> BlockStorageP.BlockWrite[BLOCK_ID];
-  ConfigStorageP.BLog[CONFIG_ID] -> BlockStorageP.BLog[BLOCK_ID];
+  ConfigStorageP.BConfig[CONFIG_ID] -> BlockStorageP.BConfig[BLOCK_ID];
 
   BlockStorageP.At45dbVolume[BLOCK_ID] -> StorageManagerP.At45dbVolume[volid];
   BlockStorageP.Resource[BLOCK_ID] -> At45dbC.Resource[RESOURCE_ID];
