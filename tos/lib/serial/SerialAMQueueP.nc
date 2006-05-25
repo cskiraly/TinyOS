@@ -1,4 +1,4 @@
-// $Id: SerialAMReceiverC.nc,v 1.1.2.2 2006-05-25 17:38:06 scipio Exp $
+// $Id: SerialAMQueueP.nc,v 1.1.2.1 2006-05-25 17:38:06 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -23,27 +23,30 @@
  */
 
 /**
- * The virtualized AM reception abstraction.
+ * The fair-share AM send queue.
  *
  * @author Philip Levis
  * @date   Jan 16 2006
- * @see    TEP 116: Packet Protocols
  */ 
 
 #include "AM.h"
+#include "Serial.h"
 
-generic configuration SerialAMReceiverC(am_id_t amId) {
-  provides {
-    interface Receive;
-    interface Packet;
-    interface AMPacket;
-  }
+configuration SerialAMQueueP {
+  provides interface Send[uint8_t client];
 }
 
 implementation {
-  components SerialAMImplP as Impl;
+  enum {
+    NUM_CLIENTS = uniqueCount(UQ_SERIALQUEUE_SEND)
+  };
+  
+  components new AMQueueImplP(NUM_CLIENTS), SerialActiveMessageC;
 
-  Receive = Impl.Receive[amId];
-  Packet = Impl;
-  AMPacket = Impl;
+  Send = AMQueueImplP;
+  AMQueueImplP.AMSend -> SerialActiveMessageC;
+  AMQueueImplP.AMPacket -> SerialActiveMessageC;
+  AMQueueImplP.Packet -> SerialActiveMessageC;
+  
 }
+
