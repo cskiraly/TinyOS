@@ -30,18 +30,22 @@
  */
 
 /**
- * TaosTSL2561LogicP is the driver for the Taos TSL2561. It requires an 
- * I2C packet interface and provides the TaosTSL256x HAL interface.
+ * TSL2561LogicP is the driver for the Taos TSL2561, the I2C variant
+ * of the Taos TSL256x line. 
+ *  It requires an I2C packet interface and provides the 
+ * TSL256x HPL interface.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-23 20:58:28 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-05-25 22:55:48 $
  */
 
-generic module HplTaosTSL256xLogicP(uint16_t devAddr)
+#include "TSL256x.h"
+
+generic module HplTSL2561LogicP(uint16_t devAddr)
 {
   provides interface Init;
   provides interface SplitControl;
-  provides interface HplTaosTSL256x;
+  provides interface HplTSL256x;
 
   uses interface I2CPacketAdv;
   uses interface GpioInterrupt as InterruptAlert;
@@ -156,27 +160,27 @@ implementation {
   }
 
   
-  command error_t HplTaosTSL256x.measureCh0() { 
+  command error_t HplTSL256x.measureCh0() { 
     return doReadPrep(STATE_READCH0,TSL256X_PTR_DATA0LOW);
   }
 
-  command error_t HplTaosTSL256x.measureCh1() {
+  command error_t HplTSL256x.measureCh1() {
     return doReadPrep(STATE_READCH1,TSL256X_PTR_DATA1LOW);
   }
 
-  command error_t HplTaosTSL256x.setCONTROL(uint8_t val) {
+  command error_t HplTSL256x.setCONTROL(uint8_t val) {
     return doWriteReg(STATE_SETCONTROL,TSL256X_PTR_CONTROL,val);
   }
   
-  command error_t HplTaosTSL256x.setTIMING(uint8_t val) {
+  command error_t HplTSL256x.setTIMING(uint8_t val) {
     return doWriteReg(STATE_SETTIMING,TSL256X_PTR_TIMING,val);
   }
 
-  command error_t HplTaosTSL256x.setTHRESHLOW(uint16_t val) {
+  command error_t HplTSL256x.setTHRESHLOW(uint16_t val) {
     return doWriteReg(STATE_SETLOW,TSL256X_PTR_THRESHLOWLOW,val);  
   }
 
-  command error_t HplTaosTSL256x.setTHRESHHIGH(uint16_t val) {
+  command error_t HplTSL256x.setTHRESHHIGH(uint16_t val) {
     return doWriteReg(STATE_SETHIGH,TSL256X_PTR_THRESHHIGHLOW,val); 
   }
 
@@ -184,7 +188,7 @@ implementation {
     return doWriteReg(STATE_SETINTERRUPT,TSL256X_PTR_INTERRUPT,val);
   }
   
-  command error_t HplTaosTSL256x.getID() {
+  command error_t HplTSL256x.getID() {
     return doReadPrep(STATE_READID,TSL256X_PTR_ID);
   }
 
@@ -197,17 +201,17 @@ implementation {
       tempVal = buf[1];
       tempVal = ((tempVal << 8) | buf[0]);
       mState = STATE_IDLE;
-      signal HplTaosTSL256x.measureCh0Done(error,tempVal);
+      signal HplTSL256x.measureCh0Done(error,tempVal);
       break;
     case STATE_READCH1:
       tempVal = buf[1];
       tempVal = ((tempVal << 8) | buf[0]);
       mState = STATE_IDLE;
-      signal HplTaosTSL256x.measureCh1Done(error,tempVal);
+      signal HplTSL256x.measureCh1Done(error,tempVal);
       break;
     case STATE_READID:
       mState = STATE_IDLE;
-      signal HplTaosTSL256x.getIDDone(error,buf[0]);
+      signal HplTSL256x.getIDDone(error,buf[0]);
       break;
     default:
       mState = STATE_IDLE;
@@ -240,15 +244,15 @@ implementation {
       break;
     case STATE_SETCONTROL:
       mState = STATE_IDLE;
-      signal HplTaosTSL256x.setCONTROLDone(error);
+      signal HplTSL256x.setCONTROLDone(error);
       break;
     case STATE_SETHIGH:
       mState = STATE_IDLE;
-      signal HplTaosTSL256x.setTHRESHIGHDone(error);
+      signal HplTSL256x.setTHRESHIGHDone(error);
       break;
     case STATE_SETLOW:
       mState = STATE_IDLE;
-      signal HplTaosTSL256x.setTHRESHLOWDone(error);
+      signal HplTSL256x.setTHRESHLOWDone(error);
       break;
     case STATE_READID:
       error = call I2CPacket.readPacket(devAddr,1,mI2CBuffer,STOP_FLAG);
@@ -261,22 +265,22 @@ implementation {
   }
 
   async event void InterruptAlert.fired() {
-    // This alert is decoupled from whatever state the TMP175 is in. 
+    // This alert is decoupled from whatever state the TSL2561 is in. 
     // Upper layers must handle dealing with this alert appropriately.
-    signal HplTaosTSL256x.alertThreshold();
+    signal HplTSL256x.alertThreshold();
     return;
   }
 
   default event void SplitControl.startDone( error_t error ) { return; }
   default event void SplitControl.stopDone( error_t error ) { return; }
-  default event void HplTaosTSL256x.measureCh0Done( error_t error, uint16_t val ){ return; }
-  default event void HplTaosTSL256x.measureCh1Done( error_t error, uint16_t val ){ return; }
-  default event void HplTaosTSL256x.setCONTROLDone( error_t error ){ return; }
-  default event void HplTaosTSL256x.setTIMINGDone(error_t error){ return; }
-  default event void HplTaosTSL256x.setTHRESHLOWDone(error_t error){ return;} 
-  default event void HplTaosTSL256x.setTHRESHHIGHDone(error_t error){ return; }
-  default event void HplTaosTSL256x.setINTERRUPTDone(error_t error){ return;} 
-  default event void HplTaosTSL256x.getIDDone(error_t error, uint8_t idval){ return; }
-  default event void HplTaosTSL256x.alertThreshold(){ return; }
+  default event void HplTSL256x.measureCh0Done( error_t error, uint16_t val ){ return; }
+  default event void HplTSL256x.measureCh1Done( error_t error, uint16_t val ){ return; }
+  default event void HplTSL256x.setCONTROLDone( error_t error ){ return; }
+  default event void HplTSL256x.setTIMINGDone(error_t error){ return; }
+  default event void HplTSL256x.setTHRESHLOWDone(error_t error){ return;} 
+  default event void HplTSL256x.setTHRESHHIGHDone(error_t error){ return; }
+  default event void HplTSL256x.setINTERRUPTDone(error_t error){ return;} 
+  default event void HplTSL256x.getIDDone(error_t error, uint8_t idval){ return; }
+  default event void HplTSL256x.alertThreshold(){ return; }
 
 }
