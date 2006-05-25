@@ -30,21 +30,21 @@
  */
 
 /**
- * HplTITMP175LogicP is the driver for the TI TMP175. It requires an 
- * I2C packet interface and provides the TITMP175 HPL interface.
+ * HplTMP175LogicP is the driver for the TI TMP175. It requires an 
+ * I2C packet interface and provides the HplTMP175 HPL interface.
  * This module DOES NOT apply any specific configuration to the GpioInterrupt 
  * pin associated with the theshold alerts. This must be handled by an
  * outside configuration/module according to the host platform.
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-23 20:58:10 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-05-25 22:54:34 $
  */
 
-generic module HplTITMP175LogicP(uint16_t devAddr)
+generic module HplTMP175LogicP(uint16_t devAddr)
 {
   provides interface Init;
   provides interface SplitControl;
-  provides interface HplTITMP175;
+  provides interface HplTMP175;
 
   uses interface I2CPacket;
   uses interface GpioInterrupt as AlertInterrupt;
@@ -133,7 +133,7 @@ implementation {
     return doSetReg(STATE_STOPPING,TMP175_PTR_CFG,(mConfigRegVal | TMP175_CFG_SD));
   }
   
-  command error_t HplTITMP175.measureTemperature() { 
+  command error_t HplTMP175.measureTemperature() { 
     error_t error = SUCCESS;
 
     atomic {
@@ -158,15 +158,15 @@ implementation {
 
   }
 
-  command error_t HplTITMP175.setConfigReg( uint8_t val ){
+  command error_t HplTMP175.setConfigReg( uint8_t val ){
     return doSetReg(STATE_SETCONFIG,TMP175_PTR_CFG,val);
   }
   
-  command error_t HplTITMP175.setTLowReg(uint16_t val){ 
+  command error_t HplTMP175.setTLowReg(uint16_t val){ 
     return doSetReg(STATE_SETLOW,TMP175_PTR_TLOW,val);  
   }
 
-  command error_t HplTITMP175.setTHighReg(uint16_t val){
+  command error_t HplTMP175.setTHighReg(uint16_t val){
     return doSetReg(STATE_SETTHIGH,TMP175_PTR_THIGH,val); 
   }
 
@@ -178,7 +178,7 @@ implementation {
       tempVal = buf[0];
       tempVal = ((tempVal << 8) | buf[1]);
       mState = STATE_IDLE;
-      signal HplTITMP175.measureTemperatureDone(error,tempVal);
+      signal HplTMP175.measureTemperatureDone(error,tempVal);
       break;
     default:
       break;
@@ -206,15 +206,15 @@ implementation {
 	break;
       case STATE_SETCONFIG:
 	mState = STATE_IDLE;
-	signal HplTITMP175.setConfigRegDone(error);
+	signal HplTMP175.setConfigRegDone(error);
 	break;
       case STATE_SETTHIGH:
 	mState = STATE_IDLE;
-	signal HplTITMP175.setTHighRegDone(error);
+	signal HplTMP175.setTHighRegDone(error);
 	break;
       case STATE_SETTLOW:
 	mState = STATE_IDLE;
-	signal HplTITMP175.setTLowRegDone(error);
+	signal HplTMP175.setTLowRegDone(error);
 	break;
       default:
 	mState = STATE_IDLE:
@@ -234,16 +234,16 @@ implementation {
   async event void AlertInterrupt.fired() {
     // This alert is decoupled from whatever state the TMP175 is in. 
     // Upper layers must handle dealing with this alert appropriately.
-    signal HplTITMP175.alertThreshold();
+    signal HplTMP175.alertThreshold();
     return;
   }
 
   default event void SplitControl.startDone( error_t error ) { return; }
   default event void SplitControl.stopDone( error_t error ) { return; }
-  default event void HplTITMP175.getTemperatureDone( error_t error, uint16_t val ){ return; }
-  default event void HplTITMP175.setConfigRegDone( error_t error ){ return; }
-  default event void HplTITMP175.setTHighRegDone(error_t error){ return; }
-  default event void HplTITMP175.setTLowRegDone(error_t error){ return; }
-  default event void HplTITMP175.alertThreshold(){ return; }
+  default event void HplTMP175.getTemperatureDone( error_t error, uint16_t val ){ return; }
+  default event void HplTMP175.setConfigRegDone( error_t error ){ return; }
+  default event void HplTMP175.setTHighRegDone(error_t error){ return; }
+  default event void HplTMP175.setTLowRegDone(error_t error){ return; }
+  default event void HplTMP175.alertThreshold(){ return; }
 
 }

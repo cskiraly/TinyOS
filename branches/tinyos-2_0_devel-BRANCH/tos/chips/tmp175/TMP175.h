@@ -33,11 +33,11 @@
  * Types and definitions for the TI TMP175
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-23 20:58:10 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-05-25 22:54:34 $
  */
 
-#ifndef _TITMP175_H
-#define _TITMP175_H
+#ifndef _TMP175_H
+#define _TMP175_H
 
 #define TMP175_PTR_TEMP		(0x0)
 #define TMP175_PTR_CFG		(0x1)
@@ -51,4 +51,4 @@
 #define TMP175_CFG_TM		(1 << 1)
 #define TMP175_CFG_SD		(1 << 0)
 
-#endif /* _TITMP175_H */
+#endif /* _TMP175_H */
