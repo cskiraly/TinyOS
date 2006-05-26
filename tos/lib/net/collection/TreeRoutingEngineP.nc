@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 //#define TEST_INSERT
-/* $Id: TreeRoutingEngineP.nc,v 1.1.2.5 2006-05-17 17:57:07 rfonseca76 Exp $ */
+/* $Id: TreeRoutingEngineP.nc,v 1.1.2.6 2006-05-26 00:25:55 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -29,7 +29,7 @@
  *  Acknowledgment: based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
  *                           MultiHopLQI
  *                           
- *  @date   $Date: 2006-05-17 17:57:07 $
+ *  @date   $Date: 2006-05-26 00:25:55 $
  *  @see Net2-WG
  */
 
@@ -190,13 +190,18 @@ implementation {
             if (entry->info.parent == my_ll_addr) continue;
 
             linkMetric = evaluateMetric(call LinkEstimator.getLinkQuality(entry->neighbor));
+	    dbg("TreeRouting", "   metric: %hu.\n", linkMetric);
             pathMetric =linkMetric + entry->info.metric;
             //for current parent
             if (entry->neighbor == routeInfo.parent) {
-                currentMetric = pathMetric;    
+                currentMetric = pathMetric;
+		dbg("TreeRouting", "   already parent.\n");
                 continue;
             }
-            if (!passLinkMetricThreshold(linkMetric)) continue; 
+            if (!passLinkMetricThreshold(linkMetric)) {
+	      dbg("TreeRouting", "   did not pass threshold.\n");
+	      continue;
+	    }
             
             if (pathMetric < minMetric) {
                 minMetric = pathMetric;
