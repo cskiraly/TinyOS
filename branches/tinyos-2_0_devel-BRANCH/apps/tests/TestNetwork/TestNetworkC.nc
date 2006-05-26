@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.2 $ $Date: 2006-05-23 20:42:13 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-05-26 00:25:03 $
  */
 
 #include <Timer.h>
@@ -16,11 +16,14 @@
 module TestNetworkC {
   uses interface Boot;
   uses interface SplitControl as RadioControl;
+  uses interface StdControl as RoutingControl;
   uses interface DisseminationValue<uint16_t> as DisseminationPeriod;
   uses interface Send;
   uses interface Leds;
   uses interface Read<uint16_t> as ReadSensor;
   uses interface Timer<TMilli>;
+  uses interface RootControl;
+  uses interface Receive;
 }
 implementation {
   message_t packet;
@@ -36,6 +39,10 @@ implementation {
       call RadioControl.start();
     }
     else {
+      call RoutingControl.start();
+      if (TOS_NODE_ID % 500 == 0) {
+	call RootControl.setRoot();
+      }
       call Timer.startPeriodic(10000);
     }
   }
@@ -49,7 +56,7 @@ implementation {
       return;
     }
     call Leds.led0Off();
-    dbg("TestDisseminationC", "TestDisseminationC: Timer fired.\n");
+    dbg("TestNetworkC", "TestDisseminationC: Timer fired.\n");
     busy = TRUE;
   }
 
@@ -76,4 +83,8 @@ implementation {
     call Timer.startPeriodic(*newVal);
   }
 
+  event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
+    dbg("TestNetworkC", "Received packet at %s.\n", sim_time_string());
+    return msg;
+  }
 }
