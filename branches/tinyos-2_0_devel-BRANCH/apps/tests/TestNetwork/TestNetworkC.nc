@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.3 $ $Date: 2006-05-26 00:25:03 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-05-26 16:06:15 $
  */
 
 #include <Timer.h>
@@ -24,10 +24,14 @@ module TestNetworkC {
   uses interface Timer<TMilli>;
   uses interface RootControl;
   uses interface Receive;
+  uses interface AMSend as UARTSend;
 }
 implementation {
+  task void uartEchoTask();
   message_t packet;
-  bool busy;
+  message_t uartpacket;
+  uint8_t msglen;
+  bool busy = FALSE, uartbusy = FALSE;
   
   event void Boot.booted() {
     call RadioControl.start();
@@ -83,8 +87,22 @@ implementation {
     call Timer.startPeriodic(*newVal);
   }
 
-  event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
+  event message_t* 
+  Receive.receive(message_t* msg, void* payload, uint8_t len) {
     dbg("TestNetworkC", "Received packet at %s.\n", sim_time_string());
+    if (!uartbusy) {
+      uartbusy = TRUE;
+      msglen = len;
+      memcpy(&uartpacket, msg, sizeof(message_t));
+      post uartEchoTask();
+    }
     return msg;
+  }
+
+  task void uartEchoTask() {
+    call UARTSend.send(0, &uartpacket, msglen);
+  }
+
+  event void UARTSend.sendDone(message_t *msg, error_t error) {
   }
 }
