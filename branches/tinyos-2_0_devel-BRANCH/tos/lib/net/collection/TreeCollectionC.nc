@@ -4,7 +4,12 @@
 
 configuration TreeCollectionC {
   provides {
+    interface StdControl;
     interface Send[uint8_t client];
+    interface Receive[collection_id_t id];
+    interface Receive as Snoop[collection_id_t];
+    interface Intercept[collection_id_t id];
+    interface RootControl;
     interface Packet;
   }
 
@@ -21,11 +26,17 @@ implementation {
 
   components ActiveMessageC;
   components new ForwardingEngineP() as Forwarder;
-
+  components MainC;
+  
   Send = Forwarder;
+  StdControl = Forwarder;
+  Receive = Forwarder.Receive;
+  Snoop = Forwarder.Snoop;
+  Intercept = Forwarder;
   Packet = Forwarder;
   CollectionId = Forwarder;
-
+  MainC.SoftwareInit -> Forwarder;
+  
   components new PoolC(message_t, FORWARD_COUNT) as MessagePoolP;
   components new PoolC(fe_queue_entry_t, FORWARD_COUNT) as QEntryPoolP;
   Forwarder.QEntryPool -> QEntryPoolP;
@@ -42,6 +53,9 @@ implementation {
   components new AMSnooperC(AM_COLLECTION_DATA);
   
   components new TreeRoutingEngineP(TREE_ROUTING_TABLE_SIZE) as Router;
+  StdControl = Router;
+  RootControl = Router;
+  MainC.SoftwareInit -> Router;
   Router.BeaconSend -> Estimator.Send;
   Router.BeaconReceive -> Estimator.Receive;
   Router.LinkEstimator -> Estimator.LinkEstimator;
@@ -49,7 +63,7 @@ implementation {
   Router.AMPacket -> ActiveMessageC;
   Router.RadioControl -> ActiveMessageC;
   Router.BeaconTimer -> RoutingBeaconTimer;
-
+ 
   components new TimerMilliC() as RetxmitTimer;
   Forwarder.RetxmitTimer -> RetxmitTimer;
 
@@ -75,4 +89,5 @@ implementation {
   Estimator.SubPacket -> SendControl;
   Estimator.SubAMPacket -> SendControl;
   Estimator.Timer -> EstimatorTimer;
+  MainC.SoftwareInit -> Estimator;
 }

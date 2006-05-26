@@ -1,4 +1,4 @@
-/* $Id: CollectionC.nc,v 1.1.2.1 2006-04-20 15:47:04 rfonseca76 Exp $ */
+/* $Id: CollectionC.nc,v 1.1.2.2 2006-05-26 00:25:55 scipio Exp $ */
 #include "Collection.h"
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
@@ -24,7 +24,7 @@
 
 /*
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-04-20 15:47:04 $
+ *  @date   $Date: 2006-05-26 00:25:55 $
  */
 configuration CollectionC {
     provides {
@@ -39,33 +39,31 @@ configuration CollectionC {
 }
 
 implementation {
-    components ForwardingEngineP
-             , TreeRoutingEngineP
-             , LinkEstimatorC;
+  components new ForwardingEngineP(), new TreeRoutingEngineP(8), LinkEstimatorC;
     
-    Send = ForwardingEngineP;
-    Receive = ForwardingEngineP;
-    Snoop = ForwardingEngineP;
-    Intercept = ForwardingEngineP;
-    Packet = ForwardingEngineP;
-    RootControl = TreeRoutingEngineP;
-    
-    ForwardingEngineP.BasicRouting -> TreeRoutingEngineP;
-    TreeRoutingEngineP.LinkEstimator -> LinkEstimatorC;
-   
-    components new LinkEstimatorAMSenderC(AM_COLLECTION_DATA) 
-               as DataAMSender; 
-    ForwardingEngineP.AMSend -> DataAMSender;
-
-    components new LinkEstimatorAMReceiverC(AM_COLLECTION_DATA) 
-               as DataAMReceiver;
-    ForwardingEngineP.AMReceive -> DataAMReceiver;
-
-    components new LinkEstimatorAMSenderC(AM_COLLECTION_CONTROL) 
-               as ControlAMSender; 
-    TreeRoutingEngineP.AMSend -> ControlAMSender;
-
-    components new LinkEstimatorAMReceiverC(AM_COLLECTION_CONTROL)
-               as ControlAMReceiver;
-    TreeRoutingEngineP.AMReceive -> ControlAMReceiver;     
+  Send = ForwardingEngineP;
+  Receive = ForwardingEngineP;
+  Snoop = ForwardingEngineP;
+  Intercept = ForwardingEngineP;
+  Packet = ForwardingEngineP;
+  RootControl = TreeRoutingEngineP;
+  
+  ForwardingEngineP.BasicRouting -> TreeRoutingEngineP;
+  TreeRoutingEngineP.LinkEstimator -> LinkEstimatorC;
+  
+  components new LinkEstimatorAMSenderC(AM_COLLECTION_DATA) 
+    as DataAMSender; 
+  ForwardingEngineP.AMSend -> DataAMSender;
+  
+  components new LinkEstimatorAMReceiverC(AM_COLLECTION_DATA) 
+    as DataAMReceiver;
+  ForwardingEngineP.AMReceive -> DataAMReceiver;
+  
+  components new LinkEstimatorAMSenderC(AM_COLLECTION_CONTROL) 
+    as ControlAMSender; 
+  TreeRoutingEngineP.AMSend -> ControlAMSender;
+  
+  components new LinkEstimatorAMReceiverC(AM_COLLECTION_CONTROL)
+    as ControlAMReceiver;
+  TreeRoutingEngineP.AMReceive -> ControlAMReceiver;     
 }
