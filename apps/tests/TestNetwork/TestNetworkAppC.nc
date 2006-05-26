@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.3 $ $Date: 2006-05-26 00:25:03 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-05-26 16:06:15 $
  */
 
 configuration TestNetworkAppC {}
@@ -18,6 +18,7 @@ implementation {
   components TreeCollectionC as Collector;
   components new TimerMilliC();
   components new DemoSensorC();
+  components new SerialAMSenderC(0);
 
   TestNetworkC.Boot -> MainC;
   TestNetworkC.RadioControl -> ActiveMessageC;
@@ -29,4 +30,5 @@ implementation {
   TestNetworkC.ReadSensor -> DemoSensorC;
   TestNetworkC.RootControl -> Collector;
   TestNetworkC.Receive -> Collector.Receive[0];
+  TestNetworkC.UARTSend -> SerialAMSenderC.AMSend;
 }
