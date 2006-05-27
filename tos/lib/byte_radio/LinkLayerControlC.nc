@@ -37,7 +37,6 @@
  */
 configuration LinkLayerControlC {
    provides {
-     interface Init;
      interface SplitControl;
      interface Send;
      interface Receive;
@@ -52,9 +51,9 @@ configuration LinkLayerControlC {
 }
 implementation
 {
-  components LinkLayerControlP as Llc;
+  components LinkLayerControlP as Llc, MainC;
   
-    Init = Llc;
+    MainC.SoftwareInit -> Llc;
     SplitControl = Llc;
     MacSplitControl =  Llc.MacSplitControl;
     RadioSplitControl =  Llc.RadioSplitControl;

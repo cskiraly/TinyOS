@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  * provides preamble sampling csma with timestamping
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-03-08 16:54:03 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-05-27 21:23:15 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -38,7 +38,6 @@
 configuration RadioDataLinkC {
     provides {
       
-      interface Init;
       interface SplitControl; 
       interface Send;
       interface Receive;
@@ -60,11 +59,9 @@ implementation
     //Don't change wirings below this point, just change which components
     //They are compposed of in the list above             
     
-    Init = Radio;
-    Init = UartPhy;
-    Init = PacketSerializer;
-    Init = Mac;
-    Init = Llc;
+    components MainC;
+    MainC.SoftwareInit -> UartPhy;
+    MainC.SoftwareInit -> PacketSerializer;
         
     SplitControl = Llc;
     Llc.MacSplitControl -> Mac.SplitControl;

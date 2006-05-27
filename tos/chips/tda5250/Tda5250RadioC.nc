@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-02-01 17:44:18 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-05-27 21:23:15 $
  * ========================================================================
  */
 
@@ -42,7 +42,6 @@
 #include "tda5250RegTypes.h"
 configuration Tda5250RadioC {
   provides {
-    interface Init;
     interface SplitControl;
     interface Tda5250Control;
     interface RadioByteComm;
@@ -52,11 +51,13 @@ implementation {
   components Tda5250RadioP
            , HplTda5250ConfigC
            , HplTda5250DataC
+           , MainC
            ;
 
-  Init = HplTda5250ConfigC;
-  Init = HplTda5250DataC;
-  Init = Tda5250RadioP;
+  MainC.SoftwareInit -> HplTda5250ConfigC;
+  MainC.SoftwareInit -> HplTda5250DataC;
+  MainC.SoftwareInit -> Tda5250RadioP;
+
   Tda5250Control = Tda5250RadioP;
   RadioByteComm = Tda5250RadioP;
   SplitControl = Tda5250RadioP;
