@@ -1,4 +1,4 @@
-// $Id: ActiveMessageImplP.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
+// $Id: ActiveMessageImplP.nc,v 1.1.2.3 2006-05-27 21:18:10 henridf Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -53,9 +53,7 @@ configuration ActiveMessageImplP {
 }
 
 implementation {
-  components ActiveMessageC, MainC;
-
-  MainC.SoftwareInit -> ActiveMessageC;
+  components ActiveMessageC;
 
   SplitControl = ActiveMessageC;
   AMSend = ActiveMessageC;

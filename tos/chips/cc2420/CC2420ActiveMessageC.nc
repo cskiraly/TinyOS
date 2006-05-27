@@ -34,7 +34,7 @@
  * @date August 28 2005
 
  * <pre>
- *  $Id: CC2420ActiveMessageC.nc,v 1.1.2.9 2006-03-23 21:10:56 jwhui Exp $
+ *  $Id: CC2420ActiveMessageC.nc,v 1.1.2.10 2006-05-27 21:18:09 henridf Exp $
  * </pre>
  */
 
@@ -42,7 +42,6 @@
 
 configuration CC2420ActiveMessageC {
   provides {
-    interface Init;
     interface SplitControl;
     interface AMSend[am_id_t id];
     interface Receive[am_id_t id];
@@ -59,7 +58,6 @@ implementation {
   components CC2420CsmaC as Radio;
   components ActiveMessageAddressC as Address;
   
-  Init         = Radio;
   SplitControl = Radio;
   Packet       = AM;
 

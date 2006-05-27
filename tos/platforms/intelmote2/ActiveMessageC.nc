@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.2 2006-02-02 22:16:32 philipb Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.3 2006-05-27 21:18:09 henridf Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.2 2006-02-02 22:16:32 philipb Exp $
+ * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.3 2006-05-27 21:18:09 henridf Exp $
  *
  */
 
@@ -46,7 +46,6 @@
 
 configuration ActiveMessageC {
   provides {
-    interface Init;
     interface SplitControl;
 
     interface AMSend[uint8_t id];
@@ -61,7 +60,6 @@ configuration ActiveMessageC {
 implementation {
   components CC2420ActiveMessageC as AM;
   
-  Init         = AM;
   SplitControl = AM;
   
   AMSend       = AM;

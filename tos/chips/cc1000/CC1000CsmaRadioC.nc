@@ -1,4 +1,4 @@
-/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.18 2006-01-27 20:24:36 idgay Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.19 2006-05-27 21:18:09 henridf Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -51,7 +51,6 @@
 
 configuration CC1000CsmaRadioC {
   provides {
-    interface Init;
     interface SplitControl;
     interface Send;
     interface Receive;
@@ -73,10 +72,10 @@ implementation {
   components CC1000ControlP as Control;
   components HplCC1000C as Hpl;
 
-  components RandomC, new TimerMilliC(), ActiveMessageAddressC, BusyWaitMicroC;
+  components MainC, RandomC, new TimerMilliC(), ActiveMessageAddressC, BusyWaitMicroC;
 
-  Init = Csma;
-  Init = Squelch;
+  MainC.SoftwareInit -> Csma;
+  MainC.SoftwareInit -> Squelch;
 
   SplitControl = Csma;
   Send = SendReceive;

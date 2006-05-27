@@ -1,4 +1,4 @@
-// $Id: BaseStationC.nc,v 1.1.2.9 2006-02-04 01:10:32 philipb Exp $
+// $Id: BaseStationC.nc,v 1.1.2.10 2006-05-27 21:18:09 henridf Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -72,10 +72,6 @@ implementation {
   
   MainC.Boot <- BaseStationP;
 
-  MainC.SoftwareInit -> Radio;
-  
-  MainC.SoftwareInit -> Serial;
-  
   BaseStationP.RadioControl -> Radio;
   BaseStationP.SerialControl -> Serial;
   
