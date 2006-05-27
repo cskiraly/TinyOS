@@ -1,4 +1,4 @@
-// $Id: TestAMAppC.nc,v 1.1.2.3 2006-02-04 01:10:32 philipb Exp $
+// $Id: TestAMAppC.nc,v 1.1.2.4 2006-05-27 21:32:42 henridf Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -43,10 +43,7 @@ implementation {
   components MainC, TestAMC as App, LedsC;
   components ActiveMessageC;
   components new TimerMilliC();
-  
-  
-  MainC.SoftwareInit -> ActiveMessageC;
-  
+    
   App.Boot -> MainC.Boot;
 
   App.Receive -> ActiveMessageC.Receive[240];
