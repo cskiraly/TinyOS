@@ -1,4 +1,4 @@
-// $Id: TestTimerSyncAppC.nc,v 1.1.2.3 2006-02-04 01:10:33 philipb Exp $
+// $Id: TestTimerSyncAppC.nc,v 1.1.2.4 2006-05-27 21:32:42 henridf Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -52,8 +52,6 @@ implementation {
   components ActiveMessageC;
   components new TimerMilliC();
   components new AMSenderC(240), new AMReceiverC(240); 
-  
-  MainC.SoftwareInit -> ActiveMessageC;
   
   App.Boot -> MainC.Boot;
 
