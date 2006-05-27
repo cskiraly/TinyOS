@@ -38,7 +38,6 @@
 
 configuration CsmaMacC {
   provides {
-    interface Init;
     interface SplitControl;
     interface Send;
     interface Receive;
@@ -60,10 +59,10 @@ implementation {
               new TimerMilliC() as MinClearTimer,
               new TimerMilliC() as RxPacketTimer,
               new TimerMilliC() as BackoffTimer,
+              MainC,
               RandomLfsrC;
 
-    Init = CsmaMacP;
-    Init = Cca;
+    MainC.SoftwareInit -> CsmaMacP;
               
     SplitControl = CsmaMacP;
     

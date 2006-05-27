@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.5 2006-01-29 02:51:51 vlahan Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.6 2006-05-27 21:23:15 henridf Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.5 2006-01-29 02:51:51 vlahan Exp $
+ * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.6 2006-05-27 21:23:15 henridf Exp $
  *
  */
 
@@ -47,7 +47,6 @@
 
 configuration ActiveMessageC {
   provides {
-    interface Init;
     interface SplitControl;
 
     interface AMSend[uint8_t id];
@@ -63,7 +62,6 @@ configuration ActiveMessageC {
 implementation {
   components Tda5250ActiveMessageC as AM;
 
-  Init         = AM;
   SplitControl = AM;
   AMSend       = AM;
   Receive      = AM.Receive;

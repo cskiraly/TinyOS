@@ -36,7 +36,6 @@
 configuration RssiFixedThresholdCMC
 {
   provides {
-    interface Init;
         interface StdControl;
         interface ChannelMonitor;
         interface ChannelMonitorControl;
@@ -47,9 +46,10 @@ implementation
 {
     components RssiFixedThresholdCMP,
         RssiRefVoltC as Rssi,
+        MainC,
         new TimerMilliC() as Timer;
 
-    Init = RssiFixedThresholdCMP;
+    MainC.SoftwareInit -> RssiFixedThresholdCMP;
     StdControl = RssiFixedThresholdCMP;
     StdControl = Rssi;
 
