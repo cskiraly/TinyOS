@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.2 2006-01-27 20:24:16 idgay Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.3 2006-05-27 21:18:10 henridf Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -14,7 +14,6 @@
 
 module ActiveMessageC {
   provides {
-    interface Init;
     interface SplitControl;
 
     interface AMSend[uint8_t id];
@@ -28,9 +27,6 @@ module ActiveMessageC {
 }
 implementation {
 
-  command error_t Init.init() {
-    return SUCCESS;
-  }
 
   command error_t SplitControl.start() {
     return SUCCESS;

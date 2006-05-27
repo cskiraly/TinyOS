@@ -1,4 +1,4 @@
-// $Id: CC1000ActiveMessageC.nc,v 1.1.2.6 2006-01-27 18:46:00 idgay Exp $
+// $Id: CC1000ActiveMessageC.nc,v 1.1.2.7 2006-05-27 21:18:09 henridf Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -43,7 +43,6 @@
 
 configuration CC1000ActiveMessageC {
   provides {
-    interface Init;
     interface SplitControl;
     interface AMSend[am_id_t id];
     interface Receive[am_id_t id];
@@ -58,7 +57,6 @@ implementation {
   components CC1000ActiveMessageP as AM, CC1000CsmaRadioC as Radio;
   components ActiveMessageAddressC as Address;
   
-  Init         = Radio;
   SplitControl = Radio;
   Packet       = Radio;
   PacketAcknowledgements = Radio;
