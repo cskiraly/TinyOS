@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.1 2006-05-25 22:21:46 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.2 2006-05-30 21:36:58 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -26,7 +26,7 @@ module RandRWC {
     interface ConfigStorage;
     interface AMSend;
     interface SplitControl as SerialControl;
-    interface SplitControl as ConfigMount;
+    interface Mount as ConfigMount;
   }
 }
 implementation {
@@ -202,10 +202,10 @@ implementation {
 	return;
       }
 
-    call ConfigMount.start();
+    scheck(call ConfigMount.mount());
   }
 
-  event void ConfigMount.startDone(error_t e) {
+  event void ConfigMount.mountDone(error_t e) {
     if (e != SUCCESS)
       fail(e);
     else
@@ -278,5 +278,4 @@ implementation {
   }
 
   event void SerialControl.stopDone(error_t e) { }
-  event void ConfigMount.stopDone(error_t e) { }
 }
