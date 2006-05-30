@@ -25,7 +25,7 @@ interface At45dbVolume {
 
   /**
    * Find the flash volume size
-   * @return Flash volume size in bytes
+   * @return Flash volume size in pages
    */
-  command storage_len_t volumeSize();
+  command at45page_t volumeSize();
 }
