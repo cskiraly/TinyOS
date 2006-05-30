@@ -228,13 +228,6 @@ implementation
 	}
   }
 
-  void setupRequest(uint8_t newRequest, logstorage_t id,
-		    uint8_t *buf, storage_len_t length) {
-    s[id].request = newRequest;
-    s[id].buf = buf;
-    s[id].len = length;
-  }
-
   error_t newRequest(uint8_t newRequest, logstorage_t id, bool circular,
 		     uint8_t *buf, storage_len_t length) {
     if (s[id].request != R_IDLE)
@@ -245,7 +238,9 @@ implementation
       return FAIL;
     s[id].circular = circular;
 
-    setupRequest(newRequest, id, buf, length);
+    s[id].request = newRequest;
+    s[id].buf = buf;
+    s[id].len = length;
     call Resource.request[id]();
 
     return SUCCESS;
