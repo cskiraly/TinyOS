@@ -1,4 +1,4 @@
-/* $Id: RandRWAppC.nc,v 1.1.2.1 2006-05-25 22:21:46 idgay Exp $
+/* $Id: RandRWAppC.nc,v 1.1.2.2 2006-05-30 21:36:58 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -22,11 +22,10 @@ implementation {
     MainC, LedsC, PlatformC, SerialActiveMessageC;
 
   MainC.Boot <- RandRWC;
-  MainC.SoftwareInit -> SerialActiveMessageC;
 
   RandRWC.SerialControl -> SerialActiveMessageC;
   RandRWC.AMSend -> SerialActiveMessageC.AMSend[1];
   RandRWC.ConfigStorage -> ConfigStorageC.ConfigStorage;
-  RandRWC.ConfigMount -> ConfigStorageC.SplitControl;
+  RandRWC.ConfigMount -> ConfigStorageC.Mount;
   RandRWC.Leds -> LedsC;
 }
