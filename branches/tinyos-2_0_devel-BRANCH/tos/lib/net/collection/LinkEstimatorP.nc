@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.8 2006-05-26 00:25:55 scipio Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.9 2006-05-30 06:32:34 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -34,6 +34,7 @@
 
 module LinkEstimatorP {
   provides {
+    interface StdControl;
     interface AMSend as Send;
     interface Receive;
     interface LinkEstimator;
@@ -385,11 +386,22 @@ implementation {
     }
   }
 
+  command error_t StdControl.start() {
+    call Timer.startPeriodic(LINKEST_TIMER);
+    return SUCCESS;
+  }
+
+  // when stop is called, the timer is stopped
+  // this stops aging as well as outgoing beacons
+  command error_t StdControl.stop() {
+    call Timer.stop();
+    return SUCCESS;
+  }
+
   // initialize the link estimator
   command error_t Init.init() {
     dbg("LI", "Link estimator init\n");
     initNeighborTable();
-    call Timer.startPeriodic(LINKEST_TIMER);
     return SUCCESS;
   }
 
@@ -431,7 +443,6 @@ implementation {
       curBeaconInterval = 0;
       post sendLinkEstBeacon();
     }
-
   }
 
   // EETX (Extra Expected number of Transmission)
