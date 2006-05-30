@@ -43,7 +43,7 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  * @author David Gay
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-25 18:38:58 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-05-30 21:35:14 $
  */
 
 #include "Storage.h"
@@ -57,7 +57,11 @@ interface ConfigStorage {
    * @param addr starting address to begin reading.
    * @param buf buffer to place read data.
    * @param len number of bytes to read.
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EINVAL if the parameters are invalid
+   *   <li>EOFF if the volume has not been mounted
+   *   <li>EBUSY if a request is already being processed.
    */
   command error_t read(storage_addr_t addr, void* buf, storage_len_t len);
 
@@ -67,7 +71,8 @@ interface ConfigStorage {
    * @param addr starting address of read.
    * @param buf buffer where read data was placed.
    * @param len number of bytes read.
-   * @param error notification of how the operation went.
+   * @param error SUCCESS if the operation was successful, FAIL if
+   *   it failed
    */
   event void readDone(storage_addr_t addr, void* buf, storage_len_t len, 
 		      error_t error);
@@ -80,7 +85,11 @@ interface ConfigStorage {
    * @param addr starting address to begin write.
    * @param buf buffer to write data from.
    * @param len number of bytes to write.
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EINVAL if the parameters are invalid
+   *   <li>EOFF if the volume has not been mounted
+   *   <li>EBUSY if a request is already being processed.
    */
   command error_t write(storage_addr_t addr, void* buf, storage_len_t len);
 
@@ -92,7 +101,8 @@ interface ConfigStorage {
    * @param addr starting address of write.
    * @param buf buffer that written data was read from.
    * @param len number of bytes written.
-   * @param error notification of how the operation went.
+   * @param error SUCCESS if the operation was successful, FAIL if
+   *   it failed
    */
   event void writeDone(storage_addr_t addr, void* buf, storage_len_t len, 
 		       error_t error);
@@ -103,7 +113,10 @@ interface ConfigStorage {
    * stored in non-volatile storage. On SUCCES, the <code>commitDone</code>
    * event will signal completion of the operation.
    *
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EBUSY if a request is already being processed.
+   *   <li>EOFF if the volume has not been mounted
    */
   command error_t commit();
 
@@ -111,7 +124,18 @@ interface ConfigStorage {
    * Signals the completion of a commit operation. All written data is
    * flushed to non-volatile storage after this event.
    *
-   * @param error notification of how the operation went.
+   * @param error SUCCESS if the operation was successful, FAIL if
+   *   it failed
    */
   event void commitDone(error_t error);
+
+  /**
+   * Report the usable volume size in bytes (this may be significantly
+   * different from the actual volume size, e.g., it's approximately
+   * half the volume size on the AT45DB implementation).
+   *
+   * @return Volume size. The result is undefined if the volume hasn't
+   *    been mounted.
+   */
+  command storage_len_t getSize();
 }
