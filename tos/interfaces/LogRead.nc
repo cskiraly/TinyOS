@@ -43,7 +43,7 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  * @author David Gay
- * @version $Revision: 1.1.2.3 $ $Date: 2006-05-23 21:57:48 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-05-30 21:35:14 $
  */
 
 #include "Storage.h"
@@ -51,9 +51,9 @@
 interface LogRead {
   
   /**
-   * Initiate a read operation from the current position  within a given log volume. 
-   * On SUCCESS, the <code>readDone</code> event will signal completion of the
-   * operation.
+   * Initiate a read operation from the current position within a given log
+   * volume. On SUCCESS, the <code>readDone</code> event will signal
+   * completion of the operation.
    * 
    * @param buf buffer to place read data.
    * @param len number of bytes to read.
@@ -72,9 +72,36 @@ interface LogRead {
    */
   event void readDone(void* buf, storage_len_t len, error_t error);
 
-  command uint32_t currentOffset();
+  /**
+   * Return a "cookie" representing the current read offset within the
+   * log. This cookie can be used in a subsequent seek operation to
+   * return to the same place in the log (if it hasn't been overwritten)
+   * @return Cookie representing current offset. 
+   *   <code>SEEK_BEGINNING</code> will be returned if:
+   *   <li> a write in a circular log overwrote the previous read position
+   *   <li> seek was passed a cookie representing a position before the
+   *        current beginning of a circular log
+   */
+  command storage_cookie_t currentOffset();
 
-  command error_t seek(uint32_t offset);
+  /**
+   * Set the read position in the log, using a cookie returned by the
+   * <code>currentOffset</code> commands of <code>LogRead</code> or
+   * <code>LogWrite</code>, or the special value <code>SEEK_BEGINNING</code>.
+   *
+   * If the specified position has been overwritten, the read position
+   * will be set to the beginning of the log.
+   */
+  command error_t seek(storage_cookie_t offset);
+
+  /**
+   * Report success of seek operation. If <code>SUCCESS</code> is returned,
+   * the read position has been changed as requested. Otherwise, the read
+   * position is unchanged.
+   *
+   * @param error SUCCESS if the seek was succesful, EINVAL if the cookie
+   *   was invalid and FAIL for other errors.
+   */
   event void seekDone(error_t error);
   
   /**
@@ -84,5 +111,5 @@ interface LogRead {
    *
    * @return Volume size.
    */
-  //command storage_len_t getSize();
+  command storage_len_t getSize();
 }
