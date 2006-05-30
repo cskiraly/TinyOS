@@ -27,10 +27,10 @@ implementation {
       }
   }
 
-  command storage_len_t At45dbVolume.volumeSize[volume_id_t volid]() {
+  command at45page_t At45dbVolume.volumeSize[volume_id_t volid]() {
     switch (volid)
       {
-#define VS(id, size) case id: return (storage_addr_t)size << AT45_PAGE_SIZE_LOG2;
+#define VS(id, size) case id: return size;
 #include "StorageVolumes.h"
       default: return 0;
       }

@@ -1,4 +1,4 @@
-// $Id: BlockStorageP.nc,v 1.1.2.10 2006-05-25 22:57:19 idgay Exp $
+// $Id: BlockStorageP.nc,v 1.1.2.11 2006-05-30 21:36:27 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -90,7 +90,7 @@ implementation
   }
 
   event at45page_t BConfig.npages[blockstorage_t id]() {
-    return call At45dbVolume.volumeSize[id]() >> (AT45_PAGE_SIZE_LOG2 + 1);
+    return call At45dbVolume.volumeSize[id]() >> 1;
   }
 
   event at45page_t BConfig.remap[blockstorage_t id](at45page_t page) {
@@ -122,8 +122,14 @@ implementation
 
   error_t newRequest(uint8_t newState, blockstorage_t id,
 		       storage_addr_t addr, uint8_t* buf, storage_len_t len) {
+    storage_len_t vsize;
+
     if (state[id] != S_IDLE)
-      return FAIL;
+      return EBUSY;
+
+    vsize = call BlockRead.getSize[id]();
+    if (addr > vsize || len >= vsize - addr)
+      return EINVAL;
 
     setupRequest(newState, id, addr, buf, len);
 
@@ -300,7 +306,14 @@ implementation
   }
 
   command storage_len_t BlockRead.getSize[blockstorage_t blockId]() {
-    return call At45dbVolume.volumeSize[blockId]();
+    storage_len_t vsize;
+
+    if (call BConfig.isConfig[blockId]())
+      vsize = signal BConfig.npages[blockId]();
+    else
+      vsize = call At45dbVolume.volumeSize[blockId]();
+
+    return vsize << AT45_PAGE_SIZE_LOG2;
   }
 
   command error_t BlockRead.read[blockstorage_t id](storage_addr_t addr, void* buf, storage_len_t len) {
@@ -317,15 +330,9 @@ implementation
       {
 	uint32_t max = sig[2] | (uint32_t)sig[3] << 8 |
 	  (uint32_t)sig[4] << 16 | (uint32_t)sig[5] << 24;
-	storage_len_t vsize;
-
-	if (call BConfig.isConfig[client]())
-	  vsize = signal BConfig.npages[client]() << AT45_PAGE_SIZE_LOG2;
-	else
-	  vsize = call At45dbVolume.volumeSize[client]();
 
 	/* Ignore maxAddress values that are too large */
-	if (max <= vsize)
+	if (max <= call BlockRead.getSize[client]())
 	  {
 	    maxAddr[client] = max;
 	    setupRequest(S_VERIFY2, client, 0, NULL, max);
@@ -383,7 +390,7 @@ implementation
   default event void BlockRead.computeCrcDone[uint8_t id](storage_addr_t addr, storage_len_t len, uint16_t x, error_t result) { }
   
   default command at45page_t At45dbVolume.remap[blockstorage_t id](at45page_t volumePage) { return 0; }
-  default command storage_addr_t At45dbVolume.volumeSize[blockstorage_t id]() { return 0; }
+  default command at45page_t At45dbVolume.volumeSize[blockstorage_t id]() { return 0; }
   default async command error_t Resource.request[blockstorage_t id]() { return FAIL; }
   default async command void Resource.release[blockstorage_t id]() { }
 }

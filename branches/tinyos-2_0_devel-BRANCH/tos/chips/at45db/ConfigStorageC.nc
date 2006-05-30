@@ -1,4 +1,4 @@
-// $Id: ConfigStorageC.nc,v 1.1.2.3 2006-05-25 22:57:19 idgay Exp $
+// $Id: ConfigStorageC.nc,v 1.1.2.4 2006-05-30 21:36:27 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -20,7 +20,7 @@
 
 generic configuration ConfigStorageC(volume_id_t volid) {
   provides {
-    interface SplitControl;
+    interface Mount;
     interface ConfigStorage;
   }
 }
@@ -33,7 +33,7 @@ implementation {
   components ConfigStorageP, WireConfigStorageP, StorageManagerP, At45dbC;
   components BlockStorageP, WireBlockStorageP;
 
-  SplitControl = ConfigStorageP.SplitControl[CONFIG_ID];
+  Mount = ConfigStorageP.Mount[CONFIG_ID];
   ConfigStorage = ConfigStorageP.ConfigStorage[CONFIG_ID];
 
   BlockStorageP.At45dbVolume[CONFIG_ID] -> StorageManagerP.At45dbVolume[volid];

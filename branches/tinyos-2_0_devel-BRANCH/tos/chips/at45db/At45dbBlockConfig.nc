@@ -1,4 +1,4 @@
-// $Id: At45dbBlockConfig.nc,v 1.1.2.2 2006-05-25 22:57:19 idgay Exp $
+// $Id: At45dbBlockConfig.nc,v 1.1.2.3 2006-05-30 21:36:27 idgay Exp $
 
 /*									tab:4
  * Copyright (c) 2002-2006 Intel Corporation
@@ -23,11 +23,6 @@ interface At45dbBlockConfig {
    */
   command int isConfig();
 
-  /**
-   * Set which half of the block is used by the current config state
-   * @param flip TRUE for 2nd half, FALSE for 1st half
-   */
-  command void setFlip(bool flip);
   /**
    * Query which half of the block is used by the current config state
    * @return TRUE for 2nd half, FALSE for 1st half
