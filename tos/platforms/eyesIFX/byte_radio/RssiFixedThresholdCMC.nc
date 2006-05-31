@@ -36,7 +36,6 @@
 configuration RssiFixedThresholdCMC
 {
     provides {
-        interface Init;
         interface StdControl;
         interface ChannelMonitor;
         interface ChannelMonitorControl;
@@ -50,9 +49,10 @@ implementation
         new RssiSensorVccC() as Rssi,
         new BatteryLevelSensorC() as Voltage,
         PlatformLedsC,
-        new TimerMilliC() as Timer;
+        new TimerMilliC() as Timer,
+        MainC;
 
-    Init = RssiFixedThresholdCMP;
+    MainC.SoftwareInit -> RssiFixedThresholdCMP;
     StdControl = RssiFixedThresholdCMP;
 
     RssiFixedThresholdCMP.Rssi -> Rssi;

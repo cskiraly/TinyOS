@@ -38,7 +38,6 @@
 
 configuration CsmaMacC {
   provides {
-    interface Init;
     interface SplitControl;
     interface MacSend;
     interface MacReceive;
@@ -52,14 +51,14 @@ configuration CsmaMacC {
   }
 }
 implementation {
-  components  CsmaMacP,
+  components  MainC,
+              CsmaMacP,
               RssiFixedThresholdCMC as Cca,
               new Alarm32khzC() as MinClearTimer,
               new TimerMilliC() as BackoffTimer,
               RandomLfsrC;
 
-    Init = CsmaMacP;
-    Init = Cca;
+    MainC.SoftwareInit -> CsmaMacP;
               
     SplitControl = CsmaMacP;
     
