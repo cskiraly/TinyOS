@@ -34,13 +34,12 @@
  * TEP103.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.9 $ $Date: 2006-05-23 21:57:47 $
+ * @version $Revision: 1.1.2.10 $ $Date: 2006-05-31 14:56:56 $
  */
 
 #include "Storage.h"
 
 interface BlockWrite {
-  
   /**
    * Initiate a write operation within a given volume. On SUCCESS, the
    * <code>writeDone</code> event will signal completion of the
@@ -49,9 +48,12 @@ interface BlockWrite {
    * @param addr starting address to begin write.
    * @param buf buffer to write data from.
    * @param len number of bytes to write.
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EINVAL if the parameters are invalid
+   *   <li>EBUSY if a request is already being processed.
    */
-  command error_t write( storage_addr_t addr, void* buf, storage_len_t len );
+  command error_t write(storage_addr_t addr, void* buf, storage_len_t len);
 
   /**
    * Signals the completion of a write operation. However, data is not
@@ -61,26 +63,30 @@ interface BlockWrite {
    * @param addr starting address of write.
    * @param buf buffer that written data was read from.
    * @param len number of bytes written.
-   * @param error notification of how the operation went.
+   * @param error SUCCESS if the operation was successful, FAIL if
+   *   it failed
    */
-  event void writeDone( storage_addr_t addr, void* buf, storage_len_t len, 
-			error_t error );
+  event void writeDone(storage_addr_t addr, void* buf, storage_len_t len, 
+		       error_t error);
   
   /**
    * Initiate an erase operation. On SUCCESS, the
    * <code>eraseDone</code> event will signal completion of the
    * operation.
    *
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EBUSY if a request is already being processed.
    */
   command error_t erase();
   
   /**
    * Signals the completion of an erase operation.
    *
-   * @param error notification of how the operation went.
+   * @param error SUCCESS if the operation was successful, FAIL if
+   *   it failed
    */
-  event void eraseDone( error_t error );
+  event void eraseDone(error_t error);
 
   /**
    * Initiate a commit operation and finialize any additional writes
@@ -90,7 +96,9 @@ interface BlockWrite {
    * non-volatile storage. On SUCCES, the <code>commitDone</code>
    * event will signal completion of the operation.
    *
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EBUSY if a request is already being processed.
    */
   command error_t commit();
 
@@ -98,8 +106,8 @@ interface BlockWrite {
    * Signals the completion of a commit operation. All written data is
    * flushed to non-volatile storage after this event.
    *
-   * @param error notification of how the operation went.
+   * @param error SUCCESS if the operation was successful, FAIL if
+   *   it failed
    */
-  event void commitDone( error_t error );
-  
+  event void commitDone(error_t error);
 }

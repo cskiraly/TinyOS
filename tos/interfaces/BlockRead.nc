@@ -34,13 +34,12 @@
  * TEP103.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.10 $ $Date: 2006-05-30 21:35:14 $
+ * @version $Revision: 1.1.2.11 $ $Date: 2006-05-31 14:56:55 $
  */
 
 #include "Storage.h"
 
 interface BlockRead {
-  
   /**
    * Initiate a read operation within a given volume. On SUCCESS, the
    * <code>readDone</code> event will signal completion of the
@@ -49,9 +48,12 @@ interface BlockRead {
    * @param addr starting address to begin reading.
    * @param buf buffer to place read data.
    * @param len number of bytes to read.
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EINVAL if the parameters are invalid
+   *   <li>EBUSY if a request is already being processed.
    */
-  command error_t read( storage_addr_t addr, void* buf, storage_len_t len );
+  command error_t read(storage_addr_t addr, void* buf, storage_len_t len);
 
   /**
    * Signals the completion of a read operation.
@@ -59,10 +61,11 @@ interface BlockRead {
    * @param addr starting address of read.
    * @param buf buffer where read data was placed.
    * @param len number of bytes read.
-   * @param error notification of how the operation went.
+   * @param error SUCCESS if the operation was successful, FAIL if
+   *   it failed
    */
-  event void readDone( storage_addr_t addr, void* buf, storage_len_t len, 
-		       error_t error );
+  event void readDone(storage_addr_t addr, void* buf, storage_len_t len, 
+		      error_t error);
   
   /**
    * Initiate a verify operation to verify the integrity of the
@@ -71,16 +74,19 @@ interface BlockRead {
    * <code>verifyDone</code> event will signal completion of the
    * operation.
    *
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EBUSY if a request is already being processed.
    */
   command error_t verify();
   
   /**
    * Signals the completion of a verify operation.
    *
-   * @param error notification of how the operation went.
+   * @param error SUCCESS if the operation was successful, FAIL if
+   *   it failed
    */
-  event void verifyDone( error_t error );
+  event void verifyDone(error_t error);
   
   /**
    * Initiate a crc computation. On SUCCESS, the
@@ -89,9 +95,14 @@ interface BlockRead {
    *
    * @param addr starting address.
    * @param len the number of bytes to compute the crc over.
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @parm crc initial CRC value
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EINVAL if the parameters are invalid
+   *   <li>EBUSY if a request is already being processed.
    */
-  command error_t computeCrc( storage_addr_t addr, storage_len_t len );
+  command error_t computeCrc(storage_addr_t addr, storage_len_t len,
+			     uint16_t crc);
 
   /**
    * Signals the completion of a crc computation.
@@ -99,10 +110,11 @@ interface BlockRead {
    * @param addr stating address.
    * @param len number of bytes the crc was computed over.
    * @param crc the resulting crc value.
-   * @param error notification of how the operation went.
+   * @param error SUCCESS if the operation was successful, FAIL if
+   *   it failed
    */
-  event void computeCrcDone( storage_addr_t addr, storage_len_t len,
-			     uint16_t crc, error_t error );
+  event void computeCrcDone(storage_addr_t addr, storage_len_t len,
+			    uint16_t crc, error_t error);
 
   /**
    * Report the usable volume size in bytes (this may be different than
@@ -110,5 +122,4 @@ interface BlockRead {
    * @return Volume size.
    */
   command storage_len_t getSize();
-
 }
