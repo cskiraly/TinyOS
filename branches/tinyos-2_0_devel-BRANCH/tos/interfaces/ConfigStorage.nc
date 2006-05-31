@@ -43,7 +43,7 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  * @author David Gay
- * @version $Revision: 1.1.2.2 $ $Date: 2006-05-30 21:35:14 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-05-31 14:37:38 $
  */
 
 #include "Storage.h"
@@ -138,4 +138,12 @@ interface ConfigStorage {
    *    been mounted.
    */
   command storage_len_t getSize();
+
+  /**
+   * Report whether this config volume contains valid data. Committing
+   * a volume makes it valid.
+   *
+   * @return TRUE if the volume contains valid data, FALSE otherwise.
+   */
+  command bool valid();
 }
