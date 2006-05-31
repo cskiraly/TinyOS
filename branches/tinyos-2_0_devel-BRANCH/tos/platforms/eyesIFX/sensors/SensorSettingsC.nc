@@ -1,4 +1,4 @@
-/*
+/* -*- mode:c++ -*-
  * Copyright (c) 2006, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-31 18:53:36 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-05-31 13:53:03 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -43,76 +43,18 @@
 
 #include <sensors.h>
 module SensorSettingsC {
-  provides interface Msp430Adc12Config[uint8_t type];  
+    provides interface Msp430Adc12Config[uint8_t type];  
 }
 implementation
 {
-  async command msp430adc12_channel_config_t Msp430Adc12Config.getChannelSettings[uint8_t type]()
-  {
-    msp430adc12_channel_config_t defaultSettings = {INPUT_CHANNEL_NONE,0,0,0,0,0,0,0};
-    switch (type)
-    {
-      case PHOTO_SENSOR_LOW_FREQ:
-        {
-          msp430adc12_channel_config_t config = {
-                      INPUT_CHANNEL_A2, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
-                      SHT_SOURCE_ACLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
-                      SAMPCON_SOURCE_ACLK, SAMPCON_CLOCK_DIV_1 };
-          return config;
+    async command msp430adc12_channel_config_t Msp430Adc12Config.getChannelSettings[uint8_t type]() {
+        msp430adc12_channel_config_t config;
+        if(type < SENSOR_SENTINEL) {
+            config = sensorconfigurations[type];
+        } else {
+            config = sensorconfigurations[SENSOR_SENTINEL];
         }
-      case PHOTO_SENSOR_DEFAULT: // fall through
-      case PHOTO_SENSOR_HIGH_FREQ:
-        {
-          msp430adc12_channel_config_t config = {
-                      INPUT_CHANNEL_A2, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
-                      SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
-                      SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
-          return config;
-        }
-      case PHOTO_SENSOR_VCC:
-        {
-          msp430adc12_channel_config_t config = {
-                      INPUT_CHANNEL_A2, REFERENCE_AVcc_AVss, REFVOLT_LEVEL_NONE,
-                      SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
-                      SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
-          return config;
-        }        
-      case TEMP_SENSOR_LOW_FREQ:
-        {
-          msp430adc12_channel_config_t config = {
-                      INPUT_CHANNEL_A0, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
-                      SHT_SOURCE_ACLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
-                      SAMPCON_SOURCE_ACLK, SAMPCON_CLOCK_DIV_1 };
-          return config;
-        }
-      case TEMP_SENSOR_HIGH_FREQ: // fall through
-      case TEMP_SENSOR_DEFAULT:
-        {
-          msp430adc12_channel_config_t config = {
-                      INPUT_CHANNEL_A0, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
-                      SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
-                      SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
-          return config;
-        }
-      case RSSI_SENSOR_DEFAULT: // fall through
-      case RSSI_SENSOR_VCC:
-        {
-          msp430adc12_channel_config_t config = {
-                      INPUT_CHANNEL_A3, REFERENCE_AVcc_AVss, REFVOLT_LEVEL_NONE,
-                      SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
-                      SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
-          return config;
-        }
-      case RSSI_SENSOR_REF_1_5V:
-        {
-          msp430adc12_channel_config_t config = {
-                      INPUT_CHANNEL_A3, REFERENCE_VREFplus_AVss, REFVOLT_LEVEL_1_5,
-                      SHT_SOURCE_SMCLK, SHT_CLOCK_DIV_1, SAMPLE_HOLD_4_CYCLES,
-                      SAMPCON_SOURCE_SMCLK, SAMPCON_CLOCK_DIV_1 };
-          return config;
-        }
+        return config;
     }
-    return defaultSettings;
-  }
 }
 

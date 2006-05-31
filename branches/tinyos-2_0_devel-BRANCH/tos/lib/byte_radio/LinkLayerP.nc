@@ -51,7 +51,7 @@
 #include "radiopacketfunctions.h"
 #include "message.h"
 
-module LinkLayerControlP {
+module LinkLayerP {
     provides {
       interface Init;
       interface SplitControl;
@@ -62,18 +62,25 @@ module LinkLayerControlP {
     uses {
       interface SplitControl as MacSplitControl;
       interface SplitControl as RadioSplitControl;
-      interface Send as SendDown;
-      interface Receive as ReceiveLower;
+      interface MacSend as SendDown;
+      interface MacReceive as ReceiveLower;
+      interface Packet;
     }
 }
 implementation
 {
-// #define LLCM_DEBUG
-        
-    uint8_t seqNo;              // for later use ...
-    error_t splitStateError;    // state of SplitControl interfaces
+  /* Tx/Rx buffers & pointers */
+  message_t* txBufPtr;
+  message_t* rxBufPtr;
+  message_t  rxBuf;
+
+  /* packet vars */
+  uint8_t seqNo;              // for later use ...
     
+  /* state vars */
+  error_t splitStateError;    // state of SplitControl interfaces
     
+// #define LLCM_DEBUG  
     /**************** Helper functions ******/
     void signalFailure() {
 #ifdef LLCM_DEBUG
@@ -88,8 +95,10 @@ implementation
     /**************** Init  *****************/
     command error_t Init.init(){
         atomic {
-            seqNo = 0;
-            splitStateError = EOFF;
+          rxBufPtr = &rxBuf;
+          txBufPtr = 0;
+          seqNo = 0;
+          splitStateError = EOFF;
         }
         return SUCCESS;
     }
@@ -147,6 +156,22 @@ implementation
       return SUCCESS;
     }
     /**************** Send ****************/
+    task void SendDoneSuccessTask() {
+      message_t* txPtr;
+      atomic txPtr = txBufPtr;
+      signal Send.sendDone(txPtr, SUCCESS);
+    }
+    task void SendDoneCancelTask() {
+      message_t* txPtr;
+      atomic txPtr = txBufPtr;
+      signal Send.sendDone(txPtr, ECANCEL); 
+    }
+    task void SendDoneFailTask() {
+      message_t* txPtr;
+      atomic txPtr = txBufPtr;
+      signal Send.sendDone(txPtr, FAIL);
+    }
+    
     command error_t Send.send(message_t *msg, uint8_t len) {
       ++seqNo;  // where to put?
       return call SendDown.send(msg, len);
@@ -157,33 +182,52 @@ implementation
     }
     
     command uint8_t Send.maxPayloadLength() {
-      return call SendDown.maxPayloadLength();
+      return call Packet.maxPayloadLength();
     }
 
     command void* Send.getPayload(message_t* msg) {
-      return call SendDown.getPayload(msg);
+      return call Packet.getPayload(msg, (uint8_t*) (call Packet.payloadLength(msg)) );
     }
     
-    event void SendDown.sendDone(message_t* sent, error_t result) { 
+    async event void SendDown.sendDone(message_t* msg, error_t error) { 
         atomic {
-          getMetadata(sent)->ack = 1; // this is rather stupid
+          txBufPtr = msg;
+          getMetadata(msg)->ack = 1; // this is rather stupid
         }
-        signal Send.sendDone(sent, result);
+        if (error == SUCCESS) {
+          post SendDoneSuccessTask();
+        } else if (error == ECANCEL) {
+          post SendDoneCancelTask();
+        } else {
+          post SendDoneFailTask();
+        }
     }
     
     /*************** Receive ***************/
-
-    event message_t* ReceiveLower.receive(message_t* msg, void* payload, uint8_t len) {
-        msg = signal Receive.receive(msg, payload, len);
-        return msg;
+    task void ReceiveTask() {
+      void *payload;
+      uint8_t len;
+      atomic {
+        len = call Packet.payloadLength(rxBufPtr);
+        payload = call Packet.getPayload(rxBufPtr, &len);
+        signal Receive.receive(rxBufPtr, payload , len);
+      }
+    }
+    
+    async event message_t* ReceiveLower.receiveDone(message_t* msg) {
+      atomic {
+        rxBufPtr = msg;
+      }
+      post ReceiveTask();
+      return &rxBuf;
     }
     
     command void* Receive.getPayload(message_t* msg, uint8_t* len) {
-      return call ReceiveLower.getPayload(msg, len);
+      return call Packet.getPayload(msg, len);
     }
 
     command uint8_t Receive.payloadLength(message_t* msg) {
-      return call ReceiveLower.payloadLength(msg);
+      return call Packet.payloadLength(msg);
     }
 
     /*************** default events ***********/

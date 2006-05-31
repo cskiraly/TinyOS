@@ -28,8 +28,8 @@
  *
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-03-08 16:51:01 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-05-31 13:53:02 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -70,8 +70,7 @@ implementation {
    }
 
    async command bool Resource.isOwner() {
-//     return call SpiResource.isOwner();
-       return FALSE;
+     return call SpiResource.isOwner();
    }
 
    async command void Resource.release() {
@@ -84,6 +83,7 @@ implementation {
 
    async command error_t Tda5250RegComm.writeByte(uint8_t address, uint8_t data) {
      uint8_t rxbyte;
+     // FIXME: nobody seems to care in HplTda5250Config if call is not successfull, so why should we care here....
 //     if(call SpiResource.isOwner() == FALSE) {
 //       return FAIL;
 //     }
@@ -93,8 +93,9 @@ implementation {
    }
    async command error_t Tda5250RegComm.writeWord(uint8_t address, uint16_t data) {
       uint8_t rxbyte;
-//      if(call SpiResource.isOwner() == FALSE)
-//        return FAIL;
+      // FIXME: nobody seems to care in HplTda5250Config if call is not successfull, so why should we care here....
+      // if(call SpiResource.isOwner() == FALSE)
+      //   return FAIL;
       call SpiByte.write(address, &rxbyte);
       call SpiByte.write(((uint8_t) (data >> 8)),&rxbyte);
       call SpiByte.write(((uint8_t) data),&rxbyte);
@@ -103,8 +104,8 @@ implementation {
 
    async command uint8_t Tda5250RegComm.readByte(uint8_t address){
       uint8_t rxbyte;
-//      if(call SpiResource.isOwner() == FALSE)
-//        return 0x00;
+      if(call SpiResource.isOwner() == FALSE)
+        return 0x00;
       call SpiByte.write(address, &rxbyte);
 
       // FIXME: Put SIMO/SOMI in input

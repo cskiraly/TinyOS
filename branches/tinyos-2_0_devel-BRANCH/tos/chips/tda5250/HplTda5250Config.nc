@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-03-08 18:01:54 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-05-31 13:53:02 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -483,28 +483,6 @@ interface HplTda5250Config {
    * Switches the radio to SleepMode when in SLAVE_MODE
    */
    async command void SetSleepMode();
-
-   /**
-   * Signals that the radio is switched to TxMode.
-   */
-   async event void SetTxModeDone();
-   
-   /**
-   * Signals that the radio is switched to RxMode.
-   */
-   async event void SetRxModeDone();
-   
-   /**
-   * Signals that the radio is switched to SleepMode.
-   */
-   async event void SetSleepModeDone();
-
-
-   /**
-   *  Signals that the RSSI level is stable after
-   *  being switched into Rx Mode.
-   */
-   async event void RSSIStable();
 
    /**
    * Notification of interrupt when in

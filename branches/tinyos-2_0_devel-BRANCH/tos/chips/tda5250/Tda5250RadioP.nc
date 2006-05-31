@@ -27,11 +27,14 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.4 $
-* $Date: 2006-03-08 18:01:55 $
+* $Revision: 1.1.2.5 $
+* $Date: 2006-05-31 13:53:02 $
 * @author: Kevin Klues (klues@tkn.tu-berlin.de)
 * ========================================================================
 */
+
+#include "tda5250Const.h"
+
 
 /*
  * Controlling the Tda5250
@@ -52,15 +55,22 @@ module Tda5250RadioP {
     interface HplTda5250Config;
     interface HplTda5250Data;
     interface Resource as ConfigResource;
-    // FIXME: Hier ResourceController (high priority client)
     interface Resource as DataResource;
+    interface Alarm<T32khz, uint16_t> as DelayTimer;
   }
 }
 
 implementation {
-  radioMode_t radioMode;  // Current Mode of the Radio
-      float onTime, offTime;
-      bool ccaMode;
+  
+  typedef enum {
+    TRANSMITTER_DELAY,
+    RECEIVER_DELAY,
+    RSSISTABLE_DELAY
+  } delayTimer_t;
+  
+  delayTimer_t delayTimer;  // current Mode of the Timer (RssiStable, TxSetupTime, RxSetupTime)
+  radioMode_t radioMode;    // Current Mode of the Radio
+  float onTime, offTime;
 
       /**************** Radio Init *****************/
       command error_t Init.init() {
@@ -104,7 +114,6 @@ implementation {
           case RADIO_MODE_OFF_TRANSITION:
           case RADIO_MODE_TX_TRANSITION:
           case RADIO_MODE_RX_TRANSITION:
-          case RADIO_MODE_CCA_TRANSITION:
           case RADIO_MODE_TIMER_TRANSITION:
           case RADIO_MODE_SELF_POLLING_TRANSITION:
           case RADIO_MODE_SLEEP_TRANSITION:
@@ -113,14 +122,6 @@ implementation {
             return FALSE;
         }
       }
-
-  /*
-      event void ConfigResource.requested() {
-}
-
-      event void DataResource.requested() {
-}
-  */
 
       void switchConfigResource() {
         radioMode_t mode;
@@ -143,19 +144,26 @@ implementation {
             atomic radioMode = RADIO_MODE_OFF;
             post stopDoneTask();
             break;
+          case RADIO_MODE_SLEEP_TRANSITION:
+            call HplTda5250Config.SetSlaveMode();
+            call HplTda5250Config.SetSleepMode();
+            call HplTda5250Data.disableTx();
+            call HplTda5250Data.disableRx();
+            call DataResource.release();
+            atomic radioMode = RADIO_MODE_SLEEP;
+            signal Tda5250Control.SleepModeDone();
+            break;
           case RADIO_MODE_TX_TRANSITION:
             call HplTda5250Config.SetSlaveMode();
             call HplTda5250Config.SetTxMode();
+            atomic delayTimer = TRANSMITTER_DELAY;
+            call DelayTimer.start(TDA5250_TRANSMITTER_SETUP_TIME);
             break;
           case RADIO_MODE_RX_TRANSITION:
             call HplTda5250Config.SetSlaveMode();
-            atomic ccaMode = FALSE;
             call HplTda5250Config.SetRxMode();
-            break;
-          case RADIO_MODE_CCA_TRANSITION:
-            call HplTda5250Config.SetSlaveMode();
-            atomic ccaMode = TRUE;
-            call HplTda5250Config.SetRxMode();
+            atomic delayTimer = RECEIVER_DELAY;
+            call DelayTimer.start(TDA5250_RECEIVER_SETUP_TIME);
             break;
           case RADIO_MODE_TIMER_TRANSITION:
             call HplTda5250Config.SetTimerMode(onTime, offTime);
@@ -282,13 +290,20 @@ implementation {
       }
 
       async command error_t Tda5250Control.SleepMode() {
-        atomic {
+        radioMode_t mode;
+        atomic{
+          mode = radioMode;
           if(radioBusy() == FALSE) {
-            radioMode = RADIO_MODE_SLEEP_TRANSITION;
+            mode = radioMode = RADIO_MODE_SLEEP_TRANSITION;
           }
         }
-        if(radioMode == RADIO_MODE_SLEEP_TRANSITION) {
-          call HplTda5250Config.SetSleepMode();
+        if(mode == RADIO_MODE_SLEEP_TRANSITION) {
+          call DataResource.release();
+          if (call ConfigResource.immediateRequest() == SUCCESS) {
+            switchConfigResource();
+          } else {
+            call ConfigResource.request();
+          }
           return SUCCESS;
         }
         return FAIL;
@@ -333,26 +348,6 @@ implementation {
         return FAIL;
       }
 
-      async command error_t Tda5250Control.CCAMode() {
-        radioMode_t mode;
-        atomic {
-          if(radioBusy() == FALSE) {
-            radioMode = RADIO_MODE_CCA_TRANSITION;
-          }
-          mode = radioMode;
-        }
-        if(mode == RADIO_MODE_CCA_TRANSITION) {
-          call DataResource.release();
-          if (call ConfigResource.immediateRequest() == SUCCESS) {
-            switchConfigResource();
-          } else {
-            call ConfigResource.request();
-          }
-          return SUCCESS;
-        }
-        return FAIL;
-      }
-
       async event void HplTda5250Data.txReady() {
         signal RadioByteComm.txByteReady(SUCCESS);
       }
@@ -360,38 +355,6 @@ implementation {
         signal RadioByteComm.rxByteReady(data);
       }
 
-      async event void HplTda5250Config.SetTxModeDone() {
-        call ConfigResource.release();
-        if (call DataResource.immediateRequest() == SUCCESS) {
-          switchDataResource();
-        } else {
-          call DataResource.request();
-        }
-      }
-
-      async event void HplTda5250Config.SetRxModeDone() {
-        call ConfigResource.release();
-        if (call DataResource.immediateRequest() == SUCCESS) {
-          switchDataResource();
-        } else {
-          call DataResource.request();
-        }
-      }
-      
-      async event void HplTda5250Config.SetSleepModeDone() {
-        call HplTda5250Data.disableTx();
-        call HplTda5250Data.disableRx();
-        call DataResource.release();
-        atomic radioMode = RADIO_MODE_SLEEP;
-        signal Tda5250Control.SleepModeDone();
-      }
-
-      async event void HplTda5250Config.RSSIStable() {
-        if(ccaMode == TRUE) {
-          radioMode = RADIO_MODE_CCA;
-          signal Tda5250Control.CCAModeDone();
-        }
-      }
       async event void HplTda5250Config.PWDDDInterrupt() {
         signal Tda5250Control.PWDDDInterrupt();
       }
@@ -406,6 +369,35 @@ implementation {
       async command bool RadioByteComm.isTxDone() {
         return call HplTda5250Data.isTxDone();
       }
+      
+      /* Generate events (these are no interrupts */
+      async event void DelayTimer.fired() {
+        delayTimer_t delay;
+        atomic { delay = delayTimer; }
+        switch (delay) {
+          case RSSISTABLE_DELAY :
+            signal Tda5250Control.RssiStable();
+            break;
+          case RECEIVER_DELAY :
+            delayTimer = RSSISTABLE_DELAY;
+            call DelayTimer.start(TDA5250_RSSI_STABLE_TIME-TDA5250_RECEIVER_SETUP_TIME);
+            call ConfigResource.release();
+            if (call DataResource.immediateRequest() == SUCCESS) {
+              switchDataResource();
+            } else {
+              call DataResource.request();
+            }
+            break;
+          case TRANSMITTER_DELAY :
+            call ConfigResource.release();
+            if (call DataResource.immediateRequest() == SUCCESS) {
+              switchDataResource();
+            } else {
+              call DataResource.request();
+            }
+            break;
+        }
+      }
 
       default async event void Tda5250Control.TimerModeDone(){
       }
@@ -416,8 +408,6 @@ implementation {
       default async event void Tda5250Control.TxModeDone(){
       }
       default async event void Tda5250Control.SleepModeDone(){
-      }
-      default async event void Tda5250Control.CCAModeDone(){
       }
       default async event void Tda5250Control.PWDDDInterrupt() {
       }

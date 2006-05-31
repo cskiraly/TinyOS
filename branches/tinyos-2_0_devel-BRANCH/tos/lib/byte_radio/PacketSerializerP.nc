@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-03-29 18:03:09 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-05-31 13:53:03 $
  * ========================================================================
  */
 
@@ -46,9 +46,10 @@
 module PacketSerializerP {
   provides {
     interface Init;
-    interface AsyncSend;
-    interface Receive;
+    interface PhySend;
+    interface PhyReceive;
     interface Packet;
+    interface RadioTimeStamping;
   }
   uses {
     interface RadioByteComm;
@@ -64,41 +65,37 @@ implementation {
     STATE_CRC_DONE,
   } crcState_t;
 
-  uint8_t *txBufPtr;    // pointer to tx buffer
-  uint8_t *rxBufPtr;    // pointer to rx buffer
+  message_t *txBufPtr;    // pointer to tx buffer
+  message_t *rxBufPtr;    // pointer to rx buffer
   message_t rxMsg;      // rx message buffer
-  norace uint16_t byteCnt;     // index into current datapacket
-  norace uint16_t crc;         // CRC value of either the current incoming or outgoing packet
+      uint16_t pSize;
+  uint16_t byteCnt;     // index into current datapacket
+  uint16_t crc;         // CRC value of either the current incoming or outgoing packet
   crcState_t crcState;  // CRC state
-
+  
   /* Local Function Declarations */
   void TransmitNextByte();
   void ReceiveNextByte(uint8_t data);
 
-  /* Task Declarations  */
-  task void ReceiveTask() {
-    message_radio_header_t* header = getHeader((message_t*)(&rxMsg));
-    signal Receive.receive((message_t*)rxBufPtr, ((message_t*)rxBufPtr)->data, header->length);
-    call PhyPacketRx.recvHeader();
-  }
   
   /* Radio Init  */
   command error_t Init.init(){
     atomic {
       crc = 0;
       txBufPtr = NULL;
-      rxBufPtr = (uint8_t*)(&rxMsg);
+      rxBufPtr = &rxMsg;
       byteCnt = 0;
+      pSize = 0;
     }
     return SUCCESS;
   }
 
   /*- Radio Send */
-  async command error_t AsyncSend.send(message_t* msg, uint8_t len) {
+  async command error_t PhySend.send(message_t* msg, uint8_t len) {
     message_radio_header_t* header = getHeader(msg);
     atomic {
       crc = 0;
-      txBufPtr = (uint8_t*) msg;
+      txBufPtr = msg;
       header->length = len;
       // message_header_t can contain more than only the message_radio_header_t
       byteCnt = (sizeof(message_header_t) - sizeof(message_radio_header_t)); // offset
@@ -106,19 +103,18 @@ implementation {
     call PhyPacketTx.sendHeader();
     return SUCCESS;
   }
-
-  async event void PhyPacketTx.sendHeaderDone(error_t error) {
-    if(error == SUCCESS)
-      TransmitNextByte();
-    else 
-      signal AsyncSend.sendDone((message_t*)txBufPtr, FAIL);
+  
+  async event void PhyPacketTx.sendHeaderDone() {
+    signal RadioTimeStamping.transmittedSFD(0, (message_t*)txBufPtr); 
+    TransmitNextByte();
   }
 
   async event void RadioByteComm.txByteReady(error_t error) {
-    if(error == SUCCESS)
+    if(error == SUCCESS) {
       TransmitNextByte();
-    else 
-      signal AsyncSend.sendDone((message_t*)txBufPtr, FAIL);
+    } else {
+      signal PhySend.sendDone((message_t*)txBufPtr, FAIL);
+    }
   }
 
   void TransmitNextByte() {
@@ -127,9 +123,9 @@ implementation {
     if (byteCnt < header->length + sizeof(message_header_t) ) {  // send (data + header), compute crc
       atomic {
         crcState = STATE_CRC1;
-        crc = crcByte(crc, txBufPtr[byteCnt]);
+        crc = crcByte(crc, ((uint8_t *)(txBufPtr))[byteCnt]);
       }
-      call RadioByteComm.txByte(txBufPtr[byteCnt++]);
+      call RadioByteComm.txByte(((uint8_t *)(txBufPtr))[byteCnt++]);
     } else {  // send crc
       atomic state = crcState;
       switch(state) {
@@ -142,7 +138,7 @@ implementation {
         call RadioByteComm.txByte((uint8_t)(crc));
         break;
       case STATE_CRC_DONE:
-        call PhyPacketTx.sendFooter();  // no footer @ this time
+        call PhyPacketTx.sendFooter();  
         break;
       default:
         break;
@@ -150,35 +146,39 @@ implementation {
     }
   }
 
-  async event void PhyPacketTx.sendFooterDone(error_t error) {
-    if(error == SUCCESS) {
-      signal AsyncSend.sendDone((message_t*)txBufPtr, SUCCESS);
-    }
-    else   
-      signal AsyncSend.sendDone((message_t*)txBufPtr, FAIL);
+  async event void PhyPacketTx.sendFooterDone() {
+    signal PhySend.sendDone((message_t*)txBufPtr, SUCCESS);
   }
-
-
-  /* Radio Receive */
-  async event void PhyPacketRx.recvHeaderDone() {
-    byteCnt = (sizeof(message_header_t) - sizeof(message_radio_header_t));
-    getHeader(&rxMsg)->length = sizeof(message_radio_header_t); 
+  
+  /* Radio Receive */ 
+  async event void PhyPacketRx.recvHeaderDone(error_t error) {
+    if (error == SUCCESS) {
+      byteCnt = (sizeof(message_header_t) - sizeof(message_radio_header_t));
+      getHeader(rxBufPtr)->length = sizeof(message_radio_header_t); 
+      signal PhyReceive.receiveDetected();
+      signal RadioTimeStamping.receivedSFD(0);
+    }
   }
 
   async event void RadioByteComm.rxByteReady(uint8_t data) {
     ReceiveNextByte(data);
   }
 
-  async event void PhyPacketRx.recvFooterDone(bool error) {
-    post ReceiveTask();
+  async event void PhyPacketRx.recvFooterDone(error_t error) {
+    message_radio_header_t* header = getHeader((message_t*)(rxBufPtr));
+    rxBufPtr = signal PhyReceive.receiveDone((message_t*)rxBufPtr, ((message_t*)rxBufPtr)->data, header->length, error);
   }
 
   /* Receive the next Byte from the USART */
-  void ReceiveNextByte(uint8_t data) { //ReceiveNextPayload
-    rxBufPtr[byteCnt++] = data;
-    if ( byteCnt < (getHeader(&rxMsg)->length + sizeof(message_radio_header_t)) ) {
+  void ReceiveNextByte(uint8_t data) { 
+    ((uint8_t *)(rxBufPtr))[byteCnt++] = data;
+    pSize = getHeader(rxBufPtr)->length + sizeof(message_radio_header_t);
+    if ( byteCnt < pSize ) {
       crc = crcByte(crc, data);
-    } else if ( byteCnt == (getHeader(&rxMsg)->length + sizeof(message_radio_header_t) + sizeof(message_radio_footer_t)) ) {
+      if (getHeader(rxBufPtr)->length > TOSH_DATA_LENGTH) { 
+        getHeader(rxBufPtr)->length = TOSH_DATA_LENGTH;   // this packet is surely corrupt
+      }
+    } else if ( byteCnt == (getHeader(rxBufPtr)->length + sizeof(message_radio_header_t) + sizeof(message_radio_footer_t)) ) {
       message_radio_footer_t* footer = getFooter((message_t*)rxBufPtr);
       // we don't care about wrong crc in this layer
       footer->crc = (footer->crc == crc);
@@ -186,17 +186,7 @@ implementation {
     }
   }
 
-  command void* Receive.getPayload(message_t* msg, uint8_t* len) {
-    if (len != NULL) {
-      *len = (getHeader(msg))->length;
-    }
-    return (void*)msg->data;
-  }
-
-  command uint8_t Receive.payloadLength(message_t* msg) {
-    return (getHeader(msg))->length;
-  }
-
+  
   /* Packet interface */
       
   command void Packet.clear(message_t* msg) {
@@ -220,4 +210,9 @@ implementation {
     }
     return (void*)msg->data;
   }
+  
+  // Default events for radio send/receive coordinators do nothing.
+  // Be very careful using these, or you'll break the stack.
+  default async event void RadioTimeStamping.transmittedSFD(uint16_t time, message_t* msgBuff) { }
+  default async event void RadioTimeStamping.receivedSFD(uint16_t time) { }
 }

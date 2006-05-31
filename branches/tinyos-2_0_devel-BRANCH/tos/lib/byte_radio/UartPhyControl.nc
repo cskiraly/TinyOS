@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Technische Universitaet Berlin
+ * Copyright (c) 2006, Technische Universitaet Berlin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,41 +26,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-05-31 13:53:03 $
- * ========================================================================
  */
-
-/**
- * Physical Packet Transmission Interface.
- * Commands and event provided by the Physical Layer
- * to communicate with upper layers about the status of a 
- * packet that is being transmitted.
- *
- * @author Kevin Klues <klues@tkn.tu-berlin.de)>
- */  
  
-interface PhyPacketTx {
-  /**
-  * Start sending a new packet header. 
-  */
-  async command void sendHeader();
+/**
+ * PhyUart Control Interface
+ * Commands to control the strucutre of the transmitted (physical) packet.
+ *
+ * @author Philipp Huppertz (huppertz@tkn.tu-berlin.de)
+ */ 
+interface UartPhyControl {
   
   /**
-  * Notification that the packet header was sent.
+  * Sets the number of transmitted preamble bytes.
   *
-  */
-  async event void sendHeaderDone();
-  
-  /**
-  * Start sending the packet footer.
-  */
-  async command void sendFooter();
-  
-  /**
-  * Notification that the the packet footer was sent.
+  * @param numPreambleBytes the numbeof preamble bytes.
   *
+  * @return SUCCESS if it could be set (no current receiving/transmitting)
+            FALSE otherwise
   */
-  async event void sendFooterDone();  
+  command error_t setNumPreambles(uint16_t numPreambleBytes);
+    
+  /*
+  * Sets the timeout after the byte-stream is considered dead if no more
+  * bytes occur on the sending or receiving side. This means isBusy()
+  * returns FALSE.
+  *
+  * @param byteTimeout
+  *
+  * @return SUCCESS if it could be set (no current receiving/transmitting)
+  *         FALSE otherwise
+  */
+  command error_t setByteTimeout(uint8_t byteTimeout);
+  
+  /** 
+  * Tests if the UartPhy is busy with sending or receiving a packet. 
+  *
+  * @return TRUE if active
+  *         FALSE otherwise.
+  */
+  async command bool isBusy();
+
 }

@@ -25,28 +25,45 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
  
  /**
- * Interface to RSSI measurement in SI unit mV
+ * Configuration for the fixed Rssi Threshold module.
  *
- * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
- */	
-interface RssimV {
-  /**
-   * Start reading the Rssi value in mV.
-   * 
-   * @returns SUCCESS on success
-   *          FAIL otherwise.
-  */
-  command error_t getData();
-  
-  /**
-   * Indicates that the Rssi data has been read.
-   *
-   * @param data - Rssi in mV
-   * @return SUCCESS on success
-   *         FAIL otherwise.
-  */
-  async event error_t dataReady(uint16_t data);
+ * @author: Kevin Klues (klues@tkn.tu-berlin.de)
+ */
+configuration RssiFixedThresholdCMC
+{
+    provides {
+        interface Init;
+        interface StdControl;
+        interface ChannelMonitor;
+        interface ChannelMonitorControl;
+        interface ChannelMonitorData;
+        interface BatteryLevel;
+    }    
+}
+implementation
+{
+    components RssiFixedThresholdCMP,
+        new RssiSensorVccC() as Rssi,
+        new BatteryLevelSensorC() as Voltage,
+        PlatformLedsC,
+        new TimerMilliC() as Timer;
+
+    Init = RssiFixedThresholdCMP;
+    StdControl = RssiFixedThresholdCMP;
+
+    RssiFixedThresholdCMP.Rssi -> Rssi;
+    // RssiFixedThresholdCMP.RssiAdcResource -> Rssi;
+
+    RssiFixedThresholdCMP.Voltage -> Voltage;
+
+    ChannelMonitor = RssiFixedThresholdCMP;
+    ChannelMonitorControl = RssiFixedThresholdCMP;
+    ChannelMonitorData = RssiFixedThresholdCMP;
+    BatteryLevel = RssiFixedThresholdCMP;
+    RssiFixedThresholdCMP.Led3 -> PlatformLedsC.Led3;
+    RssiFixedThresholdCMP.Timer -> Timer;    
 }

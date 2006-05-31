@@ -1,4 +1,4 @@
-/* 
+/* -*- mode:c++; indent-tabs-mode: nil -*-
  * Copyright (c) 2004-2006, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -27,10 +27,11 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-03-29 18:03:09 $
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-05-31 13:53:03 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
+ * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
  * ========================================================================
  */
 
@@ -42,14 +43,21 @@ module RssiFixedThresholdCMP {
       interface ChannelMonitor;
       interface ChannelMonitorControl;
       interface ChannelMonitorData;
+      interface BatteryLevel;
+
     }
     uses {     
-        interface RssimV;
+        // interface ReadNow<uint16_t> as Rssi;
+        interface Read<uint16_t> as Rssi;
+        interface Read<uint16_t> as Voltage;
         interface Timer<TMilli> as Timer;
+        // interface Resource as RssiAdcResource;
+        interface GeneralIO as Led3;
     }
 }
 implementation
-{
+{    /* Measure internal voltage every 5s */
+#define VOLTAGE_SAMPLE_INTERVALL 50
 
     /* 
      * Number of samples for noisefloor estimation
@@ -70,17 +78,21 @@ implementation
      * been measured as noise floor. It is also not stable, depending
      * on the placement of the node (USB cable shielding!) 
      */
-#define NOISE_FLOOR 350
-
-#define DELTA 93
+#define NOISE_FLOOR 480 // raw value compared to 3V
 
     // mu + 3*sigma -> rare event, outlier? 
-#define THREE_SIGMA          105    
+#define THREE_SIGMA          145
+
+    // 93 mV measured against 3V Vcc 
+#define INITIAL_BUSY_DELTA   127
+    
+    // 3000/2 mV measured against 2.5V Ref
+#define INITIAL_BATTERY_LEVEL 2457 
 
     /*** calibration stuff *************************/
-#define UPDATE_NF_RUNS   50
+#define UPDATE_NF_RUNS   10
 #define MINIMUM_POSITION 0
-#define TIMER_INTERVAL   20 // it makes no sense to check the channel too often
+#define RSSI_SAMPLE_INTERVALL   20 // it makes no sense to check the channel too often
 
     /*** variable type definitions ******************/
     typedef enum {
@@ -95,93 +107,166 @@ implementation
     state_t state;       // what we try to do
     int16_t gradient;    // how to convert mV to dB in mV/dB
 
-    uint16_t noisefloor; // [mV]
-
+    uint16_t noisefloor;       // [raw value against Vcc]
+    uint16_t batteryLevel;     // [raw value against 2.5V ref]
+    
+    /* if the rssi value exceeds noisefloor + busyDelta
+     * the channel is busy
+     */
+    uint16_t busyDelta;    // [raw value against Vcc]
+    
     // noise floor estimation
-    int16_t rssisamples[NSAMPLES];
+    uint16_t rssisamples[NSAMPLES];
     uint8_t rssiindex;
 
     // deadlock protection counter
     uint8_t deadlockCounter;
 
     // last rssi reading
-    int16_t rssi;           // rssi in [mV]
-        /* Helper function */
-        void signalFailure() {
-          atomic {
-            for(;;) { ;};
-          }
-        }
+    uint16_t rssi;           // rssi in [mV]
+    
     /****************  Tasks  *******************/
+    task void RssiReadTask();
     task void UpdateNoiseFloorTask();
     task void GetChannelStateTask();
     task void SnrReadyTask();
     task void CalibrateNoiseFloorTask();
     task void GetSnrTask();
     task void CalibrateTask();
+    task void GetVoltageTask();
     error_t ccaCheckValue();
 
     /***************** Helper function *************/
     int16_t computeSNR() {
-        int16_t delta = rssi - noisefloor;
-        delta = delta/(int16_t)gradient;
-        if(delta < 0) delta = 0;
-        return delta;
+        uint32_t delta;
+        uint16_t snr;
+        uint16_t r;
+        atomic r = rssi;
+        if(r > noisefloor) {
+             delta = r - noisefloor;
+             // speedily cacluate
+             // (2*batteryLevel*2500mV*delta)/(4095*4095*gradient)
+             snr = ((((uint32_t)batteryLevel*39)>>5)*delta>>12)/gradient;
+        } else {
+            snr = 0;
+        }
+        return snr;
     }
-
-    /**************** StdControl *******************/
+    void signalFailure() {
+      atomic {
+        for(;;) {
+          ;
+        }
+      }
+    }
+    /**************** Init *******************/
     command error_t Init.init() {
         atomic {
             noisefloor = NOISE_FLOOR;
             rssiindex = 0;
+            batteryLevel = INITIAL_BATTERY_LEVEL;
+            busyDelta = INITIAL_BUSY_DELTA;
             state = VOID;
             gradient = 14; // gradient of TDA5250
+            call Led3.makeOutput(); 
+            call Led3.clr();
         }
         return SUCCESS;
     }
-   
+    
+    /**************** StdControl *******************/   
     command error_t StdControl.start() { 
-        return SUCCESS;
+        return post GetVoltageTask();
     }
    
     command error_t StdControl.stop() {
-      call Timer.stop();  
-      return SUCCESS;
+        call Timer.stop();
+        return SUCCESS;
     }
      
     /**************** RSSI *******************/
+    void rssiRead() {
+        // if(call Rssi.read() != SUCCESS) post RssiReadTask();
+        if(call Rssi.read() != SUCCESS) signalFailure();
+        call Led3.clr();
+    }
 
-    async event error_t RssimV.dataReady(uint16_t data) {
-        error_t res = SUCCESS;
-        atomic {
+    task void RssiReadTask() {
+        rssiRead();
+    }
+    
+    /*event void RssiAdcResource.granted() {
+        rssiRead();
+    }
+    */
+    
+     event void Rssi.readDone(error_t result, uint16_t data) {
+        if(result == SUCCESS) {
+            call Led3.set();
+            // call RssiAdcResource.release();
             rssi = data;
-            if(data < 200) signalFailure();
-            switch(state) 
-            {
+            switch(state) {
                 case CCA:
-                    res = ccaCheckValue();
+                    ccaCheckValue();
                     break;
                 case SNR:
-                    res = post SnrReadyTask();    
+                    post SnrReadyTask();    
                     break;
                 case CALIBRATE:
-                    res = post CalibrateNoiseFloorTask();    
+                    post CalibrateNoiseFloorTask();    
                     break;
                 default:
                     break;
             }
+        } else {
+            rssiRead();
         }
-        return res;
+    }
+    
+
+    /**************** Voltage *******************/
+    void readVoltage() {
+        if(call Voltage.read() != SUCCESS) post GetVoltageTask();
+    }
+    
+    task void GetVoltageTask() {
+        readVoltage();
+    }
+    
+    event void Voltage.readDone(error_t result, uint16_t data) {
+        uint16_t nbl;
+        int16_t d;
+        uint16_t nbD;
+        uint16_t bD;
+        if(result == SUCCESS) {
+            nbl = data;
+            atomic bD = busyDelta;
+            d = batteryLevel - nbl;
+            if(d > 75 || d < -75) {
+                // recalculate busyDelta,
+                // noisefloor already adapted by floating
+                nbD = ((uint32_t)batteryLevel*(uint32_t)busyDelta)/(uint32_t)nbl;
+                atomic busyDelta = nbD;
+                batteryLevel = nbl;
+            }
+        } else {
+            post GetVoltageTask();
+        }
     }
     
     /**************** ChannelMonitor *******************/  
     async command error_t ChannelMonitor.start() {
-        error_t res;
+        error_t res = FAIL;
         atomic {
             if(state != VOID) {
-                res = post GetChannelStateTask();
-            } else {
-                res = FAIL;
+                if (state == IDLE) {
+                    state = CCA;
+                    //res = call RssiAdcResource.request();
+                    res = SUCCESS;
+                    rssiRead();
+                } else {
+                    res = post GetChannelStateTask();
+                }
             }
         }
         return res;
@@ -200,16 +285,13 @@ implementation
             if(state != IDLE) {
                 post GetChannelStateTask();
             } else {
-                state = CCA;
-                call RssimV.getData();
+              state = CCA;
+              rssiRead();
+              //if(call RssiAdcResource.request() != SUCCESS) signalFailure();
             }
         }
     }
-
-    void resetState() {
-        state = IDLE;
-    }
-
+        
     void addSample()  {
         if(rssiindex < NSAMPLES) rssisamples[rssiindex++] = rssi;
         deadlockCounter = 0;
@@ -220,7 +302,7 @@ implementation
     void channelBusy () {
         atomic {
             if(++deadlockCounter >= DEADLOCK) addSample();
-            resetState();
+            state = IDLE;
         }
         signal ChannelMonitor.channelBusy();
     }
@@ -228,7 +310,7 @@ implementation
     void channelIdle() {
         atomic {
             addSample();
-            resetState();
+            state = IDLE;
         }
         signal ChannelMonitor.channelIdle();
     }
@@ -236,7 +318,7 @@ implementation
     error_t ccaCheckValue() {
         uint16_t data;
         atomic data = rssi;
-        if(data < noisefloor + DELTA) {
+        if(data < noisefloor + busyDelta) {
             channelIdle();
         } else {
             channelBusy();
@@ -265,7 +347,8 @@ implementation
             } else {
                 state = CALIBRATE;
                 deadlockCounter = 0;
-                call RssimV.getData();
+                call Timer.stop();
+                call Timer.startPeriodic(RSSI_SAMPLE_INTERVALL);
             }
         }
     }
@@ -276,34 +359,36 @@ implementation
                 rssisamples[rssiindex++] = rssi;
             } else { 
                 shellsort(rssisamples,NSAMPLES);
-                if(rssisamples[MINIMUM_POSITION] < noisefloor + THREE_SIGMA) 
-                {
+                if(rssisamples[MINIMUM_POSITION] < noisefloor + THREE_SIGMA)  {
                     noisefloor = (7*noisefloor + rssisamples[NSAMPLES/2])/8;
                     ++deadlockCounter;
                 }
-                else 
-                {
+                else {
                     noisefloor += THREE_SIGMA/8;
                 }
                 rssiindex = 0; 
             }
-
-            if(deadlockCounter < UPDATE_NF_RUNS) {
-              call Timer.startOneShot(TIMER_INTERVAL);
-            } else {
+            if(deadlockCounter > UPDATE_NF_RUNS) {
                 state = IDLE;
                 deadlockCounter = 0;
+                call Timer.stop();
+                call Timer.startPeriodic(VOLTAGE_SAMPLE_INTERVALL);
                 signal ChannelMonitorControl.updateNoiseFloorDone();
             }
         }
-        
     }
 
     event void Timer.fired() {
-        call RssimV.getData();
+        state_t s;
+        atomic s = state;
+        if(s != CALIBRATE) {
+            readVoltage();
+        } else {
+          rssiRead();
+          //  call RssiAdcResource.request();
+        }
     }
-
-
+    
     /**************** ChannelMonitorData ************/  
     async command void ChannelMonitorData.setGradient(int16_t grad) {
         // needed to convert RSSI into dB
@@ -325,13 +410,11 @@ implementation
     /** get SNR in dB **/
 
     async command error_t ChannelMonitorData.getSnr() {
-        error_t res;
-        atomic {
-            if(state != VOID) {
-                res = post GetSnrTask();
-            } else {
-                res = FAIL;
-            }
+        error_t res = SUCCESS;
+        if(state != VOID) {
+             post GetSnrTask();
+        } else {
+             res = FAIL;
         }
         return res;
     }
@@ -341,21 +424,29 @@ implementation
             if(state != IDLE) {
                 post GetSnrTask();
             } else {
-                state = SNR;
-                call RssimV.getData();
+              state = SNR;
+              rssiRead();
+              // if(call RssiAdcResource.request() != SUCCESS) signalFailure();     
             }
         }
     }
     
     task void SnrReadyTask() {
         int16_t snr;
-        atomic {
-            snr = computeSNR();
-            state = IDLE;
-        }
+        snr = computeSNR();
+        atomic state = IDLE;
         signal ChannelMonitorData.getSnrDone(snr);
     }
 
     default async event void ChannelMonitorData.getSnrDone(int16_t snr) {
     }
+
+    /***** BatteryLevel ***************/
+    // get the batterylevel in mV
+    async command uint16_t BatteryLevel.getLevel() {
+        uint16_t l;
+        atomic l = batteryLevel;
+        return (uint32_t)l*39>>5;
+    }
+    
 }

@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-03-15 16:50:53 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-05-31 13:53:02 $
  * ========================================================================
  */
 
@@ -45,6 +45,7 @@ module HplTda5250DataP {
   }
   uses {
     interface GeneralIO as DATA;
+    // FIXME: platform dependence at HPL-level!
     interface HplMsp430Usart as Usart;
     interface HplMsp430UsartInterrupts as UsartInterrupts;
     interface Resource as UartResource;

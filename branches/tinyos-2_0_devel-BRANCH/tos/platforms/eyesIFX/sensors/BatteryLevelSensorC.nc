@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2004-2006, Technische Universitaet Berlin
+/* -*- mode:c++ -*-
+ * Copyright (c) 2004, Technische Universitaet Berlin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -26,40 +26,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- */
- 
- /**
- *  LinkLayerControl.
- *
- * @author: Kevin Klues (klues@tkn.tu-berlin.de)
- * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
+ * - Revision -------------------------------------------------------------
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-05-31 13:53:03 $
+ * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
-configuration LinkLayerControlC {
-   provides {
-     interface SplitControl;
-     interface Send;
-     interface Receive;
-     interface PacketAcknowledgements;
-   }
-   uses {
-     interface SplitControl as MacSplitControl;
-     interface SplitControl as RadioSplitControl;
-     interface Send as SendDown;
-     interface Receive as ReceiveLower;        
-   }
+
+#include <sensors.h>
+generic configuration BatteryLevelSensorC()
+{
+    provides {
+        interface Read<uint16_t> as Read;
+        interface ReadNow<uint16_t> as ReadNow;
+        interface Resource as ReadNowResource;
+    }
 }
 implementation
 {
-  components LinkLayerControlP as Llc, MainC;
+    components SensorSettingsC as Settings;
+             
+    components new AdcReadClientC() as AdcReadClient;
+    Read = AdcReadClient;
+    AdcReadClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[INTERNAL_VOLTAGE_REF_2_5V];
   
-    MainC.SoftwareInit -> Llc;
-    SplitControl = Llc;
-    MacSplitControl =  Llc.MacSplitControl;
-    RadioSplitControl =  Llc.RadioSplitControl;
-    Send = Llc.Send;
-    Receive = Llc.Receive;
-    PacketAcknowledgements = Llc;    
-    ReceiveLower = Llc.ReceiveLower;
-    SendDown = Llc.SendDown;
+    components new AdcReadNowClientC() as AdcReadNowClient;
+    ReadNow = AdcReadNowClient;
+    ReadNowResource = AdcReadNowClient;
+    AdcReadNowClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[INTERNAL_VOLTAGE_REF_2_5V];
 }
