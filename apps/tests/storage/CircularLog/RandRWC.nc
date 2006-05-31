@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.2 2006-05-31 23:39:13 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.3 2006-05-31 23:56:12 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -33,6 +33,8 @@ implementation {
   enum {
     SIZE = 1024L * 256,
     NWRITES = SIZE / 512,
+    RECSIZE = 32,
+    NRECS = 16
   };
 
   uint16_t shiftReg;
@@ -64,10 +66,8 @@ implementation {
     mask = 137 * 29 * ((TOS_NODE_ID >> 2) + 1);
   }
   
-  uint8_t data[512], rdata[512];
+  uint8_t data[NRECS * RECSIZE], rdata[RECSIZE];
   int count, testCount;
-  uint32_t len;
-  uint16_t offset;
   message_t reportmsg;
 
   void report(error_t e) {
@@ -105,24 +105,26 @@ implementation {
     return b;
   }
 
-  void setParameters() {
-    len = ((rand() >> 10) + 1) * 7;
-    offset = rand() >> 8;
-    if (offset + len > sizeof data)
-      offset = sizeof data - len;
-  }
-
   void nextRead() {
-    setParameters();
-    scheck(call LogRead.read(rdata, len));
+    scheck(call LogRead.read(rdata, RECSIZE));
   }
 
   event void LogRead.readDone(void* buf, storage_len_t rlen, error_t result) __attribute__((noinline)) {
-    if (len != 0 && rlen == 0)
+    if (rlen == 0)
       done();
-    else if (scheck(result) && bcheck(rlen == len && buf == rdata) &&
-	     bcheck(call LogRead.currentOffset() % 7 == 0))
-      nextRead();
+    else if (scheck(result) && bcheck(rlen == RECSIZE && buf == rdata))
+      {
+	int i;
+
+	/* It must be one of our possible records */
+	for (i = 0; i < sizeof data; i += RECSIZE)
+	  if (memcmp(buf, data + i, RECSIZE) == 0)
+	    {
+	      nextRead();
+	      return;
+	    }
+	bcheck(FALSE);
+      }
   }
 
   event void LogRead.seekDone(error_t error) {
@@ -133,8 +135,9 @@ implementation {
       scheck(call LogWrite.sync());
     else
       {
-	setParameters();
-	scheck(call LogWrite.append(data + offset, len));
+	int offset = ((rand() >> 8) % NRECS) * RECSIZE;
+
+	scheck(call LogWrite.append(data + offset, RECSIZE));
       }
   }
 
