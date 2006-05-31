@@ -1,5 +1,3 @@
-// $Id: TestHPLTDA5250C.nc,v 1.1.1.1.2.3 2006-02-16 16:48:12 idgay Exp $
-
 /*                                  tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.
  * All rights reserved.
@@ -33,25 +31,23 @@
  **/
 
 #include "Timer.h"
-configuration TestHPLTDA5250C {
+configuration TestTda5250ControlC {
 }
 implementation {
-  components MainC
-           , TestHPLTDA5250P
+  components MainC, TestTda5250ControlP
            , new AlarmMilliC() as ModeTimer
            , LedsC
-           , HPLTDA5250ConfigC 
-  ;
+           , Tda5250RadioC
+           , RandomLfsrC
+           ;
 
-  TestHPLTDA5250P -> MainC.Boot;
-  
-  
-  MainC.SoftwareInit -> HPLTDA5250ConfigC;
+  TestTda5250ControlP -> MainC.Boot;
 
-  TestHPLTDA5250P.Resource -> HPLTDA5250ConfigC.Resource;
-  TestHPLTDA5250P.ModeTimer -> ModeTimer;
-  TestHPLTDA5250P.Leds -> LedsC;
-  TestHPLTDA5250P.TDA5250Config -> HPLTDA5250ConfigC.HPLTDA5250Config;
+  TestTda5250ControlP.Random -> RandomLfsrC.Random;
+  TestTda5250ControlP.ModeTimer -> ModeTimer;
+  TestTda5250ControlP.Leds  -> LedsC;
+  TestTda5250ControlP.Tda5250Control -> Tda5250RadioC.Tda5250Control;
+  TestTda5250ControlP.RadioSplitControl -> Tda5250RadioC.SplitControl;
 }
 
 
