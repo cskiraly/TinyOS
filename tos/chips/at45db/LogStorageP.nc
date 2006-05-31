@@ -85,6 +85,7 @@ implementation
 
   enum {
     META_IDLE,
+    META_LOCATEFIRST,
     META_LOCATE,
     META_LOCATELAST,
     META_SEEK,
@@ -122,8 +123,12 @@ implementation
     return call At45dbVolume.remap[client](0);
   }
 
+  at45page_t npages() {
+    return call At45dbVolume.volumeSize[client]();
+  }
+
   at45page_t lastVolumePage() {
-    return call At45dbVolume.remap[client](call At45dbVolume.volumeSize[client]() >> AT45_PAGE_SIZE_LOG2);
+    return call At45dbVolume.remap[client](npages());
   }
 
   void setWritePage(at45page_t page) {
@@ -137,7 +142,7 @@ implementation
   }
 
   void readFromBeginning() {
-    /* Set position to end of previous page, to force page advance
+    /* Set position to end of page before first page, to force page advance
        on next read */
     s[client].rpos = 0;
     s[client].rpage = firstVolumePage() - 1;
@@ -231,7 +236,7 @@ implementation
   error_t newRequest(uint8_t newRequest, logstorage_t id, bool circular,
 		     uint8_t *buf, storage_len_t length) {
     if (s[id].request != R_IDLE)
-      return FAIL;
+      return EBUSY;
 
     /* You can make the transition from linear->circular once. */
     if (s[id].circular && !circular)
@@ -256,7 +261,7 @@ implementation
     return newRequest(R_APPEND, id, FALSE, buf, length);
   }
 
-  command uint32_t LinearWrite.currentOffset[logstorage_t id]() {
+  command storage_cookie_t LinearWrite.currentOffset[logstorage_t id]() {
    return s[id].wpos;
   }
 
@@ -272,12 +277,16 @@ implementation
     return newRequest(R_READ, id, FALSE, buf, length);
   }
 
-  command uint32_t LinearRead.currentOffset[logstorage_t id]() {
-    return s[id].rpos;
+  command storage_cookie_t LinearRead.currentOffset[logstorage_t id]() {
+    return s[id].rvalid ? s[id].rpos : SEEK_BEGINNING;
   }
 
-  command error_t LinearRead.seek[logstorage_t id](uint32_t offset) {
+  command error_t LinearRead.seek[logstorage_t id](storage_cookie_t offset) {
     return newRequest(R_SEEK, id, FALSE, (void *)(offset >> 16), offset);
+  }
+
+  command storage_cookie_t LinearRead.getSize[logstorage_t id]() {
+    return call At45dbVolume.volumeSize[id]() * PAGE_SIZE;
   }
 
   command error_t CircularWrite.append[logstorage_t id](void* buf, storage_len_t length) {
@@ -301,22 +310,37 @@ implementation
   }
 
   command uint32_t CircularRead.currentOffset[logstorage_t id]() {
-    return s[id].rpos;
+    return call LinearRead.currentOffset[id]();
   }
 
-  command error_t CircularRead.seek[logstorage_t id](uint32_t offset) {
+  command error_t CircularRead.seek[logstorage_t id](storage_cookie_t offset) {
     return newRequest(R_SEEK, id, TRUE, (void *)(offset >> 16), offset);
   }
+
+  command storage_cookie_t CircularRead.getSize[logstorage_t id]() {
+    return call LinearRead.getSize[id]();
+  }
+
   /* ------------------------------------------------------------------ */
   /* Erase								*/
   /* ------------------------------------------------------------------ */
+
+  void eraseMetadataDone() {
+    emptyLog(); // reset write pointer
+    endRequest(SUCCESS);
+  }
 
   void eraseContinue() {
     /* We erase backwards. That leaves the first two pages in the cache */
     if (lastPage == firstPage)
       {
 	emptyLog();
-	endRequest(SUCCESS);
+	/* If we just reboot after erasing the flash, then the next attempt
+	   to locate log boundaries will have to scan the while flash
+	   (looking for a valid block). To reduce the chances of this, we
+	   write a valid header in block 0 after erase. */
+	metadata.flags = 0;
+	wmetadataStart();
       }
     else
       call At45db.erase(--lastPage, AT45_ERASE);
@@ -332,26 +356,10 @@ implementation
   /* Locate log boundaries						*/
   /* ------------------------------------------------------------------ */
 
+  void locateLastRecord();
+
   at45page_t locateCurrentPage() {
-    return firstPage + ((lastPage - firstPage + 1) >> 1);
-  }
-
-  void locateLastRecord() {
-    if (firstPage == firstVolumePage())
-      {
-	/* Nothing valid found. We're done (log is empty). */
-	emptyLog();
-	startRequest();
-      }
-    else
-      readMetadata(--firstPage);
-  }
-
-  void locateLastReadDone() {
-    if (metadata.magic == PERSISTENT_MAGIC && metadata.flags & F_LASTVALID)
-      crcPage(firstPage);
-    else
-      locateLastRecord();
+    return firstPage + ((lastPage - firstPage) >> 1);
   }
 
   void locateLastCrcDone(uint16_t crc) {
@@ -360,13 +368,16 @@ implementation
 	/* We've found the last valid page with a record-end */
 	s[client].positionKnown = TRUE;
 	if (metadata.flags & F_SYNC) /* must start on next page */
-	  setWritePage(firstPage + 1);
+	  {
+	    setWritePage(firstPage + 1);
+	    s[client].wpos = metadata.pos + PAGE_SIZE;
+	  }
 	else
 	  {
 	    s[client].wpage = firstPage;
 	    s[client].woffset = metadata.lastRecordOffset;
+	    s[client].wpos = metadata.pos + metadata.lastRecordOffset;
 	  }
-	s[client].wpos = metadata.pos + metadata.lastRecordOffset;
 
 	/* If we're on the first pass (no F_CIRCLED flag), the read
 	   pointer starts at the beginning of the flash. Otherwise,
@@ -393,6 +404,24 @@ implementation
       locateLastRecord();
   }
 
+  void locateLastReadDone() {
+    if (metadata.magic == PERSISTENT_MAGIC && metadata.flags & F_LASTVALID)
+      crcPage(firstPage);
+    else
+      locateLastRecord();
+  }
+
+  void locateLastRecord() {
+    if (firstPage == firstVolumePage())
+      {
+	/* There were no valid pages with a record end */
+	emptyLog();
+	startRequest();
+      }
+    else
+      readMetadata(--firstPage);
+  }
+
   void located() {
     metaState = META_LOCATELAST;
     /* firstPage is one after last valid page, but the last page with
@@ -401,7 +430,7 @@ implementation
   }
 
   void locateBinarySearch() {
-    if ((int)lastPage - (int)firstPage < 0)
+    if (lastPage <= firstPage)
       located();
     else
       readMetadata(locateCurrentPage());
@@ -413,8 +442,18 @@ implementation
   }
 
   void locateLessThan() {
-    lastPage = locateCurrentPage() - 1;
+    lastPage = locateCurrentPage();
     locateBinarySearch();
+  }
+
+  void locateCrcDone(uint16_t crc) {
+    if (crc == metadata.crc)
+      {
+	s[client].wpos = metadata.pos;
+	locateGreaterThan();
+      }
+    else
+      locateLessThan();
   }
 
   void locateReadDone() {
@@ -424,27 +463,44 @@ implementation
       locateLessThan();
   }
 
-  void locateCrcDone(uint16_t crc) {
-    if (crc == metadata.crc)
+  void locateFirstCrcDone(uint16_t crc) {
+    firstPage++;
+    if (metadata.magic == PERSISTENT_MAGIC && crc == metadata.crc)
       {
-	s[client].wpos = metadata.pos + 1;
-	locateGreaterThan();
+	metaState = META_LOCATE;
+	/* We track the page with the largest position found. */
+	s[client].wpos = metadata.pos;
+	/* We now know that the valid pages span a contiguous sequence
+	   starting at firstPage - 1. The binary search will look for
+	   the page with the largest position. */
+	locateBinarySearch();
       }
+    else if (firstPage != lastPage)
+      /* Try the next page. There can be an arbitrary number of
+	 consecutive bad pages (see discussion at start of this file) */
+      readMetadata(firstPage);
     else
-      locateLessThan();
+      {
+	/* Found no valid page. We might want to give up after some
+	   bounded number of pages, rather than checking the whole
+	   log -- many bad consecutive pages is extremely unlikely and
+	   probably indicates a major problem somewhere. */
+	emptyLog();
+	startRequest();
+      }
+    
+  }
+
+  void locateFirstReadDone() {
+    crcPage(firstPage);
   }
 
   /* Locate log beginning and ending */
   void locateStart() {
-    metaState = META_LOCATE;
+    metaState = META_LOCATEFIRST;
     firstPage = firstVolumePage();
-    lastPage = lastVolumePage() - 1;
-    /* We track the page with the largest position found. We store
-       largest-offset-found+1, so that we can use 0 as a value smaller
-       than all valid positions. Note that wpos is set correctly once
-       we find the actual last page. */
-    s[client].wpos = 0;
-    locateBinarySearch();
+    lastPage = lastVolumePage();
+    readMetadata(firstPage);
   }
 
   /* ------------------------------------------------------------------ */
@@ -487,15 +543,10 @@ implementation
       endRequest(SUCCESS);
   }
 
-  void appendMetadataDone(error_t ok) { // metadata of previous page flushed
-    if (ok != SUCCESS)
-      endRequest(FAIL);
-    else
-      {
-	/* Setup metadata in case we overflow this page too */
-	metadata.flags = 0;
-	appendContinue();
-      }
+  void appendMetadataDone() { // metadata of previous page flushed
+    /* Setup metadata in case we overflow this page too */
+    metadata.flags = 0;
+    appendContinue();
   }
 
   void appendStart() {
@@ -521,8 +572,11 @@ implementation
       }
   }
 
-  void syncMetadataDone(error_t ok) {
-    endRequest(ok);
+  void syncMetadataDone() {
+    /* Write position reflect the absolute position in the flash, not
+       user-bytes written. So update wpos to reflect sync effects. */
+    s[client].wpos = metadata.pos + PAGE_SIZE;
+    endRequest(SUCCESS);
   }
 
   /* ------------------------------------------------------------------ */
@@ -603,7 +657,7 @@ implementation
       {
 	if ((s[client].rpage + 1 == lastVolumePage() && !s[client].circular) ||
 	    s[client].rpage == s[client].wpage)
-	  endRequest(ESIZE);
+	  endRequest(SUCCESS);
 	else
 	  rmetadataStart();
 	return;
@@ -649,7 +703,7 @@ implementation
 	if (!s[client].rvalid)
 	  /* We cannot find a record boundary to start at (we've just
 	     walked through the whole log...). Give up. */
-	  endRequest(ESIZE);
+	  endRequest(SUCCESS);
 	else
 	  {
 	    /* The current write page has no metadata yet, so we fake it */
@@ -666,7 +720,7 @@ implementation
     if (metadata.magic == PERSISTENT_MAGIC)
       crcPage(firstPage);
     else
-      endRequest(ESIZE);
+      endRequest(SUCCESS);
   }
 
   void rmetadataCrcDone(uint16_t crc) {
@@ -679,7 +733,7 @@ implementation
       if (crc == metadata.crc)
 	continueReadAt(0);
       else
-	endRequest(ESIZE);
+	endRequest(SUCCESS);
   }
 
   void rmetadataStart() {
@@ -689,117 +743,59 @@ implementation
   }
 
   /* ------------------------------------------------------------------ */
-  /* Seek. UNTESTED, PROBABLY DOESN'T WORK.				*/
+  /* Seek.								*/
   /* ------------------------------------------------------------------ */
 
-  at45page_t seekCurrentPage() {
-    return firstPage + ((lastPage - firstPage + 1) >> 1);
-  }
-
-  at45page_t seekRealPage(at45page_t cpage) {
-    if (s[client].circled)
+  void seekCrcDone(uint16_t crc) {
+    if (metadata.magic == PERSISTENT_MAGIC && crc == metadata.crc &&
+	metadata.pos == s[client].rpos - s[client].roffset)
       {
-	cpage += s[client].wpage + 1;
-	if (cpage >= lastVolumePage())
-	  cpage -= lastVolumePage() - firstVolumePage();
-
-	return cpage;
+	s[client].rvalid = TRUE;
+	if (metadata.flags & F_SYNC)
+	  s[client].rend = metadata.lastRecordOffset;
       }
-    else
-      return firstVolumePage() + cpage;
-  }
-
-  void seekBinarySearch() {
-    if ((int)lastPage - (int)firstPage < 0)
-      {
-	/* It must be before the beginning, so we must be in the circled
-	   case. Leave it up to the next read. */
-	invalidateReadPointer();
-	endRequest(SUCCESS);
-      }
-    else
-      readMetadata(seekRealPage(seekCurrentPage()));
+    endRequest(SUCCESS);
   }
 
   void seekReadDone() {
-    crcPage(seekRealPage(seekCurrentPage()));
+    crcPage(s[client].rpage);
   }
 
-  void seekCrcDone(uint16_t crc) {
-    at45page_t cpage = seekCurrentPage();
-
-    if (metadata.magic == PERSISTENT_MAGIC && crc == metadata.crc)
-      {
-	uint32_t pageStart = metadata.pos, pageEnd;
-
-	if (metadata.flags & F_SYNC)
-	  pageEnd = pageStart + metadata.lastRecordOffset;
-	else
-	  pageEnd = pageStart + PAGE_SIZE;
-	if (s[client].rpos >= pageStart)
-	  {
-	    if (s[client].rpos < pageEnd)
-	      {
-		s[client].rpage = seekRealPage(seekCurrentPage());
-		s[client].roffset = s[client].rpos - pageStart;
-		s[client].rend = 
-		  metadata.flags & F_SYNC ? metadata.lastRecordOffset : PAGE_SIZE;
-		endRequest(SUCCESS);
-		return;
-	      }
-	    firstPage = cpage + 1;
-	  }
-	else
-	  lastPage = cpage - 1;
-	seekBinarySearch();
-      }
-    else
-      /* The first page after wpage may be invalid (from an earlier
-	 failure). Seeks that have searched all the way to there indicate
-	 a seek before the beginning of the log. 
-	 All other failures indicate a corrupted page in the log, in
-	 which case we fail the seek */
-      if (cpage == 0)
-	{
-	  invalidateReadPointer();
-	  endRequest(SUCCESS);
-	}
-      else
-	endRequest(FAIL);
-  }
-
-  /* Locate a specific offset. */
+  /* Move to position specified by cookie. */
   void seekStart() {
     uint32_t offset = (uint32_t)(uint16_t)s[client].buf << 16 | s[client].len;
 
-    if (offset > s[client].wpos)
-      offset = s[client].wpos; // don't go beyond end
+    invalidateReadPointer(); // default to beginning of log
 
+    if (offset > s[client].wpos)
+      {
+	endRequest(EINVAL);
+	return;
+      }
+
+    /* Cookies are just flash positions which continue incrementing as
+       you circle around and around. So we can just check the requested
+       page's metadata.pos field matches the cookie's value */
     s[client].rpos = offset;
-    s[client].rvalid = TRUE;
+    s[client].roffset = offset % PAGE_SIZE;
+    s[client].rpage = firstVolumePage() + (offset / PAGE_SIZE) % npages();
+    s[client].rend = PAGE_SIZE; // default to no sync flag
 
     // The last page's metadata isn't written to flash yet. Special case it.
-    if (offset >= s[client].wpos - s[client].woffset)
+    if (s[client].rpage == s[client].wpage)
       {
-	s[client].rpage = s[client].wpage;
-	s[client].roffset = offset - (s[client].wpos - s[client].woffset);
-	s[client].rend = PAGE_SIZE;
+	/* If we're seeking within the current write page, just go there.
+	   Otherwise, we're asking for an old version of the current page
+	   so just keep the invalidated read pointer, i.e., read from
+	   the beginning. */
+	if (offset >= s[client].wpos - s[client].woffset)
+	  s[client].rvalid = TRUE;
 	endRequest(SUCCESS);
       }
     else
       {
 	metaState = META_SEEK;
-
-	/* Page numbers are relative to the beginning of the log, which is
-	   firstVolumePage() when the log hasn't circled, and wpage+1 when
-	   it has */
-	firstPage = 0;
-	if (s[client].circled)
-	  lastPage = (call At45dbVolume.volumeSize[client]() >> AT45_PAGE_SIZE_LOG2) - 2;
-	else
-	  lastPage = s[client].wpage - firstVolumePage() - 1;
-
-	seekBinarySearch();
+	readMetadata(s[client].rpage);
       }
   }
 
@@ -810,7 +806,7 @@ implementation
   event void At45db.eraseDone(error_t error) {
     if (client != NO_CLIENT)
       if (error != SUCCESS)
-	endRequest(error);
+	endRequest(FAIL);
       else
 	eraseContinue();
   }
@@ -818,7 +814,7 @@ implementation
   event void At45db.writeDone(error_t error) {
     if (client != NO_CLIENT)
       if (error != SUCCESS)
-	endRequest(error);
+	endRequest(FAIL);
       else
 	switch (metaState)
 	  {
@@ -829,21 +825,30 @@ implementation
 
   event void At45db.syncDone(error_t error) {
     if (client != NO_CLIENT)
-      syncMetadataDone(error);
+      if (error != SUCCESS)
+	endRequest(FAIL);
+      else
+	syncMetadataDone();
   }
 
   event void At45db.flushDone(error_t error) {
     if (client != NO_CLIENT)
-      appendMetadataDone(error);
+      if (error != SUCCESS)
+	endRequest(FAIL);
+      else if (s[client].request == R_ERASE)
+	eraseMetadataDone();
+      else
+	appendMetadataDone();
   }
 
   event void At45db.readDone(error_t error) {
     if (client != NO_CLIENT)
       if (error != SUCCESS)
-	endRequest(error);
+	endRequest(FAIL);
       else
 	switch (metaState)
 	  {
+	  case META_LOCATEFIRST: locateFirstReadDone(); break;
 	  case META_LOCATE: locateReadDone(); break;
 	  case META_LOCATELAST: locateLastReadDone(); break;
 	  case META_SEEK: seekReadDone(); break;
@@ -855,10 +860,11 @@ implementation
   event void At45db.computeCrcDone(error_t error, uint16_t crc) {
     if (client != NO_CLIENT)
       if (error != SUCCESS)
-	endRequest(error);
+	endRequest(FAIL);
       else
 	switch (metaState)
 	  {
+	  case META_LOCATEFIRST: locateFirstCrcDone(crc); break;
 	  case META_LOCATE: locateCrcDone(crc); break;
 	  case META_LOCATELAST: locateLastCrcDone(crc); break;
 	  case META_SEEK: seekCrcDone(crc); break;
@@ -866,6 +872,8 @@ implementation
 	  case META_READ: rmetadataCrcDone(crc); break;
 	  }
   }
+
+  event void At45db.copyPageDone(error_t error) { }
 
   default event void LinearWrite.appendDone[logstorage_t logId](void* buf, storage_len_t l, error_t error) { }
   default event void LinearWrite.eraseDone[logstorage_t logId](error_t error) { }
@@ -880,7 +888,7 @@ implementation
   default event void CircularRead.seekDone[logstorage_t logId](error_t error) {}
 
   default command at45page_t At45dbVolume.remap[logstorage_t logId](at45page_t volumePage) {return 0;}
-  default command storage_len_t At45dbVolume.volumeSize[logstorage_t logId]() {return 0;}
+  default command at45page_t At45dbVolume.volumeSize[logstorage_t logId]() {return 0;}
   default async command error_t Resource.request[logstorage_t logId]() {return SUCCESS;}
   default async command void Resource.release[logstorage_t logId]() { }
 
