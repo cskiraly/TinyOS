@@ -29,15 +29,14 @@
  * - Description ---------------------------------------------------------
  * provides preamble sampling csma with timestamping
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-05-31 13:53:03 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-05-31 16:32:43 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
 
 configuration RadioDataLinkC {
     provides {
-      interface Init;
       interface SplitControl; 
       interface Send;
       interface Receive;
@@ -52,19 +51,17 @@ implementation
         Tda5250RadioC as Radio,                  //The actual Tda5250 radio over which data is receives/transmitted
         UartPhyC as UartPhy,                     //The UartPhy turns Bits into Bytes
         PacketSerializerP  as PacketSerializer,  //The PacketSerializer turns Bytes into Packets
-        CsmaMacC as Mac,                         //The MAC protocol to use
+        //CsmaMacAckC as Mac,                      //The MAC protocol to use
         //SyncSampleMacC as Mac,
+        CsmaMacC as Mac,
         LinkLayerC as Llc;                       //The Link Layer Control module to use
     
     //Don't change wirings below this point, just change which components
     //They are compposed of in the list above             
     
-    Init = Radio;
-    Init = UartPhy;
-    Init = PacketSerializer;
-    Init = Mac;
-    Init = Llc;
-        
+    components MainC;
+    MainC.SoftwareInit -> PacketSerializer;
+            
     SplitControl = Llc;
     Llc.MacSplitControl -> Mac.SplitControl;
     Llc.RadioSplitControl -> Radio.SplitControl;

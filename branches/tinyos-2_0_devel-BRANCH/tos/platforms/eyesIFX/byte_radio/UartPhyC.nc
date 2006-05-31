@@ -29,8 +29,8 @@
 * - Description ---------------------------------------------------------
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.1 $
-* $Date: 2006-05-31 13:53:03 $
+* $Revision: 1.1.2.2 $
+* $Date: 2006-05-31 16:32:43 $
 * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
 * ========================================================================
 */
@@ -44,7 +44,6 @@
 configuration UartPhyC
 {
   provides{
-    interface Init;
     interface PhyPacketTx;
     interface RadioByteComm as SerializerRadioByteComm;
     interface PhyPacketRx;
@@ -58,9 +57,10 @@ implementation
 {
     components 
         new Alarm32khzC() as RxByteTimer,
-        UartPhyP;
+        UartPhyP,
+        MainC;
     
-    Init = UartPhyP;
+    MainC.SoftwareInit -> UartPhyP;
     PhyPacketRx = UartPhyP;
     SerializerRadioByteComm = UartPhyP;
     RadioByteComm = UartPhyP;

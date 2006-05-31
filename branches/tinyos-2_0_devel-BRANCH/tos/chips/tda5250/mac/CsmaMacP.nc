@@ -496,13 +496,6 @@ implementation
        } 
      }
 
-     task void TestTask() {
-       unsigned i;
-       for(i = 0; i < 10000; i++){
-         ;
-       }
-     }
-     
     /****** PacketSerializer events **********************/
     async event void PacketReceive.receiveDetected() {
       atomic {
@@ -513,7 +506,6 @@ implementation
           call ChannelMonitor.rxSuccess();
           //FIXME: problems when calling this -> packets get lost
           call  ChannelMonitorData.getSnr();
-          post TestTask();
         } else {
           storeOldState(-14);
           // we lose this packet 'cause we already switched the radio mode to SW_TX or TX

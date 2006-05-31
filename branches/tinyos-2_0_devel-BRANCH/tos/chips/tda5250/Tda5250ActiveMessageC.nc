@@ -1,4 +1,4 @@
-// $Id: Tda5250ActiveMessageC.nc,v 1.1.2.6 2006-05-31 13:53:02 phihup Exp $
+// $Id: Tda5250ActiveMessageC.nc,v 1.1.2.7 2006-05-31 16:32:43 phihup Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: Tda5250ActiveMessageC.nc,v 1.1.2.6 2006-05-31 13:53:02 phihup Exp $
+ * Date last modified:  $Id: Tda5250ActiveMessageC.nc,v 1.1.2.7 2006-05-31 16:32:43 phihup Exp $
  *
  */
 
@@ -51,7 +51,6 @@
 
 configuration Tda5250ActiveMessageC {
   provides {
-    interface Init;
     interface SplitControl;
     interface AMSend[am_id_t id];
     interface Receive[am_id_t id];
@@ -66,7 +65,6 @@ implementation {
   components Tda5250ActiveMessageP as AM, RadioDataLinkC as Radio;
   components ActiveMessageAddressC as Address;
 
-  Init         = Radio;
   SplitControl = Radio;
 
   Packet       = Radio;
