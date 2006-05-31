@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.1 2006-05-24 17:40:28 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.2 2006-05-31 23:39:13 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -118,7 +118,7 @@ implementation {
   }
 
   event void LogRead.readDone(void* buf, storage_len_t rlen, error_t result) __attribute__((noinline)) {
-    if (result == ESIZE)
+    if (len != 0 && rlen == 0)
       done();
     else if (scheck(result) && bcheck(rlen == len && buf == rdata) &&
 	     bcheck(call LogRead.currentOffset() % 7 == 0))
