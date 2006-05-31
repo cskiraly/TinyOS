@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-05-27 21:23:15 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-05-31 13:53:02 $
  * ========================================================================
  */
 
@@ -42,6 +42,7 @@
 #include "tda5250RegTypes.h"
 configuration Tda5250RadioC {
   provides {
+    interface Init;
     interface SplitControl;
     interface Tda5250Control;
     interface RadioByteComm;
@@ -51,17 +52,18 @@ implementation {
   components Tda5250RadioP
            , HplTda5250ConfigC
            , HplTda5250DataC
-           , MainC
+           , new Alarm32khzC() as DelayTimer
            ;
 
-  MainC.SoftwareInit -> HplTda5250ConfigC;
-  MainC.SoftwareInit -> HplTda5250DataC;
-  MainC.SoftwareInit -> Tda5250RadioP;
-
+  Init = HplTda5250ConfigC;
+  Init = HplTda5250DataC;
+  Init = Tda5250RadioP;
   Tda5250Control = Tda5250RadioP;
   RadioByteComm = Tda5250RadioP;
   SplitControl = Tda5250RadioP;
 
+  Tda5250RadioP.DelayTimer -> DelayTimer.Alarm32khz16;
+  
   Tda5250RadioP.ConfigResource -> HplTda5250ConfigC;
   Tda5250RadioP.DataResource -> HplTda5250DataC;
 

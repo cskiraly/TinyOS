@@ -1,4 +1,4 @@
-// $Id: Tda5250ActiveMessageP.nc,v 1.1.2.2 2006-02-02 16:41:38 vlahan Exp $
+// $Id: Tda5250ActiveMessageP.nc,v 1.1.2.3 2006-05-31 13:53:02 phihup Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: Tda5250ActiveMessageP.nc,v 1.1.2.2 2006-02-02 16:41:38 vlahan Exp $
+ * Date last modified:  $Id: Tda5250ActiveMessageP.nc,v 1.1.2.3 2006-05-31 13:53:02 phihup Exp $
  *
  */
 
@@ -142,10 +142,6 @@ implementation {
     tda5250_header_t* header = getHeader(amsg);
     header->type = type;
   }
-
-  //command am_group_t AMPacket.group(message_t* amsg) {
-  //  return amsg->header.group;
-  //}
 
  default event message_t* Receive.receive[am_id_t id](message_t* msg, void* payload, uint8_t len) {
     return msg;

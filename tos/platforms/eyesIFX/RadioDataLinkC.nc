@@ -29,21 +29,20 @@
  * - Description ---------------------------------------------------------
  * provides preamble sampling csma with timestamping
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-05-27 21:23:15 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-05-31 13:53:03 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
 
 configuration RadioDataLinkC {
     provides {
-      
+      interface Init;
       interface SplitControl; 
       interface Send;
       interface Receive;
       interface Packet;
       interface PacketAcknowledgements;
-
     }
 }
 implementation
@@ -51,17 +50,20 @@ implementation
     components 
         //Change components below as desired
         Tda5250RadioC as Radio,                  //The actual Tda5250 radio over which data is receives/transmitted
-        UartPhyP as UartPhy,                     //The UartPhy turns Bits into Bytes
+        UartPhyC as UartPhy,                     //The UartPhy turns Bits into Bytes
         PacketSerializerP  as PacketSerializer,  //The PacketSerializer turns Bytes into Packets
         CsmaMacC as Mac,                         //The MAC protocol to use
-        LinkLayerControlC as Llc;                //The Link Layer Control module to use
+        //SyncSampleMacC as Mac,
+        LinkLayerC as Llc;                       //The Link Layer Control module to use
     
     //Don't change wirings below this point, just change which components
     //They are compposed of in the list above             
     
-    components MainC;
-    MainC.SoftwareInit -> UartPhy;
-    MainC.SoftwareInit -> PacketSerializer;
+    Init = Radio;
+    Init = UartPhy;
+    Init = PacketSerializer;
+    Init = Mac;
+    Init = Llc;
         
     SplitControl = Llc;
     Llc.MacSplitControl -> Mac.SplitControl;
@@ -72,15 +74,14 @@ implementation
     PacketAcknowledgements = Llc;
     Packet = PacketSerializer;
   
-    Llc.SendDown->Mac.Send;
-    Llc.ReceiveLower->Mac.Receive;
+    Llc.SendDown->Mac.MacSend;
+    Llc.ReceiveLower->Mac.MacReceive;
+    Llc.Packet->PacketSerializer.Packet;
     
-    Mac.PacketSend->PacketSerializer.Send;
-    Mac.PacketReceive->PacketSerializer.Receive;  
-    Mac.Packet->PacketSerializer.Packet;
-    // FIXME: (platform independant interface is missing)??
+    Mac.PacketSend->PacketSerializer.PhySend;
+    Mac.PacketReceive->PacketSerializer.PhyReceive;  
     Mac.Tda5250Control->Radio;
-    Mac.PhyPacketRx->UartPhy.PhyPacketRx;
+    Mac.UartPhyControl -> UartPhy;
     
     PacketSerializer.RadioByteComm -> UartPhy.SerializerRadioByteComm;
     PacketSerializer.PhyPacketTx -> UartPhy.PhyPacketTx;

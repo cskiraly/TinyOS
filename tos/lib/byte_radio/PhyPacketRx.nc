@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-03-29 18:03:09 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-05-31 13:53:03 $
  * ========================================================================
  */
  
@@ -41,15 +41,19 @@
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  */ 
 interface PhyPacketRx {
-  /**
-   * Start receiving a new packet header. This will also reset the current receiving state.
-   */
-  async command void recvHeader();
   
   /**
-  * Notification that the packet header was received.
+   * Start receiving a new packet header. This will also reset the current receiving state.
+   * -> not used anymore 
+  async command void recvHeader();
   */
-  async event void recvHeaderDone();
+  
+  
+  /**
+  * Notification that the packet header was received. This event will only
+  * occur if recvHeader() is called before.
+  */
+  async event void recvHeaderDone(error_t error);
   
   /**
   * Start receiving the packet footer.
@@ -59,7 +63,6 @@ interface PhyPacketRx {
   /**
   * Notification that the the packet footer was received.
   *
-  * @param error Success-Notification.
   */
-  async event void recvFooterDone(bool error);
+  async event void recvFooterDone(error_t error);
 }

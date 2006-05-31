@@ -43,36 +43,33 @@ module CsmaMacP {
     provides {
       interface Init;
       interface SplitControl;
-      interface Send;
-      interface Receive;
+      interface MacSend;
+      interface MacReceive;
     }
     uses {
       interface StdControl as CcaStdControl;
-      interface AsyncSend as PacketSend;
-      interface Receive as PacketReceive;
-      interface Packet;
+      interface PhySend as PacketSend;
+      interface PhyReceive as PacketReceive;
         
-      interface PhyPacketRx;
-      //FIXME: RadioModes Interface
       interface Tda5250Control as RadioModes;  
 
+      interface UartPhyControl;
+      
       interface ChannelMonitor;
       interface ChannelMonitorControl;  
       interface ChannelMonitorData;
 
       interface Random;
         
-      interface Timer<TMilli> as MinClearTimer;
-      interface Timer<TMilli> as RxPacketTimer;
+      interface Alarm<T32khz, uint16_t> as MinClearTimer;
       interface Timer<TMilli> as BackoffTimer;
     }
 }
 implementation
 {
 #define MACM_DEBUG                              // debug...
-#define RX_PACKET_TIME (TOSH_DATA_LENGTH+2)<<2  //max. Packet duration in ms 
-#define MINISLOT_TIME 31                        //minislot time  in ms
-#define DIFS 1                                  // for atomic acks: allow  between packet and ACK (in ms)
+#define MINISLOT_TIME 55                        // minislot time  in ms
+#define DIFS 2                                  // for atomic acks: allow  between packet and ACK (in ms)
 #define RX_THRESHOLD 13                         // SNR should be at least RX_THRESHOLD dB before RX attempt
 #define MAX_TX_ATTEMPTS 5                       // drop packet if we see the channel busy MAX_TX_ATTEMPTS times in a row 
 
@@ -85,16 +82,18 @@ implementation
     uint8_t txLen;
     int16_t rssiValue;
 
+
     /* state vars & defs */
     typedef enum {
-      INIT,
       SW_CCA,          // switch to CCA
-      CCA,             // clear channel assessment       
-      SW_TX,           // switch to Tx mode
-      TX_P,            // transmitting packet
+      CCA,             // clear channel assessment     
       SW_RX,           // switch to receive
       RX,              // rx mode done, listening & waiting for packet
+      INIT,
+      SW_TX,           // switch to Tx mode
+      TX_P,            // transmitting packet
       RX_P,            // receive packet
+      SWITCH           // force switching radio states
     } macState_t;
 
     macState_t macState;
@@ -107,8 +106,7 @@ implementation
     /* timer vars & defs */
     typedef enum {
       MIN_CLEAR_TIMER = 1,
-      RX_PACKET_TIMER = 2,
-      BACKOFF_TIMER = 4,
+      BACKOFF_TIMER = 2,
     } timerPos_t;
 
     uint8_t dirtyTimers;
@@ -156,13 +154,7 @@ implementation
 
     
     /****** Helper tasks *****************************/
-    
-    task void SendDoneFailTask();
-    task void SendDoneSuccessTask();
     task void RetrySendTask();
-    
-    task void StopMinClearTimerTask();
-    task void StopRxPacketTimerTask();
     task void StopBackoffTimerTask();
 
 
@@ -170,36 +162,6 @@ implementation
 
     // cs = clear and maybe start, only start if start requested and in correct
     // mac state
-    task void CSMinClearTimerTask()   {
-      atomic {
-        clearFlag(&dirtyTimers, MIN_CLEAR_TIMER);
-        if(isFlagSet(&restartTimers, MIN_CLEAR_TIMER)) {
-          if(macState == CCA) {
-            call MinClearTimer.startOneShot(DIFS);
-            clearFlag(&restartTimers, MIN_CLEAR_TIMER);
-            setFlag(&runningTimers, MIN_CLEAR_TIMER);
-          } else {
-            clearFlag(&restartTimers, MIN_CLEAR_TIMER);
-          }
-        }
-      }
-    };
-    
-    task void CSRxPacketTimerTask()    {
-      atomic {
-        clearFlag(&dirtyTimers, RX_PACKET_TIMER);
-        if(isFlagSet(&restartTimers, RX_PACKET_TIMER)) {
-          if(macState == RX_P) {
-            call RxPacketTimer.startOneShot(RX_PACKET_TIME) ;
-            clearFlag(&restartTimers, RX_PACKET_TIMER);
-            setFlag(&runningTimers, RX_PACKET_TIMER);
-          } else {
-            clearFlag(&restartTimers, RX_PACKET_TIMER);
-          }
-        }
-      }
-    }
-
     task void CSBackoffTimerTask() {
       int32_t slot;
       int32_t iB;
@@ -226,62 +188,6 @@ implementation
         }
       }
     }
-
-    void csMinClearTimer(bool inAsync) {
-      atomic {
-        if(isFlagSet(&runningTimers, MIN_CLEAR_TIMER)) {
-          setFlag(&dirtyTimers, MIN_CLEAR_TIMER);
-          if(inAsync) {
-            post StopMinClearTimerTask();
-          } else {
-            clearFlag(&runningTimers, MIN_CLEAR_TIMER);
-            call MinClearTimer.stop();
-            post CSMinClearTimerTask();
-          }
-        } else if(isFlagSet(&restartTimers, MIN_CLEAR_TIMER)) {
-          post CSMinClearTimerTask();
-        }
-      }
-    }
-    task void StopMinClearTimerTask() { csMinClearTimer(FALSE); }
-    void stopMinClearTimer(bool inAsync) {
-      clearFlag(&restartTimers, MIN_CLEAR_TIMER);
-      csMinClearTimer(inAsync);
-    }
-    void restartMinClearTimer(bool inAsync) {
-      setFlag(&restartTimers, MIN_CLEAR_TIMER);
-      csMinClearTimer(inAsync);
-    }
-
-    void csRxPacketTimer(bool inAsync) {
-      atomic {
-        if(isFlagSet(&runningTimers, RX_PACKET_TIMER)) {
-          setFlag(&dirtyTimers, RX_PACKET_TIMER);
-          if(inAsync) {
-            post StopRxPacketTimerTask();
-          } else {
-            clearFlag(&runningTimers, RX_PACKET_TIMER);
-            call RxPacketTimer.stop();
-            post CSRxPacketTimerTask();
-          }
-        }
-        else if(isFlagSet(&dirtyTimers, RX_PACKET_TIMER)) {
-            // do nothing
-        }
-        else if(isFlagSet(&restartTimers, RX_PACKET_TIMER)) {
-          post CSRxPacketTimerTask();
-        }
-      }
-    }
-    task void StopRxPacketTimerTask() { csRxPacketTimer(FALSE); };
-    void stopRxPacketTimer(bool inAsync) {
-        clearFlag(&restartTimers, RX_PACKET_TIMER);
-        csRxPacketTimer(inAsync);
-    };
-    void restartRxPacketTimer(bool inAsync) {
-      setFlag(&restartTimers, RX_PACKET_TIMER);
-      csRxPacketTimer(inAsync);
-    };
 
     void csBackoffTimer(bool inAsync) {
       atomic {
@@ -319,12 +225,52 @@ implementation
     task void CCAModeTask();
     task void SetRxModeTask();
     task void SetTxModeTask();
-
-    void setCCAMode() {
-      if(call RadioModes.CCAMode() == SUCCESS) {
-        storeOldState(0);
+    void setCCAMode();
+    void setRxMode();
+    void setTxMode();
+    
+    /****** startCCA with Min. Clear Timer ****************************/
+    void startCCA() {
+      if(call ChannelMonitor.start() == SUCCESS) {
+        clearFlag(&firedTimers, MIN_CLEAR_TIMER);
+        call MinClearTimer.start(DIFS);
+        storeOldState(1);
       } else {
-        post CCAModeTask();
+        storeOldState(2);
+        atomic macState = SWITCH;
+        setCCAMode();
+      }
+    }
+    
+    void setCCAMode() {
+      atomic {
+        switch (macState) {
+          case SW_CCA:
+          case SW_RX:
+            macState = SW_CCA;
+            break;
+          case CCA:
+          case RX:
+          case RX_P:
+            macState = CCA;
+            startCCA();
+            break;
+          case INIT:
+            if(call RadioModes.RxMode() == SUCCESS) {
+              storeOldState(0);
+            } else {
+              post CCAModeTask();
+            }
+            break;
+          default: 
+            macState = SW_CCA;
+            if(call RadioModes.RxMode() == SUCCESS) {
+              storeOldState(0);
+            } else {
+              post CCAModeTask();
+            }
+            break;
+        }
       }
     }
 
@@ -335,18 +281,35 @@ implementation
     }
 
     void setRxMode() {
-      if(call RadioModes.RxMode() == FAIL) {
-        post SetRxModeTask();
+      atomic {
+        switch (macState) {
+          case SW_CCA:
+          case SW_RX:
+            macState = SW_RX;
+            break;
+          case RX_P:
+          case RX:
+          case CCA:
+            macState = RX;
+            break;
+          default:   
+            macState = SW_RX;
+            if(call RadioModes.RxMode() == FAIL) {
+              post SetRxModeTask();
+            } 
+            break;
+        }
       }
     }
 
     task void SetRxModeTask() {
       macState_t ms;
       atomic ms = macState;
-      if (ms == SW_RX) setRxMode();
+      if (ms == SW_RX ) setRxMode();
     }
     
     void setTxMode() {
+      atomic macState = SW_TX;
       if(call RadioModes.TxMode() == FAIL) {
         post SetTxModeTask();
       }
@@ -368,7 +331,7 @@ implementation
         firedTimers = 0;
         dirtyTimers = 0;
         runningTimers = 0;
-        slotModulo = 0x1F; 
+        slotModulo = MINISLOT_TIME; 
 #ifdef MACM_DEBUG
         histIndex = 0;
 #endif
@@ -378,16 +341,15 @@ implementation
 
     /****************  SplitControl  *****************/
     task void StartDone() {
-      macState_t ms;
-      atomic ms = macState;
-      if (ms == RX) {
-        signal SplitControl.startDone(SUCCESS);
-      } else if (ms == INIT) {
-        atomic macState = SW_RX;
-        setRxMode();
-        post StartDone();
-      } else {
-        post StartDone();
+      atomic {
+        if (macState == RX) {
+          signal SplitControl.startDone(SUCCESS);
+        } else if (macState == INIT) {
+          setRxMode();
+          post StartDone();
+        } else {
+          post StartDone();
+        }
       }
     }
     
@@ -410,14 +372,13 @@ implementation
           post StopDone();
         } else {
           txBufPtr = NULL;
-          macState = SW_RX;
+          macState = SWITCH;
           inBackoff = 0;
           firedTimers = 0;
           dirtyTimers = 0;
           runningTimers = 0;
           call MinClearTimer.stop();
-          call RxPacketTimer.stop();
-          call BackoffTimer.stop();
+          stopBackoffTimer(FALSE);
           signal SplitControl.stopDone(SUCCESS); 
         }
       }
@@ -428,44 +389,27 @@ implementation
       post StopDone();
       return SUCCESS;
     }
-  
     
-    /****** RadioMode events *************************/
-    
-    async event void RadioModes.CCAModeDone() {
+    /****** Radio(Mode) events *************************/
+    async event void RadioModes.RssiStable() {
       atomic  {
         if(macState == SW_CCA)  {
-          if(call ChannelMonitor.start() == SUCCESS) {
-            clearFlag(&firedTimers, MIN_CLEAR_TIMER);
-            restartMinClearTimer(FALSE);
-            storeOldState(1);
-            macState = CCA;
-          } else {
-            storeOldState(2);
-            setCCAMode();
-          }
+          macState = CCA;
+          startCCA();
         } else if(macState == INIT) {
           storeOldState(3);
           if ( (call ChannelMonitorControl.updateNoiseFloor() == FAIL)  ) {
             setCCAMode(); 
           } 
-        } else {
+        } else if (macState == SW_RX) {
+          macState = RX;
           storeOldState(4);
         }
       }
     }
 
     async event void RadioModes.RxModeDone() {
-      atomic {
-        if( macState == SW_RX ) {
-          storeOldState(5);
-          macState = RX;
-          call PhyPacketRx.recvHeader();
-        } else {
-          storeOldState(-5);
-          signalFailure();
-        }
-      }
+      storeOldState(5);
     }
 
     async event void RadioModes.TxModeDone() {
@@ -493,51 +437,32 @@ implementation
     
     
     /****** Send / Receive *********************/
-    
-    task void SendDoneFailTask() {
-      message_t *msg;
-      atomic {
-        msg = txBufPtr;
-        txBufPtr = NULL;
-      }
-      signal Send.sendDone(msg, FAIL);
-    }
-    
-    task void SendDoneSuccessTask() {
-      message_t *msg;
-      atomic {
-        msg = txBufPtr;
-        txBufPtr = NULL;
-      }
-      signal Send.sendDone(msg, SUCCESS);
-    }
-    
     task void RetrySendTask() {
+      message_t *msg;
       atomic {
         ++inBackoff;
         if(inBackoff <= MAX_TX_ATTEMPTS) {
           storeOldState(8);
-          macState = SW_CCA;
           setCCAMode();
-          restartBackoffTimer(TRUE);
+          restartBackoffTimer(FALSE);
         } else {
           storeOldState(9);
           inBackoff = 0;
           stopBackoffTimer(FALSE);
-          post SendDoneFailTask();
+          msg = txBufPtr;
+          txBufPtr = NULL;
+          signal MacSend.sendDone(msg, FAIL);
         }
       }
     }
     
-    command error_t Send.send(message_t* msg, uint8_t len) {
+    async command error_t MacSend.send(message_t* msg, uint8_t len) {
       atomic {
         if(inBackoff == 0) {
           storeOldState(10);
           switch(macState) {
-            case SW_RX:
             case RX:
-              macState = SW_CCA;
-              setCCAMode();
+            case SW_RX:
             case RX_P:
               inBackoff = 1;
               txBufPtr = msg;
@@ -556,56 +481,63 @@ implementation
       return EBUSY;
     }
 
-    command void* Send.getPayload(message_t* msg) {
-      return call Packet.getPayload(msg, (uint8_t*)&(getHeader(msg)->length));
-    }
+    async command error_t MacSend.cancel(message_t* msg) {
+       atomic {
+         if ( (macState != TX_P) || (macState != SW_TX) || (macState != CCA) ) {
+           stopBackoffTimer(TRUE);
+           call MinClearTimer.stop();
+           txBufPtr = 0;
+           inBackoff = 0;
+           signal MacSend.sendDone(msg, ECANCEL);
+           return SUCCESS;
+         } else {
+           return FAIL;
+         }
+       } 
+     }
 
-    command uint8_t Send.maxPayloadLength() {
-      return call Packet.maxPayloadLength();
-    }
-
-    command error_t Send.cancel(message_t* msg) {
-      atomic {
-        if (macState != TX_P) {
-          stopBackoffTimer(FALSE);
-          stopMinClearTimer(FALSE);
-          txBufPtr = 0;
-          inBackoff = 0;
-          macState = SW_RX;
-          setRxMode();
-          return SUCCESS;
-        } else {
-          return FAIL;
-        }
-      } 
-    }
-
-    command void* Receive.getPayload(message_t* msg, uint8_t* len) {
-      return call PacketReceive.getPayload(msg, len);
-    }
-
-    command uint8_t Receive.payloadLength(message_t* msg) {
-      return call PacketReceive.payloadLength(msg);
-    }
-
-    
+     task void TestTask() {
+       unsigned i;
+       for(i = 0; i < 10000; i++){
+         ;
+       }
+     }
+     
     /****** PacketSerializer events **********************/
+    async event void PacketReceive.receiveDetected() {
+      atomic {
+//        if ( (macState == SW_CCA) || (macState == CCA) || (macState == RX) || (macState == SW_RX) ) {
+          if(macState <= RX) {
+          macState = RX_P;
+          storeOldState(14);
+          call ChannelMonitor.rxSuccess();
+          //FIXME: problems when calling this -> packets get lost
+          call  ChannelMonitorData.getSnr();
+          post TestTask();
+        } else {
+          storeOldState(-14);
+          // we lose this packet 'cause we already switched the radio mode to SW_TX or TX
+        } 
+      }
+    }
 
-    event message_t* PacketReceive.receive(message_t* msg, void* payload, uint8_t len) {
+    async event message_t* PacketReceive.receiveDone(message_t* msg, void* payload, uint8_t len, error_t error) {
       atomic {
         storeOldState(12);
-        if( isFlagSet(&firedTimers, BACKOFF_TIMER) && (inBackoff > 0)) {
-          macState = SW_CCA;
-          setCCAMode();
-        } else if (macState != INIT) {
-          macState = RX;
-          call PhyPacketRx.recvHeader();
+        if (macState != INIT) {
+          if( (isFlagSet(&firedTimers, BACKOFF_TIMER)) && (inBackoff > 0)) {
+            setCCAMode();
+          } else {
+            setRxMode();
+          }
         }
       }
-      atomic {
-        (getMetadata(msg))->strength = rssiValue;
+      if (error == SUCCESS) {
+        atomic {
+          (getMetadata(msg))->strength = rssiValue;
+        }
+        signal MacReceive.receiveDone(msg);
       }
-      signal Receive.receive(msg, payload, len);
       return msg;
     }
 
@@ -616,93 +548,32 @@ implementation
             storeOldState(13);
             stopBackoffTimer(TRUE);
             inBackoff = 0;
-            macState = SW_RX;
             setRxMode();
           } else {
             storeOldState(-13);
             signalFailure();
           }
-          post SendDoneSuccessTask();
+          txBufPtr = NULL;
+          signal MacSend.sendDone(msg, SUCCESS);
         }
       } else {
         post RetrySendTask(); 
       }
     }
-    
-    
-    /******* PhyPacketRx *******************************/
-    
-    async event void PhyPacketRx.recvHeaderDone() {
-      macState_t ms = RX;
-      atomic { ms = macState; }
-      if(ms == RX) {
-        storeOldState(14);
-        call ChannelMonitor.rxSuccess();
-        atomic { 
-          macState = RX_P; 
-          call ChannelMonitorData.getSnr();
-          clearFlag(&firedTimers, RX_PACKET_TIMER);
-          restartRxPacketTimer(TRUE);
-        }
-      } else {
-        storeOldState(-14);
-        // we lose this packet 'cause we already switched the radio mode
-      }
-    }
-
-    async event void PhyPacketRx.recvFooterDone(bool error) {
-      // stop RxPacketTimer (packet timeout)
-      stopRxPacketTimer(TRUE);
-    }
-
        
     
     /****** MinClearTimer ******************************/
     
-    event void MinClearTimer.fired() {
+    async event void MinClearTimer.fired() {
       atomic {
-        if(isFlagSet(&dirtyTimers, MIN_CLEAR_TIMER)) {
-          storeOldState(15);
+        if(macState == CCA) {
+          setFlag(&firedTimers, MIN_CLEAR_TIMER);
+          storeOldState(16);
         } else {
-          if(macState == CCA) {
-            setFlag(&firedTimers, MIN_CLEAR_TIMER);
-            storeOldState(16);
-          } else {
-            storeOldState(-16);
-            signalFailure();
-          }
-          clearFlag(&runningTimers, MIN_CLEAR_TIMER);
+          storeOldState(-16);
+          signalFailure();
         }
-      }
-    }
-
-    
-    /****** RxPacketTimer ******************************/
-    
-    event void RxPacketTimer.fired() {
-      atomic {
-        if(isFlagSet(&dirtyTimers, RX_PACKET_TIMER)) {
-          storeOldState(17);
-        }
-        else {
-          if(macState == RX_P) {
-            storeOldState(18);
-            setFlag(&firedTimers, RX_PACKET_TIMER);
-            stopRxPacketTimer(FALSE);
-            if( isFlagSet(&firedTimers, BACKOFF_TIMER) && (inBackoff > 0) ) {
-              macState = SW_CCA;
-              setCCAMode();
-            } else {
-              macState = RX;
-              // reset PhyPacket state...    
-              call PhyPacketRx.recvHeader();
-            }
-          } else {
-            storeOldState(-18);
-            signalFailure();
-          }
-          clearFlag(&runningTimers, RX_PACKET_TIMER);
-        }
+        clearFlag(&runningTimers, MIN_CLEAR_TIMER);
       }
     }
 
@@ -710,7 +581,6 @@ implementation
     /****** BackoffTimer ******************************/
 
     event void BackoffTimer.fired() {
-      macState_t ms = RX;
       atomic {
         if(isFlagSet(&dirtyTimers, BACKOFF_TIMER)) {
           storeOldState(19);
@@ -718,22 +588,19 @@ implementation
         else {
           if ((macState == RX) || (macState == SW_RX)) {
             storeOldState(20);
-            ms = SW_CCA;
+            if (call UartPhyControl.isBusy() == FALSE) {
+              setCCAMode();
+            } else {
+              setRxMode();
+            } 
           } else if (macState == INIT) {
             storeOldState(21);
-            ms = INIT;
-          } else {
-            setFlag(&firedTimers, BACKOFF_TIMER);
-            storeOldState(22);
-          }
+            restartBackoffTimer(FALSE);
+          } 
+          setFlag(&firedTimers, BACKOFF_TIMER);
+          storeOldState(22);
           clearFlag(&runningTimers, BACKOFF_TIMER);
         }
-      }
-      if(ms == INIT) {
-        restartBackoffTimer(FALSE);
-      } else if (ms == SW_CCA) {
-        atomic macState = SW_CCA;
-        setCCAMode();
       }
     }
 
@@ -741,6 +608,7 @@ implementation
     /****** ChannelMonitor events *********************/
 
     async event void ChannelMonitor.channelBusy() {
+      message_t *msg;
       bool sendFailed = FALSE;
       atomic {
         if(macState == CCA) {
@@ -755,13 +623,12 @@ implementation
             sendFailed = TRUE;
             inBackoff = 0;
             stopBackoffTimer(TRUE);
+            msg = txBufPtr;
+            txBufPtr = NULL;
+            signal MacSend.sendDone(msg, FAIL);
           }
         } 
-        stopMinClearTimer(TRUE);
-        if(sendFailed) {
-          post SendDoneFailTask();
-        }
-        macState = SW_RX;
+        call MinClearTimer.stop();
         setRxMode();
       }
     }
@@ -771,13 +638,13 @@ implementation
         if(macState == CCA) {
           if(!isFlagSet(&firedTimers, MIN_CLEAR_TIMER)) {
             storeOldState(26);
+	    // until min. clear timer is fired...
             call ChannelMonitor.start();         
           } else {
             if(txBufPtr == NULL) {
               storeOldState(-26);
               signalFailure();
             }
-            macState = SW_TX;
             setTxMode();
           }
         }
@@ -789,10 +656,11 @@ implementation
     
     event void ChannelMonitorControl.updateNoiseFloorDone() {
       atomic {
-        storeOldState(27);
         if(macState == INIT) {
+          storeOldState(27);
           post StartDone();
         } else {
+          storeOldState(-27);
           signalFailure();
         }
       }
@@ -802,9 +670,7 @@ implementation
     
     async event void ChannelMonitorData.getSnrDone(int16_t data) {
       atomic {
-        if(macState == RX_P) {
-          rssiValue = data;
-        }
+        if (macState == RX_P) rssiValue = data;
       }
     }
 
@@ -818,3 +684,4 @@ implementation
 
     
 }
+

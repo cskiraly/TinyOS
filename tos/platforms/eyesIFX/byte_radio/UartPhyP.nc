@@ -29,8 +29,8 @@
 * - Description ---------------------------------------------------------
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.3 $
-* $Date: 2006-03-01 18:38:17 $
+* $Revision: 1.1.2.1 $
+* $Date: 2006-05-31 13:53:03 $
 * @author: Kevin Klues (klues@tkn.tu-berlin.de)
 * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
 * ========================================================================
@@ -48,16 +48,17 @@ provides {
   interface PhyPacketTx;
   interface RadioByteComm as SerializerRadioByteComm;
   interface PhyPacketRx;
+  interface UartPhyControl;
 }
 uses {
   interface RadioByteComm;
+  interface Alarm<T32khz, uint16_t> as RxByteTimer;
 }
 }
 implementation
 {
   /* Module Definitions  */
   typedef enum {
-    STATE_NULL,
     STATE_PREAMBLE,
     STATE_SYNC,
     STATE_SFD,
@@ -69,15 +70,19 @@ implementation
     STATE_CANCEL_DATA,
     STATE_CANCEL_FOOTER
   } phyState_t;
+  
 
 #define PREAMBLE_LENGTH   4
+#define BYTE_TIME         35
 #define PREAMBLE_BYTE     0x55
 #define SYNC_BYTE         0xFF
 #define SFD_BYTE          0x33
 
-/** Module Global Variables  */
-phyState_t phyState;    // Current Phy state State
-uint16_t numPreambles;  // Number of preambles to send before the packet
+    /** Module Global Variables  */
+    phyState_t phyState;    // Current Phy state State
+    uint16_t preambleCount;
+    uint16_t numPreambles;  // Number of preambles to send before the packet
+    uint8_t byteTime;       // max. time between two bytes
 
     /* Local Function Declarations */
     void TransmitNextByte();
@@ -86,15 +91,60 @@ uint16_t numPreambles;  // Number of preambles to send before the packet
     /* Radio Init */
     command error_t Init.init(){
       atomic {
-        atomic phyState = STATE_NULL;
+        phyState = STATE_PREAMBLE;
+        numPreambles = PREAMBLE_LENGTH;
+        byteTime = BYTE_TIME;
       }
       return SUCCESS;
+    }
+    
+    command error_t UartPhyControl.setNumPreambles(uint16_t numPreambleBytes) {
+      atomic {
+        if (phyState == STATE_PREAMBLE) {
+          return FAIL;
+        } else {
+          numPreambles = numPreambleBytes;
+        }
+      }
+      return SUCCESS;
+    }
+    
+    command error_t UartPhyControl.setByteTimeout(uint8_t byteTimeout) {
+      if (call RxByteTimer.isRunning() == TRUE) {
+        return FAIL;
+      } else {
+        atomic byteTime = byteTimeout;
+        return SUCCESS;
+      }
+    }
+    
+    async command bool UartPhyControl.isBusy() {
+      return call RxByteTimer.isRunning();
+    }
+    
+    async event void RxByteTimer.fired() {
+      // no bytes have been arrived, so...
+      atomic {
+        switch(phyState) {
+          case STATE_SYNC:
+          case STATE_SFD:
+            signal PhyPacketRx.recvHeaderDone(FAIL);
+            break;
+          case STATE_DATA:
+          case STATE_FOOTER_START:
+            signal PhyPacketRx.recvFooterDone(FAIL);
+            break;
+          default:
+            break;
+        }
+        phyState = STATE_PREAMBLE; 
+      }
     }
 
     async command void PhyPacketTx.sendHeader() {
       atomic {
         phyState = STATE_PREAMBLE;
-        numPreambles = PREAMBLE_LENGTH;
+        preambleCount = numPreambles;
       }
       TransmitNextByte();
     }
@@ -114,160 +164,117 @@ uint16_t numPreambles;  // Number of preambles to send before the packet
 
 
     /* Radio Recv */
-    async command void PhyPacketRx.recvHeader() {
-      atomic phyState = STATE_PREAMBLE;
-    }
-
     async command void PhyPacketRx.recvFooter() {
         // currently there is no footer
         // atomic phyState = STATE_FOOTER_START;
-        atomic phyState = STATE_NULL;
-        signal PhyPacketRx.recvFooterDone(TRUE);
+        atomic {
+          phyState = STATE_PREAMBLE;
+        }
+        call RxByteTimer.stop();
+        signal PhyPacketRx.recvFooterDone(SUCCESS);
     }
 
-    async command error_t PhyPacketTx.cancel() {
-      switch(phyState) {
-        case STATE_PREAMBLE:
-        case STATE_SYNC:
-        case STATE_SFD:
-        case STATE_HEADER_DONE:
-          atomic phyState = STATE_CANCEL_HEADER;
-          return SUCCESS;
-        case STATE_DATA:
-          atomic phyState = STATE_CANCEL_DATA;
-          return SUCCESS;
-        case STATE_FOOTER_START:
-          atomic phyState = STATE_CANCEL_FOOTER;
-          return SUCCESS;
-        default:
-          return FAIL;
-      }
-    }
-
+    
     /* Tx Done */
     async event void RadioByteComm.txByteReady(error_t error) {
-      phyState_t state;
       if(error == SUCCESS) {
         TransmitNextByte();
-      }
-      else {
-        atomic state = phyState;
-        switch(state) {
-          case STATE_PREAMBLE:
-          case STATE_SYNC:
-          case STATE_SFD:
-            signal PhyPacketTx.sendHeaderDone(error);
-            break;
-          case STATE_DATA:
-          case STATE_FOOTER_START:
-            signal PhyPacketTx.sendFooterDone(error);
-            break;
-          default:
-            signal SerializerRadioByteComm.txByteReady(error);
-            break;
+      } else {
+        atomic {
+          signal SerializerRadioByteComm.txByteReady(error);
+          phyState = STATE_PREAMBLE;
         }
       }
     }
 
     void TransmitNextByte() {
-      phyState_t state;
-      atomic state = phyState;
-      switch(state) {
-        case STATE_PREAMBLE:
-          atomic {
-            if(numPreambles > 0) {
-              numPreambles--;
+      atomic {
+        switch(phyState) {
+          case STATE_PREAMBLE:
+            if(preambleCount > 0) {
+              preambleCount--;
             } else {
               phyState = STATE_SYNC;
             }
-          }
-          call RadioByteComm.txByte(PREAMBLE_BYTE);
-          break;
-        case STATE_SYNC:
-          atomic phyState = STATE_SFD;
-          call RadioByteComm.txByte(SYNC_BYTE);
-          break;
-        case STATE_SFD:
-          atomic phyState = STATE_HEADER_DONE;
-          call RadioByteComm.txByte(SFD_BYTE);
-          break;
-        case STATE_HEADER_DONE:
-          atomic phyState = STATE_DATA;
-          signal PhyPacketTx.sendHeaderDone(SUCCESS);
-          break;
-        case STATE_DATA:
-          signal SerializerRadioByteComm.txByteReady(SUCCESS);
-          break;
-        case STATE_FOOTER_START:
-                        // maybe there will be a time.... we will need this.
-                        // atomic phyState = STATE_FOOTER_DONE;
-                        // break;
-        case STATE_FOOTER_DONE:
-          atomic phyState = STATE_NULL;
-          signal PhyPacketTx.sendFooterDone(SUCCESS);
-          break;
-        case STATE_CANCEL_HEADER:
-          atomic phyState = STATE_NULL;
-          signal PhyPacketTx.sendHeaderDone(ECANCEL);
-          break;
-        case STATE_CANCEL_DATA:
-          atomic phyState = STATE_NULL;
-          signal SerializerRadioByteComm.txByteReady(ECANCEL);
-          break;
-        case STATE_CANCEL_FOOTER:
-          atomic phyState = STATE_NULL;
-          signal PhyPacketTx.sendFooterDone(ECANCEL);
-        default:
-          break;
+            call RadioByteComm.txByte(PREAMBLE_BYTE);
+            break;
+          case STATE_SYNC:
+            phyState = STATE_SFD;
+            call RadioByteComm.txByte(SYNC_BYTE);
+            break;
+          case STATE_SFD:
+            phyState = STATE_HEADER_DONE;
+            call RadioByteComm.txByte(SFD_BYTE);
+            break;
+          case STATE_HEADER_DONE:
+            phyState = STATE_DATA;
+            signal PhyPacketTx.sendHeaderDone();
+            break;
+          case STATE_DATA:
+            signal SerializerRadioByteComm.txByteReady(SUCCESS);
+            break;
+          case STATE_FOOTER_START:
+            // maybe there will be a time.... we will need this.
+            // phyState = STATE_FOOTER_DONE;
+            // break;
+          case STATE_FOOTER_DONE:
+            phyState = STATE_PREAMBLE;
+            signal PhyPacketTx.sendFooterDone();
+            break;
+          default:
+            break;
+        }
       }
     }
 
     /* Rx Done */
     async event void RadioByteComm.rxByteReady(uint8_t data) {
+      call RxByteTimer.start(byteTime);
       ReceiveNextByte(data);
     }
 
     /* Receive the next Byte from the USART */
     void ReceiveNextByte(uint8_t data) {
-      switch(phyState) {
-        case STATE_PREAMBLE:
-
-          if(data == PREAMBLE_BYTE) {
-            atomic phyState = STATE_SYNC;
-          } else {
-            atomic phyState = STATE_PREAMBLE;
-          }
-          break;
-        case STATE_SYNC:
-          if(data != PREAMBLE_BYTE) {
-            if (data == SFD_BYTE) {
-              signal PhyPacketRx.recvHeaderDone();
-              atomic phyState = STATE_DATA;
+      atomic {
+        switch(phyState) {
+          case STATE_SYNC:
+            if(data != PREAMBLE_BYTE) {
+              if (data == SFD_BYTE) {
+                signal PhyPacketRx.recvHeaderDone(SUCCESS);
+                phyState = STATE_DATA;
+              } else {
+                phyState = STATE_SFD;
+              } 
             }
-            else atomic phyState = STATE_SFD;
-          }
-          break;
-        case STATE_SFD:
-          if (data == SFD_BYTE) {
-            signal PhyPacketRx.recvHeaderDone();
-            atomic phyState = STATE_DATA;
-          } else {
-            atomic phyState = STATE_PREAMBLE;
-          }
-          break;
-        case STATE_DATA:
-          signal SerializerRadioByteComm.rxByteReady(data);
-          break;
+            break;
+          case STATE_SFD:
+            if (data == SFD_BYTE) {
+              signal PhyPacketRx.recvHeaderDone(SUCCESS);
+              phyState = STATE_DATA;
+            } else {
+              phyState = STATE_PREAMBLE; 
+            }
+            break;
+          case STATE_PREAMBLE:
+            if(data == PREAMBLE_BYTE) {
+              phyState = STATE_SYNC;
+            } 
+            break;
+          case STATE_DATA:
+            signal SerializerRadioByteComm.rxByteReady(data);
+            break;
           // maybe there will be a time.... we will need this. but for now there is no footer
-          //              case STATE_FOOTER_START:
-          //                      atomic phyState = STATE_FOOTER_DONE;
-          //                      break;
-          //              case STATE_FOOTER_DONE:
-          //                      atomic phyState = STATE_NULL;
-          //                      signal PhyPacketRx.recvFooterDone(TRUE);
-          //                      break;
-        default:
-          break;
+          //case STATE_FOOTER_START:
+          //phyState = STATE_FOOTER_DONE;
+          //break;
+          //case STATE_FOOTER_DONE:
+          //phyState = STATE_NULL;
+          //signal PhyPacketRx.recvFooterDone(TRUE);
+          //break;
+          default:
+            break;
+        }
       }
     }
+
 }

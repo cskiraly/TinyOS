@@ -1,4 +1,4 @@
-/*
+/* -*- mode:c++; indent-tabs-mode: nil -*-
  * Copyright (c) 2004, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -20,47 +20,20 @@
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
  * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
- * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
- * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES {} LOSS OF USE, DATA,
+ * OR PROFITS {} OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-05-31 13:53:03 $
+ * - Description ---------------------------------------------------------
+ * Measure Battery Level in mV using the internal voltage
+ * - Author --------------------------------------------------------------
+ * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
  * ========================================================================
  */
 
-/**
- * Physical Packet Transmission Interface.
- * Commands and event provided by the Physical Layer
- * to communicate with upper layers about the status of a 
- * packet that is being transmitted.
- *
- * @author Kevin Klues <klues@tkn.tu-berlin.de)>
- */  
- 
-interface PhyPacketTx {
-  /**
-  * Start sending a new packet header. 
-  */
-  async command void sendHeader();
-  
-  /**
-  * Notification that the packet header was sent.
-  *
-  */
-  async event void sendHeaderDone();
-  
-  /**
-  * Start sending the packet footer.
-  */
-  async command void sendFooter();
-  
-  /**
-  * Notification that the the packet footer was sent.
-  *
-  */
-  async event void sendFooterDone();  
+interface BatteryLevel {
+    // get the batterylevel in mV
+    async command uint16_t getLevel();
 }

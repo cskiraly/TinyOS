@@ -26,8 +26,8 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.3 $
-* $Date: 2006-03-08 18:01:55 $
+* $Revision: 1.1.2.4 $
+* $Date: 2006-05-31 13:53:02 $
 * ========================================================================
 */
 
@@ -35,6 +35,7 @@
 * HplTda5250ConfigP module
 *
 * @author Kevin Klues (klues@tkn.tu-berlin.de)
+* @author Philipp Huppertz (huppertz@tkn.tu-berlin.de)
 */
 
 module HplTda5250ConfigP {
@@ -58,22 +59,30 @@ module HplTda5250ConfigP {
     interface Tda5250WriteReg<TDA5250_REG_TYPE_BLOCK_PD>    as BLOCK_PD;
     interface Tda5250ReadReg<TDA5250_REG_TYPE_STATUS>       as STATUS;
     interface Tda5250ReadReg<TDA5250_REG_TYPE_ADC>          as ADC;
-    interface Alarm<T32khz, uint16_t> as TransmitterDelay;
-    interface Alarm<T32khz, uint16_t> as ReceiverDelay;
-    interface Alarm<T32khz, uint16_t> as RSSIStableDelay;
+
     interface GeneralIO as TXRX;
     interface GeneralIO as PWDDD;
     interface GpioInterrupt as PWDDDInterrupt;
   }
 }
 
-implementation {
+implementation { 
+   
+  /****************************************************************************************************
+  **                                                                                                 **
+  **                                                                                                 **
+  **     Important !!! Only function marked with << tested >> are potentially working!               **
+  **                                                                                                 **
+  **                                                                                                 **
+  *****************************************************************************************************/
+  
   /****************************************************************
   Global Variables Declared
   *****************************************************************/
   norace uint16_t currentConfig;
   uint8_t currentClockDiv;
   norace uint8_t currentLpf;
+
 
   /****************************************************************
   async commands Implemented
@@ -87,11 +96,11 @@ implementation {
   */
   command error_t Init.init() {
     // setting pins to output
-        call TXRX.makeOutput();
+    call TXRX.makeOutput();
     call PWDDD.makeOutput();
 
     // initializing pin values
-        call TXRX.set();
+    call TXRX.set();
     call PWDDD.clr();
     return SUCCESS;
   }
@@ -99,6 +108,7 @@ implementation {
   /**
   * Reset all Radio Registers to the default values as defined
   * in the tda5250RegDefaults.h file
+  * << tested >>
   */
   async command void HplTda5250Config.reset() {
     //Keep three state variables to know current value of
@@ -163,21 +173,29 @@ implementation {
     call CONFIG.set(currentConfig);
   }
 
+  /* << tested >> */
   async command void HplTda5250Config.UseFSK(tda5250_cap_vals_t pos_shift, tda5250_cap_vals_t neg_shift) {
-    if((currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) == TRUE) {
-      currentConfig = CONFIG_ASK_NFSK_FSK(currentConfig);
+    currentConfig = CONFIG_ASK_NFSK_FSK(currentConfig);
+    if(currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) {
       call CONFIG.set(currentConfig);
     }
-    //else ***** For Platforms that have a connection to the FSK pin *******
-        call FSK.set(((uint16_t)((((uint16_t)pos_shift) << 8) + neg_shift)));
+    else {
+      // ***** For Platforms that have a connection to the FSK pin *******
+      //call FSK.set(); 
+    }
+    call FSK.set(((uint16_t)((((uint16_t)pos_shift) << 8) + neg_shift)));
   }
+  /* << tested >> */
   async command void HplTda5250Config.UseASK(tda5250_cap_vals_t value) {
-    if((currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) == TRUE) {
-      currentConfig = CONFIG_ASK_NFSK_ASK(currentConfig);
+    currentConfig = CONFIG_ASK_NFSK_ASK(currentConfig);
+    if((currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER)) {
       call CONFIG.set(currentConfig);
+    } 
+    else {
+      // ***** For Platforms that have a connection to the FSK pin *******
+      //call FSK.set(); 
     }
-    //else ***** For Platforms that have a connection to the FSK pin *******
-        call FSK.set((((uint16_t)value) << 8));
+    call FSK.set((((uint16_t)value) << 8));
   }
   async command void HplTda5250Config.SetClockOffDuringPowerDown() {
     currentConfig = CONFIG_CLK_EN_OFF(currentConfig);
@@ -236,10 +254,12 @@ implementation {
     currentConfig = CONFIG_F_COUNT_MODE_ONESHOT(currentConfig);
     call CONFIG.set(currentConfig);
   }
+  /* <<tested>> */
   async command void HplTda5250Config.HighLNAGain() {
     currentConfig = CONFIG_LNA_GAIN_HIGH(currentConfig);
     call CONFIG.set(currentConfig);
   }
+  /* <<tested>> */
   async command void HplTda5250Config.LowLNAGain() {
     currentConfig = CONFIG_LNA_GAIN_LOW(currentConfig);
     call CONFIG.set(currentConfig);
@@ -252,10 +272,12 @@ implementation {
     currentConfig = CONFIG_EN_RX_DISABLE(currentConfig);
     call CONFIG.set(currentConfig);
   }
+  /* <<tested>> */
   async command void HplTda5250Config.UseHighTxPower() {
     currentConfig = CONFIG_PA_PWR_HIGHTX(currentConfig);
     call CONFIG.set(currentConfig);
   }
+  /* <<tested>> */
   async command void HplTda5250Config.UseLowTxPower() {
     currentConfig = CONFIG_PA_PWR_LOWTX(currentConfig);
     call CONFIG.set(currentConfig);
@@ -269,7 +291,7 @@ implementation {
     call XTAL_CONFIG.set(0x00);
     call XTAL_CONFIG.set(((uint16_t)cap_val) & 0x003F);
   }
-
+  /* <<tested>> */
   async command void HplTda5250Config.SetRFPower(uint8_t value) {
     call RF_POWER.set(value);
   }
@@ -278,13 +300,16 @@ implementation {
   Set the mode of the radio
   The choices are SLAVE_MODE, TIMER_MODE, SELF_POLLING_MODE
   */
+  
+  /* << tested >> */
   async command void HplTda5250Config.SetSlaveMode() {
     call PWDDDInterrupt.disable();
     call PWDDD.makeOutput();
     call PWDDD.clr();
     currentConfig = CONFIG_MODE_1_SLAVE_OR_TIMER(currentConfig);
     currentConfig = CONFIG_MODE_2_SLAVE(currentConfig);
-    call CONFIG.set(currentConfig);
+    // SetSlaveMode() is always called in conjunction with another function that writes the config...
+    // call CONFIG.set(currentConfig);
   }
   async command void HplTda5250Config.SetTimerMode(float on_time, float off_time) {
     call PWDDD.clr();
@@ -295,7 +320,6 @@ implementation {
     call CONFIG.set(currentConfig);
     call TXRX.set();
     call PWDDD.makeInput();
-    // call PWDDDInterrupt.startWait(FALSE);
     call PWDDDInterrupt.enableFallingEdge();
   }
   async command void HplTda5250Config.ResetTimerMode() {
@@ -304,7 +328,6 @@ implementation {
     currentConfig = CONFIG_MODE_2_TIMER(currentConfig);
     call CONFIG.set(currentConfig);
     call PWDDD.makeInput();
-    // call PWDDDInterrupt.startWait(FALSE);
     call PWDDDInterrupt.enableFallingEdge();
   }
   async command void HplTda5250Config.SetSelfPollingMode(float on_time, float off_time) {
@@ -315,7 +338,6 @@ implementation {
     call CONFIG.set(currentConfig);
     call TXRX.set();
     call PWDDD.makeInput();
-    // call PWDDDInterrupt.startWait(FALSE);
     call PWDDDInterrupt.enableFallingEdge();
   }
   async command void HplTda5250Config.ResetSelfPollingMode() {
@@ -324,7 +346,6 @@ implementation {
     call CONFIG.set(currentConfig);
     call TXRX.set();
     call PWDDD.makeInput();
-    // call PWDDDInterrupt.startWait(FALSE);
     call PWDDDInterrupt.enableFallingEdge();
   }
   /**
@@ -367,6 +388,8 @@ implementation {
   /**
   Sets the threshold Values for internal evaluation
   */
+  
+  /* <<tested>> */
   async command void HplTda5250Config.SetRSSIThreshold(uint8_t value) {
     call RSSI_TH3.set(0xC0 | value);
   }
@@ -437,44 +460,43 @@ implementation {
   /**
   Switches radio between states when in SLAVE_MODE
   */
+  
+  /* << tested >> */
   async command void HplTda5250Config.SetTxMode() {
-    if ((currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) == TRUE) {
-      currentConfig = CONFIG_RX_NTX_TX(currentConfig);
-      currentConfig = CONFIG_ALL_PD_NORMAL(currentConfig);
+    currentConfig = CONFIG_RX_NTX_TX(currentConfig);
+    currentConfig = CONFIG_ALL_PD_NORMAL(currentConfig);
+    if (currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) {
       call CONFIG.set(currentConfig);
     }
     else {
       call TXRX.clr();
       call PWDDD.clr();
     }
-                        // call TransmitterDelay.startNow(TDA5250_TRANSMITTER_SETUP_TIME);
-                        call TransmitterDelay.start(TDA5250_TRANSMITTER_SETUP_TIME);
   }
 
+  /* << tested >> */
   async command void HplTda5250Config.SetRxMode() {
-    if ((currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) == TRUE) {
-      currentConfig = CONFIG_RX_NTX_RX(currentConfig);
-      currentConfig = CONFIG_ALL_PD_NORMAL(currentConfig);
+    currentConfig = CONFIG_RX_NTX_RX(currentConfig);
+    currentConfig = CONFIG_ALL_PD_NORMAL(currentConfig);
+    if (currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) {
       call CONFIG.set(currentConfig);
     }
     else {
       call TXRX.set();
       call PWDDD.clr();
     }
-                // call ReceiverDelay.startNow(TDA5250_RECEIVER_SETUP_TIME);
-                call ReceiverDelay.start(TDA5250_RECEIVER_SETUP_TIME);
   }
-
+  
+  /* << tested >> */
   async command void HplTda5250Config.SetSleepMode() {
-    if ((currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) == TRUE) {
-      currentConfig = CONFIG_ALL_PD_POWER_DOWN(currentConfig);
+    currentConfig = CONFIG_ALL_PD_POWER_DOWN(currentConfig);
+    if (currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) {
       call CONFIG.set(currentConfig);
     }
     else {
       call PWDDD.makeOutput();
       call PWDDD.set();
     }
-    signal HplTda5250Config.SetSleepModeDone();
   }
 
   /****************************************************************
@@ -486,20 +508,6 @@ implementation {
   */
   async event void PWDDDInterrupt.fired() {
     signal HplTda5250Config.PWDDDInterrupt();
-  }
-
-  async event void TransmitterDelay.fired() {
-    signal HplTda5250Config.SetTxModeDone();
-  }
-
-  async event void ReceiverDelay.fired() {
-          // call RSSIStableDelay.startNow(TDA5250_RSSI_STABLE_TIME-TDA5250_RECEIVER_SETUP_TIME);
-          call RSSIStableDelay.start(TDA5250_RSSI_STABLE_TIME-TDA5250_RECEIVER_SETUP_TIME);
-          signal HplTda5250Config.SetRxModeDone();
-  }
-
-  async event void RSSIStableDelay.fired() {
-    signal HplTda5250Config.RSSIStable();
   }
 
   default async event void HplTda5250Config.PWDDDInterrupt() {}

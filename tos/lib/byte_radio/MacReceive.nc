@@ -25,42 +25,26 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-05-31 13:53:03 $
- * ========================================================================
  */
 
 /**
- * Physical Packet Transmission Interface.
- * Commands and event provided by the Physical Layer
- * to communicate with upper layers about the status of a 
- * packet that is being transmitted.
+ * This interface is similar to the Receive interface.
+ *   
+ * The interface provides two events in async context which indicate that
+ * a packet is detected or was received.
  *
- * @author Kevin Klues <klues@tkn.tu-berlin.de)>
- */  
- 
-interface PhyPacketTx {
+ * @author Philipp Huppertz
+ */ 
+
+
+#include <TinyError.h>
+#include <message.h>
+
+interface MacReceive {
+
   /**
-  * Start sending a new packet header. 
-  */
-  async command void sendHeader();
+   FIXME: Fill in description here
+   */
+  async event message_t* receiveDone(message_t* msg);
   
-  /**
-  * Notification that the packet header was sent.
-  *
-  */
-  async event void sendHeaderDone();
-  
-  /**
-  * Start sending the packet footer.
-  */
-  async command void sendFooter();
-  
-  /**
-  * Notification that the the packet footer was sent.
-  *
-  */
-  async event void sendFooterDone();  
 }

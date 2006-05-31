@@ -1,5 +1,5 @@
-/* -*- mode:c++; indent-tabs-mode: nil -*-
- * Copyright (c) 2004, Technische Universitaet Berlin
+/*
+ * Copyright (c) 2004-2006, Technische Universitaet Berlin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -29,35 +29,40 @@
  */
  
  /**
- * Configuration for the fixed Rssi Threshold module.
+ *  LinkLayer.
  *
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
+ * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
+ * ========================================================================
  */
-configuration RssiFixedThresholdCMC
-{
-  provides {
-        interface StdControl;
-        interface ChannelMonitor;
-        interface ChannelMonitorControl;
-        interface ChannelMonitorData;
-    }    
+configuration LinkLayerC {
+   provides {
+     interface Init;
+     interface SplitControl;
+     interface Send;
+     interface Receive;
+     interface PacketAcknowledgements;
+   }
+   uses {
+     interface SplitControl as MacSplitControl;
+     interface SplitControl as RadioSplitControl;
+     interface MacSend as SendDown;
+     interface MacReceive as ReceiveLower;     
+     interface Packet;   
+   }
 }
 implementation
 {
-    components RssiFixedThresholdCMP,
-        RssiRefVoltC as Rssi,
-        MainC,
-        new TimerMilliC() as Timer;
-
-    MainC.SoftwareInit -> RssiFixedThresholdCMP;
-    StdControl = RssiFixedThresholdCMP;
-    StdControl = Rssi;
-
-    RssiFixedThresholdCMP.RssimV -> Rssi;
-
-    ChannelMonitor = RssiFixedThresholdCMP;
-    ChannelMonitorControl = RssiFixedThresholdCMP;
-    ChannelMonitorData = RssiFixedThresholdCMP;
-    
-    RssiFixedThresholdCMP.Timer -> Timer;
+  components LinkLayerP as Llc;
+  
+    Init = Llc;
+    SplitControl = Llc;
+    MacSplitControl =  Llc.MacSplitControl;
+    RadioSplitControl =  Llc.RadioSplitControl;
+    Send = Llc.Send;
+    Receive = Llc.Receive;
+    Packet = Llc.Packet;
+    PacketAcknowledgements = Llc;    
+    ReceiveLower = Llc.ReceiveLower;
+    SendDown = Llc.SendDown;
 }

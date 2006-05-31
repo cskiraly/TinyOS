@@ -38,41 +38,35 @@
 
 configuration CsmaMacC {
   provides {
+    interface Init;
     interface SplitControl;
-    interface Send;
-    interface Receive;
-    interface ChannelMonitorData;
+    interface MacSend;
+    interface MacReceive;
   }
   uses {
-    interface AsyncSend as PacketSend;
-    interface Receive as PacketReceive;
+    interface PhySend as PacketSend;
+    interface PhyReceive as PacketReceive;
         
-    interface Packet;
-    interface PhyPacketRx;
-    //FIXME: RadioModes machen... :)
     interface Tda5250Control;  
+    interface UartPhyControl;
   }
 }
 implementation {
   components  CsmaMacP,
               RssiFixedThresholdCMC as Cca,
-              new TimerMilliC() as MinClearTimer,
-              new TimerMilliC() as RxPacketTimer,
+              new Alarm32khzC() as MinClearTimer,
               new TimerMilliC() as BackoffTimer,
-              MainC,
               RandomLfsrC;
 
-    MainC.SoftwareInit -> CsmaMacP;
+    Init = CsmaMacP;
+    Init = Cca;
               
     SplitControl = CsmaMacP;
     
-    Send = CsmaMacP;
-    Receive = CsmaMacP;
+    MacSend = CsmaMacP;
+    MacReceive = CsmaMacP;
     Tda5250Control = CsmaMacP;
-    ChannelMonitorData = Cca.ChannelMonitorData;
-
-    PhyPacketRx = CsmaMacP;
-    Packet = CsmaMacP;
+    UartPhyControl = CsmaMacP;
     
     CsmaMacP = PacketSend;
     CsmaMacP = PacketReceive;
@@ -84,7 +78,6 @@ implementation {
     CsmaMacP.Random -> RandomLfsrC;
 
     CsmaMacP.MinClearTimer -> MinClearTimer;    
-    CsmaMacP.RxPacketTimer -> RxPacketTimer;    
     CsmaMacP.BackoffTimer -> BackoffTimer;    
 }
 
