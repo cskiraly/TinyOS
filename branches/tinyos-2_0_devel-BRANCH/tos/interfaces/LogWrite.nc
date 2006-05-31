@@ -34,7 +34,7 @@
  * TEP103.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-05-31 14:57:23 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-05-31 23:34:14 $
  */
 
 #include "Storage.h"
@@ -47,7 +47,10 @@ interface LogWrite {
    * 
    * @param buf buffer to write data from.
    * @param len number of bytes to write.
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EOFF if the volume has not been mounted
+   *   <li>EBUSY if a request is already being processed.
    */
   command error_t append(void* buf, storage_len_t len);
 
@@ -57,8 +60,9 @@ interface LogWrite {
    * been completed.
    *
    * @param buf buffer that written data was read from.
-   * @param len number of bytes actually written.
-   * @param error notification of how the operation went.
+   * @param len number of bytes actually written (valid even in case of error)
+   * @param error SUCCESS if append was possible, ESIZE if the (linear) log
+   *    is full and FAIL for other errors.
    */
   event void appendDone(void* buf, storage_len_t len, error_t error);
   
@@ -66,7 +70,8 @@ interface LogWrite {
    * Return a "cookie" representing the current append offset within the
    * log. This cookie can be used in a subsequent seek operation (see
    * <code>LogRead</code> to start reading from this place in the log (if
-   * it hasn't been overwritten).
+   * it hasn't been overwritten). The result is undefined if the log has
+   * not been mounted.
    *
    * @return Cookie representing current offset. 
    */
@@ -77,14 +82,17 @@ interface LogWrite {
    * <code>eraseDone</code> event will signal completion of the
    * operation.
    *
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EOFF if the volume has not been mounted
+   *   <li>EBUSY if a request is already being processed.
    */
   command error_t erase();
   
   /**
    * Signals the completion of an erase operation.
    *
-   * @param error notification of how the operation went.
+   * @param error SUCCESS if the log was erased, FAIL otherwise.
    */
   event void eraseDone(error_t error);
 
@@ -93,14 +101,17 @@ interface LogWrite {
    * writes cannot cause loss of earlier writes. On SUCCES, the 
    * <code>commitDone</code> event will signal completion of the operation.
    *
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EOFF if the volume has not been mounted
+   *   <li>EBUSY if a request is already being processed.
    */
   command error_t sync();
 
   /**
    * Signals the successful or unsuccessful completion of a sync operation. 
    *
-   * @param error notification of how the operation went.
+   * @param error SUCCESS if the log was synchronised, FAIL otherwise.
    */
   event void syncDone(error_t error);
 }

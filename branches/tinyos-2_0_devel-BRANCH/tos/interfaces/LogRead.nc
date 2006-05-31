@@ -43,7 +43,7 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  * @author David Gay
- * @version $Revision: 1.1.2.5 $ $Date: 2006-05-31 14:57:23 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-05-31 23:34:14 $
  */
 
 #include "Storage.h"
@@ -56,7 +56,10 @@ interface LogRead {
    * 
    * @param buf buffer to place read data.
    * @param len number of bytes to read.
-   * @return SUCCESS if the request was accepted, FAIL otherwise.
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EOFF if the volume has not been mounted
+   *   <li>EBUSY if a request is already being processed.
    */
   command error_t read(void* buf, storage_len_t len);
 
@@ -66,20 +69,27 @@ interface LogRead {
    *
    * @param addr starting address of read.
    * @param buf buffer where read data was placed.
-   * @param len number of bytes read (correct even in case of error).
-   * @param error notification of how the operation went.
+   * @param len number of bytes read - this may be less than requested
+   *    (even equal to 0) if the end of the log was reached
+   * @param error SUCCESS if read was possible, FAIL otherwise
    */
   event void readDone(void* buf, storage_len_t len, error_t error);
 
   /**
    * Return a "cookie" representing the current read offset within the
    * log. This cookie can be used in a subsequent seek operation to
-   * return to the same place in the log (if it hasn't been overwritten)
+   * return to the same place in the log (if it hasn't been overwritten).
+   * The result is undefined if the log has not been mounted.
+   *
    * @return Cookie representing current offset. 
-   *   <code>SEEK_BEGINNING</code> will be returned if:
+   *   <code>SEEK_BEGINNING</code> will be returned if:<ul>
    *   <li> a write in a circular log overwrote the previous read position
    *   <li> seek was passed a cookie representing a position before the
    *        current beginning of a circular log
+   *   </ul>
+   *   Note that <code>SEEK_BEGINNING</code> can also be returned at
+   *   other times (just after erasing a log, just after mounting a
+   *   log volume, etc).
    */
   command storage_cookie_t currentOffset();
 
@@ -90,13 +100,18 @@ interface LogRead {
    *
    * If the specified position has been overwritten, the read position
    * will be set to the beginning of the log.
+   *
+   * @return 
+   *   <li>SUCCESS if the request was accepted, 
+   *   <li>EOFF if the volume has not been mounted
+   *   <li>EBUSY if a request is already being processed.
    */
   command error_t seek(storage_cookie_t offset);
 
   /**
    * Report success of seek operation. If <code>SUCCESS</code> is returned,
-   * the read position has been changed as requested. Otherwise, the read
-   * position is unchanged.
+   * the read position has been changed as requested. If other values are
+   * returned, the read position is undefined.
    *
    * @param error SUCCESS if the seek was succesful, EINVAL if the cookie
    *   was invalid and FAIL for other errors.
@@ -104,9 +119,10 @@ interface LogRead {
   event void seekDone(error_t error);
   
   /**
-   * Report volume size in bytes. Note that use of <code>sync</code>,
-   * failures and general overhead may reduce the number of bytes
-   * available to the log.
+   * Report approximate log capacity in bytes. Note that use of
+   * <code>sync</code>, failures and general overhead may reduce the number
+   * of bytes available to the log. The result is undefined if the log has
+   * not been mounted.
    *
    * @return Volume size.
    */
