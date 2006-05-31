@@ -1,4 +1,4 @@
-// $Id: TestTDA5250ControlP.nc,v 1.1.2.1 2005-11-22 12:31:10 phihup Exp $
+// $Id: TestTda5250ControlP.nc,v 1.1.2.1 2006-05-31 16:29:24 phihup Exp $
 
 /*                                  tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.
@@ -29,12 +29,12 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-module TestTDA5250ControlP {
+module TestTda5250ControlP {
   uses {
     interface Boot;
     interface Alarm<TMilli, uint32_t> as ModeTimer;
     interface Leds;
-    interface TDA5250Control;
+    interface Tda5250Control;
     interface Random;
     interface SplitControl as RadioSplitControl;
   }
@@ -58,81 +58,99 @@ implementation {
   event void RadioSplitControl.stopDone(error_t error) {
     call ModeTimer.stop();
   }  
-
+  
+  
+  /* tasks and helper functions*/
+  void setTimer() {
+    call ModeTimer.start(call Random.rand16() % MODE_TIMER_RATE);     
+  }
+  task void RxModeTask() {
+    if (call Tda5250Control.RxMode() != SUCCESS)
+      post RxModeTask();
+  }
+  task void TxModeTask() {
+  if (call Tda5250Control.TxMode() != SUCCESS)
+    post TxModeTask();
+  }
+  task void SleepModeTask() {
+    if (call Tda5250Control.SleepMode() != SUCCESS)
+      post SleepModeTask();
+  }
+  
   /***********************************************************************
    * Commands and events
    ***********************************************************************/   
 
   async event void ModeTimer.fired() {
     switch(mode) {
-      case 0:
-        call TDA5250Control.TimerMode(call Random.rand16() % MODE_TIMER_RATE/20, 
-                                      call Random.rand16() % MODE_TIMER_RATE/20);
+/*      case 0:
+       call Tda5250Control.TimerMode(call Random.rand16() % MODE_TIMER_RATE/20, 
+                                     call Random.rand16() % MODE_TIMER_RATE/20);
         break;
       case 1:
-        call TDA5250Control.SelfPollingMode(call Random.rand16() % MODE_TIMER_RATE/20, 
+        call Tda5250Control.SelfPollingMode(call Random.rand16() % MODE_TIMER_RATE/20, 
                                             call Random.rand16() % MODE_TIMER_RATE/20);        
         break;
+ */      
       case 2:
-        call TDA5250Control.RxMode();
+        if (call Tda5250Control.RxMode() != SUCCESS)
+          post RxModeTask();
         break;
       case 3:
-        call TDA5250Control.TxMode();
+        if (call Tda5250Control.TxMode() != SUCCESS)
+          post TxModeTask();
         break;
-      case 4:
-        call TDA5250Control.SleepMode();
-        break;
-      case 5:
-        call TDA5250Control.CCAMode();
+      default:
+        if (call Tda5250Control.SleepMode() != SUCCESS)
+          post SleepModeTask();
         break;
     }
   }
   
-  async event void TDA5250Control.PWDDDInterrupt() {
-    //call TDA5250Control.RxMode();
+  async event void Tda5250Control.PWDDDInterrupt() {
+    call Tda5250Control.RxMode();
   }
   
-  async event void TDA5250Control.TimerModeDone(){
+  async event void Tda5250Control.TimerModeDone(){
     atomic mode = call Random.rand16() % 6;
     call Leds.led0On();
     call Leds.led1On();
-    call Leds.led2On();   
-    call ModeTimer.start(call Random.rand16() % MODE_TIMER_RATE);     
+    call Leds.led2On(); 
+    setTimer();
   }
-  async event void TDA5250Control.SelfPollingModeDone(){
+  async event void Tda5250Control.SelfPollingModeDone(){
     atomic mode = call Random.rand16() % 6;
     call Leds.led0On();
     call Leds.led1On();
     call Leds.led2Off();   
-    call ModeTimer.start(call Random.rand16() % MODE_TIMER_RATE);           
+    setTimer();
   }  
-  async event void TDA5250Control.RxModeDone(){
+  async event void Tda5250Control.RxModeDone(){
     atomic mode = call Random.rand16() % 6;
     call Leds.led0On();
     call Leds.led1Off();
     call Leds.led2On();  
-    call ModeTimer.start(call Random.rand16() % MODE_TIMER_RATE);      
+    setTimer();
   }
-  async event void TDA5250Control.TxModeDone(){
+  async event void Tda5250Control.TxModeDone(){
     atomic mode = call Random.rand16() % 6;
     call Leds.led0Off();
     call Leds.led1On();
     call Leds.led2On();  
-    call ModeTimer.start(call Random.rand16() % MODE_TIMER_RATE);  
+    setTimer();
   }    
-  async event void TDA5250Control.SleepModeDone(){
+  async event void Tda5250Control.SleepModeDone(){
     atomic mode = call Random.rand16() % 6;
     call Leds.led0Off();
     call Leds.led1Off();
     call Leds.led2On();  
-    call ModeTimer.start(call Random.rand16() % MODE_TIMER_RATE);          
+    setTimer();
   }
-  async event void TDA5250Control.CCAModeDone(){
+  async event void Tda5250Control.RssiStable(){
     atomic mode = call Random.rand16() % 6;
     call Leds.led0On();
     call Leds.led1Off();
     call Leds.led2Off();
-    call ModeTimer.start(call Random.rand16() % MODE_TIMER_RATE);    
   }  
   
 }
