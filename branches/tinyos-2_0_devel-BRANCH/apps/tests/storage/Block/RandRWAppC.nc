@@ -1,4 +1,4 @@
-/* $Id: RandRWAppC.nc,v 1.1.2.4 2006-05-01 19:19:28 idgay Exp $
+/* $Id: RandRWAppC.nc,v 1.1.2.5 2006-05-31 23:33:47 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -22,7 +22,6 @@ implementation {
     MainC, LedsC, PlatformC, SerialActiveMessageC;
 
   MainC.Boot <- RandRWC;
-  MainC.SoftwareInit -> SerialActiveMessageC;
 
   RandRWC.SerialControl -> SerialActiveMessageC;
   RandRWC.AMSend -> SerialActiveMessageC.AMSend[1];

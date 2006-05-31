@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.3 2006-05-24 16:13:45 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.4 2006-05-31 23:33:47 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -122,7 +122,7 @@ implementation {
   }
 
   event void LogRead.readDone(void* buf, storage_len_t rlen, error_t result) __attribute__((noinline)) {
-    if (result == ESIZE && rlen == 0 /*&& count == 1*/)
+    if (len != 0 && rlen == 0)
       done();
     else if (scheck(result) && bcheck(rlen == len && buf == rdata && memcmp(data + offset, rdata, rlen) == 0))
       nextRead();
