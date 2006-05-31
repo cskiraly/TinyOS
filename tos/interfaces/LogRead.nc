@@ -43,13 +43,12 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  * @author David Gay
- * @version $Revision: 1.1.2.4 $ $Date: 2006-05-30 21:35:14 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-05-31 14:57:23 $
  */
 
 #include "Storage.h"
 
 interface LogRead {
-  
   /**
    * Initiate a read operation from the current position within a given log
    * volume. On SUCCESS, the <code>readDone</code> event will signal
