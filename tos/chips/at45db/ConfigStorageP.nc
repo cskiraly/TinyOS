@@ -1,4 +1,4 @@
-// $Id: ConfigStorageP.nc,v 1.1.2.4 2006-05-30 21:36:27 idgay Exp $
+// $Id: ConfigStorageP.nc,v 1.1.2.5 2006-05-31 14:57:43 idgay Exp $
 
 /*									tab:4
  * Copyright (c) 2002-2006 Intel Corporation
@@ -55,6 +55,7 @@ implementation
     S_MOUNT,
     S_CLEAN,
     S_DIRTY,
+    S_INVALID
   };
 
   enum {
@@ -114,8 +115,11 @@ implementation
   }
 
   void mountVerifyDone(uint8_t id, error_t error) {
-    if (error != SUCCESS) // try the other half?
+    if (error == SUCCESS) 
+      state[id] = S_CLEAN;
+    else
       {
+	// try the other half?
 	bool isflipped = call BConfig.flipped[id]();
 
 	if ((highVersion[id] > lowVersion[id]) == isflipped)
@@ -128,8 +132,8 @@ implementation
 	  }
 	/* both halves bad, just declare success and use the current half :-) 
 	   (we did need to verify to find the end-of-block) */
+	state[id] = S_INVALID;
       }
-    state[id] = S_CLEAN;
     signal Mount.mountDone[id](SUCCESS);
   }
 
@@ -139,7 +143,7 @@ implementation
 
   command error_t ConfigStorage.read[configstorage_t id](storage_addr_t addr, void* buf, storage_len_t len) {
     /* Read from current half using BlockRead */
-    if (!(state[id] == S_CLEAN || state[id] == S_DIRTY))
+    if (state[id] < S_CLEAN)
       return EOFF;
 
     return call BlockRead.read[id](addr + sizeof(uint32_t), buf, len);
@@ -158,7 +162,7 @@ implementation
          copy to other half, increment version number, and flip.
        2: Write to current half using BlockWrite */
 
-    if (!(state[id] == S_CLEAN || state[id] == S_DIRTY))
+    if (state[id] < S_CLEAN)
       return EOFF;
     return call BlockWrite.write[id](addr + sizeof(uint32_t), buf, len);
   }
@@ -167,7 +171,7 @@ implementation
   void writeContinue(error_t error);
 
   command int BConfig.writeHook[configstorage_t id]() {
-    if (state[id] == S_DIRTY) // no work if already dirty
+    if (state[id] != S_CLEAN) // no work if dirty or invalid
       return FALSE;
 
     /* Time to do the copy, version update dance */
@@ -241,7 +245,7 @@ implementation
   command error_t ConfigStorage.commit[configstorage_t id]() {
     /* Call BlockWrite.commit */
     /* Could special-case attempt to commit clean block */
-    if (!(state[id] == S_CLEAN || state[id] == S_DIRTY))
+    if (state[id] < S_CLEAN)
       return EOFF;
     return call BlockWrite.commit[id]();
   }
@@ -258,6 +262,14 @@ implementation
 
   command storage_len_t ConfigStorage.getSize[configstorage_t id]() {
     return call BlockRead.getSize[id]();
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Valid								*/
+  /* ------------------------------------------------------------------ */
+
+  command bool ConfigStorage.valid[configstorage_t id]() {
+    return state[id] != S_INVALID;
   }
 
   /* ------------------------------------------------------------------ */
