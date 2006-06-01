@@ -40,10 +40,8 @@
 
 module LogStorageP {
   provides {
-    interface LogWrite as LinearWrite[logstorage_t logId];
-    interface LogRead as LinearRead[logstorage_t logId];
-    interface LogWrite as CircularWrite[logstorage_t logId];
-    interface LogRead as CircularRead[logstorage_t logId];
+    interface LogRead[logstorage_t logId];
+    interface LogWrite[logstorage_t logId];
   }
   uses {
     interface At45db;
@@ -215,33 +213,24 @@ implementation
     s[c].request = R_IDLE;
     call Resource.release[c]();
 
-    if (s[c].circular)
-      switch (request)
-	{
-	case R_ERASE: signal CircularWrite.eraseDone[c](ok); break;
-	case R_APPEND: signal CircularWrite.appendDone[c](ptr, actualLen, ok); break;
-	case R_SYNC: signal CircularWrite.syncDone[c](ok); break;
-	case R_READ: signal CircularRead.readDone[c](ptr, actualLen, ok); break;
-	}
-    else
-      switch (request)
-	{
-	case R_ERASE: signal LinearWrite.eraseDone[c](ok); break;
-	case R_APPEND: signal LinearWrite.appendDone[c](ptr, actualLen, ok); break;
-	case R_SYNC: signal LinearWrite.syncDone[c](ok); break;
-	case R_READ: signal LinearRead.readDone[c](ptr, actualLen, ok); break;
-	}
+    c = c << 1 | s[c].circular;
+    switch (request)
+      {
+      case R_ERASE: signal LogWrite.eraseDone[c](ok); break;
+      case R_APPEND: signal LogWrite.appendDone[c](ptr, actualLen, ok); break;
+      case R_SYNC: signal LogWrite.syncDone[c](ok); break;
+      case R_READ: signal LogRead.readDone[c](ptr, actualLen, ok); break;
+      case R_SEEK: signal LogRead.seekDone[c](ok); break;
+      }
   }
 
-  error_t newRequest(uint8_t newRequest, logstorage_t id, bool circular,
+  error_t newRequest(uint8_t newRequest, logstorage_t id,
 		     uint8_t *buf, storage_len_t length) {
+    s[id >> 1].circular = id & 1;
+    id >>= 1;
+
     if (s[id].request != R_IDLE)
       return EBUSY;
-
-    /* You can make the transition from linear->circular once. */
-    if (s[id].circular && !circular)
-      return FAIL;
-    s[id].circular = circular;
 
     s[id].request = newRequest;
     s[id].buf = buf;
@@ -257,8 +246,8 @@ implementation
     startRequest();
   }
 
-  command error_t LinearWrite.append[logstorage_t id](void* buf, storage_len_t length) {
-    if (len > call LinearRead.getSize[id]() - PAGE_SIZE)
+  command error_t LogWrite.append[logstorage_t id](void* buf, storage_len_t length) {
+    if (len > call LogRead.getSize[id]() - PAGE_SIZE)
       /* Writes greater than the volume size are invalid.
 	 Writes equal to the volume size could break the log volume
 	 invariant (see next comment).
@@ -267,76 +256,36 @@ implementation
 	 Refuse them all. */
       return EINVAL;
     else
-      return newRequest(R_APPEND, id, FALSE, buf, length);
+      return newRequest(R_APPEND, id, buf, length);
   }
 
-  command storage_cookie_t LinearWrite.currentOffset[logstorage_t id]() {
-   return s[id].wpos;
+  command storage_cookie_t LogWrite.currentOffset[logstorage_t id]() {
+    return s[id >> 1].wpos;
   }
 
-  command error_t LinearWrite.erase[logstorage_t id]() {
-    return newRequest(R_ERASE, id, FALSE, NULL, 0);
+  command error_t LogWrite.erase[logstorage_t id]() {
+    return newRequest(R_ERASE, id, NULL, 0);
   }
 
-  command error_t LinearWrite.sync[logstorage_t id]() {
-    return newRequest(R_SYNC, id, FALSE, NULL, 0);
+  command error_t LogWrite.sync[logstorage_t id]() {
+    return newRequest(R_SYNC, id, NULL, 0);
   }
 
-  command error_t LinearRead.read[logstorage_t id](void* buf, storage_len_t length) {
-    return newRequest(R_READ, id, FALSE, buf, length);
+  command error_t LogRead.read[logstorage_t id](void* buf, storage_len_t length) {
+    return newRequest(R_READ, id, buf, length);
   }
 
-  command storage_cookie_t LinearRead.currentOffset[logstorage_t id]() {
+  command storage_cookie_t LogRead.currentOffset[logstorage_t id]() {
+    id >>= 1;
     return s[id].rvalid ? s[id].rpos : SEEK_BEGINNING;
   }
 
-  command error_t LinearRead.seek[logstorage_t id](storage_cookie_t offset) {
-    return newRequest(R_SEEK, id, FALSE, (void *)(offset >> 16), offset);
+  command error_t LogRead.seek[logstorage_t id](storage_cookie_t offset) {
+    return newRequest(R_SEEK, id, (void *)(offset >> 16), offset);
   }
 
-  command storage_len_t LinearRead.getSize[logstorage_t id]() {
-    return call At45dbVolume.volumeSize[id]() * (storage_len_t)PAGE_SIZE;
-  }
-
-  command error_t CircularWrite.append[logstorage_t id](void* buf, storage_len_t length) {
-    if (len > call CircularRead.getSize[id]() - PAGE_SIZE)
-      /* Writes greater than the volume size are invalid.
-	 Writes equal to the volume size could break the log volume
-	 invariant (see next comment).
-	 Writes that span the whole volume could lead to problems
-	 at boot time (no valid block with a record boundary).
-	 Refuse them all. */
-      return EINVAL;
-    else
-      return newRequest(R_APPEND, id, TRUE, buf, length);
-  }
-
-  command uint32_t CircularWrite.currentOffset[logstorage_t id]() {
-    return s[id].wpos;
-  }
-
-  command error_t CircularWrite.erase[logstorage_t id]() {
-    return newRequest(R_ERASE, id, TRUE, NULL, 0);
-  }
-
-  command error_t CircularWrite.sync[logstorage_t id]() {
-    return newRequest(R_SYNC, id, TRUE, NULL, 0);
-  }
-
-  command error_t CircularRead.read[logstorage_t id](void* buf, storage_len_t length) {
-    return newRequest(R_READ, id, TRUE, buf, length);
-  }
-
-  command uint32_t CircularRead.currentOffset[logstorage_t id]() {
-    return call LinearRead.currentOffset[id]();
-  }
-
-  command error_t CircularRead.seek[logstorage_t id](storage_cookie_t offset) {
-    return newRequest(R_SEEK, id, TRUE, (void *)(offset >> 16), offset);
-  }
-
-  command storage_len_t CircularRead.getSize[logstorage_t id]() {
-    return call LinearRead.getSize[id]();
+  command storage_len_t LogRead.getSize[logstorage_t id]() {
+    return call At45dbVolume.volumeSize[id >> 1]() * (storage_len_t)PAGE_SIZE;
   }
 
   /* ------------------------------------------------------------------ */
@@ -905,21 +854,14 @@ implementation
 
   event void At45db.copyPageDone(error_t error) { }
 
-  default event void LinearWrite.appendDone[logstorage_t logId](void* buf, storage_len_t l, error_t error) { }
-  default event void LinearWrite.eraseDone[logstorage_t logId](error_t error) { }
-  default event void LinearWrite.syncDone[logstorage_t logId](error_t error) { }
-  default event void LinearRead.readDone[logstorage_t logId](void* buf, storage_len_t l, error_t error) { }
-  default event void LinearRead.seekDone[logstorage_t logId](error_t error) {}
-
-  default event void CircularWrite.appendDone[logstorage_t logId](void* buf, storage_len_t l, error_t error) { }
-  default event void CircularWrite.eraseDone[logstorage_t logId](error_t error) { }
-  default event void CircularWrite.syncDone[logstorage_t logId](error_t error) { }
-  default event void CircularRead.readDone[logstorage_t logId](void* buf, storage_len_t l, error_t error) { }
-  default event void CircularRead.seekDone[logstorage_t logId](error_t error) {}
+  default event void LogWrite.appendDone[logstorage_t logId](void* buf, storage_len_t l, error_t error) { }
+  default event void LogWrite.eraseDone[logstorage_t logId](error_t error) { }
+  default event void LogWrite.syncDone[logstorage_t logId](error_t error) { }
+  default event void LogRead.readDone[logstorage_t logId](void* buf, storage_len_t l, error_t error) { }
+  default event void LogRead.seekDone[logstorage_t logId](error_t error) {}
 
   default command at45page_t At45dbVolume.remap[logstorage_t logId](at45page_t volumePage) {return 0;}
   default command at45page_t At45dbVolume.volumeSize[logstorage_t logId]() {return 0;}
   default async command error_t Resource.request[logstorage_t logId]() {return SUCCESS;}
   default async command void Resource.release[logstorage_t logId]() { }
-
 }
