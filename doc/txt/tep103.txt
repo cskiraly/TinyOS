@@ -10,8 +10,8 @@ Permanent Data Storage (Flash)
 :Author: David Gay, Jonathan Hui
 
 :Draft-Created: 27-Sep-2004
-:Draft-Version: $Revision: 1.1.2.3 $
-:Draft-Modified: $Date: 2006-05-22 17:22:43 $
+:Draft-Version: $Revision: 1.1.2.4 $
+:Draft-Modified: $Date: 2006-06-01 23:52:44 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 
@@ -78,78 +78,99 @@ of the bus + processor.
 2. Non-Volatile Storage Abstraction in TinyOS 2.x 
 ===================================================================
 
-The very significant differences between the flash chips used in
-TinyOS preclude common, low-level HIL interfaces such as a disk-like
-block interface. Instead, we propose that the HIL interfaces
-correspond to high-level storage services useful for sensor network
-applications. We have identified three storage abstractions: large
-object, small objects, and logs. We envision separate implementations
-of these abstractions for each class of storage chip; these
-implementations will be found in the new tos/chips/CHIPNAME hierarchy.
+The very significant differences between the flash chips used in TinyOS,
+and lack of RAM to hide these differences, preclude common, low-level HIL
+interfaces such as a disk-like block interface. Instead, we propose that
+the HIL interfaces correspond to high-level storage services useful for
+sensor network applications. We have identified three storage abstractions:
+large objects, small objects, and logs. We envision separate implementations
+of these abstractions for each class of storage chip; these implementations
+will be found in the tos/chips/CHIPNAME hierarchy.
+
+Rather than provide a general-purpose file system with variable-sized
+files, we assume the flash is divided into fixed-size volumes, with
+each volume dedicated to holding a single instance of one of the
+abstractions (a large object, a small object or a log). We believe this
+restrictive approach is practical in the single-application model of
+TinyOS.
 
 2.1 Large objects:
 ------------------------------------------------------------------
 
-This scenario involves getting a large (100's bytes to kilobytes or
-more) free chunk (through alloc or erase), writing to each byte/block
-once in any arbitrary order, and "committing" when the chunk is
-filled.
+A large object ranges from a few kilobytes upwards. A large object
+must be erased before use. Each byte in a large object can only
+written once after each erase. A large object must be committed
+to ensure it survives a reboot or crash. After a commit, no more
+writes may be performed.
 
-  Size: large
-  Reads: random
-  Writes: random (minimum block size?), each block written once
-  Failure model: no fault tolerance (crash before commit leads to
-  object loss)
-  Other: a commit operation terminates writes, a validate operation
-  checks the object.
+  - Size: large
+  - Reads: random
+  - Writes: random (each byte written at most once)
+  - Failure model: no fault tolerance (crash before commit leads to
+    object loss)
+  - Other: a commit operation terminates writes, a validate operation
+    checks the object.
 
-2.2 Large sequential objects (Logs)
+Examples: program storage, message buffering in delay-tolerant-networking
+
+2.2 Large sequential objects
 ------------------------------------------------------------------
        
-Some applications (e.g., low-rate data collection) may want to log all
-their results in a reliable fashion, possibly in a circular buffer.
+Some applications (e.g., low-rate data collection) can use a large
+sequential object to save their results in a reliable fashion. A large
+sequential object can be circular.
 
-  Size: large
-  Reads: from memorized write points or beginning
-  Writes: sequential, object is linear or circular
+  - Size: large
+  - Reads: from memorized write points or beginning
+  - Writes: sequential, object is linear or circular
+  - Failure model: writes are atomic, failure during/between writes does
+    not lead to whole object loss, but may lead to loss of some entries
+    (but see sync)
+    Note: failure during write may lead to (minor) capacity reduction
+  - Other: sync: guarantees already written data will not be lost to
+    (crash-style) failure
 
-  Failure model: writes are atomic, failure during/between writes does
-  not lead to whole object loss, but may lead to loss of some entries
-  (but see sync)
-  Note: failure during write may lead to (minor) capacity reduction
-  Other: sync: guarantees already written data will not be lost to
-  (crash-style) failure
+Example: logs.
 
 2.3 Small objects:
 ------------------------------------------------------------------
 
-This scenario involves keeping a small chunk (less than 100 some
-bytes). Requires multiple and random reads/writes.
+A small object may be only a few hundred bytes. Small objects support
+random reads and writes and simple transactional behaviour.
 
-  Size: small
-  Reads: random
-  Writes: random, no minimum block size, rewrite ok
-  Failure model: writes are atomic, failure during/between writes
-  does not lead to object loss
+  - Size: small
+  - Reads: random
+  - Writes: random, rewrite ok
+  - Failure model: failure during/between writes does not lead to object 
+    loss (at reboot, object will contain state as of the most recent
+    successful commit)
+  - Other: commit operation ensures all writes since last commit become
+    permanent
+
+Example: configuration data.
 
 3. HPL/HAL/HIL Architecture
 ====================================================================
 
 The proposed architecture aligns with the three-layer Hardware
-Abstraction Architecture (HAA). 
+Abstraction Architecture (HAA). This document briefly presents
+the components and interfaces; for full details see the nesdoc
+comments in the referenced components and interfaces.
 
 3.1 Hardware Presentation Layer (HPL)
 --------------------------------------------------------------------
 
 a. Implementation: system dependent
-b. Presentation: chip (family?) dependent (common HPL for same chip
-   (family?) on different systems)
+b. Presentation: chip (or chip family) dependent; common HPL for same chip
+   (or chip family) on different systems
 c. Stateless
-d. Atmel 45DB family low-level interfaces
+d. Atmel 45DB family low-level interfaces (``HplAt45db`` interface)
 
-   select, send/receive SPI byte, idle detection
-   (no commands, as efficiency dictates their integration in the HAL)
-   See tos/platform/mica/HPLFlashM
+   flash->buffer, buffer->flash, compare buffer to flash, erase page,
+   read, compute crc, write
+
+   A generic implementation of the HPL is included allowing platforms
+   to just provide SPI and chip selection interfaces.
 
 e. Intel Strataflash  
 
@@ -157,7 +178,7 @@ e. Intel Strataflash
    details omitted - main interesting point is lack of reads, as
    device is memory mapped
 
-f. M25P family
+f. M25P family (``Stm25pSpi`` interface)
 
    r/w data, erase (sector or chip), r/w status, etc
    (full details omitted)
@@ -171,13 +192,16 @@ c. Atmel AT45DB:
 
 ::
 
-   interface {
+   interface At45db {
      command void write(at45page_t page, at45pageoffset_t offset,
                         void *PASS data, at45pageoffset_t n);
      event void writeDone(error_t error);
 
      command void erase(at45page_t page, uint8_t eraseKind);
      event void eraseDone(error_t error);
+
+     command void copyPage(at45page_t from, at45page_t to);
+     event void copyPageDone(error_t error);
 
      command void sync(at45page_t page);
      command void syncAll();
@@ -221,7 +245,7 @@ e. STMicroelectronics M25P:
 
 ::
 
-   interface {
+   interface Stm25pSector {
      command error_t read(stm25p_addr_t addr, void* buf, stm25p_addr_t len);
      event   error_t readDone(stm25p_addr_t addr, void* buf, stm25p_addr_t len,
                               error_tresult);
@@ -246,12 +270,12 @@ e. STMicroelectronics M25P:
 --------------------------------------------------------------------
 
 a. Implementation: Chip dependent
-b. Presentation: application-level OS service (see discussion above)
-c. Space allocation
+b. Presentation: application-level OS service (see discussion in Section 2)
+c. Volumes
 
-   The volume table MUST be specified by an xml file that is placed in
-   the application's directory (where one types 'make'). The xml file
-   specifies the allocation as follows: ::
+   The division of the flash chip into fixed-size volumes is specified by
+   an XML file that is placed in the application's directory (where one
+   types 'make'). The xml file specifies the allocation as follows: ::
 
      <volume_table>
        <volume name="DELUGE0" size="65536" />
@@ -264,7 +288,7 @@ c. Space allocation
    optional. The name is a string containing one or more characters in
    [a-zA-Z0-9\_], while size and base are in bytes. Each storage chip
    MUST provide a compile-time tool that translates the allocation
-   specification to chip-specific nesc code. There is no constraint on
+   specification to chip-specific nesC code. There is no constraint on
    how this is done or what code is produced, except that the
    specification to physical allocation MUST be one-to-one (i.e. a
    given specification should always have the same resulting physical
@@ -276,17 +300,33 @@ c. Space allocation
 
    The compile-time tool MUST prepend 'VOLUME\_' to each volume name in
    the xml file and '#define' each resulting name to map to a unique
-   integer. To use the volume, the client passes the macro to the
-   generic component as follows:
+   integer. 
 
-   components new BlockStorage( VOLUME_DELUGE0 );
+   The storage abstractions are accessed by instantiating generic
+   components that take the volume macro as argument: ::
 
-   If the named volume is not in the specification, nesc will give a
-   compile-time error since the string will be undefined.
+     components new BlockStorageC(VOLUME_DELUGE0);
 
-d. Large objects:
+   If the named volume is not in the specification, nesC will give a
+   compile-time error since the symbol will be undefined.
 
-::
+   A volume MUST NOT be used with more than one storage abstraction
+   instance.
+
+d. Large object interface:
+
+Large objects are accessed by instantiating a BlockStorageC component
+which takes a volume id argument: ::
+
+  generic configuration BlockStorageC(volume_id_t volid) {
+    provides {
+      interface BlockWrite;
+      interface BlockRead;
+    }
+  } ...
+
+The ``BlockRead`` and ``BlockWrite`` interfaces contain the following
+operations: ::
 
    interface BlockWrite {
      command error_t write(storage_addr_t addr, void* buf, 
@@ -308,14 +348,31 @@ d. Large objects:
      command error_t verify();
      event   void    verifyDone(storage_error_t result);
 
-     command error_t computeCrc(storage_addr_t addr, storage_len_t len );
+     command error_t computeCrc(storage_addr_t addr, storage_len_t len,
+                                uint16_t baseCrc);
      event   void    computeCrcDone(storage_addr_t addr, storage_len_t len, 
 				    uint16_t crc, error_t error );
+
+     command storage_len_t getSize();
    }
 
 e. Large sequential objects:
 
-::
+Large sequential objects are accessed by instantiating a LogStorageC
+component which takes a volume id and a boolean argument: ::
+
+  generic configuration LogStorageC(volume_id_t volid, bool circular) {
+    provides {
+      interface LogWrite;
+      interface LogRead;
+    }
+  } ...
+
+If the ``circular`` argument is TRUE, the log is circular; otherwise
+it is linear.
+
+The ``LogRead`` and ``LogWrite`` interfaces contain the following
+operations: ::
 
    interface LogWrite {
      command error_t erase();
@@ -332,20 +389,38 @@ e. Large sequential objects:
 
    interface LogRead {
      command error_t read(void* buf, storage_len_t len);
-     event   void    readDone(void* buf, stroage_len_t len, error_t error);
+     event   void    readDone(void* buf, storage_len_t len, error_t error);
 
      command storage_cookie_t currentOffset();
 
-     command error_t seek(stroage_cookie_t cookie);
+     command error_t seek(storage_cookie_t cookie);
      event   void    seekDone(error_t error);
-   }
 
-   The circular-vs-linear distinction is made by offering separate
-   instances of the LogData, LogRead interfaces.
+     command storage_len_t getSize();
+   }
 
 f. Small objects:
 
-::
+Small objects are accessed by instantiating a ConfigStorageC component
+which takes a volume id argument: ::
+
+  generic configuration ConfigStorageC(volume_id_t volid) {
+    provides {
+      interface Mount;
+      interface ConfigStorage;
+    }
+  } ...
+
+A small object MUST be mounted (see the ``Mount`` interface) before 
+the first use.
+
+The ``Mount`` and ``ConfigStorage`` interfaces contain the following
+operations: ::
+
+   interface Mount {
+     command error_t mount();
+     event void mountDone(error_t error);
+   }
 
    interface ConfigStorage {
      command error_t read(addr_t addr, void* dest, addr_t len);
@@ -356,15 +431,20 @@ f. Small objects:
 
      command error_t commit();
      event   void    commitDone(storage_error_t result);
+
+     command storage_len_t getSize();
+
+     command bool valid();
    }
 
 4. Implementation
 ====================================================================
 
 An AT45DB implementation can be found in tinyos-2.x/tos/chips/at45db.
+
 An STM25P implementation can be found in tinyos-2.x/tos/chips/stm25p.
  
-5. Author's Address
+5. Authors' Addresses
 ====================================================================
 
 | David Gay
