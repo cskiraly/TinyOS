@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.3 2006-05-31 23:56:12 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.4 2006-06-01 16:35:31 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -212,8 +212,7 @@ implementation {
   };
 
   void done() {
-    if (testCount)
-      call Leds.led2Toggle();
+    call Leds.led2Toggle();
 
     if (TOS_NODE_ID & 3)
       {
