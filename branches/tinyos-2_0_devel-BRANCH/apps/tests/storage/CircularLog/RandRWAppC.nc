@@ -1,4 +1,4 @@
-/* $Id: RandRWAppC.nc,v 1.1.2.2 2006-05-31 23:39:13 idgay Exp $
+/* $Id: RandRWAppC.nc,v 1.1.2.3 2006-06-01 16:52:56 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -18,14 +18,14 @@
 
 configuration RandRWAppC { }
 implementation {
-  components RandRWC, new LogStorageC(VOLUME_LOGTEST),
+  components RandRWC, new LogStorageC(VOLUME_LOGTEST, TRUE),
     MainC, LedsC, PlatformC, SerialActiveMessageC;
 
   MainC.Boot <- RandRWC;
 
   RandRWC.SerialControl -> SerialActiveMessageC;
   RandRWC.AMSend -> SerialActiveMessageC.AMSend[1];
-  RandRWC.LogRead -> LogStorageC.CircularRead;
-  RandRWC.LogWrite -> LogStorageC.CircularWrite;
+  RandRWC.LogRead -> LogStorageC.LogRead;
+  RandRWC.LogWrite -> LogStorageC.LogWrite;
   RandRWC.Leds -> LedsC;
 }
