@@ -51,6 +51,111 @@ module LogStorageP {
 }
 implementation
 {
+  /* Some design notes.
+
+  - The logId's in the LogRead and LogWrites are shifted left by 1 bit.
+    The low-order bit is 1 for circular logs, 0 for linear ones
+    (see newRequest and endRequest, and the LogStorageC configuration)
+
+  - Data is written sequentially to the pages of a log volume. Each page
+    ends with a footer (nx_struct pageinfo) recording metadata on the
+    current page:
+    o a cookie
+    o the "position" of the current page in the log (see below)
+    o the offset of the last record on this page (i.e., the offset
+      at which the last append ended) - only valid if flags & F_LASTVALID
+    o flags: 
+      x F_SYNC page was synchronised - data after lastRecordOffset
+        is not log data; implies F_LASTVALID
+      x F_CIRCLED this page is not from the first run through the log's
+        pages (never set in linear logs)
+      x F_LASTVALID not set if no record ended on this page
+    o a CRC
+
+  - "Positions" are stored in the metadata, used as cookies by
+    currentOffset and seek, and stored in the wpos and rpos fields of the
+    volume state structure.  They represent the number of bytes that
+    writing has advanced in the log since the log was erased, with
+    PAGE_SIZE added. Note that this is basically the number of bytes
+    written, except that when a page is synchronised unused bytes in the
+    page count towards increasing the position.
+
+    As a result, on page p, the following equation holds:
+      (metadata(p).pos - PAGE_SIZE) % volume-size == p * PAGE_SIZE
+    (this also means that the "position" metadata field could be replaced
+    by a count of the number of times writing has cycled through the log,
+    reducing the metadata size)
+
+    The PAGE_SIZE offset on positions is caused by Invariant 2 below: to
+    ensure that Invariant 2 is respected, at flash erase time, we write a
+    valid page with position 0 to the last block of the flash. As a result,
+    the first writes to the flash, in page 0, are at "position" PAGE_SIZE.
+
+  - This code is designed to deal with "one-at-a-time" failures (i.e.,
+    the system will not modify any blocks after a previous failed
+    write). This should allow recovery from:
+    o arbitrary reboots
+    o write failure (the underlying PageEEPROM shuts down after any
+      write fails; all pages are flushed before moving on to the next
+      page)
+    It will not recover from arbitrary data corruption
+
+  - When sync is called, the current write page is written to flash with an
+    F_SYNC flag and writing continues on the next page (wasting on average
+    half a flasg page)
+
+  - We maintain the following invariants on log volumes, even in the face
+    of the "one-at-a-time" failures described above:
+    1) at least one of the first and last blocks are valid
+    2) the last block, if valid, has the F_SYNC flag
+
+  - Locating the log boundary page (the page with the greatest position):
+
+    Invariant 1, the one-at-a-time failure model and the metadata position
+    definition guarantees that the physical flash pages have the following
+    properties:
+      an initial set of V1 valid pages,
+      followed by a set of I invalid pages,
+      followed by a set of V2 valid pages
+    with V1+i+V2=total-number-of-pages, and V1, V2, I >= 0
+    Additionally, the position of all pages in V1 is greater than in V2,
+    and consecutive pages in V1 (respectively V2) have greater positions
+    than their predecessors.
+
+    From this, it's possible to locate the log boundary page (the page with
+    the greatest position) using the following algorithm:
+    o let basepos=metadata(lastpage).pos, or 0 if the last page is invalid
+    o locate (using a binary search) the page p with the largest position
+      greater than basepos
+      invalid pages can be assumed to have positions less than basepos
+      if there is no such page p, let p = lastpage
+
+    Once the log boundary page is known, we resume writing at the last
+    page before p with a record boundary (Invariant 2, combined with
+    limiting individual records to volumesize - PAGE_SIZE ensures there
+    will be such a page).
+
+  - The read pointer has a special "invalid" state which represents the
+    current beginning of the log. In that state, LogRead.currentOffset()
+    returns SEEK_BEGINNING rather than a regular position.
+
+    The read pointer is invalidated:
+    o at boot time
+    o after the volume is erased
+    o after the write position "catches up" with the read position
+    o after a failed seek
+
+    Reads from an invalid pointer:
+    o start reading from the beginning of the flash if we are on the
+      first run through the log volume
+    o start reading at the first valid page after the write page with
+      an F_LASTVALID flag; the read offset is set to the lastRecordOffset
+      value
+      if this page has the SYNC flag, we start at the beginning of the
+      next page
+  */
+             
+
   enum {
     F_SYNC = 1,
     F_CIRCLED = 2,
@@ -139,15 +244,6 @@ implementation
     s[client].woffset = 0;
   }
 
-  void readFromBeginning() {
-    /* Set position to page before first page and force advance to next
-       page on next read */
-    s[client].rpos = SEEK_BEGINNING;
-    s[client].rpage = firstVolumePage() - 1;
-    s[client].rend = s[client].roffset = 0;
-    s[client].rvalid = TRUE;
-  }
-
   void invalidateReadPointer() {
     s[client].rvalid = FALSE;
   }
@@ -224,6 +320,7 @@ implementation
       }
   }
 
+  /* Enqueue request and request the underlying flash */
   error_t newRequest(uint8_t newRequest, logstorage_t id,
 		     uint8_t *buf, storage_len_t length) {
     s[id >> 1].circular = id & 1;
@@ -293,19 +390,21 @@ implementation
   /* ------------------------------------------------------------------ */
 
   void eraseMetadataDone() {
-    s[client].positionKnown = TRUE;
+    /* Set write pointer to the beginning of the flash */
     s[client].wpos = PAGE_SIZE; // last page has offset 0 and is before us
     s[client].circled = FALSE;
     setWritePage(firstVolumePage()); 
-    readFromBeginning();
 
+    invalidateReadPointer();
+
+    s[client].positionKnown = TRUE;
     endRequest(SUCCESS);
   }
 
   void eraseEraseDone() {
     if (firstPage == lastPage - 1)
       {
-	/* We create a valid, synced last page */
+	/* We create a valid, synced last page (see invariants) */
 	metadata.flags = F_SYNC | F_LASTVALID;
 	metadata.lastRecordOffset = 0;
 	setWritePage(firstPage);
@@ -338,6 +437,7 @@ implementation
 
     /* We've found the last valid page with a record-end. Set up
        the read and write positions. */
+    invalidateReadPointer();
 
     if (metadata.flags & F_SYNC) /* must start on next page */
       {
@@ -351,23 +451,12 @@ implementation
 	s[client].wpos = metadata.pos + metadata.lastRecordOffset;
       }
 
-    /* If we're on the first pass (no F_CIRCLED flag), the read
-       pointer starts at the beginning of the flash. Otherwise,
-       we invalidate it, which will force read requests to find
-       the first valid page after the current write pointer. */
     s[client].circled = (metadata.flags & F_CIRCLED) != 0;
-    if (s[client].circled)
+    if (s[client].circled && !s[client].circular) // oops
       {
-	if (!s[client].circular) // oops
-	  {
-	    endRequest(FAIL);
-	    return;
-	  }
-
-	invalidateReadPointer();
+	endRequest(FAIL);
+	return;
       }
-    else
-      readFromBeginning();
 
     /* And we can now proceed to the real request */
     s[client].positionKnown = TRUE;
@@ -458,7 +547,7 @@ implementation
     crcPage(firstPage);
   }
 
-  /* Locate log beginning and ending */
+  /* Locate log beginning and ending. See description at top of file. */
   void locateStart() {
     metaState = META_LOCATEFIRST;
     firstPage = firstVolumePage();
@@ -482,6 +571,7 @@ implementation
 
     if (s[client].wpage == lastVolumePage())
       {
+	/* We reached the end of a linear log */
 	endRequest(ESIZE);
 	return;
       }
@@ -558,7 +648,8 @@ implementation
   /* ------------------------------------------------------------------ */
 
   void wmetadataStart() {
-    /* The caller ensures that metadata is set correctly. */
+    /* The caller ensures that metadata.flags (except F_CIRCLED) and
+       metadata.lastRecordOffset are set correctly. */
     metaState = META_WRITE;
     firstPage = s[client].wpage; // remember page to commit
     metadata.pos = s[client].wpos - s[client].woffset;
@@ -618,8 +709,16 @@ implementation
 
     if (!s[client].rvalid)
       {
-	/* Find a valid page after wpage */
-	s[client].rpage = s[client].wpage;
+	if (s[client].circled)
+	  /* Find a valid page after wpage, skipping invalid pages */
+	  s[client].rpage = s[client].wpage;
+	else
+	  {
+	    /* resume writing at the beginning of the first page */
+	    s[client].rvalid = TRUE;
+	    s[client].rpage = lastVolumePage() - 1;
+	  }
+
 	rmetadataStart();
 	return;
       }
@@ -631,7 +730,7 @@ implementation
       {
 	if ((s[client].rpage + 1 == lastVolumePage() && !s[client].circular) ||
 	    s[client].rpage == s[client].wpage)
-	  endRequest(SUCCESS);
+	  endRequest(SUCCESS); // end of log
 	else
 	  rmetadataStart();
 	return;
@@ -659,6 +758,8 @@ implementation
   /* ------------------------------------------------------------------ */
 
   void continueReadAt(at45pageoffset_t roffset) {
+    /* Resume reading at firstPage whose metadata is currently available
+       in the metadata variable */
     metaState = META_IDLE;
     s[client].rpos = metadata.pos + roffset;
     s[client].rpage = firstPage;
