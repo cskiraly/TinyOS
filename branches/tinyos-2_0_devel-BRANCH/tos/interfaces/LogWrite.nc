@@ -34,13 +34,12 @@
  * TEP103.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-05-31 23:34:14 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-06-01 22:08:48 $
  */
 
 #include "Storage.h"
 
 interface LogWrite {
-  
   /**
    * Append data to a given volume. On SUCCESS, the <code>appendDone</code> 
    * event will signal completion of the operation.
@@ -49,7 +48,7 @@ interface LogWrite {
    * @param len number of bytes to write.
    * @return 
    *   <li>SUCCESS if the request was accepted, 
-   *   <li>EOFF if the volume has not been mounted
+   *   <li>EINVAL if the request is invalid (len too large).
    *   <li>EBUSY if a request is already being processed.
    */
   command error_t append(void* buf, storage_len_t len);
@@ -70,8 +69,10 @@ interface LogWrite {
    * Return a "cookie" representing the current append offset within the
    * log. This cookie can be used in a subsequent seek operation (see
    * <code>LogRead</code> to start reading from this place in the log (if
-   * it hasn't been overwritten). The result is undefined if the log has
-   * not been mounted.
+   * it hasn't been overwritten).
+   *
+   * The current write position is not known before the first read, append,
+   * seek, erase or sync.
    *
    * @return Cookie representing current offset. 
    */
@@ -84,7 +85,6 @@ interface LogWrite {
    *
    * @return 
    *   <li>SUCCESS if the request was accepted, 
-   *   <li>EOFF if the volume has not been mounted
    *   <li>EBUSY if a request is already being processed.
    */
   command error_t erase();
@@ -103,7 +103,6 @@ interface LogWrite {
    *
    * @return 
    *   <li>SUCCESS if the request was accepted, 
-   *   <li>EOFF if the volume has not been mounted
    *   <li>EBUSY if a request is already being processed.
    */
   command error_t sync();

@@ -43,7 +43,7 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  * @author David Gay
- * @version $Revision: 1.1.2.6 $ $Date: 2006-05-31 23:34:14 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-06-01 22:08:48 $
  */
 
 #include "Storage.h"
@@ -58,7 +58,6 @@ interface LogRead {
    * @param len number of bytes to read.
    * @return 
    *   <li>SUCCESS if the request was accepted, 
-   *   <li>EOFF if the volume has not been mounted
    *   <li>EBUSY if a request is already being processed.
    */
   command error_t read(void* buf, storage_len_t len);
@@ -79,7 +78,6 @@ interface LogRead {
    * Return a "cookie" representing the current read offset within the
    * log. This cookie can be used in a subsequent seek operation to
    * return to the same place in the log (if it hasn't been overwritten).
-   * The result is undefined if the log has not been mounted.
    *
    * @return Cookie representing current offset. 
    *   <code>SEEK_BEGINNING</code> will be returned if:<ul>
@@ -88,8 +86,7 @@ interface LogRead {
    *        current beginning of a circular log
    *   </ul>
    *   Note that <code>SEEK_BEGINNING</code> can also be returned at
-   *   other times (just after erasing a log, just after mounting a
-   *   log volume, etc).
+   *   other times (just after erasing a log, etc).
    */
   command storage_cookie_t currentOffset();
 
@@ -103,7 +100,6 @@ interface LogRead {
    *
    * @return 
    *   <li>SUCCESS if the request was accepted, 
-   *   <li>EOFF if the volume has not been mounted
    *   <li>EBUSY if a request is already being processed.
    */
   command error_t seek(storage_cookie_t offset);
@@ -121,8 +117,7 @@ interface LogRead {
   /**
    * Report approximate log capacity in bytes. Note that use of
    * <code>sync</code>, failures and general overhead may reduce the number
-   * of bytes available to the log. The result is undefined if the log has
-   * not been mounted.
+   * of bytes available to the log. 
    *
    * @return Volume size.
    */
