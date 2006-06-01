@@ -142,9 +142,9 @@ implementation
   }
 
   void readFromBeginning() {
-    /* Set position to end of page before first page, to force page advance
-       on next read */
-    s[client].rpos = 0;
+    /* Set position to page before first page and force advance to next
+       page on next read */
+    s[client].rpos = SEEK_BEGINNING;
     s[client].rpage = firstVolumePage() - 1;
     s[client].rend = s[client].roffset = 0;
     s[client].rvalid = TRUE;
@@ -167,11 +167,12 @@ implementation
     call At45db.write(page, PAGE_SIZE, &metadata, sizeof metadata);
   }
 
-  void emptyLog() {
-    s[client].positionKnown = TRUE;
-    s[client].wpos = 0;
-    setWritePage(firstVolumePage()); 
-    readFromBeginning();
+  void wmetadataStart();
+
+  void sync() {
+    metadata.flags = F_SYNC | F_LASTVALID;
+    metadata.lastRecordOffset = s[client].woffset;
+    wmetadataStart();
   }
 
   /* ------------------------------------------------------------------ */
@@ -184,7 +185,6 @@ implementation
   void readStart();
   void locateStart();
   void rmetadataStart();
-  void wmetadataStart();
   void seekStart();
 
   void startRequest() {
@@ -258,7 +258,16 @@ implementation
   }
 
   command error_t LinearWrite.append[logstorage_t id](void* buf, storage_len_t length) {
-    return newRequest(R_APPEND, id, FALSE, buf, length);
+    if (len > call LinearRead.getSize[id]() - PAGE_SIZE)
+      /* Writes greater than the volume size are invalid.
+	 Writes equal to the volume size could break the log volume
+	 invariant (see next comment).
+	 Writes that span the whole volume could lead to problems
+	 at boot time (no valid block with a record boundary).
+	 Refuse them all. */
+      return EINVAL;
+    else
+      return newRequest(R_APPEND, id, FALSE, buf, length);
   }
 
   command storage_cookie_t LinearWrite.currentOffset[logstorage_t id]() {
@@ -285,12 +294,21 @@ implementation
     return newRequest(R_SEEK, id, FALSE, (void *)(offset >> 16), offset);
   }
 
-  command storage_cookie_t LinearRead.getSize[logstorage_t id]() {
-    return call At45dbVolume.volumeSize[id]() * PAGE_SIZE;
+  command storage_len_t LinearRead.getSize[logstorage_t id]() {
+    return call At45dbVolume.volumeSize[id]() * (storage_len_t)PAGE_SIZE;
   }
 
   command error_t CircularWrite.append[logstorage_t id](void* buf, storage_len_t length) {
-    return newRequest(R_APPEND, id, TRUE, buf, length);
+    if (len > call CircularRead.getSize[id]() - PAGE_SIZE)
+      /* Writes greater than the volume size are invalid.
+	 Writes equal to the volume size could break the log volume
+	 invariant (see next comment).
+	 Writes that span the whole volume could lead to problems
+	 at boot time (no valid block with a record boundary).
+	 Refuse them all. */
+      return EINVAL;
+    else
+      return newRequest(R_APPEND, id, TRUE, buf, length);
   }
 
   command uint32_t CircularWrite.currentOffset[logstorage_t id]() {
@@ -317,7 +335,7 @@ implementation
     return newRequest(R_SEEK, id, TRUE, (void *)(offset >> 16), offset);
   }
 
-  command storage_cookie_t CircularRead.getSize[logstorage_t id]() {
+  command storage_len_t CircularRead.getSize[logstorage_t id]() {
     return call LinearRead.getSize[id]();
   }
 
@@ -326,30 +344,34 @@ implementation
   /* ------------------------------------------------------------------ */
 
   void eraseMetadataDone() {
-    emptyLog(); // reset write pointer
+    s[client].positionKnown = TRUE;
+    s[client].wpos = PAGE_SIZE; // last page has offset 0 and is before us
+    s[client].circled = FALSE;
+    setWritePage(firstVolumePage()); 
+    readFromBeginning();
+
     endRequest(SUCCESS);
   }
 
-  void eraseContinue() {
-    /* We erase backwards. That leaves the first two pages in the cache */
-    if (lastPage == firstPage)
+  void eraseEraseDone() {
+    if (firstPage == lastPage - 1)
       {
-	emptyLog();
-	/* If we just reboot after erasing the flash, then the next attempt
-	   to locate log boundaries will have to scan the while flash
-	   (looking for a valid block). To reduce the chances of this, we
-	   write a valid header in block 0 after erase. */
-	metadata.flags = 0;
+	/* We create a valid, synced last page */
+	metadata.flags = F_SYNC | F_LASTVALID;
+	metadata.lastRecordOffset = 0;
+	setWritePage(firstPage);
+	s[client].wpos = 0;
 	wmetadataStart();
       }
     else
-      call At45db.erase(--lastPage, AT45_ERASE);
+      call At45db.erase(firstPage++, AT45_ERASE);
   }
 
   void eraseStart() {
+    s[client].positionKnown = FALSE; // in case erase fails
     firstPage = firstVolumePage();
     lastPage = lastVolumePage();
-    eraseContinue();
+    eraseEraseDone();
   }
 
   /* ------------------------------------------------------------------ */
@@ -358,50 +380,49 @@ implementation
 
   void locateLastRecord();
 
-  at45page_t locateCurrentPage() {
-    return firstPage + ((lastPage - firstPage) >> 1);
-  }
-
   void locateLastCrcDone(uint16_t crc) {
-    if (crc == metadata.crc)
+    if (crc != metadata.crc)
       {
-	/* We've found the last valid page with a record-end */
-	s[client].positionKnown = TRUE;
-	if (metadata.flags & F_SYNC) /* must start on next page */
-	  {
-	    setWritePage(firstPage + 1);
-	    s[client].wpos = metadata.pos + PAGE_SIZE;
-	  }
-	else
-	  {
-	    s[client].wpage = firstPage;
-	    s[client].woffset = metadata.lastRecordOffset;
-	    s[client].wpos = metadata.pos + metadata.lastRecordOffset;
-	  }
+	locateLastRecord();
+	return;
+      }
 
-	/* If we're on the first pass (no F_CIRCLED flag), the read
-	   pointer starts at the beginning of the flash. Otherwise,
-	   we invalidate it, which will force read requests to find
-	   the first valid page after the current write pointer. */
-	s[client].circled = (metadata.flags & F_CIRCLED) != 0;
-	if (s[client].circled)
-	  {
-	    if (!s[client].circular) // oops
-	      {
-		/* Maybe treating the log as empty would be better? */
-		endRequest(FAIL);
-		return;
-	      }
+    /* We've found the last valid page with a record-end. Set up
+       the read and write positions. */
 
-	    invalidateReadPointer();
-	  }
-	else
-	  readFromBeginning();
-
-	startRequest();
+    if (metadata.flags & F_SYNC) /* must start on next page */
+      {
+	setWritePage(firstPage + 1);
+	s[client].wpos = metadata.pos + PAGE_SIZE;
       }
     else
-      locateLastRecord();
+      {
+	s[client].wpage = firstPage;
+	s[client].woffset = metadata.lastRecordOffset;
+	s[client].wpos = metadata.pos + metadata.lastRecordOffset;
+      }
+
+    /* If we're on the first pass (no F_CIRCLED flag), the read
+       pointer starts at the beginning of the flash. Otherwise,
+       we invalidate it, which will force read requests to find
+       the first valid page after the current write pointer. */
+    s[client].circled = (metadata.flags & F_CIRCLED) != 0;
+    if (s[client].circled)
+      {
+	if (!s[client].circular) // oops
+	  {
+	    endRequest(FAIL);
+	    return;
+	  }
+
+	invalidateReadPointer();
+      }
+    else
+      readFromBeginning();
+
+    /* And we can now proceed to the real request */
+    s[client].positionKnown = TRUE;
+    startRequest();
   }
 
   void locateLastReadDone() {
@@ -412,21 +433,32 @@ implementation
   }
 
   void locateLastRecord() {
-    if (firstPage == firstVolumePage())
+    if (firstPage == lastPage)
       {
-	/* There were no valid pages with a record end */
-	emptyLog();
-	startRequest();
+	/* We walked all the way back to the last page, and it's not 
+	   valid. The log-volume invariant is not holding. Fail out. */
+	endRequest(FAIL);
+	return;
       }
+
+    if (firstPage == firstVolumePage())
+      firstPage = lastPage;
     else
-      readMetadata(--firstPage);
+      firstPage--;
+
+    readMetadata(firstPage);
   }
 
   void located() {
     metaState = META_LOCATELAST;
     /* firstPage is one after last valid page, but the last page with
        a record end may be some pages earlier. Search for it. */
+    lastPage = lastVolumePage() - 1;
     locateLastRecord();
+  }
+
+  at45page_t locateCurrentPage() {
+    return firstPage + ((lastPage - firstPage) >> 1);
   }
 
   void locateBinarySearch() {
@@ -464,31 +496,13 @@ implementation
   }
 
   void locateFirstCrcDone(uint16_t crc) {
-    firstPage++;
     if (metadata.magic == PERSISTENT_MAGIC && crc == metadata.crc)
-      {
-	metaState = META_LOCATE;
-	/* We track the page with the largest position found. */
-	s[client].wpos = metadata.pos;
-	/* We now know that the valid pages span a contiguous sequence
-	   starting at firstPage - 1. The binary search will look for
-	   the page with the largest position. */
-	locateBinarySearch();
-      }
-    else if (firstPage != lastPage)
-      /* Try the next page. There can be an arbitrary number of
-	 consecutive bad pages (see discussion at start of this file) */
-      readMetadata(firstPage);
+      s[client].wpos = metadata.pos;
     else
-      {
-	/* Found no valid page. We might want to give up after some
-	   bounded number of pages, rather than checking the whole
-	   log -- many bad consecutive pages is extremely unlikely and
-	   probably indicates a major problem somewhere. */
-	emptyLog();
-	startRequest();
-      }
-    
+      s[client].wpos = 0;
+
+    metaState = META_LOCATE;
+    locateBinarySearch();
   }
 
   void locateFirstReadDone() {
@@ -499,8 +513,8 @@ implementation
   void locateStart() {
     metaState = META_LOCATEFIRST;
     firstPage = firstVolumePage();
-    lastPage = lastVolumePage();
-    readMetadata(firstPage);
+    lastPage = lastVolumePage() - 1;
+    readMetadata(lastPage);
   }
 
   /* ------------------------------------------------------------------ */
@@ -550,11 +564,26 @@ implementation
   }
 
   void appendStart() {
-    /* Set lastRecordOffset in case we need to write metadata (see
-       wmetadataStart) */
-    metadata.lastRecordOffset = s[client].woffset;
-    metadata.flags = F_LASTVALID;
-    appendContinue();
+    storage_len_t vlen = (storage_len_t)npages() * PAGE_SIZE;
+
+    /* If request would span the end of the flash, sync, to maintain the
+       invariant that the last flash page is synced and that either
+       the first or last pages are valid.
+
+       Note that >= in the if below means we won't write a record that
+       would end on the last byte of the last page, as this would mean that
+       we would not sync the last page, breaking the log volume
+       invariant */
+    if (s[client].wpos % vlen >= vlen - len)
+      sync();
+    else
+      {
+	/* Set lastRecordOffset in case we need to write metadata (see
+	   wmetadataStart) */
+	metadata.lastRecordOffset = s[client].woffset;
+	metadata.flags = F_LASTVALID;
+	appendContinue();
+      }
   }
 
   /* ------------------------------------------------------------------ */
@@ -565,11 +594,7 @@ implementation
     if (s[client].woffset == 0) /* we can't lose any writes */
       endRequest(SUCCESS);
     else
-      {
-	metadata.flags = F_SYNC | F_LASTVALID;
-	metadata.lastRecordOffset = s[client].woffset;
-	wmetadataStart();
-      }
+      sync();
   }
 
   void syncMetadataDone() {
@@ -621,7 +646,7 @@ implementation
 
   void wmetadataWriteDone() {
     metaState = META_IDLE;
-    if (s[client].request == R_SYNC)
+    if (metadata.flags & F_SYNC)
       call At45db.sync(firstPage);
     else
       call At45db.flush(firstPage);
@@ -699,19 +724,17 @@ implementation
     if (++firstPage == lastVolumePage())
       firstPage = firstVolumePage();
     if (firstPage == s[client].wpage)
-      {
-	if (!s[client].rvalid)
-	  /* We cannot find a record boundary to start at (we've just
-	     walked through the whole log...). Give up. */
-	  endRequest(SUCCESS);
-	else
-	  {
-	    /* The current write page has no metadata yet, so we fake it */
-	    metadata.flags = 0;
-	    metadata.pos = s[client].wpos - s[client].woffset;
-	    continueReadAt(0);
-	  }
-      }
+      if (!s[client].rvalid)
+	/* We cannot find a record boundary to start at (we've just
+	   walked through the whole log...). Give up. */
+	endRequest(SUCCESS);
+      else
+	{
+	  /* The current write page has no metadata yet, so we fake it */
+	  metadata.flags = 0;
+	  metadata.pos = s[client].wpos - s[client].woffset;
+	  continueReadAt(0);
+	}
     else
       readMetadata(firstPage);
   }
@@ -767,7 +790,12 @@ implementation
 
     invalidateReadPointer(); // default to beginning of log
 
-    if (offset > s[client].wpos)
+    /* The write positions are offset by PAGE_SIZE (see emptyLog) */
+
+    if (offset == SEEK_BEGINNING)
+      offset = PAGE_SIZE;
+
+    if (offset > s[client].wpos || offset < PAGE_SIZE)
       {
 	endRequest(EINVAL);
 	return;
@@ -777,8 +805,8 @@ implementation
        you circle around and around. So we can just check the requested
        page's metadata.pos field matches the cookie's value */
     s[client].rpos = offset;
-    s[client].roffset = offset % PAGE_SIZE;
-    s[client].rpage = firstVolumePage() + (offset / PAGE_SIZE) % npages();
+    s[client].roffset = (offset - PAGE_SIZE) % PAGE_SIZE;
+    s[client].rpage = firstVolumePage() + ((offset - PAGE_SIZE) / PAGE_SIZE) % npages();
     s[client].rend = PAGE_SIZE; // default to no sync flag
 
     // The last page's metadata isn't written to flash yet. Special case it.
@@ -808,7 +836,7 @@ implementation
       if (error != SUCCESS)
 	endRequest(FAIL);
       else
-	eraseContinue();
+	eraseEraseDone();
   }
 
   event void At45db.writeDone(error_t error) {
@@ -827,16 +855,18 @@ implementation
     if (client != NO_CLIENT)
       if (error != SUCCESS)
 	endRequest(FAIL);
-      else
-	syncMetadataDone();
+      else switch (s[client].request)
+	{
+	case R_ERASE: eraseMetadataDone(); break;
+	case R_APPEND: appendStart(); break;
+	case R_SYNC: syncMetadataDone(); break;
+	}
   }
 
   event void At45db.flushDone(error_t error) {
     if (client != NO_CLIENT)
       if (error != SUCCESS)
 	endRequest(FAIL);
-      else if (s[client].request == R_ERASE)
-	eraseMetadataDone();
       else
 	appendMetadataDone();
   }
