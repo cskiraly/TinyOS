@@ -40,13 +40,13 @@
 
 module LogStorageP {
   provides {
-    interface LogRead[logstorage_t logId];
-    interface LogWrite[logstorage_t logId];
+    interface LogRead[uint8_t logId];
+    interface LogWrite[uint8_t logId];
   }
   uses {
     interface At45db;
-    interface At45dbVolume[logstorage_t logId];
-    interface Resource[logstorage_t logId];
+    interface At45dbVolume[uint8_t logId];
+    interface Resource[uint8_t logId];
   }
 }
 implementation
@@ -300,7 +300,7 @@ implementation
   }
 
   void endRequest(error_t ok) {
-    logstorage_t c = client;
+    uint8_t c = client;
     uint8_t request = s[c].request;
     storage_len_t actualLen = s[c].len - len;
     void *ptr = s[c].buf - actualLen;
@@ -321,7 +321,7 @@ implementation
   }
 
   /* Enqueue request and request the underlying flash */
-  error_t newRequest(uint8_t newRequest, logstorage_t id,
+  error_t newRequest(uint8_t newRequest, uint8_t id,
 		     uint8_t *buf, storage_len_t length) {
     s[id >> 1].circular = id & 1;
     id >>= 1;
@@ -337,13 +337,13 @@ implementation
     return SUCCESS;
   }
 
-  event void Resource.granted[logstorage_t id]() {
+  event void Resource.granted[uint8_t id]() {
     client = id;
     len = s[client].len;
     startRequest();
   }
 
-  command error_t LogWrite.append[logstorage_t id](void* buf, storage_len_t length) {
+  command error_t LogWrite.append[uint8_t id](void* buf, storage_len_t length) {
     if (len > call LogRead.getSize[id]() - PAGE_SIZE)
       /* Writes greater than the volume size are invalid.
 	 Writes equal to the volume size could break the log volume
@@ -356,32 +356,32 @@ implementation
       return newRequest(R_APPEND, id, buf, length);
   }
 
-  command storage_cookie_t LogWrite.currentOffset[logstorage_t id]() {
+  command storage_cookie_t LogWrite.currentOffset[uint8_t id]() {
     return s[id >> 1].wpos;
   }
 
-  command error_t LogWrite.erase[logstorage_t id]() {
+  command error_t LogWrite.erase[uint8_t id]() {
     return newRequest(R_ERASE, id, NULL, 0);
   }
 
-  command error_t LogWrite.sync[logstorage_t id]() {
+  command error_t LogWrite.sync[uint8_t id]() {
     return newRequest(R_SYNC, id, NULL, 0);
   }
 
-  command error_t LogRead.read[logstorage_t id](void* buf, storage_len_t length) {
+  command error_t LogRead.read[uint8_t id](void* buf, storage_len_t length) {
     return newRequest(R_READ, id, buf, length);
   }
 
-  command storage_cookie_t LogRead.currentOffset[logstorage_t id]() {
+  command storage_cookie_t LogRead.currentOffset[uint8_t id]() {
     id >>= 1;
     return s[id].rvalid ? s[id].rpos : SEEK_BEGINNING;
   }
 
-  command error_t LogRead.seek[logstorage_t id](storage_cookie_t offset) {
+  command error_t LogRead.seek[uint8_t id](storage_cookie_t offset) {
     return newRequest(R_SEEK, id, (void *)(offset >> 16), offset);
   }
 
-  command storage_len_t LogRead.getSize[logstorage_t id]() {
+  command storage_len_t LogRead.getSize[uint8_t id]() {
     return call At45dbVolume.volumeSize[id >> 1]() * (storage_len_t)PAGE_SIZE;
   }
 
@@ -955,14 +955,14 @@ implementation
 
   event void At45db.copyPageDone(error_t error) { }
 
-  default event void LogWrite.appendDone[logstorage_t logId](void* buf, storage_len_t l, error_t error) { }
-  default event void LogWrite.eraseDone[logstorage_t logId](error_t error) { }
-  default event void LogWrite.syncDone[logstorage_t logId](error_t error) { }
-  default event void LogRead.readDone[logstorage_t logId](void* buf, storage_len_t l, error_t error) { }
-  default event void LogRead.seekDone[logstorage_t logId](error_t error) {}
+  default event void LogWrite.appendDone[uint8_t logId](void* buf, storage_len_t l, error_t error) { }
+  default event void LogWrite.eraseDone[uint8_t logId](error_t error) { }
+  default event void LogWrite.syncDone[uint8_t logId](error_t error) { }
+  default event void LogRead.readDone[uint8_t logId](void* buf, storage_len_t l, error_t error) { }
+  default event void LogRead.seekDone[uint8_t logId](error_t error) {}
 
-  default command at45page_t At45dbVolume.remap[logstorage_t logId](at45page_t volumePage) {return 0;}
-  default command at45page_t At45dbVolume.volumeSize[logstorage_t logId]() {return 0;}
-  default async command error_t Resource.request[logstorage_t logId]() {return SUCCESS;}
-  default async command void Resource.release[logstorage_t logId]() { }
+  default command at45page_t At45dbVolume.remap[uint8_t logId](at45page_t volumePage) {return 0;}
+  default command at45page_t At45dbVolume.volumeSize[uint8_t logId]() {return 0;}
+  default async command error_t Resource.request[uint8_t logId]() {return SUCCESS;}
+  default async command void Resource.release[uint8_t logId]() { }
 }
