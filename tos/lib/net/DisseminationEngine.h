@@ -38,18 +38,18 @@
  */
 
 enum {
-  AM_DISSEMINATION = 13,
-  AM_DISSEMINATION_PROBE = 14,
+  AM_DISSEMINATION_MESSAGE = 13,
+  AM_DISSEMINATION_PROBE_MESSAGE = 14,
   DISSEMINATION_SEQNO_UNKNOWN = 0,
 };
 
-typedef nx_struct dissemination_message_t {
+typedef nx_struct dissemination_message {
   nx_uint16_t key;
   nx_uint32_t seqno;
   nx_uint8_t data[0];
 } dissemination_message_t;
 
-typedef nx_struct dissemination_probe_message_t {
+typedef nx_struct dissemination_probe_message {
   nx_uint16_t key;
 } dissemination_probe_message_t;
 
