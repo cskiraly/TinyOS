@@ -41,7 +41,7 @@
  * See TEP118 - Dissemination for details.
  * 
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-02 22:08:53 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-06-02 20:52:42 $
  */
 
 configuration DisseminationEngineP {
@@ -59,19 +59,18 @@ implementation {
   DisseminationEngineImplP.Boot -> MainC;
 
   components ActiveMessageC;
-  MainC.SoftwareInit -> ActiveMessageC;
   DisseminationEngineImplP.RadioControl -> ActiveMessageC;
 
-  components new AMSenderC(AM_DISSEMINATION) as DisseminationSendC;
+  components new AMSenderC(AM_DISSEMINATION_MESSAGE) as DisseminationSendC;
   DisseminationEngineImplP.AMSend -> DisseminationSendC.AMSend;
 
-  components new AMReceiverC(AM_DISSEMINATION) as DisseminationReceiveC;
+  components new AMReceiverC(AM_DISSEMINATION_MESSAGE) as DisseminationReceiveC;
   DisseminationEngineImplP.Receive -> DisseminationReceiveC.Receive;
 
-  components new AMSenderC(AM_DISSEMINATION_PROBE) as DisseminationProbeSendC;
+  components new AMSenderC(AM_DISSEMINATION_PROBE_MESSAGE) as DisseminationProbeSendC;
   DisseminationEngineImplP.ProbeAMSend -> DisseminationProbeSendC.AMSend;
 
-  components new AMReceiverC(AM_DISSEMINATION_PROBE) 
+  components new AMReceiverC(AM_DISSEMINATION_PROBE_MESSAGE) 
     as DisseminationProbeReceiveC;
   DisseminationEngineImplP.ProbeReceive -> DisseminationProbeReceiveC.Receive;
 

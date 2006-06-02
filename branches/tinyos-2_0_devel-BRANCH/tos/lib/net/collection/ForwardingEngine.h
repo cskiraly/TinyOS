@@ -1,6 +1,9 @@
 #ifndef FORWARDING_ENGINE_H
 #define FORWARDING_ENGINE_H
 
+#include <AM.h>
+#include <message.h>
+
 typedef nx_struct {
   nx_am_addr_t origin;
   nx_uint8_t collectid;
