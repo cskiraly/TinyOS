@@ -10,8 +10,8 @@ Permanent Data Storage (Flash)
 :Author: David Gay, Jonathan Hui
 
 :Draft-Created: 27-Sep-2004
-:Draft-Version: $Revision: 1.1.2.5 $
-:Draft-Modified: $Date: 2006-06-02 00:19:09 $
+:Draft-Version: $Revision: 1.1.2.6 $
+:Draft-Modified: $Date: 2006-06-02 15:31:30 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 
@@ -36,9 +36,9 @@ various flash chips.
 There are three different flash chip families under use or
 consideration for TinyOS platforms: the Atmel AT45DB family (Mica
 family, Telos rev. A), the ST M25P family (Telos rev. B, eyes) and the
-Intel Strataflash (imote2).  All three are "NOR" flash chips, but the
-AT45DB has fairly different characteristics (see below). There also
-"NAND" flash chips which have rather different tradeoffs from NOR
+Intel Strataflash (Intel Mote2).  All three are "NOR" flash chips, but
+the AT45DB has fairly different characteristics (see below). There
+also "NAND" flash chips which have rather different tradeoffs from NOR
 flash. Compact flash/etc cards use NAND flash but present a disk-like
 block interface.
 
@@ -60,7 +60,7 @@ differences between the various flash technologies::
   Erase cycles :  10^4 - 10^5         10^4 **        10^5 - 10^7
   Intended use :  Code storage        Data storage   Data storage
 
-  *  imote2 NOR flash is memory mapped (reads are very fast and can
+  *  Intel Mote2 NOR flash is memory mapped (reads are very fast and can
      directly execute code)
   ** Or infinite? Data sheet just says that every page within a sector
      must be written every 10^4 writes within that sector
