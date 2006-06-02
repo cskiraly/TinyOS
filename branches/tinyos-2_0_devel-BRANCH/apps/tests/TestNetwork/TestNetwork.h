@@ -1,7 +1,9 @@
 #ifndef TEST_NETWORK_H
 #define TEST_NETWORK_H
 
-typedef nx_struct {
+#include "TestNetworkC.h"
+
+typedef nx_struct TestNetworkMsg {
   nx_uint16_t data;
 } TestNetworkMsg;
 
