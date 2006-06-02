@@ -10,8 +10,8 @@ Permanent Data Storage (Flash)
 :Author: David Gay, Jonathan Hui
 
 :Draft-Created: 27-Sep-2004
-:Draft-Version: $Revision: 1.1.2.4 $
-:Draft-Modified: $Date: 2006-06-01 23:52:44 $
+:Draft-Version: $Revision: 1.1.2.5 $
+:Draft-Modified: $Date: 2006-06-02 00:19:09 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 
@@ -160,37 +160,73 @@ comments in the referenced components and interfaces.
 3.1 Hardware Presentation Layer (HPL)
 --------------------------------------------------------------------
 
-a. Implementation: system dependent
-b. Presentation: chip (or chip family) dependent; common HPL for same chip
-   (or chip family) on different systems
-c. Stateless
-d. Atmel 45DB family low-level interfaces (``HplAt45db`` interface)
+The flash HPL has a chip-dependent, system-independent interface. The
+implementation of this HPL is system-dependent. The flash HPL SHOULD be
+stateless. In many cases, families of flash chips can share a common HPL
+interface.
 
-   flash->buffer, buffer->flash, compare buffer to flash, erase page,
-   read, compute crc, write
+Some examples:
 
-   A generic implementation of the HPL is included allowing platforms
-   to just provide SPI and chip selection interfaces.
+- The Atmel AT45DB family HPL is: ::
 
-e. Intel Strataflash  
+    configuration HplAt45dbC {
+      provides interface;
+    } ...
 
-   write data, erase, lock/unlock blocks, read config data, etc.
-   details omitted - main interesting point is lack of reads, as
-   device is memory mapped
+  The ``HplAt45db`` interface has flash->buffer, buffer->flash, compare
+  buffer to flash, erase page, read, compute CRC, and write operations.  A
+  generic, system-independent implementation of the HPL
+  (``HplAt45dbByteC``) is included allowing platforms to just provide SPI
+  and chip selection interfaces.
 
-f. M25P family (``Stm25pSpi`` interface)
+  Different members of the AT45DB family are supported by specifying a few
+  constants (number of pages, page size).
 
-   r/w data, erase (sector or chip), r/w status, etc
-   (full details omitted)
+- The M25P family HPL is: ::
+
+    configuration Stm25pSpiC {
+      provides interface Init;
+      provides interface Resource;
+      provides interface Stm25pSpi;
+    }
+
+   The ``Stm25pSpi`` interface has read, write, compute CRC, sector erase
+   and block erase operations. The implementation of this HPL is
+   system-independent, built over a few system-dependent components
+   providing SPI and chip selection interfaces.
+
+Note that these two examples have different resource management policies:
+the AT45DB encapsulates resource acquisition and release within each
+operation, while the M25P family requires that HPL users acquire and
+release the resource itself.
 
 3.2 Hardware Adaptation Layer (HAL)
 --------------------------------------------------------------------
 
-a. Implementation: chip dependent
-b. Presentation: chip dependent
-c. Atmel AT45DB:
+The flash HAL has a chip-dependent, system-independent interface and
+implementation. Flash families with a common HPL SHOULD have a common
+HAL. Flash HAL's SHOULD expose a ``Resource`` interface and automatically
+power-manage the underlying flash chip.
 
-::
+We show here a couple of flash HAL's.
+
+The AT45DB HAL is: ::
+
+  configuration At45dbC
+  {
+    provides {
+      interface At45db;
+      interface Resource[uint8_t client];
+      interface ResourceController;
+      interface ArbiterInfo;
+    }
+  } ...
+
+Note that the AT45DB HAL resource management is independent of the
+underlying HPL's power management. The motivation for this is that
+individual flash operations may take a long time, so it may be desirable to
+release the flash's bus during long-running operations. The ``At45db``
+interface is: ::
 
    interface At45db {
      command void write(at45page_t page, at45pageoffset_t offset,
@@ -219,31 +255,17 @@ c. Atmel AT45DB:
      command void computeCrc(at45page_t page, at45pageoffset_t offset,
                              at45pageoffset_t n, uint16_t baseCrc);
      event void computeCrcDone(error_t error, uint16_t crc);
-
    }
 
-d. Intel Strataflash (should extend to other memory-mapped NOR flashes):
+The STMicroelectronics M25P HAL is: ::
 
-::
+  configuration Stm25pSectorC {
+    provides interface Resource as ClientResource[storage_volume_t volume];
+    provides interface Stm25pSector as Sector[storage_volume_t volume];
+    provides interface Stm25pVolume as Volume[storage_volume_t volume];
+  }
 
-   interface { /* In flux until higher level stuff written */
-
-     command error_t lockRange(storage_addr_t_t from, storage_len_t count);
-     command error_t unlockRange(storage_addr_t from, storage_len_t count);
-
-     /* These return to read array mode when done */
-     command error_t write(storage_addr_t addr, void* buf, storage_len_t len);
-     event   void    writeDone(storage_addr_t addr, void* buf, 
-                               storage_len_t len, error_t error);
-
-     command error_t erase(storage_addr_t block);
-     event   void    eraseDone(storage_addr_t block, error_t success);
-
-   }
-
-e. STMicroelectronics M25P:
-
-::
+and the ``Stm25pSector`` interface is: ::
 
    interface Stm25pSector {
      command error_t read(stm25p_addr_t addr, void* buf, stm25p_addr_t len);
@@ -269,9 +291,11 @@ e. STMicroelectronics M25P:
 3.3 Hardware Interface Layer (HIL)
 --------------------------------------------------------------------
 
-a. Implementation: Chip dependent
-b. Presentation: application-level OS service (see discussion in Section 2)
-c. Volumes
+The HIL implementations are system-independent, but chip (family)
+dependent. They implement the three storage abstractions and
+volume structure discussed in Section 2.
+
+a. Volumes
 
    The division of the flash chip into fixed-size volumes is specified by
    an XML file that is placed in the application's directory (where one
@@ -313,129 +337,129 @@ c. Volumes
    A volume MUST NOT be used with more than one storage abstraction
    instance.
 
-d. Large object interface:
+b. Large object interface:
 
-Large objects are accessed by instantiating a BlockStorageC component
-which takes a volume id argument: ::
+  Large objects are accessed by instantiating a BlockStorageC component
+  which takes a volume id argument: ::
 
-  generic configuration BlockStorageC(volume_id_t volid) {
-    provides {
-      interface BlockWrite;
-      interface BlockRead;
-    }
-  } ...
+    generic configuration BlockStorageC(volume_id_t volid) {
+      provides {
+	interface BlockWrite;
+	interface BlockRead;
+      }
+    } ...
 
-The ``BlockRead`` and ``BlockWrite`` interfaces contain the following
-operations: ::
+  The ``BlockRead`` and ``BlockWrite`` interfaces contain the following
+  operations: ::
 
-   interface BlockWrite {
-     command error_t write(storage_addr_t addr, void* buf, 
-                           storage_len_t len);
-     event void writeDone(storage_addr_t addr, void* buf, 
-                          storage_len_t len, error_t error);
+     interface BlockWrite {
+       command error_t write(storage_addr_t addr, void* buf, 
+			     storage_len_t len);
+       event void writeDone(storage_addr_t addr, void* buf, 
+			    storage_len_t len, error_t error);
 
-     command error_t erase();
-     event   void    eraseDone(error_t result);
-     
-     command error_t commit();
-      event  void    commitDone(error_t result);
-   }
+       command error_t erase();
+       event   void    eraseDone(error_t result);
 
-   interface BlockRead {
-     command error_t read(addr_t addr, void* dest, addr_t len);
-     event   void    readDone(storage_error_t result);
-     
-     command error_t verify();
-     event   void    verifyDone(storage_error_t result);
+       command error_t commit();
+	event  void    commitDone(error_t result);
+     }
 
-     command error_t computeCrc(storage_addr_t addr, storage_len_t len,
-                                uint16_t baseCrc);
-     event   void    computeCrcDone(storage_addr_t addr, storage_len_t len, 
-				    uint16_t crc, error_t error );
+     interface BlockRead {
+       command error_t read(addr_t addr, void* dest, addr_t len);
+       event   void    readDone(storage_error_t result);
 
-     command storage_len_t getSize();
-   }
+       command error_t verify();
+       event   void    verifyDone(storage_error_t result);
 
-e. Large sequential objects:
+       command error_t computeCrc(storage_addr_t addr, storage_len_t len,
+				  uint16_t baseCrc);
+       event   void    computeCrcDone(storage_addr_t addr, storage_len_t len, 
+				      uint16_t crc, error_t error );
 
-Large sequential objects are accessed by instantiating a LogStorageC
-component which takes a volume id and a boolean argument: ::
+       command storage_len_t getSize();
+     }
 
-  generic configuration LogStorageC(volume_id_t volid, bool circular) {
-    provides {
-      interface LogWrite;
-      interface LogRead;
-    }
-  } ...
+c. Large sequential objects:
 
-If the ``circular`` argument is TRUE, the log is circular; otherwise
-it is linear.
+  Large sequential objects are accessed by instantiating a LogStorageC
+  component which takes a volume id and a boolean argument: ::
 
-The ``LogRead`` and ``LogWrite`` interfaces contain the following
-operations: ::
+    generic configuration LogStorageC(volume_id_t volid, bool circular) {
+      provides {
+	interface LogWrite;
+	interface LogRead;
+      }
+    } ...
 
-   interface LogWrite {
-     command error_t erase();
-     event   void    eraseDone(storage_error_t success);
+  If the ``circular`` argument is TRUE, the log is circular; otherwise
+  it is linear.
 
-     command error_t append(void* buf, storage_len_t len);
-     event   void    appendDone(void* buf, storage_len_t len, error_t error);
+  The ``LogRead`` and ``LogWrite`` interfaces contain the following
+  operations: ::
 
-     command storage_cookie_t currentOffset();
+     interface LogWrite {
+       command error_t erase();
+       event   void    eraseDone(storage_error_t success);
 
-     command error_t sync();
-     event   void    syncDone(storage_error_t success);
-   }
+       command error_t append(void* buf, storage_len_t len);
+       event   void    appendDone(void* buf, storage_len_t len, error_t error);
 
-   interface LogRead {
-     command error_t read(void* buf, storage_len_t len);
-     event   void    readDone(void* buf, storage_len_t len, error_t error);
+       command storage_cookie_t currentOffset();
 
-     command storage_cookie_t currentOffset();
+       command error_t sync();
+       event   void    syncDone(storage_error_t success);
+     }
 
-     command error_t seek(storage_cookie_t cookie);
-     event   void    seekDone(error_t error);
+     interface LogRead {
+       command error_t read(void* buf, storage_len_t len);
+       event   void    readDone(void* buf, storage_len_t len, error_t error);
 
-     command storage_len_t getSize();
-   }
+       command storage_cookie_t currentOffset();
 
-f. Small objects:
+       command error_t seek(storage_cookie_t cookie);
+       event   void    seekDone(error_t error);
 
-Small objects are accessed by instantiating a ConfigStorageC component
-which takes a volume id argument: ::
+       command storage_len_t getSize();
+     }
 
-  generic configuration ConfigStorageC(volume_id_t volid) {
-    provides {
-      interface Mount;
-      interface ConfigStorage;
-    }
-  } ...
+d. Small objects:
 
-A small object MUST be mounted (see the ``Mount`` interface) before 
-the first use.
+  Small objects are accessed by instantiating a ConfigStorageC component
+  which takes a volume id argument: ::
 
-The ``Mount`` and ``ConfigStorage`` interfaces contain the following
-operations: ::
+    generic configuration ConfigStorageC(volume_id_t volid) {
+      provides {
+	interface Mount;
+	interface ConfigStorage;
+      }
+    } ...
 
-   interface Mount {
-     command error_t mount();
-     event void mountDone(error_t error);
-   }
+  A small object MUST be mounted (see the ``Mount`` interface) before 
+  the first use.
 
-   interface ConfigStorage {
-     command error_t read(addr_t addr, void* dest, addr_t len);
-     event   void    readDone(storage_error_t result);
+  The ``Mount`` and ``ConfigStorage`` interfaces contain the following
+  operations: ::
 
-     command error_t write(addr_t addr void* source, addr_t len);
-     event   void    writeDone(storage_error_t result);
+     interface Mount {
+       command error_t mount();
+       event void mountDone(error_t error);
+     }
 
-     command error_t commit();
-     event   void    commitDone(storage_error_t result);
+     interface ConfigStorage {
+       command error_t read(addr_t addr, void* dest, addr_t len);
+       event   void    readDone(storage_error_t result);
 
-     command storage_len_t getSize();
+       command error_t write(addr_t addr void* source, addr_t len);
+       event   void    writeDone(storage_error_t result);
 
-     command bool valid();
-   }
+       command error_t commit();
+       event   void    commitDone(storage_error_t result);
+
+       command storage_len_t getSize();
+
+       command bool valid();
+     }
 
 4. Implementation
 ====================================================================
