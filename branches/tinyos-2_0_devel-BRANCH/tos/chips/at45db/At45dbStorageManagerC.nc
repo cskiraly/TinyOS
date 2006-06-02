@@ -9,12 +9,12 @@
  */
 
 /**
- * Private component for reporting on an AT45DB's volume table.
+ * HAL component providing information on the flash volumes.
  *
  * @author: David Gay <dgay@acm.org>
  */
 
-module StorageManagerP {
+module At45dbStorageManagerC {
   provides interface At45dbVolume[volume_id_t volid];
 }
 implementation {
