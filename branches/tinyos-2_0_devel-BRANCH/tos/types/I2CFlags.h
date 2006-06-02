@@ -36,11 +36,14 @@
 #ifndef _I2C_FLAGS_H
 #define _I2C_FLAGS_H
 
+typedef struct { } TI2CExtdAddr;
+typedef struct { } TI2CBasicAddr;
+
 enum {
-  START_FLAGS = 0x01
-  STOP_FLAG = 0x02,
-  ACK_END_FLAG = 0x04,
-  ADDR10_FLAG = 0x80,
+  I2C_START = 0x01
+  I2C_STOP = 0x02,
+  I2C_ACK_END = 0x04,
+  I2C_10BITADDR = 0x80,
 } i2c_flags_t;
 
 
