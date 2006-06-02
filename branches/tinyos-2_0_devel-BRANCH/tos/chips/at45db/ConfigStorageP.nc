@@ -1,4 +1,4 @@
-// $Id: ConfigStorageP.nc,v 1.1.2.5 2006-05-31 14:57:43 idgay Exp $
+// $Id: ConfigStorageP.nc,v 1.1.2.6 2006-06-02 17:37:36 idgay Exp $
 
 /*									tab:4
  * Copyright (c) 2002-2006 Intel Corporation
@@ -21,14 +21,14 @@
 
 module ConfigStorageP {
   provides {
-    interface Mount[configstorage_t id];
-    interface ConfigStorage[configstorage_t id];
-    interface At45dbBlockConfig as BConfig[blockstorage_t id];
+    interface Mount[uint8_t id];
+    interface ConfigStorage[uint8_t id];
+    interface At45dbBlockConfig as BConfig[uint8_t id];
   }
   uses {
     interface At45db;
-    interface BlockRead[configstorage_t id];
-    interface BlockWrite[configstorage_t id];
+    interface BlockRead[uint8_t id];
+    interface BlockWrite[uint8_t id];
   }
 }
 implementation 
@@ -75,7 +75,7 @@ implementation
   uint8_t client = NO_CLIENT;
   at45page_t nextPage;
 
-  void setFlip(blockstorage_t id, bool flip);
+  void setFlip(uint8_t id, bool flip);
 
   /* ------------------------------------------------------------------ */
   /* Mounting								*/
@@ -141,7 +141,7 @@ implementation
   /* Read								*/
   /* ------------------------------------------------------------------ */
 
-  command error_t ConfigStorage.read[configstorage_t id](storage_addr_t addr, void* buf, storage_len_t len) {
+  command error_t ConfigStorage.read[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len) {
     /* Read from current half using BlockRead */
     if (state[id] < S_CLEAN)
       return EOFF;
@@ -149,7 +149,7 @@ implementation
     return call BlockRead.read[id](addr + sizeof(uint32_t), buf, len);
   }
 
-  void readReadDone(configstorage_t id, storage_addr_t addr, void* buf, storage_len_t len, error_t error) {
+  void readReadDone(uint8_t id, storage_addr_t addr, void* buf, storage_len_t len, error_t error) {
     signal ConfigStorage.readDone[id](addr - sizeof(uint32_t), buf, len, error);
   }
 
@@ -157,7 +157,7 @@ implementation
   /* Write								*/
   /* ------------------------------------------------------------------ */
 
-  command error_t ConfigStorage.write[configstorage_t id](storage_addr_t addr, void* buf, storage_len_t len) {
+  command error_t ConfigStorage.write[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len) {
     /* 1: If first write:
          copy to other half, increment version number, and flip.
        2: Write to current half using BlockWrite */
@@ -170,7 +170,7 @@ implementation
   void copyCopyPageDone(error_t error);
   void writeContinue(error_t error);
 
-  command int BConfig.writeHook[configstorage_t id]() {
+  command int BConfig.writeHook[uint8_t id]() {
     if (state[id] != S_CLEAN) // no work if dirty or invalid
       return FALSE;
 
@@ -234,7 +234,7 @@ implementation
     signal BConfig.writeContinue[id](error);
   }
 
-  void writeWriteDone(configstorage_t id, storage_addr_t addr, void* buf, storage_len_t len, error_t error) {
+  void writeWriteDone(uint8_t id, storage_addr_t addr, void* buf, storage_len_t len, error_t error) {
     signal ConfigStorage.writeDone[id](addr - sizeof(uint32_t), buf, len, error);
   }
 
@@ -242,7 +242,7 @@ implementation
   /* Commit								*/
   /* ------------------------------------------------------------------ */
 
-  command error_t ConfigStorage.commit[configstorage_t id]() {
+  command error_t ConfigStorage.commit[uint8_t id]() {
     /* Call BlockWrite.commit */
     /* Could special-case attempt to commit clean block */
     if (state[id] < S_CLEAN)
@@ -250,7 +250,7 @@ implementation
     return call BlockWrite.commit[id]();
   }
 
-  void commitDone(configstorage_t id, error_t error) {
+  void commitDone(uint8_t id, error_t error) {
     if (error == SUCCESS)
       state[id] = S_CLEAN;
     signal ConfigStorage.commitDone[id](error);
@@ -260,7 +260,7 @@ implementation
   /* Get Size								*/
   /* ------------------------------------------------------------------ */
 
-  command storage_len_t ConfigStorage.getSize[configstorage_t id]() {
+  command storage_len_t ConfigStorage.getSize[uint8_t id]() {
     return call BlockRead.getSize[id]();
   }
 
@@ -268,7 +268,7 @@ implementation
   /* Valid								*/
   /* ------------------------------------------------------------------ */
 
-  command bool ConfigStorage.valid[configstorage_t id]() {
+  command bool ConfigStorage.valid[uint8_t id]() {
     return state[id] != S_INVALID;
   }
 
@@ -279,22 +279,22 @@ implementation
   /* The config volumes use the low block volume numbers. So a volume is a
      config volume iff its its id is less than N */
 
-  command int BConfig.isConfig[blockstorage_t id]() {
+  command int BConfig.isConfig[uint8_t id]() {
     return id < N;
   }
 
-  void setFlip(blockstorage_t id, bool flip) {
+  void setFlip(uint8_t id, bool flip) {
     if (flip)
       flipped[id >> 3] |= 1 << (id & 7);
     else
       flipped[id >> 3] &= ~(1 << (id & 7));
   }
 
-  inline command int BConfig.flipped[blockstorage_t id]() {
+  inline command int BConfig.flipped[uint8_t id]() {
     return (flipped[id >> 3] & (1 << (id & 7))) != 0;
   }
 
-  event void BlockRead.readDone[configstorage_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t error) {
+  event void BlockRead.readDone[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t error) {
     if (id < N)
       if (state[id] == S_MOUNT)
 	mountReadDone(id, error);
@@ -302,17 +302,17 @@ implementation
 	readReadDone(id, addr, buf, len, error);
   }
 
-  event void BlockRead.verifyDone[configstorage_t id]( error_t error ) {
+  event void BlockRead.verifyDone[uint8_t id]( error_t error ) {
     if (id < N)
       mountVerifyDone(id, error);
   }
 
-  event void BlockWrite.writeDone[configstorage_t id]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {
+  event void BlockWrite.writeDone[uint8_t id]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {
     if (id < N)
       writeWriteDone(id, addr, buf, len, error);
   }
 
-  event void BlockWrite.commitDone[configstorage_t id]( error_t error ) {
+  event void BlockWrite.commitDone[uint8_t id]( error_t error ) {
     if (id < N)
       commitDone(id, error);
   }
@@ -327,16 +327,16 @@ implementation
       copyCopyPageDone(error);
   }
 
-  event void BlockRead.computeCrcDone[configstorage_t id]( storage_addr_t addr, storage_len_t len, uint16_t crc, error_t error ) {}
-  event void BlockWrite.eraseDone[configstorage_t id]( error_t error ) {}
+  event void BlockRead.computeCrcDone[uint8_t id]( storage_addr_t addr, storage_len_t len, uint16_t crc, error_t error ) {}
+  event void BlockWrite.eraseDone[uint8_t id]( error_t error ) {}
   event void At45db.eraseDone(error_t error) {}
   event void At45db.syncDone(error_t error) {}
   event void At45db.flushDone(error_t error) {}
   event void At45db.readDone(error_t error) {}
   event void At45db.computeCrcDone(error_t error, uint16_t crc) {}
 
-  default event void Mount.mountDone[configstorage_t id](error_t error) { }
-  default event void ConfigStorage.readDone[configstorage_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t error) {}
-  default event void ConfigStorage.writeDone[configstorage_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t error) {}
-  default event void ConfigStorage.commitDone[configstorage_t id](error_t error) {}
+  default event void Mount.mountDone[uint8_t id](error_t error) { }
+  default event void ConfigStorage.readDone[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t error) {}
+  default event void ConfigStorage.writeDone[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t error) {}
+  default event void ConfigStorage.commitDone[uint8_t id](error_t error) {}
 }

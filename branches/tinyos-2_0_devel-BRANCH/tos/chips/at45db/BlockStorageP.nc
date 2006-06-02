@@ -1,4 +1,4 @@
-// $Id: BlockStorageP.nc,v 1.1.2.14 2006-06-02 16:36:23 idgay Exp $
+// $Id: BlockStorageP.nc,v 1.1.2.15 2006-06-02 17:37:36 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -41,14 +41,14 @@
 
 module BlockStorageP {
   provides {
-    interface BlockWrite[blockstorage_t blockId];
-    interface BlockRead[blockstorage_t blockId];
+    interface BlockWrite[uint8_t blockId];
+    interface BlockRead[uint8_t blockId];
   }
   uses {
     interface At45db;
-    interface At45dbVolume[blockstorage_t blockId];
-    interface Resource[blockstorage_t blockId];
-    interface At45dbBlockConfig as BConfig[blockstorage_t blockId];
+    interface At45dbVolume[uint8_t blockId];
+    interface Resource[uint8_t blockId];
+    interface At45dbBlockConfig as BConfig[uint8_t blockId];
   }
 }
 implementation 
@@ -122,21 +122,21 @@ implementation
     return signal BConfig.remap[client](p);
   }
 
-  event at45page_t BConfig.npages[blockstorage_t id]() {
+  event at45page_t BConfig.npages[uint8_t id]() {
     return call At45dbVolume.volumeSize[id]() >> 1;
   }
 
-  event at45page_t BConfig.remap[blockstorage_t id](at45page_t page) {
+  event at45page_t BConfig.remap[uint8_t id](at45page_t page) {
     if (call BConfig.isConfig[id]() && call BConfig.flipped[id]())
       page += signal BConfig.npages[id]();
     return call At45dbVolume.remap[id](page);
   }
 
-  default command int BConfig.isConfig[blockstorage_t blockId]() {
+  default command int BConfig.isConfig[uint8_t blockId]() {
     return FALSE;
   }
 
-  default command int BConfig.flipped[blockstorage_t blockId]() {
+  default command int BConfig.flipped[uint8_t blockId]() {
     return FALSE;
   }
 
@@ -163,7 +163,7 @@ implementation
   }
 
   void endRequest(error_t result, uint16_t crc) {
-    blockstorage_t c = client;
+    uint8_t c = client;
     uint8_t tmpState = s[c].request;
     storage_addr_t actualLength = s[c].len - bytesRemaining;
     storage_addr_t addr = s[c].addr - actualLength;
@@ -196,7 +196,7 @@ implementation
       }
   }
 
-  error_t newRequest(uint8_t newState, blockstorage_t id,
+  error_t newRequest(uint8_t newState, uint8_t id,
 		       storage_addr_t addr, uint8_t* buf, storage_len_t len) {
     storage_len_t vsize;
 
@@ -217,7 +217,7 @@ implementation
     return SUCCESS;
   }
 
-  event void Resource.granted[blockstorage_t blockId]() {
+  event void Resource.granted[uint8_t blockId]() {
     client = blockId;
 
     if (s[blockId].request == R_WRITE)
@@ -236,11 +236,11 @@ implementation
     startRequest();
   }
 
-  default command int BConfig.writeHook[blockstorage_t blockId]() {
+  default command int BConfig.writeHook[uint8_t blockId]() {
     return FALSE;
   }
 
-  event void BConfig.writeContinue[blockstorage_t blockId](error_t error) {
+  event void BConfig.writeContinue[uint8_t blockId](error_t error) {
     /* Config intercept complete. Resume operation. */
     client = blockId;
     if (error == SUCCESS)
@@ -323,7 +323,7 @@ implementation
   /* Erase								*/
   /* ------------------------------------------------------------------ */
 
-  command error_t BlockWrite.erase[blockstorage_t id]() {
+  command error_t BlockWrite.erase[uint8_t id]() {
     return newRequest(R_ERASE, id, 0, NULL, 0);
   }
 
@@ -339,7 +339,7 @@ implementation
   /* Write								*/
   /* ------------------------------------------------------------------ */
 
-  command error_t BlockWrite.write[blockstorage_t id](storage_addr_t addr, void* buf, storage_len_t len) {
+  command error_t BlockWrite.write[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len) {
     return newRequest(R_WRITE, id, addr, buf, len);
   }
 
@@ -347,7 +347,7 @@ implementation
   /* Commit								*/
   /* ------------------------------------------------------------------ */
 
-  command error_t BlockWrite.commit[blockstorage_t id]() {
+  command error_t BlockWrite.commit[uint8_t id]() {
     return newRequest(R_COMMIT, id, 0, NULL, s[id].maxAddr);
   }
 
@@ -374,7 +374,7 @@ implementation
   /* Verify								*/
   /* ------------------------------------------------------------------ */
 
-  command error_t BlockRead.verify[blockstorage_t id]() {
+  command error_t BlockRead.verify[uint8_t id]() {
     return newRequest(R_VERIFY, id, 0, NULL, 0);
   }
 
@@ -415,7 +415,7 @@ implementation
   /* Read								*/
   /* ------------------------------------------------------------------ */
 
-  command error_t BlockRead.read[blockstorage_t id](storage_addr_t addr, void* buf, storage_len_t len) {
+  command error_t BlockRead.read[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len) {
     return newRequest(R_READ, id, addr, buf, len);
   }
 
@@ -423,7 +423,7 @@ implementation
   /* Compute CRC							*/
   /* ------------------------------------------------------------------ */
 
-  command error_t BlockRead.computeCrc[blockstorage_t id](storage_addr_t addr, storage_len_t len, uint16_t basecrc) {
+  command error_t BlockRead.computeCrc[uint8_t id](storage_addr_t addr, storage_len_t len, uint16_t basecrc) {
     return newRequest(R_CRC, id, addr, (void *)basecrc, len);
   }
 
@@ -431,7 +431,7 @@ implementation
   /* Get Size								*/
   /* ------------------------------------------------------------------ */
 
-  command storage_len_t BlockRead.getSize[blockstorage_t blockId]() {
+  command storage_len_t BlockRead.getSize[uint8_t blockId]() {
     storage_len_t vsize;
 
     if (call BConfig.isConfig[blockId]())
@@ -486,8 +486,8 @@ implementation
   default event void BlockRead.verifyDone[uint8_t id](error_t result) { }
   default event void BlockRead.computeCrcDone[uint8_t id](storage_addr_t addr, storage_len_t len, uint16_t x, error_t result) { }
   
-  default command at45page_t At45dbVolume.remap[blockstorage_t id](at45page_t volumePage) { return 0; }
-  default command at45page_t At45dbVolume.volumeSize[blockstorage_t id]() { return 0; }
-  default async command error_t Resource.request[blockstorage_t id]() { return FAIL; }
-  default async command void Resource.release[blockstorage_t id]() { }
+  default command at45page_t At45dbVolume.remap[uint8_t id](at45page_t volumePage) { return 0; }
+  default command at45page_t At45dbVolume.volumeSize[uint8_t id]() { return 0; }
+  default async command error_t Resource.request[uint8_t id]() { return FAIL; }
+  default async command void Resource.release[uint8_t id]() { }
 }
