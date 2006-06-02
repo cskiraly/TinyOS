@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.9 2006-05-30 06:32:34 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.10 2006-06-02 02:10:19 scipio Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -339,7 +339,7 @@ implementation {
 	    ne->inquality = (ALPHA * ne->inquality) / 10;
 	  } else {
 	    newEst = (255 * ne->rcvcnt) / totalPkt;
-	    dbg("LI", "  %hu: %hhu -> %hhu", ne->ll_addr, ne->inquality, (ALPHA * ne->inquality + (10-ALPHA) * newEst)/10);
+	    dbg("LI,LITest", "  %hu: %hhu -> %hhu", ne->ll_addr, ne->inquality, (ALPHA * ne->inquality + (10-ALPHA) * newEst)/10);
 	    ne->inquality = (ALPHA * ne->inquality + (10-ALPHA) * newEst)/10;
 	  }
 	  ne->rcvcnt = 0;
@@ -359,7 +359,7 @@ implementation {
     for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
       ne = &NeighborTable[i];
       if (ne->flags & VALID_ENTRY) {
-	dbg("LI", "%d:%d inQ=%d, inA=%d, outQ=%d, outA=%d, rcv=%d, fail=%d, biQ=%d\n",
+	dbg("LI,LITest", "%d:%d inQ=%d, inA=%d, outQ=%d, outA=%d, rcv=%d, fail=%d, biQ=%d\n",
 	    i, ne->ll_addr, ne->inquality, ne->inage, ne->outquality, ne->outage,
 	    ne->rcvcnt, ne->failcnt, computeBidirLinkQuality(ne->inquality, ne->outquality));
       }
@@ -427,7 +427,7 @@ implementation {
   // link estimation timer, update the estimate or
   // send beacon if it is time
   event void Timer.fired() {
-    dbg("LI", "Linkestimator timer fired\n");
+    dbg("LI,LITest", "Linkestimator timer fired\n");
 
     curEstInterval = (curEstInterval + 1) % TABLEUPDATE_INTERVAL;
     if (curEstInterval == 0) {
@@ -553,8 +553,8 @@ implementation {
     uint8_t newlen;
 
     curBeaconInterval = 0;
-
     newlen = addLinkEstHeaderAndFooter(msg, len);
+    dbg("LITest", "%s packet of length %hhu became %hhu\n", __FUNCTION__, len, newlen);
     dbg("LI", "Sending seq: %d\n", linkEstSeq);
     print_packet(msg, newlen);
     return call AMSend.send(addr, msg, newlen);
@@ -570,7 +570,7 @@ implementation {
     }
   }
 
-  // cascade the send call down
+  // cascade the send call down    if (call Packet.payloadLength
   command uint8_t Send.cancel(message_t* msg) {
     return call AMSend.cancel(msg);
   }
@@ -660,7 +660,7 @@ implementation {
       print_neighbor_table();
 
     }
-    
+
     return signal Receive.receive(msg,
 				  call Packet.getPayload(msg, NULL),
 				  call Packet.payloadLength(msg));
