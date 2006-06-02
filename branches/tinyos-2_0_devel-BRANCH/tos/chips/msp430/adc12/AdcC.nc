@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.10 $
- * $Date: 2006-02-17 00:26:48 $
+ * $Revision: 1.1.2.11 $
+ * $Date: 2006-06-02 17:42:24 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -63,23 +63,16 @@ module AdcC {
 }
 implementation
 {
-  enum { // state
-    READ,
-    READ_NOW,
-    READ_STREAM
-  };
-
   struct list_entry_t {
     uint16_t count;
     struct list_entry_t *next;
   };
   
-  // Resource interface makes norace safe
-  norace uint8_t state;
+  // Resource interface makes norace declaration safe
+  norace bool readSync;
   norace uint8_t owner;
   norace uint16_t value;
-  norace bool ignore;
-  norace uint16_t *resultBuf;
+  norace uint16_t *resultBuf; 
   // atomic section in postBuffer() makes norace safe
   norace struct list_entry_t *streamBuf[uniqueCount(ADCC_READ_STREAM_SERVICE)];
   norace uint32_t usPeriod[uniqueCount(ADCC_READ_STREAM_SERVICE)];
@@ -107,8 +100,6 @@ implementation
     // but getSingleData() will fail if the client has not
     // reserved, because HAL1 checks ownership at runtime
     hal1request = call SingleChannel.getSingleData[client](&settings);
-    if (hal1request == SUCCESS)
-      state = READ_NOW;
     return hal1request;
   }
 
@@ -124,11 +115,10 @@ implementation
       signal Read.readDone[client](EINVAL, 0);
       return;
     }
+    readSync = TRUE;
+    owner = client;
     hal1request = call SingleChannel.getSingleData[client](&settings);
-    if (hal1request == SUCCESS){
-      state = READ;
-      owner = client;
-    } else {
+    if (hal1request != SUCCESS){
       call Resource.release[client]();
       signal Read.readDone[client](FAIL, 0);
     }
@@ -142,20 +132,12 @@ implementation
 
   async event error_t SingleChannel.singleDataReady[uint8_t client](uint16_t data)
   {
-    switch (state)
-    {
-      case READ:
-        value = data;
-        post readDone();
-        break;
-      case READ_NOW:  
-        if (ignore == TRUE)
-          ignore = FALSE;
-        else
-          signal ReadNow.readDone[client](SUCCESS, data);
-        break;
-      default:
-        break;
+    if (readSync){ // was Read.read request
+      readSync = FALSE;
+      value = data;
+      post readDone();
+    } else { // was ReadNow.read request
+      signal ReadNow.readDone[client](SUCCESS, data);
     }
     return SUCCESS;
   }
