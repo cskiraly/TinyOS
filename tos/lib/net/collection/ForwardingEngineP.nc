@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.12 2006-05-23 20:55:55 kasj78 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.13 2006-06-02 02:10:19 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-05-23 20:55:55 $
+ *  @date   $Date: 2006-06-02 02:10:19 $
  */
 
 #include <ForwardingEngine.h>
@@ -138,6 +138,7 @@ implementation {
     hdr->collectid = call CollectionId.fetch[client]();
 
     if (call QEntryPool.empty()) {
+      dbg("PhilTest", "Send failed as pool is empty.\n");
       // Queue pool is empty; fail the send.
       return EBUSY;
     }
@@ -153,6 +154,7 @@ implementation {
       return SUCCESS;
     }
     else {
+      dbg("PhilTest", "Send failed as packet could not be enqueued.\n");
       return FAIL;
     }
   }
@@ -194,6 +196,7 @@ implementation {
       if (eval == SUCCESS) {
 	// Successfully submitted to the data-link layer.
 	sending = TRUE;
+        call QEntryPool.put(qe);
         return;
       }
       if (eval == EOFF) {

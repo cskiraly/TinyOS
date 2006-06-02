@@ -54,6 +54,7 @@ implementation {
   
   components new TreeRoutingEngineP(TREE_ROUTING_TABLE_SIZE) as Router;
   StdControl = Router;
+  StdControl = Estimator;
   RootControl = Router;
   MainC.SoftwareInit -> Router;
   Router.BeaconSend -> Estimator.Send;

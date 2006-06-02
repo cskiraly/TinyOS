@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 //#define TEST_INSERT
-/* $Id: TreeRoutingEngineP.nc,v 1.1.2.6 2006-05-26 00:25:55 scipio Exp $ */
+/* $Id: TreeRoutingEngineP.nc,v 1.1.2.7 2006-06-02 02:10:19 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -29,7 +29,7 @@
  *  Acknowledgment: based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
  *                           MultiHopLQI
  *                           
- *  @date   $Date: 2006-05-26 00:25:55 $
+ *  @date   $Date: 2006-06-02 02:10:19 $
  *  @see Net2-WG
  */
 
@@ -181,16 +181,16 @@ implementation {
          //find best path in table, other than our current
         for (i = 0; i < routingTableActive; i++) {
             entry = &routingTable[i];
-            dbg("TreeRouting", "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric:%d ]\n", 
-                         i, entry->neighbor, entry->info.parent, entry->info.hopcount,
-                            entry->info.metric);
 
-            if (entry->info.parent == INVALID_ADDR) continue;
-            //avoid 1-hop loops    
-            if (entry->info.parent == my_ll_addr) continue;
-
+	    // Avoid bad entries and 1-hop loops
+            if (entry->info.parent == INVALID_ADDR || entry->info.parent == my_ll_addr) {
+	      dbg("TreeRouting,LITest", "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: NO ROUTE]\n",  i, entry->neighbor, entry->info.parent, entry->info.hopcount);
+	      continue;
+	    }
+	    
             linkMetric = evaluateMetric(call LinkEstimator.getLinkQuality(entry->neighbor));
-	    dbg("TreeRouting", "   metric: %hu.\n", linkMetric);
+	    dbg("TreeRouting,LITest", "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: %d]\n",  i, entry->neighbor, entry->info.parent, entry->info.hopcount, linkMetric);
+	    dbg_clear("TreeRouting,LITest", "   metric: %hu.\n", linkMetric);
             pathMetric =linkMetric + entry->info.metric;
             //for current parent
             if (entry->neighbor == routeInfo.parent) {
@@ -243,8 +243,9 @@ implementation {
         if (sending) {
             return;
         }
-        beaconMsg->parent = routeInfo.parent;
-        beaconMsg->hopcount = routeInfo.hopcount;
+	beaconMsg->parent = routeInfo.parent;
+	beaconMsg->hopcount = routeInfo.hopcount;
+
         if (state_is_root || routeInfo.parent == INVALID_ADDR) {
             beaconMsg->metric = routeInfo.metric;
         } else {
@@ -252,7 +253,7 @@ implementation {
                                 evaluateMetric(call LinkEstimator.getLinkQuality(routeInfo.parent)); 
         }
 
-        dbg("TreeRouting", "%s parent: %d hopcount: %d metric: %d\n",
+        dbg("TreeRouting,LITest", "%s parent: %d hopcount: %d metric: %d\n",
                   __FUNCTION__,
                   beaconMsg->parent, 
                   beaconMsg->hopcount, 
@@ -260,7 +261,7 @@ implementation {
 
         eval = call BeaconSend.send(AM_BROADCAST_ADDR, 
                                     &beaconMsgBuffer, 
-                                    sizeof(beaconMsg));
+                                    sizeof(beacon_msg_t));
         if (eval == SUCCESS) {
             sending = TRUE;
         } else if (eval == EOFF) {
@@ -294,11 +295,18 @@ implementation {
         am_addr_t from;
         beacon_msg_t* rcvBeacon;
 
+	// Received a beacon, but it's not from us.
+	if (len != sizeof(beacon_msg_t)) {
+	  dbg("LITest", "%s, received beacon of size %hhu, expected %i\n", __FUNCTION__, len, (int)sizeof(beacon_msg_t));
+	      
+	  return msg;
+	}
+	
         //need to get the am_addr_t of the source
         from = call LinkSrcPacket.getSrc(msg);
         rcvBeacon = (beacon_msg_t*)payload;
 
-        dbg("TreeRouting","%s from: %d  [ parent: %d hopcount: %d metric: %d]\n",
+        dbg("TreeRouting,LITest","%s from: %d  [ parent: %d hopcount: %d metric: %d]\n",
             __FUNCTION__, from, 
             rcvBeacon->parent, rcvBeacon->hopcount, rcvBeacon->metric);
         //update neighbor table
