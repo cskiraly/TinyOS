@@ -1,4 +1,4 @@
-// $Id: Storage.h,v 1.1.2.7 2006-01-28 01:10:56 jwhui Exp $
+// $Id: Storage.h,v 1.1.2.8 2006-06-02 16:37:48 idgay Exp $
 
 /*									tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -32,7 +32,7 @@
 /*
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  * @author: David Gay <david.e.gay@intel.com>
- * @version $Revision: 1.1.2.7 $ $Date: 2006-01-28 01:10:56 $
+ * @version $Revision: 1.1.2.8 $ $Date: 2006-06-02 16:37:48 $
  */
 
 #ifndef STORAGE_H
@@ -41,6 +41,11 @@
 typedef uint8_t volume_id_t;
 typedef uint32_t storage_addr_t;
 typedef uint32_t storage_len_t;
+typedef uint32_t storage_cookie_t;
+
+enum {
+  SEEK_BEGINNING = 0
+};
 
 #include "Storage_chip.h"
 
