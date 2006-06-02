@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.8 $ $Date: 2006-03-15 16:49:55 $
+ * @version $Revision: 1.1.2.9 $ $Date: 2006-06-02 17:23:49 $
  */
 
 #include "crc.h"
@@ -62,6 +62,9 @@ implementation {
     S_PAGE_PROGRAM = 0x2,
     S_SECTOR_ERASE = 0xd8,
     S_BULK_ERASE = 0xc7,
+    S_WRITE_ENABLE = 0x6,
+    S_POWER_ON = 0xab,
+    S_DEEP_SLEEP = 0xb9,
   } stm25p_cmd_t;
 
   norace uint8_t m_cmd[ 4 ];
@@ -123,12 +126,12 @@ implementation {
   }  
 
   async command error_t Spi.powerDown() {
-    sendCmd( 0xb9, 1 );
+    sendCmd( S_DEEP_SLEEP, 1 );
     return SUCCESS;
   }
 
   async command error_t Spi.powerUp() {
-    sendCmd( 0xab, 5 );
+    sendCmd( S_POWER_ON, 5 );
     return SUCCESS;
   }
 
@@ -175,7 +178,7 @@ implementation {
     m_cmd[ 2 ] = m_addr >> 8;
     m_cmd[ 3 ] = m_addr;
     if ( write )
-      sendCmd( 0x6, 1 );
+      sendCmd( S_WRITE_ENABLE, 1 );
     call CSN.clr();
     call SpiPacket.send( m_cmd, NULL, cmd_len );
     return SUCCESS;
@@ -204,7 +207,7 @@ implementation {
 	m_cur_addr += len;
 	m_cur_len -= len;
 	if ( m_cur_len ) {
-	  call Spi.read( m_cur_addr, m_crc_buf, calcReadLen() );
+	  call SpiPacket.send( NULL, m_crc_buf, calcReadLen() );
 	  break;
 	}
       }
