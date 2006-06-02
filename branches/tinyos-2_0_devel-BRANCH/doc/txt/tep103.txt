@@ -10,8 +10,8 @@ Permanent Data Storage (Flash)
 :Author: David Gay, Jonathan Hui
 
 :Draft-Created: 27-Sep-2004
-:Draft-Version: $Revision: 1.1.2.6 $
-:Draft-Modified: $Date: 2006-06-02 15:31:30 $
+:Draft-Version: $Revision: 1.1.2.7 $
+:Draft-Modified: $Date: 2006-06-02 17:29:55 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 
@@ -206,13 +206,16 @@ release the resource itself.
 The flash HAL has a chip-dependent, system-independent interface and
 implementation. Flash families with a common HPL SHOULD have a common
 HAL. Flash HAL's SHOULD expose a ``Resource`` interface and automatically
-power-manage the underlying flash chip.
+power-manage the underlying flash chip. Finally, the flash HAL SHOULD
+provide a way to access the volume information specified by the
+programmer (see Section 3.3a). This allows users to build new flash
+abstractions that interact cleanly with the rest of the flash system.
+Next, we show a couple of flash HAL's.
 
-We show here a couple of flash HAL's.
+The AT45DB HAL has two components, one for chip access and the other
+providing volume information: ::
 
-The AT45DB HAL is: ::
-
-  configuration At45dbC
+  component At45dbC
   {
     provides {
       interface At45db;
@@ -222,11 +225,16 @@ The AT45DB HAL is: ::
     }
   } ...
 
+  configuration At45dbStorageManagerC {
+    provides interface At45dbVolume[volume_id_t volid];
+  } ...
+
+
 Note that the AT45DB HAL resource management is independent of the
 underlying HPL's power management. The motivation for this is that
 individual flash operations may take a long time, so it may be desirable to
 release the flash's bus during long-running operations. The ``At45db``
-interface is: ::
+and ``At45dbVolume`` interfaces are: ::
 
    interface At45db {
      command void write(at45page_t page, at45pageoffset_t offset,
@@ -257,6 +265,11 @@ interface is: ::
      event void computeCrcDone(error_t error, uint16_t crc);
    }
 
+   interface At45dbVolume {
+     command at45page_t remap(at45page_t volumePage);
+     command at45page_t volumeSize();
+   }
+
 The STMicroelectronics M25P HAL is: ::
 
   configuration Stm25pSectorC {
@@ -265,12 +278,15 @@ The STMicroelectronics M25P HAL is: ::
     provides interface Stm25pVolume as Volume[storage_volume_t volume];
   }
 
-and the ``Stm25pSector`` interface is: ::
+and the ``Stm25pSector`` and ``Stm25pVolume`` interfaces are: ::
 
    interface Stm25pSector {
+     command stm25p_addr_t getPhysicalAddress( stm25p_addr_t addr );
+     command uint8_t getNumSectors();
+
      command error_t read(stm25p_addr_t addr, void* buf, stm25p_addr_t len);
      event   error_t readDone(stm25p_addr_t addr, void* buf, stm25p_addr_t len,
-                              error_tresult);
+                              error_t error);
 
      command error_t write(stm25p_addr_t addr, void* buf, 
                            stm25p_addr_t len);
@@ -287,6 +303,12 @@ and the ``Stm25pSector`` interface is: ::
                                uint16_t crc, error_t error);
    }
 
+   interface Stm25pVolume {
+     async event volume_id_t getVolumeId();
+   }
+
+Note that the M25P HAL integrates volume management and chip access
+within the ``Stm25pSector`` interface.
 
 3.3 Hardware Interface Layer (HIL)
 --------------------------------------------------------------------
