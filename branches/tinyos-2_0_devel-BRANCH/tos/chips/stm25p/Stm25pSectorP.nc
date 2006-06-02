@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.8 $ $Date: 2006-03-15 16:49:54 $
+ * @version $Revision: 1.1.2.9 $ $Date: 2006-06-02 17:23:49 $
  */
 
 #include <Stm25p.h>
@@ -39,7 +39,6 @@
 
 module Stm25pSectorP {
 
-  provides interface Init;
   provides interface SplitControl;
   provides interface Resource as ClientResource[ storage_volume_t volume ];
   provides interface Stm25pSector as Sector[ storage_volume_t volume ];
@@ -55,9 +54,7 @@ module Stm25pSectorP {
 implementation {
 
   enum {
-    NUM_VOLUMES = uniqueCount( "Stm25p.Volume" ),
     NO_CLIENT = 0xff,
-    NOT_BOUND = 0xff,
   };
 
   typedef enum {
@@ -76,8 +73,6 @@ implementation {
   } stm25p_power_state_t;
   norace stm25p_power_state_t m_power_state;
 
-  norace storage_volume_t m_volumes[ NUM_VOLUMES ];
-  
   norace storage_volume_t m_client;
   norace stm25p_addr_t m_addr;
   norace stm25p_len_t m_len;
@@ -89,13 +84,6 @@ implementation {
   void bindVolume();
   void signalDone( error_t error );
   task void signalDone_task();
-
-  command error_t Init.init() {
-    int i;
-    for ( i = 0; i < NUM_VOLUMES; i++ )
-      m_volumes[ i ] = NOT_BOUND;
-    return SUCCESS;
-  }
 
   command error_t SplitControl.start() {
     error_t error = call SpiResource.request();
@@ -133,6 +121,10 @@ implementation {
     call SpiResource.request();
   }
   
+  uint8_t getVolumeId( uint8_t client ) {
+    return signal Volume.getVolumeId[ client ]();
+  }  
+
   event void SpiResource.granted() {
     error_t error;
     stm25p_power_state_t power_state = m_power_state;
@@ -149,8 +141,6 @@ implementation {
       signal SplitControl.stopDone( error );
       return;
     }
-    if ( m_volumes[ m_client ] == NOT_BOUND )
-      m_volumes[ m_client ] = signal Volume.getVolumeId[ m_client ]();
     signal ClientResource.granted[ m_client ]();
   }
 
@@ -159,7 +149,7 @@ implementation {
   }
 
   stm25p_addr_t physicalAddr( storage_volume_t v, stm25p_addr_t addr ) {
-    return addr + ( (stm25p_addr_t)STM25P_VMAP[ m_volumes[ v ] ].base 
+    return addr + ( (stm25p_addr_t)STM25P_VMAP[ getVolumeId( v ) ].base 
 		    << STM25P_SECTOR_SIZE_LOG2 );
   }
 
@@ -173,15 +163,12 @@ implementation {
   }
   
   command uint8_t Sector.getNumSectors[ storage_volume_t v ]() {
-    return STM25P_VMAP[ m_volumes[ v ] ].size;
+    return STM25P_VMAP[ getVolumeId( v ) ].size;
   }
 
   command error_t Sector.read[ storage_volume_t v ]( stm25p_addr_t addr, 
 						     uint8_t* buf, 
 						     stm25p_len_t len ) {
-    
-    if ( m_volumes[ v ] == NOT_BOUND )
-      return FAIL;
     
     m_state = S_READ;
     m_addr = addr;
@@ -201,9 +188,6 @@ implementation {
 						      uint8_t* buf, 
 						      stm25p_len_t len ) {
     
-    if ( m_volumes[ v ] == NOT_BOUND )
-      return FAIL;
-
     m_state = S_WRITE;
     m_addr = addr;
     m_buf = buf;
@@ -228,22 +212,19 @@ implementation {
   command error_t Sector.erase[ storage_volume_t v ]( uint8_t sector,
 						      uint8_t num_sectors ) {
     
-    if ( m_volumes[ v ] == NOT_BOUND )
-      return FAIL;
-    
     m_state = S_ERASE;
     m_addr = sector;
     m_len = num_sectors;
     m_cur_len = 0;
     
-    return call Spi.sectorErase( STM25P_VMAP[m_volumes[v]].base + m_addr +
+    return call Spi.sectorErase( STM25P_VMAP[ getVolumeId(v) ].base + m_addr +
 				 m_cur_len );
     
   }
   
   async event void Spi.sectorEraseDone( uint8_t sector, error_t error ) {
     if ( ++m_cur_len < m_len )
-      call Spi.sectorErase( STM25P_VMAP[m_volumes[m_client]].base + m_addr +
+      call Spi.sectorErase( STM25P_VMAP[getVolumeId(m_client)].base + m_addr +
 			    m_cur_len );
     else
       signalDone( error );
@@ -252,9 +233,6 @@ implementation {
   command error_t Sector.computeCrc[ storage_volume_t v ]( uint16_t crc, 
 							   stm25p_addr_t addr,
 							   stm25p_len_t len ) {
-    
-    if ( m_volumes[ v ] == NOT_BOUND )
-      return FAIL;
     
     m_state = S_CRC;
     m_addr = addr;
