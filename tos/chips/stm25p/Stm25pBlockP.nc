@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-02-17 22:13:22 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-06-02 15:43:30 $
  */
 
 module Stm25pBlockP {
@@ -100,9 +100,11 @@ implementation {
   }
   
   command error_t Read.computeCrc[ storage_block_t b ]( storage_addr_t addr,
-							storage_len_t len ) {
+							storage_len_t len,
+							uint16_t crc ) {
     m_req.req = S_CRC;
     m_req.addr = addr;
+    m_req.buf = (void*)crc;
     m_req.len = len;
     return newRequest( b );
   }
@@ -147,7 +149,8 @@ implementation {
 			     m_block_state[ b ].len );
       break;
     case S_CRC:
-      call Sector.computeCrc[ b ]( 0, m_block_state[ b ].addr, 
+      call Sector.computeCrc[ b ]( (uint16_t)m_block_state[ b ].buf, 
+				   m_block_state[ b ].addr, 
 				   m_block_state[ b ].len );
       break;
     case S_WRITE:
