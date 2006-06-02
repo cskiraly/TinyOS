@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-01-30 17:41:13 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2006-06-02 17:42:52 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -184,6 +184,7 @@ implementation
     }
     resetAdcPin( memctl.inch );
     call HplAdc12.stopConversion();
+    call HplAdc12.adcOff();
     call HplAdc12.setIEFlags(0);
     call HplAdc12.resetIFGs();
     clientAccessFinished();
