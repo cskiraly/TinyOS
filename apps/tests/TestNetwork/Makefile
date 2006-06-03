@@ -17,9 +17,11 @@ tn-listener: $(LISTEN_OBJS)
 tn-injector: $(INJECT_OBJS)
 	gcc -v $(CFLAGS) $(TFLAGS) -o $@ $(INJECT_OBJS)
 
-%.o: %.c 
+tn-listener.o: tn-listener.c
 	gcc $(CFLAGS) $(TFLAGS) -c -o $@ $<
 
+tn-injector.o: tn-injector.c test_network_msg.c
+	gcc $(CFLAGS) $(TFLAGS) -c -o $@ $<
 
 test_network_msg.c:
 	mig -o test_network_msg.h c -target=$(PLATFORM) $(CFLAGS) $(TFLAGS) TestNetwork.h TestNetworkMsg 
