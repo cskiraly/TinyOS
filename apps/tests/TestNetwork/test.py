@@ -8,7 +8,7 @@ import sys
 t = Tossim([])
 r = t.radio()
 
-f = open("kaisen-topo.txt", "r")
+f = open("topo.txt", "r")
 lines = f.readlines()
 for line in lines:
   s = line.split()
@@ -18,7 +18,7 @@ for line in lines:
     elif s[0] == "noise":
       r.setNoise(int(s[1]), float(s[2]), float(s[3]))
 
-for i in range(0, 6):
+for i in (0, 11, 14):
   m = t.getNode(i);
   time = randint(t.ticksPerSecond(), 10 * t.ticksPerSecond())
   m.bootAtTime(time)
@@ -27,11 +27,9 @@ for i in range(0, 6):
 print "Starting simulation."
 
 #t.addChannel("AM", sys.stdout)
-#t.addChannel("TreeRouting", sys.stdout)
+t.addChannel("TreeRouting", sys.stdout)
 t.addChannel("TestNetworkC", sys.stdout)
-t.addChannel("PhilTest", sys.stdout)
-#t.addChannel("LI", sys.stdout)
-#t.addChannel("LITest", sys.stdout)
+t.addChannel("LI", sys.stdout)
 
 while (t.time() < 300 * t.ticksPerSecond()):
   t.runNextEvent()
