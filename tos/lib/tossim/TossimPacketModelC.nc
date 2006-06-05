@@ -1,4 +1,4 @@
-// $Id: TossimPacketModelC.nc,v 1.1.2.5 2006-05-15 16:39:18 scipio Exp $
+// $Id: TossimPacketModelC.nc,v 1.1.2.6 2006-06-05 16:48:40 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -276,10 +276,16 @@ implementation {
     }
   }
 
+  uint8_t error = 0;
+  
   event void GainRadioModel.acked(message_t* msg) {
     if (running) {
       tossim_metadata_t* metadata = getMetadata(sending);
       metadata->ack = 1;
+      if (msg != sending) {
+	error = 1;
+	dbg("TossimPacketModelC", "Requested ack for 0x%x, but outgoing packet is 0x%x.\n", msg, sending);
+      }
     }
   }
 

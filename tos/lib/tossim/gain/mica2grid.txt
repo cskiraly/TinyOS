@@ -63,7 +63,6 @@ D0 = 1.0;
 % output strength across nodes.
 %
 % Parameters:
-%     OUTPUT_POWER         the transmit base strength in dBm
 %     NOISE_FLOOR          the baseline noise floor in dBm
 %     WHITE_GAUSSIAN_NOISE the standard deviation of noise measurements
 %     S11, S12, S21, S22   the values of the covariance matrix that
@@ -74,7 +73,6 @@ D0 = 1.0;
 %     S22                  the per-node variance of output power
 
 
-OUTPUT_POWER = -10.0;
 NOISE_FLOOR = -105.0;
 WHITE_GAUSSIAN_NOISE = 4;
 
@@ -115,7 +113,7 @@ S22 = 6.0;
 %                          
 
 TOPOLOGY = 1;
-GRID_UNIT = 1.0;
+GRID_UNIT = 5.0;
 NUMBER_OF_NODES = 225;
 
 % topology file provided by user
