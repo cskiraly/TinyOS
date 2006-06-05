@@ -37,11 +37,11 @@ void sim_gain_add(int src, int dest, double gain) __attribute__ ((C, spontaneous
 
   if (current == NULL) {
     current = sim_gain_allocate_link(dest);
+    current->next = connectivity[src];
+    connectivity[src] = current;
   }
   current->mote = dest;
   current->gain = gain;
-  current->next = connectivity[src];
-  connectivity[src] = current;
   dbg("Gain", "Adding link from %i to %i with gain %f\n", src, dest, gain);
   sim_set_node(temp);
 }

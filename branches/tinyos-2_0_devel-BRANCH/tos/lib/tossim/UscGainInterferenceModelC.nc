@@ -1,4 +1,4 @@
-// $Id: UscGainInterferenceModelC.nc,v 1.1.2.8 2006-05-19 19:45:04 scipio Exp $
+// $Id: UscGainInterferenceModelC.nc,v 1.1.2.9 2006-06-05 16:48:40 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -35,7 +35,7 @@
  * interference signal strength is more complex than this.
  *
  * @author Philip Levis
- * @date   December 2 2005
+ * @date   Jun 1 2006
  */ 
 
 #include <sim_gain.h>
