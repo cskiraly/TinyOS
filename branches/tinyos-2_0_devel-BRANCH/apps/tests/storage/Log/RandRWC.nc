@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.5 2006-06-01 16:35:31 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.6 2006-06-06 20:45:31 jwhui Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -106,8 +106,10 @@ implementation {
   }
 
   void setParameters() {
-    len = rand() >> 7;
-    offset = rand() >> 8;
+    len = rand() >> 8;
+    offset = rand() >> 9;
+    if ( len > 254 )
+      len = 254;
     if (offset + len > sizeof data)
       offset = sizeof data - len;
   }
