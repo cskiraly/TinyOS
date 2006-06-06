@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.11 $
- * $Date: 2006-06-02 17:42:24 $
+ * $Revision: 1.1.2.12 $
+ * $Date: 2006-06-06 11:27:41 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -116,9 +116,9 @@ implementation
       return;
     }
     readSync = TRUE;
-    owner = client;
     hal1request = call SingleChannel.getSingleData[client](&settings);
     if (hal1request != SUCCESS){
+      readSync = FALSE;
       call Resource.release[client]();
       signal Read.readDone[client](FAIL, 0);
     }
@@ -134,6 +134,7 @@ implementation
   {
     if (readSync){ // was Read.read request
       readSync = FALSE;
+      owner = client;
       value = data;
       post readDone();
     } else { // was ReadNow.read request
