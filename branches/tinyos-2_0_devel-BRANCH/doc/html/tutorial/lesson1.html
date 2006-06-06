@@ -4,10 +4,11 @@
   <title>TinyOS Tutorial Lesson 1: TinyOS Component Model</title>
   <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
 </head>
+
 <body>
 
 <div class="title">Lesson 1: Getting Started with TinyOS and nesC</div>
-<div class="subtitle">Last updated 8 January 2005</div>
+<div class="subtitle">Last updated 18 May 2005</div>
 
 <p>This lesson introduces the basic concepts of the component model
 used by TinyOS, and the nesC component syntax.
@@ -84,17 +85,51 @@ that simply wires together one or more modules, none of which she
 actually designed.  Likewise, another developer can provide a new set
 of "library" modules that can be used in a range of applications. </p>
 
-<!-- Fill in 2.x convention 
+<!-- Is this really the T2 convention? -->
 <p>Sometimes (as is the case with <tt>BlinkAppC</tt> and
 <tt>BlinkC</tt>) you will have a configuration and a module that go
 together. When this is the case, the convention used in the TinyOS
-source tree is that <tt>Foo.nc</tt> represents a configuration and
-<tt>FooM.nc</tt> represents the corresponding module. While you could
+source tree is:</p>
+
+
+<table border="1"  cellspacing="1" cellpadding="1">
+<tbody>
+
+<tr>
+<td>File Name </td>
+<td>File Type </td>
+</tr>
+
+<tr>
+<td><tt>Foo.nc</tt></td>
+<td>Interface </td>
+</tr>
+
+<tr>
+<td><tt>FooC.nc <a href="#hint9">(2)</a></tt></td>
+<td>Public Module</td>
+</tr>
+
+<tr>
+<td><tt>FooP.nc</tt></td>
+<td>Private Module</td>
+</tr>
+
+<tr>
+<td><tt>FooAppC.nc</tt> </td>
+<td>Configuration</td>
+</tr>
+
+</tbody>
+</table>
+
+<p>While you could
 name an application's implementation module and associated top-level
 configuration anything, to keep things simple we suggest that you
-adopt this convention in your own code. There are several other naming
-conventions used in TinyOS code; a <a href="naming.html">summary</a>
-is provided.  -->
+adopt this convention in your own code. There are several other 
+conventions used in TinyOS;  
+<a href="../tep3.html">TEP 3</a>
+specifies the coding standards and best current practices.
 
 <h1>The BlinkAppC.nc Configuration</h1>
 
@@ -151,8 +186,10 @@ configuration references. In this case those components are
 <tt>Main</tt>, <tt>BlinkC</tt>,
 <tt>LedsC</tt>, and three instances of a timer component called
 <tt>TimerMilliC</tt> which will be referenced as Timer0, Timer1,
-and Timer2.  <a href="#oskitimermillic_footnote">(2)</a> As we
-continue reviewing the BlinkAppC application, keep in mind that the
+and Timer2<a href="#oskitimermillic_footnote">(3)</a>. This is accomplished
+via the <i>as</i> keyword which is simply an alias<a href="#hint10">(4)</a>. 
+
+<p>As we continue reviewing the BlinkAppC application, keep in mind that the
 BlinkAppC component is not the same as the BlinkC component. Rather,
 the BlinkAppC component is composed of the BlinkC component along with
 MainC and LedsC.
@@ -281,6 +318,16 @@ however, the make command to install an image onto a mote is
 you could enter:
 
 <pre>
+$ motelist
+Reference  CommPort   Description
+---------- ---------- ----------------------------------------
+UCC89MXV   COM4       Telos (Rev B 2004-09-27)
+</pre>
+
+<i>motelist</i> is a command that will tell you which ports have motes attached. In 
+this case a TelosB mote is connected to COM port 4. Now you can install the application using:
+
+<pre>
   make telosb install,2 bsl,3
 </pre>
 
@@ -290,6 +337,52 @@ COM port 4 (the bsl argument uses n-1 notation: the COM port is 4 but
 the argument on the make line is 3 (4-1)). Again, see the Getting Started 
 Guide for your chosen platform for the exact make parameters.</p>
 
+<p>You should see something like this scroll by:
+
+<pre>
+mkdir -p build/telosb
+    compiling BlinkAppC to a telosb binary
+ncc -o build/telosb/main.exe -Os -O -mdisable-hwmul -Wall -Wshadow -DDEF_TOS_AM_GROUP=0x7d -Wnesc-all -target=telosb -fnesc-cfile=build/telosb/app.c -board=   BlinkAppC.nc -lm 
+    compiled BlinkToRadioAppC to build/telosb/main.exe
+            2782 bytes in ROM
+             61 bytes in RAM
+msp430-objcopy --output-target=ihex build/telosb/main.exe build/telosb/main.ihex
+    writing TOS image
+tos-set-symbols --objcopy msp430-objcopy --objdump msp430-objdump --target ihex build/telosb/main.ihex build/telosb/main.ihex.out-2 TOS_NODE_ID=2 ActiveMessageAddressC$addr=2
+    found mote on COM4 (using bsl,auto)
+    installing telosb binary using bsl
+tos-bsl --telosb -c 16 -r -e -I -p build/telosb/main.ihex.out-2
+MSP430 Bootstrap Loader Version: 1.39-telos-8
+Mass Erase...
+Transmit default password ...
+Invoking BSL...
+Transmit default password ...
+Current bootstrap loader version: 1.61 (Device ID: f16c)
+Changing baudrate to 38400 ...
+Program ...
+2782 bytes programmed.
+Reset device ...
+rm -f build/telosb/main.exe.out-2 build/telosb/main.ihex.out-2
+</pre>
+
+<p>This assumes you're running Windows. Things are slightly different on Linux.
+Instead of COM4 you'll find a numbered "file" in the /dev directory. The actual name of this file
+varies from distribution to distribution and depends on how the motes are physically connected 
+(i.e., via serial or USB).
+
+<pre>
+$ motelist
+Reference  CommPort   Description
+---------- ---------- ----------------------------------------
+UCC89MXV   /dev/ttyUSB3 Telos (Rev B 2004-09-27)
+</pre>
+
+<p>You use the same command to install, except you don't substract 1. 
+The ports are already numbered starting at 0.
+
+<pre>
+  make telosb install,2 bsl,3
+</pre>
 
 <h1>Conclusion</h1>
 
@@ -303,14 +396,14 @@ and 2) Module implementations.
 <h1>Related Documentation</h1>
 </a>
 <ul>
-<li> NesC reference manual: tinyos-2.x/doc/nesc/ref.pdf
-<li> <a href="https://sourceforge.net/projects/nescc">nesc at sourceforge</a>
-<li> Generic component information: tinyos-2.x/doc/nesc/user/generics-1.2.txt
 <li> mica mote Getting Started Guide at <a href="http://www.xbow.com">Crossbow</a>
-<li> telos mote Getting Started Guide for <a href="http://www.moteiv.com">moteiv</a>
-<li> <a href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/Attic/tep103.txt?view=markup">TEP 103: TinyOS Coding Conventions</a>
-<li> <a href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/Attic/tep106.txt?view=markup">TEP 107: Boot Sequence</a>
-<li> tinyos-2.x/support/make/README
+<li> telos mote Getting Started Guide for <a href="http://www.moteiv.com">Moteiv</a>
+<li> <a href="https://sourceforge.net/projects/nescc">nesc at sourceforge</a>
+<li> <a href="http://nescc.sourceforge.net/papers/nesc-ref.pdf">NesC reference manual</a>
+<li> <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">TinyOS Programming Guide</a>
+<li> <a href="../tep3.html">TEP 3: TinyOS Coding Conventions</a>
+<li> <a href="../tep107.html">TEP 102: Timers</a>
+<li> <a href="../tep106.html">TEP 106: Schedulers and Tasks</a>
 </ul>
 
 <p>
@@ -322,18 +415,36 @@ that different platforms have different colored LEDs. In telos, the
 mapping (LED0,LED1,LED2) to (Red,Green,Blue), and in mica motes the
 mapping is (LED0,LED1,LED2) to (Red,Green,Yellow).
 
-<p><a name="timermillic_footnote">(2)</a> The TimerMilliC
+<p><a name="hint9">(2)</a>
+<b>Programming Hint 9:</b> If a component is a usable abstraction by itself, 
+its name should end with C. If it is intended to be an internal and private 
+part of a larger abstraction, its name should end with P. Never wire to 
+P components from outside your package (directory). From Phil Levis' 
+<a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">
+<i>TinyOS Programming</i></a>
+
+<p><a name="timermillic_footnote">(3)</a> The TimerMilliC
 component is a <i>generic component</i> which means that, unlike
 non-generic components, it can be instantiated more than once.
 Generic components can take typed arguments and in this case, that
 typed argument defines the timer's required precision.  A full
 explanation of generic components is outside this document's scope,
-but you can read about them in <a
-href="../../nesc/user/generics-1.2.txt">nesc generic component
+but you can read about them in <!-- TODO: Need to update this link to a real file><a
+href="../../nesc/user/generics-1.2.txt"> -->the nesc generic component
 documentation</a>.
 
-<p>
-<b><a href="lesson2.html">Next Lesson &gt;</a></b> |&nbsp; <b><a
- href="index.html">Top</a></b>
+<p><a name="hint10">(4)</a>
+<b>Programming Hint 10:</b> Use the <i>as</i> keyword liberally. From Phil Levis' 
+<a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf"><i>TinyOS Programming</i></a>
+
+
+<!-- Begin footer -->
+<br>
+<hr>
+<center>
+<p>&lt;&nbsp;<b><a href="index.html">Top</a></b> 
+&nbsp;|&nbsp; <b><a href="lesson2.html">Next Lesson </a>&nbsp;&gt;</b>
+</center>
+
 </body>
 </html>
