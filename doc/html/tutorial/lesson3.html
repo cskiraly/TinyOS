@@ -1,4 +1,3 @@
-
 <!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
@@ -7,15 +6,15 @@
 </head>
 <body>
 
-<div class="title">Lesson 3: Boot Sequence</div>
-<div class="subtitle">Last updated 9 February 2006</div>
+<div class="title">Lesson 3: TinyOS Boot and System Initialization</div>
+<div class="subtitle">Last updated 18 May 2006</div>
 
 One of the frequently asked questions regarding TinyOS is, "Where is
-main()?".  In previous lessons, we deferred detailed discussion of the
+<code>main()</code>?".  In previous lessons, we deferred detailed discussion of the
 TinyOS boot sequence in favor of grasping the general idea. We will
 now revisit the boot sequence indetail. Understanding how TinyOS
 initializes will help solidify understanding of the execution model
-and answer the question "Where is main()?".
+and answer the question "Where is <code>main()</code>?".
  
 The TinyOS boot sequence is comprised of three steps:
 <ul> 
@@ -34,8 +33,7 @@ require tasks to be posted, this gives the flexibility required for those compoe
 component's signature in
 <code>tos/interfaces/Scheduler.nc</code>.  TinyOS developers can
 define their own scheduler to meet their application's needs.</p> An
-implementation of the
-<code>Scheduler</code> interface is provided in
+implementation of the <code>Scheduler</code> interface is provided in
 <code>tos/system/TinySchedulerC.nc</code>.</p>
 
 <p><b>Component initialization.</b> After the scheduler is initialized, 
@@ -53,18 +51,17 @@ interface Init {
 
 <p>To provide the initialization flexibility required by sensor
 network components, the TinyOS's boot sequence breaks down the component
-initialization into either a <i>platform
-initialization phase</i> and a <i>software initialization
-phase</i>. This is accomplished by making the TinyOS component that
+initialization into either a <i>platform initialization phase</i> and a <i>software 
+initialization phase</i>. This is accomplished by making the TinyOS component that
 executes the boot sequence provide two <code>Init</code interfaces:
-one called
-<code>PlatformInit</code> and one called <code>SoftwareInit</code>.
-The defining difference between the two is that the platform
+one called <code>PlatformInit</code> and one called <code>SoftwareInit</code>.
+
+<p>The defining difference between the two is that the platform
 initialization phase precedes the software initialization phase and
 component writers can choose to wire their components interfaces to 
-the most appropriate <code>Init</code>. Any component that requires
-initialization can implement the <code>Init</code interface and wire
-the implementation to either the <code>PlatformInit</code> or
+the most appropriate <code>Init</code><a href="#hint8">(1)</a>.
+Any component that requires initialization can implement the <code>Init</code 
+interface and wire the implementation to either the <code>PlatformInit</code> or
 <code>PlatformInit</code interface. 
 
 <p>To fully conceptualize the two initialization options, it is
@@ -146,7 +143,6 @@ implementation {
 
 </pre>
 
-
 Once the <code>Boot.booted()</code> event is signaled, components are free
 to call <code>start()</code> on any components they are using. Recall
 that in the <code>Blink</code> application, the timers were started from
@@ -162,7 +158,24 @@ event code since interrupts have been enabled.
 <h1>Related Documentation</h1>
 </a>
 <ul>
-<li> <a href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/Attic/tep103.txt?view=markup">TEP 103: TinyOS Coding Conventions</a>
-<li> <a href="http://cvs.sourceforge.net/viewcvs.py/tinyos/tinyos-1.x/beta/teps/txt/Attic/tep106.txt?view=markup">TEP 107: Boot Sequence</a>
+<li> <a href="../tep106.html">TEP 106: Schedulers and Tasks</a>
+<li> <a href="../tep107.html">TEP 107: Boot Sequence</a>
 </ul>
 
+<p><a name="hint3">(4)</a><b>Programming Hint 8:</b> In the top-level 
+configuration of a software abstraction, auto-wire Init to MainC. This removes the
+burden of wiring Init from the programmer, which removes unnecessary work from the
+boot sequence and removes the possibility of bugs from forgetting to wire.
+From Phil Levis' <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">
+<i>TinyOS Programming</i></a>
+
+<!-- Begin footer -->
+<br>
+<hr>
+<center>
+<p>&lt;&nbsp;<b><a href="lesson2.html">Previous Lesson</a></b> |&nbsp; <b><a
+ href="index.html">Top</a></b> &nbsp;|&nbsp; <b><a href="lesson4.html">Next Lesson </a>&nbsp;&gt;</b>
+</center>
+
+</body>
+</html>
