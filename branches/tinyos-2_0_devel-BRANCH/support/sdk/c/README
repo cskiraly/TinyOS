@@ -40,8 +40,12 @@ and four example programs that use that library:
   mig-generated code to decode the standard serial-active-message header
 - sfsend: send a packet (specified on the command line) to a serial forwarder
 
+Note that sflisten prints, and sfsend sends, raw packets. In particular,
+the first byte indicates the packet type (e.g., 00 for the AM-over-serial
+packets). For more information on serial communication to and from motes,
+see TEP113.
 
 For more information on using ncg and mig with C, see the nescc-mig and
 nescc-ncg man pages.
 
-For more information on serial communication to and from motes, see TEP113.
+
