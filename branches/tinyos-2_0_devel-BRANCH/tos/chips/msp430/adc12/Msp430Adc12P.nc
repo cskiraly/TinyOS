@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.7 $
- * $Date: 2006-06-02 17:42:52 $
+ * $Revision: 1.1.2.8 $
+ * $Date: 2006-06-06 13:45:08 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -90,14 +90,14 @@ implementation
   
   error_t clientAccessRequest(uint8_t id)
   {
-    if (call ADCArbiterInfo.userId() == id){
-      atomic {
+    atomic {
+      if (call ADCArbiterInfo.userId() == id){
         if (flags & ADC_BUSY)
           return EBUSY;
         flags = ADC_BUSY;
         clientID = id;
+        return SUCCESS;
       }
-      return SUCCESS;
     }
     return ERESERVE;
   }
