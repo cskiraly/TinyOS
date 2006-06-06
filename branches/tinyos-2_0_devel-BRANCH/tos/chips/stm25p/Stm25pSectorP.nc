@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005-2006 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -30,8 +30,8 @@
  */
 
 /**
- * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.9 $ $Date: 2006-06-02 17:23:49 $
+ * @author Jonathan Hui <jhui@archrock.com>
+ * @version $Revision: 1.1.2.10 $ $Date: 2006-06-06 17:57:18 $
  */
 
 #include <Stm25p.h>
@@ -40,11 +40,11 @@
 module Stm25pSectorP {
 
   provides interface SplitControl;
-  provides interface Resource as ClientResource[ storage_volume_t volume ];
-  provides interface Stm25pSector as Sector[ storage_volume_t volume ];
-  provides interface Stm25pVolume as Volume[ storage_volume_t volume ];
+  provides interface Resource as ClientResource[ uint8_t id ];
+  provides interface Stm25pSector as Sector[ uint8_t id ];
+  provides interface Stm25pVolume as Volume[ uint8_t id ];
 
-  uses interface Resource as Stm25pResource[ storage_volume_t volume ];
+  uses interface Resource as Stm25pResource[ uint8_t id ];
   uses interface Resource as SpiResource;
   uses interface Stm25pSpi as Spi;
   uses interface Leds;
@@ -73,7 +73,7 @@ implementation {
   } stm25p_power_state_t;
   norace stm25p_power_state_t m_power_state;
 
-  norace storage_volume_t m_client;
+  norace uint8_t m_client;
   norace stm25p_addr_t m_addr;
   norace stm25p_len_t m_len;
   norace stm25p_len_t m_cur_len;
@@ -99,32 +99,32 @@ implementation {
     return error;
   }
   
-  async command error_t ClientResource.request[ storage_volume_t v ]() {
-    return call Stm25pResource.request[ v ]();
+  async command error_t ClientResource.request[ uint8_t id ]() {
+    return call Stm25pResource.request[ id ]();
   }
 
-  async command error_t ClientResource.immediateRequest[ storage_volume_t v ]() {
+  async command error_t ClientResource.immediateRequest[ uint8_t id ]() {
     return FAIL;
   }
   
-  async command void ClientResource.release[ storage_volume_t v ]() {
-    if ( m_client == v ) {
+  async command void ClientResource.release[ uint8_t id ]() {
+    if ( m_client == id ) {
       m_state = S_IDLE;
       m_client = NO_CLIENT;
       call SpiResource.release();
-      call Stm25pResource.release[ v ]();
+      call Stm25pResource.release[ id ]();
     }
   }
-
-  event void Stm25pResource.granted[ storage_volume_t v ]() {
-    m_client = v;
+  
+  event void Stm25pResource.granted[ uint8_t id ]() {
+    m_client = id;
     call SpiResource.request();
   }
   
   uint8_t getVolumeId( uint8_t client ) {
     return signal Volume.getVolumeId[ client ]();
   }  
-
+  
   event void SpiResource.granted() {
     error_t error;
     stm25p_power_state_t power_state = m_power_state;
@@ -143,59 +143,58 @@ implementation {
     }
     signal ClientResource.granted[ m_client ]();
   }
-
-  async command uint8_t ClientResource.isOwner[ storage_volume_t v ]() {
-    return call Stm25pResource.isOwner[v]();
+  
+  async command uint8_t ClientResource.isOwner[ uint8_t id ]() {
+    return call Stm25pResource.isOwner[id]();
   }
-
-  stm25p_addr_t physicalAddr( storage_volume_t v, stm25p_addr_t addr ) {
-    return addr + ( (stm25p_addr_t)STM25P_VMAP[ getVolumeId( v ) ].base 
+  
+  stm25p_addr_t physicalAddr( uint8_t id, stm25p_addr_t addr ) {
+    return addr + ( (stm25p_addr_t)STM25P_VMAP[ getVolumeId( id ) ].base 
 		    << STM25P_SECTOR_SIZE_LOG2 );
   }
-
+  
   stm25p_len_t calcWriteLen( stm25p_addr_t addr ) {
     stm25p_len_t len = STM25P_PAGE_SIZE - ( addr & STM25P_PAGE_MASK );
     return ( m_cur_len < len ) ? m_cur_len : len;
   }
-
-  command stm25p_addr_t Sector.getPhysicalAddress[ storage_volume_t v ]( stm25p_addr_t addr ) {
-    return physicalAddr( v, addr );
+  
+  command stm25p_addr_t Sector.getPhysicalAddress[ uint8_t id ]( stm25p_addr_t addr ) {
+    return physicalAddr( id, addr );
   }
   
-  command uint8_t Sector.getNumSectors[ storage_volume_t v ]() {
-    return STM25P_VMAP[ getVolumeId( v ) ].size;
+  command uint8_t Sector.getNumSectors[ uint8_t id ]() {
+    return STM25P_VMAP[ getVolumeId( id ) ].size;
   }
-
-  command error_t Sector.read[ storage_volume_t v ]( stm25p_addr_t addr, 
-						     uint8_t* buf, 
-						     stm25p_len_t len ) {
+  
+  command error_t Sector.read[ uint8_t id ]( stm25p_addr_t addr, uint8_t* buf, 
+					     stm25p_len_t len ) {
     
     m_state = S_READ;
     m_addr = addr;
     m_buf = buf;
     m_len = len;
-
-    return call Spi.read( physicalAddr( v, addr ), buf, len );
-
+    
+    return call Spi.read( physicalAddr( id, addr ), buf, len );
+    
   }
-
+  
   async event void Spi.readDone( stm25p_addr_t addr, uint8_t* buf, 
 				 stm25p_len_t len, error_t error ) {
     signalDone( error );
   }
-
-  command error_t Sector.write[ storage_volume_t v ]( stm25p_addr_t addr, 
-						      uint8_t* buf, 
-						      stm25p_len_t len ) {
+  
+  command error_t Sector.write[ uint8_t id ]( stm25p_addr_t addr, 
+					      uint8_t* buf, 
+					      stm25p_len_t len ) {
     
     m_state = S_WRITE;
     m_addr = addr;
     m_buf = buf;
     m_len = m_cur_len = len;
-
-    return call Spi.pageProgram( physicalAddr( v, addr ), buf, 
+    
+    return call Spi.pageProgram( physicalAddr( id, addr ), buf, 
 				 calcWriteLen( addr ) );
-
+    
   }
   
   async event void Spi.pageProgramDone( stm25p_addr_t addr, uint8_t* buf, 
@@ -208,16 +207,16 @@ implementation {
     else
       call Spi.pageProgram( addr, buf, calcWriteLen( addr ) );
   }
-
-  command error_t Sector.erase[ storage_volume_t v ]( uint8_t sector,
-						      uint8_t num_sectors ) {
+  
+  command error_t Sector.erase[ uint8_t id ]( uint8_t sector,
+					      uint8_t num_sectors ) {
     
     m_state = S_ERASE;
     m_addr = sector;
     m_len = num_sectors;
     m_cur_len = 0;
     
-    return call Spi.sectorErase( STM25P_VMAP[ getVolumeId(v) ].base + m_addr +
+    return call Spi.sectorErase( STM25P_VMAP[ getVolumeId(id) ].base + m_addr +
 				 m_cur_len );
     
   }
@@ -230,14 +229,14 @@ implementation {
       signalDone( error );
   }
   
-  command error_t Sector.computeCrc[ storage_volume_t v ]( uint16_t crc, 
-							   stm25p_addr_t addr,
-							   stm25p_len_t len ) {
+  command error_t Sector.computeCrc[ uint8_t id ]( uint16_t crc, 
+						   stm25p_addr_t addr,
+						   stm25p_len_t len ) {
     
     m_state = S_CRC;
     m_addr = addr;
     m_len = len;
-
+    
     return call Spi.computeCrc( crc, m_addr, m_len );
     
   }
@@ -279,13 +278,13 @@ implementation {
       break;
     }
   }
-
-  default event void ClientResource.granted[ storage_volume_t v ]() {}
-  default event void Sector.readDone[ storage_volume_t v ]( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
-  default event void Sector.writeDone[ storage_volume_t v ]( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
-  default event void Sector.eraseDone[ storage_volume_t v ]( uint8_t sector, uint8_t num_sectors, error_t error ) {}
-  default event void Sector.computeCrcDone[ storage_volume_t v ]( stm25p_addr_t addr, stm25p_len_t len, uint16_t crc, error_t error ) {}
-  default async event volume_id_t Volume.getVolumeId[ storage_volume_t v ]() { return 0xff; }
-
+  
+  default event void ClientResource.granted[ uint8_t id ]() {}
+  default event void Sector.readDone[ uint8_t id ]( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
+  default event void Sector.writeDone[ uint8_t id ]( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
+  default event void Sector.eraseDone[ uint8_t id ]( uint8_t sector, uint8_t num_sectors, error_t error ) {}
+  default event void Sector.computeCrcDone[ uint8_t id ]( stm25p_addr_t addr, stm25p_len_t len, uint16_t crc, error_t error ) {}
+  default async event volume_id_t Volume.getVolumeId[ uint8_t id ]() { return 0xff; }
+  
 }
 

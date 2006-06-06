@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005-2006 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -30,18 +30,18 @@
  */
 
 /**
- * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.7 $ $Date: 2006-06-02 15:43:30 $
+ * @author Jonathan Hui <jhui@archrock.com>
+ * @version $Revision: 1.1.2.8 $ $Date: 2006-06-06 17:57:18 $
  */
 
 module Stm25pBlockP {
 
-  provides interface BlockRead as Read[ storage_block_t block ];
-  provides interface BlockWrite as Write[ storage_block_t block ];
-  provides interface StorageMap[ storage_block_t block ];
+  provides interface BlockRead as Read[ uint8_t id ];
+  provides interface BlockWrite as Write[ uint8_t id ];
+  provides interface StorageMap[ uint8_t id ];
 
-  uses interface Stm25pSector as Sector[ storage_block_t block ];
-  uses interface Resource as ClientResource[ storage_block_t block ];
+  uses interface Stm25pSector as Sector[ uint8_t id ];
+  uses interface Resource as ClientResource[ uint8_t id ];
   uses interface Leds;
 
 }
@@ -73,180 +73,176 @@ implementation {
   stm25p_block_state_t m_req;
   
   error_t newRequest( uint8_t client );
-  void signalDone( storage_block_t b, uint16_t crc, error_t error );
-
-  command storage_addr_t StorageMap.getPhysicalAddress[ storage_block_t b ]( storage_addr_t addr ) {
-    return call Sector.getPhysicalAddress[ b ]( addr );
+  void signalDone( uint8_t id, uint16_t crc, error_t error );
+  
+  command storage_addr_t StorageMap.getPhysicalAddress[ uint8_t id ]( storage_addr_t addr ) {
+    return call Sector.getPhysicalAddress[ id ]( addr );
   }
   
-  command storage_len_t Read.getSize[ storage_block_t b ]() {
-    return ( (storage_len_t)call Sector.getNumSectors[ b ]() 
+  command storage_len_t Read.getSize[ uint8_t id ]() {
+    return ( (storage_len_t)call Sector.getNumSectors[ id ]() 
 	     << STM25P_SECTOR_SIZE_LOG2 );
   }
   
-  command error_t Read.read[ storage_block_t b ]( storage_addr_t addr,
-						  void* buf,
-						  storage_len_t len ) {
+  command error_t Read.read[ uint8_t id ]( storage_addr_t addr, void* buf,
+					   storage_len_t len ) {
     m_req.req = S_READ;
     m_req.addr = addr;
     m_req.buf = buf;
     m_req.len = len;
-    return newRequest( b );
+    return newRequest( id );
   }
   
-  command error_t Read.verify[ storage_block_t b ]() {
+  command error_t Read.verify[ uint8_t id ]() {
     m_req.req = S_VERIFY;
-    return newRequest( b );
+    return newRequest( id );
   }
   
-  command error_t Read.computeCrc[ storage_block_t b ]( storage_addr_t addr,
-							storage_len_t len,
-							uint16_t crc ) {
+  command error_t Read.computeCrc[ uint8_t id ]( storage_addr_t addr,
+						 storage_len_t len,
+						 uint16_t crc ) {
     m_req.req = S_CRC;
     m_req.addr = addr;
     m_req.buf = (void*)crc;
     m_req.len = len;
-    return newRequest( b );
+    return newRequest( id );
   }
   
-  command error_t Write.write[ storage_block_t b ]( storage_addr_t addr, 
-						    void* buf, 
-						    storage_len_t len ) {
+  command error_t Write.write[ uint8_t id ]( storage_addr_t addr, void* buf, 
+					     storage_len_t len ) {
     m_req.req = S_WRITE;
     m_req.addr = addr;
     m_req.buf = buf;
     m_req.len = len;
-    return newRequest( b );
+    return newRequest( id );
   }
   
-  command error_t Write.commit[ storage_block_t b ]() {
+  command error_t Write.commit[ uint8_t id ]() {
     m_req.req = S_COMMIT;
-    return newRequest( b );
+    return newRequest( id );
   }
   
-  command error_t Write.erase[ storage_block_t b ]() {
+  command error_t Write.erase[ uint8_t id ]() {
     m_req.req = S_ERASE;
-    return newRequest( b );
+    return newRequest( id );
   }
   
-  error_t newRequest( storage_block_t client ) {
-
+  error_t newRequest( uint8_t client ) {
+    
     if ( m_block_state[ client ].req != S_IDLE )
       return FAIL;
 
     call ClientResource.request[ client ]();
     m_block_state[ client ] = m_req;
-
+    
     return SUCCESS;
-
+    
   }
-
-  event void ClientResource.granted[ storage_block_t b ]() {
-
-    switch( m_block_state[ b ].req ) {
+  
+  event void ClientResource.granted[ uint8_t id ]() {
+    
+    switch( m_block_state[ id ].req ) {
     case S_READ:
-      call Sector.read[ b ]( m_block_state[ b ].addr, m_block_state[ b ].buf, 
-			     m_block_state[ b ].len );
+      call Sector.read[ id ]( m_block_state[ id ].addr, 
+			      m_block_state[ id ].buf, 
+			      m_block_state[ id ].len );
       break;
     case S_CRC:
-      call Sector.computeCrc[ b ]( (uint16_t)m_block_state[ b ].buf, 
-				   m_block_state[ b ].addr, 
-				   m_block_state[ b ].len );
+      call Sector.computeCrc[ id ]( (uint16_t)m_block_state[ id ].buf, 
+				    m_block_state[ id ].addr, 
+				    m_block_state[ id ].len );
       break;
     case S_WRITE:
-      call Sector.write[ b ]( m_block_state[ b ].addr, m_block_state[ b ].buf, 
-			      m_block_state[ b ].len );
+      call Sector.write[ id ]( m_block_state[ id ].addr, 
+			       m_block_state[ id ].buf, 
+			       m_block_state[ id ].len );
       break;
     case S_ERASE:
-      call Sector.erase[ b ]( 0, call Sector.getNumSectors[ b ]() );
+      call Sector.erase[ id ]( 0, call Sector.getNumSectors[ id ]() );
       break;
     case S_COMMIT: case S_VERIFY:
-      signalDone( b, 0, SUCCESS );
+      signalDone( id, 0, SUCCESS );
       break;
     case S_IDLE:
       break;
     }
-
+    
   }
   
-  event void Sector.readDone[ storage_block_t b ]( stm25p_addr_t addr, 
-						   uint8_t* buf, 
-						   stm25p_len_t len, 
-						   error_t error ) {
-    signalDone( b, 0, error );
+  event void Sector.readDone[ uint8_t id ]( stm25p_addr_t addr, uint8_t* buf, 
+					    stm25p_len_t len, error_t error ) {
+    signalDone( id, 0, error );
   }
   
-  event void Sector.writeDone[ storage_block_t b ]( stm25p_addr_t addr, 
-						    uint8_t* buf, 
-						    stm25p_len_t len, 
-						    error_t error ) {
-    signalDone( b, 0, error );
+  event void Sector.writeDone[ uint8_t id ]( stm25p_addr_t addr, uint8_t* buf, 
+					     stm25p_len_t len, error_t error ){
+    signalDone( id, 0, error );
   }
   
-  event void Sector.eraseDone[ storage_block_t b ]( uint8_t sector,
-						    uint8_t num_sectors,
-						    error_t error ) {
-    signalDone( b, 0, error );
+  event void Sector.eraseDone[ uint8_t id ]( uint8_t sector,
+					     uint8_t num_sectors,
+					     error_t error ) {
+    signalDone( id, 0, error );
   }
   
-  event void Sector.computeCrcDone[ storage_block_t b ]( stm25p_addr_t addr, 
-							 stm25p_len_t len,
-							 uint16_t crc,
-							 error_t error ) {
-    signalDone( b, crc, error );
+  event void Sector.computeCrcDone[ uint8_t id ]( stm25p_addr_t addr, 
+						  stm25p_len_t len,
+						  uint16_t crc,
+						  error_t error ) {
+    signalDone( id, crc, error );
   }
-
-  void signalDone( storage_block_t b, uint16_t crc, error_t error ) {
-
-    stm25p_block_req_t req = m_block_state[ b ].req;    
-
-    call ClientResource.release[ b ]();
-    m_block_state[ b ].req = S_IDLE;
+  
+  void signalDone( uint8_t id, uint16_t crc, error_t error ) {
+    
+    stm25p_block_req_t req = m_block_state[ id ].req;    
+    
+    call ClientResource.release[ id ]();
+    m_block_state[ id ].req = S_IDLE;
     switch( req ) {
     case S_READ:
-      signal Read.readDone[ b ]( m_block_state[ b ].addr, 
-				 m_block_state[ b ].buf,
-				 m_block_state[ b ].len, error );  
+      signal Read.readDone[ id ]( m_block_state[ id ].addr, 
+				  m_block_state[ id ].buf,
+				  m_block_state[ id ].len, error );  
       break;
     case S_VERIFY:
-      signal Read.verifyDone[ b ]( error );
+      signal Read.verifyDone[ id ]( error );
       break;
     case S_CRC:
-      signal Read.computeCrcDone[ b ]( m_block_state[ b ].addr, 
-				       m_block_state[ b ].len, crc, error );
+      signal Read.computeCrcDone[ id ]( m_block_state[ id ].addr, 
+					m_block_state[ id ].len, crc, error );
       break;
     case S_WRITE:
-      signal Write.writeDone[ b ]( m_block_state[ b ].addr, 
-				   m_block_state[ b ].buf,
-				   m_block_state[ b ].len, error );
+      signal Write.writeDone[ id ]( m_block_state[ id ].addr, 
+				    m_block_state[ id ].buf,
+				    m_block_state[ id ].len, error );
       break;
     case S_COMMIT:
-      signal Write.commitDone[ b ]( error );
+      signal Write.commitDone[ id ]( error );
       break;
     case S_ERASE:
-      signal Write.eraseDone[ b ]( error );
+      signal Write.eraseDone[ id ]( error );
       break;
     case S_IDLE:
       break;
     }
-
+    
   }
-
-  default event void Read.readDone[ storage_block_t b ]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {}
-  default event void Read.computeCrcDone[ storage_block_t b ]( storage_addr_t addr, storage_len_t len, uint16_t crc, error_t error ) {}
-  default event void Read.verifyDone[ storage_block_t b ]( error_t error ) {}
-  default event void Write.writeDone[ storage_block_t b ]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {}
-  default event void Write.eraseDone[ storage_block_t b ]( error_t error ) {}
-  default event void Write.commitDone[ storage_block_t b ]( error_t error ) {}
-
-  default command storage_addr_t Sector.getPhysicalAddress[ storage_block_t b ]( storage_addr_t addr ) { return 0xffffffff; }
-  default command uint8_t Sector.getNumSectors[ storage_block_t b ]() { return 0; }
-  default command error_t Sector.read[ storage_block_t b ]( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len ) { return FAIL; }
-  default command error_t Sector.write[ storage_block_t b ]( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len ) { return FAIL; }
-  default command error_t Sector.erase[ storage_block_t b ]( uint8_t sector, uint8_t num_sectors ) { return FAIL; }
-  default command error_t Sector.computeCrc[ storage_block_t b ]( uint16_t crc, storage_addr_t addr, storage_len_t len ) { return FAIL; }
-  default async command error_t ClientResource.request[ storage_block_t b ]() { return FAIL; }
-  default async command void ClientResource.release[ storage_block_t b ]() {}
-
+  
+  default event void Read.readDone[ uint8_t id ]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {}
+  default event void Read.computeCrcDone[ uint8_t id ]( storage_addr_t addr, storage_len_t len, uint16_t crc, error_t error ) {}
+  default event void Read.verifyDone[ uint8_t id ]( error_t error ) {}
+  default event void Write.writeDone[ uint8_t id ]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {}
+  default event void Write.eraseDone[ uint8_t id ]( error_t error ) {}
+  default event void Write.commitDone[ uint8_t id ]( error_t error ) {}
+  
+  default command storage_addr_t Sector.getPhysicalAddress[ uint8_t id ]( storage_addr_t addr ) { return 0xffffffff; }
+  default command uint8_t Sector.getNumSectors[ uint8_t id ]() { return 0; }
+  default command error_t Sector.read[ uint8_t id ]( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len ) { return FAIL; }
+  default command error_t Sector.write[ uint8_t id ]( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len ) { return FAIL; }
+  default command error_t Sector.erase[ uint8_t id ]( uint8_t sector, uint8_t num_sectors ) { return FAIL; }
+  default command error_t Sector.computeCrc[ uint8_t id ]( uint16_t crc, storage_addr_t addr, storage_len_t len ) { return FAIL; }
+  default async command error_t ClientResource.request[ uint8_t id ]() { return FAIL; }
+  default async command void ClientResource.release[ uint8_t id ]() {}
+  
 }
 

@@ -29,14 +29,10 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-06-02 17:23:49 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-06-06 17:57:18 $
  */
 
 #ifndef __STORAGE_CHIP_H__
 #define __STORAGE_CHIP_H__
-
-typedef uint8_t storage_volume_t;
-typedef uint8_t storage_block_t;
-typedef uint8_t storage_log_t;
 
 #endif
