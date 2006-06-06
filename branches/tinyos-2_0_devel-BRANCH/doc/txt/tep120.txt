@@ -9,8 +9,8 @@ TinyOS Alliance Structure
 :TinyOS-Version: All
 :Authors: Philippe Bonnet, David Culler, Deborah Estrin, Ramesh Govindan, Mike Horton, Jeonghoon Kang, Philip Levis, Lama Nachman, Jack Stankovic, Rob Szewczyk, Matt Welsh, Adam Wolisz 
 :Draft-Created: 17-April-2006
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2006-06-05 16:20:47 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2006-06-06 04:32:35 $
 :Draft-Discuss: TinyOS Alliance <tinyos-alliance at mail.millennium.berkeley.edu>
 
 
@@ -185,7 +185,7 @@ and a Steering Committee. The Steering Committee oversees a collection
 of Working Groups, each with a Chair and Members.
 
 4.1 Steering Committee
-------------------
+------------------------------------
 
 In the steady state the Steering Committee will consist of the chairs
 of working groups plus a handful of elected members at large. Tenure
@@ -225,7 +225,7 @@ access to code repositories and Alliance web sites, and regular
 Alliance meetings.
 
 4.2 Working Groups
---------------
+----------------------------
 
 The working groups form the core of the alliance. Each working
 group will have a chair who will be responsible for WG processes,
@@ -233,7 +233,7 @@ reporting, meetings, and membership. Working groups and their
 functions are discussed in more detail in a later section.
 
 4.3 Board of Directors
-------------------
+---------------------------- 
 
 The non-profit will require a Board of Directors responsible for
 corporate matters. 
@@ -419,7 +419,7 @@ contributors are at leading research institutions where copyright must
 rest with the host institution.  Moreover, much of the work is at the
 leading edge of technology.
 
-We recognize that the TinyOS ``brand'' is of value and will be
+We recognize that the TinyOS "brand" is of value and will be
 increasingly so as the Alliance becomes more formal.  We do not want
 it tainted with its use as a marketing tool on inferior technology.
 Thus, we want to connect the use of the term with membership,
