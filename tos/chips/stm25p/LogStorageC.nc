@@ -30,21 +30,50 @@
  */
 
 /**
- * Abstraction to provide the id of a volume.
+ * Implementation of the log storage abstraction from TEP103 for the
+ * ST M25P serial code flash. This is a record-based implementation,
+ * meaning all successful appendeds will survive crash-style
+ * failure. Note that appends are limited to a maximum of 254 bytes at
+ * a time.
  *
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-06-06 17:57:18 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-06-06 17:57:18 $
  */
 
-#include "Stm25p.h"
+#include <Stm25p.h>
 
-interface Stm25pVolume {
+generic configuration LogStorageC( volume_id_t volume_id, bool circular ) {
 
-  /**
-   * Signals a request to provide the id of a volume.
-   *
-   * @return the id of the volume.
-   */
-  async event volume_id_t getVolumeId();
+  provides interface LogRead;
+  provides interface LogWrite;
 
+}
+
+implementation {
+
+  enum {
+    LOG_ID = unique( "Stm25p.Log" ),
+    VOLUME_ID = unique( "Stm25p.Volume" ),
+  };
+  
+  components Stm25pLogP as LogP;
+  LogRead = LogP.Read[ LOG_ID ];
+  LogWrite = LogP.Write[ LOG_ID ];
+  
+  components Stm25pSectorC as SectorC;
+  LogP.ClientResource[ LOG_ID ] -> SectorC.ClientResource[ VOLUME_ID ];
+  LogP.Sector[ LOG_ID ] -> SectorC.Sector[ VOLUME_ID ];
+  
+  components new Stm25pBinderP( volume_id ) as BinderP;
+  BinderP.Volume -> SectorC.Volume[ VOLUME_ID ];
+  
+  components new Stm25pLogConfigP( circular ) as ConfigP;
+  LogP.Circular[ LOG_ID ] -> ConfigP;
+  
+  components LedsC;
+  LogP.Leds -> LedsC;
+  
+  components MainC;
+  MainC.SoftwareInit -> LogP;
+  
 }

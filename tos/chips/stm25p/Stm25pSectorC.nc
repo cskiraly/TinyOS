@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2005-2006 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -33,15 +33,15 @@
  * Implementation of the sector storage absraction for the ST M25P
  * serial code flash.
  *
- * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.7 $ $Date: 2006-06-02 17:23:49 $
+ * @author Jonathan Hui <jhui@archrock.com>
+ * @version $Revision: 1.1.2.8 $ $Date: 2006-06-06 17:57:18 $
  */
 
 configuration Stm25pSectorC {
 
-  provides interface Resource as ClientResource[ storage_volume_t volume ];
-  provides interface Stm25pSector as Sector[ storage_volume_t volume ];
-  provides interface Stm25pVolume as Volume[ storage_volume_t volume ];
+  provides interface Resource as ClientResource[ uint8_t id ];
+  provides interface Stm25pSector as Sector[ uint8_t id ];
+  provides interface Stm25pVolume as Volume[ uint8_t id ];
 
 }
 
