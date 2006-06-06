@@ -4,13 +4,33 @@
 
 #include "sfsource.h"
 
+void send_packet(int fd, char **bytes, int count)
+{
+  int i;
+  unsigned char *packet;
+
+  packet = malloc(count);
+  if (!packet)
+    exit(2);
+
+  for (i = 0; i < count; i++)
+    packet[i] = strtol(bytes[i], NULL, 0);
+      
+  fprintf(stderr,"Sending ");
+  for (i = 0; i < count; i++)
+    fprintf(stderr, " %02x", packet[i]);
+  fprintf(stderr, "\n");
+
+  write_sf_packet(fd, packet, count);
+}
+
 int main(int argc, char **argv)
 {
-  int fd,j=0;
+  int fd;
 
-  if (argc != 3)
+  if (argc < 4)
     {
-      fprintf(stderr, "Usage: %s <host> <port> - dump packets from a serial forwarder\n", argv[0]);
+      fprintf(stderr, "Usage: %s <host> <port> <bytes> - send a raw packet to a serial forwarder\n", argv[0]);
       exit(2);
     }
   fd = open_sf_source(argv[1], atoi(argv[2]));
@@ -20,24 +40,8 @@ int main(int argc, char **argv)
 	      argv[1], argv[2]);
       exit(1);
     }
-  for (;;)
-    {
-      int i=0,lenp;
-      unsigned char packet[100];
 
-      packet[i++] = 0xff; // addr low byte
-      packet[i++] = 0xff; // addr high byte
-      packet[i++] = 0x04; // AM id
-      packet[i++] = 0xbc; // group id
-      lenp = i++;         // length
-      packet[i++] = j;    // payload
-      packet[i++] = 0xbe; // payload
-      packet[i++] = 0xef; // payload
+  send_packet(fd, argv + 3, argc - 3);
 
-      packet[lenp] = i-5; // length, don't include header
-      
-      fprintf(stderr,"Sending packet %d...\n",++j);
-      write_sf_packet(fd,packet,i);
-      sleep(1);
-    }
+  close(fd);
 }
