@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.13 2006-06-02 02:10:19 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.14 2006-06-07 21:21:11 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-02 02:10:19 $
+ *  @date   $Date: 2006-06-07 21:21:11 $
  */
 
 #include <ForwardingEngine.h>
@@ -79,7 +79,14 @@ implementation {
     CLIENT_COUNT = uniqueCount(UQ_COLLECTION_CLIENT)
   };
 
+  fe_queue_entry_t clientEntries[CLIENT_COUNT];
+  fe_queue_entry_t* clientPtrs[CLIENT_COUNT];
+  
   command error_t Init.init() {
+    int i;
+    for (i = 0; i < CLIENT_COUNT; i++) {
+      clientPtrs[i] = &clientEntries[i];
+    }
     return SUCCESS;
   }
 
@@ -129,7 +136,7 @@ implementation {
   command error_t Send.send[uint8_t client](message_t* msg, uint8_t len) {
     network_header_t* hdr;
     fe_queue_entry_t *qe;
-
+    
     if (!running) {return EOFF;}
     
     call Packet.setPayloadLength(msg, len + sizeof(network_header_t));
@@ -137,13 +144,12 @@ implementation {
     hdr->origin = TOS_NODE_ID;
     hdr->collectid = call CollectionId.fetch[client]();
 
-    if (call QEntryPool.empty()) {
-      dbg("PhilTest", "Send failed as pool is empty.\n");
-      // Queue pool is empty; fail the send.
+    if (clientPtrs[client] == NULL) {
+      dbg("Forwarder", "%s: send failed as client is busy.\n", __FUNCTION__);
       return EBUSY;
     }
 
-    qe = call QEntryPool.get();
+    qe = clientPtrs[client];
     qe->msg = msg;
     qe->client = client;
     
@@ -151,10 +157,12 @@ implementation {
       if (radioOn && call SendQueue.size() == 1) {
         post sendTask();
       }
+      clientPtrs[client] = NULL;
       return SUCCESS;
     }
     else {
-      dbg("PhilTest", "Send failed as packet could not be enqueued.\n");
+      dbg("Forwarder", "%s: send failed as packet could not be enqueued.\n", __FUNCTION__);
+      // Return the pool entry, as it's not for me...
       return FAIL;
     }
   }
@@ -176,14 +184,21 @@ implementation {
   // Note that we don't actually remove the packet from the
   // queue until it is successfully sent.
   task void sendTask() {
-    if (!call UnicastNameFreeRouting.hasRoute() ||
-         call SendQueue.empty() || 
-         sending) {
+    dbg("Forwarder", "%s: Trying to send a packet.\n", __FUNCTION__);
+    if (sending) {
+      dbg("Forwarder", "%s: busy, don't send\n", __FUNCTION__);
       return;
     }
-//    else if (call RootControl.isRoot()) {
-//      loopback(); 
-//    }
+    if (call SendQueue.empty()) {
+      dbg("Forwarder", "%s: queue empty, don't send\n", __FUNCTION__);
+      return;
+    }
+    if (!call UnicastNameFreeRouting.hasRoute()) {
+      dbg("Forwarder", "%s: no route, don't send, start retry timer\n", __FUNCTION__);
+      call RetxmitTimer.startOneShot(10000);
+      return;
+    }
+
     else {
       error_t eval;
       fe_queue_entry_t* qe = call SendQueue.head();
@@ -196,28 +211,38 @@ implementation {
       if (eval == SUCCESS) {
 	// Successfully submitted to the data-link layer.
 	sending = TRUE;
-        call QEntryPool.put(qe);
+	dbg("Forwarder", "%s: subsend succeeded.\n", __FUNCTION__);
+	if (qe >= clientEntries && qe <= clientEntries + (CLIENT_COUNT - 1)) {
+	  dbg("Forwarder", "%s: client packet, put queue entry back in array.\n", __FUNCTION__);
+	  clientPtrs[qe->client] = qe;
+	}
+	else {
+	  dbg("Forwarder", "%s: forwarded packet, put queue entry back in pool.\n", __FUNCTION__);
+	  call QEntryPool.put(qe);
+	}
         return;
       }
-      if (eval == EOFF) {
+      else if (eval == EOFF) {
 	// The radio has been turned off underneath us. Assume that
 	// this is for the best. When the radio is turned back on, we'll
 	// handle a startDone event and resume sending.
         radioOn = FALSE;
+	dbg("Forwarder", "%s: subsend failed from EOFF.\n", __FUNCTION__);
       }
-      if (eval == EBUSY) {
+      else if (eval == EBUSY) {
         // This shouldn't happen, as we sit on top of a client and
         // control our own output; it means we're trying to
         // double-send (bug). This means we expect a sendDone, so just
         // wait for that: when the sendDone comes in, // we'll try
-        // sending this packet again.
+        // sending this packet again.	
+	dbg("Forwarder", "%s: subsend failed from EBUSY.\n", __FUNCTION__);
       }
     }
   }
 
   event void SubSend.sendDone(message_t* msg, error_t error) {
     fe_queue_entry_t *qe = call SendQueue.head();
-    if (qe->msg != msg) {
+    if (qe == NULL || qe->msg != msg) {
       // Not our packet, something is very wrong...
       return;
     }
@@ -256,6 +281,7 @@ implementation {
       // someone has double-stored a pointer somewhere and we have nowhere
       // to put this, so we have to leak it...
     }
+    call QEntryPool.put(qe);
   }
 
   message_t* forward(message_t* m) {

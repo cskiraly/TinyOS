@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.13 2006-06-04 23:17:59 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.14 2006-06-07 21:21:11 scipio Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -55,7 +55,7 @@ module LinkEstimatorP {
 implementation {
 
   // Number of entries in the neighbor table
-#define NEIGHBOR_TABLE_SIZE 5
+#define NEIGHBOR_TABLE_SIZE 8
   // Timer that determines how often beacons should be
   // sent and link estimate updated
 #define LINKEST_TIMER_RATE 4096
@@ -346,6 +346,7 @@ implementation {
 
     minPkt = TABLEUPDATE_INTERVAL / BEACON_INTERVAL;
     dbg("LI", "%s\n", __FUNCTION__);
+    dbg("LIPrint", "Link table for %i\n", (int)sim_node());
     for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
       ne = &NeighborTable[i];
       if (ne->flags & VALID_ENTRY) {
@@ -369,6 +370,7 @@ implementation {
 	  } else {
 	    newEst = (255 * ne->rcvcnt) / totalPkt;
 	    dbg("LI,LITest", "  %hu: %hhu -> %hhu", ne->ll_addr, ne->inquality, (ALPHA * ne->inquality + (10-ALPHA) * newEst)/10);
+	    dbg("LIPrint", "  link[%hhu] = %hu, %hhu\n", i, ne->ll_addr, ne->inquality);
 	    ne->inquality = (ALPHA * ne->inquality + (10-ALPHA) * newEst)/10;
 	  }
 	  ne->rcvcnt = 0;
