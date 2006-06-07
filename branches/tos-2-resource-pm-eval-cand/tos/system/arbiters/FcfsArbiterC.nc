@@ -48,13 +48,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-/*
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-05-15 18:15:34 $ 
- * ======================================================================== 
- */
  
 /**
  * Please refer to TEP 108 for more information about this component and its
@@ -80,19 +73,19 @@
 generic configuration FcfsArbiterC(char resourceName[]) {
   provides {
     interface Resource[uint8_t id];
-    interface ResourceController;
+    interface ImmediateResource[uint8_t id];
     interface ArbiterInfo;
   }
 }
 implementation {
   components MainC;
-  components new FcfsQueueC(uniqueCount(resourceName)) as Queue;
-  components new ArbiterP(uniqueCount(resourceName)) as Arbiter;
+  components new AsyncFcfsQueueC(uniqueCount(resourceName)) as Queue;
+  components new ArbiterP() as Arbiter;
 
   MainC.SoftwareInit -> Queue;
 
   Resource = Arbiter;
-  ResourceController = Arbiter;
+  ImmediateResource = Arbiter;
   ArbiterInfo = Arbiter;
 
   Arbiter.Queue -> Queue;

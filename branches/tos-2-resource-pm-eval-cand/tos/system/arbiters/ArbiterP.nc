@@ -48,13 +48,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-/*
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-05-22 22:39:13 $ 
- * ======================================================================== 
- */
  
 /**
  * Please refer to TEP 108 for more information about this component and its
@@ -85,7 +78,7 @@ generic module ArbiterP() {
   }
   uses {
     interface ResourceConfigure[uint8_t id];
-    interface Queue<uint8_t>;
+    interface AsyncQueue<uint8_t> as Queue;
   }
 }
 implementation {
@@ -117,23 +110,27 @@ implementation {
     is waiting on a pending granted() event, an EBUSY value will 
     be returned to the caller.
   */
-  command error_t Resource.request[uint8_t id]() {
-    if(state == RES_IDLE) {
-      atomic state = RES_GRANTING;
-      atomic reqResId = id;
-      post grantedTask();
-      return SUCCESS;
+  async command error_t Resource.request[uint8_t id]() {
+    atomic {
+      if(state == RES_IDLE) {
+        state = RES_GRANTING;
+        reqResId = id;
+        post grantedTask();
+        return SUCCESS;
+      }
+      return call Queue.enqueue(id);
     }
-    return call Queue.enqueue(id);
   }
 
-  command error_t ImmediateResource.request[uint8_t id]() {
-    if(state == RES_IDLE) {
-      atomic state = RES_BUSY;
-      atomic resId = id;
-      return SUCCESS;
+  async command error_t ImmediateResource.request[uint8_t id]() {
+    atomic {
+      if(state == RES_IDLE) {
+        state = RES_BUSY;
+        resId = id;
+        return SUCCESS;
+      }
+      return FAIL;
     }
-    return FAIL;
   }    
    
   /**
@@ -148,19 +145,31 @@ implementation {
     users can put in a request for immediate access to 
     the resource.
   */
-  command void Resource.release[uint8_t id]() {
-    if(state == RES_BUSY && resId == id) {
-      reqResId = call Queue.dequeue();
-      if(reqResId != NO_RES) {
-        atomic state = RES_GRANTING;
-        post grantedTask();
+  command error_t Resource.release[uint8_t id]() {
+    bool released = FALSE;
+    atomic {
+      if(state == RES_BUSY && resId == id) {
+        reqResId = call Queue.dequeue();
+        if(reqResId != NO_RES) {
+          state = RES_GRANTING;
+          post grantedTask();
+        }
+        else {
+          resId = NO_RES;
+          state = RES_IDLE;
+        }
+        released = TRUE;
       }
-      else {
-        atomic resId = NO_RES;
-        atomic state = RES_IDLE;
-      }
-	    call ResourceConfigure.unconfigure[id]();
     }
+    if(released == TRUE) {
+	    call ResourceConfigure.unconfigure[id]();
+      return SUCCESS;
+    }
+    return FAIL;
+  }
+
+  async command error_t ImmediateResource.release[uint8_t id]() {
+      return call Resource.release[id]();
   }
     
   /**
@@ -184,7 +193,7 @@ implementation {
   }
 
   /**
-   * Returns my user id.
+   * Returns whether you are the current owner of the resource or not
    */      
   async command uint8_t Resource.isOwner[uint8_t id]() {
     atomic {
@@ -198,16 +207,16 @@ implementation {
   }
   
   task void grantedTask() {
-    atomic resId = reqResId;
-    atomic state = RES_BUSY;
+    atomic {
+      resId = reqResId;
+      state = RES_BUSY;
+    }
     call ResourceConfigure.configure[resId]();
     signal Resource.granted[resId]();
   }
   
   //Default event/command handlers
   default event void Resource.granted[uint8_t id]() {
-  }
-  default event void ImmediateResource.granted[uint8_t id]() {
   }
   default async command void ResourceConfigure.configure[uint8_t id]() {
   }

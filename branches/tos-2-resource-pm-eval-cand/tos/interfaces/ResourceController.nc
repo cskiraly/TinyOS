@@ -50,60 +50,60 @@
  *
  */
  
-/*
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3.2.1 $
- * $Date: 2006-05-15 18:17:59 $ 
- * ======================================================================== 
- */
- 
 /**
  * Please refer to TEP 108 for more information about this interface and its
  * intended use.<br><br>
  *
  * This interface is an extension of the Resource interface.  It has all of the
- * commands and events present in the Resource interface, along with two additional
+ * commands and events present in both the Resource interface, and the
+ * ImmediateResource interface along with two additional
  * events.  These events allow the user of this interface to be notified whenever
  * someone requests the use of a resource or whenever the resource becomes idle.
  * One could use this interface to control access to a resource by always
  * taking control of a resource whenever it has gone idle and deciding when to
  * release it based on requests from other users.
  *
- * @author Kevin Klues (klues@tkn.tu-berlin.de)
+ * @author Kevin Klues (klueska@cs.wustl.edu)
+ * @version $Revision: 1.1.2.3.2.2 $
+ * @date $Date: 2006-06-07 10:47:17 $ 
  */
 
 interface ResourceController {
   /**
-   * Request access to a shared resource. You must call release()
-   * when you are done with it.
-   *
-   * @return SUCCESS When a request has been accepted. The granted()
-   *                 event will be signaled once you have control of the
-   *                 resource.<br>
-   *         EBUSY You have already requested this resource and a
-   *               granted event is pending
-  */
-  command error_t request();
-
-  /**
-  * Request immediate access to a shared resource. You must call
+  * Request immediate access to the shared resource. You must call
   * release() when you are done with it.
   *
-  * @return SUCCESS You now have cotnrol of the resource.<br>
-  *         EBUSY The resource is busy.  You must try again later
+  * @return SUCCESS You now have control of the resource.<br>
+  *            EBUSY The resource is busy.  You must try again later
   */
-  command error_t immediateRequest();
+  async command error_t request();
+
+  /**
+  * Release a shared resource you previously acquired in synchronous context.
+  *
+  * @return SUCCESS The resource has been released and pending requests
+  *                           can resume. <br>
+  *             FAIL You tried to release but you are not the
+  *                    owner of the resource
+  */
+  command error_t release();
+
+  /**
+  * Release a shared resource you previously acquired in asynchronous context.
+  *
+  * @return SUCCESS The resource has been released and a user currently
+  *                           making an immediateRequest can be granted access
+  *                           to the Resource. <br>
+  *             FAIL You tried to release but you are not the
+  *                    owner of the resource.
+  */
+  async command error_t immediateRelease();
 
   /**
   * You are now in control of the resource. Note that this event
   * is NOT signaled when immediateRequest() succeeds.
   */
   event void granted();
-   
-  /**
-  * Release a shared resource you previously acquired.
-  */
-  command void release();
 
   /**
    *  Check if the user of this interface is the current
@@ -116,15 +116,25 @@ interface ResourceController {
   /**
    * This event is signalled whenever the user of this interface
    * currently has control of the resource, and another user requests
-   * it.  You may want to consider releasing a resource based on this
+   * it through the use of the normal Resource interface.
+   * You may want to consider releasing a resource based on this
    * event
    */
   event void requested();
+
+  /**
+  * This event is signalled whenever the user of this interface
+  * currently has control of the resource, and another user requests
+  * it through the use of the ImmediateResource interface.
+  * You may want to consider releasing a resource based on this
+  * event
+  */
+  async event void immediateRequested();
 
   /**
    * Event sent to the resource controller whenever a resource goes idle.
    * That is to say, whenever no one currently owns the resource, and there
    * are no more pending requests
    */
-  event void idle();
+  async event void idle();
 }

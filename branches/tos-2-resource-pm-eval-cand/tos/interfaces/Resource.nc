@@ -50,13 +50,6 @@
  *
  */
  
-/*
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.9.2.1 $
- * $Date: 2006-05-15 18:17:59 $ 
- * ======================================================================== 
- */
- 
 /**
  * Please refer to TEP 108 for more information about this interface and its
  * intended use.<br><br>
@@ -67,6 +60,8 @@
  * predefined arbitration policy.
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
+ * @version $Revision: 1.1.2.9.2.2 $
+ * @date $Date: 2006-06-07 10:47:17 $
  */
 
 interface Resource {
@@ -80,24 +75,28 @@ interface Resource {
    *         EBUSY You have already requested this resource and a
    *               granted event is pending
    */
-  command error_t request();
+  async command error_t request();
 
   /**
-   * You are now in control of the resource. Note that this event
-   * is NOT signaled when immediateRequest() succeeds.
+   * You are now in control of the resource.
    */
   event void granted();
    
   /**
-   * Release a shared resource you previously acquired.
-   */
-  command void release();
+  * Release a shared resource you previously acquired in synchronous context.
+  *
+  * @return SUCCESS The resource has been released or a pending request
+  *                           has been cancelled. <br>
+  *             FAIL You tried to release but you are not the
+  *                    owner of the resource and you have no requests pending
+  */
+  command error_t release();
 
   /**
    *  Check if the user of this interface is the current
    *  owner of the Resource
    *  @return TRUE  It is the owner <br>
-   *          FALSE It is not the owner
+   *             FALSE It is not the owner
    */
   async command bool isOwner();
 }
