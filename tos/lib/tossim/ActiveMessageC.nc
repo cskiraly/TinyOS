@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.1 2005-12-19 23:51:20 scipio Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.2 2006-06-07 01:27:21 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -33,7 +33,6 @@
 
 configuration ActiveMessageC {
   provides {
-    interface Init;
     interface SplitControl;
 
     interface AMSend[uint8_t id];
@@ -50,8 +49,9 @@ implementation {
   components TossimPacketModelC as Network;
   components UscGainInterferenceModelC as Model;
   components ActiveMessageAddressC as Address;
-
-  Init         = Network;
+  components MainC;
+  
+  MainC.SoftwareInit -> Network;
   SplitControl = Network;
   
   AMSend       = AM;
