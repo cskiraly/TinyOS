@@ -10,8 +10,8 @@ Permanent Data Storage (Flash)
 :Author: David Gay, Jonathan Hui
 
 :Draft-Created: 27-Sep-2004
-:Draft-Version: $Revision: 1.1.2.7 $
-:Draft-Modified: $Date: 2006-06-02 17:29:55 $
+:Draft-Version: $Revision: 1.1.2.8 $
+:Draft-Modified: $Date: 2006-06-07 23:11:27 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 
@@ -136,10 +136,11 @@ Example: logs.
 ------------------------------------------------------------------
 
 A small object may be only a few hundred bytes. Small objects support
-random reads and writes and simple transactional behaviour.
+random reads and writes and simple transactional behaviour (each read is a
+separate transaction, all writes up to a commit form a single transaction).
 
   - Size: small
-  - Reads: random
+  - Reads: random, read data as of last commit
   - Writes: random, rewrite ok
   - Failure model: failure during/between writes does not lead to object 
     loss (at reboot, object will contain state as of the most recent
