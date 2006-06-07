@@ -1,4 +1,4 @@
-/*
+/* -*- mode:c++; indent-tabs-mode: nil -*-
  * Copyright (c) 2004, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-05-31 13:53:03 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-06-07 19:54:53 $
  * ========================================================================
  */
 
@@ -59,20 +59,13 @@ module PacketSerializerP {
 }
 implementation {
   /* Module Global Variables */
-  typedef enum {
-    STATE_CRC1,
-    STATE_CRC2,
-    STATE_CRC_DONE,
-  } crcState_t;
 
-  message_t *txBufPtr;    // pointer to tx buffer
-  message_t *rxBufPtr;    // pointer to rx buffer
+  message_t *txBufPtr;  // pointer to tx buffer
+  message_t *rxBufPtr;  // pointer to rx buffer
   message_t rxMsg;      // rx message buffer
-      uint16_t pSize;
-  uint16_t byteCnt;     // index into current datapacket
   uint16_t crc;         // CRC value of either the current incoming or outgoing packet
-  crcState_t crcState;  // CRC state
-  
+  uint8_t byteCnt;      // index into current datapacket
+      
   /* Local Function Declarations */
   void TransmitNextByte();
   void ReceiveNextByte(uint8_t data);
@@ -85,7 +78,6 @@ implementation {
       txBufPtr = NULL;
       rxBufPtr = &rxMsg;
       byteCnt = 0;
-      pSize = 0;
     }
     return SUCCESS;
   }
@@ -118,31 +110,18 @@ implementation {
   }
 
   void TransmitNextByte() {
-    crcState_t state;
     message_radio_header_t* header = getHeader((message_t*) txBufPtr);
     if (byteCnt < header->length + sizeof(message_header_t) ) {  // send (data + header), compute crc
-      atomic {
-        crcState = STATE_CRC1;
         crc = crcByte(crc, ((uint8_t *)(txBufPtr))[byteCnt]);
-      }
-      call RadioByteComm.txByte(((uint8_t *)(txBufPtr))[byteCnt++]);
-    } else {  // send crc
-      atomic state = crcState;
-      switch(state) {
-      case STATE_CRC1:
-        atomic crcState = STATE_CRC2;
-        call RadioByteComm.txByte((uint8_t)(crc >> 8));
-        break;
-      case STATE_CRC2:
-        atomic crcState = STATE_CRC_DONE;
-        call RadioByteComm.txByte((uint8_t)(crc));
-        break;
-      case STATE_CRC_DONE:
+        call RadioByteComm.txByte(((uint8_t *)(txBufPtr))[byteCnt++]);
+    } else if (byteCnt == (header->length + sizeof(message_header_t))) {
+      ++byteCnt;
+      call RadioByteComm.txByte((uint8_t)crc);
+    } else if  (byteCnt == (header->length + sizeof(message_header_t)+1)) {
+      ++byteCnt;
+      call RadioByteComm.txByte((uint8_t)(crc >> 8));
+    } else { // (byteCnt > (header->length + sizeof(message_header_t)+1))
         call PhyPacketTx.sendFooter();  
-        break;
-      default:
-        break;
-      }
     }
   }
 
@@ -150,10 +129,11 @@ implementation {
     signal PhySend.sendDone((message_t*)txBufPtr, SUCCESS);
   }
   
-  /* Radio Receive */ 
+  /* Radio Receive */
   async event void PhyPacketRx.recvHeaderDone(error_t error) {
-    if (error == SUCCESS) {
+    if(error == SUCCESS) {
       byteCnt = (sizeof(message_header_t) - sizeof(message_radio_header_t));
+      crc = 0;
       getHeader(rxBufPtr)->length = sizeof(message_radio_header_t); 
       signal PhyReceive.receiveDetected();
       signal RadioTimeStamping.receivedSFD(0);
@@ -166,21 +146,27 @@ implementation {
 
   async event void PhyPacketRx.recvFooterDone(error_t error) {
     message_radio_header_t* header = getHeader((message_t*)(rxBufPtr));
+    message_radio_footer_t* footer = getFooter((message_t*)rxBufPtr);
+    // we care about wrong crc in this layer
+    if (footer->crc == 0) error = FAIL;
     rxBufPtr = signal PhyReceive.receiveDone((message_t*)rxBufPtr, ((message_t*)rxBufPtr)->data, header->length, error);
   }
 
   /* Receive the next Byte from the USART */
   void ReceiveNextByte(uint8_t data) { 
+    message_radio_footer_t* footer = getFooter((message_t*)rxBufPtr);
     ((uint8_t *)(rxBufPtr))[byteCnt++] = data;
-    pSize = getHeader(rxBufPtr)->length + sizeof(message_radio_header_t);
-    if ( byteCnt < pSize ) {
+    if ( byteCnt < getHeader(rxBufPtr)->length + sizeof(message_radio_header_t) ) {
       crc = crcByte(crc, data);
       if (getHeader(rxBufPtr)->length > TOSH_DATA_LENGTH) { 
-        getHeader(rxBufPtr)->length = TOSH_DATA_LENGTH;   // this packet is surely corrupt
+        // this packet is surely corrupt, so whatever...
+        footer->crc = 0;
+        call PhyPacketRx.recvFooter();
       }
-    } else if ( byteCnt == (getHeader(rxBufPtr)->length + sizeof(message_radio_header_t) + sizeof(message_radio_footer_t)) ) {
-      message_radio_footer_t* footer = getFooter((message_t*)rxBufPtr);
-      // we don't care about wrong crc in this layer
+    } else if (byteCnt == (getHeader(rxBufPtr)->length + sizeof(message_radio_header_t))) {
+      crc = crcByte(crc, data);
+      byteCnt = offsetof(message_t, footer) + offsetof(message_radio_footer_t, crc);
+    } else if (byteCnt == (offsetof(message_t, footer) + sizeof(message_radio_footer_t))) {
       footer->crc = (footer->crc == crc);
       call PhyPacketRx.recvFooter();
     }

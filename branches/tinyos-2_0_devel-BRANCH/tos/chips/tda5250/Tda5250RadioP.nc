@@ -27,8 +27,8 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.5 $
-* $Date: 2006-05-31 13:53:02 $
+* $Revision: 1.1.2.6 $
+* $Date: 2006-06-07 19:54:53 $
 * @author: Kevin Klues (klues@tkn.tu-berlin.de)
 * ========================================================================
 */
@@ -130,9 +130,6 @@ implementation {
           case RADIO_MODE_ON_TRANSITION:
             call HplTda5250Config.reset();
             call HplTda5250Config.SetRFPower(255);
-            call HplTda5250Config.UsePeakDetector();
-            call HplTda5250Config.SetClockOnDuringPowerDown();
-            call HplTda5250Config.UseRSSIDataValidDetection(INIT_RSSI_THRESHOLD, TH1_VALUE, TH2_VALUE);
             call ConfigResource.release();
             atomic radioMode = RADIO_MODE_ON;
             post startDoneTask();

@@ -79,6 +79,7 @@ implementation
     
   /* state vars */
   error_t splitStateError;    // state of SplitControl interfaces
+  bool recvBlock;             // blocks an incoming packet if the rxBuffer is in use
     
 // #define LLCM_DEBUG  
     /**************** Helper functions ******/
@@ -99,6 +100,7 @@ implementation
           txBufPtr = 0;
           seqNo = 0;
           splitStateError = EOFF;
+          recvBlock = FALSE;
         }
         return SUCCESS;
     }
@@ -207,19 +209,32 @@ implementation
     task void ReceiveTask() {
       void *payload;
       uint8_t len;
+      message_t* tmpMsgPtr;
       atomic {
         len = call Packet.payloadLength(rxBufPtr);
         payload = call Packet.getPayload(rxBufPtr, &len);
-        signal Receive.receive(rxBufPtr, payload , len);
+        tmpMsgPtr = rxBufPtr;
+      }
+      tmpMsgPtr = signal Receive.receive(tmpMsgPtr, payload , len);
+      atomic {
+        rxBufPtr = tmpMsgPtr;
+        recvBlock = FALSE;
       }
     }
     
     async event message_t* ReceiveLower.receiveDone(message_t* msg) {
+      message_t* msgPtr;
       atomic {
-        rxBufPtr = msg;
-      }
-      post ReceiveTask();
-      return &rxBuf;
+        if (recvBlock) {
+          msgPtr = msg;
+        } else {
+          recvBlock = TRUE;
+          msgPtr = rxBufPtr;
+          rxBufPtr = msg;
+          post ReceiveTask();
+        }
+      } 
+      return msgPtr;
     }
     
     command void* Receive.getPayload(message_t* msg, uint8_t* len) {
@@ -254,11 +269,6 @@ implementation
     async command bool PacketAcknowledgements.wasAcked(message_t* msg) {
       return FALSE;
     }
-
-    
-    
-    
-    
 }
 
 
