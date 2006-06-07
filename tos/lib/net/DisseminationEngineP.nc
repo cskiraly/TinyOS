@@ -41,7 +41,7 @@
  * See TEP118 - Dissemination for details.
  * 
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-06-02 20:52:42 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-06-07 21:21:11 $
  */
 
 configuration DisseminationEngineP {
@@ -74,6 +74,6 @@ implementation {
     as DisseminationProbeReceiveC;
   DisseminationEngineImplP.ProbeReceive -> DisseminationProbeReceiveC.Receive;
 
-  components LedsC;
-  DisseminationEngineImplP.Leds -> LedsC;
+  components NoLedsC;
+  DisseminationEngineImplP.Leds -> NoLedsC;
 }

@@ -20,7 +20,7 @@ implementation {
   enum {
     CLIENT_COUNT = uniqueCount(UQ_COLLECTION_CLIENT),
     FORWARD_COUNT = 5,
-    TREE_ROUTING_TABLE_SIZE = 12,
+    TREE_ROUTING_TABLE_SIZE = 4,
     QUEUE_SIZE = CLIENT_COUNT + FORWARD_COUNT,
   };
 
