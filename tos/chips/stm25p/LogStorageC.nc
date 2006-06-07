@@ -37,7 +37,7 @@
  * a time.
  *
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-06-06 17:57:18 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-06-07 20:00:44 $
  */
 
 #include <Stm25p.h>
@@ -69,9 +69,6 @@ implementation {
   
   components new Stm25pLogConfigP( circular ) as ConfigP;
   LogP.Circular[ LOG_ID ] -> ConfigP;
-  
-  components LedsC;
-  LogP.Leds -> LedsC;
   
   components MainC;
   MainC.SoftwareInit -> LogP;
