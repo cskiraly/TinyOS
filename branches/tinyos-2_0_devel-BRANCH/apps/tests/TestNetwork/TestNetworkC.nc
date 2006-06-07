@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.5 $ $Date: 2006-06-02 02:05:32 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-06-07 21:24:35 $
  */
 
 #include <Timer.h>
@@ -47,39 +47,42 @@ implementation {
       if (TOS_NODE_ID % 500 == 0) {
 	call RootControl.setRoot();
       }
-      call Timer.startPeriodic(10000);
+      call Timer.startPeriodic(1000);
     }
   }
 
   event void RadioControl.stopDone(error_t err) {}
   
   event void Timer.fired() {
-    call Leds.led1Toggle();
+    call Leds.led0Toggle();
     if (busy || call ReadSensor.read() != SUCCESS) {
-      call Leds.led0On();
+      signal ReadSensor.readDone(SUCCESS, 0);
       return;
     }
-    call Leds.led0Off();
     dbg("TestNetworkC", "TestDisseminationC: Timer fired.\n");
     busy = TRUE;
   }
 
+  void failedSend() {
+    dbg("App", "%s: Send failed.\n", __FUNCTION__);
+  }
+  
   event void ReadSensor.readDone(error_t err, uint16_t val) {
     TestNetworkMsg* msg = (TestNetworkMsg*)call Send.getPayload(&packet);
     msg->data = val;
     if (err != SUCCESS) {
+      dbg("App", "%s: read done failed.\n", __FUNCTION__);
       busy = FALSE;
-      call Leds.led0On();
-      dbg("TestNetworkC", "Sensor sample failed.\n");
     }
-    else if (call Send.send(&packet, sizeof(TestNetworkMsg)) != SUCCESS) {
-      busy = FALSE;      
+    if (call Send.send(&packet, sizeof(TestNetworkMsg)) != SUCCESS) {
+      failedSend();
       call Leds.led0On();
       dbg("TestNetworkC", "Transmission failed.\n");
     }
   }
 
   event void Send.sendDone(message_t* m, error_t err) {
+    call Leds.led1Toggle();
     if (err != SUCCESS) {
       call Leds.led0On();
     }
@@ -95,7 +98,9 @@ implementation {
     call Timer.startPeriodic(*newVal);
   }
 
-  event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
+  event message_t* 
+  Receive.receive(message_t* msg, void* payload, uint8_t len) {
+    call Leds.led2Toggle();
     dbg("TestNetworkC", "Received packet at %s.\n", sim_time_string());
     if (!uartbusy) {
       uartbusy = TRUE;
