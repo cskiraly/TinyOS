@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-05-31 13:53:03 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-06-07 19:54:53 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
  * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
@@ -57,7 +57,7 @@ module RssiFixedThresholdCMP {
 }
 implementation
 {    /* Measure internal voltage every 5s */
-#define VOLTAGE_SAMPLE_INTERVALL 50
+#define VOLTAGE_SAMPLE_INTERVALL 5000
 
     /* 
      * Number of samples for noisefloor estimation
@@ -168,8 +168,8 @@ implementation
             busyDelta = INITIAL_BUSY_DELTA;
             state = VOID;
             gradient = 14; // gradient of TDA5250
-            call Led3.makeOutput(); 
-            call Led3.clr();
+            /* call Led3.makeOutput(); 
+               call Led3.clr(); */
         }
         return SUCCESS;
     }
@@ -188,7 +188,7 @@ implementation
     void rssiRead() {
         // if(call Rssi.read() != SUCCESS) post RssiReadTask();
         if(call Rssi.read() != SUCCESS) signalFailure();
-        call Led3.clr();
+        // call Led3.clr();
     }
 
     task void RssiReadTask() {
@@ -202,21 +202,23 @@ implementation
     
      event void Rssi.readDone(error_t result, uint16_t data) {
         if(result == SUCCESS) {
-            call Led3.set();
+            // call Led3.set();
             // call RssiAdcResource.release();
             rssi = data;
-            switch(state) {
-                case CCA:
-                    ccaCheckValue();
-                    break;
-                case SNR:
-                    post SnrReadyTask();    
-                    break;
-                case CALIBRATE:
-                    post CalibrateNoiseFloorTask();    
-                    break;
-                default:
-                    break;
+            atomic {
+                switch(state) {
+                    case CCA:
+                        ccaCheckValue();
+                        break;
+                    case SNR:
+                        post SnrReadyTask();    
+                        break;
+                    case CALIBRATE:
+                        post CalibrateNoiseFloorTask();    
+                        break;
+                    default:
+                        break;
+                }
             }
         } else {
             rssiRead();

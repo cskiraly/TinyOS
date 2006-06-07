@@ -1,4 +1,4 @@
-/* 
+/* -*- mode:c++; indent-tabs-mode:nil -*- 
  * Copyright (c) 2006, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -52,12 +52,12 @@ configuration CsmaMacC {
 }
 implementation {
   components  MainC,
-              CsmaMacP,
-              RssiFixedThresholdCMC as Cca,
-              new Alarm32khzC() as MinClearTimer,
-              new TimerMilliC() as BackoffTimer,
-              RandomLfsrC;
-
+      CsmaMacP,
+      RssiFixedThresholdCMC as Cca,
+      new Alarm32khzC() as Timer,
+      RandomLfsrC,
+      PlatformLedsC;
+              
     MainC.SoftwareInit -> CsmaMacP;
               
     SplitControl = CsmaMacP;
@@ -76,7 +76,10 @@ implementation {
     CsmaMacP.ChannelMonitorControl -> Cca.ChannelMonitorControl;
     CsmaMacP.Random -> RandomLfsrC;
 
-    CsmaMacP.MinClearTimer -> MinClearTimer;    
-    CsmaMacP.BackoffTimer -> BackoffTimer;    
+    CsmaMacP.Timer -> Timer;
+    CsmaMacP.Led0 -> PlatformLedsC.Led0;
+    CsmaMacP.Led1 -> PlatformLedsC.Led1;
+    CsmaMacP.Led2 -> PlatformLedsC.Led2;
+    CsmaMacP.Led3 -> PlatformLedsC.Led3;
 }
 
