@@ -1,4 +1,4 @@
-// $Id: ConfigStorageP.nc,v 1.1.2.6 2006-06-02 17:37:36 idgay Exp $
+// $Id: ConfigStorageP.nc,v 1.1.2.7 2006-06-07 23:11:27 idgay Exp $
 
 /*									tab:4
  * Copyright (c) 2002-2006 Intel Corporation
@@ -70,12 +70,25 @@ implementation
   uint32_t lowVersion[N], highVersion[N];
 
   /* Bit n is true if client n is using upper block */
-  uint8_t flipped[(N + 7) / 8]; 
+  uint8_t flipState[(N + 7) / 8]; 
 
   uint8_t client = NO_CLIENT;
   at45page_t nextPage;
 
-  void setFlip(uint8_t id, bool flip);
+  void setFlip(uint8_t id, bool flip) {
+    if (flip)
+      flipState[id >> 3] |= 1 << (id & 7);
+    else
+      flipState[id >> 3] &= ~(1 << (id & 7));
+  }
+
+  bool flipped(uint8_t id) {
+    return call BConfig.flipped[id]();
+  }
+
+  void flip(uint8_t id) {
+    setFlip(id, !flipped(id));
+  }
 
   /* ------------------------------------------------------------------ */
   /* Mounting								*/
@@ -130,9 +143,9 @@ implementation
 	    call BlockRead.verify[id]();
 	    return;
 	  }
-	/* both halves bad, just declare success and use the current half :-) 
-	   (we did need to verify to find the end-of-block) */
+	/* both halves bad, just declare success and use the current half... */
 	state[id] = S_INVALID;
+	lowVersion[id] = highVersion[id] = 0;
       }
     signal Mount.mountDone[id](SUCCESS);
   }
@@ -145,6 +158,8 @@ implementation
     /* Read from current half using BlockRead */
     if (state[id] < S_CLEAN)
       return EOFF;
+    if (state[id] == S_INVALID) // nothing to read
+      return FAIL;
 
     return call BlockRead.read[id](addr + sizeof(uint32_t), buf, len);
   }
@@ -159,8 +174,8 @@ implementation
 
   command error_t ConfigStorage.write[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len) {
     /* 1: If first write:
-         copy to other half, increment version number, and flip.
-       2: Write to current half using BlockWrite */
+         copy to other half with incremented version number
+       2: Write to other half using BlockWrite */
 
     if (state[id] < S_CLEAN)
       return EOFF;
@@ -171,7 +186,8 @@ implementation
   void writeContinue(error_t error);
 
   command int BConfig.writeHook[uint8_t id]() {
-    if (state[id] != S_CLEAN) // no work if dirty or invalid
+    flip(id); /* We write to the non-current half... */
+    if (state[id] != S_CLEAN) // no copy if dirty or invalid
       return FALSE;
 
     /* Time to do the copy, version update dance */
@@ -189,8 +205,8 @@ implementation
       {
 	uint32_t *version;
 
-	// Set version number
-	if (call BConfig.flipped[client]())
+	// Update the version number of the half indicated by flipped()
+	if (!flipped(client))
 	  {
 	    lowVersion[client] = highVersion[client] + 1;
 	    version = &lowVersion[client];
@@ -209,10 +225,10 @@ implementation
 	at45page_t from, to, npages = signal BConfig.npages[client]();
 
 	to = from = signal BConfig.remap[client](--nextPage);
-	if (call BConfig.flipped[client]())
-	  to -= npages;
+	if (flipped(client))
+	  from -= npages;
 	else
-	  to += npages;
+	  from += npages;
 
 	call At45db.copyPage(from, to);
       }
@@ -220,10 +236,7 @@ implementation
 
   void copyWriteDone(error_t error) {
     if (error == SUCCESS)
-      {
-	setFlip(client, !call BConfig.flipped[client]());
-	state[client] = S_DIRTY;
-      }
+      state[client] = S_DIRTY;
     writeContinue(error);
   }
 
@@ -235,6 +248,7 @@ implementation
   }
 
   void writeWriteDone(uint8_t id, storage_addr_t addr, void* buf, storage_len_t len, error_t error) {
+    flip(id); // flip back to current half
     signal ConfigStorage.writeDone[id](addr - sizeof(uint32_t), buf, len, error);
   }
 
@@ -245,14 +259,21 @@ implementation
   command error_t ConfigStorage.commit[uint8_t id]() {
     /* Call BlockWrite.commit */
     /* Could special-case attempt to commit clean block */
+    error_t ok;
+
     if (state[id] < S_CLEAN)
       return EOFF;
-    return call BlockWrite.commit[id]();
+    ok = call BlockWrite.commit[id]();
+    if (ok == SUCCESS)
+      flip(id); // switch to new block for commit
+    return ok;
   }
 
   void commitDone(uint8_t id, error_t error) {
     if (error == SUCCESS)
       state[id] = S_CLEAN;
+    else
+      flip(id); // revert to old block
     signal ConfigStorage.commitDone[id](error);
   }
 
@@ -283,15 +304,8 @@ implementation
     return id < N;
   }
 
-  void setFlip(uint8_t id, bool flip) {
-    if (flip)
-      flipped[id >> 3] |= 1 << (id & 7);
-    else
-      flipped[id >> 3] &= ~(1 << (id & 7));
-  }
-
   inline command int BConfig.flipped[uint8_t id]() {
-    return (flipped[id >> 3] & (1 << (id & 7))) != 0;
+    return (flipState[id >> 3] & (1 << (id & 7))) != 0;
   }
 
   event void BlockRead.readDone[uint8_t id](storage_addr_t addr, void* buf, storage_len_t len, error_t error) {
