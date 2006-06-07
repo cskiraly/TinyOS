@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.14 2006-06-07 21:21:11 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.15 2006-06-07 23:39:03 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-07 21:21:11 $
+ *  @date   $Date: 2006-06-07 23:39:03 $
  */
 
 #include <ForwardingEngine.h>
@@ -81,12 +81,18 @@ implementation {
 
   fe_queue_entry_t clientEntries[CLIENT_COUNT];
   fe_queue_entry_t* clientPtrs[CLIENT_COUNT];
+
+
+  message_t loopbackMsg;
+  message_t* loopbackMsgPtr;
   
   command error_t Init.init() {
     int i;
     for (i = 0; i < CLIENT_COUNT; i++) {
-      clientPtrs[i] = &clientEntries[i];
+      clientPtrs[i] = clientEntries + i;
+      dbg("Forwarder", "clientPtrs[%hhu] = %p\n", i, clientPtrs[i]);
     }
+    loopbackMsgPtr = &loopbackMsg;
     return SUCCESS;
   }
 
@@ -136,7 +142,7 @@ implementation {
   command error_t Send.send[uint8_t client](message_t* msg, uint8_t len) {
     network_header_t* hdr;
     fe_queue_entry_t *qe;
-    
+    dbg("Forwarder", "%s: sending packet from client %hhu: %x, len %hhu\n", __FUNCTION__, client, msg, len);
     if (!running) {return EOFF;}
     
     call Packet.setPayloadLength(msg, len + sizeof(network_header_t));
@@ -152,7 +158,7 @@ implementation {
     qe = clientPtrs[client];
     qe->msg = msg;
     qe->client = client;
-    
+    dbg("Forwarder", "%s: queue entry for %hhu is %x\n", __FUNCTION__, client, qe);
     if (call SendQueue.enqueue(qe) == SUCCESS) {
       if (radioOn && call SendQueue.size() == 1) {
         post sendTask();
@@ -184,26 +190,38 @@ implementation {
   // Note that we don't actually remove the packet from the
   // queue until it is successfully sent.
   task void sendTask() {
-    dbg("Forwarder", "%s: Trying to send a packet.\n", __FUNCTION__);
+    dbg("Forwarder", "%s: Trying to send a packet. Queue size is %hhu.\n", __FUNCTION__, call SendQueue.size());
     if (sending) {
       dbg("Forwarder", "%s: busy, don't send\n", __FUNCTION__);
       return;
     }
-    if (call SendQueue.empty()) {
+    else if (call SendQueue.empty()) {
       dbg("Forwarder", "%s: queue empty, don't send\n", __FUNCTION__);
       return;
     }
-    if (!call UnicastNameFreeRouting.hasRoute()) {
+    else if (!call UnicastNameFreeRouting.hasRoute()) {
       dbg("Forwarder", "%s: no route, don't send, start retry timer\n", __FUNCTION__);
       call RetxmitTimer.startOneShot(10000);
       return;
     }
-
     else {
       error_t eval;
       fe_queue_entry_t* qe = call SendQueue.head();
       uint8_t payloadLen = call SubPacket.payloadLength(qe->msg);
       am_addr_t dest = call UnicastNameFreeRouting.nextHop();
+      dbg("Forwarder", "Sending queue entry %p\n", qe);
+      if (call RootControl.isRoot()) {
+	collection_id_t collectid = getHeader(qe->msg)->collectid;
+	memcpy(loopbackMsgPtr, qe->msg, sizeof(message_t));
+	ackPending = FALSE;
+	
+	dbg("Forwarder", "%s: I'm a root, so loopback and signal receive.\n", __FUNCTION__);
+	loopbackMsgPtr = signal Receive.receive[collectid](loopbackMsgPtr,
+							  call Packet.getPayload(loopbackMsgPtr, NULL), 
+							  call Packet.payloadLength(loopbackMsgPtr));
+	signal SubSend.sendDone(qe->msg, SUCCESS);
+	return;
+      }
       
       ackPending = (call PacketAcknowledgements.requestAck(qe->msg) == SUCCESS);
       
@@ -212,13 +230,11 @@ implementation {
 	// Successfully submitted to the data-link layer.
 	sending = TRUE;
 	dbg("Forwarder", "%s: subsend succeeded.\n", __FUNCTION__);
-	if (qe >= clientEntries && qe <= clientEntries + (CLIENT_COUNT - 1)) {
-	  dbg("Forwarder", "%s: client packet, put queue entry back in array.\n", __FUNCTION__);
-	  clientPtrs[qe->client] = qe;
+	if (qe->client < CLIENT_COUNT) {
+	  dbg("Forwarder", "%s: client packet.\n", __FUNCTION__);
 	}
 	else {
-	  dbg("Forwarder", "%s: forwarded packet, put queue entry back in pool.\n", __FUNCTION__);
-	  call QEntryPool.put(qe);
+	  dbg("Forwarder", "%s: forwarded packet.\n", __FUNCTION__);
 	}
         return;
       }
@@ -230,7 +246,7 @@ implementation {
 	dbg("Forwarder", "%s: subsend failed from EOFF.\n", __FUNCTION__);
       }
       else if (eval == EBUSY) {
-        // This shouldn't happen, as we sit on top of a client and
+	// This shouldn't happen, as we sit on top of a client and
         // control our own output; it means we're trying to
         // double-send (bug). This means we expect a sendDone, so just
         // wait for that: when the sendDone comes in, // we'll try
@@ -242,6 +258,7 @@ implementation {
 
   event void SubSend.sendDone(message_t* msg, error_t error) {
     fe_queue_entry_t *qe = call SendQueue.head();
+    dbg("Forwarder", "%s with %x and %hhu\n", __FUNCTION__, msg, error);
     if (qe == NULL || qe->msg != msg) {
       // Not our packet, something is very wrong...
       return;
@@ -253,6 +270,7 @@ implementation {
       r &= 0x1ff;
       r += 512;
       call RetxmitTimer.startOneShot(r);
+      dbg("Forwarder", "%s: send failed, retry in %hu ms\n", __FUNCTION__, r);
     }
     // AckPending is for case when DL cannot support acks
     else if (ackPending && !call PacketAcknowledgements.wasAcked(msg)) {
@@ -262,22 +280,32 @@ implementation {
       r &= 0x7f;
       r += 128;
       call RetxmitTimer.startOneShot(r);
+      dbg("Forwarder", "%s: not acked, retry in %hu ms\n", __FUNCTION__, r);
     }
-    else if (getHeader(qe->msg)->origin == TOS_NODE_ID) {
+    else if (qe->client < CLIENT_COUNT) {
       network_header_t* hdr;
-      call SendQueue.dequeue();
+      uint8_t client = qe->client;
+      dbg("Forwarder", "%s: our packet for client %hhu, remove %p from queue\n", __FUNCTION__, client, qe);
+      clientPtrs[client] = qe;
       hdr = getHeader(qe->msg);
-      if (qe->client < CLIENT_COUNT)
-        signal Send.sendDone[qe->client](msg, SUCCESS);
+      call SendQueue.dequeue();
+      call QEntryPool.put(qe);      
+      signal Send.sendDone[client](msg, SUCCESS);
       sending = FALSE;
       post sendTask();
     }
     else if (call MessagePool.size() < call MessagePool.maxSize()) {
       // A successfully forwarded packet.
+      dbg("Forwarder", "%s: successfully forwarded packet (client: %hhu).\n", __FUNCTION__, qe->client);
+      call SendQueue.dequeue();
       call MessagePool.put(qe->msg);
+      call QEntryPool.put(qe);      
+      sending = FALSE;
+      post sendTask();
     }
     else {
-      // It's a forwarded packet, but there's no room the pool;
+      dbg("Forwarder", "%s: BUG: we have a pool entry, but the pool is full, client is %hhu.\n", __FUNCTION__, qe->client);
+    // It's a forwarded packet, but there's no room the pool;
       // someone has double-stored a pointer somewhere and we have nowhere
       // to put this, so we have to leak it...
     }
@@ -291,11 +319,16 @@ implementation {
       uint8_t len = call SubPacket.payloadLength(m);
 
       qe->msg = m;
-      qe->client = CLIENT_COUNT;
-
+      qe->client = 0xff;
+      
       call Packet.setPayloadLength(m, len + sizeof(network_header_t));
-      if (call SendQueue.enqueue(qe))
-        return newMsg;
+      if (call SendQueue.enqueue(qe) == SUCCESS) {
+	dbg("Forwarder", "%s forwarding packet with queue size %hhu and entry %p\n", __FUNCTION__, call SendQueue.size(), qe);
+	if (call SendQueue.size() == 1) {
+	  post sendTask();
+	}
+	return newMsg;
+      }
       else {
         call MessagePool.put(newMsg);
         call QEntryPool.put(qe);

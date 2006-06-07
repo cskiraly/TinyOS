@@ -35,7 +35,6 @@ implementation {
   Intercept = Forwarder;
   Packet = Forwarder;
   CollectionId = Forwarder;
-  MainC.SoftwareInit -> Forwarder;
   
   components new PoolC(message_t, FORWARD_COUNT) as MessagePoolP;
   components new PoolC(fe_queue_entry_t, FORWARD_COUNT) as QEntryPoolP;
@@ -71,7 +70,8 @@ implementation {
   components RandomC;
   Router.Random -> RandomC;
   Forwarder.Random -> RandomC;
-  
+
+  MainC.SoftwareInit -> Forwarder;
   Forwarder.SubSend -> AMSenderC;
   Forwarder.SubReceive -> AMReceiverC;
   Forwarder.SubSnoop -> AMSnooperC;
