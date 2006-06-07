@@ -34,7 +34,7 @@
  * the ST M25P serial code flash.
  *
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-06-07 19:51:13 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-06-07 20:00:44 $
  */
 
 #include <Stm25p.h>
@@ -63,8 +63,5 @@ implementation {
   
   components new Stm25pBinderP( volume_id ) as BinderP;
   BinderP.Volume -> SectorC.Volume[ VOLUME_ID ];
-  
-  components LedsC;
-  ConfigP.Leds -> LedsC;
   
 }
