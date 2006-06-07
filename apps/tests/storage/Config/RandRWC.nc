@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.3 2006-06-07 19:57:50 jwhui Exp $
+/* $Id: RandRWC.nc,v 1.1.2.4 2006-06-07 23:08:24 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -13,12 +13,6 @@
  *
  * @author David Gay
  */
-/*
-  address & 3:
-  1: erase, write
-  2: read
-  3: write some more
-*/
 module RandRWC {
   uses {
     interface Boot;
@@ -40,7 +34,7 @@ implementation {
   uint16_t mask;
 
   uint8_t data[512], rdata[512];
-  int count, testCount, writeCount;
+  int count, testCount, writeCount, countAtCommit;
   struct {
     uint32_t addr;
     void *data;
@@ -69,10 +63,10 @@ implementation {
     return tmpShiftReg;
   }
 
-  void resetSeed() {
-    shiftReg = 119 * 119 * ((TOS_NODE_ID >> 1) + 1 + writeCount);
+  void resetSeed(int offset) {
+    shiftReg = 119 * 119 * ((TOS_NODE_ID >> 1) + 1 + offset);
     initSeed = shiftReg;
-    mask = 137 * 29 * ((TOS_NODE_ID >> 1) + 1 + writeCount);
+    mask = 137 * 29 * ((TOS_NODE_ID >> 1) + 1 + offset);
   }
   
   void report(error_t e) {
@@ -110,12 +104,12 @@ implementation {
     return b;
   }
 
-  void setupOps() {
+  void setupOps(int wcount) {
     int i;
     uint16_t offset;
 
     count = 0;
-    resetSeed();
+    resetSeed(wcount);
 
     for (i = 0; i < NWRITES; i++)
       {
@@ -190,7 +184,7 @@ implementation {
   event void Boot.booted() {
     int i;
 
-    resetSeed();
+    resetSeed(0);
     for (i = 0; i < sizeof data; i++)
       data[i++] = rand() >> 8;
 
@@ -220,15 +214,15 @@ implementation {
     switch (act)
       {
       case A_COMMIT:
+	countAtCommit = writeCount;
 	scheck(call ConfigStorage.commit());
 	break;
       case A_WRITE:
-	writeCount++;
-	setupOps();
+	setupOps(++writeCount);
 	nextWrite();
 	break;
       case A_READ:
-	setupOps();
+	setupOps(countAtCommit);
 	nextRead();
 	break;
       }
@@ -236,13 +230,13 @@ implementation {
 
   const uint8_t actions[] = {
     A_WRITE,
-    //A_READ,
     A_COMMIT,
     A_READ,
     A_WRITE,
     A_COMMIT,
     A_READ,
-    A_WRITE
+    A_WRITE,
+    A_READ
   };
 
   void done() {
@@ -256,7 +250,7 @@ implementation {
 	  {
 	    uint8_t i, nwrites = 0;
 
-	    /* Figure out what writeCount was at last commit */
+	    /* Figure out countAtCommit */
 	    for (i = 0; i < sizeof actions; i++)
 	      switch (actions[i])
 		{
@@ -264,7 +258,7 @@ implementation {
 		  nwrites++;
 		  break;
 		case A_COMMIT:
-		  writeCount = nwrites;
+		  countAtCommit = nwrites;
 		  break;
 		}
 
