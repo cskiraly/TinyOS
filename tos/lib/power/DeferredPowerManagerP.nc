@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4.6.1 $
- * $Date: 2006-05-15 18:23:15 $ 
+ * $Revision: 1.1.2.4.6.2 $
+ * $Date: 2006-06-07 10:47:17 $ 
  * ======================================================================== 
  */
  
@@ -70,10 +70,6 @@ implementation {
    uint8_t requested :1;
   } f; //for flags
 
-  task void startTask() { 
-    call StdControl.start();
-    call SplitControl.start();
-  }
   task void timerTask() { 
     call TimerMilli.startOneShot(delay); 
   }
@@ -81,14 +77,19 @@ implementation {
   command error_t Init.init() {
     f.stopping = FALSE;
     f.requested = FALSE;
-    call ResourceController.immediateRequest();
+    call ResourceController.request();
     return SUCCESS;
   }
 
   event void ResourceController.requested() {
-    if(f.stopping == FALSE)
-      post startTask();
+    if(f.stopping == FALSE) {
+      call StdControl.start();
+      call SplitControl.start();
+    }
     else atomic f.requested = TRUE;
+  }
+
+  async event void ResourceController.immediateRequested() {
   }
 
   default command error_t StdControl.start() {
@@ -103,13 +104,13 @@ implementation {
     call ResourceController.release();
   }
 
-  event void ResourceController.idle() {
+  async event void ResourceController.idle() {
     if(!(call ArbiterInfo.inUse()))
       post timerTask();
   }
 
   event void TimerMilli.fired() {
-    if(call ResourceController.immediateRequest() == SUCCESS) {
+    if(call ResourceController.request() == SUCCESS) {
       f.stopping = TRUE;
       call PowerDownCleanup.cleanup();
       call StdControl.stop();

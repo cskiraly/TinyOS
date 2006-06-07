@@ -50,13 +50,6 @@
  *
  */
  
-/*
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-05-15 18:17:59 $ 
- * ======================================================================== 
- */
- 
 /**
  * Please refer to TEP 108 for more information about this interface and its
  * intended use.<br><br>
@@ -67,6 +60,8 @@
  * predefined arbitration policy.
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
+ * @version $Revision: 1.1.2.2 $
+ * @date $Date: 2006-06-07 10:47:17 $
  */
 
 interface ImmediateResource {
@@ -74,15 +69,19 @@ interface ImmediateResource {
    * Request immediate access to a shared resource. You must call 
    * release() when you are done with it.
    *
-   * @return SUCCESS You now have cotnrol of the resource.<br>
+   * @return SUCCESS You now have control of the resource.<br>
    *         EBUSY The resource is busy.  You must try again later
    */
   async command error_t request();
    
   /**
    * Release a shared resource you previously acquired.
+   *
+   * @return SUCCESS The resource has been released. <br>
+   *             FAIL You tried to release but you are not the
+   *                    owner of the resource
    */
-  async command void release();
+  async command error_t release();
 
   /**
    *  Check if the user of this interface is the current

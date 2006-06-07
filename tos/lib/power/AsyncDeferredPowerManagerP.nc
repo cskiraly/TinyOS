@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2.6.1 $
- * $Date: 2006-05-15 18:23:14 $ 
+ * $Revision: 1.1.2.2.6.2 $
+ * $Date: 2006-06-07 10:47:17 $ 
  * ======================================================================== 
  */
  
@@ -66,7 +66,6 @@ implementation {
 
   norace struct {
    uint8_t stopping :1;
-   uint8_t requested :1;
   } f; //for flags
 
   task void timerTask() { 
@@ -75,37 +74,33 @@ implementation {
 
   command error_t Init.init() {
     f.stopping = FALSE;
-    f.requested = FALSE;
-    call ResourceController.immediateRequest();
+    call ResourceController.request();
     return SUCCESS;
   }
 
   event void ResourceController.requested() {
-    if(f.stopping == FALSE) {
-      call AsyncStdControl.start();
-      call ResourceController.release();
-    }
-    else atomic f.requested = TRUE;
+    call AsyncStdControl.start();
+    call ResourceController.release();
   }
 
-  event void ResourceController.idle() {
+  async event void ResourceController.immediateRequested() {
+    if(f.stopping == FALSE) {
+      call AsyncStdControl.start();
+      call ResourceController.immediateRelease();
+    }
+  }  
+
+  async event void ResourceController.idle() {
     if(!(call ArbiterInfo.inUse()))
       post timerTask();
   }
 
   event void TimerMilli.fired() {
-    if(call ResourceController.immediateRequest() == SUCCESS) {
+    if(call ResourceController.request() == SUCCESS) {
       f.stopping = TRUE;
       call PowerDownCleanup.cleanup();
       call AsyncStdControl.stop();
-    }
-    if(f.requested == TRUE) {
-      call AsyncStdControl.start();
-      call ResourceController.release();
-    }
-    atomic {
       f.stopping = FALSE;
-      f.requested = FALSE;
     }    
   }
 

@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3.2.1 $
- * $Date: 2006-05-15 18:23:15 $ 
+ * $Revision: 1.1.2.3.2.2 $
+ * $Date: 2006-06-07 10:47:17 $ 
  * ======================================================================== 
  */
  
@@ -61,30 +61,30 @@ generic module PowerManagerP() {
 implementation {
 
   norace struct {
-   uint8_t stopping :1;
-   uint8_t requested :1;
-  } f; //for flags
+    uint8_t stopping :1;
+    uint8_t requested :1;
+  } f;
 
-  task void startTask() { 
-    call StdControl.start();
-    call SplitControl.start();
-  }
-  task void stopTask() { 
-    call StdControl.stop(); 
-    call SplitControl.stop(); 
+  task void stopTask() {
+    call StdControl.stop();
+    call SplitControl.stop();    
   }
 
   command error_t Init.init() {
     f.stopping = FALSE;
     f.requested = FALSE;
-    call ResourceController.immediateRequest();
+    call ResourceController.request();
     return SUCCESS;
   }
 
   event void ResourceController.requested() {
-    if(f.stopping == FALSE)
-      post startTask();
-    else atomic f.requested = TRUE;
+    if(f.stopping == FALSE) {
+      call StdControl.start();
+      call SplitControl.start();
+    }
+    else f.requested = TRUE;
+  }
+  async event void ResourceController.immediateRequested() {
   }
   
   default command error_t StdControl.start() {
@@ -99,8 +99,8 @@ implementation {
     call ResourceController.release();
   }
   
-  event void ResourceController.idle() {
-    if(call ResourceController.immediateRequest() == SUCCESS) {
+  async event void ResourceController.idle() {
+    if(call ResourceController.request() == SUCCESS) {
       f.stopping = TRUE;
       call PowerDownCleanup.cleanup();
       post stopTask();
