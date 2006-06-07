@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.2 2006-05-30 21:36:58 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.3 2006-06-07 19:57:50 jwhui Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -119,10 +119,12 @@ implementation {
 
     for (i = 0; i < NWRITES; i++)
       {
-	ops[i].addr = rand() & (SIZE - 1);
-	ops[i].len = rand() >> 7;
-	if (ops[i].addr + ops[i].len > SIZE)
-	  ops[i].addr = SIZE - ops[i].len;
+	uint16_t addr = rand() & (SIZE - 1);
+	uint16_t len = rand() >> 7;
+	if (addr + len > SIZE)
+	  addr = SIZE - len;
+	ops[i].addr = addr;
+	ops[i].len = len;
 	offset = rand() >> 8;
 	if (offset + ops[i].len > sizeof data)
 	  offset = sizeof data - ops[i].len;
@@ -234,7 +236,7 @@ implementation {
 
   const uint8_t actions[] = {
     A_WRITE,
-    A_READ,
+    //A_READ,
     A_COMMIT,
     A_READ,
     A_WRITE,
