@@ -1,3 +1,4 @@
+/// $Id: Atm128I2C.nc,v 1.1.2.1 2006-06-08 03:22:03 scipio Exp $
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -18,7 +19,7 @@
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL STANFORD 
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL STANFORD
  * UNIVERSITY OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
@@ -29,27 +30,18 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * The basic client abstraction of the I2C on the Atmega128. I2C
- * device drivers should instantiate one of these to ensure
- * exclusive access to the I2C bus.
- *
- * @author Philip Levis
- * @date   May 28, 2006
- */
-
 #include "Atm128I2C.h"
 
-generic configuration Atm128I2CMasterC() {
-  provides interface Resource;
-  provides interface I2CPacket<TI2CBasicAddr>;
-}
-implementation {
-  enum {
-    CLIENT_ID = unique(UQ_ATM128_I2CMASTER),
-  };
-  
-  components Atm128I2CMasterP as I2C; 
-  Resource = I2C.Resource[CLIENT_ID];
-  I2CPacket = I2C.I2CPacket[CLIENT_ID]; 
+/**
+ * An interface for stopping the I2C bus. Needed by the resource
+ * reservation system, so that when a client releases you're sure
+ * there's a stop.
+ *
+ * @author Philip Levis
+ *
+ * @version  $Id: Atm128I2C.nc,v 1.1.2.1 2006-06-08 03:22:03 scipio Exp $
+ */
+interface Atm128I2C {
+
+  async command void stop();
 }

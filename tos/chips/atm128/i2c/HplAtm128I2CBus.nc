@@ -1,4 +1,4 @@
-/// $Id: HplAtm128I2CBus.nc,v 1.1.2.2 2006-05-01 21:50:50 scipio Exp $
+/// $Id: HplAtm128I2CBus.nc,v 1.1.2.3 2006-06-08 03:22:03 scipio Exp $
 
 /*
  *  Copyright (c) 2004-2005 Crossbow Technology, Inc.
@@ -35,7 +35,7 @@
  * @author Martin Turon <mturon@xbow.com>
  * @author Philip Levis
  *
- * @version  $Id: HplAtm128I2CBus.nc,v 1.1.2.2 2006-05-01 21:50:50 scipio Exp $
+ * @version  $Id: HplAtm128I2CBus.nc,v 1.1.2.3 2006-06-08 03:22:03 scipio Exp $
  */
 interface HplAtm128I2CBus {
 
@@ -43,31 +43,44 @@ interface HplAtm128I2CBus {
   async command void off();
   
   async command uint8_t status();
+
+  async command void readCurrent();
+  async command void sendCommand();
+  async event void commandComplete();
+
   
   // Transaction interface
-  async command void start();   //!< Start bus transaction (send start symbol)
-  async command bool isStarting();
-  async command void clearStart();
-  
-  async command void stop();    //!< End bus transaction
-  async command bool isStopping();
-
-  // Data interface
-  async command void write(uint8_t data);
-  async command uint8_t read();
-
+  async command void setStart(bool on);
+  async command bool hasStart();
+  async command void setStop(bool on);   
+  async command bool hasStop();
   async command void enableAck(bool enable);
-  async command bool isAckEnabled();
+  async command bool hasAcks();
+  
   async command void enableInterrupt(bool enable);
   async command bool isInterruptEnabled();
-  async command bool isInterruptPending();
-  async command void clearInterruptPending();
-  
-  async event void symbolSent();
-  
-  async command void enable(bool enable);
-  async command bool isEnabled();
 
+  // Examines actual register. Included so that code which needs
+  // to spin in TWINT does not have to read out cached copies.
+  async command bool isRealInterruptPending();
+
+  // Operates on cached copy (from readCurrent)
+  async command bool isInterruptPending(); 
+  
+  // NOTE: writing a 1 in the interrupt pending bit (TWINT) of the
+  // atm128 I2C control register (TWCR) will *clear* the bit if it
+  // is set. This is how you tell the I2C to take the next action,
+  // as when the bit is cleared it starts the next operation.
+  async command void setInterruptPending(bool on);
+
+  async command void enable(bool on);
+  async command bool isEnabled();
   async command bool hasWriteCollided();
+  
+  // Data interface to TWDR
+  async command void write(uint8_t data);
+  async command uint8_t read();
+  
+  
 
 }

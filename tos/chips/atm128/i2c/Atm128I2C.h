@@ -1,4 +1,4 @@
-// $Id: Atm128I2C.h,v 1.1.2.4 2006-05-01 21:50:50 scipio Exp $
+// $Id: Atm128I2C.h,v 1.1.2.5 2006-06-08 03:22:03 scipio Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -30,62 +30,21 @@
 #define ATM128_I2C_SLA_WRITE 0x00
 #define ATM128_I2C_SLA_READ 0x01
 
-typedef uint8_t Atm128_TWBR_t;  //!< Two Wire Bit Rate Register
-typedef uint8_t Atm128_TWDR_t;  //!< Two Wire Data Register
+#define UQ_ATM128_I2CMASTER "Atm128I2CMasterC.I2CPacket"
 
-/* I2C Control Register -- TWCR */
-typedef struct {
-    uint8_t twie  : 1;  //!< Two Wire Interrupt Enable
-    uint8_t rsvd  : 1;  //!< Reserved
-    uint8_t twen  : 1;  //!< Two Wire Enable
-    uint8_t twwc  : 1;  //!< Two Wire Write Collision Flag
-    uint8_t twsto : 1;  //!< Two Wire Stop Condition
-    uint8_t twsta : 1;  //!< Two Wire Start Condition
-    uint8_t twea  : 1;  //!< Two Wire Enable Acknowledge
-    uint8_t twint : 1;  //!< Two Wire Interrupt
-} Atm128I2CControl_s;
-typedef union {
-    Atm128I2CControl_s bits;
-    uint8_t flat;
-} Atm128I2CControl_t;
-
-/* I2C Status Codes */
 enum {
-    ATM128_I2C_BUSERROR	        = 0x00,
-    ATM128_I2C_START		= 0x08,
-    ATM128_I2C_RSTART		= 0x10,
-    ATM128_I2C_MW_SLA_ACK	= 0x18,
-    ATM128_I2C_MW_SLA_NACK	= 0x20,
-    ATM128_I2C_MW_DATA_ACK	= 0x28,
-    ATM128_I2C_MW_DATA_NACK	= 0x30,
-    ATM128_I2C_M_ARB_LOST	= 0x38,
-    ATM128_I2C_MR_SLA_ACK	= 0x40,
-    ATM128_I2C_MR_SLA_NACK	= 0x48,
-    ATM128_I2C_MR_DATA_ACK	= 0x50,
-    ATM128_I2C_MR_DATA_NACK	= 0x58
+    ATM128_I2C_BUSERROR         = 0x00,
+    ATM128_I2C_START            = 0x08,
+    ATM128_I2C_RSTART           = 0x10,
+    ATM128_I2C_MW_SLA_ACK       = 0x18,
+    ATM128_I2C_MW_SLA_NACK      = 0x20,
+    ATM128_I2C_MW_DATA_ACK      = 0x28,
+    ATM128_I2C_MW_DATA_NACK     = 0x30,
+    ATM128_I2C_M_ARB_LOST       = 0x38,
+    ATM128_I2C_MR_SLA_ACK       = 0x40,
+    ATM128_I2C_MR_SLA_NACK      = 0x48,
+    ATM128_I2C_MR_DATA_ACK      = 0x50,
+    ATM128_I2C_MR_DATA_NACK     = 0x58
 };
-
-/* I2C Status Register -- TWSR */
-typedef union {
-  struct Atm128I2CStatus_s {
-    uint8_t twps  : 2;  //!< Two Wire Prescaler Bits
-    uint8_t rsvd  : 1;  //!< Reserved
-    uint8_t tws   : 5;  //!< Two Wire Status
-  } bits;
-  uint8_t flat;
-} Atm128I2CStatus_t;
-
-/* I2C Slave Address Register -- TWAR */
-typedef union {
-  struct Atm128I2CSlaveAddr_s {
-    uint8_t twgce : 1;  //!< Two Wire General Call Enable
-    uint8_t twa   : 7;  //!< Two Wire Slave Address
-  } bits;
-  uint8_t flat;
-} Atm128I2CSlaveAddr_t;
-
-#define avr_i2c_enable()           TWCR |= (1 << TWEN)
-#define avr_i2c_start()            TWCR |= (1 << TWSTA) | (1 << TWINT)
-#define avr_i2c_wait()	           while(!(TWCR & (1<<TWINT))) ;
 
 #endif // _H_Atm128I2C_h
