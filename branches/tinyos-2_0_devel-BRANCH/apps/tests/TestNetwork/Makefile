@@ -1,7 +1,7 @@
 COMPONENT=TestNetworkAppC
 CFLAGS += -I$(TOSDIR)/lib/net -I$(TOSDIR)/lib/net/collection
 
-TFLAGS =  -I$(TOSDIR)/../apps/tests/TestDissemination \
+TFLAGS +=  -I$(TOSDIR)/../apps/tests/TestDissemination \
           -I$(TOSDIR)/../support/sdk/c \
 	  -I$(TOSDIR)/types \
           -I.
@@ -11,17 +11,20 @@ BUILD_EXTRA_DEPS += tn-injector #tn-listener
 LISTEN_OBJS = collection_msg.o test_network_msg.o tn-listener.o $(LIBMOTE)
 INJECT_OBJS = set_rate_msg.o tn-injector.o $(LIBMOTE)
 
+%.o: %.c
+	gcc -v  $(TFLAGS) $(CFLAGS) -c -o $@ $<
+
 tn-listener: $(LISTEN_OBJS)
-	gcc -v $(CFLAGS) $(TFLAGS) -o $@ $(LISTEN_OBJS)
+	gcc -v $(TFLAGS) $(CFLAGS) -o $@ $(LISTEN_OBJS)
 
 tn-injector: $(INJECT_OBJS)
-	gcc -v $(CFLAGS) $(TFLAGS) -o $@ $(INJECT_OBJS)
+	gcc -v $(TFLAGS) $(CFLAGS) -o $@ $(INJECT_OBJS)
 
 tn-listener.o: tn-listener.c
-	gcc $(CFLAGS) $(TFLAGS) -c -o $@ $<
+	gcc $(TFLAGS) $(CFLAGS) -c -o $@ $<
 
 tn-injector.o: tn-injector.c test_network_msg.c
-	gcc $(CFLAGS) $(TFLAGS) -c -o $@ $<
+	gcc $(TFLAGS) $(CFLAGS) -c -o $@ $<
 
 test_network_msg.c:
 	mig -o test_network_msg.h c -target=$(PLATFORM) $(CFLAGS) $(TFLAGS) TestNetwork.h TestNetworkMsg 
