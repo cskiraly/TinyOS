@@ -73,7 +73,7 @@ implementation
 {
 #define CSMA_ACK 100
 #define BYTE_TIME 17
-#define MACM_DEBUG                    // debug...
+// #define MACM_DEBUG                    // debug...
 #define MAX_LONG_RETRY 3              // Missing acks, or short retry limit hits -> increase long retry 
 #define MAX_SHORT_RETRY 5             // busy channel -> increase short retry
 #define DIFS 165                      // 5ms to get an ACK started
@@ -103,7 +103,8 @@ implementation
     typedef enum {
         RSSI_STABLE = 1,
         BUSY_DETECTED_VIA_RSSI = 2,
-        CHECK_RX_LIVENESS = 4
+        CHECK_RX_LIVENESS = 4,
+        DIFS_TIMER_FIRED = 8
     } flags_t;
 
     /* Packet vars */
@@ -182,11 +183,10 @@ implementation
 
     void signalMacState() {
 #ifdef MACM_DEBUG
-/*        (macState & 1) ? call Led0.set() : call Led0.clr();
-        (macState & 2) ? call Led1.set() : call Led1.clr();
-        (macState & 4) ? call Led2.set() : call Led2.clr();
-        (macState & 8) ? call Led3.set() : call Led3.clr();
-*/
+//         (macState & 1) ? call Led0.set() : call Led0.clr();
+//         (macState & 2) ? call Led1.set() : call Led1.clr();
+//         (macState & 4) ? call Led2.set() : call Led2.clr();
+//         (macState & 8) ? call Led3.set() : call Led3.clr();
 #endif
     }
     
@@ -264,7 +264,8 @@ implementation
     void checkSend() {
         if((txBufPtr != NULL) && (macState == RX) && (!call Timer.isRunning())) {
             clearFlag(&flags, CHECK_RX_LIVENESS);
-            if(!call UartPhyControl.isBusy()) {
+            clearFlag(&flags, DIFS_TIMER_FIRED);
+            /*           if(!call UartPhyControl.isBusy()) { */
                 if(isFlagSet(&flags, RSSI_STABLE)) {
                     macState = CCA;
                     signalMacState();
@@ -276,14 +277,15 @@ implementation
                     signalMacState();
                     storeOldState(131);
                 }
-            }
+ /*           }
             else {
                 storeOldState(132);
                 updateRetryCounters();
                 setFlag(&flags, CHECK_RX_LIVENESS);
                 call Timer.start(backoff());
             }
-        }
+                */
+      }
     }
     
     bool needsAck(message_t* msg) {
@@ -556,12 +558,13 @@ implementation
         if(macState == RX) {
             storeOldState(90);
             if(isFlagSet(&flags, CHECK_RX_LIVENESS)) {
-                if(call UartPhyControl.isBusy()) {
+                /* if(call UartPhyControl.isBusy()) {
                     call Timer.start(CHECK_RX_LIVENESS_INTERVALL);
                 }
                 else {
+                */
                     call ChannelMonitor.start();
-                }
+                    /*} */
             } else {
                 checkSend();
             }
@@ -575,9 +578,8 @@ implementation
         }
         else if(macState == CCA) {
             storeOldState(92);
-            macState = SW_TX;
-            signalMacState();
-            setTxMode();
+            setFlag(&flags, DIFS_TIMER_FIRED);
+            call ChannelMonitor.start();
         }
         else {
             storeOldState(93);
@@ -614,6 +616,15 @@ implementation
                 storeOldState(111);
                 clearFlag(&flags, CHECK_RX_LIVENESS);
                 call Timer.start(backoff());
+        }
+        else if(macState == CCA) {
+          if(isFlagSet(&flags, DIFS_TIMER_FIRED)) {    
+            clearFlag(&flags, DIFS_TIMER_FIRED);
+            storeOldState(112);
+            macState = SW_TX;
+            signalMacState();
+            setTxMode();
+          }
         }
     }
 

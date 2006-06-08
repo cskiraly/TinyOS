@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-06-07 19:54:53 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-06-08 15:31:05 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
  * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
@@ -56,7 +56,9 @@ module RssiFixedThresholdCMP {
     }
 }
 implementation
-{    /* Measure internal voltage every 5s */
+{    
+//#define CM_DEBUG                    // debug...
+    /* Measure internal voltage every 5s */
 #define VOLTAGE_SAMPLE_INTERVALL 5000
 
     /* 
@@ -137,6 +139,19 @@ implementation
     error_t ccaCheckValue();
 
     /***************** Helper function *************/
+#ifdef CM_DEBUG
+    void signalFailure() {
+      atomic {
+        for(;;) {
+          ;
+        }
+      }
+    }
+#else
+    inline void signalFailure() {
+    };
+#endif
+
     int16_t computeSNR() {
         uint32_t delta;
         uint16_t snr;
@@ -151,13 +166,6 @@ implementation
             snr = 0;
         }
         return snr;
-    }
-    void signalFailure() {
-      atomic {
-        for(;;) {
-          ;
-        }
-      }
     }
     /**************** Init *******************/
     command error_t Init.init() {
@@ -188,7 +196,7 @@ implementation
     void rssiRead() {
         // if(call Rssi.read() != SUCCESS) post RssiReadTask();
         if(call Rssi.read() != SUCCESS) signalFailure();
-        // call Led3.clr();
+        // call Led3.set();
     }
 
     task void RssiReadTask() {
@@ -202,7 +210,7 @@ implementation
     
      event void Rssi.readDone(error_t result, uint16_t data) {
         if(result == SUCCESS) {
-            // call Led3.set();
+            // call Led3.clr();
             // call RssiAdcResource.release();
             rssi = data;
             atomic {

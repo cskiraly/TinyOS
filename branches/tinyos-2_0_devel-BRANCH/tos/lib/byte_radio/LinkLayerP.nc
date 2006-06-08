@@ -79,7 +79,7 @@ implementation
     
   /* state vars */
   error_t splitStateError;    // state of SplitControl interfaces
-  bool recvBlock;             // blocks an incoming packet if the rxBuffer is in use
+  bool rxBusy;                // blocks an incoming packet if the rxBuffer is in use
     
 // #define LLCM_DEBUG  
     /**************** Helper functions ******/
@@ -100,7 +100,7 @@ implementation
           txBufPtr = 0;
           seqNo = 0;
           splitStateError = EOFF;
-          recvBlock = FALSE;
+          rxBusy = FALSE;
         }
         return SUCCESS;
     }
@@ -218,17 +218,17 @@ implementation
       tmpMsgPtr = signal Receive.receive(tmpMsgPtr, payload , len);
       atomic {
         rxBufPtr = tmpMsgPtr;
-        recvBlock = FALSE;
+        rxBusy = FALSE;
       }
     }
     
     async event message_t* ReceiveLower.receiveDone(message_t* msg) {
       message_t* msgPtr;
       atomic {
-        if (recvBlock) {
+        if (rxBusy) {
           msgPtr = msg;
         } else {
-          recvBlock = TRUE;
+          rxBusy = TRUE;
           msgPtr = rxBufPtr;
           rxBufPtr = msg;
           post ReceiveTask();

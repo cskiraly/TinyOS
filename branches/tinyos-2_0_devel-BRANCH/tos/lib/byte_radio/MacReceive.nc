@@ -31,7 +31,7 @@
  * This interface is similar to the Receive interface.
  *   
  * The interface provides two events in async context which indicate that
- * a packet is detected or was received.
+ * a packet is detected or was received. Is provided by the MAC layer.
  *
  * @author Philipp Huppertz
  */ 
@@ -42,8 +42,22 @@
 
 interface MacReceive {
 
-  /**
-   FIXME: Fill in description here
+   /**
+   * Receive a packet buffer, returning a buffer for the signaling
+   * component to use for the next reception. The return value
+   * can be the same as <tt>msg</tt>, as long as the handling
+   * component copies out the data it needs.
+   *
+   * <b>Note</b> that misuse of this interface is one of the most
+   * common bugs in TinyOS code. For example, if a component both calls a
+   * send on the passed message and returns it, then it is possible
+   * the buffer will be reused before the send occurs, overwriting
+   * the component's data. This would cause the mote to possibly
+   * instead send a packet it most recently received.
+   *
+   * @param  msg      the receied packet
+   * @return          a packet buffer for the stack to use for the next
+   *                  received packet.
    */
   async event message_t* receiveDone(message_t* msg);
   
