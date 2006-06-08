@@ -31,7 +31,8 @@
 /** 
   * The basic address-free message sending interface in asnyc context. 
   *
-  * This interface provides similar functionality as the Send interface. 
+  * This interface provides similar functionality as the Send interface
+  * but is provided by the MAC layer. 
   *
   * @author Philipp Huppertz
   * @date   March 21 2006
@@ -66,8 +67,17 @@ interface MacSend {
   async command error_t send(message_t* msg, uint8_t len);
   
   /**
-   FIXME: comments here
-   */
+  * Cancel a requested transmission. Returns SUCCESS if the 
+  * transmission was cancelled properly (not sent in its
+  * entirety). Note that the component may not know
+  * if the send was successfully cancelled, if the radio is
+  * handling much of the logic; in this case, a component
+  * should be conservative and return an appropriate error code.
+  *
+  * @param   msg    the packet whose transmission should be cancelled
+  * @return         SUCCESS if the packet was successfully cancelled, FAIL
+  *                 otherwise
+  */
   async command error_t cancel(message_t* msg);
 
   /** 

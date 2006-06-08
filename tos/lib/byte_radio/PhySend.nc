@@ -31,7 +31,8 @@
 /** 
   * The basic address-free message sending interface in asnyc context. 
   *
-  * This interface provides similar functionality as the Send interface. 
+  * This interface provides similar functionality as the Send interface
+  * but is provided by the Phy Layer.
   *
   * @author Philipp Huppertz
   * @date   March 21 2006

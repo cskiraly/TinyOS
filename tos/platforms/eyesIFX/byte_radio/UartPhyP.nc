@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-06-07 19:54:53 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-06-08 15:31:05 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
  * ========================================================================
@@ -55,6 +55,8 @@ module UartPhyP {
     uses {
         interface RadioByteComm;
         interface Alarm<T32khz, uint16_t> as RxByteTimer;
+//         interface GeneralIO as Led0;
+//         interface GeneralIO as Led1;
     }
 }
 implementation
@@ -89,6 +91,7 @@ implementation
     void TransmitNextByte();
     void ReceiveNextByte(uint8_t data);
 
+    
     /* Radio Init */
     command error_t Init.init(){
         atomic {
@@ -144,8 +147,7 @@ implementation
     }
     
     async event void RxByteTimer.fired() {
-        // no bytes have arrived, so...
-        resetState();
+            resetState();
     }
 
     async command void PhyPacketTx.sendHeader() {
@@ -158,8 +160,8 @@ implementation
 
     async command void SerializerRadioByteComm.txByte(uint8_t data) {
         bufByte = data;
-        call RadioByteComm.txByte(manchesterEncodeNibble((bufByte & 0xf0) >> 4));
         phyState = STATE_DATA_LOW;
+        call RadioByteComm.txByte(manchesterEncodeNibble((bufByte & 0xf0) >> 4));
     }
 
     async command bool SerializerRadioByteComm.isTxDone() {
@@ -223,9 +225,9 @@ implementation
                     signal SerializerRadioByteComm.txByteReady(SUCCESS);
                     break;
                 case STATE_DATA_LOW:
-                    call RadioByteComm.txByte(manchesterEncodeNibble(bufByte & 0x0f));
-                    phyState = STATE_DATA_HIGH;                    
-                    break;
+                  phyState = STATE_DATA_HIGH;                      
+                  call RadioByteComm.txByte(manchesterEncodeNibble(bufByte & 0x0f));
+                  break;  
                 case STATE_FOOTER_START:
                     // maybe there will be a time.... we will need this.
                     // phyState = STATE_FOOTER_DONE;
@@ -254,7 +256,7 @@ implementation
                 case STATE_SYNC:
                     if(data != PREAMBLE_BYTE) {
                         if (data == SFD_BYTE) {
-                            signal PhyPacketRx.recvHeaderDone(SUCCESS);
+                           signal PhyPacketRx.recvHeaderDone(SUCCESS);
                             phyState = STATE_DATA_HIGH;
                         } else {
                             phyState = STATE_SFD;
@@ -287,10 +289,10 @@ implementation
                     decodedByte = manchesterDecodeByte(data);
                     if(decodedByte != 0xff) {
                         bufByte |= decodedByte;
-                        signal SerializerRadioByteComm.rxByteReady(bufByte);   
                         phyState = STATE_DATA_HIGH;
+                        signal SerializerRadioByteComm.rxByteReady(bufByte);   
                     } else {
-                        resetState();
+                      resetState();
                     }
                     break;
                     // maybe there will be a time.... we will need this. but for now there is no footer
