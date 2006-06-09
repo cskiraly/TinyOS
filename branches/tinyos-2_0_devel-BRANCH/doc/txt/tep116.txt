@@ -10,8 +10,8 @@ Packet Protocols
 :Author: Philip Levis
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.5 $
-:Draft-Modified: $Date: 2006-01-19 00:40:37 $
+:Draft-Version: $Revision: 1.1.2.6 $
+:Draft-Modified: $Date: 2006-06-09 18:45:59 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -82,7 +82,7 @@ to data link layers that have a field with that name. Similarly,
 components on top of GenericComm directly access the data payload
 of a packet.
 
-TEP 111 documents the structure of a TinyOS 2.x packet buffer[_tep111].
+TEP 111 documents the structure of a TinyOS 2.x packet buffer [1]_.
 This TEP documents the interfaces used to access packet buffers,
 as well as ActiveMessageC, the basic data-link packet communication
 HIL.
@@ -208,7 +208,7 @@ layer have, the data payload. Communication layers can add additional
 header and footer fields, and may need to provide access to these
 fields. If a packet communication component provides access to header
 and/or footer fields, it MUST do so through an interface. The interface 
-SHOULD have a name of the form *X*Packet, where *X* is a name that
+SHOULD have a name of the form *XPacket*, where *X* is a name that
 describes the communication layer. For example, active message components
 provide both the Packet interface and the AMPacket interface. The latter
 has this signature::
@@ -485,12 +485,17 @@ but it MUST be fair queueing.
 --------------------------------------------------------------------
 
 The communication virtualizations do not support power management.
-That is left to components interacting directly with ActiveMessageC.
+ActiveMessageC provides SplitControl for explicit power control.
+For packet communication to operate properly, a component in an 
+application has to call ActiveMessageC.SplitControl.start().
+The HAL underneath ActiveMessageC  MAY employ power management 
+techniques, such as TDMA scheduling or low power listening, when
+"on."
 
 5. HAL Requirements
 ====================================================================
 
-A radio chip **X** MUST have a packet abstraction with the following
+A radio chip *X* MUST have a packet abstraction with the following
 signature::
 
   provides interface Init;
@@ -503,7 +508,7 @@ signature::
   provides interface PacketAcknowledgments;
 
 
-The component SHOULD be named **X**ActiveMessageC, where **X** is 
+The component SHOULD be named *XActiveMessageC*, where *X* is 
 the name of the radio chip. The component MAY have additional interfaces. 
 These interfaces can either be chip-specific or chip-independent. 
 
@@ -511,11 +516,11 @@ These interfaces can either be chip-specific or chip-independent.
 ====================================================================
 
 Active messages are a basic single-hop packet abstraction. Therefore,
-following TEP 111[_tep111], all data link and active message headers
-MUST be in the ``radio_header_t`` structure of message_t. This ensures
+following TEP 111 [1]_, all data link and active message headers
+MUST be in the ``message_header_t`` structure of message_t. This ensures
 that an active message received from one data link layer (e.g., the radio)
 can be passed to another data link layer (e.g., the UART) without
-shifting the data payload. This means that the ``radio_header_t`` must
+shifting the data payload. This means that the ``message_header_t`` must
 include all data needed for AM fields, which might introduce headers
 in addition to those of the data link. For example, this is the 
 structure of the CC2420 header::
@@ -550,6 +555,6 @@ to support AM dispatch.
 7. Citations
 ====================================================================
 
-.. [tep111] TEP 111: message_t.
+.. [1] TEP 111: message_t.
 
  
