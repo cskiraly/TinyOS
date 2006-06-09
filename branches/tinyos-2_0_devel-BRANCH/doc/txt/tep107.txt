@@ -10,8 +10,8 @@ TinyOS 2.x Boot Sequence
 :Author: Philip Levis 
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.7 $
-:Draft-Modified: $Date: 2006-05-22 17:10:36 $
+:Draft-Version: $Revision: 1.1.2.8 $
+:Draft-Modified: $Date: 2006-06-09 16:51:45 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -50,32 +50,32 @@ boot sequence and reasons for its semantics.
 The TinyOS 1.x boot sequence is uniform across most mote platforms
 (TOSSIM has a very different boot sequence, as it is a PC
 program). The module RealMain implements main(), and has the following
-signature:
+signature::
 
-|  ``module RealMain {``
-|    ``uses {``
-|      ``command result_t hardwareInit();``
-|      ``interface StdControl;``
-|      ``interface Pot;``
-|    ``}``
-|  ``}``
+  module RealMain {
+    uses {
+      command result_t hardwareInit();
+      interface StdControl;
+      interface Pot;
+    }
+  }
 
 
-The mote main() function uses a mix of nesC and C:
+The mote main() function uses a mix of nesC and C::
 
-|  ``int main() __attribute__ ((C, spontaneous)) {``
-|    ``call hardwareInit();``
-|    ``call Pot.init(10);``
-|    ``TOSH_sched_init();``
-|    ``     ``
-|    ``call StdControl.init();``
-|    ``call StdControl.start();``
-|    ``__nesc_enable_interrupt();``
-|    `` ``
-|    ``while(1) {``
-|      ``TOSH_run_task();``
-|    ``}``
-|  ``}``
+  int main() __attribute__ ((C, spontaneous)) {
+    call hardwareInit();
+    call Pot.init(10);
+    TOSH_sched_init();
+         
+    call StdControl.init();
+    call StdControl.start();
+    __nesc_enable_interrupt();
+     
+    while(1) {
+      TOSH_run_task();
+    }
+  }
 
 
 Several problems exist. Some of these calls are artifacts of old
@@ -114,11 +114,11 @@ The TinyOS 2.x boot sequence uses three interfaces:
   * Scheduler, for initializing and running tasks
   * Boot, for signalling that the system has successfully booted
 
-The Init interface has a single command, init():
+The Init interface has a single command, init()::
 
-|  ``interface Init {``
-|    ``command error_t init();``
-|  ``}``
+  interface Init {
+    command error_t init();
+  }
 
 Init provides a synchronous interface, enabling initialization
 ordering. Unlike normal execution, in which operations from a wide
@@ -134,11 +134,11 @@ The Scheduler interface is for initializing and controlling task
 execution. It is detailed in TEP 106[tep106].
 
 The Boot interface has a single event, booted(), which the boot
-sequence signals when it has completed.
+sequence signals when it has completed::
 
-|  ``interface Boot {``
-|    ``event void booted();``
-|  ``}``
+  interface Boot {
+    event void booted();
+  }
 
 
 4. TinyOS 2.x Boot Sequence
@@ -148,48 +148,48 @@ The module RealMainP implements the standard TinyOS 2.x boot sequence.
 The configuration MainC wires some of RealMainP's interfaces to
 components that implement standard abstractions and exports the others
 that are application specific. Code above the Hardware Independent
-Layer (TEP 2) SHOULD wire to MainC and not RealMainP.
+Layer (TEP 2) SHOULD wire to MainC and not RealMainP::
 
  
-|  ``module RealMainP {``
-|    ``provides interface Booted;``
-|    ``uses {``
-|      ``interface Scheduler;``
-|      ``interface Init as PlatformInit;``
-|      ``interface Init as SoftwareInit;``
-|    ``}``
-|  ``}``
-|  ``implementation {``
-|    ``int main() __attribute__ ((C, spontaneous)) {``
-|      ``atomic {``
-|        ``call Scheduler.init();``
-|        ``call PlatformInit.init();``
-|        ``while (call Scheduler.runNextTask());``
-|        ``call SoftwareInit.init();``
-|        ``while (call Scheduler.runNextTask());``
-|      ``}``
-|      ``__nesc_enable_interrupt();``
-|      ``signal Boot.booted();``
-|      ``call Scheduler.taskLoop();``
-|      ``return -1;``
-|    ``}``
-|    ``default command error_t PlatformInit.init() { return SUCCESS; }``
-|    ``default command error_t SoftwareInit.init() { return SUCCESS; }``
-|    ``default event void Boot.booted() { }``
-|  ``}``
+  module RealMainP {
+    provides interface Booted;
+    uses {
+      interface Scheduler;
+      interface Init as PlatformInit;
+      interface Init as SoftwareInit;
+    }
+  }
+  implementation {
+    int main() __attribute__ ((C, spontaneous)) {
+      atomic {
+        call Scheduler.init();
+        call PlatformInit.init();
+        while (call Scheduler.runNextTask());
+        call SoftwareInit.init();
+        while (call Scheduler.runNextTask());
+      }
+      __nesc_enable_interrupt();
+      signal Boot.booted();
+      call Scheduler.taskLoop();
+      return -1;
+    }
+    default command error_t PlatformInit.init() { return SUCCESS; }
+    default command error_t SoftwareInit.init() { return SUCCESS; }
+    default event void Boot.booted() { }
+  }
 
 4.1 Initialization
 --------------------------------------------------------------------
 
-The first step in the boot sequence is initializing the system:
+The first step in the boot sequence is initializing the system::
 
-|      ``atomic {``
-|        ``call Scheduler.init();``
-|        ``call PlatformInit.init();``
-|        ``while (call Scheduler.runNextTask());``
-|        ``call SoftwareInit.init();``
-|        ``while (call Scheduler.runNextTask());``
-|      ``}``
+  atomic {
+    call Scheduler.init();
+    call PlatformInit.init();
+    while (call Scheduler.runNextTask());
+    call SoftwareInit.init();
+    while (call Scheduler.runNextTask());
+  }
 
 
 The boot sequence has three separate initializations: Scheduler,
