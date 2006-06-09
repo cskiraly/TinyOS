@@ -10,8 +10,8 @@ message_t
 :Author: Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.9 $
-:Draft-Modified: $Date: 2006-06-01 19:31:39 $
+:Draft-Version: $Revision: 1.1.2.10 $
+:Draft-Modified: $Date: 2006-06-09 17:57:45 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -31,26 +31,26 @@ It describes the message buffer design considerations, how and where
 1. Introduction
 ====================================================================
 
-In TinyOS 1.x, a message buffer is a TOS_Msg. A buffer contains an
+In TinyOS 1.x, a message buffer is a ``TOS_Msg``. A buffer contains an
 active message (AM) packet as well as packet metadata, such as timestamps,
 acknowledgement bits, and signal strength if the packet was received.
-TOS_Msg is a fixed size structure whose size is defined by the maximum
+``TOS_Msg`` is a fixed size structure whose size is defined by the maximum
 AM payload length (the default is 29 bytes). Fixed sized buffers allows
 TinyOS 1.x to have zero-copy semantics: when a component receives a
 buffer, rather than copy out the contents it can return a pointer
 to a new buffer for the underlying layer to use for the next received 
 packet.
 
-One issue that arises is what defines the TOS_Msg structure, as different
+One issue that arises is what defines the ``TOS_Msg`` structure, as different
 link layers may require different layouts. For example, 802.15.4 radio 
 hardware (such as the CC2420, used in the Telos and micaZ platforms) 
 may require 802.15.4 headers, while a software stack built on top of
 byte radios (such as the CC1000, used in the mica2 platform) can specify 
-its own packet format. This means that TOS_Msg may be different on
+its own packet format. This means that ``TOS_Msg`` may be different on
 different platforms.
 
 The solution to this problem in TinyOS 1.x is for there to be a standard
-definition of TOS_Msg, which a platform (e.g., the micaZ) can
+definition of ``TOS_Msg``, which a platform (e.g., the micaZ) can
 redefine to match its radio. For example, a mica2 mote uses the standard 
 definition, which is::
 
@@ -75,7 +75,7 @@ definition, which is::
     uint8_t receiveSecurityMode;
   } TOS_Msg;
 
-while on a mote with a CC420 radio (e.g., micaZ), TOS_Msg is defined as::
+while on a mote with a CC420 radio (e.g., micaZ), ``TOS_Msg`` is defined as::
 
   typedef struct TOS_Msg {
     // The following fields are transmitted/received on the radio.
@@ -107,7 +107,7 @@ the link layer fields leads components to directly access the packet
 structure. This introduces dependencies between higher level components
 and the structure layout. For example, many network services built on
 top of data link layers care whether sent packets are acknowledged. They
-therefore check the ``ack`` field of TOS_Msg. If a link layer does not 
+therefore check the ``ack`` field of ``TOS_Msg``. If a link layer does not 
 provide acknowledgements, it must still include the ``ack`` field
 and always set it to 0, wasting a byte of RAM per buffer.
 
@@ -115,7 +115,7 @@ Second, this model does not easily support multiple data link layers.
 Radio chip implementations assume that the fields they require are 
 defined in the structure and directly access them. If a platform
 has two different link layers (e.g., a CC1000 *and* a CC2420 radio),
-then a TOS_Msg needs to allocate the right amount of space for both
+then a ``TOS_Msg`` needs to allocate the right amount of space for both
 of their headers while allowing implementations to directly access
 header fields. This is very difficult to do in C.
 
@@ -124,7 +124,7 @@ components refer to this field, so it must be at a fixed offset.
 Depending on the underlying link layer, the header fields 
 preceding it might have different lengths, and packet-level radios
 often require packets to be contiguous memory regions. Overall, these 
-complexities make specifying the format of TOS_Msg very difficult.
+complexities make specifying the format of ``TOS_Msg`` very difficult.
 
 2. message_t
 ====================================================================
@@ -186,7 +186,7 @@ multiple link layers, and so only it can resolve which structures are
 needed. These definitions MUST be in a file in a platform directory
 named ``platform_message.h``. The mica2 platform, for example, has
 two data link layers: the CC1000 radio and the TinyOS serial
-stack (TEP 113). The serial packet format does not have a footer
+stack [1]_. The serial packet format does not have a footer
 or metadata section. The ``platform_message.h`` of the mica2
 looks like this::
 
@@ -247,7 +247,7 @@ component would directly access ``TOS_Msg.addr``; in TinyOS 2.x,
 a component calls ``AMPacket.getAddress(msg)``.
 The most basic of these interfaces is Packet, which provides
 access to a packet payload. TEP 116 describes common TinyOS 
-packet ADT interfaces. 
+packet ADT interfaces [2]_. 
 
 Link layer components MAY access packet fields differently than other 
 components, as they are aware of the actual packet format. They can
@@ -276,7 +276,7 @@ data payload, and so six padding bytes precede it. This figure
 shows the layout of message_t, a 12-byte CC2420 packet, and
 a 12-byte serial packet on the Telos platform::
 
-              11 bytes         TOSH_DATA_LENGTH           7 bytes
+              11 bytes         TOSH_DATA_LENGTH        7 bytes
             +-----------+-----------------------------+-------+
   message_t |  header   |          data               | meta  |
             +-----------+-----------------------------+-------+
@@ -393,6 +393,8 @@ the CC2420 metadata structure::
 5. Citations
 ====================================================================
 
-.. [tep113] TEP 113: Serial Communication.
-.. [tep116] TEP 116: Packet Protocols.
+.. [1] TEP 113: Serial Communication.
+
+.. [2] TEP 116: Packet Protocols.
+
 
