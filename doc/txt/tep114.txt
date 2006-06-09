@@ -10,8 +10,8 @@ SIDs: Source and Sink Independent Drivers
 :Author: Gilman Tolle, Philip Levis, and David Gay
 
 :Draft-Created: 30-Oct-2005
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2006-01-10 01:46:57 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-06-09 18:01:15 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -380,5 +380,14 @@ connect a sensor into a more general system.
 |
 | phone - +1 650 725 9046
 | email - pal@cs.stanford.edu
-
+|
+|
+| David Gay
+| 2150 Shattuck Ave, Suite 1300
+| Intel Research
+| Berkeley, CA 94704
+|
+| phone - +1 510 495 3055
+| email - david.e.gay@intel.com
+|
 
