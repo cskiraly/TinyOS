@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-06-08 15:31:05 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-06-09 12:02:01 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
  * ========================================================================
@@ -55,8 +55,6 @@ module UartPhyP {
     uses {
         interface RadioByteComm;
         interface Alarm<T32khz, uint16_t> as RxByteTimer;
-//         interface GeneralIO as Led0;
-//         interface GeneralIO as Led1;
     }
 }
 implementation
@@ -91,7 +89,6 @@ implementation
     void TransmitNextByte();
     void ReceiveNextByte(uint8_t data);
 
-    
     /* Radio Init */
     command error_t Init.init(){
         atomic {
@@ -123,7 +120,7 @@ implementation
     }
     
     async command bool UartPhyControl.isBusy() {
-        return call RxByteTimer.isRunning();
+        return phyState != STATE_PREAMBLE;
     }
     
     void resetState() {
@@ -147,7 +144,8 @@ implementation
     }
     
     async event void RxByteTimer.fired() {
-            resetState();
+        // no bytes have arrived, so...
+        resetState();
     }
 
     async command void PhyPacketTx.sendHeader() {
@@ -160,8 +158,8 @@ implementation
 
     async command void SerializerRadioByteComm.txByte(uint8_t data) {
         bufByte = data;
-        phyState = STATE_DATA_LOW;
         call RadioByteComm.txByte(manchesterEncodeNibble((bufByte & 0xf0) >> 4));
+        phyState = STATE_DATA_LOW;
     }
 
     async command bool SerializerRadioByteComm.isTxDone() {
@@ -225,13 +223,20 @@ implementation
                     signal SerializerRadioByteComm.txByteReady(SUCCESS);
                     break;
                 case STATE_DATA_LOW:
-                  phyState = STATE_DATA_HIGH;                      
-                  call RadioByteComm.txByte(manchesterEncodeNibble(bufByte & 0x0f));
-                  break;  
+                    call RadioByteComm.txByte(manchesterEncodeNibble(bufByte & 0x0f));
+                    phyState = STATE_DATA_HIGH;                    
+                    break;
                 case STATE_FOOTER_START:
-                    // maybe there will be a time.... we will need this.
-                    // phyState = STATE_FOOTER_DONE;
-                    // break;
+                    /* Pseudo-Footer: the MSP430 has two buffers: one for
+                     * transmit, one to store the next byte to be transmitted,
+                     * this footer fills the next-to-transmit buffer, to make
+                     * sure that the last real byte is actually
+                     * transmitted. The byte stored by this call may not be
+                     * transmitted fully or not at all. 
+                     */
+                    phyState = STATE_FOOTER_DONE;
+                    call RadioByteComm.txByte(manchesterEncodeNibble(bufByte & 0x0f));
+                    break;
                 case STATE_FOOTER_DONE:
                     phyState = STATE_PREAMBLE;
                     signal PhyPacketTx.sendFooterDone();
@@ -256,7 +261,7 @@ implementation
                 case STATE_SYNC:
                     if(data != PREAMBLE_BYTE) {
                         if (data == SFD_BYTE) {
-                           signal PhyPacketRx.recvHeaderDone(SUCCESS);
+                            signal PhyPacketRx.recvHeaderDone(SUCCESS);
                             phyState = STATE_DATA_HIGH;
                         } else {
                             phyState = STATE_SFD;
@@ -289,10 +294,10 @@ implementation
                     decodedByte = manchesterDecodeByte(data);
                     if(decodedByte != 0xff) {
                         bufByte |= decodedByte;
-                        phyState = STATE_DATA_HIGH;
                         signal SerializerRadioByteComm.rxByteReady(bufByte);   
+                        phyState = STATE_DATA_HIGH;
                     } else {
-                      resetState();
+                        resetState();
                     }
                     break;
                     // maybe there will be a time.... we will need this. but for now there is no footer
