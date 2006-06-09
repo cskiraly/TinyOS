@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>Collection</title>
 <meta name="author" content="Rodrigo Fonseca, Omprakash Gnawali, and Kyle Jamieson" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-05-18 23:07:25 $
-:version: $Revision: 1.1.2.1 $
+:date: $Date: 2006-06-09 21:12:17 $
+:version: $Revision: 1.1.2.2 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -216,7 +216,11 @@ pre.line-block {
 pre.literal-block, pre.doctest-block {
   margin-left: 2em ;
   margin-right: 2em ;
-  background-color: #eeeeee }
+  background-color: #eeeeee;
+  border-color: #000000;
+  border-width: thin; 
+  font-size: 14px
+}
 
 span.classifier {
   font-family: sans-serif ;
@@ -271,8 +275,7 @@ th.docinfo-name, th.field-name {
 h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
   font-size: 100% }
 
-tt {
-  background-color: #eeeeee }
+tt {}
 
 ul.auto-toc {
   list-style-type: none }
@@ -311,14 +314,14 @@ requests discussion and suggestions for improvements.  Distribution
 of this memo is unlimited. This memo is in full compliance with
 TEP 1.</p>
 </div>
-<div class="section" id="abstract">
-<h1><a name="abstract">Abstract</a></h1>
+<div class="section">
+<h1><a id="abstract" name="abstract">Abstract</a></h1>
 <p>The memo documents the interfaces, components, and semantics used by
 collection protocol in TinyOS 2.x. Collection provides a best-effort,
 multihop delivery of packets to the root of a specified tree.</p>
 </div>
-<div class="section" id="introduction">
-<h1><a name="introduction">1. Introduction</a></h1>
+<div class="section">
+<h1><a id="introduction" name="introduction">1. Introduction</a></h1>
 <p>One of the most common functions that a sensor network performs is
 collection of data from the network to a base station. Upon generating
 data, either by sensing or other means, a node uses the collection
@@ -353,8 +356,8 @@ these services can be built.</p>
 <p>The rest of this document describes a set of components and interfaces
 for a collection service outlined above.</p>
 </div>
-<div class="section" id="collection-interfaces">
-<h1><a name="collection-interfaces">2. Collection interfaces</a></h1>
+<div class="section">
+<h1><a id="collection-interfaces" name="collection-interfaces">2. Collection interfaces</a></h1>
 <p>A node can perform four different roles in collection: producer,
 consumer, snooper, and in-network processor. Depending on their role,
 the nodes use different interfaces to interact with the collection
@@ -392,8 +395,8 @@ command bool isRoot();</dd>
 Definition list ends without a blank line; unexpected unindent.</div>
 <p>}</p>
 </div>
-<div class="section" id="collection-service">
-<h1><a name="collection-service">3 Collection Service</a></h1>
+<div class="section">
+<h1><a id="collection-service" name="collection-service">3 Collection Service</a></h1>
 <p>A collection service MUST provide one component, CollectionC,
 which has the following signature:</p>
 <div class="system-message">
@@ -431,12 +434,12 @@ collection packet matching the tree_id is received.</p>
 collection tree. CollectionC SHOULD NOT configure a node as a root by
 default.</p>
 </div>
-<div class="section" id="collection-components">
-<h1><a name="collection-components">4 Collection Components</a></h1>
+<div class="section">
+<h1><a id="collection-components" name="collection-components">4 Collection Components</a></h1>
 <p>Collection consists of three components: LinkEstimatorP,
 MTreeRoutingTreeP, and ForwardingEngineP.</p>
-<div class="section" id="linkestimatorp">
-<h2><a name="linkestimatorp">4.1 LinkEstimatorP</a></h2>
+<div class="section">
+<h2><a id="linkestimatorp" name="linkestimatorp">4.1 LinkEstimatorP</a></h2>
 <p>LinkEstimatorP estimates the quality of link to or from each
 neighbor. Link estimation can be done in a variety of ways, and we do
 not impose one here. It is decoupled from the establishment of
@@ -489,8 +492,8 @@ Definition list ends without a blank line; unexpected unindent.</div>
 Definition list ends without a blank line; unexpected unindent.</div>
 <p>}</p>
 </div>
-<div class="section" id="mtreeroutingtreep">
-<h2><a name="mtreeroutingtreep">4.2 MTreeRoutingTreeP</a></h2>
+<div class="section">
+<h2><a id="mtreeroutingtreep" name="mtreeroutingtreep">4.2 MTreeRoutingTreeP</a></h2>
 <p>LinkEstimatorP is responsible for computing routes to the roots of a
 tree. It uses NeighborTable and LinkEstimator interfaces to learn
 about the nodes in the neighbor table maintained by LinkEstimatorP and
@@ -511,7 +514,7 @@ interface Routing[uint8_t tree_id];</dd>
 <div class="system-message">
 <p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep119.txt</tt>, line 205)</p>
 Definition list ends without a blank line; unexpected unindent.</div>
-<p>} 
+<p>}
 uses {</p>
 <div class="system-message">
 <p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">txt/tep119.txt</tt>, line 207)</p>
@@ -553,8 +556,8 @@ Definition list ends without a blank line; unexpected unindent.</div>
 Definition list ends without a blank line; unexpected unindent.</div>
 <p>}</p>
 </div>
-<div class="section" id="forwardingenginep">
-<h2><a name="forwardingenginep">4.3 ForwardingEngineP</a></h2>
+<div class="section">
+<h2><a id="forwardingenginep" name="forwardingenginep">4.3 ForwardingEngineP</a></h2>
 <p>ForwardingEngineP component provides all the top level interface
 (except RootControl) which is used by an application to interact with
 CollectionC.</p>
@@ -600,10 +603,10 @@ route convergence, and leverages routing engines that can provide
 multiple next hops towards a given destination.</p>
 </div>
 </div>
-<div class="section" id="author-s-address">
-<h1><a name="author-s-address">5. Author's Address</a></h1>
+<div class="section">
+<h1><a id="author-s-address" name="author-s-address">5. Author's Address</a></h1>
 <div class="line-block">
-<div class="line">Rodrigo Fonseca </div>
+<div class="line">Rodrigo Fonseca</div>
 <div class="line">473 Soda Hall</div>
 <div class="line">Berkeley, CA 94720-1776</div>
 <div class="line"><br /></div>
@@ -612,9 +615,9 @@ multiple next hops towards a given destination.</p>
 <div class="line"><br /></div>
 <div class="line"><br /></div>
 <div class="line">Omprakash Gnawali</div>
-<div class="line">Ronald Tutor Hall (RTH) 418 </div>
+<div class="line">Ronald Tutor Hall (RTH) 418</div>
 <div class="line">3710 S. McClintock Avenue</div>
-<div class="line">Los Angeles, CA 90089 </div>
+<div class="line">Los Angeles, CA 90089</div>
 <div class="line"><br /></div>
 <div class="line">phone - +1 213 821-5627</div>
 <div class="line">email - <a class="reference" href="mailto:gnawali&#64;usc.edu">gnawali&#64;usc.edu</a></div>
@@ -623,13 +626,13 @@ multiple next hops towards a given destination.</p>
 <div class="line">Kyle Jamieson</div>
 <div class="line">The Stata Center</div>
 <div class="line">32 Vassar St.</div>
-<div class="line">Cambridge, MA 02139 </div>
+<div class="line">Cambridge, MA 02139</div>
 <div class="line"><br /></div>
 <div class="line">email - <a class="reference" href="mailto:jamieson&#64;csail.mit.edu">jamieson&#64;csail.mit.edu</a></div>
 </div>
 </div>
-<div class="section" id="citations">
-<h1><a name="citations">6. Citations</a></h1>
+<div class="section">
+<h1><a id="citations" name="citations">6. Citations</a></h1>
 <table class="docutils citation" frame="void" id="tep116" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">

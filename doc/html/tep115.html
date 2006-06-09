@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>Power Management of Non-Virtualised Devices</title>
 <meta name="author" content="Vlado Handziski, Kevin Klues, Jan-Hinrich Hauer, Phil Levis" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-05-18 23:08:14 $
-:version: $Revision: 1.1.2.5 $
+:date: $Date: 2006-06-09 21:12:17 $
+:version: $Revision: 1.1.2.6 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -216,7 +216,11 @@ pre.line-block {
 pre.literal-block, pre.doctest-block {
   margin-left: 2em ;
   margin-right: 2em ;
-  background-color: #eeeeee }
+  background-color: #eeeeee;
+  border-color: #000000;
+  border-width: thin; 
+  font-size: 14px
+}
 
 span.classifier {
   font-family: sans-serif ;
@@ -271,8 +275,7 @@ th.docinfo-name, th.field-name {
 h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
   font-size: 100% }
 
-tt {
-  background-color: #eeeeee }
+tt {}
 
 ul.auto-toc {
   list-style-type: none }
@@ -304,7 +307,7 @@ ul.auto-toc {
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-05-16</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List 
+<tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List
 &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
 </tbody>
@@ -316,13 +319,13 @@ requests discussion and suggestions for improvements.  Distribution
 of this memo is unlimited. This memo is in full compliance with TEP
 1.</p>
 </div>
-<div class="section" id="abstract">
-<h1><a name="abstract">Abstract</a></h1>
+<div class="section">
+<h1><a id="abstract" name="abstract">Abstract</a></h1>
 <p>This memo documents how TinyOS 2.x manages the power state of physical
 (not virtualised) abstractions.</p>
 </div>
-<div class="section" id="introduction">
-<h1><a name="introduction">1. Introduction</a></h1>
+<div class="section">
+<h1><a id="introduction" name="introduction">1. Introduction</a></h1>
 <p>The energy resources on a typical TinyOS platform are limited, so
 every effort should be made to put all devices on a given platform
 into their lowest possible power-consumption states as often as
@@ -377,8 +380,8 @@ models that devices belonging to one of these two classes must adhere
 to: the <em>explicit power management</em> model and the <em>implicit power
 management</em> model.</p>
 </div>
-<div class="section" id="power-management-models">
-<h1><a name="power-management-models">2. Power Management Models</a></h1>
+<div class="section">
+<h1><a id="power-management-models" name="power-management-models">2. Power Management Models</a></h1>
 <p>The <em>explicit power management</em> model provides a means for explicitly
 controlling the power state of a physical device by some higher level
 component.  Whenever this higher level component tells the device to
@@ -420,8 +423,8 @@ be inferred through information provided by the Resource interface
 they provide.  Because of this, no StdControl-like interface needs to
 be provided, and the power management policy can act accordingly
 whenever users request of release the device.</p>
-<div class="section" id="explicit-power-management-using-stdcontrol">
-<h2><a name="explicit-power-management-using-stdcontrol">2.1 Explicit Power Management using StdControl</a></h2>
+<div class="section">
+<h2><a id="explicit-power-management-using-stdcontrol" name="explicit-power-management-using-stdcontrol">2.1 Explicit Power Management using StdControl</a></h2>
 <p>When a devices powerup and powerdown times are negligible, they SHOULD
 provide the StdControl interface as defined below:</p>
 <pre class="literal-block">
@@ -483,8 +486,8 @@ configuration DeviceC {
 }
 </pre>
 </div>
-<div class="section" id="power-management-with-splitcontrol">
-<h2><a name="power-management-with-splitcontrol">2.2 Power Management with SplitControl</a></h2>
+<div class="section">
+<h2><a id="power-management-with-splitcontrol" name="power-management-with-splitcontrol">2.2 Power Management with SplitControl</a></h2>
 <p>When a devices powerup and powerdown times are non-negligible, the
 <em>SplitControl</em> interface MUST be used in place of the <em>StdControl</em>
 interface.  The definition of this interface can be seen below:</p>
@@ -573,8 +576,8 @@ configuration DeviceC {
 }
 </pre>
 </div>
-<div class="section" id="power-management-with-asyncstdcontrol">
-<h2><a name="power-management-with-asyncstdcontrol">2.3 Power Management with AsyncStdControl</a></h2>
+<div class="section">
+<h2><a id="power-management-with-asyncstdcontrol" name="power-management-with-asyncstdcontrol">2.3 Power Management with AsyncStdControl</a></h2>
 <p>The commands and the events of the <em>StdControl</em> and the <em>SplitControl</em>
 interfaces are synchronous and can not be called from within
 asynchronous code (such as interrupt service routines, etc.). For the
@@ -603,7 +606,7 @@ configuration DeviceC {
 
 
 .. Note::
-   
+
 Determining exactly when to use the AsyncStdControl interface
 instead of simply posting a task and using the StdControl interface
 can be tricky.  One must consider the advantages and disadvantages
@@ -619,8 +622,8 @@ is used for low-level hardware resources.
 </pre>
 </div>
 </div>
-<div class="section" id="power-management-policies">
-<h1><a name="power-management-policies">3. Power management policies</a></h1>
+<div class="section">
+<h1><a id="power-management-policies" name="power-management-policies">3. Power management policies</a></h1>
 <p>While the <em>explicit power management</em> model provides the basic means
 for controlling the power state of the device, it is void of any
 <em>policy</em> about who, when, or how the power of the device should be
@@ -659,8 +662,8 @@ offered. For <em>physical and shared</em> resources (defined in <a class="citati
 2.x provides a flexible <em>implicit power management</em> model that is
 tightly coupled with the <em>arbiter</em> concept and uses the basic
 mechanisms offered by the <em>explicit power management</em> scheme.</p>
-<div class="section" id="implicit-power-management-for-physical-and-shared-resources">
-<h2><a name="implicit-power-management-for-physical-and-shared-resources">4. Implicit Power Management for Physical and Shared Resources</a></h2>
+<div class="section">
+<h2><a id="implicit-power-management-for-physical-and-shared-resources" name="implicit-power-management-for-physical-and-shared-resources">4. Implicit Power Management for Physical and Shared Resources</a></h2>
 <p>The <em>physical and shared</em> resource class defined in Section 2.3 of
 [TEP108], provides a well defined component interdependency, where a
 single resource is shared among multiple clients. This relationship
@@ -685,8 +688,8 @@ interface ResourceController {
     async command error_t immediateRequest();
     event void granted();
     async command void release();
-    async event void requested(); 
-    async event void idle(); 
+    async event void requested();
+    async event void idle();
 }
 </pre>
 <p>Acting as a lowest priority client, the <em>Power Manager</em> waits for the
@@ -742,7 +745,7 @@ module MyFlashP {
 }
 implementation {
 ...
-}     
+}
 
 generic module PowerManagerC(uint8_t POWERDOWN_DELAY) {
   provides {
@@ -770,7 +773,7 @@ implementation {
            , MyFlashP;
 
   Init = MyFlashP;
-  Resource = FcfsArbiter; 
+  Resource = FcfsArbiter;
 
   PowerManagerC.ResourceController -&gt; FcfsArbiter;
   PowerManagerC.SplitControl -&gt; MyFlashP;
@@ -797,15 +800,15 @@ the SplitControl interface coming from the FlashP component in order
 to power it up and power it down.</p>
 </div>
 </div>
-<div class="section" id="sample-power-managers-powermanagerc-and-deferredpowermanagerc">
-<h1><a name="sample-power-managers-powermanagerc-and-deferredpowermanagerc">5. Sample Power Managers: PowerManagerC and DeferredPowerManagerC</a></h1>
+<div class="section">
+<h1><a id="sample-power-managers-powermanagerc-and-deferredpowermanagerc" name="sample-power-managers-powermanagerc-and-deferredpowermanagerc">5. Sample Power Managers: PowerManagerC and DeferredPowerManagerC</a></h1>
 <p>TinyOS 2.x currently has two sample power management policies in
 lib/power. Each policy has three implementations: StdControl,
 SplitControl, and AsyncStdControl. The two policies are <em>immediate</em>
 and <em>deferred</em>. T</p>
 </div>
-<div class="section" id="author-s-address">
-<h1><a name="author-s-address">6. Author's Address</a></h1>
+<div class="section">
+<h1><a id="author-s-address" name="author-s-address">6. Author's Address</a></h1>
 <div class="line-block">
 <div class="line">Vlado Handziski</div>
 <div class="line">Sekr FT5</div>
@@ -839,11 +842,11 @@ and <em>deferred</em>. T</p>
 <div class="line">Stanford, CA 94305-9030</div>
 <div class="line"><br /></div>
 <div class="line">phone - +1 650 725 9046</div>
-<div class="line">email - <a class="reference" href="mailto:pal&#64;cs.stanford.edu">pal&#64;cs.stanford.edu</a> </div>
+<div class="line">email - <a class="reference" href="mailto:pal&#64;cs.stanford.edu">pal&#64;cs.stanford.edu</a></div>
 </div>
 </div>
-<div class="section" id="citations">
-<h1><a name="citations">6. Citations</a></h1>
+<div class="section">
+<h1><a id="citations" name="citations">6. Citations</a></h1>
 <table class="docutils citation" frame="void" id="tep2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">

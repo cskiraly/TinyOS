@@ -10,8 +10,8 @@ Packet Protocols
 :Author: Philip Levis
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.6 $
-:Draft-Modified: $Date: 2006-06-09 18:45:59 $
+:Draft-Version: $Revision: 1.1.2.7 $
+:Draft-Modified: $Date: 2006-06-09 21:12:17 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -57,14 +57,14 @@ transmitting and receiving active messages::
   }
 
 This component, while simple, has several issues. First, it has the
-activity() event, which does not have a single caller in the entire
+activity() commmand, which does not have a single caller in the entire
 TinyOS tree. This command requires GenericComm to allocate a 
 timer, wasting CPU cycles and RAM. 
 
 Second, it does not allow a node to receive packets besides
 those destined to it.  Several network
-protocols (e.g., MintRoute, PSFQ, TAG) take advantage of snooping
-on these packets for a variety of improvements in efficiency or
+protocols (e.g., MintRoute [1]_, TAG [2]_) take advantage 
+of snooping on these packets for a variety of improvements in efficiency or
 performance. This has led to the creation of GenericCommPromiscuous,
 whose Receive interface does not distinguish
 between packets received that were addressed to the node and
@@ -82,7 +82,7 @@ to data link layers that have a field with that name. Similarly,
 components on top of GenericComm directly access the data payload
 of a packet.
 
-TEP 111 documents the structure of a TinyOS 2.x packet buffer [1]_.
+TEP 111 documents the structure of a TinyOS 2.x packet buffer [3]_.
 This TEP documents the interfaces used to access packet buffers,
 as well as ActiveMessageC, the basic data-link packet communication
 HIL.
@@ -92,9 +92,9 @@ HIL.
 
 Packet-level communication has three basic classes of interfaces.
 *Packet* interfaces are for accessing message fields and payloads. 
-The *Receive* interface is for handling packet reception events.
-Finally, *Send* interfaces are for transmitting packets, and are
+*Send* interfaces are for transmitting packets, and are
 distinguished by their addressing scheme. 
+Finally, the *Receive* interface is for handling packet reception events.
 
 2.1 Packet interfaces
 --------------------------------------------------------------------
@@ -127,19 +127,21 @@ calling ``getPayload()`` the optional ``len`` argument is for also
 obtaining the size of the data region. A provider of a Packet
 interface MUST check if ``len`` is NULL and ignore it if it is. A
 component can also obtain the size of the data region with a call to
-``payloadLength``. A component can set the payload length with
+``payloadLength``. 
+
+A component can set the payload length with
 ``setPayLoadLength.`` As Send interfaces always include a length
 parameter in their send call, this command is not required for
-sending. Instead, it is a way for queues to be able to store the full
-state of a packet without using additional state.
+sending, and so is never called in common use cases. Instead, 
+it is a way for queues and other packet buffering components
+to store the full state of a packet without requiring additional
+memory allocation.
 
 The distinction between ``payloadLength`` and ``maxPayloadLength``
-comes from whether the packet is being received or sent. In the former
+comes from whether the packet is being received or sent. In the receive
 case, determining the size of the existing data payload is needed;
-in the latter case, the size of the payload last put in the packet
-is usually not as relevant as the size of the payload a component can
-put in it. Setting the payload length of a packet is done with a sending 
-operation, and is outside the scope of the Packet interface.
+in the send case, a component needs to know how much data it can put
+in the packet. 
 
 The Packet interface assumes that headers have a fixed size. 
 It is difficult to return a pointer into the data region when its 
@@ -204,7 +206,7 @@ the compiler generally uses constant folding to generate a
 fixed offset. 
 
 The Packet interface provides access to the one field all packet
-layer have, the data payload. Communication layers can add additional
+layers have, the data payload. Communication layers can add additional
 header and footer fields, and may need to provide access to these
 fields. If a packet communication component provides access to header
 and/or footer fields, it MUST do so through an interface. The interface 
@@ -230,7 +232,46 @@ set in the sending call path (see Section 2.3). The ``setDestination``
 and ``setType`` commands fulfill a similar purpose to
 ``Packet.setLength``.
 
-2.2 Receive interface
+2.2 Sending interfaces
+--------------------------------------------------------------------
+
+There are multiple sending interfaces, corresponding to different
+addressing modes. For example, address-free protocols, such as
+collection routing, provide the basic ``Send`` interface. Active
+message communication has a destination of an AM address, so
+it provides the ``AMSend`` interface.  This, for example, is the 
+basic, address-free Send interface::
+
+  interface Send {
+    command error_t send(message_t* msg, uint8_t len);
+    command error_t cancel(message_t* msg);
+    event void sendDone(message_t* msg, error_t error);  
+
+    command uint8_t maxPayloadLength();
+    command void* getPayload(message_t* msg);
+  }
+
+while this is the AMSend interface::
+
+  interface AMSend {
+    command error_t send(am_addr_t addr, message_t* msg, uint8_t len);
+    command error_t cancel(message_t* msg);
+    event void sendDone(message_t* msg, error_t error);
+
+    command uint8_t maxPayloadLength();
+    command void* getPayload(message_t* msg); 
+  }
+
+Sending interfaces MUST include these four commands and one event.
+The duplication of some of the commands in Packet is solely for ease
+of use: ``maxPayloadLength`` and ``getPayload`` MUST behave
+identically as ``Packet.maxPayloadLength`` and ``Packet.getPayload``,
+with the exception that the latter has no length parameter (it should
+behave as if the length parameter of the ``Packet`` call were
+NULL). Their inclusion is so that components do not have to wire to
+both Packet and the sending interface for basic use cases.
+
+2.3 Receive interface
 --------------------------------------------------------------------
 
 Receive is the interface for receiving packets. It has this signature::
@@ -305,45 +346,6 @@ Because of case 3), a lower layer MUST respect the buffer swap semantics
 and use the pointer returned from ``receive``. The pointer passed as
 a parameter to ``receive`` MUST NOT be touched, used, or stored after
 the signaling of ``receive.``
-
-2.3 Sending interfaces
---------------------------------------------------------------------
-
-There are multiple sending interfaces, corresponding to different
-addressing modes. For example, address-free protocols, such as
-collection routing, provide the basic ``Send`` interface. Active
-message communication has a destination of an AM address, so
-it provides the ``AMSend`` interface.  This, for example, is the 
-basic, address-free Send interface::
-
-  interface Send {
-    command error_t send(message_t* msg, uint8_t len);
-    command error_t cancel(message_t* msg);
-    event void sendDone(message_t* msg, error_t error);  
-
-    command uint8_t maxPayloadLength();
-    command void* getPayload(message_t* msg);
-  }
-
-while this is the AMSend interface::
-
-  interface AMSend {
-    command error_t send(am_addr_t addr, message_t* msg, uint8_t len);
-    command error_t cancel(message_t* msg);
-    event void sendDone(message_t* msg, error_t error);
-
-    command uint8_t maxPayloadLength();
-    command void* getPayload(message_t* msg); 
-  }
-
-Sending interfaces MUST include these four commands and one event.
-The duplication of some of the commands in Packet is solely for ease
-of use: ``maxPayloadLength`` and ``getPayload`` MUST behave
-identically as ``Packet.maxPayloadLength`` and ``Packet.getPayload``,
-with the exception that the latter has no length parameter (it should
-behave as if the length parameter of the ``Packet`` call were
-NULL). Their inclusion is so that components do not have to wire to
-both Packet and the sending interface for basic use cases.
 
 3. HIL: ActiveMessageC
 ====================================================================
@@ -444,7 +446,7 @@ am_id_t.
 4.3 AMSnoopingReceiverC
 --------------------------------------------------------------------
 
-AMSnoopingReceiver has an identical signature to AMReceiver::
+AMSnoopingReceiverC has an identical signature to AMReceiverC::
 
   generic configuration AMSnoopingReceiverC(am_id_t t) {
     provides{
@@ -454,17 +456,17 @@ AMSnoopingReceiver has an identical signature to AMReceiver::
     }
   }
 
-AMSnoopingReceiver.Receive.receive is signalled whenever the packet
+AMSnoopingReceiverC.Receive.receive is signalled whenever the packet
 layer receives an active message of the corresponding AM type,
 regardless of destination address. Note that since Receive.receive
-swaps buffers, a program that instantiates an AMSnoopingReceiver with
-a certain am_id_t MUST NOT instantiate another AMSnoopingReceiver,
-AMSnooper, or AMReceiver with the same am_id_t.
+swaps buffers, a program that instantiates an AMSnoopingReceiverC with
+a certain am_id_t MUST NOT instantiate another AMSnoopingReceiverC,
+AMSnooperC, or AMReceiverC with the same am_id_t.
 
 4.4 AMSender 
 --------------------------------------------------------------------
 
-AMSender has the following signature::
+AMSenderC has the following signature::
 
   generic configuration AMSenderC(am_id_t AMId) {
     provides {
@@ -479,7 +481,9 @@ Because this is a send virtualization, AMSenderC.AMSend.send returns
 EBUSY only if there is a send request outstanding on this particular
 AMSenderC. That is, each AMSenderC has a queue of depth one. The exact
 order in which pending AMSenderC requests are serviced is undefined,
-but it MUST be fair queueing.
+but it MUST be fair, where fair means that each client with outstanding
+packets receives a reasonable approximation of an equal share of the 
+available transmission bandwidth.
 
 4.5 Power Management
 --------------------------------------------------------------------
@@ -516,7 +520,7 @@ These interfaces can either be chip-specific or chip-independent.
 ====================================================================
 
 Active messages are a basic single-hop packet abstraction. Therefore,
-following TEP 111 [1]_, all data link and active message headers
+following TEP 111 [3]_, all data link and active message headers
 MUST be in the ``message_header_t`` structure of message_t. This ensures
 that an active message received from one data link layer (e.g., the radio)
 can be passed to another data link layer (e.g., the UART) without
@@ -555,6 +559,10 @@ to support AM dispatch.
 7. Citations
 ====================================================================
 
-.. [1] TEP 111: message_t.
+.. [1] The MintRoute protocol. ``tinyos-1.x/tos/lib/MintRoute``. Also, A. Woo, T. Tong, and D. Culler. "Taming the Underlying Challenges of Reliable Multihop Routing in Sensor Networks." SenSys 2003.
+
+.. [2] Tiny AGgregation, one protocol of the TinyDB system.  ``tinyos-1.x/tos/lib/TinyDB``. Also, S. Madden and M. Franklin and J. Hellerstein and W. Hong. "TinyDB: An Acquisitional Query Processing System for Sensor Networks." Transactions on Database Systems (TODS) 2005.
+
+.. [3] TEP 111: message_t.
 
  

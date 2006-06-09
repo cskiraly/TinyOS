@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>Microcontroller Power Management</title>
 <meta name="author" content="Robert Szewczyk, Philip Levis, Martin Turon, Lama Nachman, Philip Buonadonna, Vlado Handziski" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-05-18 23:08:14 $
-:version: $Revision: 1.1.2.4 $
+:date: $Date: 2006-06-09 21:12:17 $
+:version: $Revision: 1.1.2.5 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -216,7 +216,11 @@ pre.line-block {
 pre.literal-block, pre.doctest-block {
   margin-left: 2em ;
   margin-right: 2em ;
-  background-color: #eeeeee }
+  background-color: #eeeeee;
+  border-color: #000000;
+  border-width: thin; 
+  font-size: 14px
+}
 
 span.classifier {
   font-family: sans-serif ;
@@ -271,8 +275,7 @@ th.docinfo-name, th.field-name {
 h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
   font-size: 100% }
 
-tt {
-  background-color: #eeeeee }
+tt {}
 
 ul.auto-toc {
   list-style-type: none }
@@ -315,13 +318,13 @@ requests discussion and suggestions for improvements.  Distribution
 of this memo is unlimited. This memo is in full compliance with
 TEP 1.</p>
 </div>
-<div class="section" id="abstract">
-<h1><a name="abstract">Abstract</a></h1>
+<div class="section">
+<h1><a id="abstract" name="abstract">Abstract</a></h1>
 <p>This memo documents how TinyOS manages the lower power state of a
 microcontroller.</p>
 </div>
-<div class="section" id="introduction">
-<h1><a name="introduction">1. Introduction</a></h1>
+<div class="section">
+<h1><a id="introduction" name="introduction">1. Introduction</a></h1>
 <p>Microcontrollers often have several power states, with varying power
 draws, wakeup latencies, and peripheral support. The microcontroller
 should always be in the lowest possible power state that can satisfy
@@ -337,8 +340,8 @@ bit, and a power state override. This memo documents these mechanisms
 and how they work, as well as the basics of subsystem power
 management.</p>
 </div>
-<div class="section" id="background">
-<h1><a name="background">2. Background</a></h1>
+<div class="section">
+<h1><a id="background" name="background">2. Background</a></h1>
 <p>The TinyOS scheduler[_tep106] puts a processor into a sleep state when
 the task queue is empty. However, processors can have a spectrum of
 power states. For example, the MSP430 has one active mode (issuing
@@ -390,8 +393,8 @@ to give the TinyOS microcontroller power manager information on their
 requirements, which it considers when calculating the right low power
 state.</p>
 </div>
-<div class="section" id="id1">
-<h1><a name="id1">3. Microcontroller Power Management</a></h1>
+<div class="section">
+<h1><a id="id1" name="id1">3. Microcontroller Power Management</a></h1>
 <p>TinyOS 2.x uses three basic mechanisms to manage and control
 microcontroller power states: a dirty bit, a chip-specific low power
 state calculation function, and a power state override function.  The
@@ -455,8 +458,8 @@ whose signature MUST include the following interfaces:</p>
 </div>
 <p>McuSleepC MAY have additional interfaces.</p>
 </div>
-<div class="section" id="the-dirty-bit">
-<h1><a name="the-dirty-bit">3.1 The Dirty Bit</a></h1>
+<div class="section">
+<h1><a id="the-dirty-bit" name="the-dirty-bit">3.1 The Dirty Bit</a></h1>
 <p>Whenever a Hardware Presentation Layer (HPL, see TEP 2: Hardware
 Abstraction Architecture[_tep2]) component changes an aspect of
 hardware configuration that might change the possible low power state
@@ -466,8 +469,8 @@ McuPowerState.update() is called, then McuSleepC MUST recompute the
 low power state before the next time it goes to sleep as a result of
 McuSleep.sleep() being called.</p>
 </div>
-<div class="section" id="low-power-state-calculation">
-<h1><a name="low-power-state-calculation">3.2 Low Power State Calculation</a></h1>
+<div class="section">
+<h1><a id="low-power-state-calculation" name="low-power-state-calculation">3.2 Low Power State Calculation</a></h1>
 <p>McuSleepC is responsible for calculating the lowest power state that
 it can safely put the microcontroller into without disrupting the
 operation of TinyOS subsystems. McuSleepC SHOULD minimize how often it
@@ -547,8 +550,8 @@ combine function would look like this:</p>
 </tbody>
 </table>
 </div>
-<div class="section" id="power-state-override">
-<h1><a name="power-state-override">3.3 Power State Override</a></h1>
+<div class="section">
+<h1><a id="power-state-override" name="power-state-override">3.3 Power State Override</a></h1>
 <p>When McuSleepC computes the best low power state, it MUST call
 <tt class="docutils literal"><span class="pre">PowerOverride.lowestState().</span></tt> McuSleepC SHOULD have a default
 implementation of this command, which returns the lowest power state
@@ -569,8 +572,8 @@ variable. Wiring arbitrarily to this command is an easy way to cause
 TinyOS to behave badly. The presence of a combine function for
 mcu_power_t means that this command can have fan-out calls.</p>
 </div>
-<div class="section" id="peripherals-and-subsystems">
-<h1><a name="peripherals-and-subsystems">4. Peripherals and Subsystems</a></h1>
+<div class="section">
+<h1><a id="peripherals-and-subsystems" name="peripherals-and-subsystems">4. Peripherals and Subsystems</a></h1>
 <p>At the HIL level, TinyOS subsystems generally have a simple,
 imperative power management interface. Depending on the latencies
 involved, this interface is either <tt class="docutils literal"><span class="pre">StdControl</span></tt> or <tt class="docutils literal"><span class="pre">SplitControl</span></tt>.
@@ -597,8 +600,8 @@ and inactive iff all of its clients want it inactive. Other
 distributions can provide alternative power management policies in top
 of the basic HIL mechanisms.</p>
 </div>
-<div class="section" id="author-s-address">
-<h1><a name="author-s-address">5. Author's Address</a></h1>
+<div class="section">
+<h1><a id="author-s-address" name="author-s-address">5. Author's Address</a></h1>
 <div class="line-block">
 <div class="line">Robert Szewczyk</div>
 <div class="line">Moteiv Corporation</div>
@@ -653,8 +656,8 @@ of the basic HIL mechanisms.</p>
 <div class="line"><br /></div>
 </div>
 </div>
-<div class="section" id="citations">
-<h1><a name="citations">6. Citations</a></h1>
+<div class="section">
+<h1><a id="citations" name="citations">6. Citations</a></h1>
 <table class="docutils citation" frame="void" id="tep106" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">

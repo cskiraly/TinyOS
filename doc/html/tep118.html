@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>Dissemination</title>
 <meta name="author" content="Philip Levis and Gilman Tolle" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-05-18 23:07:25 $
-:version: $Revision: 1.1.2.1 $
+:date: $Date: 2006-06-09 21:12:17 $
+:version: $Revision: 1.1.2.2 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -216,7 +216,11 @@ pre.line-block {
 pre.literal-block, pre.doctest-block {
   margin-left: 2em ;
   margin-right: 2em ;
-  background-color: #eeeeee }
+  background-color: #eeeeee;
+  border-color: #000000;
+  border-width: thin; 
+  font-size: 14px
+}
 
 span.classifier {
   font-family: sans-serif ;
@@ -271,8 +275,7 @@ th.docinfo-name, th.field-name {
 h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
   font-size: 100% }
 
-tt {
-  background-color: #eeeeee }
+tt {}
 
 ul.auto-toc {
   list-style-type: none }
@@ -315,18 +318,18 @@ requests discussion and suggestions for improvements.  Distribution
 of this memo is unlimited. This memo is in full compliance with
 TEP 1.</p>
 </div>
-<div class="section" id="abstract">
-<h1><a name="abstract">Abstract</a></h1>
+<div class="section">
+<h1><a id="abstract" name="abstract">Abstract</a></h1>
 <p>The memo documents the interfaces, components, and semantics for disseminating
-small (smaller than a single packet payload) pieces of data in TinyOS 2.x. 
+small (smaller than a single packet payload) pieces of data in TinyOS 2.x.
 Dissemination is reliable delivery of a piece of data to every node in a network.</p>
 </div>
-<div class="section" id="introduction">
-<h1><a name="introduction">1. Introduction</a></h1>
+<div class="section">
+<h1><a id="introduction" name="introduction">1. Introduction</a></h1>
 <p>Dissemination is a basic building block of sensor network applications.
-The ability to reliably deliver a piece of data to every node 
+The ability to reliably deliver a piece of data to every node
 allows administrators to reconfigure, query, and reprogram a network.
-Reliability is important because it makes the operation robust 
+Reliability is important because it makes the operation robust
 to temporary disconnections or high packet loss. Unlike flooding protocols,
 which are discrete efforts that terminate, possibly not delivering
 the data to some nodes, dissemination achieves reliability by using
@@ -347,18 +350,18 @@ services have the assumption that data values have some form of
 versioning. Dissemination propagates only the most recent version.
 This means that if a node is disconnected from a network and the network
 goes through eight versions of a disseminated value, when it rejoins the
-network it will only see the most recent. The rest of this document describes 
+network it will only see the most recent. The rest of this document describes
 a set of components and interfaces for a dissemination service of this kind.</p>
 </div>
-<div class="section" id="dissemination-interfaces">
-<h1><a name="dissemination-interfaces">2. Dissemination interfaces</a></h1>
+<div class="section">
+<h1><a id="dissemination-interfaces" name="dissemination-interfaces">2. Dissemination interfaces</a></h1>
 <p>Small-value dissemination has two interfaces: DisseminationValue and
 DisseminationUpdate. The former is for consumers of a disseminated
 value, the latter is for producers. They are as follows:</p>
 <pre class="literal-block">
 interface DisseminationValue&lt;t&gt; {
   command const t* get();
-  event void changed(); 
+  event void changed();
 }
 
 interface DisseminationUpdate&lt;t&gt; {
@@ -381,14 +384,14 @@ Calling change implicitly increases the version number of the data item
 so that it will be disseminated to every node in the network. This
 change is local, however. If a node that is out-of-date calls change,
 the new value might not disseminate, as other nodes might already
-have a newer value. If two nodes with the same version number call 
+have a newer value. If two nodes with the same version number call
 change but pass different values, then the network might reach consensus
 when nodes have different values. The dissemination protocol therefore
 MUST have a tie-breaking mechanism, so that eventually every node has
 the same data value.</p>
 </div>
-<div class="section" id="dissemination-service">
-<h1><a name="dissemination-service">3 Dissemination Service</a></h1>
+<div class="section">
+<h1><a id="dissemination-service" name="dissemination-service">3 Dissemination Service</a></h1>
 <p>A dissemination service MUST provide one component, DisseminatorC,
 which has the following signature:</p>
 <pre class="literal-block">
@@ -417,8 +420,8 @@ implementation {
 <p>Two different instances of DisseminatorC MUST NOT share the same value
 for the <tt class="docutils literal"><span class="pre">key</span></tt> argument.</p>
 </div>
-<div class="section" id="dissemination-keys">
-<h1><a name="dissemination-keys">4 Dissemination Keys</a></h1>
+<div class="section">
+<h1><a id="dissemination-keys" name="dissemination-keys">4 Dissemination Keys</a></h1>
 <p>One issue that comes up when using this interfaces is the selection of
 a key for each value. On one hand, using unique() is easy, but this
 means that the keyspaces for two different compilations of the same
@@ -434,7 +437,7 @@ namespace are separated by their most significant bit. A component
 author might write something like this:</p>
 <pre class="literal-block">
 #include &lt;disseminate_keys.h&gt;
-configuration SomeComponentC { 
+configuration SomeComponentC {
   ...
 }
 implementation {
@@ -445,7 +448,7 @@ implementation {
 #endif
   components SomeComponentP;
   components new DisseminatorC(uint8_t, DIS_SOME_COMPONENT_KEY);
-  SomeComponentP.ConfigVal -&gt; DisseminatorC; 
+  SomeComponentP.ConfigVal -&gt; DisseminatorC;
 }
 </pre>
 <p>To override, you can then make a disseminate_keys.h in your app
@@ -460,8 +463,8 @@ protocol. The GUID enables nodes to detect versions from other
 binaries and not store them. This GUID won't be part of the external
 interface, but will be used internally.</p>
 </div>
-<div class="section" id="more-complex-dissemination">
-<h1><a name="more-complex-dissemination">5. More Complex Dissemination</a></h1>
+<div class="section">
+<h1><a id="more-complex-dissemination" name="more-complex-dissemination">5. More Complex Dissemination</a></h1>
 <p>You can use this low-level networking primitive to build more complex
 dissemination systems. For example, if you want have a dissemination
 that only nodes which satisfy a predicate receive, you can do that by
@@ -472,8 +475,8 @@ dissemination interface, if you wanted to try to unify both
 communication modes: once you have predicates you can have addressing,
 and then you could just present dissemination as AMSend or Send.</p>
 </div>
-<div class="section" id="author-s-address">
-<h1><a name="author-s-address">6. Author's Address</a></h1>
+<div class="section">
+<h1><a id="author-s-address" name="author-s-address">6. Author's Address</a></h1>
 <div class="line-block">
 <div class="line">Philip Levis</div>
 <div class="line">358 Gates Hall</div>
@@ -493,8 +496,8 @@ and then you could just present dissemination as AMSend or Send.</p>
 <div class="line">email - <a class="reference" href="mailto:gtolle&#64;archedrock.com">gtolle&#64;archedrock.com</a></div>
 </div>
 </div>
-<div class="section" id="citations">
-<h1><a name="citations">7. Citations</a></h1>
+<div class="section">
+<h1><a id="citations" name="citations">7. Citations</a></h1>
 <table class="docutils citation" frame="void" id="tep111" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
