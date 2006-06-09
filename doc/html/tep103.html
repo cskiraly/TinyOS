@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
 <title>Permanent Data Storage (Flash)</title>
 <meta name="author" content="David Gay, Jonathan Hui" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-06-09 21:12:17 $
-:version: $Revision: 1.1.2.2 $
+:date: $Date: 2006-06-09 22:00:02 $
+:version: $Revision: 1.1.2.3 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -303,9 +303,9 @@ ul.auto-toc {
 <td>David Gay, Jonathan Hui</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">27-Sep-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.8</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.9</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-07</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-09</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -318,14 +318,14 @@ requests discussion and suggestions for improvements.  Distribution
 of this memo is unlimited. This memo is in full compliance with
 TEP 1.</p>
 </div>
-<div class="section">
-<h1><a id="abstract" name="abstract">Abstract</a></h1>
+<div class="section" id="abstract">
+<h1><a name="abstract">Abstract</a></h1>
 <p>This memo documents a set of hardware-independent, non-volatile
 storage interfaces for TinyOS 2.x, and the HPL and HAL layers for
 various flash chips.</p>
 </div>
-<div class="section">
-<h1><a id="introduction" name="introduction">1. Introduction</a></h1>
+<div class="section" id="introduction">
+<h1><a name="introduction">1. Introduction</a></h1>
 <p>There are three different flash chip families under use or
 consideration for TinyOS platforms: the Atmel AT45DB family (Mica
 family, Telos rev. A), the ST M25P family (Telos rev. B, eyes) and the
@@ -344,9 +344,9 @@ Erase        :  Slow (seconds)      Fast (ms)      Fast (ms)
 Erase unit   :  Large (64KB-128KB)  Small (256B)   Medium (8K-32KB)
 Writes       :  Slow (100s kB/s)    Slow (60kB/s)  Fast (MBs/s)
 Write unit   :  1 bit               256B           100's of bytes
-Bit-errors   :  Low                 Low            High (requires ECC,
+Bit-errors   :  Low                 Low            High (requires ECC, 
                                                    bad-block mapping)
-Read         :  Fast*               Slow+I/O bus   Fast (but limited by
+Read         :  Fast*               Slow+I/O bus   Fast (but limited by 
                                                    I/O bus)
 Erase cycles :  10^4 - 10^5         10^4 **        10^5 - 10^7
 Intended use :  Code storage        Data storage   Data storage
@@ -365,8 +365,8 @@ Energy/byte:    1uJ                 1uJ            .01uJ</blockquote>
 takes (the power consumptions are comparable), i.e., on the efficiency
 of the bus + processor.</p>
 </div>
-<div class="section">
-<h1><a id="non-volatile-storage-abstraction-in-tinyos-2-x" name="non-volatile-storage-abstraction-in-tinyos-2-x">2. Non-Volatile Storage Abstraction in TinyOS 2.x</a></h1>
+<div class="section" id="non-volatile-storage-abstraction-in-tinyos-2-x">
+<h1><a name="non-volatile-storage-abstraction-in-tinyos-2-x">2. Non-Volatile Storage Abstraction in TinyOS 2.x</a></h1>
 <p>The very significant differences between the flash chips used in TinyOS,
 and lack of RAM to hide these differences, preclude common, low-level HIL
 interfaces such as a disk-like block interface. Instead, we propose that
@@ -381,8 +381,8 @@ each volume dedicated to holding a single instance of one of the
 abstractions (a large object, a small object or a log). We believe this
 restrictive approach is practical in the single-application model of
 TinyOS.</p>
-<div class="section">
-<h2><a id="large-objects" name="large-objects">2.1 Large objects:</a></h2>
+<div class="section" id="large-objects">
+<h2><a name="large-objects">2.1 Large objects:</a></h2>
 <p>A large object ranges from a few kilobytes upwards. A large object
 must be erased before use. Each byte in a large object can only
 written once after each erase. A large object must be committed
@@ -401,8 +401,8 @@ checks the object.</li>
 </blockquote>
 <p>Examples: program storage, message buffering in delay-tolerant-networking</p>
 </div>
-<div class="section">
-<h2><a id="large-sequential-objects" name="large-sequential-objects">2.2 Large sequential objects</a></h2>
+<div class="section" id="large-sequential-objects">
+<h2><a name="large-sequential-objects">2.2 Large sequential objects</a></h2>
 <p>Some applications (e.g., low-rate data collection) can use a large
 sequential object to save their results in a reliable fashion. A large
 sequential object can be circular.</p>
@@ -421,8 +421,8 @@ Note: failure during write may lead to (minor) capacity reduction</li>
 </blockquote>
 <p>Example: logs.</p>
 </div>
-<div class="section">
-<h2><a id="small-objects" name="small-objects">2.3 Small objects:</a></h2>
+<div class="section" id="small-objects">
+<h2><a name="small-objects">2.3 Small objects:</a></h2>
 <p>A small object may be only a few hundred bytes. Small objects support
 random reads and writes and simple transactional behaviour (each read is a
 separate transaction, all writes up to a commit form a single transaction).</p>
@@ -431,7 +431,7 @@ separate transaction, all writes up to a commit form a single transaction).</p>
 <li>Size: small</li>
 <li>Reads: random, read data as of last commit</li>
 <li>Writes: random, rewrite ok</li>
-<li>Failure model: failure during/between writes does not lead to object
+<li>Failure model: failure during/between writes does not lead to object 
 loss (at reboot, object will contain state as of the most recent
 successful commit)</li>
 <li>Other: commit operation ensures all writes since last commit become
@@ -441,14 +441,14 @@ permanent</li>
 <p>Example: configuration data.</p>
 </div>
 </div>
-<div class="section">
-<h1><a id="hpl-hal-hil-architecture" name="hpl-hal-hil-architecture">3. HPL/HAL/HIL Architecture</a></h1>
+<div class="section" id="hpl-hal-hil-architecture">
+<h1><a name="hpl-hal-hil-architecture">3. HPL/HAL/HIL Architecture</a></h1>
 <p>The proposed architecture aligns with the three-layer Hardware
 Abstraction Architecture (HAA). This document briefly presents
 the components and interfaces; for full details see the nesdoc
 comments in the referenced components and interfaces.</p>
-<div class="section">
-<h2><a id="hardware-presentation-layer-hpl" name="hardware-presentation-layer-hpl">3.1 Hardware Presentation Layer (HPL)</a></h2>
+<div class="section" id="hardware-presentation-layer-hpl">
+<h2><a name="hardware-presentation-layer-hpl">3.1 Hardware Presentation Layer (HPL)</a></h2>
 <p>The flash HPL has a chip-dependent, system-independent interface. The
 implementation of this HPL is system-dependent. The flash HPL SHOULD be
 stateless. In many cases, families of flash chips can share a common HPL
@@ -458,7 +458,7 @@ interface.</p>
 <li><p class="first">The Atmel AT45DB family HPL is:</p>
 <pre class="literal-block">
 configuration HplAt45dbC {
-  provides interface;
+  provides interface HplAt45db;
 } ...
 </pre>
 <p>The <tt class="docutils literal"><span class="pre">HplAt45db</span></tt> interface has flash-&gt;buffer, buffer-&gt;flash, compare
@@ -489,8 +489,8 @@ the AT45DB encapsulates resource acquisition and release within each
 operation, while the M25P family requires that HPL users acquire and
 release the resource itself.</p>
 </div>
-<div class="section">
-<h2><a id="hardware-adaptation-layer-hal" name="hardware-adaptation-layer-hal">3.2 Hardware Adaptation Layer (HAL)</a></h2>
+<div class="section" id="hardware-adaptation-layer-hal">
+<h2><a name="hardware-adaptation-layer-hal">3.2 Hardware Adaptation Layer (HAL)</a></h2>
 <p>The flash HAL has a chip-dependent, system-independent interface and
 implementation. Flash families with a common HPL SHOULD have a common
 HAL. Flash HAL's SHOULD expose a <tt class="docutils literal"><span class="pre">Resource</span></tt> interface and automatically
@@ -574,18 +574,18 @@ interface Stm25pSector {
   event   error_t readDone(stm25p_addr_t addr, void* buf, stm25p_addr_t len,
                            error_t error);
 
-  command error_t write(stm25p_addr_t addr, void* buf,
+  command error_t write(stm25p_addr_t addr, void* buf, 
                         stm25p_addr_t len);
-  event   error_t writeDone(stm25p_addr_t addr, void* buf,
+  event   error_t writeDone(stm25p_addr_t addr, void* buf, 
                             stm25p_addr_t len, error_t error);
 
   command error_t erase(uint8_t sector, uint8_t num_sectors);
-  event   error_t eraseDone(uint8_t sector, uint8_t num_sectors,
+  event   error_t eraseDone(uint8_t sector, uint8_t num_sectors, 
                             error_t error);
 
-  command error_t computeCrc(uint16_t crc, stm25p_addr_t addr,
+  command error_t computeCrc(uint16_t crc, stm25p_addr_t addr, 
                              stm25p_len_t len );
-  event void computeCrcDone(stm25p_addr_t addr, stm25p_len_t len,
+  event void computeCrcDone(stm25p_addr_t addr, stm25p_len_t len, 
                             uint16_t crc, error_t error);
 }
 
@@ -596,8 +596,8 @@ interface Stm25pVolume {
 <p>Note that the M25P HAL integrates volume management and chip access
 within the <tt class="docutils literal"><span class="pre">Stm25pSector</span></tt> interface.</p>
 </div>
-<div class="section">
-<h2><a id="hardware-interface-layer-hil" name="hardware-interface-layer-hil">3.3 Hardware Interface Layer (HIL)</a></h2>
+<div class="section" id="hardware-interface-layer-hil">
+<h2><a name="hardware-interface-layer-hil">3.3 Hardware Interface Layer (HIL)</a></h2>
 <p>The HIL implementations are system-independent, but chip (family)
 dependent. They implement the three storage abstractions and
 volume structure discussed in Section 2.</p>
@@ -658,9 +658,9 @@ generic configuration BlockStorageC(volume_id_t volid) {
 operations:</p>
 <pre class="literal-block">
 interface BlockWrite {
-  command error_t write(storage_addr_t addr, void* buf,
+  command error_t write(storage_addr_t addr, void* buf, 
                         storage_len_t len);
-  event void writeDone(storage_addr_t addr, void* buf,
+  event void writeDone(storage_addr_t addr, void* buf, 
                        storage_len_t len, error_t error);
 
   command error_t erase();
@@ -679,7 +679,7 @@ interface BlockRead {
 
   command error_t computeCrc(storage_addr_t addr, storage_len_t len,
                              uint16_t baseCrc);
-  event   void    computeCrcDone(storage_addr_t addr, storage_len_t len,
+  event   void    computeCrcDone(storage_addr_t addr, storage_len_t len, 
                                  uint16_t crc, error_t error );
 
   command storage_len_t getSize();
@@ -745,7 +745,7 @@ generic configuration ConfigStorageC(volume_id_t volid) {
   }
 } ...
 </pre>
-<p>A small object MUST be mounted (see the <tt class="docutils literal"><span class="pre">Mount</span></tt> interface) before
+<p>A small object MUST be mounted (see the <tt class="docutils literal"><span class="pre">Mount</span></tt> interface) before 
 the first use.</p>
 <p>The <tt class="docutils literal"><span class="pre">Mount</span></tt> and <tt class="docutils literal"><span class="pre">ConfigStorage</span></tt> interfaces contain the following
 operations:</p>
@@ -773,13 +773,13 @@ interface ConfigStorage {
 </blockquote>
 </div>
 </div>
-<div class="section">
-<h1><a id="implementation" name="implementation">4. Implementation</a></h1>
+<div class="section" id="implementation">
+<h1><a name="implementation">4. Implementation</a></h1>
 <p>An AT45DB implementation can be found in tinyos-2.x/tos/chips/at45db.</p>
 <p>An STM25P implementation can be found in tinyos-2.x/tos/chips/stm25p.</p>
 </div>
-<div class="section">
-<h1><a id="authors-addresses" name="authors-addresses">5. Authors' Addresses</a></h1>
+<div class="section" id="authors-addresses">
+<h1><a name="authors-addresses">5. Authors' Addresses</a></h1>
 <div class="line-block">
 <div class="line">David Gay</div>
 <div class="line">2150 Shattuck Ave, Suite 1300</div>
