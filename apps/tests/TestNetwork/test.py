@@ -28,8 +28,9 @@ print "Starting simulation."
 
 #t.addChannel("AM", sys.stdout)
 #t.addChannel("TreeRouting", sys.stdout)
-t.addChannel("TestNetworkC", sys.stdout)
-t.addChannel("PhilTest", sys.stdout)
+#t.addChannel("TestNetworkC", sys.stdout)
+#t.addChannel("TestNetworkC", sys.stdout)
+t.addChannel("Traffic", sys.stdout)
 #t.addChannel("LI", sys.stdout)
 #t.addChannel("LITest", sys.stdout)
 

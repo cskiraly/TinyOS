@@ -13,10 +13,10 @@ int main() {
 
 
  // t->addChannel("Gain", stdout);
- t->addChannel("App", stdout);
+ t->addChannel("AMQueue", stdout);
  //t->addChannel("LITest", stdout);
  //t->addChannel("AM", stdout);
- t->addChannel("Forwarder", stdout);
+ t->addChannel("Traffic", stdout);
 
  Radio* r = t->radio();
 

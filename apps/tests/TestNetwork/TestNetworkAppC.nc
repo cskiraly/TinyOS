@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.5 $ $Date: 2006-06-02 20:51:13 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-06-09 01:46:57 $
  */
 #include "TestNetwork.h"
 
@@ -20,9 +20,11 @@ implementation {
   components new TimerMilliC();
   components new DemoSensorC();
   components new SerialAMSenderC(CL_TEST);
+  components SerialActiveMessageC;
 
   TestNetworkC.Boot -> MainC;
   TestNetworkC.RadioControl -> ActiveMessageC;
+  TestNetworkC.SerialControl -> SerialActiveMessageC;
   TestNetworkC.RoutingControl -> Collector;
   TestNetworkC.Leds -> LedsC;
   TestNetworkC.Timer -> TimerMilliC;
@@ -32,4 +34,5 @@ implementation {
   TestNetworkC.RootControl -> Collector;
   TestNetworkC.Receive -> Collector.Receive[CL_TEST];
   TestNetworkC.UARTSend -> SerialAMSenderC.AMSend;
+  TestNetworkC.CollectionPacket -> Collector;
 }
