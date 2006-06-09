@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
   printf("Writing packet:\n  ");
   for (i = 0; i < len; i++) {
-    printf("0.2x ", ((uint8_t*)storage)[i]);
+    printf("%0.2x ", ((uint8_t*)storage)[i]);
   }
   printf("\n");
   write_sf_packet(fd,storage,len);
