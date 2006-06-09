@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.6 $ $Date: 2006-06-07 21:24:35 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-06-09 01:46:57 $
  */
 
 #include <Timer.h>
@@ -16,6 +16,7 @@
 module TestNetworkC {
   uses interface Boot;
   uses interface SplitControl as RadioControl;
+  uses interface SplitControl as SerialControl;
   uses interface StdControl as RoutingControl;
   uses interface DisseminationValue<uint16_t> as DisseminationPeriod;
   uses interface Send;
@@ -25,21 +26,24 @@ module TestNetworkC {
   uses interface RootControl;
   uses interface Receive;
   uses interface AMSend as UARTSend;
+  uses interface CollectionPacket;
 }
 implementation {
   task void uartEchoTask();
   message_t packet;
   message_t uartpacket;
+  message_t* recvPtr = &uartpacket;
   uint8_t msglen;
   bool busy = FALSE, uartbusy = FALSE;
   
   event void Boot.booted() {
+    call SerialControl.start();
+  }
+  event void SerialControl.startDone(error_t err) {
     call RadioControl.start();
   }
-
   event void RadioControl.startDone(error_t err) {
     if (err != SUCCESS) {
-      call Leds.led0On();
       call RadioControl.start();
     }
     else {
@@ -47,11 +51,12 @@ implementation {
       if (TOS_NODE_ID % 500 == 0) {
 	call RootControl.setRoot();
       }
-      call Timer.startPeriodic(1000);
+      call Timer.startPeriodic(128);
     }
   }
 
   event void RadioControl.stopDone(error_t err) {}
+  event void SerialControl.stopDone(error_t err) {}	
   
   event void Timer.fired() {
     call Leds.led0Toggle();
@@ -82,9 +87,8 @@ implementation {
   }
 
   event void Send.sendDone(message_t* m, error_t err) {
-    call Leds.led1Toggle();
     if (err != SUCCESS) {
-      call Leds.led0On();
+	//      call Leds.led0On();
     }
     else {
       busy = FALSE;
@@ -100,21 +104,29 @@ implementation {
 
   event message_t* 
   Receive.receive(message_t* msg, void* payload, uint8_t len) {
-    call Leds.led2Toggle();
-    dbg("TestNetworkC", "Received packet at %s.\n", sim_time_string());
+    dbg("TestNetworkC,Traffic", "Received packet at %s from node %hu.\n", sim_time_string(), call CollectionPacket.getOrigin(msg));
+    call Leds.led1Toggle();    
     if (!uartbusy) {
+      message_t* tmp = recvPtr;
+      recvPtr = msg;
       uartbusy = TRUE;
       msglen = len;
-      memcpy(&uartpacket, msg, sizeof(message_t));
       post uartEchoTask();
+      call Leds.led2Toggle();
+      return tmp;
     }
     return msg;
   }
 
   task void uartEchoTask() {
-    call UARTSend.send(0, &uartpacket, msglen);
+    dbg("Traffic", "Sending packet to UART.\n");
+    if (call UARTSend.send(0xffff, recvPtr, msglen) != SUCCESS) {
+      uartbusy = FALSE;
+    }
   }
 
   event void UARTSend.sendDone(message_t *msg, error_t error) {
+    dbg("Traffic", "UART send done.\n");
+    uartbusy = FALSE;
   }
 }
