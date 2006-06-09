@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>Sensor Boards</title>
 <meta name="author" content="David Gay, Phil Levis, Wei Hong, and Joe Polastre" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-05-18 23:08:14 $
-:version: $Revision: 1.1.2.4 $
+:date: $Date: 2006-06-09 21:12:17 $
+:version: $Revision: 1.1.2.5 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -216,7 +216,11 @@ pre.line-block {
 pre.literal-block, pre.doctest-block {
   margin-left: 2em ;
   margin-right: 2em ;
-  background-color: #eeeeee }
+  background-color: #eeeeee;
+  border-color: #000000;
+  border-width: thin; 
+  font-size: 14px
+}
 
 span.classifier {
   font-family: sans-serif ;
@@ -271,8 +275,7 @@ th.docinfo-name, th.field-name {
 h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
   font-size: 100% }
 
-tt {
-  background-color: #eeeeee }
+tt {}
 
 ul.auto-toc {
   list-style-type: none }
@@ -315,25 +318,25 @@ requests discussion and suggestions for improvements.  Distribution
 of this memo is unlimited. This memo is in full compliance with
 TEP 1.</p>
 </div>
-<div class="section" id="abstract">
-<h1><a name="abstract">Abstract</a></h1>
+<div class="section">
+<h1><a id="abstract" name="abstract">Abstract</a></h1>
 <p>This memo documents how sensor boards are organized in TinyOS, and the
 general principles followed by the components that provide access to
 its sensors.</p>
 </div>
-<div class="section" id="introduction">
-<h1><a name="introduction">1. Introduction</a></h1>
+<div class="section">
+<h1><a id="introduction" name="introduction">1. Introduction</a></h1>
 <p>This document defines the default organization of a sensor board in
-TinyOS. There likely will be sensor boards that cannot conform 
-to this specification, but following as closely to its spirit as possible 
+TinyOS. There likely will be sensor boards that cannot conform
+to this specification, but following as closely to its spirit as possible
 will simplify generic applications that use a range of sensor boards.</p>
 <p>This document assumes that sensors return uninterpreted 16-bit values, and,
 optionally uninterpreted, arbitrary-size calibration data. Conversion of
 sensor values to something with actual physical meaning is beyond the
 scope of this document.</p>
 </div>
-<div class="section" id="directory-organization">
-<h1><a name="directory-organization">2. Directory Organization</a></h1>
+<div class="section">
+<h1><a id="directory-organization" name="directory-organization">2. Directory Organization</a></h1>
 <ul class="simple">
 <li>A sensor board MUST have a unique name, composed of letters, numbers
 and underscores. Case is significant, but two sensor boards MUST
@@ -366,8 +369,8 @@ is <cite>tinyos-2.x/tos/sensorboards/basicsb</cite>. It has no <cite>basicsb.h</
 its <cite>.sensor</cite> file is empty. It has two components, <cite>PhotoC</cite> and <cite>TempC</cite>
 representing its light and temperature sensors.</p>
 </div>
-<div class="section" id="sensor-board-components">
-<h1><a name="sensor-board-components">3. Sensor Board Components</a></h1>
+<div class="section">
+<h1><a id="sensor-board-components" name="sensor-board-components">3. Sensor Board Components</a></h1>
 <p>We have not yet selected any naming conventions for sensor board
 components. Please select reasonable namesldots</p>
 <p>A sensor board component MUST provide:</p>
@@ -381,7 +384,7 @@ components. Please select reasonable namesldots</p>
 <li>Some <cite>CalibrationData</cite> interfaces for obtaining calibration data.
 A calibration interface for a sensor accessed via interface X should
 be called XCalibration.</li>
-<li>Some <cite>AcquireDataNow</cite> and <cite>AcquireDataBuffered</cite> interfaces, for high-speed 
+<li>Some <cite>AcquireDataNow</cite> and <cite>AcquireDataBuffered</cite> interfaces, for high-speed
 or low-latency data acquisition.</li>
 <li>Any other appropriate interface.</li>
 </ul>
@@ -463,12 +466,12 @@ a general purpose sensor board with multiple A/D channels might provide an
 <cite>AcquireData</cite> interface parameterised by the A/D channel id.</li>
 <li>In all of these examples, if high-speed sampling makes sensor for the
 sensor (e.g., a microphone), and the sensor is connected in a way that
-supports high-frequency and/or low-latency access (e.g., via an 
-on-microcontroller A/D converter), the component should offer 
+supports high-frequency and/or low-latency access (e.g., via an
+on-microcontroller A/D converter), the component should offer
 <cite>AcquireDataNow</cite> and <cite>AcquireDataBuffered</cite> interfaces.</li>
 </ul>
 <p>Sensor board components MUST respect the following conventions
-on the use of the <cite>Init</cite>, <cite>StdControl</cite>,  and <cite>SplitControl</cite> 
+on the use of the <cite>Init</cite>, <cite>StdControl</cite>,  and <cite>SplitControl</cite>
 interfaces.  These are given assuming <cite>StdControl</cite> is used, but the
 behaviour with <cite>SplitControl</cite> is identical except that <cite>start</cite> and <cite>stop</cite>
 are not considered complete until the <cite>startDone</cite> and <cite>stopDone</cite> events are
@@ -488,18 +491,18 @@ until the sensor is ready. The former choice is preferable.</p>
 </dd>
 </dl>
 </li>
-<li><p class="first"><cite>StdControl.stop</cite>: put the sensor in a low-power mode. 
-<cite>StdControl.start</cite> must be called before any further readings 
+<li><p class="first"><cite>StdControl.stop</cite>: put the sensor in a low-power mode.
+<cite>StdControl.start</cite> must be called before any further readings
 are taken. The behaviour of calls to <cite>StdControl.stop</cite> during
 sampling (i.e., when an <cite>dataReady</cite> event is going to be
 signaled) is undefined.</p>
 </li>
 </ol>
 </div>
-<div class="section" id="sensor-file">
-<h1><a name="sensor-file"><cite>.sensor</cite> File</a></h1>
+<div class="section">
+<h1><a id="sensor-file" name="sensor-file"><cite>.sensor</cite> File</a></h1>
 <p>This file is a perl script which gets executed as part of the <cite>ncc</cite>
-nesC compiler frontend. It can add or modify any compile-time options 
+nesC compiler frontend. It can add or modify any compile-time options
 necessary for a particular sensor board. It MAY modify the following perl
 variables, and MUST NOT modify any others:</p>
 <ul class="simple">
@@ -511,10 +514,10 @@ should be added to the include path list. These sensor boards must be
 in tinyos-2.x/tos/sensorboards.</li>
 </ul>
 </div>
-<div class="section" id="example-mts3x0">
-<h1><a name="example-mts3x0">Example: mts3x0</a></h1>
+<div class="section">
+<h1><a id="example-mts3x0" name="example-mts3x0">Example: mts3x0</a></h1>
 <p>The mica sensor board (mts300/mts310) has five sensors (and one actuator,
-the sounder) -- the accelerometer and magnetometer are only present on 
+the sounder) -- the accelerometer and magnetometer are only present on
 the mts310:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -571,8 +574,8 @@ even though their underlying implementation is a bit more complex.</p>
 (pin usage, ADC ports, etc).</p>
 <p>The mica sensor board has an empty .sensor file.</p>
 </div>
-<div class="section" id="author-s-address">
-<h1><a name="author-s-address">6. Author's Address</a></h1>
+<div class="section">
+<h1><a id="author-s-address" name="author-s-address">6. Author's Address</a></h1>
 <div class="line-block">
 <div class="line">David Gay</div>
 <div class="line">2150 Shattuck Ave, Suite 1300</div>

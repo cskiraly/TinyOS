@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.6: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>message_t</title>
 <meta name="author" content="Philip Levis" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-05-18 02:58:46 $
-:version: $Revision: 1.1.2.6 $
+:date: $Date: 2006-06-09 21:12:17 $
+:version: $Revision: 1.1.2.7 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -216,7 +216,11 @@ pre.line-block {
 pre.literal-block, pre.doctest-block {
   margin-left: 2em ;
   margin-right: 2em ;
-  background-color: #eeeeee }
+  background-color: #eeeeee;
+  border-color: #000000;
+  border-width: thin; 
+  font-size: 14px
+}
 
 span.classifier {
   font-family: sans-serif ;
@@ -271,8 +275,7 @@ th.docinfo-name, th.field-name {
 h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
   font-size: 100% }
 
-tt {
-  background-color: #eeeeee }
+tt {}
 
 ul.auto-toc {
   list-style-type: none }
@@ -280,6 +283,7 @@ ul.auto-toc {
 </style>
 </head>
 <body>
+<div class="document" id="message-t">
 <h1 class="title">message_t</h1>
 <table class="docinfo" frame="void" rules="none">
 <col class="docinfo-name" />
@@ -299,15 +303,14 @@ ul.auto-toc {
 <td>Philip Levis</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">11-Jul-2005</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.8</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.10</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-05-17</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-09</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
 </tbody>
 </table>
-<div class="document" id="message-t">
 <div class="note">
 <p class="first admonition-title">Note</p>
 <p class="last">This memo documents a part of TinyOS for the TinyOS Community, and
@@ -315,114 +318,107 @@ requests discussion and suggestions for improvements.  Distribution
 of this memo is unlimited. This memo is in full compliance with
 TEP 1.</p>
 </div>
-<div class="section" id="abstract">
-<h1><a name="abstract">Abstract</a></h1>
+<div class="section">
+<h1><a id="abstract" name="abstract">Abstract</a></h1>
 <p>This memo covers the TinyOS 2.x message buffer abstraction, <tt class="docutils literal"><span class="pre">message_t</span></tt>.
-It describes the message buffer design considerations, how and where 
+It describes the message buffer design considerations, how and where
 <tt class="docutils literal"><span class="pre">message_t</span></tt> is specified, and how data link layers should access it.</p>
 </div>
-<div class="section" id="introduction">
-<h1><a name="introduction">1. Introduction</a></h1>
-<p>In TinyOS 1.x, a message buffer is a TOS_Msg. A buffer contains an
+<div class="section">
+<h1><a id="introduction" name="introduction">1. Introduction</a></h1>
+<p>In TinyOS 1.x, a message buffer is a <tt class="docutils literal"><span class="pre">TOS_Msg</span></tt>. A buffer contains an
 active message (AM) packet as well as packet metadata, such as timestamps,
 acknowledgement bits, and signal strength if the packet was received.
-TOS_Msg is a fixed size structure whose size is defined by the maximum
+<tt class="docutils literal"><span class="pre">TOS_Msg</span></tt> is a fixed size structure whose size is defined by the maximum
 AM payload length (the default is 29 bytes). Fixed sized buffers allows
 TinyOS 1.x to have zero-copy semantics: when a component receives a
 buffer, rather than copy out the contents it can return a pointer
-to a new buffer for the underlying layer to use for the next received 
+to a new buffer for the underlying layer to use for the next received
 packet.</p>
-<p>One issue that arises is what defines the TOS_Msg structure, as different
-link layers may require different layouts. For example, 802.15.4 radio 
-hardware (such as the CC2420, used in the Telos and micaZ platforms) 
+<p>One issue that arises is what defines the <tt class="docutils literal"><span class="pre">TOS_Msg</span></tt> structure, as different
+link layers may require different layouts. For example, 802.15.4 radio
+hardware (such as the CC2420, used in the Telos and micaZ platforms)
 may require 802.15.4 headers, while a software stack built on top of
-byte radios (such as the CC1000, used in the mica2 platform) can specify 
-its own packet format. This means that TOS_Msg may be different on
+byte radios (such as the CC1000, used in the mica2 platform) can specify
+its own packet format. This means that <tt class="docutils literal"><span class="pre">TOS_Msg</span></tt> may be different on
 different platforms.</p>
 <p>The solution to this problem in TinyOS 1.x is for there to be a standard
-definition of TOS_Msg, which a platform (e.g., the micaZ) can
-redefine to match its radio. For example, a mica2 mote uses the standard 
-definition, which is</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">struct</span> <span class="pre">TOS_Msg</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">The</span> <span class="pre">following</span> <span class="pre">fields</span> <span class="pre">are</span> <span class="pre">transmitted/received</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">radio.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">addr;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">type;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">group;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">length;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">int8_t</span> <span class="pre">data[TOSH_DATA_LENGTH];</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">crc;</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">The</span> <span class="pre">following</span> <span class="pre">fields</span> <span class="pre">are</span> <span class="pre">not</span> <span class="pre">actually</span> <span class="pre">transmitted</span> <span class="pre">or</span> <span class="pre">received</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">radio!</span> <span class="pre">They</span> <span class="pre">are</span> <span class="pre">used</span> <span class="pre">for</span> <span class="pre">internal</span> <span class="pre">accounting</span> <span class="pre">only.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">The</span> <span class="pre">reason</span> <span class="pre">they</span> <span class="pre">are</span> <span class="pre">in</span> <span class="pre">this</span> <span class="pre">structure</span> <span class="pre">is</span> <span class="pre">that</span> <span class="pre">the</span> <span class="pre">AM</span> <span class="pre">interface</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">requires</span> <span class="pre">them</span> <span class="pre">to</span> <span class="pre">be</span> <span class="pre">part</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">TOS_Msg</span> <span class="pre">that</span> <span class="pre">is</span> <span class="pre">passed</span> <span class="pre">to</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">send/receive</span> <span class="pre">operations.</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">strength;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">ack;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">time;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">sendSecurityMode;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">receiveSecurityMode;</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">TOS_Msg;</span></tt></div>
-</div>
-<p>while on a mote with a CC420 radio (e.g., micaZ), TOS_Msg is defined as:</p>
-<div class="line-block">
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">struct</span> <span class="pre">TOS_Msg</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">The</span> <span class="pre">following</span> <span class="pre">fields</span> <span class="pre">are</span> <span class="pre">transmitted/received</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">radio.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">length;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">fcfhi;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">fcflo;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">dsn;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">destpan;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">addr;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">type;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">group;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">int8_t</span> <span class="pre">data[TOSH_DATA_LENGTH];</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">The</span> <span class="pre">following</span> <span class="pre">fields</span> <span class="pre">are</span> <span class="pre">not</span> <span class="pre">actually</span> <span class="pre">transmitted</span> <span class="pre">or</span> <span class="pre">received</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">radio!</span> <span class="pre">They</span> <span class="pre">are</span> <span class="pre">used</span> <span class="pre">for</span> <span class="pre">internal</span> <span class="pre">accounting</span> <span class="pre">only.</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">The</span> <span class="pre">reason</span> <span class="pre">they</span> <span class="pre">are</span> <span class="pre">in</span> <span class="pre">this</span> <span class="pre">structure</span> <span class="pre">is</span> <span class="pre">that</span> <span class="pre">the</span> <span class="pre">AM</span> <span class="pre">interface</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">requires</span> <span class="pre">them</span> <span class="pre">to</span> <span class="pre">be</span> <span class="pre">part</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">TOS_Msg</span> <span class="pre">that</span> <span class="pre">is</span> <span class="pre">passed</span> <span class="pre">to</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">//</span> <span class="pre">send/receive</span> <span class="pre">operations.</span></tt></div>
-<div class="line"><br /></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">strength;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">lqi;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">bool</span> <span class="pre">crc;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint8_t</span> <span class="pre">ack;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uint16_t</span> <span class="pre">time;</span></tt></div>
-</div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span> <span class="pre">TOS_Msg;</span></tt></div>
-</div>
+definition of <tt class="docutils literal"><span class="pre">TOS_Msg</span></tt>, which a platform (e.g., the micaZ) can
+redefine to match its radio. For example, a mica2 mote uses the standard
+definition, which is:</p>
+<pre class="literal-block">
+typedef struct TOS_Msg {
+  // The following fields are transmitted/received on the radio.
+  uint16_t addr;
+  uint8_t type;
+  uint8_t group;
+  uint8_t length;
+  int8_t data[TOSH_DATA_LENGTH];
+  uint16_t crc;
+
+  // The following fields are not actually transmitted or received
+  // on the radio! They are used for internal accounting only.
+  // The reason they are in this structure is that the AM interface
+  // requires them to be part of the TOS_Msg that is passed to
+  // send/receive operations.
+  uint16_t strength;
+  uint8_t ack;
+  uint16_t time;
+  uint8_t sendSecurityMode;
+  uint8_t receiveSecurityMode;
+} TOS_Msg;
+</pre>
+<p>while on a mote with a CC420 radio (e.g., micaZ), <tt class="docutils literal"><span class="pre">TOS_Msg</span></tt> is defined as:</p>
+<pre class="literal-block">
+typedef struct TOS_Msg {
+  // The following fields are transmitted/received on the radio.
+  uint8_t length;
+  uint8_t fcfhi;
+  uint8_t fcflo;
+  uint8_t dsn;
+  uint16_t destpan;
+  uint16_t addr;
+  uint8_t type;
+  uint8_t group;
+  int8_t data[TOSH_DATA_LENGTH];
+
+  // The following fields are not actually transmitted or received
+  // on the radio! They are used for internal accounting only.
+  // The reason they are in this structure is that the AM interface
+  // requires them to be part of the TOS_Msg that is passed to
+  // send/receive operations.
+
+  uint8_t strength;
+  uint8_t lqi;
+  bool crc;
+  uint8_t ack;
+  uint16_t time;
+ } TOS_Msg;
+</pre>
 <p>There are two basic problems with this approach. First, exposing all of
 the link layer fields leads components to directly access the packet
 structure. This introduces dependencies between higher level components
 and the structure layout. For example, many network services built on
 top of data link layers care whether sent packets are acknowledged. They
-therefore check the <tt class="docutils literal"><span class="pre">ack</span></tt> field of TOS_Msg. If a link layer does not 
+therefore check the <tt class="docutils literal"><span class="pre">ack</span></tt> field of <tt class="docutils literal"><span class="pre">TOS_Msg</span></tt>. If a link layer does not
 provide acknowledgements, it must still include the <tt class="docutils literal"><span class="pre">ack</span></tt> field
 and always set it to 0, wasting a byte of RAM per buffer.</p>
 <p>Second, this model does not easily support multiple data link layers.
-Radio chip implementations assume that the fields they require are 
+Radio chip implementations assume that the fields they require are
 defined in the structure and directly access them. If a platform
 has two different link layers (e.g., a CC1000 <em>and</em> a CC2420 radio),
-then a TOS_Msg needs to allocate the right amount of space for both
+then a <tt class="docutils literal"><span class="pre">TOS_Msg</span></tt> needs to allocate the right amount of space for both
 of their headers while allowing implementations to directly access
 header fields. This is very difficult to do in C.</p>
 <p>The <tt class="docutils literal"><span class="pre">data</span></tt> payload is especially problematic. Many
 components refer to this field, so it must be at a fixed offset.
-Depending on the underlying link layer, the header fields 
+Depending on the underlying link layer, the header fields
 preceding it might have different lengths, and packet-level radios
-often require packets to be contiguous memory regions. Overall, these 
-complexities make specifying the format of TOS_Msg very difficult.</p>
+often require packets to be contiguous memory regions. Overall, these
+complexities make specifying the format of <tt class="docutils literal"><span class="pre">TOS_Msg</span></tt> very difficult.</p>
 </div>
-<div class="section" id="id1">
-<h1><a name="id1">2. message_t</a></h1>
+<div class="section">
+<h1><a id="id1" name="id1">2. message_t</a></h1>
 <p>In TinyOS 2.x, the standard message buffer is <tt class="docutils literal"><span class="pre">message_t</span></tt>. The
 message_t structure is defined in <tt class="docutils literal"><span class="pre">tos/types/message.h</span></tt>:</p>
 <pre class="literal-block">
@@ -435,17 +431,19 @@ typedef nx_struct message_t {
 </pre>
 <p>This format keeps data at a fixed offset, which is important when
 passing a message buffer between two different link layers. If the
-data payload is at different offsets for different link layers, then
-passing a packet between two link layers requires a <tt class="docutils literal"><span class="pre">memmove(3)</span></tt>
+data payload were at different offsets for different link layers, then
+passing a packet between two link layers would require a <tt class="docutils literal"><span class="pre">memmove(3)</span></tt>
 operation (essentially, a copy).</p>
-<p>The header, footer, and metadata fields are all opaque. Higher level
-components access their fields through interfaces. Section 3 discusses
-this in greater depth.</p>
+<p>The header, footer, and metadata formats are all opaque. Source code
+cannot access fields directly. Instead, data-link layers provide access
+to fields through nesC interfaces.  Section 3 discusses this in
+greater depth.</p>
 <p>Every link layer defines its header, footer, and metadata
-structures. These structures MUST be external structs, and all of
-their fields MUST be external types, for two reasons. First, this
-ensures cross-platform compatibility. Second, it allows structures
-to be aligned on byte boundaries, circumventing issues with the 
+structures. These structures MUST be external structs (<tt class="docutils literal"><span class="pre">nx_struct</span></tt>),
+and all of their fields MUST be external types (<tt class="docutils literal"><span class="pre">nx_*</span></tt>), for two
+reasons. First, external types ensure cross-platform compatibility.
+Second, it forces structures to be aligned on byte boundaries,
+circumventing issues with the
 alignment of packet buffers and field offsets within them.
 For example, the CC1000 radio implementation defines
 its structures in <tt class="docutils literal"><span class="pre">CC1000Msg.h</span></tt>:</p>
@@ -474,237 +472,191 @@ responsible for defining <tt class="docutils literal"><span class="pre">message_
 and <tt class="docutils literal"><span class="pre">message_metadata_t</span></tt>. This is because a platform may have
 multiple link layers, and so only it can resolve which structures are
 needed. These definitions MUST be in a file in a platform directory
-named <tt class="docutils literal"><span class="pre">platform_message.h</span></tt>.  The mica2 platform is a simple example,
-as it has only a CC1000 radio.  Its platform_message.h looks like this:</p>
+named <tt class="docutils literal"><span class="pre">platform_message.h</span></tt>. The mica2 platform, for example, has
+two data link layers: the CC1000 radio and the TinyOS serial
+stack <a class="footnote-reference" href="#id4" id="id2" name="id2">[1]</a>. The serial packet format does not have a footer
+or metadata section. The <tt class="docutils literal"><span class="pre">platform_message.h</span></tt> of the mica2
+looks like this:</p>
 <pre class="literal-block">
-typedef cc1000_header_t message_header_t;
-typedef cc1000_footer_t message_footer_t;
-typedef cc1000_metadata_t message_metadata_t;
+typedef union message_header {
+  cc1000_header_t cc1k;
+  serial_header_t serial;
+} message_header_t;
+
+typedef union message_footer {
+  cc1000_footer_t cc1k;
+} message_footer_t;
+
+typedef union message_metadata {
+  cc1000_metadata cc1k;
+} message_metadata_t;
 </pre>
 <p>For a more complex example, consider a fictional platform named
 'megamica' that has both a CC1000 and a CC2420 radio. Its
-platform_message.h looks like this:</p>
+<tt class="docutils literal"><span class="pre">platform_message.h</span></tt> would look like this:</p>
 <pre class="literal-block">
 typedef union mega_mica_header {
   cc1000_header_t cc1k;
   cc2420_header_t cc2420;
-} mega_mica_header_t;
+  serial_header_t serial;
+} message_header_t;
 
 typedef union mega_mica_footer {
   cc1000_footer_t cc1k;
   cc2420_footer_t cc2420;
-} mega_mica_footer_t;
+} message_footer_t;
 
 typedef union mega_mica_metadata {
   cc1000_metadata_t cc1k;
   cc2420_metadata_t cc2420;
-} mega_mica_metadata_t;
-
-typedef mega_mica_header_t message_header_t;
-typedef mega_mica_footer_t message_footer_t;
-typedef mega_mica_metadata_t message_metadata_t;
+} message__metadata_t;
 </pre>
 <p>If a platform has more than one link layer, it SHOULD define each of the
 message_t fields to be a union of the underlying link layer structures.
 This ensures that enough space is allocated for all underlying link layers.</p>
 </div>
-<div class="section" id="message-t-fields">
-<h1><a name="message-t-fields">3. Message_t fields</a></h1>
-<p>A TinyOS component MUST NOT access any message_t fields directly besides
-its top-level structures:</p>
-<ul class="simple">
-<li>header</li>
-<li>data</li>
-<li>footer</li>
-<li>metadata</li>
-</ul>
-<p>That is, a TinyOS component MUST NOT access any sub-fields of these
-structures. Components above the link layer MUST access packet fields
-through a nesC interface. For example, active messages have an interface
-named <tt class="docutils literal"><span class="pre">AMPacket</span></tt> which provides access commands to AM fields. In
-TinyOS 1.x, a component would directly access <tt class="docutils literal"><span class="pre">TOS_Msg.addr</span></tt>;
-in TinyOS 2.x, a component calls <tt class="docutils literal"><span class="pre">AMPacket.getAddress(msg)</span></tt>.</p>
-<div class="section" id="message-header-t">
-<h2><a name="message-header-t">3.1 message_header_t</a></h2>
-<p>Link layer components MAY handle packet fields differently than other 
+<div class="section">
+<h1><a id="the-message-t-fields" name="the-message-t-fields">3. The message_t fields</a></h1>
+<p>TinyOS 2.x components treat packets as abstract data types (ADTs),
+rather than C structures, obtaining all of the traditional benefits
+of this approach. First and foremost, clients of a packet layer
+do not depend on particular field names or locations, allowing the
+implementations to choose packet formats and make a variety of
+optimizations.</p>
+<p>Components above the basic data-link layer MUST always access
+packet fields through interfaces.  A component that introduces
+new packet fields SHOULD provide an interface to those that
+are of interest to other components.
+For example, active messages have an interface named <tt class="docutils literal"><span class="pre">AMPacket</span></tt>
+which provides access commands to AM fields. In TinyOS 1.x, a
+component would directly access <tt class="docutils literal"><span class="pre">TOS_Msg.addr</span></tt>; in TinyOS 2.x,
+a component calls <tt class="docutils literal"><span class="pre">AMPacket.getAddress(msg)</span></tt>.
+The most basic of these interfaces is Packet, which provides
+access to a packet payload. TEP 116 describes common TinyOS
+packet ADT interfaces <a class="footnote-reference" href="#id5" id="id3" name="id3">[2]</a>.</p>
+<p>Link layer components MAY access packet fields differently than other
 components, as they are aware of the actual packet format. They can
 therefore implement the interfaces that provide access to the fields
 for other components.</p>
-<p>Link layer components MUST NOT directly access sub-fields
-of message_t. There are two reasons for this. First, whether 
-each type is their link type or a union of link types is unknown, 
-as it can change depending on the platform. 
-Each of these cases has different C syntax, and in the union case the
-name of the field is unknown.</p>
-<p>Second, although the structures ensure that enough space is allocated, 
-C's placement of the structures is not necessarily correct.
-Defining a message_t header as a union of the underlying link layer headers
-means that, in terms of C structures, a packet may not be contiguous. For
-example, consider this case:</p>
-<pre class="literal-block">
-typedef struct header_a {
-  nx_uint8_t a;
-} header_a_t;
-
-typedef struct header_b {
-  nx_uint16_t b;
-} header_b_t;
-
-typedef union {
-  header_a_t A;
-  header_b_t B;
-} header_union_t;
-
-typedef header_union_t message_header_t;
-</pre>
-<p>Given nesC nx_struct layout, when message_header_t is specified as a union
-of HeaderA and HeaderB, there will be a padding byte after <tt class="docutils literal"><span class="pre">header_a_t.a</span></tt>.
-However, some radios require that packets passed to them are contiguous.</p>
-<p>The packet for a link layer does not necessarily start at the beginning
-of the message_t. Instead, it starts at a negative offset from the
-data field.  When a link layer component needs to read or write protocol 
-header fields, it MUST compute the location of the header as a negative 
-offset from the data field. The padding bytes that C introduces for
-the different sized headers are at the beginning of message_t, not
-between the header and payload. For example, let us suppose that header_a
-has an interface <tt class="docutils literal"><span class="pre">APacket</span></tt>, which provides a command <tt class="docutils literal"><span class="pre">a</span></tt> that 
-returns the field <tt class="docutils literal"><span class="pre">a</span></tt>. Its code looks like this:</p>
-<pre class="literal-block">
-command uint8_t APacket.a(message_t* msg) {
-  header_a_t* hdr = (header_a_t*)(msg-&gt;data - sizeof(header_a_t));
-  return hdr-&gt;a;
-}
-</pre>
-<p>Because this code is a bit unwieldy, many data link layers have an 
-internal helper function that just returns a pointer to a header:</p>
-<pre class="literal-block">
-header_a_t* getHeader(message_t* msg) {
-  return (header_a_t*)(msg-&gt;data - sizeof(header_a_t));
-}
-...
-command uint8_t APacket.a(message_t* msg) {
-  header_a_t* hdr = getHeader(msg);
-  return hdr-&gt;a;
-}
-</pre>
-<p>Note that this only works for the data link header. As discussed in 
-TEP 116[_tep116], higher level protocols must use a payload offset. 
-A common approach to provide accessors is to have a helper function
-which correctly casts the location of a structure into a structure pointer.</p>
-<p>We can trust the C compiler to optimize the call into a static offset
-memory load.</p>
-<p>The following code is incorrect, as it directly casts the header field.
-It is an example of what components MUST NOT do:</p>
-<pre class="literal-block">
-command uint8_t APacket.a(message_t* msg) {
-  HeaderA* hdr = (HeaderA*)(msg-&gt;header);
-  return hdr-&gt;a; 
-}  
-</pre>
-</div>
-<div class="section" id="message-footer-t">
-<h2><a name="message-footer-t">3.2 message_footer_t</a></h2>
-<p>The message_footer_t field ensures that message_t has enough space to
-store the footers for all underlying link layers when there are
-MTU-sized packets. Like headers, footers are not necessarily stored
-where the C structs indicate they are: instead, their placement is
-implementation dependent. For example, a link layer can store a full
-packet as a contiguous area of memory. In this case, a short packet
-will store the footer within the <tt class="docutils literal"><span class="pre">data</span></tt> field of the structure.</p>
-<p>The placement of the packet footer is implementation dependent: it
-does not have to lie within the footer field. For example, if a link
-layer receives a short packet, the footer, if contiguous with the rest
-of the packet, might actually reside within the data field. It is up
-to the link layer implementation where the footer is stored;
-correspondingly, components other than the one responsible for its
-placement MUST access the footer only through interfaces.</p>
-</div>
-<div class="section" id="message-metadata-t">
-<h2><a name="message-metadata-t">3.3 message_metadata_t</a></h2>
-<p>The message_metadata_t stores the data associated with a packet that
-is not part of a wire format. Fields in the message_metadata_t are
-never transmitted. Examples of fields that might be in a
-message_metadata_t are a timestamps, an acknowledgment bit, or a
-retransmission count.</p>
-</div>
-<div class="section" id="message-t-layout">
-<h2><a name="message-t-layout">3.4 message_t Layout</a></h2>
-<p>The message_t structure is designed so that multiple link layers that
-have different header sizes can exchange packets without a data copy.
-Its definition ensures that there is sufficient allocation for every
-link layer. The layout of a packet in memory is not necessarily the
-same as the structure definition.  The basic issue driving these
-design considerations is that the C naming layout of message_t fields
-is platform specific. As a data link implementation may be used on
-many platforms, an implementation cannot depend on a particular C
-naming. An implementation can depend on there being enough space for
-its header and footer in message_t.</p>
-<p>Following this approach means that the packet header and data payload
-are contiguous in memory, which allows other communication
-abstractions (such as a UART, see TEP 113[_tep113]) to easily
-encapsulate a packet.</p>
-<p>For example, consider the message_t layout on the Telos platform, which
-has two link layers: serial communication and the CC2420:</p>
+<div class="section">
+<h2><a id="headers" name="headers">3.1 Headers</a></h2>
+<p>The message_t header field is an array of bytes whose size is
+the size of a platform's union of data-link headers.
+Because packets are stored contiguously, the layout of a packet
+in memory is not the same as the layout of its nesC structure.</p>
+<p>A packet header does not necessarily start at the beginning of
+the message_t. For example, consider the Telos platform:</p>
 <pre class="literal-block">
 typedef union message_header {
   cc2420_header_t cc2420;
   serial_header_t serial;
 } message_header_t;
-
-typedef union TOSRadioFooter {
-  cc2420_footer_t cc2420;
-} message_footer_t;
-
-typedef union TOSRadioMetadata {
-  cc2420_metadata_t cc2420;
-} message_metadata_t;
 </pre>
-<p>The serial stack packets do not have a footer or metadata. The CC2420
-has several metadata fields (7 bytes), but no footer. These are the
-headers for the two link layers:</p>
+<p>The CC2420 header is 11 bytes long, while the serial header is
+5 bytes long. The serial header ends at the beginning of the
+data payload, and so six padding bytes precede it. This figure
+shows the layout of message_t, a 12-byte CC2420 packet, and
+a 12-byte serial packet on the Telos platform:</p>
 <pre class="literal-block">
-typedef nx_struct serial_header {
-  nx_am_addr_t addr;
-  nx_uint8_t length;
-  nx_am_group_t group;
-  nx_am_id_t type;
-} serial_header_t;
+            11 bytes         TOSH_DATA_LENGTH        7 bytes
+          +-----------+-----------------------------+-------+
+message_t |  header   |          data               | meta  |
+          +-----------+-----------------------------+-------+
 
-typedef nx_struct cc2420_header_t {
-  nxle_uint8_t length;
-  nxle_uint16_t fcf;
-  nxle_uint8_t dsn;
-  nxle_uint16_t destpan;
-  nxle_uint16_t dest;
-  nxle_uint16_t src;
-  nxle_uint8_t type;
-} cc2420_header_t;
+          +-----------+------------+                +-------+
+CC2420    |  header   |   data     |                | meta  |
+          +-----------+------------+                +-------+
+
+                +-----+------------+
+Serial          | hdr |   data     |
+                +-----+------------+
 </pre>
-<p>The serial header is 5 bytes long, while the CC2420 header is 11 bytes
-long. This means that the message_t header is 11 bytes. When the
-serial stack builds a packet, it places the first byte of its header
-offset 6 bytes from the beginning of the message_t, so that its
-header is contiguous with the data payload. This shows the layout
-of a 12-byte packet for the CC2420 and serial stacks along side the
-full message_t structure:</p>
+<p>Neither the CC2420 nor the serial stack has packet footers, and
+the serial stack does not have any metadata.</p>
+<p>The packet for a link layer does not necessarily start at the beginning
+of the message_t. Instead, it starts at a negative offset from the
+data field.  When a link layer component needs to read or write protocol
+header fields, it MUST compute the location of the header as a negative
+offset from the data field.  For example, the serial stack header has
+active message fields, such as the AM type. The command that returns
+the AM type, <tt class="docutils literal"><span class="pre">AMPacket.type()</span></tt>, looks like this:</p>
 <pre class="literal-block">
-            11 bytes         TOSH_DATA_LENGTH         7 bytes
-          +-----------+-----------------------------++-------+
-message_t |  header   |          data               || meta  |
-          +-----------+-----------------------------++-------+
-            
-          +-----------+------------+                 +-------+
-CC2420    |  header   |   data     |   unused        | meta  |
-          +-----------+------------+                 +-------+
+serial_header_t* getHeader(message_t* msg) {
+  return (serial_header_t*)(msg-&gt;data - sizeof(serial_header_t));
+}
+command am_id_t AMPacket.type(message_t* msg) {
+  serial_header_t* hdr = getheader(msg);
+  return hdr-&gt;type;
+}
+</pre>
+<p>Because calculating the negative offset is a little bit unwieldy, the
+serial stack uses the internal helper function getHeader(). Many
+single-hop stacks follow this approach, as it is very likely
+that nesC will inline the function, eliminating the possible overhead.
+In most cases, the C compiler also compiles the call into a simple
+memory offset load.</p>
+<p>The following code is incorrect, as it directly casts the header field.
+It is an example of what components MUST NOT do:</p>
+<pre class="literal-block">
+serial_header_t* getHeader(message_t* msg) {
+  return (serial_header_t*)(msg-&gt;header);
+}
+</pre>
+<p>In the case of Telos, for example, this would result in a packet
+layout that looks like this:</p>
+<pre class="literal-block">
+            11 bytes         TOSH_DATA_LENGTH           7 bytes
+          +-----------+-----------------------------+-------+
+message_t |  header   |          data               | meta  |
+          +-----------+-----------------------------+-------+
 
-                +-----+------------+                 +-------+
-Serial          | hdr |   data     |   unused        | meta  |
-                +-----+------------+                 +-------+
+          +-----+     +------------+
+Serial    | hdr |     |   data     |
+          +-----+     +------------+
+</pre>
+</div>
+<div class="section">
+<h2><a id="data" name="data">3.2 Data</a></h2>
+<p>The data field of message_t stores the single-hop packet payload.
+It is TOSH_DATA_LENGTH bytes long. The default size is 28 bytes.
+A TinyOS application can redefine TOSH_DATA_LENGTH at compile time
+with a command-line option to ncc: <tt class="docutils literal"><span class="pre">-DTOSH_DATA_LENGTH=x</span></tt>.
+Because this value can be reconfigured, it is possible that two
+different versions of an application can have different MTU sizes.
+If a packet layer receives a packet whose payload size is
+longer than TOSH_DATA_LENGTH, it MUST discard the packet.</p>
+</div>
+<div class="section">
+<h2><a id="footer" name="footer">3.3 Footer</a></h2>
+<p>The message_footer_t field ensures that message_t has enough space to
+store the footers for all underlying link layers when there are
+MTU-sized packets. Like headers, footers are not necessarily stored
+where the C structs indicate they are: instead, their placement is
+implementation dependent. A single-hop layer MAY store the footer
+contiguously with the data region. For short packets, this can mean
+that the footer will actually be stored in the data field.</p>
+</div>
+<div class="section">
+<h2><a id="metadata" name="metadata">3.4 Metadata</a></h2>
+<p>The metadata field of message_t stores data that
+a single-hop stack uses or collects does not transmit.
+This mechanism allows packet layers to store per-packet
+information such as RSSI or timestamps. For example, this is
+the CC2420 metadata structure:</p>
+<pre class="literal-block">
+typedef nx_struct cc2420_metadata_t {
+  nx_uint8_t tx_power;
+  nx_uint8_t rssi;
+  nx_uint8_t lqi;
+  nx_bool crc;
+  nx_bool ack;
+  nx_uint16_t time;
+} cc2420_metadata_t;
 </pre>
 </div>
 </div>
-<div class="section" id="author-s-address">
-<h1><a name="author-s-address">4. Author's Address</a></h1>
+<div class="section">
+<h1><a id="author-s-address" name="author-s-address">4. Author's Address</a></h1>
 <div class="line-block">
 <div class="line">Philip Levis</div>
 <div class="line">358 Gates Hall</div>
@@ -716,18 +668,18 @@ Serial          | hdr |   data     |   unused        | meta  |
 <div class="line">email - <a class="reference" href="mailto:pal&#64;cs.stanford.edu">pal&#64;cs.stanford.edu</a></div>
 </div>
 </div>
-<div class="section" id="citations">
-<h1><a name="citations">5. Citations</a></h1>
-<table class="docutils citation" frame="void" id="tep113" rules="none">
+<div class="section">
+<h1><a id="citations" name="citations">5. Citations</a></h1>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep113">[tep113]</a></td><td>TEP 113: Serial Communication.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2" name="id4">[1]</a></td><td>TEP 113: Serial Communication.</td></tr>
 </tbody>
 </table>
-<table class="docutils citation" frame="void" id="tep116" rules="none">
+<table class="docutils footnote" frame="void" id="id5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep116">[tep116]</a></td><td>TEP 116: Packet Protocols.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id3" name="id5">[2]</a></td><td>TEP 116: Packet Protocols.</td></tr>
 </tbody>
 </table>
 </div>

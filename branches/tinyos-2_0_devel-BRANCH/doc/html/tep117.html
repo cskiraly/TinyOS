@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>Pins and Buses</title>
 <meta name="author" content="Phil Buonadonna" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-05-18 23:07:25 $
-:version: $Revision: 1.1.2.1 $
+:date: $Date: 2006-06-09 21:12:17 $
+:version: $Revision: 1.1.2.2 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -216,7 +216,11 @@ pre.line-block {
 pre.literal-block, pre.doctest-block {
   margin-left: 2em ;
   margin-right: 2em ;
-  background-color: #eeeeee }
+  background-color: #eeeeee;
+  border-color: #000000;
+  border-width: thin; 
+  font-size: 14px
+}
 
 span.classifier {
   font-family: sans-serif ;
@@ -271,8 +275,7 @@ th.docinfo-name, th.field-name {
 h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
   font-size: 100% }
 
-tt {
-  background-color: #eeeeee }
+tt {}
 
 ul.auto-toc {
   list-style-type: none }
@@ -315,14 +318,14 @@ requests discussion and suggestions for improvements.  Distribution
 of this memo is unlimited. This memo is in full compliance with
 TEP 1.</p>
 </div>
-<div class="section" id="abstract">
-<h1><a name="abstract">Abstract</a></h1>
+<div class="section">
+<h1><a id="abstract" name="abstract">Abstract</a></h1>
 <p>The memo documents the TinyOS 2.x interfaces used for controlling
 digital IO functionality and digital interfaces other than serial
 communication covered in [tep113].</p>
 </div>
-<div class="section" id="introduction">
-<h1><a name="introduction">1. Introduction</a></h1>
+<div class="section">
+<h1><a id="introduction" name="introduction">1. Introduction</a></h1>
 <p>The canonical TinyOS device is likely to have a variety of digital
 interfaces. These interfaces may be divided into two broad
 categories. The first are general purpose digital I/O lines (pins)
@@ -336,8 +339,8 @@ coverage. While the UART interface is also in this category, it is
 covered separately in [tep113].</p>
 <p>This memo documents the interfaces used for pins and the two buses.</p>
 </div>
-<div class="section" id="pins">
-<h1><a name="pins">2. Pins</a></h1>
+<div class="section">
+<h1><a id="pins" name="pins">2. Pins</a></h1>
 <p>General Purpose I/O (GPIO) pins are single, versatile digital I/O signals
 individually controllable on a particular chip or platform. Each GPIO
 can be placed into either an input mode or an output mode. On
@@ -378,8 +381,8 @@ interfaces:</p>
 <li>GpioCapture</li>
 </ul>
 </blockquote>
-<div class="section" id="generalio">
-<h2><a name="generalio">2.1 GeneralIO</a></h2>
+<div class="section">
+<h2><a id="generalio" name="generalio">2.1 GeneralIO</a></h2>
 <p>The GeneralIO HIL interface is the fundamental mechanism for controlling a
 GPIO pin. The interface provides a mechanism for setting the pin mode
 and reading/setting the pin value. The toggle function switches the
@@ -399,9 +402,9 @@ interface GeneralIO
 }
 </pre>
 </div>
-<div class="section" id="gpiointerrupt">
-<h2><a name="gpiointerrupt">2.2 GpioInterrupt</a></h2>
-<p>The GPIO Interrupt HIL interface provides baseline event control for a 
+<div class="section">
+<h2><a id="gpiointerrupt" name="gpiointerrupt">2.2 GpioInterrupt</a></h2>
+<p>The GPIO Interrupt HIL interface provides baseline event control for a
 GPIO pin. It provides a mechanism to detect a rising edge OR a falling
 edge. Note that calls to enableRisingEdge and enableFallingEdge are
 NOT cumulative and only one edge may be detected at a time. There may
@@ -418,8 +421,8 @@ interface GpioInterrupt {
 }
 </pre>
 </div>
-<div class="section" id="gpiocapture">
-<h2><a name="gpiocapture">2.3 GpioCapture</a></h2>
+<div class="section">
+<h2><a id="gpiocapture" name="gpiocapture">2.3 GpioCapture</a></h2>
 <p>The GpioCapture interface provides a means of associating a timestamp
 with a GPIO event. Platforms MAY provide this interface.</p>
 <p>Some platforms may have hardware support for such a feature. Other
@@ -438,14 +441,14 @@ interface GpioCapture {
 </pre>
 </div>
 </div>
-<div class="section" id="buses">
-<h1><a name="buses">3. Buses</a></h1>
+<div class="section">
+<h1><a id="buses" name="buses">3. Buses</a></h1>
 <p>Bus operations may be divided into two categories: data and
 control. The control operations of a particular bus controller are
 platform specific and not covered here. Instead, we focus on the data
 interfaces at the HIL level that are expected to be provided.</p>
-<div class="section" id="serial-peripheral-interface">
-<h2><a name="serial-peripheral-interface">3.1 Serial Peripheral Interface</a></h2>
+<div class="section">
+<h2><a id="serial-peripheral-interface" name="serial-peripheral-interface">3.1 Serial Peripheral Interface</a></h2>
 <p>The Serial Peripheral Interface (SPI) is part of a larger class of
 Synchronous Serial Protocols.  The term SPI typically refers to the
 Motorola SPI protocols. Other protocols include the National
@@ -470,13 +473,13 @@ pointer/length interface permits use of hardware assist such as DMA.</p>
 interface SPIPacket {
 
   async command error_t send( uint8_t* txBuf, uint8_t* rxBuf, uint16_t len );
-  async event void sendDone( uint8_t* txBuf, uint8_t* rxBuf, uint16_t len, 
+  async event void sendDone( uint8_t* txBuf, uint8_t* rxBuf, uint16_t len,
                             error_t error );
 }
 </pre>
 </div>
-<div class="section" id="i2c">
-<h2><a name="i2c">3.2 I2C</a></h2>
+<div class="section">
+<h2><a id="i2c" name="i2c">3.2 I2C</a></h2>
 <p>The Inter-Integrated Circuit (I2C) interface is another type of
 digital bus that is often used for chip-to-chip communication. It is
 also known as a two-wire interface.</p>
@@ -494,8 +497,8 @@ interface I2CPacket {
 </pre>
 </div>
 </div>
-<div class="section" id="author-s-address">
-<h1><a name="author-s-address">4. Author's Address</a></h1>
+<div class="section">
+<h1><a id="author-s-address" name="author-s-address">4. Author's Address</a></h1>
 <div class="line-block">
 <div class="line">Phil Buonadonna</div>
 <div class="line">Arched Rock Corporation</div>
@@ -505,8 +508,8 @@ interface I2CPacket {
 <div class="line">phone - +1 415 692-0828 x2833</div>
 </div>
 </div>
-<div class="section" id="citations">
-<h1><a name="citations">5. Citations</a></h1>
+<div class="section">
+<h1><a id="citations" name="citations">5. Citations</a></h1>
 <table class="docutils citation" frame="void" id="tep113" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">

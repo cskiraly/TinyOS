@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>Permanent Data Storage (Flash)</title>
 <meta name="author" content="David Gay, Jonathan Hui" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-05-18 23:07:25 $
-:version: $Revision: 1.1.2.1 $
+:date: $Date: 2006-06-09 21:12:17 $
+:version: $Revision: 1.1.2.2 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -216,7 +216,11 @@ pre.line-block {
 pre.literal-block, pre.doctest-block {
   margin-left: 2em ;
   margin-right: 2em ;
-  background-color: #eeeeee }
+  background-color: #eeeeee;
+  border-color: #000000;
+  border-width: thin; 
+  font-size: 14px
+}
 
 span.classifier {
   font-family: sans-serif ;
@@ -271,8 +275,7 @@ th.docinfo-name, th.field-name {
 h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt {
   font-size: 100% }
 
-tt {
-  background-color: #eeeeee }
+tt {}
 
 ul.auto-toc {
   list-style-type: none }
@@ -300,9 +303,9 @@ ul.auto-toc {
 <td>David Gay, Jonathan Hui</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">27-Sep-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.2</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.8</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-02-14</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-07</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -315,20 +318,20 @@ requests discussion and suggestions for improvements.  Distribution
 of this memo is unlimited. This memo is in full compliance with
 TEP 1.</p>
 </div>
-<div class="section" id="abstract">
-<h1><a name="abstract">Abstract</a></h1>
+<div class="section">
+<h1><a id="abstract" name="abstract">Abstract</a></h1>
 <p>This memo documents a set of hardware-independent, non-volatile
 storage interfaces for TinyOS 2.x, and the HPL and HAL layers for
 various flash chips.</p>
 </div>
-<div class="section" id="introduction">
-<h1><a name="introduction">1. Introduction</a></h1>
+<div class="section">
+<h1><a id="introduction" name="introduction">1. Introduction</a></h1>
 <p>There are three different flash chip families under use or
 consideration for TinyOS platforms: the Atmel AT45DB family (Mica
 family, Telos rev. A), the ST M25P family (Telos rev. B, eyes) and the
-Intel Strataflash (imote2).  All three are &quot;NOR&quot; flash chips, but the
-AT45DB has fairly different characteristics (see below). There also
-&quot;NAND&quot; flash chips which have rather different tradeoffs from NOR
+Intel Strataflash (Intel Mote2).  All three are &quot;NOR&quot; flash chips, but
+the AT45DB has fairly different characteristics (see below). There
+also &quot;NAND&quot; flash chips which have rather different tradeoffs from NOR
 flash. Compact flash/etc cards use NAND flash but present a disk-like
 block interface.</p>
 <p>A common restriction of flash technology is that each bit can only be
@@ -341,14 +344,14 @@ Erase        :  Slow (seconds)      Fast (ms)      Fast (ms)
 Erase unit   :  Large (64KB-128KB)  Small (256B)   Medium (8K-32KB)
 Writes       :  Slow (100s kB/s)    Slow (60kB/s)  Fast (MBs/s)
 Write unit   :  1 bit               256B           100's of bytes
-Bit-errors   :  Low                 Low            High (requires ECC, 
+Bit-errors   :  Low                 Low            High (requires ECC,
                                                    bad-block mapping)
-Read         :  Fast*               Slow+I/O bus   Fast (but limited by 
+Read         :  Fast*               Slow+I/O bus   Fast (but limited by
                                                    I/O bus)
 Erase cycles :  10^4 - 10^5         10^4 **        10^5 - 10^7
 Intended use :  Code storage        Data storage   Data storage
 
-*  imote2 NOR flash is memory mapped (reads are very fast and can
+*  Intel Mote2 NOR flash is memory mapped (reads are very fast and can
    directly execute code)
 ** Or infinite? Data sheet just says that every page within a sector
    must be written every 10^4 writes within that sector
@@ -362,256 +365,260 @@ Energy/byte:    1uJ                 1uJ            .01uJ</blockquote>
 takes (the power consumptions are comparable), i.e., on the efficiency
 of the bus + processor.</p>
 </div>
-<div class="section" id="non-volatile-storage-abstraction-in-tinyos-2-x">
-<h1><a name="non-volatile-storage-abstraction-in-tinyos-2-x">2. Non-Volatile Storage Abstraction in TinyOS 2.x</a></h1>
-<p>The very significant differences between the flash chips used in
-TinyOS preclude common, low-level HIL interfaces such as a disk-like
-block interface. Instead, we propose that the HIL interfaces
-correspond to high-level storage services useful for sensor network
-applications. We have identified three storage abstractions: large
-object, small objects, and logs. We envision separate implementations
-of these abstractions for each class of storage chip; these
-implementations will be found in the new tos/chips/CHIPNAME hierarchy.</p>
-<div class="section" id="large-objects">
-<h2><a name="large-objects">2.1 Large objects:</a></h2>
-<p>This scenario involves getting a large (100's bytes to kilobytes or
-more) free chunk (through alloc or erase), writing to each byte/block
-once in any arbitrary order, and &quot;committing&quot; when the chunk is
-filled.</p>
+<div class="section">
+<h1><a id="non-volatile-storage-abstraction-in-tinyos-2-x" name="non-volatile-storage-abstraction-in-tinyos-2-x">2. Non-Volatile Storage Abstraction in TinyOS 2.x</a></h1>
+<p>The very significant differences between the flash chips used in TinyOS,
+and lack of RAM to hide these differences, preclude common, low-level HIL
+interfaces such as a disk-like block interface. Instead, we propose that
+the HIL interfaces correspond to high-level storage services useful for
+sensor network applications. We have identified three storage abstractions:
+large objects, small objects, and logs. We envision separate implementations
+of these abstractions for each class of storage chip; these implementations
+will be found in the tos/chips/CHIPNAME hierarchy.</p>
+<p>Rather than provide a general-purpose file system with variable-sized
+files, we assume the flash is divided into fixed-size volumes, with
+each volume dedicated to holding a single instance of one of the
+abstractions (a large object, a small object or a log). We believe this
+restrictive approach is practical in the single-application model of
+TinyOS.</p>
+<div class="section">
+<h2><a id="large-objects" name="large-objects">2.1 Large objects:</a></h2>
+<p>A large object ranges from a few kilobytes upwards. A large object
+must be erased before use. Each byte in a large object can only
+written once after each erase. A large object must be committed
+to ensure it survives a reboot or crash. After a commit, no more
+writes may be performed.</p>
 <blockquote>
-Size: large
-Reads: random
-Writes: random (minimum block size?), each block written once
-Failure model: no fault tolerance (crash before commit leads to
-object loss)
-Other: a commit operation terminates writes, a validate operation
-checks the object.</blockquote>
+<ul class="simple">
+<li>Size: large</li>
+<li>Reads: random</li>
+<li>Writes: random (each byte written at most once)</li>
+<li>Failure model: no fault tolerance (crash before commit leads to
+object loss)</li>
+<li>Other: a commit operation terminates writes, a validate operation
+checks the object.</li>
+</ul>
+</blockquote>
+<p>Examples: program storage, message buffering in delay-tolerant-networking</p>
 </div>
-<div class="section" id="large-sequential-objects-logs">
-<h2><a name="large-sequential-objects-logs">2.2 Large sequential objects (Logs)</a></h2>
-<p>Some applications (e.g., low-rate data collection) may want to log all
-their results in a reliable fashion, possibly in a circular buffer.</p>
+<div class="section">
+<h2><a id="large-sequential-objects" name="large-sequential-objects">2.2 Large sequential objects</a></h2>
+<p>Some applications (e.g., low-rate data collection) can use a large
+sequential object to save their results in a reliable fashion. A large
+sequential object can be circular.</p>
 <blockquote>
-<p>Size: large
-Reads: from memorized write points or beginning
-Writes: sequential, object is linear or circular</p>
-<p>Failure model: writes are atomic, failure during/between writes does
+<ul class="simple">
+<li>Size: large</li>
+<li>Reads: from memorized write points or beginning</li>
+<li>Writes: sequential, object is linear or circular</li>
+<li>Failure model: writes are atomic, failure during/between writes does
 not lead to whole object loss, but may lead to loss of some entries
 (but see sync)
-Note: failure during write may lead to (minor) capacity reduction
-Other: sync: guarantees already written data will not be lost to
-(crash-style) failure</p>
+Note: failure during write may lead to (minor) capacity reduction</li>
+<li>Other: sync: guarantees already written data will not be lost to
+(crash-style) failure</li>
+</ul>
 </blockquote>
+<p>Example: logs.</p>
 </div>
-<div class="section" id="small-objects">
-<h2><a name="small-objects">2.3 Small objects:</a></h2>
-<p>This scenario involves keeping a small chunk (less than 100 some
-bytes). Requires multiple and random reads/writes.</p>
+<div class="section">
+<h2><a id="small-objects" name="small-objects">2.3 Small objects:</a></h2>
+<p>A small object may be only a few hundred bytes. Small objects support
+random reads and writes and simple transactional behaviour (each read is a
+separate transaction, all writes up to a commit form a single transaction).</p>
 <blockquote>
-Size: small
-Reads: random
-Writes: random, no minimum block size, rewrite ok
-Failure model: writes are atomic, failure during/between writes
-does not lead to object loss</blockquote>
+<ul class="simple">
+<li>Size: small</li>
+<li>Reads: random, read data as of last commit</li>
+<li>Writes: random, rewrite ok</li>
+<li>Failure model: failure during/between writes does not lead to object
+loss (at reboot, object will contain state as of the most recent
+successful commit)</li>
+<li>Other: commit operation ensures all writes since last commit become
+permanent</li>
+</ul>
+</blockquote>
+<p>Example: configuration data.</p>
 </div>
 </div>
-<div class="section" id="hpl-hal-hil-architecture">
-<h1><a name="hpl-hal-hil-architecture">3. HPL/HAL/HIL Architecture</a></h1>
+<div class="section">
+<h1><a id="hpl-hal-hil-architecture" name="hpl-hal-hil-architecture">3. HPL/HAL/HIL Architecture</a></h1>
 <p>The proposed architecture aligns with the three-layer Hardware
-Abstraction Architecture (HAA).</p>
-<div class="section" id="hardware-presentation-layer-hpl">
-<h2><a name="hardware-presentation-layer-hpl">3.1 Hardware Presentation Layer (HPL)</a></h2>
+Abstraction Architecture (HAA). This document briefly presents
+the components and interfaces; for full details see the nesdoc
+comments in the referenced components and interfaces.</p>
+<div class="section">
+<h2><a id="hardware-presentation-layer-hpl" name="hardware-presentation-layer-hpl">3.1 Hardware Presentation Layer (HPL)</a></h2>
+<p>The flash HPL has a chip-dependent, system-independent interface. The
+implementation of this HPL is system-dependent. The flash HPL SHOULD be
+stateless. In many cases, families of flash chips can share a common HPL
+interface.</p>
+<p>Some examples:</p>
+<ul>
+<li><p class="first">The Atmel AT45DB family HPL is:</p>
+<pre class="literal-block">
+configuration HplAt45dbC {
+  provides interface;
+} ...
+</pre>
+<p>The <tt class="docutils literal"><span class="pre">HplAt45db</span></tt> interface has flash-&gt;buffer, buffer-&gt;flash, compare
+buffer to flash, erase page, read, compute CRC, and write operations.  A
+generic, system-independent implementation of the HPL
+(<tt class="docutils literal"><span class="pre">HplAt45dbByteC</span></tt>) is included allowing platforms to just provide SPI
+and chip selection interfaces.</p>
+<p>Different members of the AT45DB family are supported by specifying a few
+constants (number of pages, page size).</p>
+</li>
+<li><p class="first">The M25P family HPL is:</p>
+<pre class="literal-block">
+ configuration Stm25pSpiC {
+   provides interface Init;
+   provides interface Resource;
+   provides interface Stm25pSpi;
+ }
+
+The ``Stm25pSpi`` interface has read, write, compute CRC, sector erase
+and block erase operations. The implementation of this HPL is
+system-independent, built over a few system-dependent components
+providing SPI and chip selection interfaces.
+</pre>
+</li>
+</ul>
+<p>Note that these two examples have different resource management policies:
+the AT45DB encapsulates resource acquisition and release within each
+operation, while the M25P family requires that HPL users acquire and
+release the resource itself.</p>
+</div>
+<div class="section">
+<h2><a id="hardware-adaptation-layer-hal" name="hardware-adaptation-layer-hal">3.2 Hardware Adaptation Layer (HAL)</a></h2>
+<p>The flash HAL has a chip-dependent, system-independent interface and
+implementation. Flash families with a common HPL SHOULD have a common
+HAL. Flash HAL's SHOULD expose a <tt class="docutils literal"><span class="pre">Resource</span></tt> interface and automatically
+power-manage the underlying flash chip. Finally, the flash HAL SHOULD
+provide a way to access the volume information specified by the
+programmer (see Section 3.3a). This allows users to build new flash
+abstractions that interact cleanly with the rest of the flash system.
+Next, we show a couple of flash HAL's.</p>
+<p>The AT45DB HAL has two components, one for chip access and the other
+providing volume information:</p>
+<pre class="literal-block">
+component At45dbC
+{
+  provides {
+    interface At45db;
+    interface Resource[uint8_t client];
+    interface ResourceController;
+    interface ArbiterInfo;
+  }
+} ...
+
+configuration At45dbStorageManagerC {
+  provides interface At45dbVolume[volume_id_t volid];
+} ...
+</pre>
+<p>Note that the AT45DB HAL resource management is independent of the
+underlying HPL's power management. The motivation for this is that
+individual flash operations may take a long time, so it may be desirable to
+release the flash's bus during long-running operations. The <tt class="docutils literal"><span class="pre">At45db</span></tt>
+and <tt class="docutils literal"><span class="pre">At45dbVolume</span></tt> interfaces are:</p>
+<pre class="literal-block">
+interface At45db {
+  command void write(at45page_t page, at45pageoffset_t offset,
+                     void *PASS data, at45pageoffset_t n);
+  event void writeDone(error_t error);
+
+  command void erase(at45page_t page, uint8_t eraseKind);
+  event void eraseDone(error_t error);
+
+  command void copyPage(at45page_t from, at45page_t to);
+  event void copyPageDone(error_t error);
+
+  command void sync(at45page_t page);
+  command void syncAll();
+
+  event void syncDone(error_t error);
+
+  command void flush(at45page_t page);
+  command void flushAll();
+  event void flushDone(error_t error);
+
+  command void read(at45page_t page, at45pageoffset_t offset,
+                    void *PASS data, at45pageoffset_t n);
+  event void readDone(error_t error);
+
+  command void computeCrc(at45page_t page, at45pageoffset_t offset,
+                          at45pageoffset_t n, uint16_t baseCrc);
+  event void computeCrcDone(error_t error, uint16_t crc);
+}
+
+interface At45dbVolume {
+  command at45page_t remap(at45page_t volumePage);
+  command at45page_t volumeSize();
+}
+</pre>
+<p>The STMicroelectronics M25P HAL is:</p>
+<pre class="literal-block">
+configuration Stm25pSectorC {
+  provides interface Resource as ClientResource[storage_volume_t volume];
+  provides interface Stm25pSector as Sector[storage_volume_t volume];
+  provides interface Stm25pVolume as Volume[storage_volume_t volume];
+}
+</pre>
+<p>and the <tt class="docutils literal"><span class="pre">Stm25pSector</span></tt> and <tt class="docutils literal"><span class="pre">Stm25pVolume</span></tt> interfaces are:</p>
+<pre class="literal-block">
+interface Stm25pSector {
+  command stm25p_addr_t getPhysicalAddress( stm25p_addr_t addr );
+  command uint8_t getNumSectors();
+
+  command error_t read(stm25p_addr_t addr, void* buf, stm25p_addr_t len);
+  event   error_t readDone(stm25p_addr_t addr, void* buf, stm25p_addr_t len,
+                           error_t error);
+
+  command error_t write(stm25p_addr_t addr, void* buf,
+                        stm25p_addr_t len);
+  event   error_t writeDone(stm25p_addr_t addr, void* buf,
+                            stm25p_addr_t len, error_t error);
+
+  command error_t erase(uint8_t sector, uint8_t num_sectors);
+  event   error_t eraseDone(uint8_t sector, uint8_t num_sectors,
+                            error_t error);
+
+  command error_t computeCrc(uint16_t crc, stm25p_addr_t addr,
+                             stm25p_len_t len );
+  event void computeCrcDone(stm25p_addr_t addr, stm25p_len_t len,
+                            uint16_t crc, error_t error);
+}
+
+interface Stm25pVolume {
+  async event volume_id_t getVolumeId();
+}
+</pre>
+<p>Note that the M25P HAL integrates volume management and chip access
+within the <tt class="docutils literal"><span class="pre">Stm25pSector</span></tt> interface.</p>
+</div>
+<div class="section">
+<h2><a id="hardware-interface-layer-hil" name="hardware-interface-layer-hil">3.3 Hardware Interface Layer (HIL)</a></h2>
+<p>The HIL implementations are system-independent, but chip (family)
+dependent. They implement the three storage abstractions and
+volume structure discussed in Section 2.</p>
 <ol class="loweralpha">
-<li><p class="first">Implementation: system dependent</p>
-</li>
-<li><p class="first">Presentation: chip (family?) dependent (common HPL for same chip
-(family?) on different systems)</p>
-</li>
-<li><p class="first">Stateless</p>
-</li>
-<li><p class="first">Atmel 45DB family low-level interfaces</p>
-<p>select, send/receive SPI byte, idle detection
-(no commands, as efficiency dictates their integration in the HAL)
-See tos/platform/mica/HPLFlashM</p>
-</li>
-<li><p class="first">Intel Strataflash</p>
-<p>write data, erase, lock/unlock blocks, read config data, etc.
-details omitted - main interesting point is lack of reads, as
-device is memory mapped</p>
-</li>
-<li><p class="first">M25P family</p>
-<p>r/w data, erase (sector or chip), r/w status, etc
-(full details omitted)</p>
-</li>
-</ol>
-</div>
-<div class="section" id="hardware-adaptation-layer-hal">
-<h2><a name="hardware-adaptation-layer-hal">3.2 Hardware Adaptation Layer (HAL)</a></h2>
-<ol class="loweralpha">
-<li><p class="first">Implementation: chip dependent</p>
-</li>
-<li><p class="first">Presentation: chip dependent</p>
-</li>
-<li><p class="first">Atmel AT45DB:</p>
-<p>interface {</p>
-<blockquote>
-<dl class="docutils">
-<dt>command void write(at45page_t page, at45pageoffset_t offset,</dt>
-<dd><p class="first">void <a href="#id1" name="id2"><span class="problematic" id="id2">*</span></a>PASS data, at45pageoffset_t n);</p>
-<div class="last system-message" id="id1">
-<p class="system-message-title">System Message: <a name="id1">WARNING/2</a> (<tt class="docutils">txt/tep103.txt</tt>, line 175); <em><a href="#id2">backlink</a></em></p>
-<p>Inline emphasis start-string without end-string.</p>
-</div>
-</dd>
-</dl>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 176)</p>
-<p>Definition list ends without a blank line; unexpected unindent.</p>
-</div>
-<p>event void writeDone(error_t error);</p>
-<p>command void erase(at45page_t page, uint8_t eraseKind);
-event void eraseDone(error_t error);</p>
-<p>command void sync(at45page_t page);
-command void syncAll();</p>
-<p>event void syncDone(error_t error);</p>
-<p>command void flush(at45page_t page);
-command void flushAll();
-event void flushDone(error_t error);</p>
-<dl class="docutils">
-<dt>command void read(at45page_t page, at45pageoffset_t offset,</dt>
-<dd><p class="first">void <a href="#id3" name="id4"><span class="problematic" id="id4">*</span></a>PASS data, at45pageoffset_t n);</p>
-<div class="last system-message" id="id3">
-<p class="system-message-title">System Message: <a name="id3">WARNING/2</a> (<tt class="docutils">txt/tep103.txt</tt>, line 191); <em><a href="#id4">backlink</a></em></p>
-<p>Inline emphasis start-string without end-string.</p>
-</div>
-</dd>
-</dl>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 192)</p>
-<p>Definition list ends without a blank line; unexpected unindent.</p>
-</div>
-<p>event void readDone(error_t error);</p>
-<dl class="docutils">
-<dt>command void computeCrc(at45page_t page, at45pageoffset_t offset,</dt>
-<dd><p class="first last">at45pageoffset_t n, uint16_t baseCrc);</p>
-</dd>
-</dl>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 196)</p>
-<p>Definition list ends without a blank line; unexpected unindent.</p>
-</div>
-<p>event void computeCrcDone(error_t error, uint16_t crc);</p>
-</blockquote>
-<p>}</p>
-</li>
-<li><p class="first">Intel Strataflash (should extend to other memory-mapped NOR flashes):</p>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 202)</p>
-<p>Literal block expected; none found.</p>
-</div>
-<p>interface { /* In flux until higher level stuff written <a href="#id5" name="id6"><span class="problematic" id="id6">*</span></a>/</p>
-<div class="system-message" id="id5">
-<p class="system-message-title">System Message: <a name="id5">WARNING/2</a> (<tt class="docutils">txt/tep103.txt</tt>, line 202); <em><a href="#id6">backlink</a></em></p>
-<p>Inline emphasis start-string without end-string.</p>
-</div>
-<blockquote>
-<p>command error_t lockRange(storage_addr_t_t from, storage_len_t count);
-command error_t unlockRange(storage_addr_t from, storage_len_t count);</p>
-<p>/* These return to read array mode when done <em>/
-command error_t write(storage_addr_t addr, void</em> buf, storage_len_t len);
-event   void    writeDone(storage_addr_t addr, void* buf,</p>
-<div class="system-message">
-<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">txt/tep103.txt</tt>, line 210)</p>
-<p>Unexpected indentation.</p>
-</div>
-<blockquote>
-<p>storage_len_t len, error_t error);</p>
-</blockquote>
-<p>command error_t erase(storage_addr_t block);
-event   void    eraseDone(storage_addr_t block, error_t success);</p>
-</blockquote>
-<p>}</p>
-</li>
-<li><p class="first">STMicroelectronics M25P:</p>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 219)</p>
-<p>Literal block expected; none found.</p>
-</div>
-<dl class="docutils">
-<dt>interface {</dt>
-<dd><p class="first">command error_t read(stm25p_addr_t addr, void* buf, stm25p_addr_t len);
-event   error_t readDone(stm25p_addr_t addr, void* buf, stm25p_addr_t len,</p>
-<div class="system-message">
-<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">txt/tep103.txt</tt>, line 222)</p>
-<p>Unexpected indentation.</p>
-</div>
-<blockquote>
-<p>error_tresult);</p>
-</blockquote>
-<dl class="docutils">
-<dt>command error_t write(stm25p_addr_t addr, void* buf, </dt>
-<dd><p class="first last">stm25p_addr_t len);</p>
-</dd>
-<dt>event   error_t writeDone(stm25p_addr_t addr, void* buf, </dt>
-<dd><p class="first last">stm25p_addr_t len, error_t error);</p>
-</dd>
-</dl>
-<p>command error_t erase(uint8_t sector, uint8_t num_sectors);
-event   error_t eraseDone(uint8_t sector, uint8_t num_sectors,</p>
-<div class="system-message">
-<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">txt/tep103.txt</tt>, line 231)</p>
-<p>Unexpected indentation.</p>
-</div>
-<blockquote>
-<p>error_t error);</p>
-</blockquote>
-<dl class="last docutils">
-<dt>command error_t computeCrc(uint16_t crc, stm25p_addr_t addr, </dt>
-<dd><p class="first last">stm25p_len_t len );</p>
-</dd>
-<dt>event void computeCrcDone(stm25p_addr_t addr, stm25p_len_t len, </dt>
-<dd><p class="first last">uint16_t crc, error_t error);</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 237)</p>
-<p>Definition list ends without a blank line; unexpected unindent.</p>
-</div>
-<p>}</p>
-</li>
-</ol>
-</div>
-<div class="section" id="hardware-interface-layer-hil">
-<h2><a name="hardware-interface-layer-hil">3.3 Hardware Interface Layer (HIL)</a></h2>
-<ol class="loweralpha">
-<li><p class="first">Implementation: Chip dependent</p>
-</li>
-<li><p class="first">Presentation: application-level OS service (see discussion above)</p>
-</li>
-<li><p class="first">Space allocation</p>
-<p>The volume table MUST be specified by an xml file that is placed in
-the application's directory (where one types 'make'). The xml file
-specifies the allocation as follows:</p>
-<dl class="docutils">
-<dt>&lt;volume_table&gt;</dt>
-<dd><p class="first last">&lt;volume name=&quot;DELUGE0&quot; size=&quot;65536&quot; /&gt;
-&lt;volume name=&quot;CONFIGLOG&quot; size=&quot;65536&quot; /&gt;
-&lt;volume name=&quot;DATALOG&quot; size=&quot;131072&quot; /&gt;
-&lt;volume name=&quot;GOLDENIMAGE&quot; size=&quot;65536&quot; base=&quot;983040&quot; /&gt;</p>
-</dd>
-</dl>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 256)</p>
-<p>Definition list ends without a blank line; unexpected unindent.</p>
-</div>
-<p>&lt;/volume_table&gt;</p>
+<li><p class="first">Volumes</p>
+<p>The division of the flash chip into fixed-size volumes is specified by
+an XML file that is placed in the application's directory (where one
+types 'make'). The xml file specifies the allocation as follows:</p>
+<pre class="literal-block">
+&lt;volume_table&gt;
+  &lt;volume name=&quot;DELUGE0&quot; size=&quot;65536&quot; /&gt;
+  &lt;volume name=&quot;CONFIGLOG&quot; size=&quot;65536&quot; /&gt;
+  &lt;volume name=&quot;DATALOG&quot; size=&quot;131072&quot; /&gt;
+  &lt;volume name=&quot;GOLDENIMAGE&quot; size=&quot;65536&quot; base=&quot;983040&quot; /&gt;
+&lt;/volume_table&gt;
+</pre>
 <p>The name and size parameters are required, while base is
 optional. The name is a string containing one or more characters in
-[<a href="#id7" name="id8"><span class="problematic" id="id8">a-zA-Z0-9_</span></a>], while size and base are in bytes. Each storage chip
+[a-zA-Z0-9_], while size and base are in bytes. Each storage chip
 MUST provide a compile-time tool that translates the allocation
-specification to chip-specific nesc code. There is no constraint on
+specification to chip-specific nesC code. There is no constraint on
 how this is done or what code is produced, except that the
 specification to physical allocation MUST be one-to-one (i.e. a
 given specification should always have the same resulting physical
@@ -620,135 +627,159 @@ build directory. When not specified, the tool may give any suitable
 physical location to a volume. If there is any reason that the
 physical allocation cannot be satisfied, an error should be given
 at compile time.</p>
-<p>The compile-time tool MUST prepend '<a href="#id9" name="id10"><span class="problematic" id="id10">VOLUME_</span></a>' to each volume name in
+<p>The compile-time tool MUST prepend 'VOLUME_' to each volume name in
 the xml file and '#define' each resulting name to map to a unique
-integer. To use the volume, the client passes the macro to the
-generic component as follows:</p>
-<p>components new BlockStorage( VOLUME_DELUGE0 );</p>
-<p>If the named volume is not in the specification, nesc will give a
-compile-time error since the string will be undefined.</p>
+integer.</p>
+<p>The storage abstractions are accessed by instantiating generic
+components that take the volume macro as argument:</p>
+<pre class="literal-block">
+components new BlockStorageC(VOLUME_DELUGE0);
+</pre>
+<p>If the named volume is not in the specification, nesC will give a
+compile-time error since the symbol will be undefined.</p>
+<p>A volume MUST NOT be used with more than one storage abstraction
+instance.</p>
 </li>
-<li><p class="first">Large objects:</p>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 284)</p>
-<p>Literal block expected; none found.</p>
-</div>
-<dl class="docutils">
-<dt>interface BlockWrite {</dt>
-<dd><dl class="first docutils">
-<dt>command error_t write(storage_addr_t addr, void* buf, </dt>
-<dd><p class="first last">storage_len_t len);</p>
-</dd>
-<dt>event void writeDone(storage_addr_t addr, void* buf, </dt>
-<dd><p class="first last">storage_len_t len, error_t error);</p>
-</dd>
-</dl>
-<p>command error_t erase();
-event   void    eraseDone(error_t result);</p>
-<dl class="last docutils">
-<dt>command error_t commit();</dt>
-<dd><p class="first last">event  void    commitDone(error_t result);</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 295)</p>
-<p>Definition list ends without a blank line; unexpected unindent.</p>
-</div>
-<p>}</p>
-<dl class="docutils">
-<dt>interface BlockRead {</dt>
-<dd><p class="first">command error_t read(addr_t addr, void* dest, addr_t len);
-event   void    readDone(storage_error_t result);</p>
-<p>command error_t verify();
-event   void    verifyDone(storage_error_t result);</p>
-<p>command error_t computeCrc(storage_addr_t addr, storage_len_t len );
-event   void    computeCrcDone(storage_addr_t addr, storage_len_t len,</p>
-<div class="system-message">
-<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">txt/tep103.txt</tt>, line 306)</p>
-<p>Unexpected indentation.</p>
-</div>
-<blockquote class="last">
-<p>uint16_t crc, error_t error );</p>
-</blockquote>
-</dd>
-</dl>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 307)</p>
-<p>Definition list ends without a blank line; unexpected unindent.</p>
-</div>
-<p>}</p>
-</li>
-<li><p class="first">Large sequential objects:</p>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 311)</p>
-<p>Literal block expected; none found.</p>
-</div>
-<dl class="docutils">
-<dt>interface LogWrite {</dt>
-<dd><p class="first">command error_t erase();
-event   void    eraseDone(storage_error_t success);</p>
-<p>command error_t append(void* buf, storage_len_t len);
-event   void    appendDone(void* buf, storage_len_t len, error_t error);</p>
-<p>command storage_cookie_t currentOffset();</p>
-<p class="last">command error_t sync();
-event   void    syncDone(storage_error_t success);</p>
-</dd>
-</dl>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 322)</p>
-<p>Definition list ends without a blank line; unexpected unindent.</p>
-</div>
-<p>}</p>
-<dl class="docutils">
-<dt>interface LogRead {</dt>
-<dd><p class="first">command error_t read(void* buf, storage_len_t len);
-event   void    readDone(void* buf, stroage_len_t len, error_t error);</p>
-<p>command storage_cookie_t currentOffset();</p>
-<p class="last">command error_t seek(stroage_cookie_t cookie);
-event   void    seekDone(error_t error);</p>
-</dd>
-</dl>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 332)</p>
-<p>Definition list ends without a blank line; unexpected unindent.</p>
-</div>
-<p>}</p>
-<p>The circular-vs-linear distinction is made by offering separate
-instances of the LogData, LogRead interfaces.</p>
-</li>
-<li><p class="first">Small objects:</p>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 339)</p>
-<p>Literal block expected; none found.</p>
-</div>
-<dl class="docutils">
-<dt>interface ConfigStorage {</dt>
-<dd><p class="first">command error_t read(addr_t addr, void* dest, addr_t len);
-event   void    readDone(storage_error_t result);</p>
-<p>command error_t write(addr_t addr void* source, addr_t len);
-event   void    writeDone(storage_error_t result);</p>
-<p class="last">command error_t commit();
-event   void    commitDone(storage_error_t result);</p>
-</dd>
-</dl>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">txt/tep103.txt</tt>, line 348)</p>
-<p>Definition list ends without a blank line; unexpected unindent.</p>
-</div>
-<p>}</p>
+<li><p class="first">Large object interface:</p>
 </li>
 </ol>
+<blockquote>
+<p>Large objects are accessed by instantiating a BlockStorageC component
+which takes a volume id argument:</p>
+<pre class="literal-block">
+generic configuration BlockStorageC(volume_id_t volid) {
+  provides {
+    interface BlockWrite;
+    interface BlockRead;
+  }
+} ...
+</pre>
+<p>The <tt class="docutils literal"><span class="pre">BlockRead</span></tt> and <tt class="docutils literal"><span class="pre">BlockWrite</span></tt> interfaces contain the following
+operations:</p>
+<pre class="literal-block">
+interface BlockWrite {
+  command error_t write(storage_addr_t addr, void* buf,
+                        storage_len_t len);
+  event void writeDone(storage_addr_t addr, void* buf,
+                       storage_len_t len, error_t error);
+
+  command error_t erase();
+  event   void    eraseDone(error_t result);
+
+  command error_t commit();
+   event  void    commitDone(error_t result);
+}
+
+interface BlockRead {
+  command error_t read(addr_t addr, void* dest, addr_t len);
+  event   void    readDone(storage_error_t result);
+
+  command error_t verify();
+  event   void    verifyDone(storage_error_t result);
+
+  command error_t computeCrc(storage_addr_t addr, storage_len_t len,
+                             uint16_t baseCrc);
+  event   void    computeCrcDone(storage_addr_t addr, storage_len_t len,
+                                 uint16_t crc, error_t error );
+
+  command storage_len_t getSize();
+}
+</pre>
+</blockquote>
+<ol class="loweralpha simple" start="3">
+<li>Large sequential objects:</li>
+</ol>
+<blockquote>
+<p>Large sequential objects are accessed by instantiating a LogStorageC
+component which takes a volume id and a boolean argument:</p>
+<pre class="literal-block">
+generic configuration LogStorageC(volume_id_t volid, bool circular) {
+  provides {
+    interface LogWrite;
+    interface LogRead;
+  }
+} ...
+</pre>
+<p>If the <tt class="docutils literal"><span class="pre">circular</span></tt> argument is TRUE, the log is circular; otherwise
+it is linear.</p>
+<p>The <tt class="docutils literal"><span class="pre">LogRead</span></tt> and <tt class="docutils literal"><span class="pre">LogWrite</span></tt> interfaces contain the following
+operations:</p>
+<pre class="literal-block">
+interface LogWrite {
+  command error_t erase();
+  event   void    eraseDone(storage_error_t success);
+
+  command error_t append(void* buf, storage_len_t len);
+  event   void    appendDone(void* buf, storage_len_t len, error_t error);
+
+  command storage_cookie_t currentOffset();
+
+  command error_t sync();
+  event   void    syncDone(storage_error_t success);
+}
+
+interface LogRead {
+  command error_t read(void* buf, storage_len_t len);
+  event   void    readDone(void* buf, storage_len_t len, error_t error);
+
+  command storage_cookie_t currentOffset();
+
+  command error_t seek(storage_cookie_t cookie);
+  event   void    seekDone(error_t error);
+
+  command storage_len_t getSize();
+}
+</pre>
+</blockquote>
+<ol class="loweralpha simple" start="4">
+<li>Small objects:</li>
+</ol>
+<blockquote>
+<p>Small objects are accessed by instantiating a ConfigStorageC component
+which takes a volume id argument:</p>
+<pre class="literal-block">
+generic configuration ConfigStorageC(volume_id_t volid) {
+  provides {
+    interface Mount;
+    interface ConfigStorage;
+  }
+} ...
+</pre>
+<p>A small object MUST be mounted (see the <tt class="docutils literal"><span class="pre">Mount</span></tt> interface) before
+the first use.</p>
+<p>The <tt class="docutils literal"><span class="pre">Mount</span></tt> and <tt class="docutils literal"><span class="pre">ConfigStorage</span></tt> interfaces contain the following
+operations:</p>
+<pre class="literal-block">
+interface Mount {
+  command error_t mount();
+  event void mountDone(error_t error);
+}
+
+interface ConfigStorage {
+  command error_t read(addr_t addr, void* dest, addr_t len);
+  event   void    readDone(storage_error_t result);
+
+  command error_t write(addr_t addr void* source, addr_t len);
+  event   void    writeDone(storage_error_t result);
+
+  command error_t commit();
+  event   void    commitDone(storage_error_t result);
+
+  command storage_len_t getSize();
+
+  command bool valid();
+}
+</pre>
+</blockquote>
 </div>
 </div>
-<div class="section" id="implementation">
-<h1><a name="implementation">4. Implementation</a></h1>
-<p>An AT45DB implementation can be found in tinyos-2.x/tos/chips/at45db.
-An STM25P implementation can be found in tinyos-2.x/tos/chips/stm25p.</p>
+<div class="section">
+<h1><a id="implementation" name="implementation">4. Implementation</a></h1>
+<p>An AT45DB implementation can be found in tinyos-2.x/tos/chips/at45db.</p>
+<p>An STM25P implementation can be found in tinyos-2.x/tos/chips/stm25p.</p>
 </div>
-<div class="section" id="author-s-address">
-<h1><a name="author-s-address">5. Author's Address</a></h1>
+<div class="section">
+<h1><a id="authors-addresses" name="authors-addresses">5. Authors' Addresses</a></h1>
 <div class="line-block">
 <div class="line">David Gay</div>
 <div class="line">2150 Shattuck Ave, Suite 1300</div>
@@ -767,15 +798,6 @@ An STM25P implementation can be found in tinyos-2.x/tos/chips/stm25p.</p>
 <div class="line">phone - +1 415 692 0828</div>
 <div class="line">email - <a class="reference" href="mailto:jhui&#64;archedrock.com">jhui&#64;archedrock.com</a></div>
 </div>
-</div>
-<div class="system-messages section">
-<h1><a>Docutils System Messages</a></h1>
-<div class="system-message" id="id7">
-<p class="system-message-title">System Message: <a name="id7">ERROR/3</a> (<tt class="docutils">txt/tep103.txt</tt>, line 258); <em><a href="#id8">backlink</a></em></p>
-Unknown target name: &quot;a-za-z0-9&quot;.</div>
-<div class="system-message" id="id9">
-<p class="system-message-title">System Message: <a name="id9">ERROR/3</a> (<tt class="docutils">txt/tep103.txt</tt>, line 272); <em><a href="#id10">backlink</a></em></p>
-Unknown target name: &quot;volume&quot;.</div>
 </div>
 </div>
 </body>
