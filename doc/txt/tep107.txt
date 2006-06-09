@@ -10,8 +10,8 @@ TinyOS 2.x Boot Sequence
 :Author: Philip Levis 
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.8 $
-:Draft-Modified: $Date: 2006-06-09 16:51:45 $
+:Draft-Version: $Revision: 1.1.2.9 $
+:Draft-Modified: $Date: 2006-06-09 17:44:58 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -131,7 +131,7 @@ with a spin loop), MUST NOT return until complete. Otherwise the system
 may start before initialization is complete.
 
 The Scheduler interface is for initializing and controlling task
-execution. It is detailed in TEP 106[tep106].
+execution. It is detailed in TEP 106 [1]_.
 
 The Boot interface has a single event, booted(), which the boot
 sequence signals when it has completed::
@@ -295,7 +295,7 @@ if the MCU supports doing so. Whichever mechanism is chosen, extreme
 care needs to be used in order to not disrupt the operation of other
 components.
 
-Unless part of a hardware abstraction architecture (HAA)[tep2]_, the
+Unless part of a hardware abstraction architecture (HAA) [2]_, the
 Init.init() command MUST NOT assume that other components have been
 initialized unless it has initialized them, and MUST NOT call any
 functional interfaces on any components that might be shared. An HAA
@@ -325,5 +325,7 @@ component initialization and the initialization sequence.
 6. Citations
 ====================================================================
 
-.. [tep2] TEP 2: Hardware Abstraction Architecture. Vladi Handziski, Joseph Polastre, Jan-Hinrich Hauer, Cory Sharp. Adam Wolisz and David Culler.
+.. [1] TEP 106: Schedulers and Tasks.
+
+.. [2] TEP 2: Hardware Abstraction Architecture. 
  
