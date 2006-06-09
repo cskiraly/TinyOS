@@ -1,4 +1,4 @@
-// $Id: AMQueueImplP.nc,v 1.1.2.3 2006-05-15 16:42:04 scipio Exp $
+// $Id: AMQueueImplP.nc,v 1.1.2.4 2006-06-09 01:48:28 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -89,12 +89,14 @@ implementation {
       am_id_t amId = call AMPacket.type(msg);
       am_addr_t dest = call AMPacket.destination(msg);
 
-      dbg("AMQueue", "AMQueue: request to send from %hhu (%p): queue empty\n", clientId, msg);
+      dbg("AMQueue", "%s: request to send from %hhu (%p): queue empty\n", __FUNCTION__, clientId, msg);
       current = clientId;
 
       err = call AMSend.send[amId](dest, msg, len);
       if (err != SUCCESS) {
+        dbg("AMQueue", "%s: underlying send failed.\n", __FUNCTION__);
 	current = QUEUE_EMPTY;
+	queue[clientId].msg = NULL;
       }
       return err;
     }
