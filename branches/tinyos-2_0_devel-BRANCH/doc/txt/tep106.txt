@@ -10,8 +10,8 @@ Schedulers and Tasks
 :Author: Philip Levis and Cory Sharp
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.6 $
-:Draft-Modified: $Date: 2006-06-09 16:51:45 $
+:Draft-Version: $Revision: 1.1.2.7 $
+:Draft-Modified: $Date: 2006-06-09 17:44:58 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -45,12 +45,12 @@ greatly increases system dependability.
 2. Tasks and the Scheduler in TinyOS 1.x
 ====================================================================
 
-Tasks in TinyOS are a form of deferred procedure call (DPC)[1]_, which
+Tasks in TinyOS are a form of deferred procedure call (DPC) [1]_, which
 enable a program to defer a computation or operation until a later
 time. TinyOS tasks run to completion and do not pre-empt one
 another.  These two constraints mean that code called from tasks
 runs synchonously with respect to other tasks. Put another way, tasks
-are atomic with respect to other tasks[2]_.
+are atomic with respect to other tasks [2]_.
 
 In TinyOS 1.x, the nesC language supports tasks through two
 mechanisms, ``task`` declarations and ``post`` expressions::
@@ -245,7 +245,7 @@ eventually. The scheduler MUST return SUCCESS to a TaskBasic.postTask()
 operation unless it is not the first call to TaskBasic.postTask() since
 that task's TaskBasic.runTask() event has been signaled. The 
 McuSleep interface is used for microcontroller power management;
-its workings are explained in TEP 112[3]_.
+its workings are explained in TEP 112 [3]_.
 
 A scheduler MUST provide the Scheduler interface. 
 The Scheduler interface has commands for initialization and running
@@ -414,12 +414,12 @@ TaskHighPriority with the key "TinySchedulerC.TaskHighPriority"::
 ====================================================================
 
 | Philip Levis
-| 467 Soda Hall
-| UC Berkeley
-| Berkeley, CA 94720
+| 358 Gates Hall
+| Stanford University
+| Stanford, CA 94305
 |
-| phone - +1 510 290 5283
-| email - pal@cs.berkeley.edu
+| phone - +1 650 725 9046 
+| email - pal@cs.stanford.edu
 |
 | Cory Sharp
 | 410 Soda Hall
