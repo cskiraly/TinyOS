@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.3.6: http://docutils.sourceforge.net/" />
 <title>TinyOS 2.x Boot Sequence</title>
 <meta name="author" content="Philip Levis" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-05-18 23:19:15 $
-:version: $Revision: 1.1.2.5 $
+:date: $Date: 2006-06-09 17:18:49 $
+:version: $Revision: 1.1.2.6 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -280,7 +280,6 @@ ul.auto-toc {
 </style>
 </head>
 <body>
-<div class="document" id="tinyos-2-x-boot-sequence">
 <h1 class="title">TinyOS 2.x Boot Sequence</h1>
 <table class="docinfo" frame="void" rules="none">
 <col class="docinfo-name" />
@@ -300,14 +299,15 @@ ul.auto-toc {
 <td>Philip Levis</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">10-Dec-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.5</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.8</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-05-18</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-09</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
 </tbody>
 </table>
+<div class="document" id="tinyos-2-x-boot-sequence">
 <div class="note">
 <p class="first admonition-title">Note</p>
 <p class="last">This memo documents a part of TinyOS for the TinyOS Community, and
@@ -341,39 +341,31 @@ boot sequence and reasons for its semantics.</p>
 (TOSSIM has a very different boot sequence, as it is a PC
 program). The module RealMain implements main(), and has the following
 signature:</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">module</span> <span class="pre">RealMain</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">uses</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">command</span> <span class="pre">result_t</span> <span class="pre">hardwareInit();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">StdControl;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">Pot;</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
+<pre class="literal-block">
+module RealMain {
+  uses {
+    command result_t hardwareInit();
+    interface StdControl;
+    interface Pot;
+  }
+}
+</pre>
 <p>The mote main() function uses a mix of nesC and C:</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">int</span> <span class="pre">main()</span> <span class="pre">__attribute__</span> <span class="pre">((C,</span> <span class="pre">spontaneous))</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">hardwareInit();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">Pot.init(10);</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">TOSH_sched_init();</span></tt></div>
-<div class="line">``     ``</div>
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">StdControl.init();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">StdControl.start();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">__nesc_enable_interrupt();</span></tt></div>
-<div class="line">`` ``</div>
-<div class="line"><tt class="docutils literal"><span class="pre">while(1)</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">TOSH_run_task();</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
+<pre class="literal-block">
+int main() __attribute__ ((C, spontaneous)) {
+  call hardwareInit();
+  call Pot.init(10);
+  TOSH_sched_init();
+       
+  call StdControl.init();
+  call StdControl.start();
+  __nesc_enable_interrupt();
+   
+  while(1) {
+    TOSH_run_task();
+  }
+}
+</pre>
 <p>Several problems exist. Some of these calls are artifacts of old
 platforms: the Pot component refers to the mica variable potentiometer
 for controlling radio transmission power, and for other platforms is a
@@ -410,13 +402,11 @@ radio start completion event.</p>
 </ul>
 </blockquote>
 <p>The Init interface has a single command, init():</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">Init</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">command</span> <span class="pre">error_t</span> <span class="pre">init();</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
+<pre class="literal-block">
+interface Init {
+  command error_t init();
+}
+</pre>
 <p>Init provides a synchronous interface, enabling initialization
 ordering. Unlike normal execution, in which operations from a wide
 range of components need to be interleaved effectively, initialization
@@ -429,14 +419,12 @@ may start before initialization is complete.</p>
 <p>The Scheduler interface is for initializing and controlling task
 execution. It is detailed in TEP 106[tep106].</p>
 <p>The Boot interface has a single event, booted(), which the boot
-sequence signals when it has completed.</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">Boot</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">event</span> <span class="pre">void</span> <span class="pre">booted();</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
+sequence signals when it has completed:</p>
+<pre class="literal-block">
+interface Boot {
+  event void booted();
+}
+</pre>
 </div>
 <div class="section" id="id1">
 <h1><a name="id1">4. TinyOS 2.x Boot Sequence</a></h1>
@@ -444,59 +432,47 @@ sequence signals when it has completed.</p>
 The configuration MainC wires some of RealMainP's interfaces to
 components that implement standard abstractions and exports the others
 that are application specific. Code above the Hardware Independent
-Layer (TEP 2) SHOULD wire to MainC and not RealMainP.</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">module</span> <span class="pre">RealMainP</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">provides</span> <span class="pre">interface</span> <span class="pre">Booted;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">uses</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">Scheduler;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">Init</span> <span class="pre">as</span> <span class="pre">PlatformInit;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">interface</span> <span class="pre">Init</span> <span class="pre">as</span> <span class="pre">SoftwareInit;</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">implementation</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">int</span> <span class="pre">main()</span> <span class="pre">__attribute__</span> <span class="pre">((C,</span> <span class="pre">spontaneous))</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">atomic</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">Scheduler.init();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">PlatformInit.init();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">while</span> <span class="pre">(call</span> <span class="pre">Scheduler.runNextTask());</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">SoftwareInit.init();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">while</span> <span class="pre">(call</span> <span class="pre">Scheduler.runNextTask());</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">__nesc_enable_interrupt();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">signal</span> <span class="pre">Boot.booted();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">Scheduler.taskLoop();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">return</span> <span class="pre">-1;</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">default</span> <span class="pre">command</span> <span class="pre">error_t</span> <span class="pre">PlatformInit.init()</span> <span class="pre">{</span> <span class="pre">return</span> <span class="pre">SUCCESS;</span> <span class="pre">}</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">default</span> <span class="pre">command</span> <span class="pre">error_t</span> <span class="pre">SoftwareInit.init()</span> <span class="pre">{</span> <span class="pre">return</span> <span class="pre">SUCCESS;</span> <span class="pre">}</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">default</span> <span class="pre">event</span> <span class="pre">void</span> <span class="pre">Boot.booted()</span> <span class="pre">{</span> <span class="pre">}</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
+Layer (TEP 2) SHOULD wire to MainC and not RealMainP:</p>
+<pre class="literal-block">
+module RealMainP {
+  provides interface Booted;
+  uses {
+    interface Scheduler;
+    interface Init as PlatformInit;
+    interface Init as SoftwareInit;
+  }
+}
+implementation {
+  int main() __attribute__ ((C, spontaneous)) {
+    atomic {
+      call Scheduler.init();
+      call PlatformInit.init();
+      while (call Scheduler.runNextTask());
+      call SoftwareInit.init();
+      while (call Scheduler.runNextTask());
+    }
+    __nesc_enable_interrupt();
+    signal Boot.booted();
+    call Scheduler.taskLoop();
+    return -1;
+  }
+  default command error_t PlatformInit.init() { return SUCCESS; }
+  default command error_t SoftwareInit.init() { return SUCCESS; }
+  default event void Boot.booted() { }
+}
+</pre>
 <div class="section" id="initialization">
 <h2><a name="initialization">4.1 Initialization</a></h2>
 <p>The first step in the boot sequence is initializing the system:</p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">atomic</span> <span class="pre">{</span></tt></div>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">Scheduler.init();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">PlatformInit.init();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">while</span> <span class="pre">(call</span> <span class="pre">Scheduler.runNextTask());</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">call</span> <span class="pre">SoftwareInit.init();</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">while</span> <span class="pre">(call</span> <span class="pre">Scheduler.runNextTask());</span></tt></div>
-</div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
-</div>
+<pre class="literal-block">
+atomic {
+  call Scheduler.init();
+  call PlatformInit.init();
+  while (call Scheduler.runNextTask());
+  call SoftwareInit.init();
+  while (call Scheduler.runNextTask());
+}
+</pre>
 <p>The boot sequence has three separate initializations: Scheduler,
 PlatformInit, and SoftwareInit. The boot configuration (MainC) wires
 the first two automatically, to TinySchedulerC (discussed in TEP 106)
@@ -526,7 +502,7 @@ component named PlatformC. PlatformInit is for initializations which
 must follow a very specific order due to hidden dependencies, e.g., as
 part of making the overall hardware platform operable. One example of
 this sort of initialization is clock calibration. Because PlatformInit
-calls the component PlatformC, each platform can specify the requires
+calls the component PlatformC, each platform can specify the required
 initialization order. As these hidden dependencies must be due to
 hardware, the sequence is platform-specific.</p>
 <p>Components whose initialization does not directly depend on hardware
