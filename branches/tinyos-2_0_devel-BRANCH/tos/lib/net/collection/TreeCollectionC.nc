@@ -83,10 +83,14 @@ implementation {
 
   components new AMSenderC(AM_COLLECTION_CONTROL) as SendControl;
   components new AMReceiverC(AM_COLLECTION_CONTROL) as ReceiveControl;
-  components new TimerMilliC() as EstimatorTimer;  
+  components new AMSenderC(AM_LINKEST) as SendLinkEst;
+  components new AMReceiverC(AM_LINKEST) as ReceiveLinkEst;
+  components new TimerMilliC() as EstimatorTimer;
   
   Estimator.AMSend -> SendControl;
   Estimator.SubReceive -> ReceiveControl;
+  Estimator.AMSendLinkEst -> SendLinkEst;
+  Estimator.ReceiveLinkEst -> ReceiveLinkEst;
   Estimator.SubPacket -> SendControl;
   Estimator.SubAMPacket -> SendControl;
   Estimator.Timer -> EstimatorTimer;
