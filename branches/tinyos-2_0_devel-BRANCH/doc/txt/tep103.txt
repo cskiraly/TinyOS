@@ -10,8 +10,8 @@ Permanent Data Storage (Flash)
 :Author: David Gay, Jonathan Hui
 
 :Draft-Created: 27-Sep-2004
-:Draft-Version: $Revision: 1.1.2.8 $
-:Draft-Modified: $Date: 2006-06-07 23:11:27 $
+:Draft-Version: $Revision: 1.1.2.9 $
+:Draft-Modified: $Date: 2006-06-09 21:55:00 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 
@@ -171,7 +171,7 @@ Some examples:
 - The Atmel AT45DB family HPL is: ::
 
     configuration HplAt45dbC {
-      provides interface;
+      provides interface HplAt45db;
     } ...
 
   The ``HplAt45db`` interface has flash->buffer, buffer->flash, compare
