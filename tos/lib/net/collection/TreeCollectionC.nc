@@ -11,6 +11,7 @@ configuration TreeCollectionC {
     interface Intercept[collection_id_t id];
     interface RootControl;
     interface Packet;
+    interface CollectionPacket;
   }
 
   uses interface CollectionId[uint8_t client];
@@ -35,6 +36,7 @@ implementation {
   Intercept = Forwarder;
   Packet = Forwarder;
   CollectionId = Forwarder;
+  CollectionPacket = Forwarder;
   
   components new PoolC(message_t, FORWARD_COUNT) as MessagePoolP;
   components new PoolC(fe_queue_entry_t, FORWARD_COUNT) as QEntryPoolP;
@@ -80,6 +82,7 @@ implementation {
   Forwarder.UnicastNameFreeRouting -> Router.Routing;
   Forwarder.RadioControl -> ActiveMessageC;
   Forwarder.PacketAcknowledgements -> AMSenderC.Acks;
+  Forwarder.AMPacket -> AMSenderC;
 
   components new AMSenderC(AM_COLLECTION_CONTROL) as SendControl;
   components new AMReceiverC(AM_COLLECTION_CONTROL) as ReceiveControl;
