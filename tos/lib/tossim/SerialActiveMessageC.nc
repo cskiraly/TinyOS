@@ -1,4 +1,4 @@
-// $Id: SerialActiveMessageC.nc,v 1.1.2.1 2006-06-07 01:27:21 scipio Exp $
+// $Id: SerialActiveMessageC.nc,v 1.1.2.2 2006-06-10 02:02:46 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -36,6 +36,7 @@
 
 module SerialActiveMessageC {
   provides {
+    interface SplitControl;
     
     interface AMSend[am_id_t id];
     interface Receive[am_id_t id];
@@ -53,6 +54,19 @@ implementation {
 
   serial_header_t* getHeader(message_t* amsg) {
     return (serial_header_t*)(amsg->data - sizeof(serial_header_t));
+  }
+
+  task void startDone() { signal SplitControl.startDone(SUCCESS); }
+  task void stopDone() { signal SplitControl.stopDone(SUCCESS); }
+
+  command error_t SplitControl.start() {
+    post startDone();
+    return SUCCESS;
+  }
+
+  command error_t SplitControl.stop() {
+    post stopDone();
+    return SUCCESS;
   }
 
   command error_t AMSend.send[am_id_t id](am_addr_t addr,
