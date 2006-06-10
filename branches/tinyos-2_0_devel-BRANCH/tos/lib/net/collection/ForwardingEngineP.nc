@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.15 2006-06-07 23:39:03 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.16 2006-06-10 19:11:26 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-07 23:39:03 $
+ *  @date   $Date: 2006-06-10 19:11:26 $
  */
 
 #include <ForwardingEngine.h>
@@ -38,6 +38,7 @@ generic module ForwardingEngineP() {
     interface Receive as Snoop[collection_id_t id];
     interface Intercept[collection_id_t id];
     interface Packet;
+    interface CollectionPacket;
   }
   uses {
     interface AMSend as SubSend;
@@ -54,6 +55,7 @@ generic module ForwardingEngineP() {
     interface Random;
     interface RootControl;
     interface CollectionId[uint8_t client];
+    interface AMPacket;
   }
 }
 implementation {
@@ -158,9 +160,9 @@ implementation {
     qe = clientPtrs[client];
     qe->msg = msg;
     qe->client = client;
-    dbg("Forwarder", "%s: queue entry for %hhu is %x\n", __FUNCTION__, client, qe);
+    dbg("Forwarder", "%s: queue entry for %hhu is %hhu deep\n", __FUNCTION__, client, call SendQueue.size());
     if (call SendQueue.enqueue(qe) == SUCCESS) {
-      if (radioOn && call SendQueue.size() == 1) {
+      if (radioOn && !call RetxmitTimer.isRunning()) {
         post sendTask();
       }
       clientPtrs[client] = NULL;
@@ -229,7 +231,7 @@ implementation {
       if (eval == SUCCESS) {
 	// Successfully submitted to the data-link layer.
 	sending = TRUE;
-	dbg("Forwarder", "%s: subsend succeeded.\n", __FUNCTION__);
+	dbg("Forwarder", "%s: subsend succeeded with %p.\n", __FUNCTION__, qe->msg);
 	if (qe->client < CLIENT_COUNT) {
 	  dbg("Forwarder", "%s: client packet.\n", __FUNCTION__);
 	}
@@ -256,11 +258,14 @@ implementation {
     }
   }
 
+  void sendDoneBug() {}
+
   event void SubSend.sendDone(message_t* msg, error_t error) {
     fe_queue_entry_t *qe = call SendQueue.head();
-    dbg("Forwarder", "%s with %x and %hhu\n", __FUNCTION__, msg, error);
+    dbg("Forwarder", "%s to %hu and %hhu\n", __FUNCTION__, call AMPacket.destination(msg), error);
     if (qe == NULL || qe->msg != msg) {
-      // Not our packet, something is very wrong...
+      dbg("Forwarder", "%s: BUG: not our packet (%p != %p)!\n", __FUNCTION__, msg, qe->msg);
+      sendDoneBug();      // Not our packet, something is very wrong...
       return;
     }
     else if (error != SUCCESS) {
@@ -289,31 +294,37 @@ implementation {
       clientPtrs[client] = qe;
       hdr = getHeader(qe->msg);
       call SendQueue.dequeue();
-      call QEntryPool.put(qe);      
       signal Send.sendDone[client](msg, SUCCESS);
       sending = FALSE;
       post sendTask();
     }
     else if (call MessagePool.size() < call MessagePool.maxSize()) {
       // A successfully forwarded packet.
-      dbg("Forwarder", "%s: successfully forwarded packet (client: %hhu).\n", __FUNCTION__, qe->client);
+      dbg("Forwarder,Route", "%s: successfully forwarded packet (client: %hhu), message pool is %hhu/%hhu.\n", __FUNCTION__, qe->client, call MessagePool.size(), call MessagePool.maxSize());
       call SendQueue.dequeue();
       call MessagePool.put(qe->msg);
+      //qe->msg = NULL;
+      //qe->client = 255;
       call QEntryPool.put(qe);      
       sending = FALSE;
       post sendTask();
     }
     else {
       dbg("Forwarder", "%s: BUG: we have a pool entry, but the pool is full, client is %hhu.\n", __FUNCTION__, qe->client);
-    // It's a forwarded packet, but there's no room the pool;
+      sendDoneBug();    // It's a forwarded packet, but there's no room the pool;
       // someone has double-stored a pointer somewhere and we have nowhere
       // to put this, so we have to leak it...
     }
-    call QEntryPool.put(qe);
   }
 
   message_t* forward(message_t* m) {
-    if (!call MessagePool.empty() && !call QEntryPool.empty()) {
+    if (call MessagePool.empty()) {
+      dbg("Route", "%s cannot forward, message pool empty.\n", __FUNCTION__);
+    }
+    else if (call QEntryPool.empty()) {
+      dbg("Route", "%s cannot forward, queue entry pool empty.\n", __FUNCTION__);
+    }
+    else {
       message_t* newMsg = call MessagePool.get();
       fe_queue_entry_t *qe = call QEntryPool.get();
       uint8_t len = call SubPacket.payloadLength(m);
@@ -323,8 +334,8 @@ implementation {
       
       call Packet.setPayloadLength(m, len + sizeof(network_header_t));
       if (call SendQueue.enqueue(qe) == SUCCESS) {
-	dbg("Forwarder", "%s forwarding packet with queue size %hhu and entry %p\n", __FUNCTION__, call SendQueue.size(), qe);
-	if (call SendQueue.size() == 1) {
+	dbg("Forwarder,Route", "%s forwarding packet %p with queue size %hhu\n", __FUNCTION__, m, call SendQueue.size());
+	if (!call RetxmitTimer.isRunning()) {
 	  post sendTask();
 	}
 	return newMsg;
@@ -334,7 +345,6 @@ implementation {
         call QEntryPool.put(qe);
       }
     }
-    
     // We'll have to drop the packet on the floor: not enough
     // resources available to forward.
     return m;
@@ -358,8 +368,10 @@ implementation {
                         call Packet.getPayload(msg, &netlen), 
                         call Packet.payloadLength(msg)))
       return msg;
-    else
+    else {
+      dbg("Route", "Forwarding packet from %hu.\n", hdr->origin);
       return forward(msg);
+    }
   }
 
   command void* 
@@ -417,6 +429,31 @@ implementation {
     return payload + sizeof(network_header_t);
   }
 
+  command am_addr_t CollectionPacket.getOrigin(message_t* msg) {
+    return getHeader(msg)->origin;
+  }
+  
+  command void CollectionPacket.setOrigin(message_t* msg, am_addr_t addr) {
+    getHeader(msg)->origin = addr;
+  }
+
+  command uint8_t CollectionPacket.getCollectionID(message_t* msg) {
+    return getHeader(msg)->collectid;
+  }
+  
+  command void CollectionPacket.setCollectionID(message_t* msg, uint8_t id) {
+    getHeader(msg)->collectid = id;
+  }
+
+  command uint8_t CollectionPacket.getControl(message_t* msg) {
+    return getHeader(msg)->control;
+  }
+  
+  command void CollectionPacket.setControl(message_t* msg, uint8_t control) {
+    getHeader(msg)->control = control;
+  }
+
+  
   default event void
   Send.sendDone[uint8_t client](message_t *msg, error_t error) {
   }
