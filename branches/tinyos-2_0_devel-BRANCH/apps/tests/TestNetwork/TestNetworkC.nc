@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.7 $ $Date: 2006-06-09 01:46:57 $
+ * @version $Revision: 1.1.2.8 $ $Date: 2006-06-10 21:19:50 $
  */
 
 #include <Timer.h>
@@ -51,7 +51,7 @@ implementation {
       if (TOS_NODE_ID % 500 == 0) {
 	call RootControl.setRoot();
       }
-      call Timer.startPeriodic(128);
+      call Timer.startPeriodic(1024);
     }
   }
 
@@ -82,7 +82,11 @@ implementation {
     if (call Send.send(&packet, sizeof(TestNetworkMsg)) != SUCCESS) {
       failedSend();
       call Leds.led0On();
-      dbg("TestNetworkC", "Transmission failed.\n");
+      dbg("TestNetworkC", "%s: Transmission failed.\n", __FUNCTION__);
+    }
+    else {
+      dbg("TestNetworkC", "%s: Transmission succeeded.\n", __FUNCTION__);
+
     }
   }
 
@@ -104,7 +108,7 @@ implementation {
 
   event message_t* 
   Receive.receive(message_t* msg, void* payload, uint8_t len) {
-    dbg("TestNetworkC,Traffic", "Received packet at %s from node %hu.\n", sim_time_string(), call CollectionPacket.getOrigin(msg));
+    dbg("TestNetworkC,Traffic,Route", "Received packet at %s from node %hhu.\n", sim_time_string(), call CollectionPacket.getOrigin(msg));
     call Leds.led1Toggle();    
     if (!uartbusy) {
       message_t* tmp = recvPtr;
