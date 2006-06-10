@@ -32,6 +32,13 @@ test_network_msg.c:
 set_rate_msg.c:
 	mig -o set_rate_msg.h c -target=$(PLATFORM) $(CFLAGS) $(TFLAGS) $(TOSDIR)/lib/net/DisseminationEngine.h dissemination_message
 
+set_rate_msg.o: set_rate_msg.c
+	gcc $(CFLAGS) $(TFLAGS) -c -o $@ $<
+
+test_network_msg.o: test_network_msg.c
+	gcc $(CFLAGS) $(TFLAGS) -c -o $@ $<
+
+
 collection_msg.c:
 	mig -o collection_msg.h c -target=$(PLATFORM) $(CFLAGS) $(TFLAGS) $(TOSDIR)/lib/net/collection/ForwardingEngine.h collection_header
 
