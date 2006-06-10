@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 //#define TEST_INSERT
-/* $Id: TreeRoutingEngineP.nc,v 1.1.2.7 2006-06-02 02:10:19 scipio Exp $ */
+/* $Id: TreeRoutingEngineP.nc,v 1.1.2.8 2006-06-10 19:24:22 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -29,7 +29,7 @@
  *  Acknowledgment: based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
  *                           MultiHopLQI
  *                           
- *  @date   $Date: 2006-06-02 02:10:19 $
+ *  @date   $Date: 2006-06-10 19:24:22 $
  *  @see Net2-WG
  */
 
@@ -37,6 +37,7 @@ generic module TreeRoutingEngineP(uint8_t routingTableSize) {
     provides {
         interface UnicastNameFreeRouting as Routing;
         interface RootControl;
+	interface TreeRoutingInspect;
         interface StdControl;
         interface Init;
     } 
@@ -182,26 +183,26 @@ implementation {
         for (i = 0; i < routingTableActive; i++) {
             entry = &routingTable[i];
 
-	    // Avoid bad entries and 1-hop loops
+            // Avoid bad entries and 1-hop loops
             if (entry->info.parent == INVALID_ADDR || entry->info.parent == my_ll_addr) {
-	      dbg("TreeRouting,LITest", "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: NO ROUTE]\n",  i, entry->neighbor, entry->info.parent, entry->info.hopcount);
-	      continue;
-	    }
-	    
+              dbg("TreeRouting", "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: NO ROUTE]\n",  i, entry->neighbor, entry->info.parent, entry->info.hopcount);
+              continue;
+            }
+            
             linkMetric = evaluateMetric(call LinkEstimator.getLinkQuality(entry->neighbor));
-	    dbg("TreeRouting,LITest", "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: %d]\n",  i, entry->neighbor, entry->info.parent, entry->info.hopcount, linkMetric);
-	    dbg_clear("TreeRouting,LITest", "   metric: %hu.\n", linkMetric);
-            pathMetric =linkMetric + entry->info.metric;
+            dbg("TreeRouting", "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: %d]\n",  i, entry->neighbor, entry->info.parent, entry->info.hopcount, linkMetric);
+            dbg_clear("TreeRouting", "   metric: %hu.\n", linkMetric);
+            pathMetric = linkMetric + entry->info.metric;
             //for current parent
             if (entry->neighbor == routeInfo.parent) {
                 currentMetric = pathMetric;
-		dbg("TreeRouting", "   already parent.\n");
+                dbg("TreeRouting", "   already parent.\n");
                 continue;
             }
             if (!passLinkMetricThreshold(linkMetric)) {
-	      dbg("TreeRouting", "   did not pass threshold.\n");
-	      continue;
-	    }
+              dbg("TreeRouting", "   did not pass threshold.\n");
+              continue;
+            }
             
             if (pathMetric < minMetric) {
                 minMetric = pathMetric;
@@ -235,6 +236,8 @@ implementation {
         justEvicted = FALSE; 
     }
 
+    /* Inspection interface implementations */
+    
 
     /* send a beacon advertising this node's routeInfo */
     // only posted if running and radioOn
@@ -243,8 +246,8 @@ implementation {
         if (sending) {
             return;
         }
-	beaconMsg->parent = routeInfo.parent;
-	beaconMsg->hopcount = routeInfo.hopcount;
+        beaconMsg->parent = routeInfo.parent;
+        beaconMsg->hopcount = routeInfo.hopcount;
 
         if (state_is_root || routeInfo.parent == INVALID_ADDR) {
             beaconMsg->metric = routeInfo.metric;
@@ -253,7 +256,7 @@ implementation {
                                 evaluateMetric(call LinkEstimator.getLinkQuality(routeInfo.parent)); 
         }
 
-        dbg("TreeRouting,LITest", "%s parent: %d hopcount: %d metric: %d\n",
+        dbg("TreeRouting", "%s parent: %d hopcount: %d metric: %d\n",
                   __FUNCTION__,
                   beaconMsg->parent, 
                   beaconMsg->hopcount, 
@@ -295,18 +298,18 @@ implementation {
         am_addr_t from;
         beacon_msg_t* rcvBeacon;
 
-	// Received a beacon, but it's not from us.
-	if (len != sizeof(beacon_msg_t)) {
-	  dbg("LITest", "%s, received beacon of size %hhu, expected %i\n", __FUNCTION__, len, (int)sizeof(beacon_msg_t));
-	      
-	  return msg;
-	}
-	
+        // Received a beacon, but it's not from us.
+        if (len != sizeof(beacon_msg_t)) {
+          dbg("LITest", "%s, received beacon of size %hhu, expected %i\n", __FUNCTION__, len, (int)sizeof(beacon_msg_t));
+              
+          return msg;
+        }
+        
         //need to get the am_addr_t of the source
         from = call LinkSrcPacket.getSrc(msg);
         rcvBeacon = (beacon_msg_t*)payload;
 
-        dbg("TreeRouting,LITest","%s from: %d  [ parent: %d hopcount: %d metric: %d]\n",
+        dbg("TreeRouting","%s from: %d  [ parent: %d hopcount: %d metric: %d]\n",
             __FUNCTION__, from, 
             rcvBeacon->parent, rcvBeacon->hopcount, rcvBeacon->metric);
         //update neighbor table
@@ -344,7 +347,33 @@ implementation {
     command bool Routing.hasRoute() {
         return (routeInfo.parent != INVALID_ADDR);
     }
-    
+   
+	/* TreeRoutingInspect interface */
+	command error_t TreeRoutingInspect.getParent(am_addr_t* parent) {
+		if (parent == NULL) 
+			return FAIL;
+		if (routeInfo.parent == INVALID_ADDR)	
+			return FAIL;
+		*parent = routeInfo.parent;
+		return SUCCESS;
+	}
+	command error_t TreeRoutingInspect.getHopcount(uint8_t* hopcount) {
+		if (hopcount == NULL) 
+			return FAIL;
+		if (routeInfo.parent == INVALID_ADDR)	
+			return FAIL;
+		*hopcount= routeInfo.hopcount;
+		return SUCCESS;
+	}
+	command error_t TreeRoutingInspect.getMetric(uint16_t* metric) {
+		if (metric == NULL) 
+			return FAIL;
+		if (routeInfo.parent == INVALID_ADDR)	
+			return FAIL;
+		*metric = routeInfo.metric;
+		return SUCCESS;
+	}
+
     /* RootControl interface */
     /** sets the current node as a root, if not already a root */
     /*  returns FAIL if it's not possible for some reason      */
