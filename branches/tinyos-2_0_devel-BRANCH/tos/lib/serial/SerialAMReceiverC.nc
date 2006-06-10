@@ -1,4 +1,4 @@
-// $Id: SerialAMReceiverC.nc,v 1.1.2.2 2006-05-25 17:38:06 scipio Exp $
+// $Id: SerialAMReceiverC.nc,v 1.1.2.3 2006-06-10 02:06:35 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -41,9 +41,9 @@ generic configuration SerialAMReceiverC(am_id_t amId) {
 }
 
 implementation {
-  components SerialAMImplP as Impl;
+  components SerialActiveMessageC as AM;
 
-  Receive = Impl.Receive[amId];
-  Packet = Impl;
-  AMPacket = Impl;
+  Receive = AM.Receive[amId];
+  Packet = AM;
+  AMPacket = AM;
 }
