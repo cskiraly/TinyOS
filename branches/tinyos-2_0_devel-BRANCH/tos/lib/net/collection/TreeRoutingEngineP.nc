@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 //#define TEST_INSERT
-/* $Id: TreeRoutingEngineP.nc,v 1.1.2.8 2006-06-10 19:24:22 rfonseca76 Exp $ */
+/* $Id: TreeRoutingEngineP.nc,v 1.1.2.9 2006-06-11 16:32:28 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -29,7 +29,7 @@
  *  Acknowledgment: based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
  *                           MultiHopLQI
  *                           
- *  @date   $Date: 2006-06-10 19:24:22 $
+ *  @date   $Date: 2006-06-11 16:32:28 $
  *  @see Net2-WG
  */
 
@@ -195,8 +195,13 @@ implementation {
             pathMetric = linkMetric + entry->info.metric;
             //for current parent
             if (entry->neighbor == routeInfo.parent) {
-                currentMetric = pathMetric;
                 dbg("TreeRouting", "   already parent.\n");
+                currentMetric = pathMetric;
+                //update routeInfo with parent's current info
+                atomic {
+                    routeInfo.metric = entry->info.metric;
+                    routeInfo.hopcount = entry->info.hopcount + 1;
+                }
                 continue;
             }
             if (!passLinkMetricThreshold(linkMetric)) {
@@ -479,22 +484,32 @@ implementation {
                             uint8_t hopcount, uint16_t metric)
     {
         uint8_t idx;
+        uint16_t  linkMetric;
+        linkMetric = evaluateMetric(call LinkEstimator.getLinkQuality(from));
+
         idx = routingTableFind(from);
         if (idx == routingTableSize) {
-            //table is full
+            //not found and table is full
+            //if (passLinkMetricThreshold(linkMetric))
+                //TODO: add replacement here, replace the worst
+            //}
             dbg("TreeRouting", "%s FAIL, table full\n", __FUNCTION__);
             return FAIL;
         }
         else if (idx == routingTableActive) {
             //not found and there is space
-            atomic {
-                routingTable[idx].neighbor = from;
-                routingTable[idx].info.parent = parent;
-                routingTable[idx].info.hopcount = hopcount;
-                routingTable[idx].info.metric = metric;
-                routingTableActive++;
+            if (passLinkMetricThreshold(linkMetric)) {
+                atomic {
+                    routingTable[idx].neighbor = from;
+                    routingTable[idx].info.parent = parent;
+                    routingTable[idx].info.hopcount = hopcount;
+                    routingTable[idx].info.metric = metric;
+                    routingTableActive++;
+                }
+                dbg("TreeRouting", "%s OK, new entry\n", __FUNCTION__);
+            } else {
+                dbg("TreeRouting", "%s Fail, link quality (%hu) below threshold\n", __FUNCTION__, linkMetric);
             }
-            dbg("TreeRouting", "%s OK, new entry\n", __FUNCTION__);
         } else {
             //found, just update
             atomic {
