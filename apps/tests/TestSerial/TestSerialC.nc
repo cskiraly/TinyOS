@@ -1,4 +1,4 @@
-// $Id: TestSerialC.nc,v 1.1.2.8 2006-02-16 16:48:12 idgay Exp $
+// $Id: TestSerialC.nc,v 1.1.2.9 2006-06-12 20:46:56 bengreenstein Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -31,14 +31,7 @@
 
 /**
  * Application to test that the TinyOS java toolchain can communicate
- * with motes over the serial port. The application sends packets to
- * the serial port at 1Hz: the packet contains an incrementing
- * counter. When the application receives a counter packet, it
- * displays the bottom three bits on its LEDs. This application is
- * very similar to RadioCountToLeds, except that it operates over the
- * serial port. There is Java application for testing the mote
- * application: run TestSerial to print out the received packets and
- * send packets to the mote.
+ * with motes over the serial port. 
  *
  *  @author Gilman Tolle
  *  @author Philip Levis
