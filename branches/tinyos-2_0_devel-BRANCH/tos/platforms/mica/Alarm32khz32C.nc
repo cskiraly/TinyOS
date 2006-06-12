@@ -1,4 +1,4 @@
-// $Id: Alarm32khz32C.nc,v 1.1.2.3 2006-04-28 23:18:57 idgay Exp $
+// $Id: Alarm32khz32C.nc,v 1.1.2.4 2006-06-12 19:11:01 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -30,8 +30,8 @@ generic configuration Alarm32khz32C()
 implementation
 {
   components new AlarmOne16C() as Alarm16, Counter32khz32C as Counter32,
-    new TransformAlarmC(T32khz, uint32_t, TOne, uint16_t, MICA_DIVIDE_ONE_FOR_32KHZ_LOG2)
-      as Transform32;
+    new TransformAlarmC(T32khz, uint32_t, TOne, uint16_t,
+			MICA_DIVIDE_ONE_FOR_32KHZ_LOG2) as Transform32;
 
   Alarm = Transform32;
   Transform32.AlarmFrom -> Alarm16;
