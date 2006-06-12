@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-06-09 12:02:01 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-06-12 22:35:18 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
  * ========================================================================
@@ -70,7 +70,7 @@ implementation
         STATE_FOOTER_START,
         STATE_FOOTER_DONE
     } phyState_t;
-  
+
 
 #define PREAMBLE_LENGTH   4
 #define BYTE_TIME         35
@@ -84,7 +84,7 @@ implementation
     uint16_t numPreambles;  // Number of preambles to send before the packet
     uint8_t byteTime;       // max. time between two bytes
     uint8_t bufByte;
-    
+
     /* Local Function Declarations */
     void TransmitNextByte();
     void ReceiveNextByte(uint8_t data);
@@ -98,7 +98,7 @@ implementation
         }
         return SUCCESS;
     }
-    
+
     command error_t UartPhyControl.setNumPreambles(uint16_t numPreambleBytes) {
         atomic {
             if (phyState == STATE_PREAMBLE) {
@@ -109,7 +109,7 @@ implementation
         }
         return SUCCESS;
     }
-    
+
     command error_t UartPhyControl.setByteTimeout(uint8_t byteTimeout) {
         if (call RxByteTimer.isRunning() == TRUE) {
             return FAIL;
@@ -118,11 +118,11 @@ implementation
             return SUCCESS;
         }
     }
-    
+
     async command bool UartPhyControl.isBusy() {
         return phyState != STATE_PREAMBLE;
     }
-    
+
     void resetState() {
         atomic {
             call RxByteTimer.stop();
@@ -139,10 +139,10 @@ implementation
                 default:
                     break;
             }
-            phyState = STATE_PREAMBLE; 
+            phyState = STATE_PREAMBLE;
         }
     }
-    
+
     async event void RxByteTimer.fired() {
         // no bytes have arrived, so...
         resetState();
@@ -183,7 +183,7 @@ implementation
         signal PhyPacketRx.recvFooterDone(SUCCESS);
     }
 
-    
+
     /* Tx Done */
     async event void RadioByteComm.txByteReady(error_t error) {
         if(error == SUCCESS) {
@@ -224,20 +224,11 @@ implementation
                     break;
                 case STATE_DATA_LOW:
                     call RadioByteComm.txByte(manchesterEncodeNibble(bufByte & 0x0f));
-                    phyState = STATE_DATA_HIGH;                    
+                    phyState = STATE_DATA_HIGH;
                     break;
                 case STATE_FOOTER_START:
-                    /* Pseudo-Footer: the MSP430 has two buffers: one for
-                     * transmit, one to store the next byte to be transmitted,
-                     * this footer fills the next-to-transmit buffer, to make
-                     * sure that the last real byte is actually
-                     * transmitted. The byte stored by this call may not be
-                     * transmitted fully or not at all. 
-                     */
-                    phyState = STATE_FOOTER_DONE;
-                    call RadioByteComm.txByte(manchesterEncodeNibble(bufByte & 0x0f));
-                    break;
                 case STATE_FOOTER_DONE:
+                    while ( !call RadioByteComm.isTxDone() );
                     phyState = STATE_PREAMBLE;
                     signal PhyPacketTx.sendFooterDone();
                     break;
@@ -265,7 +256,7 @@ implementation
                             phyState = STATE_DATA_HIGH;
                         } else {
                             phyState = STATE_SFD;
-                        } 
+                        }
                     }
                     break;
                 case STATE_SFD:
@@ -273,13 +264,13 @@ implementation
                         signal PhyPacketRx.recvHeaderDone(SUCCESS);
                         phyState = STATE_DATA_HIGH;
                     } else {
-                        phyState = STATE_PREAMBLE; 
+                        phyState = STATE_PREAMBLE;
                     }
                     break;
                 case STATE_PREAMBLE:
                     if(data == PREAMBLE_BYTE) {
                         phyState = STATE_SYNC;
-                    } 
+                    }
                     break;
                 case STATE_DATA_HIGH:
                     decodedByte = manchesterDecodeByte(data);
@@ -294,7 +285,7 @@ implementation
                     decodedByte = manchesterDecodeByte(data);
                     if(decodedByte != 0xff) {
                         bufByte |= decodedByte;
-                        signal SerializerRadioByteComm.rxByteReady(bufByte);   
+                        signal SerializerRadioByteComm.rxByteReady(bufByte);
                         phyState = STATE_DATA_HIGH;
                     } else {
                         resetState();
