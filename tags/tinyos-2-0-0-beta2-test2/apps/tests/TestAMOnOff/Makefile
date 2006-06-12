@@ -1,0 +1,6 @@
+COMPONENT=TestAMOnOffAppC
+PFLAGS += -DSERVICE_SLAVE
+
+
+include $(MAKERULES)
+
