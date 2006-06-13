@@ -8,19 +8,20 @@
 <body>
 
 <div class="title">Lesson 1: Getting Started with TinyOS and nesC</div>
-<div class="subtitle">Last updated 18 May 2005</div>
+<div class="subtitle">Last updated June 12 2006</div>
 
       <p>This lesson introduces the basic concepts of the component model
 	used by TinyOS, and the nesC component syntax.</p>
       
       <h1>Introduction</h1>
       
-      <p>TinyOS is written in nesC, an extension of the C language designed
-	to support the resource-challenged embedded systems space.  nesC's
-	extensions support an efficient yet robust component model, and a
-	concurrency model based on run-to-completion tasks and interrupt
-	handlers. This lesson introduces the TinyOS/nesC component model, and
-	the next lesson introduces the TinyOS/nesC concurrency model.</p>
+      <p>TinyOS is written in nesC, an extension of the C language
+	designed to support the resource-challenged embedded systems
+	space.  nesC's extensions support an efficient yet robust
+	component model, and a concurrency model based on
+	run-to-completion tasks and interrupt handlers. This lesson
+	introduces the TinyOS/nesC component model, and the next
+	lesson introduces the TinyOS/nesC concurrency model.</p>
 
       <h1>Compiling and Installing</h1>
       
@@ -28,10 +29,11 @@
 	TinyOS application called Blink. If you don't have mote
 	hardware, you can compile it for TOSSIM, the TinyOS simulator.</p>
       
-      <p>You compile TinyOS applications with the program <tt>make</tt>.
-	TinyOS uses a powerful and extensible make system that allows you
-	to easily add new platforms and compilation options.
-	The makefile system definitions are located in tinyos-2.x/support/make.</p>
+      <p>You compile TinyOS applications with the program
+	<tt>make</tt>.  TinyOS uses a powerful and extensible make
+	system that allows you to easily add new platforms and
+	compilation options.  The makefile system definitions are
+	located in tinyos-2.x/support/make.</p>
 
       <p>The first thing to check is that you have the TinyOS build system
 	enabled. This involves the MAKERULES environment variable. In a shell,
@@ -76,7 +78,7 @@ msp430-objcopy --output-target=ihex build/telosb/main.exe build/telosb/main.ihex
 	as building TOSSIM requires several steps, such as building shared
 	libraries and scripting support.</p>
 
-      <h2>Installing on a mica-family mote</h2>
+      <h2>Installing on a mica-family mote (micaz, mica2)</h2>
       
       <p>Now that we've compiled the application it's time to program the
 	mote and run it. This example will use the Mica mote and the
@@ -267,7 +269,7 @@ UCC89MXV   /dev/ttyUSB3 Telos (Rev B 2004-09-27)
       <p>The set of interfaces which a component provides together with the
 	set of interfaces that a component uses is considered that component's
 	<i>signature</i>.</p>
-      
+	      
       <h2>Configurations and Modules</h2>
       
       <p>There are two types of components in nesC: <i>modules</i> and
@@ -285,7 +287,7 @@ UCC89MXV   /dev/ttyUSB3 Telos (Rev B 2004-09-27)
 	tree. As you saw, this application displays a counter on the
 	three mote LEDs. In actuality, it simply causes the LED0 to to turn on and off at
 	.25Hz, LED1 to turn on and off at .5Hz, and LED2 to turn on and off at
-	1Hz.<a href="#leds_footnote">(1)</a> The effect is as if the three
+	1Hz. The effect is as if the three
 	LEDs were displaying a binary count of one to seven every two
 	seconds. </p>
 
@@ -302,11 +304,11 @@ to wire the <tt>BlinkC.nc</tt> module to other components that the
 Blink application requires. </p>
 
 <p>The reason for the distinction between modules and configurations
-is to allow a system designer to quickly "snap together"
-applications. For example, a designer could provide a configuration
+is to allow a system designer to build applications out of existing
+implementations. For example, a designer could provide a configuration
 that simply wires together one or more modules, none of which she
 actually designed.  Likewise, another developer can provide a new set
-of "library" modules that can be used in a range of applications. </p>
+of library modules that can be used in a range of applications. </p>
 
 <p>Sometimes (as is the case with <tt>BlinkAppC</tt> and
 <tt>BlinkC</tt>) you will have a configuration and a module that go
@@ -314,6 +316,7 @@ together. When this is the case, the convention used in the TinyOS
 source tree is:</p>
 
 
+<CENTER>
 <table border="1"  cellspacing="1" cellpadding="1">
 <tbody>
 
@@ -333,7 +336,7 @@ source tree is:</p>
 </tr>
 	  
 <tr>
-<td><tt>FooC.nc <a href="#hint9">(2)</a></tt></td>
+<td><tt>FooC.nc </tt></td>
 <td>Public Module</td>
 </tr>
 
@@ -345,6 +348,7 @@ source tree is:</p>
 
 </tbody>
 </table>
+</CENTER>
 
 <p>While you could
 name an application's implementation module and associated top-level
@@ -409,8 +413,8 @@ configuration references. In this case those components are
 <tt>Main</tt>, <tt>BlinkC</tt>,
 <tt>LedsC</tt>, and three instances of a timer component called
 <tt>TimerMilliC</tt> which will be referenced as Timer0, Timer1,
-and Timer2<a href="#oskitimermillic_footnote">(3)</a>. This is accomplished
-via the <i>as</i> keyword which is simply an alias<a href="#hint10">(4)</a>. 
+and Timer2<a href="#timermillic_footnote">(1)</a>. This is accomplished
+via the <i>as</i> keyword which is simply an alias<a href="#hint10">(2)</a>. 
 
 <p>As we continue reviewing the BlinkAppC application, keep in mind that the
 BlinkAppC component is not the same as the BlinkC component. Rather,
@@ -470,53 +474,169 @@ LedsC</tt> line wires the <tt>Leds</tt> interface used by the
 <tt>BlinkC</tt> component to the <tt>Leds</tt> interface provided by
 the <tt>LedsC</tt> component.
 
-<p>You may have surmised that nesC uses arrows to determine relationships
-between interfaces.  Think of the right arrow (<tt>-&gt;</tt>) as
-"binds to". The left side of the arrow binds an interface to an
-implementation on the right side.  In other words, the component that
-<b>uses</b> an interface is on the left, and the component <b>provides
-</b>the interface is on the right. </p>
+<p>NesC uses arrows to bind interfaces to one another.  The right arrow
+(<tt>A-&gt;B</tt>) as "A wires to B". The left side of the arrow (A)
+is a user of the interface, while the right side of the arrow (B) is
+the provider. A full wiring is <tt>A.a-&gt;B.b</tt>, which means
+"interface a of component A wires to interface b of component B."
+Naming the interface is important when a component uses or provides multiple
+instances of the same interface. For example, BlinkC uses three instances of
+Timer: Timer0, Timer1 and Timer2.
 
-It follows, then, that on the line:
-
-<pre></pre>
-<prehead>apps/Blink/BlinkAppC.nc:</prehead>
-<pre>
-  BlinkC.Timer -> Timer0;
-</pre>
-
-<tt>BlinkC.Timer</tt> on the left side of the arrow is referring to
-the <i>interface</i> called Timer (<tt>tos/lib/timer/Timer.nc</tt>),
-while <tt>Timer0</tt> on the right side of the arrow is referring to
-the <i>implementation </i>of Timer</tt>. Remember that the arrow
-always binds interfaces (on the left) to implementations (on the
-right).
-
-<p><tt>BlinkAppC</tt> also illustrates that wirings can be
-implicit. For example:
+When a component only has one instance
+of an interface, you can elide the interface name. For example, returning
+to BlinkAppC:
 
 <pre></pre>
 <prehead>apps/Blink/BlinkAppC.nc:</prehead>
 <pre>
+configuration BlinkAppC {
+}
+implementation {  
+  components MainC, BlinkC, LedsC;
+  components new TimerMilliC() as Timer0;
+  components new TimerMilliC() as Timer1;
+  components new TimerMilliC() as Timer2;
+
+  BlinkC -> MainC.Boot;
+  MainC.SoftwareInit -> LedsC;
+  BlinkC.Timer0 -> Timer0;
+  BlinkC.Timer1 -> Timer1;
+  BlinkC.Timer2 -> Timer2;
   BlinkC.Leds -> LedsC;
+}
 </pre>
 
-is really shorthand for:
+<p>The interface name Leds does not have to be included in LedsC:</p>
 
 <pre>
-  BlinkC.Leds -> LedsC.Leds;
+  BlinkC.Leds -> LedsC; // Same as BlinkC.Leds -> LedsC.Leds
 </pre>
 
-If no interface name is given on the right side of the arrow, the nesC
-compiler by default tries to bind to the same interface as on the left
-side of the arrow.
+<p>Because BlinkC only uses one instance of the Leds interface, this
+line would also work:</p>
+
+<pre>
+  BlinkC -> LedsC.Leds; // Same as BlinkC.Leds -> LedsC.Leds
+</pre>
+
+<p>As the TimerMilliC components each provide a single instance of Timer,
+it does not have to be included in the wirings:</p>
+
+<pre>
+  BlinkC.Timer0 -> Timer0;
+  BlinkC.Timer1 -> Timer1;
+  BlinkC.Timer2 -> Timer2;
+</pre>
+
+<p>However, as BlinkC has three instances of Timer, eliding the name
+on the user side would be a compile-time error, as the compiler would
+not know which instance of Timer was being wired:</p>
+
+<pre>
+  BlinkC -> Timer0.Timer;  // Compile error!
+</pre
+
+<p>The direction of a wiring arrow is always from a user to a
+provider. If the provider is on the left side, you can also
+use a left arrow:</p>
+
+<pre>
+  Timer0 <- BlinkC.Timer0; // Same as BlinkC.Timer0 -> Timer0;
+</pre>
+
+<p>For ease of reading, however, most wirings are left-to-right.</p>
+
+<h1>Visualizing a Component Graph</h1>
+
+<p>Carefully engineered TinyOS systems often have many layers of configurations,
+each of which refines the abstraction in simple way, building something robust
+with very little executable code. Getting to the modules underneath
+-- or just navigating the layers -- with a text editor can be laborious.
+To aid in this process, TinyOS and nesC have a documentation feature called
+nesdoc, which generates documentation automatically from source code. In
+addition to comments, nesdoc displays the structure and composition of
+configurations.</p>
+
+<p>To generate documentation for an application, type</p>
+
+<pre>
+  make <platform> docs
+</pre>
+
+<p>You should see a long list of interfaces and components stream by. If you
+see the error message</p>
+
+<pre>sh: dot: command not found</pre>
+
+<p>then you need to <A HREF="http://www.graphviz.org/Download..php">install
+graphviz</A>, which is the program that draws the component graphs.</p>
+
+<p>Once you've generated the documentation, go to <tt>doc/nesdoc</tt>. You
+should see a directory for your platform: open its <tt>index.html</tt>, and
+you'll see a list of the components and interfaces for which you've
+generated documentation. For example, if you generated documentation
+for Blink on the telos platform, you'll see documentation for interfaces
+such as Boot, Leds, and Timer, as well as some from the underlying hardware
+implementations, such as Msp430TimerEvent and HplMsp430GeneralIO.</p>
+
+<p>In the navigation panel on the left, components are below interfaces.
+Click on BlinkAppC, and you should a figure like this: </p>
+
+<CENTER>
+  <IMG SRC="img/BlinkAppC.gif">
+</CENTER>
+
+<p>In nesdoc diagrams, a single box is a module and a double box is a
+configuration. Dashed border lines denote that a component is a generic:</p>
+<CENTER>
+<TABLE CELLPADDING=6 BORDER=1>
+  <TR>
+    <td></td>
+    <td><b>Singleton</b></td>
+    <td><b>Generic</b></td>
+  </TR>
+  <TR>
+    <td>Module</td>
+    <td><IMG SRC="img/singleton-module.gif"></td>
+    <td><IMG SRC="img/generic-module.gif"></td>
+  </TR>
+  <TR>
+    <td>Configuration</td>
+    <td><IMG SRC="img/singleton-configuration.gif"></td>
+    <td><IMG SRC="img/generic-configuration.gif"></td>
+  </TR>
+</TABLE>
+</CENTER>
+<p>Lines denote wirings, and shaded ovals denote interfaces
+that a component provides or uses. You can click on the components
+in the graph to examine their internals. Click on MainC, which shows
+the wirings for the boot sequence:</p>
+
+<CENTER>
+  <IMG SRC="img/tos.system.MainC.gif">
+</CENTER>
+
+<p>Shaded ovals denote wireable interfaces.
+Because MainC provides the Boot interface and uses the Init (as
+SoftwareInit) interface, it has two shaded ovals. Note the direction
+of the arrows: because it uses SoftwareInit, the wire goes out from
+RealMainP to SoftwareInit, while because it provides Boot, the wire
+goes from Boot into RealMainP. The details of MainC aren't too important
+here, and we'll be looking at it in greater depth in
+<A HREF="lesson3.html">lesson 3</A>
+(you can also read <A HREF="../tep107.html">TEP 107</A> for details),
+but looking at the components you can get a sense of what it does: it
+controls the scheduler, initializes the hardware platform, and
+initializes software components.</p>
 
 <h1>Conclusion</h1>
 
 <p>This lesson has introduced the concepts of the TinyOS component
-model: configurations, modules, interfaces and wiring.  The next
-lesson continues our look at Blink to expand 1) on the nesC/TinyOS concurrency model
-and 2) Module implementations. 
+model: configurations, modules, interfaces and wiring.  It showed
+how applications are built by wiring components together. The next
+lesson continues with Blink, looking more closely at modules,
+including the TinyOS concurrency model and executable code.
 
 <p>
 <a name=#related_docs>
@@ -529,28 +649,15 @@ and 2) Module implementations.
 <li> <a href="http://nescc.sourceforge.net/papers/nesc-ref.pdf">NesC reference manual</a>
 <li> <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">TinyOS Programming Guide</a>
 <li> <a href="../tep3.html">TEP 3: TinyOS Coding Conventions</a>
-<li> <a href="../tep107.html">TEP 102: Timers</a>
+<li> <a href="../tep102.html">TEP 102: Timers</a>
 <li> <a href="../tep106.html">TEP 106: Schedulers and Tasks</a>
+<li> <a href="../tep107.html">TEP 106: TinyOS 2.x Boot Sequence</a>
 </ul>
 
 <p>
 <hr>
 
-<p><a name="leds_footnote">(1)</a> Unlike in tinyos-1.x, LEDs in 2.x
-are not labeled by color but instead by number to reflect the fact
-that different platforms have different colored LEDs. In telos, the
-mapping (LED0,LED1,LED2) to (Red,Green,Blue), and in mica motes the
-mapping is (LED0,LED1,LED2) to (Red,Green,Yellow).
-
-<p><a name="hint9">(2)</a>
-<b>Programming Hint 9:</b> If a component is a usable abstraction by itself, 
-its name should end with C. If it is intended to be an internal and private 
-part of a larger abstraction, its name should end with P. Never wire to 
-P components from outside your package (directory). From Phil Levis' 
-<a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">
-<i>TinyOS Programming</i></a>
-
-<p><a name="timermillic_footnote">(3)</a> The TimerMilliC
+<p><a name="timermillic_footnote">(1)</a> The TimerMilliC
 component is a <i>generic component</i> which means that, unlike
 non-generic components, it can be instantiated more than once.
 Generic components can take typed arguments and in this case, that
@@ -561,7 +668,7 @@ href="../../nesc/user/generics-1.2.txt"> -->the nesc generic component
 documentation</a>.
 
 <p><a name="hint10">(4)</a>
-<b>Programming Hint 10:</b> Use the <i>as</i> keyword liberally. From Phil Levis' 
+<b>Programming Hint 10:</b> Use the <i>as</i> keyword liberally. From  
 <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf"><i>TinyOS Programming</i></a>
 
 
