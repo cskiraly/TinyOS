@@ -10,8 +10,8 @@ message_t
 :Author: Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.11 $
-:Draft-Modified: $Date: 2006-06-13 08:27:16 $
+:Draft-Version: $Revision: 1.1.2.12 $
+:Draft-Modified: $Date: 2006-06-13 16:44:17 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -377,7 +377,7 @@ the CC2420 metadata structure::
     nx_uint16_t time;
   } cc2420_metadata_t;
 
-5. Reference
+5. Implementation
 ====================================================================
 
 The definition of message_t can be found in 
@@ -387,7 +387,8 @@ The defintion of the CC1000 message format can be found in
 ``tinyos-2.x/tos/chips/cc1000/CC1000Msg.h``. The definition
 of the standard serial stack packet format can be found in
 ``tinyos-2.x/tos/lib/serial/Serial.h''. The definition of
-the telosb packet format can be found in ``tinyos-2.x/tos/platform/telosa/platform_message.h`` and the micaz format can be found in
+the telosb packet format can be found in 
+``tinyos-2.x/tos/platform/telosa/platform_message.h`` and the micaz format can be found in
 ``tinyos-2.x/tos/platforms/micaz/platform_message.h``.
 
 6. Author's Address
