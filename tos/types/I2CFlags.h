@@ -40,10 +40,9 @@ typedef struct { } TI2CExtdAddr;
 typedef struct { } TI2CBasicAddr;
 
 enum {
-  I2C_START = 0x01
+  I2C_START = 0x01,
   I2C_STOP = 0x02,
   I2C_ACK_END = 0x04,
-  I2C_10BITADDR = 0x80,
 } i2c_flags_t;
 
 
