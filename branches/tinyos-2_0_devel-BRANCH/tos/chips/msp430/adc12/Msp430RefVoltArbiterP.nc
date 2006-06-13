@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-03-08 02:11:14 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-06-13 13:31:12 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -144,6 +144,11 @@ module Msp430RefVoltArbiterP
   {
     return FAIL;
   }
+  default async command error_t AdcResource.immediateRequest[uint8_t client]()
+  {
+    return FAIL;
+  }
+
   default async command void AdcResource.release[uint8_t client](){}
   default async command msp430adc12_channel_config_t 
     Config.getChannelSettings[uint8_t client]()
