@@ -1,4 +1,4 @@
-// $Id: SerialForwarder.java,v 1.1.2.1 2005-05-23 22:11:49 idgay Exp $
+// $Id: SerialForwarder.java,v 1.1.2.2 2006-06-13 16:38:51 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -51,7 +51,7 @@ public class SerialForwarder implements Messenger {
     // appication defaults
     public SFRenderer renderer;
     public SFListen listenServer;
-    public String motecom = "serial@COM1";
+    public String motecom = "serial@com1:57600";
     public boolean logDB;
 
     public int serverPort = 9001;
@@ -91,7 +91,7 @@ public class SerialForwarder implements Messenger {
 	    System.exit(2);
 	}
 	if (guiMode) {
-            renderer = SFWindow.createGui( this, "SerialForwarder" );
+            renderer = SFWindow.createGui( this, "TinyOS 2.x Serial Forwarder" );
 	} else {
             renderer = new SFConsoleRenderer();
         }
@@ -141,8 +141,8 @@ public class SerialForwarder implements Messenger {
 
     private static void printHelp() {
 	System.err.println ("optional arguments:");
-	System.err.println ("-port [server port] (default 9000)");
-	System.err.println ("-comm [motecom spec] (default serial@COM1)");
+	System.err.println ("-port [server port] (default 9001)");
+	System.err.println ("-comm [motecom spec] (default serial@com1:57600)");
 	System.err.println ("-packetsize [size] (default 36)");
 	System.err.println ("-no-gui      = do not display graphic interface");
 	System.err.println ("-quiet       = non-verbose mode");
