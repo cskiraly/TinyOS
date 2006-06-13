@@ -134,7 +134,7 @@ implementation
     /**************** Stop  *****************/
     void checkStopDone(error_t error) {
       atomic {
-        if ( (splitStateError == SUCCESS) && (error == EOFF) ) {
+        if ( (splitStateError == EOFF) && (error == SUCCESS) ) {
           signal SplitControl.stopDone(SUCCESS);
         } else if ( (error == SUCCESS) && (splitStateError == SUCCESS) ) {
           splitStateError = EOFF;
