@@ -1,9 +1,10 @@
 COMPONENT=TestSerialAppC
 CFLAGS += -I%T/lib/oski
-BUILD_EXTRA_DEPS += TestSerialMsg.class TestSerial.class
+BUILD_EXTRA_DEPS += TestSerial.class
+CLEAN_EXTRA = *.class TestSerialMsg.java
 
-%.class: %.java
-	javac $<
+TestSerial.class: $(wildcard *.java) TestSerialMsg.java
+	javac *.java
 
 TestSerialMsg.java:
 	mig java -target=$(PLATFORM) $(CFLAGS) -java-classname=TestSerialMsg TestSerial.h TestSerialMsg -o $@
