@@ -10,8 +10,8 @@ TinyOS 2.x Boot Sequence
 :Author: Philip Levis 
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.9 $
-:Draft-Modified: $Date: 2006-06-09 17:44:58 $
+:Draft-Version: $Revision: 1.1.2.10 $
+:Draft-Modified: $Date: 2006-06-13 08:27:16 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -224,7 +224,9 @@ part of making the overall hardware platform operable. One example of
 this sort of initialization is clock calibration. Because PlatformInit
 calls the component PlatformC, each platform can specify the required
 initialization order. As these hidden dependencies must be due to
-hardware, the sequence is platform-specific.
+hardware, the sequence is platform-specific. A port of TinyOS to a
+new plaform MUST include a component PlatformC which provides
+one and only one instance of the Init interface.
 
 Components whose initialization does not directly depend on hardware
 resources SHOULD wire to MainC.SoftwareInit. If a component requires a
@@ -310,7 +312,18 @@ to the boot sequence, unless there is a temporal ordering requirement to
 the initialization. The purpose of this convention is to simplify
 component initialization and the initialization sequence.
 
-5. Author's Address
+5. Reference
+====================================================================
+
+The following files in ``tinyos-2.x/tos/system`` contain the reference
+implementations of the TinyOS boot sequence:
+
+  * ``RealMainP.nc`` is the module containing the function ``main``.
+  * ``MainC.nc`` is the configuration that wires RealMainP to
+    PlatformC and TinySchedulerC [1]_.
+
+
+6. Author's Address
 ====================================================================
 
 | Philip Levis
@@ -322,7 +335,7 @@ component initialization and the initialization sequence.
 |
 | email - pal@cs.berkeley.edu
 
-6. Citations
+7. Citations
 ====================================================================
 
 .. [1] TEP 106: Schedulers and Tasks.

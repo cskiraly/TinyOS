@@ -10,8 +10,8 @@ Packet Protocols
 :Author: Philip Levis
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.7 $
-:Draft-Modified: $Date: 2006-06-09 21:12:17 $
+:Draft-Version: $Revision: 1.1.2.8 $
+:Draft-Modified: $Date: 2006-06-13 08:27:16 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -544,8 +544,42 @@ The first six fields (length through src) are all 802.15.4 headers. The
 type field, however, has been added to the header structure in order
 to support AM dispatch.
 
+7. Reference
+====================================================================
 
-7. Author's Address
+The following files in ``tinyos-2.x/tos/system`` provide reference 
+implementations of the abstractions described in this TEP.
+
+  * ``AMSenderC.nc``, ``AMReceiverC.nc``, ``AMSnooperC.nc``,
+    and ``AMSnoopingReceiverC.nc`` are implementations of 
+    virtualized AM services.
+  * ``AMQueueP`` provides a send queue of *n* entries for *n*
+    AMSenderC clients, such that each client has a dedicated entry.
+  * ``AMQueueImplP`` is the underlying queue implementation,
+    which is reusable for different clients (it is also used
+    in the serial stack [4]_).
+  * ``AMQueueEntryP`` sits on top of ``AMQueueP`` and stores
+    the parameters to ``AMSend.send`` in an outstanding
+    packet with the ``AMPacket`` interface.
+
+The following files in ``tinyos-2.x/tos/interfaces`` contain
+example implementations of packet protocol interfaces:
+
+  * ``Packet.nc`` is the basic interface that almost all
+    packet protocols provide.
+  * ``Send.nc`` is the transmission interface for address-free 
+     protocols.
+  * ``AMSend.nc`` is the transmission interface for AM address
+     send protocols.
+  * ``AMPacket.nc`` is the packet interface for AM-specific
+    fields.
+
+An active messaging implementation for the CC2420 radio chip
+can be found in ``tos/chips/CC2420/CC2420ActiveMessageC.nc``.
+The micaz platform and telos family have an ``ActiveMessageC.nc``
+which exports the interfaces of ``CC2420ActiveMessageC``.
+
+8. Author's Address
 ====================================================================
 
 | Philip Levis
@@ -556,7 +590,7 @@ to support AM dispatch.
 |
 | phone - +1 650 725 9046
 
-7. Citations
+9. Citations
 ====================================================================
 
 .. [1] The MintRoute protocol. ``tinyos-1.x/tos/lib/MintRoute``. Also, A. Woo, T. Tong, and D. Culler. "Taming the Underlying Challenges of Reliable Multihop Routing in Sensor Networks." SenSys 2003.
@@ -564,5 +598,9 @@ to support AM dispatch.
 .. [2] Tiny AGgregation, one protocol of the TinyDB system.  ``tinyos-1.x/tos/lib/TinyDB``. Also, S. Madden and M. Franklin and J. Hellerstein and W. Hong. "TinyDB: An Acquisitional Query Processing System for Sensor Networks." Transactions on Database Systems (TODS) 2005.
 
 .. [3] TEP 111: message_t.
+
+.. [4] TEP 113: Serial Communication.
+
+
 
  

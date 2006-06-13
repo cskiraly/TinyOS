@@ -1,46 +1,38 @@
-<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
 <html>
-<head>
-  <title>TinyOS Tutorial Lesson 2: Modules and the TinyOS Execution Model</title>
-  <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
-</head>
-<body>
+    <head>
+      <title>TinyOS Tutorial Lesson 2: Modules and the TinyOS Execution Model</title>
+      <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+      
+      <div class="title">Lesson 2: Modules and the TinyOS Execution Model</div>
+      <div class="subtitle">Last updated 18 January 2006</div>
+      
+      <p>This lesson introduces the TinyOS Execution Model and expands on
+	the Component Module.</p>
 
-<div class="title">Lesson 2: Modules and the TinyOS Execution Model</div>
-<div class="subtitle">Last updated 18 January 2006</div>
+      <h1>Commands and Events</h1> <br>
 
-<p>This lesson introduces the TinyOS Execution Model and expands on
-the Component Module.</p>
+	<p>Compiling TinyOS produces a single binary image that assumes
+	  it has complete control of the hardware. Therefore, a mote only
+	  runs one TinyOS image at a time. An image consists of the
+	  components needed for a single application. As most more platforms
+	  do not have hardware-based memory protection, there is
+	  no seperation between a "user" address space and a "system"
+	  address space; there is only one address space that all
+	  components share. This is why many TinyOS components try to keep
+	  their state private and avoid passing pointers: since there is
+	  no hardware protection, the best way to keep memory uncorrupted
+	  is to share it as little as possible.</p>
 
-<h1>Execution Model</h1> <br>
-
-TinyOS executes only one program consisting of selected system
-components and custom components needed for a single application. There is
-no concept of user address space and system address space; there is only 
-one address space accessible from all components of the applicatin. </p>
-
-<p>There are two threads of execution: one for <b>tasks</b> and one
-for <b>events</b>. <a href="#event_footnote">(1)</a> A tasks is
-functions whose execution is deferred. Once scheduled, they run to
-completion with respect to other tasks and do not preempt one
-another. Events are executed in response to a hardware interrupt and
-are also run to completion, but may preempt the execution of a task or
-another event. 
-
-Recall from lesson 1 that a <b>command</b>, along with events, specify
-a components interface. Commands can be run in either the task context
-or the event context depending upon where the command was called
-from. If the command was called from within an event, it will be run
-in the event handler context. If a command was called from within a
-task, it will be run in the task queue context. <a href="#task_footnote">(2)</a>
-
-<p>Any state belongs to the containing component and is accessed through 
-the components interfaces. Blink does not use any state <a href="#hint6">(3)</a>
-, but if it did it would be declared within the <code>implementation</code> blocks.</p> 
-
-<p>Now let's revisit the Blink application to see how it uses events
+	<p>Recall from lesson 1 that <b>commands</b>, along with <b>events</b>, specify
+an interface, and the set of interfaces a component uses and provides
+define its signature.  Any state a component declares is private: no
+other component can name it or directly access it. Therefore, the only
+way two components can directly interact is through their interfaces.
+Let's revisit the Blink application to see how it uses events
 and commands. Here is the Blink module BlinkC.nc's implementation in
-its entirety:
+its entirety:</p>
 
 <pre></pre>
 <prehead>apps/Blink/BlinkC.nc:</prehead>
@@ -78,10 +70,11 @@ implementation
 }
 </pre>
 
-In lesson 1 we learned that if a Component is to use another component,
-it must implement the events in that component's interface. We also
+<p>In lesson 1 we learned that if a component uses an interface, it can
+call the interface's commands and must implement handlers for its
+events.  We also
 saw that the BlinkC component uses the Timer, Leds, and Boot interfaces. 
-Let's take a look at those interfaces:
+Let's take a look at those interfaces:</p>
 
 <pre></pre>
 <prehead>tos/interfaces/Boot.nc:</prehead>
@@ -134,17 +127,16 @@ interface Timer<precision_tag>
 }
 </pre>
 
-Looking over the interfaces for <code>Boot</code>, <code>Leds</code>,
-and
-<code>Timer</code>, we can see that since <code>BlinkC</code> uses
-those interfaces it must implement handlers for the
-<code>Boot.booted()</code> event, and the <code>Timer.fired()</code>
-event. The <code>Leds</code> interface signature does not include any
-events, so <code>BlinkC</code> need not implement any in order to call the Leds
-commands.
-<p>
-Here, again, is <code>BlinkC</code>'s implementation of <code>Boot.booted()<code>:
-
+	<p>Looking over the interfaces for <code>Boot</code>,
+	  <code>Leds</code>, and
+	  <code>Timer</code>, we can see that since <code>BlinkC</code> uses
+	  those interfaces it must implement handlers for the
+	  <code>Boot.booted()</code> event, and the <code>Timer.fired()</code>
+	  event. The <code>Leds</code> interface signature does not include any
+	  events, so <code>BlinkC</code> need not implement any in order
+	  to call the Leds commands. Here, again, is <code>BlinkC</code>'s
+	  implementation of <code>Boot.booted()</code>:</p>
+	  
 <pre></pre>
 <prehead>apps/Blink/BlinkC.nc:</prehead>
 <pre>
@@ -155,15 +147,16 @@ Here, again, is <code>BlinkC</code>'s implementation of <code>Boot.booted()<code
     call Timer2.startPeriodic( 1000 );
   }
 </pre>
-<code>BlinkC</code> uses 3 instances of the OskiTimerMilliC component and they're
+
+<p><code>BlinkC</code> uses 3 instances of the OskiTimerMilliC component and they're
 called <code>Timer0</code>, <code>Timer1</code>, and <code>Timer2</code>. 
 In the <code>Boot.booted()</code> event handler, these instances are each started. 
 The parameter to <code>startPeriodic()</code> specifies the period in milliseconds after 
 which the timer will fire. Because the timer is started using the <code>startPeriodic()</code> 
 command, the timer will be reset after firing such that the <code>fired()</code> event is 
-triggered every n milliseconds. 
+triggered every n milliseconds. </p>
 
-<p>Next, we look at the implementation of the <code>Timer.fired()</code>:
+<p>Next, we look at the implementation of the <code>Timer.fired()</code>:</p>
 
 <pre></pre>
 <prehead>apps/Blink/BlinkC.nc:</prehead>
@@ -184,22 +177,22 @@ triggered every n milliseconds.
   }
 }
 </pre>
-
-<p>Because there are three Timer instances, the <code>BlinkC</code> component
-must implement three instances of the <code>Timer.fired()</code>
-event. Here, each Timer toggles it's corresponding LED (from on to off or
-from off to on) at every Timer fire by calling the <code>Leds.ledNToggle()</code>
-command exported by the Leds interface. Note that the Leds will be
-toggled within event context because the command is called from
-within an event; this event, in turn, was triggered by a hardware 
-interrupt from the platform's timer hardware. Looking back at the
-declaration of the Leds interface, we note that the commands are
-declared with the <code>async</code> keyword <a href="#hint3">(4)</a>
-so we know that they can be called from within event handlers:</p>
-
-<pre></pre>
-<prehead>tos/interfaces/Leds.nc:</prehead>
-<pre>
+	
+	<p>Because there are three Timer instances, the <code>BlinkC</code> component
+	  must implement three instances of the <code>Timer.fired()</code>
+	  event. Here, each Timer toggles it's corresponding LED (from on to off or
+	  from off to on) at every Timer fire by calling the <code>Leds.ledNToggle()</code>
+	  command exported by the Leds interface. Note that the Leds will be
+	  toggled within event context because the command is called from
+	  within an event; this event, in turn, was triggered by a hardware 
+	  interrupt from the platform's timer hardware. Looking back at the
+	  declaration of the Leds interface, we note that the commands are
+	  declared with the <code>async</code> keyword <a href="#hint3">(4)</a>
+	  so we know that they can be called from within event handlers:</p>
+	
+	<pre></pre>
+	<prehead>tos/interfaces/Leds.nc:</prehead>
+	<pre>
 interface Leds {
 
   ... 
@@ -210,36 +203,140 @@ interface Leds {
   async command void led2Toggle();
   ...
 }
-</pre>
+	</pre>
 
-<h1>Exercise</h1>
+<h1>TinyOS Execution Model: Tasks</h1>
 
-Blink as written does not use any tasks. Rewrite Blink to
-<ol>
-<li> blink LED0 every 1000 milliseconds 
-<li> use a task to change the Leds
-</ol>
+	<p>All of the code we've looked at so far is <i>synchronous</i>.
+	  It runs in a single execution context and does not have
+	  any kind of pre-emption. That is, when synchronous (sync) code
+	  starts running, it does not relinquish the CPU to other
+	  sync code until it completes. This simple mechanism allows
+	  the TinyOS scheduler to minimize its RAM consumption can
+	  keeps sync code very simple. However, it means that if one
+	  piece of sync code runs for a long time, it prevents other
+	  sync code from running, which can adversely affect system
+	  responsiveness. For example, a long-running piece of code
+	  can increase the time it takes for a mote to respond to a
+	  packet.</p>
+	
+	<p>So far, all of the examples we've looked at have been
+	  direct function calls. System components, such as the
+	  boot sequence or timers, signal events to a component,
+	  which takes some action (perhaps calling a command) and
+	  returns. In most cases, this programming approach works
+	  well. Because sync code is non-preemptive, however,
+	  this approach does not work well for large computations.
+	  A component needs to be able to split a large computation
+	  into smaller parts, which can be executed one at a time.
+	  Also, there are times when a component needs to do something,
+	  but it's fine to do it a little later. Giving TinyOS the
+	  ability to defer the computation until later can let it
+	  deal with everything else that's waiting first.</p>
 
-Here are a few things you'll need to change:
+	<p><b>Tasks</b> enable components to perform general-purpose
+	  "background" processing in an application. A task is a function
+	  which a component tells TinyOS to run later, rather than now.
+	  The closest analogies in traditonal operating systems are
+	  <A HREF="http://www.tldp.org/LDP/tlk/kernel/kernel.html">interrupt
+	    bottom halves</A> and <A HREF="http://opensource.adobe.com/twiki/bin/view/AdobeSource/DeferredProcSystem">deferred
+	    procedure calls</A>.</p>
 
-<ol>
-<li>  Remove two of the <code>TimerMilliC</code> instances and their corresponding
-events. Remove the lines in the <code>boot()</code> event that start them.
-<li> Create a task <a href="#hint2">(5)</a> that will call the 
-<code>Leds.led0Toggle()</code> command. The syntax to define a 
-task goes inside of the modules implementation block and looks like this:
-<pre>
+	<p>Make a copy of the Blink application, and call it BlinkTask:</p>
+
+	<pre>
+$ cd tinyos-2.x/apps
+$ cp -R Blink BlinkTask
+$ cd BlinkTask
+	</pre>
+
+	<p>Open <code>BlinkC.nc</code>. Currently, the event handler
+	  for <code>Timer0.fired()</code> is:</p>
+
+	<pre>
+event void Timer0.fired() {
+  dbg("BlinkC", "Timer 0 fired @ %s\n", sim_time_string());
+  call Leds.led0Toggle();
+}
+	</pre>
+
+	<p>Let's change it so that it does a bit of work, enough that
+	  we'll be able to see how long it runs. In terms of a mote,
+	  the rate at which we can see things (about 24 Hz, or 40 ms)
+	  is <u>slow</u>: the micaZ and Telos can send about 20 packets
+	  in that time. So this example is really exaggerated, but it's
+	  also simple enough that you can observe it with the naked eye.
+	  Change the handler to be this:</p>
+
+	<pre>
+event void Timer0.fired() {
+  uint16_t i;
+  dbg("BlinkC", "Timer 0 fired @ %s\n", sim_time_string());
+  for (i = 0; i < 40001; i++) {
+    call Leds.led0Toggle();
+  }
+}
+	</pre>
+	 
+	<p>This will cause the timer to toggle 40,001 times, rather
+	  than once. Because the number is odd, it will have the end
+	  result of a single toggle, with a bit of flickering in-between.
+	  Compile and install the program. You'll see that
+	  Led 0 introduces a bit of latency in the Led 1 and Led 2
+	  toggles: it flickers for a bit, then they toggle, even
+	  though their three timer events should all fire at the same
+	  time.</p>
+
+	<p>A task is declared in your implementation module using the syntax
+	  <pre>&nbsp; task void taskname() { ... }</pre>
+	  where <tt>taskname()</tt> is whatever symbolic name you want to
+	  assign to the task. Tasks must return <tt>void</tt> and may not
+	  take any arguments.</p>
+	
+	<p>To dispatch a task for (later) execution, use the syntax
+	  <pre>&nbsp; post taskname();</pre>
+	  A task can be posted from within a command, an event, or even
+	  another task.</p>
+	
+	<p>The <tt>post</tt> operation places the task on an internal
+	  <b>task queue</b> which is processed in FIFO order. When a
+	  task is executed, it runs to completion
+	  before the next task is run; therefore, a task should not spin
+	  or block for long periods of time. Tasks do not preempt each
+	  other, but a task can  be preempted by a hardware event handler.
+	  If you need to run a series of long operations,
+	  you should dispatch a separate task for each operation, rather
+	  than using one big task.</p>
+
+	
+	<h1>Exercise</h1>
+
+	Blink as written does not use any tasks. Rewrite Blink to
+	<ol>
+	  <li> blink LED0 every 1000 milliseconds 
+	    <li> use a task to change the Leds
+	</ol>
+	
+	Here are a few things you'll need to change:
+	
+	<ol>
+	  <li>  Remove two of the <code>TimerMilliC</code> instances and their corresponding
+	    events. Remove the lines in the <code>boot()</code> event that start them.
+	    <li> Create a task <a href="#hint2">(5)</a> that will call the 
+	      <code>Leds.led0Toggle()</code> command. The syntax to define a 
+	      task goes inside of the modules implementation block and looks like this:
+	      <pre>
   task void myTask() 
   {
       // task implementation;
   }
-</pre>
-<li> Change the <code>fired()</code> event to post your new task. 
-</ol>
-
-When you're done, you can compare your work with the application 
-in <code>apps/tutorial/BlinkTask</code>.
-
+	      </pre>
+	      <li> Change the <code>fired()</code> event to post your new task. 
+	</ol>
+	
+	When you're done, you can compare your work with the application 
+	in <code>apps/tutorial/BlinkTask</code>.
+	
 <a name=#related_docs>
 <h1>Related Documentation</h1>
 </a>

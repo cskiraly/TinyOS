@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-06-09 21:12:17 $
-:version: $Revision: 1.1.2.6 $
+:date: $Date: 2006-06-13 08:27:16 $
+:version: $Revision: 1.1.2.7 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -303,7 +303,7 @@ ul.auto-toc {
 <td>Philip Levis</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">10-Dec-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.6</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.7</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-09</td>
 </tr>
@@ -356,7 +356,7 @@ TinyOS tree. This command requires GenericComm to allocate a
 timer, wasting CPU cycles and RAM.</p>
 <p>Second, it does not allow a node to receive packets besides
 those destined to it.  Several network
-protocols (e.g., MintRoute <a class="footnote-reference" href="#id5" id="id1" name="id1">[1]</a>, TAG <a class="footnote-reference" href="#id6" id="id2" name="id2">[2]</a>) take advantage
+protocols (e.g., MintRoute <a class="footnote-reference" href="#id6" id="id1" name="id1">[1]</a>, TAG <a class="footnote-reference" href="#id7" id="id2" name="id2">[2]</a>) take advantage
 of snooping on these packets for a variety of improvements in efficiency or
 performance. This has led to the creation of GenericCommPromiscuous,
 whose Receive interface does not distinguish
@@ -373,7 +373,7 @@ a component that names a header field, for example, binds itself
 to data link layers that have a field with that name. Similarly,
 components on top of GenericComm directly access the data payload
 of a packet.</p>
-<p>TEP 111 documents the structure of a TinyOS 2.x packet buffer <a class="footnote-reference" href="#id7" id="id3" name="id3">[3]</a>.
+<p>TEP 111 documents the structure of a TinyOS 2.x packet buffer <a class="footnote-reference" href="#id8" id="id3" name="id3">[3]</a>.
 This TEP documents the interfaces used to access packet buffers,
 as well as ActiveMessageC, the basic data-link packet communication
 HIL.</p>
@@ -783,7 +783,7 @@ These interfaces can either be chip-specific or chip-independent.</p>
 <div class="section">
 <h1><a id="message-t" name="message-t">6. message_t</a></h1>
 <p>Active messages are a basic single-hop packet abstraction. Therefore,
-following TEP 111 <a class="footnote-reference" href="#id7" id="id4" name="id4">[3]</a>, all data link and active message headers
+following TEP 111 <a class="footnote-reference" href="#id8" id="id4" name="id4">[3]</a>, all data link and active message headers
 MUST be in the <tt class="docutils literal"><span class="pre">message_header_t</span></tt> structure of message_t. This ensures
 that an active message received from one data link layer (e.g., the radio)
 can be passed to another data link layer (e.g., the UART) without
@@ -807,7 +807,55 @@ type field, however, has been added to the header structure in order
 to support AM dispatch.</p>
 </div>
 <div class="section">
-<h1><a id="author-s-address" name="author-s-address">7. Author's Address</a></h1>
+<h1><a id="reference" name="reference">7. Reference</a></h1>
+<p>The following files in <tt class="docutils literal"><span class="pre">tinyos-2.x/tos/system</span></tt> provide reference
+implementations of the abstractions described in this TEP.</p>
+<blockquote>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">AMSenderC.nc</span></tt>, <tt class="docutils literal"><span class="pre">AMReceiverC.nc</span></tt>, <tt class="docutils literal"><span class="pre">AMSnooperC.nc</span></tt>,
+and <tt class="docutils literal"><span class="pre">AMSnoopingReceiverC.nc</span></tt> are implementations of
+virtualized AM services.</li>
+<li><tt class="docutils literal"><span class="pre">AMQueueP</span></tt> provides a send queue of <em>n</em> entries for <em>n</em>
+AMSenderC clients, such that each client has a dedicated entry.</li>
+<li><tt class="docutils literal"><span class="pre">AMQueueImplP</span></tt> is the underlying queue implementation,
+which is reusable for different clients (it is also used
+in the serial stack <a class="footnote-reference" href="#id9" id="id5" name="id5">[4]</a>).</li>
+<li><tt class="docutils literal"><span class="pre">AMQueueEntryP</span></tt> sits on top of <tt class="docutils literal"><span class="pre">AMQueueP</span></tt> and stores
+the parameters to <tt class="docutils literal"><span class="pre">AMSend.send</span></tt> in an outstanding
+packet with the <tt class="docutils literal"><span class="pre">AMPacket</span></tt> interface.</li>
+</ul>
+</blockquote>
+<p>The following files in <tt class="docutils literal"><span class="pre">tinyos-2.x/tos/interfaces</span></tt> contain
+example implementations of packet protocol interfaces:</p>
+<blockquote>
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">Packet.nc</span></tt> is the basic interface that almost all
+packet protocols provide.</p>
+</li>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">Send.nc</span></tt> is the transmission interface for address-free</dt>
+<dd><p class="first last">protocols.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">AMSend.nc</span></tt> is the transmission interface for AM address</dt>
+<dd><p class="first last">send protocols.</p>
+</dd>
+</dl>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">AMPacket.nc</span></tt> is the packet interface for AM-specific
+fields.</p>
+</li>
+</ul>
+</blockquote>
+<p>An active messaging implementation for the CC2420 radio chip
+can be found in <tt class="docutils literal"><span class="pre">tos/chips/CC2420/CC2420ActiveMessageC.nc</span></tt>.
+The micaz platform and telos family have an <tt class="docutils literal"><span class="pre">ActiveMessageC.nc</span></tt>
+which exports the interfaces of <tt class="docutils literal"><span class="pre">CC2420ActiveMessageC</span></tt>.</p>
+</div>
+<div class="section">
+<h1><a id="author-s-address" name="author-s-address">8. Author's Address</a></h1>
 <div class="line-block">
 <div class="line">Philip Levis</div>
 <div class="line">358 Gates Hall</div>
@@ -819,23 +867,29 @@ to support AM dispatch.</p>
 </div>
 </div>
 <div class="section">
-<h1><a id="citations" name="citations">7. Citations</a></h1>
-<table class="docutils footnote" frame="void" id="id5" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1" name="id5">[1]</a></td><td>The MintRoute protocol. <tt class="docutils literal"><span class="pre">tinyos-1.x/tos/lib/MintRoute</span></tt>. Also, A. Woo, T. Tong, and D. Culler. &quot;Taming the Underlying Challenges of Reliable Multihop Routing in Sensor Networks.&quot; SenSys 2003.</td></tr>
-</tbody>
-</table>
+<h1><a id="citations" name="citations">9. Citations</a></h1>
 <table class="docutils footnote" frame="void" id="id6" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2" name="id6">[2]</a></td><td>Tiny AGgregation, one protocol of the TinyDB system.  <tt class="docutils literal"><span class="pre">tinyos-1.x/tos/lib/TinyDB</span></tt>. Also, S. Madden and M. Franklin and J. Hellerstein and W. Hong. &quot;TinyDB: An Acquisitional Query Processing System for Sensor Networks.&quot; Transactions on Database Systems (TODS) 2005.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id1" name="id6">[1]</a></td><td>The MintRoute protocol. <tt class="docutils literal"><span class="pre">tinyos-1.x/tos/lib/MintRoute</span></tt>. Also, A. Woo, T. Tong, and D. Culler. &quot;Taming the Underlying Challenges of Reliable Multihop Routing in Sensor Networks.&quot; SenSys 2003.</td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="id7">[3]</a></td><td><em>(<a class="fn-backref" href="#id3">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> TEP 111: message_t.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2" name="id7">[2]</a></td><td>Tiny AGgregation, one protocol of the TinyDB system.  <tt class="docutils literal"><span class="pre">tinyos-1.x/tos/lib/TinyDB</span></tt>. Also, S. Madden and M. Franklin and J. Hellerstein and W. Hong. &quot;TinyDB: An Acquisitional Query Processing System for Sensor Networks.&quot; Transactions on Database Systems (TODS) 2005.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id8" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="id8">[3]</a></td><td><em>(<a class="fn-backref" href="#id3">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> TEP 111: message_t.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id9" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5" name="id9">[4]</a></td><td>TEP 113: Serial Communication.</td></tr>
 </tbody>
 </table>
 </div>
