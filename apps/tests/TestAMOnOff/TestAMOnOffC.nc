@@ -1,4 +1,4 @@
-// $Id: TestAMOnOffC.nc,v 1.1.2.6 2006-02-16 16:48:09 idgay Exp $
+// $Id: TestAMOnOffC.nc,v 1.1.2.7 2006-06-13 17:28:46 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -44,6 +44,10 @@
  **/
 
 #include "Timer.h"
+
+#if !(defined(SERVICE_SLAVE) || defined(SERVICE_MASTER)) || (defined(SERVICE_SLAVE) && defined(SERVICE_MASTER))
+#error "You must compile with either -DSERVICE_SLAVE or -DSERVICE_MASTER"
+#endif
 
 module TestAMOnOffC {
   uses {

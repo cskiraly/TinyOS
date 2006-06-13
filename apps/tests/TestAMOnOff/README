@@ -1,18 +1,19 @@
 TestAMOnOff
 
 This application has two different versions, slave and master. The
-version compiled is determined by a compile-time flag of either
+version compiled is determined by a compile-time flag (SERVICE_MASTER
+or SERVICE_SLAVE). 
 
--DSERVICE_MASTER 
+To compile a master:
+  CFLAGS=-DSERVICE_MASTER make <platform> <other options>
 
-or 
+To compile a slave:
+  CFLAGS=-DSERVICE_SLAVE make <platform> <other options>
 
--DSERVICE_SLAVE
-
-in the Makefile. A master is always on. A master broadcasts a packet
-every second. Four of the five packets are data packets; every fifth
-packet is a control packet.  It toggles Led0 when it sends a data
-packet and Led1 when it sends a control packet.
+A master is always on. A master broadcasts a packet every second. Four of
+the five packets are data packets; every fifth packet is a control packet.
+It toggles Led0 when it sends a data packet and Led1 when it sends a
+control packet.
 
 When a slave hears a data packet, it toggles Led0. When a slave
 hears a control packet, it turns off its radio for a short
