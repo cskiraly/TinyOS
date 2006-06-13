@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-06-09 21:12:17 $
-:version: $Revision: 1.1.2.6 $
+:date: $Date: 2006-06-13 08:27:16 $
+:version: $Revision: 1.1.2.7 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -338,12 +338,12 @@ greatly increases system dependability.</p>
 </div>
 <div class="section">
 <h1><a id="tasks-and-the-scheduler-in-tinyos-1-x" name="tasks-and-the-scheduler-in-tinyos-1-x">2. Tasks and the Scheduler in TinyOS 1.x</a></h1>
-<p>Tasks in TinyOS are a form of deferred procedure call (DPC) <a class="footnote-reference" href="#id4" id="id1" name="id1">[1]</a>, which
+<p>Tasks in TinyOS are a form of deferred procedure call (DPC) <a class="footnote-reference" href="#id5" id="id1" name="id1">[1]</a>, which
 enable a program to defer a computation or operation until a later
 time. TinyOS tasks run to completion and do not pre-empt one
 another.  These two constraints mean that code called from tasks
 runs synchonously with respect to other tasks. Put another way, tasks
-are atomic with respect to other tasks <a class="footnote-reference" href="#id5" id="id2" name="id2">[2]</a>.</p>
+are atomic with respect to other tasks <a class="footnote-reference" href="#id6" id="id2" name="id2">[2]</a>.</p>
 <p>In TinyOS 1.x, the nesC language supports tasks through two
 mechanisms, <tt class="docutils literal"><span class="pre">task</span></tt> declarations and <tt class="docutils literal"><span class="pre">post</span></tt> expressions:</p>
 <pre class="literal-block">
@@ -528,7 +528,7 @@ eventually. The scheduler MUST return SUCCESS to a TaskBasic.postTask()
 operation unless it is not the first call to TaskBasic.postTask() since
 that task's TaskBasic.runTask() event has been signaled. The
 McuSleep interface is used for microcontroller power management;
-its workings are explained in TEP 112 <a class="footnote-reference" href="#id6" id="id3" name="id3">[3]</a>.</p>
+its workings are explained in TEP 112 <a class="footnote-reference" href="#id7" id="id3" name="id3">[3]</a>.</p>
 <p>A scheduler MUST provide the Scheduler interface.
 The Scheduler interface has commands for initialization and running
 tasks, and is used by TinyOS to execute tasks:</p>
@@ -687,7 +687,22 @@ implementation {
 </pre>
 </div>
 <div class="section">
-<h1><a id="author-s-address" name="author-s-address">6. Author's Address</a></h1>
+<h1><a id="reference" name="reference">6. Reference</a></h1>
+<p>The following files in <tt class="docutils literal"><span class="pre">tinyos-2.x/tos/system</span></tt> contain the reference
+implementations of the scheduler:</p>
+<blockquote>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">SchedulerBasicP.nc</span></tt> is the basic TinyOS scheduler, providing
+a parameterized TaskBasic interface.</li>
+<li><tt class="docutils literal"><span class="pre">TinySchedulerC.nc</span></tt> is the default scheduler configuration
+that wires SchedulerBasicP to McuSleepC <a class="footnote-reference" href="#id7" id="id4" name="id4">[3]</a>.</li>
+</ul>
+</blockquote>
+<p>A prototype of a scheduler that supports EDF tasks can be obtained
+at the URL <tt class="docutils literal"><span class="pre">http://csl.stanford.edu/~pal/tinyos/edf-sched.tgz.</span></tt></p>
+</div>
+<div class="section">
+<h1><a id="author-s-address" name="author-s-address">7. Author's Address</a></h1>
 <div class="line-block">
 <div class="line">Philip Levis</div>
 <div class="line">358 Gates Hall</div>
@@ -706,29 +721,29 @@ implementation {
 </div>
 </div>
 <div class="section">
-<h1><a id="citations" name="citations">7. Citations</a></h1>
-<table class="docutils footnote" frame="void" id="id4" rules="none">
+<h1><a id="citations" name="citations">8. Citations</a></h1>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1" name="id4">[1]</a></td><td>Erik Cota-Robles and James P. Held.  &quot;A Comparison of Windows
+<tr><td class="label"><a class="fn-backref" href="#id1" name="id5">[1]</a></td><td>Erik Cota-Robles and James P. Held.  &quot;A Comparison of Windows
 Driver Model Latency Performance on Windows NT and Windows 98.&quot; In
 <em>Proceedings of the Third Symposium on Operating System Design
 and Implementation (OSDI).</em></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id5" rules="none">
+<table class="docutils footnote" frame="void" id="id6" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2" name="id5">[2]</a></td><td>David Gay, Philip Levis, Rob von Behren, Matt Welsh, Eric Brewer
+<tr><td class="label"><a class="fn-backref" href="#id2" name="id6">[2]</a></td><td>David Gay, Philip Levis, Rob von Behren, Matt Welsh, Eric Brewer
 and David Culler. &quot;The <em>nesC</em> Language: A Holistic Approach to Networked
 Embedded Systems.&quot; In <em>Proceedings of the ACM SIGPLAN 2003 Conference on
 Programming Language Design and Implementation (PLDI).</em></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id6" rules="none">
+<table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3" name="id6">[3]</a></td><td>TEP 112: Microcontroller Power Management.</td></tr>
+<tr><td class="label"><a name="id7">[3]</a></td><td><em>(<a class="fn-backref" href="#id3">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> TEP 112: Microcontroller Power Management.</td></tr>
 </tbody>
 </table>
 </div>

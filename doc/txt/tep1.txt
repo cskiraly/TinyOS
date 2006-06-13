@@ -10,8 +10,8 @@ TEP Structure and Keywords
 :Author: Philip Levis
 
 :Draft-Created: 18-Oct-2004
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2006-03-29 01:04:17 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-06-13 08:27:16 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -111,7 +111,7 @@ document metadata, for management and status. The body contains the
 content of the proposal.
 
 All TEPs MUST follow the TEP docutils template, and conform to 
-reStructuredText standards [rst]_, to enable translation from 
+reStructuredText standards [1]_, to enable translation from 
 reStructuredText to HTML and Latex.
 
 3.1 TEP Header
@@ -122,7 +122,12 @@ others which MAY be included. The first six header fields MUST be
 included in all TEPs, in the order stated here.
 
 The first field is "TEP," and specifies the TEP number of the
-document. This document is TEP 1.
+document. A TEP's number is unique.. This document is TEP 1. The 
+TEP type (discussed below)
+determines how a number is assigned to it. Generally, when a document
+is ready to be a TEP, it is assigned the smallest available number.
+BCP TEPs start at 1 and all other TEPs (Documentary, Experimental,
+and Informational) start at 101.
 
 The second field states the name of the working group that produced
 the document. This document was produced by the Core Working Group.
@@ -135,25 +140,23 @@ Current Practice.
 Best Current Practice is the closest thing TEPs have to a standard: it
 represents conclusions from significant experience and work by its
 authors. Developers desiring to add code (or TEPs) to TinyOS SHOULD
-follow all current BCPs.
+follow all current BCPs. 
 
 Documentary TEPs describe a system or protocol that exists; a
 documentary TEP MUST reference an implementation that a reader can
-easily obtain. Compliance with Documentary TEPs is entirely OPTIONAL;
-they exist to simplify interoperability when it is needed, and to
-document TinyOS service implementations.
+easily obtain.  Documentary TEPs simplify interoperability when 
+needed, and document TinyOS service implementations.
 
 Informational TEPs provide information that is of interest to the
 community. Informational TEPs include data gathered on radio behavior,
 hardware characteristics, other aspects of TinyOS software/hardware,
-or experiences which would help the community it its goals.  It is
-RECOMMENDED that TEPs be aware of and consider Informational TEPs of
-relevance to its particular topic.
+organizational and logistic information,
+or experiences which could help the community achieve its goals.  
 
 Experimental TEPs describe a completely experimental approach to a
 problem, which are outside the TinyOS core and will not necessarily
-become part of it.  Experimental TEPs may describe systems that do not
-have a reference implementation (as Documentary ones do).
+become part of it.  Unlike Documentary TEPs, Experimental TEPs may 
+describe systems that do not have a reference implementation.
 
 The fourth field is "Status," which specifies the status of the TEP.
 A TEP status can either be "Draft," which means it is a work in
@@ -229,5 +232,5 @@ definitions taken from IETF RFC 2119.
 7. Citations
 ====================================================================
 
-.. [rst] reStructuredText Markup Specification. <http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html>
+.. [1] reStructuredText Markup Specification. <http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html>
  

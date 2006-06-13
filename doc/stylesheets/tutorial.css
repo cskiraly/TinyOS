@@ -1,5 +1,5 @@
 /* 
- * $Id: tutorial.css,v 1.1.2.1 2006-01-12 07:43:39 prabal Exp $ 
+ * $Id: tutorial.css,v 1.1.2.2 2006-06-13 08:27:16 scipio Exp $ 
  */
 body {	
 	background: #FFFFFF; 
@@ -38,8 +38,9 @@ em {
 
 h1 {    
 	font-size: large;
-	font-weight: normal;
-        background-color: #e0e0ff;
+	font-weight: bold;
+        background-color: #c0c0f0;
+        padding: 1px 1px 1px 2px;
 }
 h2 {
 	font-size: large; 
@@ -116,16 +117,18 @@ ul.links {
 }
 
 .title {
-        background-color: gray;
+        background-color: #b0b0b0;
         font-family: Helvetica, sans-serif;
         font-size: x-large;
 	font-weight: bold; 
+	padding: 4px 4px 4px 4px;
 }
 .subtitle {
-        background-color: gray;
+        background-color: #b0b0b0;
         font-family: Helvetica, sans-serif;
 	font-weight: normal;
-        font-size: medium;
+        font-size: small;
+	padding: 4px 4px 4px 4px;
 }
 
 code { 

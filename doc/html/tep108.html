@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-06-09 21:12:17 $
-:version: $Revision: 1.1.2.6 $
+:date: $Date: 2006-06-13 08:27:16 $
+:version: $Revision: 1.1.2.7 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -374,29 +374,29 @@ reservation step unnecessarily complicates code.</p>
 </div>
 <div class="section">
 <h1><a id="resource-classes" name="resource-classes">2. Resource Classes</a></h1>
-<p>TinyOS 2.x distinguishes between three kinds of abstractions: physical
-and dedicated, physical and shared, and virtual and shared.
+<p>TinyOS 2.x distinguishes between three kinds of abstractions:
+<em>dedicated</em>, <em>shared</em>, and <em>virtualized</em>.
 Components offer resource sharing mechanisms appropriate to their
 goals and level of abstraction. As discussed in Section 2.1, access
-control to physical and dedicated abstractions is generally handled
+control to dedicated abstractions is generally handled
 through nesC interfaces. As discussed in Section 2.2, access control
 to virtualized abstractions is handled through software design
-patterns such as the Service Instance <a class="citation-reference" href="#sipattern" id="id1" name="id1">[sipattern]</a> and/or
+patterns such as the Service Instance <a class="footnote-reference" href="#id9" id="id1" name="id1">[3]</a> and/or
 queueing. Section 2.3 addresses with the most complex class of
-abstraction, physical and shared, while Section 3 describes the
+abstraction, shared, while Section 3 describes the
 components and interfaces used to arbitrate access to this class.</p>
-<p>Hardware Presentation Layer (HPL) components of the HAA <a class="citation-reference" href="#tep2" id="id2" name="id2">[TEP2]</a> are always
-physical, as virtualization inevitably requires state. Depending on their
-expected use, HPL abstractions are either physical and dedicated or
-physical and shared. For example, while hardware timers are rarely
+<p>Hardware Presentation Layer (HPL) components of the HAA <a class="footnote-reference" href="#id7" id="id2" name="id2">[1]</a> are not
+virtual, as virtualization inevitably requires state. Depending on their
+expected use, HPL abstractions are either dedicated or
+shared. For example, while hardware timers are rarely
 multiplexed between multiple components, buses almost always are.
-Correspondingly, on the MSP430, compare and counter registers are
-physical and dedicated, while the USARTs are physical and shared.</p>
+For example, on the MSP430 microcontroller, compare and counter registers are
+dedicated, while the USARTs are shared.</p>
 <div class="section">
-<h2><a id="physical-and-dedicated" name="physical-and-dedicated">2.1 Physical and Dedicated</a></h2>
-<p>An abstraction is <em>physical and dedicated</em> if it is a hardware resource
+<h2><a id="dedicated" name="dedicated">2.1 Dedicated</a></h2>
+<p>An abstraction is <em>dedicated</em> if it is a resource
 which a subsystem needs exclusive access to at all times. Examples of
-physical and dedicated abstractions include interrupts and counters.
+dedicated abstractions include interrupts and counters.
 Generally, a physical and dedicated abstraction is just an interface
 which its user wires to. For example, on the Atmega128, Timer 2 is
 presented by the component HplAtm128Timer2C:</p>
@@ -409,10 +409,13 @@ module HplAtmTimer2C {
   }
 }
 </pre>
+<p>Dedicated abstractions MAY be annotated with the nesC attribute
+&#64;atmostonce or &#64;exactlyonce is to provide compile-time checks that
+their usage assumptions are not violated.</p>
 </div>
 <div class="section">
-<h2><a id="virtual-and-shared" name="virtual-and-shared">2.2 Virtual and Shared</a></h2>
-<p>Virtual and shared abstractions hide multiple clients from each other
+<h2><a id="virtual" name="virtual">2.2 Virtual</a></h2>
+<p><em>Virtual</em> abstractions hide multiple clients from each other
 through software virtualization. Every client of the resource thinks it
 has its own independent instance of the resource, but these virtualized
 instances are multiplexed on top of a single underlying resource. Because
@@ -420,14 +423,31 @@ the virtualization is in software, there is no upper bound on the number
 of clients of the abstraction, barring memory or efficiency constraints.
 For example, the TimerMilliC component provides a virtual and shared
 abstraction of millisecond precision timers to application
-components <a class="citation-reference" href="#tep102" id="id3" name="id3">[TEP102]</a>. As virtualization usually requires keeping state
-and that state must scale with the number of virtualized instances,
-virtualized resources often use the Service Instance pattern[sipattern]_,
-which is based on a parameterized interface. For example, TimerMilliC:</p>
+components <a class="footnote-reference" href="#id8" id="id3" name="id3">[2]</a>. As virtualization usually requires keeping state
+that scales with the number of virtualized instances,
+virtualized resources often use the Service Instance pattern <a class="footnote-reference" href="#id9" id="id4" name="id4">[3]</a>,
+which is based on a parameterized interface. For example, HilTimerMilliC
+provides multiple virtualized timer clients and auto-wires the
+chip timer implementation (HilTimerMilliC <a class="footnote-reference" href="#id8" id="id5" name="id5">[2]</a>) to the boot initialization
+sequence:</p>
 <pre class="literal-block">
-configuration TimerMilliC {
-  provides interface Init;
+configuration TimerMilliP {
   provides interface Timer&lt;TMilli&gt; as TimerMilli[uint8_t num];
+}
+implementation {
+  components HilTimerMilliC, MainC;
+  MainC.SoftwareInit -&gt; HilTimerMilliC;
+  TimerMilli = HilTimerMilliC;
+}
+</pre>
+<p>while TimerMilliC encapsulates this in a generic configuration:</p>
+<pre class="literal-block">
+generic configuration TimerMilliC {
+  provides interface Timer&lt;TMilli&gt;;
+}
+implementation {
+  components HilTimerMilliC;
+  Timer = HilTimerMilliC.Timer[unique(UQ_TIMER_MILLI)];
 }
 </pre>
 <p>Virtualization generally allows a client to use a very simple interface.
@@ -438,8 +458,8 @@ virtual timers as well as jitter from when two timers want to fire at
 the same time.</p>
 </div>
 <div class="section">
-<h2><a id="physical-and-shared" name="physical-and-shared">2.3 Physical and Shared</a></h2>
-<p>Physical and dedicated abstractions are useful when a resource is
+<h2><a id="shared" name="shared">2.3 Shared</a></h2>
+<p>Dedicated abstractions are useful when a resource is
 always controlled by a single component. Virtualized abstractions are
 useful when clients are willing to pay a bit of overhead and sacrifice
 control in order to share a resource in a simple way. There are
@@ -453,7 +473,7 @@ unfettered control. Arbiters assume that clients are cooperative, only
 acquiring the resource when needed and holding on to it no longer than
 necessary. Clients explicitly release resources: there is no way for
 an arbiter to forcibly reclaim it.</p>
-<p>A motivating example of a physical and shared resource is a bus.
+<p>A motivating example of a shared resource is a bus.
 The bus may have multiple peripherals on it, corresponding to
 different subsystems. For example, on the Telos platform the flash
 chip (storage) and the radio (network) share a bus. The storage and
@@ -470,7 +490,7 @@ introduce memory pressure).</p>
 </div>
 <div class="section">
 <h1><a id="resource-arbiters" name="resource-arbiters">3. Resource Arbiters</a></h1>
-<p>Physical and shared resources have an <em>arbiter</em> to manage which client
+<p>Every shared resource has an arbiter to manage which client
 can use the resource at any given time. Because an arbiter is a
 centralized place that knows whether the resource is in use, it also
 provides information useful for a variety of other services, such as
@@ -482,8 +502,8 @@ interfaces or instance of interfaces in order to provide a particular
 arbitration policy.</p>
 <div class="section">
 <h2><a id="resource" name="resource">3.1 Resource</a></h2>
-<p>Clients of a physical and shared resource arbiter request access
-using the Resource interface:</p>
+<p>Clients of a shared resource arbiter request access
+with the Resource interface:</p>
 <pre class="literal-block">
 interface Resource {
   async command error_t request();
@@ -493,17 +513,18 @@ interface Resource {
 }
 </pre>
 <p>A client lets an arbiter know it needs access to the resource with
-a call to request(). The arbiter signals it the granted() event
-when it gains exclusive access to the resource. A client
+a call to request(). The arbiter signals the granted() event to a
+client when it gains exclusive access to the resource. A client
 can also acquire the resource with immediateRequest(). The
 return value of this call determines whether the client was able
 to acquire the resource. If immmediateRequest() does not successfully
-acquire the resource, then it can try to do so in the standard,
+acquire the resource (does not return SUCCESS), then it can try to do
+so in the standard,
 split-phase way with request(). If the call to immediateRequest()
-succeeds, then the arbiter MUST NOT issue a granted() event.</p>
+returns SUCCESS, then the arbiter MUST NOT issue a granted() event.</p>
 <p>An arbiter MUST provide a parameterized Resource interface,
 where the parameter is a client ID, following the Service
-Instance pattern[sipattern]_. An arbitrated component SomeNameC MUST
+Instance pattern <a class="footnote-reference" href="#id9" id="id6" name="id6">[3]</a>. An arbitrated component SomeNameC MUST
 #define SOME_NAME_RESOURCE to a string which can be passed to unique()
 to obtain a client id. For instance, an I2C bus might look like this:</p>
 <pre class="literal-block">
@@ -526,7 +547,7 @@ configuration I2CPacketC {
 because of the way nesC files are preprocessed: referring to I2CPacketC
 isn't enough to ensure that macros #define'd in I2CPacketC are visible
 in the referring component.</p>
-<p>Clients of the I2C service would use it as follows:</p>
+<p>For example, clients of the I2C service might use it as follows:</p>
 <pre class="literal-block">
 module I2CUserM {
   uses interface Resource as I2CResource;
@@ -591,7 +612,8 @@ not requested it or when the high-priority client releases it.</p>
 </div>
 <div class="section">
 <h2><a id="arbiterinfo" name="arbiterinfo">3.3 ArbiterInfo</a></h2>
-<p>The ArbiterInfo interface allows a component to query the current
+<p>Arbiters MUST provide an instance of the ArbiterInfo interface.
+The ArbiterInfo interface allows a component to query the current
 status of an arbiter:</p>
 <pre class="literal-block">
 interface ArbiterInfo {
@@ -605,7 +627,6 @@ currently have access. In this case, the abstraction would need to provide
 a parameterized interface for its operations so it could distinguish separate
 clients, and the client ID for its operations would need to be the same
 as the client ID for the arbiter.</p>
-<p>Arbiters MUST provide an instance of the ArbiterInfo interface.</p>
 </div>
 <div class="section">
 <h2><a id="resourceconfigure" name="resourceconfigure">3.4 ResourceConfigure</a></h2>
@@ -619,7 +640,7 @@ UART. Using all three concurrently is problematic: only one should be enabled
 at a time. However, different clients of the bus might need different bus
 protocols. For example, Telos sensors use an I2C, while the radio and flash
 chip use SPI.</p>
-<p>Arbiters MAY provide a parameterized ResourceConfigure interface:</p>
+<p>Arbiters MAY use a parameterized ResourceConfigure interface:</p>
 <pre class="literal-block">
 interface ResourceConfigure {
   async command void configure();
@@ -671,7 +692,7 @@ implementation {
 <div class="section">
 <h2><a id="cross-component-reservation" name="cross-component-reservation">3.5 Cross-component reservation</a></h2>
 <p>In some cases, it is desirable to share reservation of resources
-across components. For example, on the TI MSP 430, the same pins can
+across components. For example, on the TI MSP430, the same pins can
 be used as an I2C bus, a UART, or an SPI connection. Clearly, on this
 chip, a reservation of the I2C bus implicitly reserves the
 corresponding UART and SPI.  This can be accomplished in the framework
@@ -706,10 +727,11 @@ configuration {
 </div>
 </div>
 <div class="section">
-<h1><a id="default-arbiters" name="default-arbiters">4. Default arbiters</a></h1>
+<h1><a id="reference" name="reference">4. Reference</a></h1>
 <p>Because most components use one of a small number of arbitration
-policies, TinyOS includes a number of default resource arbiters, in
-the form of generic components, which all include this signature:</p>
+policies, TinyOS includes a number of default resource arbiters. These
+arbiters can be found in <tt class="docutils literal"><span class="pre">tinyos-2.x/tos/system</span></tt> and are all
+generic components that include this signature:</p>
 <pre class="literal-block">
 generic module ArbiterC {
   provides interface Resource[uint8_t id];
@@ -718,11 +740,11 @@ generic module ArbiterC {
   uses interface ResourceConfigure[uint8_t id];
 }
 </pre>
-<p>For example, RoundRobinArbiterC provides round-robin arbitration. This
+<p>For example, <tt class="docutils literal"><span class="pre">RoundRobinArbiterC</span></tt> provides round-robin arbitration. This
 arbiter assigns a fixed order to all clients and grants outstanding
-requests in that order, which is based on client ID. FcfsArbiterC
+requests in that order, which is based on client ID. <tt class="docutils literal"><span class="pre">FcfsArbiterC</span></tt>
 provides a FIFO order, where requests are serviced in the order they
-are received. FcfsPriorityArbiterC is similar to FcfsArbiterC, but
+are received. <tt class="docutils literal"><span class="pre">FcfsPriorityArbiterC</span></tt> is similar to FcfsArbiterC, but
 provides an additional ResourceController interface for the
 high-priority client.</p>
 </div>
@@ -773,22 +795,22 @@ high-priority client.</p>
 </div>
 <div class="section">
 <h1><a id="citations" name="citations">6. Citations</a></h1>
-<table class="docutils citation" frame="void" id="tep2" rules="none">
+<table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2" name="tep2">[TEP2]</a></td><td>TEP 2: Hardware Abstraction Architecture.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2" name="id7">[1]</a></td><td>TEP 2: Hardware Abstraction Architecture.</td></tr>
 </tbody>
 </table>
-<table class="docutils citation" frame="void" id="tep102" rules="none">
+<table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3" name="tep102">[TEP102]</a></td><td>TEP 102: Timers.</td></tr>
+<tr><td class="label"><a name="id8">[2]</a></td><td><em>(<a class="fn-backref" href="#id3">1</a>, <a class="fn-backref" href="#id5">2</a>)</em> TEP 102: Timers.</td></tr>
 </tbody>
 </table>
-<table class="docutils citation" frame="void" id="sipattern" rules="none">
+<table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1" name="sipattern">[sipattern]</a></td><td>TEP XXX: Service Instance Pattern.</td></tr>
+<tr><td class="label"><a name="id9">[3]</a></td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id4">2</a>, <a class="fn-backref" href="#id6">3</a>)</em> Service Instance Pattern. In <em>Software Design Patterns for TinyOS.</em> David Gay, Philip Levis, and David Culler. Published in Proceedings of the ACM SIGPLAN/SIGBED 2005 Conference on Languages, Compilers, and Tools for Embedded Systems (LCTES'05).</td></tr>
 </tbody>
 </table>
 </div>

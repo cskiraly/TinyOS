@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-06-09 21:12:17 $
-:version: $Revision: 1.1.2.7 $
+:date: $Date: 2006-06-13 08:27:16 $
+:version: $Revision: 1.1.2.8 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -420,7 +420,7 @@ events, then it must explicitly wait for them (e.g.,
 with a spin loop), MUST NOT return until complete. Otherwise the system
 may start before initialization is complete.</p>
 <p>The Scheduler interface is for initializing and controlling task
-execution. It is detailed in TEP 106 <a class="footnote-reference" href="#id4" id="id1" name="id1">[1]</a>.</p>
+execution. It is detailed in TEP 106 <a class="footnote-reference" href="#id5" id="id1" name="id1">[1]</a>.</p>
 <p>The Boot interface has a single event, booted(), which the boot
 sequence signals when it has completed:</p>
 <pre class="literal-block">
@@ -507,7 +507,9 @@ part of making the overall hardware platform operable. One example of
 this sort of initialization is clock calibration. Because PlatformInit
 calls the component PlatformC, each platform can specify the required
 initialization order. As these hidden dependencies must be due to
-hardware, the sequence is platform-specific.</p>
+hardware, the sequence is platform-specific. A port of TinyOS to a
+new plaform MUST include a component PlatformC which provides
+one and only one instance of the Init interface.</p>
 <p>Components whose initialization does not directly depend on hardware
 resources SHOULD wire to MainC.SoftwareInit. If a component requires a
 specific initialization ordering, then it is responsible for
@@ -574,7 +576,7 @@ SplitControl. A second possibility is to redirect the interrupt table,
 if the MCU supports doing so. Whichever mechanism is chosen, extreme
 care needs to be used in order to not disrupt the operation of other
 components.</p>
-<p>Unless part of a hardware abstraction architecture (HAA) <a class="footnote-reference" href="#id5" id="id3" name="id3">[2]</a>, the
+<p>Unless part of a hardware abstraction architecture (HAA) <a class="footnote-reference" href="#id6" id="id3" name="id3">[2]</a>, the
 Init.init() command MUST NOT assume that other components have been
 initialized unless it has initialized them, and MUST NOT call any
 functional interfaces on any components that might be shared. An HAA
@@ -590,7 +592,19 @@ component initialization and the initialization sequence.</p>
 </div>
 </div>
 <div class="section">
-<h1><a id="author-s-address" name="author-s-address">5. Author's Address</a></h1>
+<h1><a id="reference" name="reference">5. Reference</a></h1>
+<p>The following files in <tt class="docutils literal"><span class="pre">tinyos-2.x/tos/system</span></tt> contain the reference
+implementations of the TinyOS boot sequence:</p>
+<blockquote>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">RealMainP.nc</span></tt> is the module containing the function <tt class="docutils literal"><span class="pre">main</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">MainC.nc</span></tt> is the configuration that wires RealMainP to
+PlatformC and TinySchedulerC <a class="footnote-reference" href="#id5" id="id4" name="id4">[1]</a>.</li>
+</ul>
+</blockquote>
+</div>
+<div class="section">
+<h1><a id="author-s-address" name="author-s-address">6. Author's Address</a></h1>
 <div class="line-block">
 <div class="line">Philip Levis</div>
 <div class="line">467 Soda Hall</div>
@@ -603,17 +617,17 @@ component initialization and the initialization sequence.</p>
 </div>
 </div>
 <div class="section">
-<h1><a id="citations" name="citations">6. Citations</a></h1>
-<table class="docutils footnote" frame="void" id="id4" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1" name="id4">[1]</a></td><td>TEP 106: Schedulers and Tasks.</td></tr>
-</tbody>
-</table>
+<h1><a id="citations" name="citations">7. Citations</a></h1>
 <table class="docutils footnote" frame="void" id="id5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3" name="id5">[2]</a></td><td>TEP 2: Hardware Abstraction Architecture.</td></tr>
+<tr><td class="label"><a name="id5">[1]</a></td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> TEP 106: Schedulers and Tasks.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3" name="id6">[2]</a></td><td>TEP 2: Hardware Abstraction Architecture.</td></tr>
 </tbody>
 </table>
 </div>
