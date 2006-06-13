@@ -31,6 +31,7 @@
 
 /**
  * @author Phil Buonadonna
+ * @author Philip Levis
  */
 
 #ifndef _I2C_FLAGS_H
