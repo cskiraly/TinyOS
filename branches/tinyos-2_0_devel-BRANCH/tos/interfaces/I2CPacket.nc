@@ -1,4 +1,4 @@
-// $Id: I2CPacket.nc,v 1.1.2.5 2006-06-02 01:04:44 philipb Exp $
+// $Id: I2CPacket.nc,v 1.1.2.6 2006-06-13 18:39:54 scipio Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -40,7 +40,7 @@
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
  * @author Phil Levis <pal@cs.stanford.edu>
- * Revision:  $Revision: 1.1.2.5 $
+ * Revision:  $Revision: 1.1.2.6 $
  */
 
 interface I2CPacket<addr_size> {
@@ -53,7 +53,7 @@ interface I2CPacket<addr_size> {
    *    I2C_STOP    - The STOP condition is transmitted at the end of the 
    *                   packet if set.
    *    I2C_ACK_END - ACK the last byte if set. Otherwise NACK last byte. This
-   *                   flag cannot be used with the STOP_FLAG.
+   *                   flag cannot be used with the I2C_STOP flag.
    * @param addr The slave device address. Only used if I2C_START is set.
    * @param length Length, in bytes, to be read
    * @param data A point to a data buffer to read into
@@ -66,9 +66,9 @@ interface I2CPacket<addr_size> {
    * Perform an I2C write operation
    *
    * @param flags Flags that may be logical ORed and defined by:
-   *    START_FLAG   - The START condition is transmitted at the beginning 
+   *    I2C_START   - The START condition is transmitted at the beginning 
    *                   of the packet if set.
-   *    STOP_FLAG    - The STOP condition is transmitted at the end of the 
+   *    I2C_STOP    - The STOP condition is transmitted at the end of the 
    *                   packet if set.
    * @param addr The slave device address. Only used if I2C_START is set.
    * @param length Length, in bytes, to be read
