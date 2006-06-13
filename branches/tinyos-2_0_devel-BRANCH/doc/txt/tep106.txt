@@ -10,8 +10,8 @@ Schedulers and Tasks
 :Author: Philip Levis and Cory Sharp
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.8 $
-:Draft-Modified: $Date: 2006-06-13 08:27:16 $
+:Draft-Version: $Revision: 1.1.2.9 $
+:Draft-Modified: $Date: 2006-06-13 16:44:17 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -409,7 +409,7 @@ TaskHighPriority with the key "TinySchedulerC.TaskHighPriority"::
     SomethingElseP.RetransmitTask -> Sched.TaskHighPriority[unique("TinySchedulerC.TaskHighPriority")];  
   }  
 
-6. Reference
+6. Implementation
 ====================================================================
 
 The following files in ``tinyos-2.x/tos/system`` contain the reference

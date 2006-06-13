@@ -10,8 +10,8 @@ TinyOS 2.x Boot Sequence
 :Author: Philip Levis 
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.10 $
-:Draft-Modified: $Date: 2006-06-13 08:27:16 $
+:Draft-Version: $Revision: 1.1.2.11 $
+:Draft-Modified: $Date: 2006-06-13 16:44:17 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -312,7 +312,7 @@ to the boot sequence, unless there is a temporal ordering requirement to
 the initialization. The purpose of this convention is to simplify
 component initialization and the initialization sequence.
 
-5. Reference
+5. Implementation
 ====================================================================
 
 The following files in ``tinyos-2.x/tos/system`` contain the reference
