@@ -64,8 +64,6 @@ implementation {
   I2C.SubResource -> Arbiter;
   I2C.SubPacket   -> Master;
   I2C.Atm128I2C -> Master;
-  Power.Leds -> NoLedsC;
-  Arbiter.Leds -> NoLedsC;
   
   Power.AsyncStdControl -> Master;
   Power.ResourceController -> Arbiter;
