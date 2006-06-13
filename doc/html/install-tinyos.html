@@ -8,12 +8,45 @@
 <body>
 
 <div class="title">Installing TinyOS 2.0</div>
-<div class="subtitle">Last updated 10 February 2006</div>
+<div class="subtitle">Last updated 12 June 2006</div>
 
 <p>If you already have a 1.x tree, you are better off following the <i>upgrade</i> 
 instructions at <a href="upgrade-tinyos.html">upgrade-tinyos.html</a>.
 
-<h1>Install Java 1.5 JDK</h1>
+<p>Currently, the TinyOS Core Working Group supports TinyOS on two platforms: Cygwin (Windows)
+and Linux. There have been some <A HREF="">successful efforts</A> to getting TinyOS environments working
+on Mac OSX, but OSX is not supported by the Core WG.</p>
+
+<p>Installing a TinyOS enviromnent has four basic steps; Windows requires an extra step,
+installing Cygwin, which is a UNIX-like environment. The steps are:</p>
+
+<ol>
+  <li><b>Installing a Java 1.5 (Java 5) JDK.</b> Java is the most common way of interacting
+  with mote base stations or gateways that are plugged into a PC or laptop.</li>
+  <li><b><font color=red>Windows only.</font> Install Cygwin.</b> This gives you a shell
+  and many UNIX tools which the TinyOS environment uses, such as perl and shell
+  scripts.</li>
+  <li><b>Installing native compilers.</b> As you're compiling code for low-power
+  microcontrollers, you need compilers that can generate the proper assembly code.
+  If you using mica-family motes, you need the AVR toolchain; if you're using
+  telos-family motes, you need the MSP430 toolchain.</li>
+  <li><b>Installing the nesC compiler.</b> TinyOS is written in nesC, a dialect
+  of C with support for the TinyOS concurrency model and component-based
+  programming. The nesC compiler is platform-independent: it passes its output
+  to the native compilers, so that it can take advantage of all of the effort
+  put into their optimizations.</li>
+  <li><b>Installing the TinyOS source tree.</b> If you want to compile and
+  install TinyOS programs, you need the code.</li>
+  <li><b>Installing the Graphviz visualization tool.</b> The TinyOS
+  environment includes <tt>nesdoc</tt>, a tool that automatically
+  generates HTML documentation from source code. Part of this process
+  involves drawing diagrams that show the relationships between
+  different TinyOS components. <A HREF="http://www.graphviz.org">Graphviz</A>
+  is an open source tool
+  that nesdoc uses to draw the diagrams.</li>
+</ol>
+
+<h1>Step 1: Install Java 1.5 JDK</h1>
 
 <b>Windows</b><br>
 Download and install Sun's 1.5 JDK from <a href="http://java.sun.com">http://java.sun.com</a>.
@@ -22,9 +55,10 @@ Download and install Sun's 1.5 JDK from <a href="http://java.sun.com">http://jav
 <b>Linux</b><br>
 Download and install IBM's 1.5 JDK from <a href="http://www-128.ibm.com/developerworks/java/jdk/">http://www-128.ibm.com/developerworks/java/jdk/</a>.
 
-<h1>Install Cygwin</h1>
+<h1>Step 2: Install Cygwin</h1>
 
-<font color=red> This step is required for Windows installations only.</font>
+<font color=red> This step is required for Windows installations only. If you are installing
+on Linux, skip to step 3.</font>
 
 <p>We have put online the cygwin packages that we've confirmed to be
 compatible with TinyOS. The instructions below use those packages. You
@@ -73,7 +107,7 @@ This unzips the packages.
 </ol>
 </ol>
 
-<h1> Install compiler toolchain </h1>
+<h1>Step 3: Install native compilers </h1>
 
 Install the appropriate version of the following (Windows or Linux,
 avr or msp430 or both) with the rpm command 'rpm -ivh <rpm>'. 
@@ -183,7 +217,7 @@ but they have not yet been extensively tested by a large community.)
 
 </tbody></table>
 
-<h1>Install TinyOS-specific tools</h1>
+<h1>Step 4: Install TinyOS toolchain</h1>
 
 The TinyOS-specific tools are the NesC compiler and a set of tools
 developed in the tinyos-2.x/tools source code repository. They are
@@ -214,7 +248,7 @@ also installed using rpms.
 
 </tbody></table>
 
-<h1> Install the TinyOS 2.x source tree </h1>
+<h1>Step 5: Install the TinyOS 2.x source tree </h1>
 
 Now that the tools are installed, you need only install the tinyos 2.x 
 source tree and then set your environment variables.
@@ -316,3 +350,18 @@ groups: </li>
 </code></code></li></ol>
 
 </li></ul>
+
+<h1>Step 6: Installing Graphviz</h1>
+
+<p>Go to <A HREF="http://www.graphviz.org/Download..php">download page</A> of the Graphviz project
+and download the appropriate RPM. You only need the basic graphviz RPM (<tt>graphviz-</tt>);
+you don't need all of the add-ons, such as -devel, -doc, -perl, etc.
+If you're not sure what version of Linux you're running,</p>
+
+<pre>uname -a</pre>
+
+<p>might give you some useful information. Install the rpm with <tt>rpm -i </tt> <i>rpm-name</i>.
+In the case of Windows, there is a simple install program, so you don't need to deal with RPMs.</p>
+
+</body>
+</html>
