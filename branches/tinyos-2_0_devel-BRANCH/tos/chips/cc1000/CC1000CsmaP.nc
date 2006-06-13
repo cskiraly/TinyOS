@@ -1,4 +1,4 @@
-// $Id: CC1000CsmaP.nc,v 1.1.2.11 2006-02-03 19:47:34 idgay Exp $
+// $Id: CC1000CsmaP.nc,v 1.1.2.12 2006-06-13 17:25:31 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -437,7 +437,8 @@ implementation
   }
 
   async event void ByteRadio.rxDone() {
-    enterIdleStateSetWakeup();
+    if (radioState == RX_STATE)
+      enterIdleStateSetWakeup();
   }
 
   /* Noise floor */
