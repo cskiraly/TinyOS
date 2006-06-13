@@ -1,4 +1,4 @@
-// $Id: PhoenixSource.java,v 1.1.2.1 2005-05-23 22:11:49 idgay Exp $
+// $Id: PhoenixSource.java,v 1.1.2.2 2006-06-13 16:23:57 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -169,7 +169,6 @@ public class PhoenixSource extends Thread implements PhoenixError {
 		packetDipatchLoop();
 	    }
 	    catch (IOException e) {
-		e.printStackTrace();
 		stopped();
 		if (phoenixLike)
 		    errorHandler.error(e);
@@ -201,7 +200,6 @@ public class PhoenixSource extends Thread implements PhoenixError {
 	setPacketErrorHandler(new PhoenixError() {
 		public void error(IOException e) {
 		    message(source.getName() + " died - restarting");
-		    e.printStackTrace();
 		    try {
 			sleep(2000);
 		    }
@@ -213,7 +211,6 @@ public class PhoenixSource extends Thread implements PhoenixError {
     // Default error handler
     public void error(IOException e) {
 	String msg = source.getName() + " died - exiting (" + e + ")";
-	e.printStackTrace();
 	if (messages != null) {
 	    message(msg);
 	}
