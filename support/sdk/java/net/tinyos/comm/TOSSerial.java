@@ -1,4 +1,4 @@
-//$Id: TOSSerial.java,v 1.1.2.2 2006-02-03 01:27:02 idgay Exp $
+//$Id: TOSSerial.java,v 1.1.2.3 2006-06-14 19:49:32 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -33,22 +33,22 @@ public class TOSSerial extends NativeSerial implements SerialPort
   class EventDispatcher extends Thread
   {
     boolean m_run;
-    TOSSerial m_serial;
 
-    public EventDispatcher( TOSSerial serial )
+    public EventDispatcher()
     {
       m_run = true;
-      m_serial = serial;
     }
 
     void dispatch_event( int event )
     {
-      if( m_serial.didEventOccur(event) )
+      if( didEventOccur(event) )
       {
-	SerialPortEvent ev = new SerialPortEvent( m_serial, event );
-	Iterator i = m_serial.m_listeners.iterator();
-	while( i.hasNext() )
-	  ((SerialPortListener)i.next()).serialEvent( ev );
+	SerialPortEvent ev = new SerialPortEvent( TOSSerial.this, event );
+        synchronized(m_listeners) {
+          Iterator i = m_listeners.iterator();
+          while( i.hasNext() )
+            ((SerialPortListener)i.next()).serialEvent( ev );
+        }
       }
     }
 
@@ -56,7 +56,7 @@ public class TOSSerial extends NativeSerial implements SerialPort
     {
       while( m_run )
       {
-	if( m_serial.waitForEvent() )
+	if( waitForEvent() )
 	{
 	  if( m_run )
 	  {
@@ -78,29 +78,23 @@ public class TOSSerial extends NativeSerial implements SerialPort
     public void close()
     {
       m_run = false;
-      m_serial.cancelWait();
+      cancelWait();
     }
   }
 
 
   class SerialInputStream extends InputStream
   {
-    NativeSerial serial;
     ByteQueue bq = new ByteQueue(128);
 
     protected void gather()
     {
-      int navail = serial.available();
+      int navail = TOSSerial.this.available();
       if( navail > 0 )
       {
         byte buffer[] = new byte[navail];
-        bq.push_back( buffer, 0, serial.read( buffer, 0, navail ) );
+        bq.push_back( buffer, 0, TOSSerial.this.read( buffer, 0, navail ) );
       }
-    }
-
-    public SerialInputStream( NativeSerial _serial )
-    {
-      serial = _serial;
     }
 
     public int read()
@@ -131,28 +125,21 @@ public class TOSSerial extends NativeSerial implements SerialPort
 
   class SerialOutputStream extends OutputStream
   {
-    NativeSerial serial;
-
-    public SerialOutputStream( NativeSerial _serial )
-    {
-      serial = _serial;
-    }
-
     public void write( int b )
     {
-      serial.write(b);
+      TOSSerial.this.write(b);
     }
 
     public void write( byte[] b )
     {
-      write(b,0,b.length);
+      TOSSerial.this.write(b,0,b.length);
     }
 
     public void write( byte[] b, int off, int len )
     {
       int nwritten = 0;
       while( nwritten < len )
-	nwritten += serial.write( b, nwritten, len-nwritten );
+	nwritten += TOSSerial.this.write( b, nwritten, len-nwritten );
     }
   }
 
@@ -232,21 +219,25 @@ public class TOSSerial extends NativeSerial implements SerialPort
   public TOSSerial( String portname )
   {
     super( map_portname( NativeSerial.getTOSCommMap(), portname ) );
-    m_in = new SerialInputStream( this );
-    m_out = new SerialOutputStream( this );
-    m_dispatch = new EventDispatcher( this );
+    m_in = new SerialInputStream();
+    m_out = new SerialOutputStream();
+    m_dispatch = new EventDispatcher();
     m_dispatch.start();
   }
 
   public void addListener( SerialPortListener l )
   {
-    if( !m_listeners.contains(l) )
-      m_listeners.add(l);
+    synchronized(m_listeners) {
+      if( !m_listeners.contains(l) )
+        m_listeners.add(l);
+    }
   }
 
   public void removeListener( SerialPortListener l )
   {
-    m_listeners.remove(l);
+    synchronized(m_listeners) {
+      m_listeners.remove(l);
+    }
   }
 
   public InputStream getInputStream()
