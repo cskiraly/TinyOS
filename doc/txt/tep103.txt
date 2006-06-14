@@ -10,8 +10,8 @@ Permanent Data Storage (Flash)
 :Author: David Gay, Jonathan Hui
 
 :Draft-Created: 27-Sep-2004
-:Draft-Version: $Revision: 1.1.2.10 $
-:Draft-Modified: $Date: 2006-06-14 00:08:49 $
+:Draft-Version: $Revision: 1.1.2.11 $
+:Draft-Modified: $Date: 2006-06-14 21:32:42 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 
@@ -421,7 +421,15 @@ operations (all split-phase except ``ConfigStorage.getSize`` and
 For full details on arguments, etc, see the comments in the interface
 definitions.
 
-4. Authors' Addresses
+4. Implementations
+====================================================================
+
+An AT45DB implementation can be found in tinyos-2.x/tos/chips/at45db.
+
+An ST M25P implementation can be found in tinyos-2.x/tos/chips/stm25p.
+
+
+5. Authors' Addresses
 ====================================================================
 
 | David Gay
@@ -441,12 +449,8 @@ definitions.
 | phone - +1 415 692 0828
 | email - jhui@archedrock.com
 
-Appendix A. HAA implementations
+Appendix A. HAA for some existing flash chips
 ====================================================================
-
-An AT45DB implementation can be found in tinyos-2.x/tos/chips/at45db.
-
-An ST M25P implementation can be found in tinyos-2.x/tos/chips/stm25p.
 
 A.1 AT45DB
 ------------------------------------------------------------------
