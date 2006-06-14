@@ -7,9 +7,10 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.8 $ $Date: 2006-06-14 20:51:17 $
+ * @version $Revision: 1.1.2.9 $ $Date: 2006-06-14 21:52:38 $
  */
 #include "TestNetwork.h"
+#include "Collection.h"
 
 configuration TestNetworkAppC {}
 implementation {
@@ -21,7 +22,7 @@ implementation {
   components new DemoSensorC();
   components new SerialAMSenderC(CL_TEST);
   components SerialActiveMessageC;
-  components new SerialAMSenderC(0x09) as UARTSender;
+  components new SerialAMSenderC(AM_COLLECTION_DEBUG) as UARTSender;
   components UARTDebugSenderP as DebugSender;
 
   TestNetworkC.Boot -> MainC;
