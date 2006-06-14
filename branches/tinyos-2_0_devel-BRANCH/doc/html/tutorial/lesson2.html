@@ -2,37 +2,47 @@
     <head>
       <title>TinyOS Tutorial Lesson 2: Modules and the TinyOS Execution Model</title>
       <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
-    </head>
-    <body>
-      
-      <div class="title">Lesson 2: Modules and the TinyOS Execution Model</div>
-      <div class="subtitle">Last updated 18 January 2006</div>
-      
-      <p>This lesson introduces the TinyOS Execution Model and expands on
-	the Component Module.</p>
+  </head>
+  <body>
+    
+    <div class="title">Lesson 2: Modules and the TinyOS Execution Model</div>
+    <div class="subtitle">Last updated 13 May 2006</div>
+    
+    <p>This lesson introduces nesC modules, commands, events, and
+      tasks. It explains the TinyOS execution model.</p>
+    
+    <h1>Modules and State</h1>
+    
+    <p>Compiling TinyOS produces a single binary image that assumes
+      it has complete control of the hardware. Therefore, a mote only
+      runs one TinyOS image at a time. An image consists of the
+      components needed for a single application. As most more platforms
+      do not have hardware-based memory protection, there is
+      no seperation between a "user" address space and a "system"
+      address space; there is only one address space that all
+      components share. This is why many TinyOS components try to keep
+      their state private and avoid passing pointers: since there is
+      no hardware protection, the best way to keep memory uncorrupted
+      is to share it as little as possible.</p>
+    
+    <p>Recall from lesson 1 that the set of interfaces a component uses
+      and provides
+      define its signature. Both kinds of components -- configurations and
+      modules -- provide and use interfaces. The difference between the
+      two lies in their implementation: configurations are implemented
+      in terms of other components, which they wire, while modules
+      are executable code. After unwrapping all of the layers of abstraction
+      that configurations introduce, modules always lie within. Module
+      implementations are for the most part written in C, with
+      some extra constructions for nesC abstractions.</p>
 
-      <h1>Commands and Events</h1> <br>
-
-	<p>Compiling TinyOS produces a single binary image that assumes
-	  it has complete control of the hardware. Therefore, a mote only
-	  runs one TinyOS image at a time. An image consists of the
-	  components needed for a single application. As most more platforms
-	  do not have hardware-based memory protection, there is
-	  no seperation between a "user" address space and a "system"
-	  address space; there is only one address space that all
-	  components share. This is why many TinyOS components try to keep
-	  their state private and avoid passing pointers: since there is
-	  no hardware protection, the best way to keep memory uncorrupted
-	  is to share it as little as possible.</p>
-
-	<p>Recall from lesson 1 that <b>commands</b>, along with <b>events</b>, specify
-an interface, and the set of interfaces a component uses and provides
-define its signature.  Any state a component declares is private: no
-other component can name it or directly access it. Therefore, the only
-way two components can directly interact is through their interfaces.
-Let's revisit the Blink application to see how it uses events
-and commands. Here is the Blink module BlinkC.nc's implementation in
-its entirety:</p>
+    <p>Modules can declare state variables. Any state a component declares
+      is private: no
+      other component can name it or directly access it. The only
+      way two components can directly interact is through interfaces.
+      Let's revisit the Blink application.
+      Here is the Blink module BlinkC's implementation in
+      its entirety:</p>
 
 <pre></pre>
 <prehead>apps/Blink/BlinkC.nc:</prehead>
@@ -42,7 +52,7 @@ module BlinkC {
   uses interface Timer&lt;TMilli&gt; as Timer1;
   uses interface Timer&lt;TMilli&gt; as Timer2;
   uses interface Leds;
-  users interface Boot;
+  uses interface Boot;
 }
 implementation
 {
@@ -70,11 +80,201 @@ implementation
 }
 </pre>
 
-<p>In lesson 1 we learned that if a component uses an interface, it can
-call the interface's commands and must implement handlers for its
-events.  We also
-saw that the BlinkC component uses the Timer, Leds, and Boot interfaces. 
-Let's take a look at those interfaces:</p>
+    <p>BlinkC does not allocate any state. Let's change it so that its
+      logic is a little different: rather than blink the LEDs from three
+      different timers, we'll blink them with a single timer and keep
+      some state to know which ones to toggle. Make a copy of the Blink
+      application, <tt>BlinkSingle</tt>, and go into its directory.</p>
+
+    <pre>
+$ cd tinyos-2.x/apps
+$ cp -R Blink BlinkSingle
+$ cd BlinkSingle
+    </pre>
+
+    <p>Open the BlinkC module in an editor.
+      The first step is to comment out the LED toggles in Timer1 and
+      Timer2:</p>
+
+    <pre>
+  event void Timer1.fired()
+  {
+    // call Leds.led1Toggle();
+  }
+  
+  event void Timer2.fired()
+  {
+    // call Leds.led2Toggle();
+  }
+    </pre>
+
+    <p>The next step is to add some state to BlinkC, a single byte. Just
+      like in C, variables and functions must be declared before they are
+      used, so put it at the beginning of the implementation:</p>
+
+    <pre>
+implementation
+{
+
+  uint8_t counter = 0;
+
+  event void Boot.booted()
+  {
+    call Timer0.startPeriodic( 250 );
+    call Timer1.startPeriodic( 500 );
+    call Timer2.startPeriodic( 1000 );
+  }
+    </pre>
+
+    <p>Rather than the standard C names of <tt>int</tt>, <tt>long</tt>,
+      or <tt>char</tt>, TinyOS code uses more explicit types, which
+      declare their size. In reality, these map to the basic C types, but
+      do so differently for different platforms. TinyOS code avoids using
+      <tt>int</tt>, for example, because it is platform-specific. For example,
+      on mica and Telos motes, <tt>int</tt> is 16 bits, while on the
+      IntelMote2, it is 32 bits. Additionally, TinyOS code often
+      uses unsigned values heavily, as wrap-arounds to negative numbers
+      can often lead to very unintended consequences. The commonly used
+      types are:</p>
+
+    <CENTER>
+      <table border=1 cellpadding=6>
+	<tr>
+	  <td></td><td>8 bits</td><td>16 bits</td><td>32 bits</td><td>64 bits</td>
+	</tr>
+	<tr>
+	  <td>signed</td><td><tt>int8_t</tt></td><td><tt>int16_t</tt></td><td><tt>int32_t</tt></td><td><tt>int64_t</tt></td>
+	</tr>
+	<tr>
+	  <td>unsigned</td><td><tt>uint8_t</td><td><tt>uint16_t</td><td><tt>uint32_t</td><td><tt>uint64_t</tt></td>
+	</tr>
+      </table>
+    </CENTER>
+      <p>There is also a <tt>bool</tt> type. You can use the standard C
+	types, but doing so might raise cross-platform issues. Also,
+	<tt>uint32_t</tt> is often easier to write than <tt>unsigned
+	  long</tt>. Most platforms support floating point numbers
+      (<tt>float</tt> almost always, <tt>double</tt> sometimes),
+	although their arithmetic is in software rather than hardware.</p>
+
+      <p>Returning to our modified BlinkC, we've allocated a single unsigned
+	byte, <tt>counter</tt>. When the mote boots, the <tt>counter</tt>
+	will be	initialized to zero. The next step is to make it that
+	when Timer0 fires, it increments <tt>counter</tt> and displays the
+	result:</p>
+
+      <pre>
+  event void Timer0.fired()
+  {
+    counter++;
+    if (counter & 0x1) {
+      call Leds.led0On();
+    }
+    else {
+      call Leds.led0Off();
+    }
+    if (counter & 0x2) {
+      call Leds.led2On();
+    }
+    else {
+      call Leds.led2Off();
+    }
+    if (counter & 0x4) {
+      call Leds.led2On();
+    }
+    else {
+      call Leds.led2Off();
+    }
+  }
+      </pre>
+
+      <p>Another, more succinct way to do it is to use the <tt>set</tt>
+	command:</p>
+
+      <pre>
+  event void Timer0.fired()
+  {
+    counter++;
+    call Leds.set(counter);
+  }
+      </pre>
+
+      <p>Compile your program and install it on a mote. You'll see
+	that it behaves just as before, except that now the LEDs
+	are being driven by a single, rather than three, timers.</p>
+
+      <p>As only one timer is being used, this means that you don't need
+	Timer1 and Timer2: they waste CPU resources and memory. Open
+	BlinkC again and remove them from its signature and implementation.
+	You should have something that looks like this:</p>
+
+      <pre>
+module BlinkC {
+  uses interface Timer&lt;TMilli&gt; as Timer0;
+  uses interface Leds;
+  users interface Boot;
+}
+implementation
+{
+  uint8_t counter = 0;
+
+  event void Boot.booted()
+  {
+    call Timer0.startPeriodic( 250 );
+  }
+
+  event void Timer0.fired()
+  {
+    counter++;
+    call Leds.set(counter);
+  }
+  
+}
+      </pre>
+	
+      <p>Try to compile the application: nesC will throw an error, because
+	the configuration BlinkAppC is wiring to interfaces on BlinkC
+	that no longer exist (Timer1 and Timer2):</p>
+
+      <pre>
+dark /root/src/tinyos-2.x/apps/BlinkSingle -5-> make micaz
+mkdir -p build/micaz
+    compiling BlinkAppC to a micaz binary
+ncc -o build/micaz/main.exe -Os -finline-limit=100000 -Wall -Wshadow -DDEF_TOS_AM_GROUP=0x7d -Wnesc-all -target=micaz -fnesc-cfile=build/micaz/app.c -board=micasb  -fnesc-dump=wiring -fnesc-dump='interfaces(!abstract())' -fnesc-dump='referenced(interfacedefs, components)' -fnesc-dumpfile=build/micaz/wiring-check.xml BlinkAppC.nc -lm 
+In component `BlinkAppC':
+BlinkAppC.nc:54: cannot find `Timer1'
+BlinkAppC.nc:55: cannot find `Timer2'
+make: *** [exe0] Error 1
+      </pre>
+
+      <p>Open BlinkAppC and remove the two Timers and their wirings. Compile
+	the application:</p>
+
+      <pre>
+mkdir -p build/micaz
+    compiling BlinkAppC to a micaz binary
+ncc -o build/micaz/main.exe -Os -finline-limit=100000 -Wall -Wshadow -DDEF_TOS_AM_GROUP=0x7d -Wnesc-all -target=micaz -fnesc-cfile=build/micaz/app.c -board=micasb  -fnesc-dump=wiring -fnesc-dump='interfaces(!abstract())' -fnesc-dump='referenced(interfacedefs, components)' -fnesc-dumpfile=build/micaz/wiring-check.xml BlinkAppC.nc -lm 
+    compiled BlinkAppC to build/micaz/main.exe
+            2428 bytes in ROM
+              39 bytes in RAM
+avr-objcopy --output-target=srec build/micaz/main.exe build/micaz/main.srec
+avr-objcopy --output-target=ihex build/micaz/main.exe build/micaz/main.ihex
+    writing TOS image
+      </pre>
+
+      <p>If you compare the ROM and RAM sizes with the unmodified Blink
+	application, you should see that they are a bit smaller: TinyOS
+	is only allocating state for a single timer, and there is
+	event code for only one timer.</p>
+
+      <h1>Interfaces, Commands, and Events</h1>
+      
+      <p>Go back to <tt>tinyos-2.x/apps/Blink</tt>.
+      In lesson 1 we learned that if a component uses an interface, it can
+	call the interface's commands and must implement handlers for its
+	events.  We also saw that the BlinkC component uses the Timer, Leds,
+	and Boot interfaces. 
+	Let's take a look at those interfaces:</p>
 
 <pre></pre>
 <prehead>tos/interfaces/Boot.nc:</prehead>
@@ -113,7 +313,7 @@ interface Leds {
 }
 </pre>
 
-<prehead>tos/interfaces/Leds.nc:</prehead>
+<prehead>tos/interfaces/Timer.nc:</prehead>
 <pre>
 interface Timer<precision_tag>
 {
@@ -127,16 +327,16 @@ interface Timer<precision_tag>
 }
 </pre>
 
-	<p>Looking over the interfaces for <code>Boot</code>,
-	  <code>Leds</code>, and
-	  <code>Timer</code>, we can see that since <code>BlinkC</code> uses
-	  those interfaces it must implement handlers for the
-	  <code>Boot.booted()</code> event, and the <code>Timer.fired()</code>
-	  event. The <code>Leds</code> interface signature does not include any
-	  events, so <code>BlinkC</code> need not implement any in order
-	  to call the Leds commands. Here, again, is <code>BlinkC</code>'s
-	  implementation of <code>Boot.booted()</code>:</p>
-	  
+    <p>Looking over the interfaces for <code>Boot</code>,
+      <code>Leds</code>, and
+      <code>Timer</code>, we can see that since <code>BlinkC</code> uses
+      those interfaces it must implement handlers for the
+      <code>Boot.booted()</code> event, and the <code>Timer.fired()</code>
+      event. The <code>Leds</code> interface signature does not include any
+      events, so <code>BlinkC</code> need not implement any in order
+      to call the Leds commands. Here, again, is <code>BlinkC</code>'s
+      implementation of <code>Boot.booted()</code>:</p>
+    
 <pre></pre>
 <prehead>apps/Blink/BlinkC.nc:</prehead>
 <pre>
@@ -148,15 +348,27 @@ interface Timer<precision_tag>
   }
 </pre>
 
-<p><code>BlinkC</code> uses 3 instances of the OskiTimerMilliC component and they're
-called <code>Timer0</code>, <code>Timer1</code>, and <code>Timer2</code>. 
-In the <code>Boot.booted()</code> event handler, these instances are each started. 
-The parameter to <code>startPeriodic()</code> specifies the period in milliseconds after 
-which the timer will fire. Because the timer is started using the <code>startPeriodic()</code> 
-command, the timer will be reset after firing such that the <code>fired()</code> event is 
-triggered every n milliseconds. </p>
+    <p><code>BlinkC</code> uses 3 instances of the TimerMilliC component,
+      wired to the interfaces <code>Timer0</code>, <code>Timer1</code>, and
+      <code>Timer2</code>. The <code>Boot.booted()</code> event handler
+      starts each instance. The parameter to
+      <code>startPeriodic()</code> specifies the period in milliseconds after 
+      which the timer will fire (it's millseconds because of the
+      <tt>&lt;TMilli&gt;</tt> in the interface).
+      Because the timer is started using
+      the <code>startPeriodic()</code> 
+      command, the timer will be reset after firing such that the
+      <code>fired()</code> event is 
+      triggered every n milliseconds.</p>
 
-<p>Next, we look at the implementation of the <code>Timer.fired()</code>:</p>
+    <p>Invoking an interface command requires the <tt>call</tt> keyword,
+      and invoking an interface event requires the <tt>signal</tt> keyword.
+      BlinkC does provide any interfaces, so its code
+      does not have any signal statements: in a later lesson,
+      we'll look at the boot sequence, which signals the Boot.booted()
+      event.</p>
+    
+    <p>Next,look at the implementation of the <code>Timer.fired()</code>:</p>
 
 <pre></pre>
 <prehead>apps/Blink/BlinkC.nc:</prehead>
@@ -178,50 +390,35 @@ triggered every n milliseconds. </p>
 }
 </pre>
 	
-	<p>Because there are three Timer instances, the <code>BlinkC</code> component
-	  must implement three instances of the <code>Timer.fired()</code>
-	  event. Here, each Timer toggles it's corresponding LED (from on to off or
-	  from off to on) at every Timer fire by calling the <code>Leds.ledNToggle()</code>
-	  command exported by the Leds interface. Note that the Leds will be
-	  toggled within event context because the command is called from
-	  within an event; this event, in turn, was triggered by a hardware 
-	  interrupt from the platform's timer hardware. Looking back at the
-	  declaration of the Leds interface, we note that the commands are
-	  declared with the <code>async</code> keyword <a href="#hint3">(4)</a>
-	  so we know that they can be called from within event handlers:</p>
-	
-	<pre></pre>
-	<prehead>tos/interfaces/Leds.nc:</prehead>
-	<pre>
-interface Leds {
-
-  ... 
-  async command void led0Toggle();
-  ...
-  async command void led1Toggle();
-  ...
-  async command void led2Toggle();
-  ...
-}
-	</pre>
-
-<h1>TinyOS Execution Model: Tasks</h1>
-
-	<p>All of the code we've looked at so far is <i>synchronous</i>.
-	  It runs in a single execution context and does not have
-	  any kind of pre-emption. That is, when synchronous (sync) code
-	  starts running, it does not relinquish the CPU to other
-	  sync code until it completes. This simple mechanism allows
-	  the TinyOS scheduler to minimize its RAM consumption can
-	  keeps sync code very simple. However, it means that if one
-	  piece of sync code runs for a long time, it prevents other
-	  sync code from running, which can adversely affect system
-	  responsiveness. For example, a long-running piece of code
-	  can increase the time it takes for a mote to respond to a
-	  packet.</p>
-	
-	<p>So far, all of the examples we've looked at have been
-	  direct function calls. System components, such as the
+    <p>Because it uses three instances of the Timer interface,
+      <code>BlinkC</code> 
+      must implement three instances of <code>Timer.fired()</code>
+      event. When implementing or invoking an interface function, the
+      function name is always <i>interface</i>.<i>function</i>. As
+      BlinkC's three Timer instances are named <tt>Timer0</tt>,
+      <tt>Timer1</tt>, and <tt>Timer2</tt>, it implements the three
+      functions <tt>Timer0.fired</tt>, <tt>Timer1.fired</tt>, and
+      <tt>Timer2.fired</tt>.</p>
+    
+    
+    
+    <h1>TinyOS Execution Model: Tasks</h1>
+    
+    <p>All of the code we've looked at so far is <i>synchronous</i>.
+      It runs in a single execution context and does not have
+      any kind of pre-emption. That is, when synchronous (sync) code
+      starts running, it does not relinquish the CPU to other
+      sync code until it completes. This simple mechanism allows
+      the TinyOS scheduler to minimize its RAM consumption can
+      keeps sync code very simple. However, it means that if one
+      piece of sync code runs for a long time, it prevents other
+      sync code from running, which can adversely affect system
+      responsiveness. For example, a long-running piece of code
+      can increase the time it takes for a mote to respond to a
+      packet.</p>
+    
+    <p>So far, all of the examples we've looked at have been
+      direct function calls. System components, such as the
 	  boot sequence or timers, signal events to a component,
 	  which takes some action (perhaps calling a command) and
 	  returns. In most cases, this programming approach works
@@ -270,73 +467,167 @@ event void Timer0.fired() {
 
 	<pre>
 event void Timer0.fired() {
-  uint16_t i;
+  uint32_t i;
   dbg("BlinkC", "Timer 0 fired @ %s\n", sim_time_string());
-  for (i = 0; i < 40001; i++) {
+  for (i = 0; i < 400001; i++) {
     call Leds.led0Toggle();
   }
 }
 	</pre>
 	 
-	<p>This will cause the timer to toggle 40,001 times, rather
-	  than once. Because the number is odd, it will have the end
-	  result of a single toggle, with a bit of flickering in-between.
-	  Compile and install the program. You'll see that
-	  Led 0 introduces a bit of latency in the Led 1 and Led 2
-	  toggles: it flickers for a bit, then they toggle, even
-	  though their three timer events should all fire at the same
-	  time.</p>
+    <p>This will cause the timer to toggle 400,001 times, rather
+      than once. Because the number is odd, it will have the end
+      result of a single toggle, with a bit of flickering in-between.
+      Compile and install the program. You'll see that
+      Led 0 introduces so much latency in the Led 1 and Led 2
+      toggles that you never see a situation where only one is on.
+      On TelosB motes, this long running task can cause the Timer stack
+      to completely skip events (try setting the count to 200,001 or 100,001).
+    </p>
 
-	<p>A task is declared in your implementation module using the syntax
-	  <pre>&nbsp; task void taskname() { ... }</pre>
-	  where <tt>taskname()</tt> is whatever symbolic name you want to
-	  assign to the task. Tasks must return <tt>void</tt> and may not
-	  take any arguments.</p>
-	
-	<p>To dispatch a task for (later) execution, use the syntax
-	  <pre>&nbsp; post taskname();</pre>
-	  A task can be posted from within a command, an event, or even
-	  another task.</p>
-	
-	<p>The <tt>post</tt> operation places the task on an internal
-	  <b>task queue</b> which is processed in FIFO order. When a
-	  task is executed, it runs to completion
-	  before the next task is run; therefore, a task should not spin
-	  or block for long periods of time. Tasks do not preempt each
-	  other, but a task can  be preempted by a hardware event handler.
-	  If you need to run a series of long operations,
-	  you should dispatch a separate task for each operation, rather
-	  than using one big task.</p>
+    <p>The problem is that this computation is interfering with the timer's
+      operation. What we'd like to do is tell TinyOS to execute the computation
+      later. We can accomplish this with a <b>task</b>.</p>
 
-	
-	<h1>Exercise</h1>
+    <p>A task is declared in your implementation module using the syntax
+    <pre>&nbsp; task void taskname() { ... }</pre>
+    where <tt>taskname()</tt> is whatever symbolic name you want to
+    assign to the task. Tasks must return <tt>void</tt> and may not
+    take any arguments. To dispatch a task for (later) execution, use
+    the syntax <pre>&nbsp; post taskname();</pre>
+    A component can post a task in a command, an event, or a task.
+    Because they are the root of a call graph, a tasks can safely both call
+    commands and signal events (there's no concern of infinite call loops).</p>
 
-	Blink as written does not use any tasks. Rewrite Blink to
-	<ol>
-	  <li> blink LED0 every 1000 milliseconds 
-	    <li> use a task to change the Leds
-	</ol>
-	
-	Here are a few things you'll need to change:
-	
-	<ol>
-	  <li>  Remove two of the <code>TimerMilliC</code> instances and their corresponding
-	    events. Remove the lines in the <code>boot()</code> event that start them.
-	    <li> Create a task <a href="#hint2">(5)</a> that will call the 
-	      <code>Leds.led0Toggle()</code> command. The syntax to define a 
-	      task goes inside of the modules implementation block and looks like this:
-	      <pre>
-  task void myTask() 
-  {
-      // task implementation;
+    <p>Modify BlinkC to perform the loop in a task:</p>
+
+    <pre>
+task void computeTask() {
+  uint32_t i;
+  for (i = 0; i < 400001; i++) {}
+}
+
+event void Timer0.fired() {
+  call Leds.led0Toggle();
+  post computeTask();
+}
+    </pre>
+
+    <p>Telos platforms will still struggle, but mica platforms will
+      operate OK.</p>
+
+    
+    <p>The <tt>post</tt> operation places the task on an internal
+      <b>task queue</b> which is processed in FIFO order. When a
+      task is executed, it runs to completion
+      before the next task is run. Therefore, and as the above examples
+      showed, a task should not run for long periods of time.
+      Tasks do not preempt each
+      other, but a task can  be preempted by a hardware interrupts (which
+      we haven't seen yet).
+      If you need to run a series of long operations,
+      you should dispatch a separate task for each operation, rather
+      than using one big task. The <tt>post</tt> operation returns
+      an <tt>error_t</tt>, whose value is either <tt>SUCCESS</tt>
+      or <tt>FAIL</tt>. A post fails if and only if the task is
+      already pending to run (it has been posted successfully and has not been invoked yet).(<A HREF="#task_footnote">1</A>)</p>
+
+    <p>For example, try this:</p>
+
+    <pre>
+uint32_t i;
+
+task void computeTask() {
+  uint32_t start = i;
+  for (;i < start + 10000 && i < 400001; i++) {}
+  if (i >= 400000) {
+    i = 0;
   }
-	      </pre>
-	      <li> Change the <code>fired()</code> event to post your new task. 
-	</ol>
-	
-	When you're done, you can compare your work with the application 
-	in <code>apps/tutorial/BlinkTask</code>.
-	
+  else {
+    post computeTask();
+  }
+}
+    </pre>
+
+    <p>This code breaks the compute task up into many smaller tasks.
+      Each invocation of computeTask runs through 10,000 iterations of
+      the  loop. If it hasn't completed all 400,001 iterations, it reposts
+      itself. Compile this code and run it; it will run fine on both
+      Telos and mica-family motes.</p>
+
+    <p>Note that using a task in this way required including another
+      variable (<tt>i</tt>) in the component. Because computeTask()
+      returns after 10,000 iterations, it needs somewhere to store
+      its state for the next invocation. In this situation, <tt>i</tt>
+      is acting as a static function variable often does in C. However,
+      as nesC component state is completely private, using the
+      <tt>static</tt> keyword to limit naming scope is not as useful.
+      This code, for example, is equivalent:</p>
+    <pre>
+task void computeTask() {
+  static uint32_t i;
+  uint32_t start = i;
+  for (;i < start + 10000 && i < 400001; i++) {}
+  if (i >= 400000) {
+    i = 0;
+  }
+  else {
+    post computeTask();
+  }
+}
+    </pre>
+
+    <h1>Internal Functions</h1>
+
+    <p>Commands and events are the only way that a function in a component
+      can be made callable by another component. There are situations
+      when a component wants private functions for its own internal
+      use. A component can define standard C functions, which other
+      components cannot name and therefore cannot invoke directly. These
+      while these functions do not have the <tt>command</tt> or <tt>event</tt>
+      modifier, they can freely call commands or signal events. For example,
+      this is perfectly reasonable nesC code:</p>
+
+    <pre>
+module BlinkC {
+  uses interface Timer&lt;TMilli&gt; as Timer0;
+  uses interface Timer&lt;TMilli&gt; as Timer1;
+  uses interface Timer&lt;TMilli&gt; as Timer2;
+  uses interface Leds;
+  uses interface Boot;
+}
+implementation
+{
+
+  void startTimers() {
+    call Timer0.startPeriodic( 250 );
+    call Timer1.startPeriodic( 500 );
+    call Timer2.startPeriodic( 1000 );
+  }
+
+  event void Boot.booted()
+  {
+    startTimers();
+  }
+
+  event void Timer0.fired()
+  {
+    call Leds.led0Toggle();
+  }
+  
+  event void Timer1.fired()
+  {
+    call Leds.led1Toggle();
+  }
+  
+  event void Timer2.fired()
+  {
+    call Leds.led2Toggle();
+  }
+}
+    </pre>
+    
+
 <a name=#related_docs>
 <h1>Related Documentation</h1>
 </a>
@@ -348,14 +639,7 @@ event void Timer0.fired() {
 <p>
 <hr>
 
-<p><a name="event_footnote">(1)</a> Recall that events were introduced
-in lesson 1 in conjunction with the component model and were explained
-in that context to be functions in an interface that a component must
-implement if the component is to use that interface. Lesson 1
-discussed events in terms of the Component Model; here they are
-discussed in terms of the Execution Model.
-
-<p><a name="task_footnote">(2)</a> The task semantics have changed
+<p><a name="task_footnote">(1)</a> The task semantics have changed
 significantly from tinyos-2.x. In 1.x, a task could be posted more
 than once and a post could fail if the task queue were full. In 2.x, a
 basic post will only fail if that task has already been posted and has
@@ -363,22 +647,6 @@ not started execution. So a task can always run, but can only have one
 outstanding post at any time. If a component needs to post task
 several times, then the end of the task logic can repost itself as
 need be.
-
-<p><a name="hint6">(3)</a><b>Programming Hint 6:</b> Allocate all 
-state in components. If your application requirements necessitate a dynamic 
-memory pool, encapsulate it in a component and try to limit the set of users.
-From Phil Levis' <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">
-<i>TinyOS Programming</i></a>
-
-<p><a name="hint3">(4)</a><b>Programming Hint 3:</b> Keep code 
-synchronous when you can. Code should be async only if its timing is
-very important or if it might be used by something whose timing is important.
-From Phil Levis' <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">
-<i>TinyOS Programming</i></a>
-
-<p><a name="hint3">(4)</a><b>Programming Hint 3:</b> Keep tasks short.
-From Phil Levis' <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">
-<i>TinyOS Programming</i></a>
 
 
 <!-- Begin footer -->
