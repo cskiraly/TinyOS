@@ -22,7 +22,7 @@ enum {
     NET_C_TREE_NEW_PARENT = 0x31,   //:        :parent_id, hopcount, metric
     NET_C_TREE_ROUTE_INFO = 0x32,   //:periodic:parent_id, hopcount, metric
 
-    NET_C_DBG_1 = 0x40,             //:any     :uint16_t a, b, c
+    NET_C_DBG_1 = 0x40,             //:any     :uint16_t a
     NET_C_DBG_2 = 0x41,             //:any     :uint16_t a, b, c
     NET_C_DBG_3 = 0x42,             //:any     :uint16_t a, b, c
 };
@@ -34,13 +34,8 @@ typedef nx_struct CollectionDebugMsg {
         nx_struct {
             nx_uint16_t msg_uid;   
             nx_am_addr_t origin;
-            nx_am_addr_t last_hop;
-        } msg_send;
-        nx_struct {
-            nx_uint16_t msg_uid;   
-            nx_am_addr_t origin;
-            nx_am_addr_t last_hop;
-        } msg_rcv;
+            nx_am_addr_t other_node;
+        } msg;
         nx_struct {
             nx_am_addr_t parent;
             nx_uint8_t hopcount;
