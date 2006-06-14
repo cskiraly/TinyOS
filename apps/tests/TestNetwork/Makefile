@@ -22,7 +22,7 @@ endef
 
 $(eval $(call mig_templ,test_network_msg,TestNetwork.h,TestNetworkMsg))
 $(eval $(call mig_templ,set_rate_msg,$(TOSDIR)/lib/net/DisseminationEngine.h,dissemination_message))
-$(eval $(call mig_templ,collection_debug_msg,$(TOSDIR)/lib/net/collection/UartDbgMsg.h,CollectionDebugMsg))
+$(eval $(call mig_templ,collection_debug_msg,$(TOSDIR)/lib/net/collection/CollectionDebugMsg.h,CollectionDebugMsg))
 
 %.o: %.c
 	gcc -v  $(TFLAGS) $(CFLAGS) -c -o $@ $<
