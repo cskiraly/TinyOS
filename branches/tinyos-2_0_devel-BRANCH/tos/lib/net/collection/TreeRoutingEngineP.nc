@@ -1,7 +1,8 @@
 #include <Timer.h>
 #include <TreeRouting.h>
+#include <CollectionDebugMsg.h>
 //#define TEST_INSERT
-/* $Id: TreeRoutingEngineP.nc,v 1.1.2.9 2006-06-11 16:32:28 rfonseca76 Exp $ */
+/* $Id: TreeRoutingEngineP.nc,v 1.1.2.10 2006-06-14 20:53:16 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -29,7 +30,7 @@
  *  Acknowledgment: based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
  *                           MultiHopLQI
  *                           
- *  @date   $Date: 2006-06-11 16:32:28 $
+ *  @date   $Date: 2006-06-14 20:53:16 $
  *  @see Net2-WG
  */
 
@@ -37,7 +38,7 @@ generic module TreeRoutingEngineP(uint8_t routingTableSize) {
     provides {
         interface UnicastNameFreeRouting as Routing;
         interface RootControl;
-	interface TreeRoutingInspect;
+        interface TreeRoutingInspect;
         interface StdControl;
         interface Init;
     } 
@@ -50,6 +51,7 @@ generic module TreeRoutingEngineP(uint8_t routingTableSize) {
         interface SplitControl as RadioControl;
         interface Timer<TMilli> as BeaconTimer;
         interface Random;
+        interface CollectionDebug;
     }
 }
 
@@ -225,6 +227,7 @@ implementation {
                 //            ii. when choosing a next hop
                 parentChanges++;
                 dbg("TreeRouting","Changed parent. from %d to %d\n", routeInfo.parent, best->neighbor);
+                call CollectionDebug.logEventRoute(NET_C_TREE_NEW_PARENT, best->neighbor, best->info.hopcount + 1, best->info.metric); 
                 atomic {
                     routeInfo.parent = best->neighbor;
                     routeInfo.metric = best->info.metric;
@@ -288,11 +291,12 @@ implementation {
 
 
     event void BeaconTimer.fired() {
-        // determine next interval
         if (radioOn && running) {
+            // determine next interval
             uint16_t nextInt;
             nextInt = call Random.rand16() % BEACON_INTERVAL;
             nextInt += BEACON_INTERVAL >> 1;
+            call CollectionDebug.logEvent(NET_C_TREE_ROUTE_INFO);
             call BeaconTimer.startOneShot(nextInt);
             post updateRouteTask();
             post sendBeaconTask();
@@ -353,31 +357,31 @@ implementation {
         return (routeInfo.parent != INVALID_ADDR);
     }
    
-	/* TreeRoutingInspect interface */
-	command error_t TreeRoutingInspect.getParent(am_addr_t* parent) {
-		if (parent == NULL) 
-			return FAIL;
-		if (routeInfo.parent == INVALID_ADDR)	
-			return FAIL;
-		*parent = routeInfo.parent;
-		return SUCCESS;
-	}
-	command error_t TreeRoutingInspect.getHopcount(uint8_t* hopcount) {
-		if (hopcount == NULL) 
-			return FAIL;
-		if (routeInfo.parent == INVALID_ADDR)	
-			return FAIL;
-		*hopcount= routeInfo.hopcount;
-		return SUCCESS;
-	}
-	command error_t TreeRoutingInspect.getMetric(uint16_t* metric) {
-		if (metric == NULL) 
-			return FAIL;
-		if (routeInfo.parent == INVALID_ADDR)	
-			return FAIL;
-		*metric = routeInfo.metric;
-		return SUCCESS;
-	}
+    /* TreeRoutingInspect interface */
+    command error_t TreeRoutingInspect.getParent(am_addr_t* parent) {
+        if (parent == NULL) 
+            return FAIL;
+        if (routeInfo.parent == INVALID_ADDR)    
+            return FAIL;
+        *parent = routeInfo.parent;
+        return SUCCESS;
+    }
+    command error_t TreeRoutingInspect.getHopcount(uint8_t* hopcount) {
+        if (hopcount == NULL) 
+            return FAIL;
+        if (routeInfo.parent == INVALID_ADDR)    
+            return FAIL;
+        *hopcount= routeInfo.hopcount;
+        return SUCCESS;
+    }
+    command error_t TreeRoutingInspect.getMetric(uint16_t* metric) {
+        if (metric == NULL) 
+            return FAIL;
+        if (routeInfo.parent == INVALID_ADDR)    
+            return FAIL;
+        *metric = routeInfo.metric;
+        return SUCCESS;
+    }
 
     /* RootControl interface */
     /** sets the current node as a root, if not already a root */
