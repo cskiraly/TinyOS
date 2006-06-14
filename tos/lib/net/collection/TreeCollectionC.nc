@@ -12,6 +12,7 @@ configuration TreeCollectionC {
     interface RootControl;
     interface Packet;
     interface CollectionPacket;
+    interface TreeRoutingInspect;
   }
 
   uses interface CollectionId[uint8_t client];
@@ -50,6 +51,7 @@ implementation {
   components LinkEstimatorP as Estimator;
 
   components new AMSenderC(AM_COLLECTION_DATA);
+  components new SerialAMSenderC(AM_COLLECTION_DEBUG);
   components new AMReceiverC(AM_COLLECTION_DATA);
   components new AMSnooperC(AM_COLLECTION_DATA);
   
@@ -65,6 +67,7 @@ implementation {
   Router.AMPacket -> ActiveMessageC;
   Router.RadioControl -> ActiveMessageC;
   Router.BeaconTimer -> RoutingBeaconTimer;
+  TreeRoutingInspect = Router;
  
   components new TimerMilliC() as RetxmitTimer;
   Forwarder.RetxmitTimer -> RetxmitTimer;
@@ -75,9 +78,11 @@ implementation {
 
   MainC.SoftwareInit -> Forwarder;
   Forwarder.SubSend -> AMSenderC;
+  Forwarder.DebugSend -> SerialAMSenderC;
   Forwarder.SubReceive -> AMReceiverC;
   Forwarder.SubSnoop -> AMSnooperC;
   Forwarder.SubPacket -> AMSenderC;
+  Forwarder.DebugPacket -> SerialAMSenderC;
   Forwarder.RootControl -> Router;
   Forwarder.UnicastNameFreeRouting -> Router.Routing;
   Forwarder.RadioControl -> ActiveMessageC;
