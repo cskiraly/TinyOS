@@ -29,9 +29,9 @@
 <td>Ben Greenstein and Philip Levis</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">11-Jul-2005</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.2</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.3</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2005-12-07</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-13</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -385,8 +385,10 @@ SerialAMSender instantiations for queue space. The underlying
 implementation schedulers the packets in these queues using some form
 of fair-share queueing. SerialAMReceiverC provides the virtualized
 abstraction for reception. These abstraction are very similar to
-TinyOS's radio abstractions. See TEP 116[<a class="reference" href="#tep116">TEP116</a>] for more
-information.</p>
+TinyOS's radio abstractions, namely, AMSenderC and AMReceiverC. See
+Section 4 of TEP 116[<a class="reference" href="#tep116">TEP116</a>] for more information. Unlike the
+services in the TEP 116, the serial component virtualizations provide
+no snooping capabilities.</p>
 </div>
 <div class="section" id="author-s-address">
 <h1><a name="author-s-address">5. Author's Address</a></h1>
