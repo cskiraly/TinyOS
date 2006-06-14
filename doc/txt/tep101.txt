@@ -10,8 +10,8 @@ Analog-to-Digital Converters (ADCs)
 :Author: Jan-Hinrich Hauer, Philip Levis, Vlado Handziski, David Gay
 
 :Draft-Created: 20-Dec-2004
-:Draft-Version: $Revision: 1.1.2.5 $
-:Draft-Modified: $Date: 2006-02-01 18:14:13 $
+:Draft-Version: $Revision: 1.1.2.6 $
+:Draft-Modified: $Date: 2006-06-14 17:53:45 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -340,6 +340,36 @@ the mapping between used and provided interfaces the 'AdcReadClient',
 'AdcReadNowClient' and 'AdcReadStreamClient' should use the same interface
 identifier when it connects the HAL2 to HAL1 (see, for example, the MSP430
 ADC12 implementation in Appendix C).
+
+6. Implementation
+====================================================================
+
+The implementation of the ADC12 stack on the MSP430 can be found in
+``tinyos-2.x/tos/chips/msp430/adc12``:
+
+  * ``HplAdc12P.nc`` is the HPL implementation
+  * ``Msp430Adc12P.nc`` is the HAL1 implementation
+  * ``AdcC.nc`` is the HAL2 implementation
+  * ``AdcReadClientC.nc``, ``AdcReadNowClientC.nc`` and
+    ``AdcReadStreamClientC.nc`` provide access to the ADC on a per-client
+    basis via the interfaces 'Read', 'ReadNow' and 'ReadStream', 
+    respectively, and the msp430-specific ADC configuration 
+    interface ``Msp430Adc12Config.nc``
+
+The Atmel Atmega 128 ADC implementation can be found in
+``tinyos-2.x/tos/chips/atm128/adc``:
+
+  * ``HplAtm128AdcC.nc`` is the HPL implementation
+  * ``Atm128AdcP.nc`` is the HAL1 implementation
+  * ``WireAdcP.nc`` and the library components for arbitrating 'Read', 
+    'ReadNow' and 'ReadStream', ``ArbitratedReadC`` and
+    ``ArbitratedReadStreamC`` (in ``tinyos-2.x/tos/system``), realize
+    the HAL2
+  * ``AdcReadClientC.nc``, ``AdcReadNowClientC.nc`` and
+    ``AdcReadStreamClientC.nc`` provide access to the ADC on a per-client
+    basis via the platform-independent interfaces 'Read', 'ReadNow' and
+    'ReadStream', respectively, and the atmega-specific ADC configuration 
+    interface ``Atm128AdcConfig.nc``
 
 
 Appendix A: Hardware differences between platforms
