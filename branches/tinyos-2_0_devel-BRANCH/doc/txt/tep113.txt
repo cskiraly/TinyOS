@@ -10,8 +10,8 @@ Serial Communication
 :Author: Ben Greenstein and Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.3 $
-:Draft-Modified: $Date: 2006-06-13 00:42:49 $
+:Draft-Version: $Revision: 1.1.2.4 $
+:Draft-Modified: $Date: 2006-06-14 01:36:31 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -419,8 +419,10 @@ SerialAMSender instantiations for queue space. The underlying
 implementation schedulers the packets in these queues using some form
 of fair-share queueing. SerialAMReceiverC provides the virtualized
 abstraction for reception. These abstraction are very similar to
-TinyOS's radio abstractions. See TEP 116[TEP116_] for more
-information.
+TinyOS's radio abstractions, namely, AMSenderC and AMReceiverC. See
+Section 4 of TEP 116[TEP116_] for more information. Unlike the
+services in the TEP 116, the serial component virtualizations provide
+no snooping capabilities.
 
 
 5. Author's Address
