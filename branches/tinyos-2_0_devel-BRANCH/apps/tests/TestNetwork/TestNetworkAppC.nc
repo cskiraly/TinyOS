@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.6 $ $Date: 2006-06-09 01:46:57 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-06-14 14:38:37 $
  */
 #include "TestNetwork.h"
 
@@ -35,4 +35,5 @@ implementation {
   TestNetworkC.Receive -> Collector.Receive[CL_TEST];
   TestNetworkC.UARTSend -> SerialAMSenderC.AMSend;
   TestNetworkC.CollectionPacket -> Collector;
+  TestNetworkC.TreeRoutingInspect -> Collector;
 }
