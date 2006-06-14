@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.17 2006-06-14 18:57:44 kasj78 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.18 2006-06-14 21:52:56 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-14 18:57:44 $
+ *  @date   $Date: 2006-06-14 21:52:56 $
  */
 
 #include <ForwardingEngine.h>
@@ -43,11 +43,9 @@ generic module ForwardingEngineP() {
   }
   uses {
     interface AMSend as SubSend;
-    interface AMSend as DebugSend;
     interface Receive as SubReceive;
     interface Receive as SubSnoop;
     interface Packet as SubPacket;
-    interface Packet as DebugPacket;
     interface UnicastNameFreeRouting;
     interface SplitControl as RadioControl;
     interface Queue<fe_queue_entry_t*> as SendQueue;
@@ -59,6 +57,7 @@ generic module ForwardingEngineP() {
     interface RootControl;
     interface CollectionId[uint8_t client];
     interface AMPacket;
+    interface CollectionDebug;
   }
 }
 implementation {
@@ -82,7 +81,6 @@ implementation {
 
   /* Keeps track of whether we are currently sending to the UART a
    * debug message. */
-  bool debugSendBusy = FALSE;
 
   enum {
     CLIENT_COUNT = uniqueCount(UQ_COLLECTION_CLIENT)
@@ -94,9 +92,6 @@ implementation {
   message_t loopbackMsg;
   message_t* loopbackMsgPtr;
 
-  message_t debugMsg;
-  CollectionDebugMsg *cdb; // pointer to the payload of the debug msg
-  
   command error_t Init.init() {
     int i;
     for (i = 0; i < CLIENT_COUNT; i++) {
@@ -104,7 +99,6 @@ implementation {
       dbg("Forwarder", "clientPtrs[%hhu] = %p\n", i, clientPtrs[i]);
     }
     loopbackMsgPtr = &loopbackMsg;
-    cdb = (CollectionDebugMsg *)call DebugPacket.getPayload(&debugMsg, NULL);
     return SUCCESS;
   }
 
@@ -184,12 +178,7 @@ implementation {
           __FUNCTION__);
       
       // send a debug message to the uart
-      if (!debugSendBusy) {
-        memset(cdb, 0, sizeof(CollectionDebugMsg));
-        cdb->type = NET_C_FE_SEND_QUEUE_FULL;
-        debugSendBusy = (call DebugSend.send(0xffff, &debugMsg,
-          sizeof(CollectionDebugMsg)) == SUCCESS);
-      }
+      call CollectionDebug.logEvent(NET_C_FE_SEND_QUEUE_FULL);
 
       // Return the pool entry, as it's not for me...
       return FAIL;
@@ -227,12 +216,7 @@ implementation {
       call RetxmitTimer.startOneShot(10000);
 
       // send a debug message to the uart
-      if (!debugSendBusy) {
-        memset(cdb, 0, sizeof(CollectionDebugMsg));
-        cdb->type = NET_C_FE_NO_ROUTE;
-        debugSendBusy = (call DebugSend.send(0xffff, &debugMsg,
-          sizeof(CollectionDebugMsg)) == SUCCESS);
-      }
+      call CollectionDebug.logEvent(NET_C_FE_NO_ROUTE);
 
       return;
     }
@@ -277,12 +261,7 @@ implementation {
         radioOn = FALSE;
 	dbg("Forwarder", "%s: subsend failed from EOFF.\n", __FUNCTION__);
         // send a debug message to the uart
-        if (!debugSendBusy) {
-          memset(cdb, 0, sizeof(CollectionDebugMsg));
-          cdb->type = NET_C_FE_SUBSEND_OFF;
-          debugSendBusy = (call DebugSend.send(0xffff, &debugMsg,
-            sizeof(CollectionDebugMsg)) == SUCCESS);
-        }
+      	call CollectionDebug.logEvent(NET_C_FE_SUBSEND_OFF);
       }
       else if (eval == EBUSY) {
 	// This shouldn't happen, as we sit on top of a client and
@@ -292,28 +271,14 @@ implementation {
         // sending this packet again.	
 	dbg("Forwarder", "%s: subsend failed from EBUSY.\n", __FUNCTION__);
         // send a debug message to the uart
-        if (!debugSendBusy) {
-          memset(cdb, 0, sizeof(CollectionDebugMsg));
-          cdb->type = NET_C_FE_SUBSEND_BUSY;
-          debugSendBusy = (call DebugSend.send(0xffff, &debugMsg,
-            sizeof(CollectionDebugMsg)) == SUCCESS);
-        }
+        call CollectionDebug.logEvent(NET_C_FE_SUBSEND_BUSY);
       }
     }
   }
 
   void sendDoneBug() {
     // send a debug message to the uart
-    if (!debugSendBusy) {
-      memset(cdb, 0, sizeof(CollectionDebugMsg));
-      cdb->type = NET_C_FE_BAD_SENDDONE;
-      debugSendBusy = (call DebugSend.send(0xffff, &debugMsg,
-        sizeof(CollectionDebugMsg)) == SUCCESS);
-    }
-  }
-
-  event void DebugSend.sendDone(message_t *msg, error_t error) {
-    debugSendBusy = FALSE;
+    call CollectionDebug.logEvent(NET_C_FE_BAD_SENDDONE);
   }
 
   event void SubSend.sendDone(message_t* msg, error_t error) {
@@ -377,23 +342,13 @@ implementation {
     if (call MessagePool.empty()) {
       dbg("Route", "%s cannot forward, message pool empty.\n", __FUNCTION__);
       // send a debug message to the uart
-      if (!debugSendBusy) {
-        memset(cdb, 0, sizeof(CollectionDebugMsg));
-        cdb->type = NET_C_FE_MSG_POOL_EMPTY;
-        debugSendBusy = (call DebugSend.send(0xffff, &debugMsg,
-          sizeof(CollectionDebugMsg)) == SUCCESS);
-      }
+      call CollectionDebug.logEvent(NET_C_FE_MSG_POOL_EMPTY);
     }
     else if (call QEntryPool.empty()) {
       dbg("Route", "%s cannot forward, queue entry pool empty.\n", 
           __FUNCTION__);
       // send a debug message to the uart
-      if (!debugSendBusy) {
-        memset(cdb, 0, sizeof(CollectionDebugMsg));
-        cdb->type = NET_C_FE_QENTRY_POOL_EMPTY;
-        debugSendBusy = (call DebugSend.send(0xffff, &debugMsg,
-          sizeof(CollectionDebugMsg)) == SUCCESS);
-      }
+      call CollectionDebug.logEvent(NET_C_FE_QENTRY_POOL_EMPTY);
     }
     else {
       message_t* newMsg = call MessagePool.get();
@@ -418,12 +373,7 @@ implementation {
     }
 
     // send a debug message to the uart
-    if (!debugSendBusy) {
-      memset(cdb, 0, sizeof(CollectionDebugMsg));
-      cdb->type = NET_C_FE_SEND_QUEUE_FULL;
-      debugSendBusy = (call DebugSend.send(0xffff, &debugMsg,
-        sizeof(CollectionDebugMsg)) == SUCCESS);
-    }
+    call CollectionDebug.logEvent(NET_C_FE_SEND_QUEUE_FULL);
 
     // We'll have to drop the packet on the floor: not enough
     // resources available to forward.

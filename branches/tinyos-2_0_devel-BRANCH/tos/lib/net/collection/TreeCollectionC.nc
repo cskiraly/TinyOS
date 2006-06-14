@@ -54,7 +54,6 @@ implementation {
   components LinkEstimatorP as Estimator;
 
   components new AMSenderC(AM_COLLECTION_DATA);
-  components new SerialAMSenderC(AM_COLLECTION_DEBUG);
   components new AMReceiverC(AM_COLLECTION_DATA);
   components new AMSnooperC(AM_COLLECTION_DATA);
   
@@ -71,6 +70,7 @@ implementation {
   Router.RadioControl -> ActiveMessageC;
   Router.BeaconTimer -> RoutingBeaconTimer;
   Router.CollectionDebug = CollectionDebug;
+  Forwarder.CollectionDebug = CollectionDebug;
   TreeRoutingInspect = Router;
  
   components new TimerMilliC() as RetxmitTimer;
@@ -82,11 +82,9 @@ implementation {
 
   MainC.SoftwareInit -> Forwarder;
   Forwarder.SubSend -> AMSenderC;
-  Forwarder.DebugSend -> SerialAMSenderC;
   Forwarder.SubReceive -> AMReceiverC;
   Forwarder.SubSnoop -> AMSnooperC;
   Forwarder.SubPacket -> AMSenderC;
-  Forwarder.DebugPacket -> SerialAMSenderC;
   Forwarder.RootControl -> Router;
   Forwarder.UnicastNameFreeRouting -> Router.Routing;
   Forwarder.RadioControl -> ActiveMessageC;
