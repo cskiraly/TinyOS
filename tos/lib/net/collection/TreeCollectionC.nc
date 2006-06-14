@@ -15,7 +15,10 @@ configuration TreeCollectionC {
     interface TreeRoutingInspect;
   }
 
-  uses interface CollectionId[uint8_t client];
+  uses {
+    interface CollectionId[uint8_t client];
+    interface CollectionDebug;
+  }
 }
 
 implementation {
@@ -67,6 +70,7 @@ implementation {
   Router.AMPacket -> ActiveMessageC;
   Router.RadioControl -> ActiveMessageC;
   Router.BeaconTimer -> RoutingBeaconTimer;
+  Router.CollectionDebug = CollectionDebug;
   TreeRoutingInspect = Router;
  
   components new TimerMilliC() as RetxmitTimer;
