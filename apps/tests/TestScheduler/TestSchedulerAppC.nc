@@ -1,6 +1,6 @@
-// $Id: TestSchedulerAppC.nc,v 1.1.2.3 2006-02-04 01:10:33 philipb Exp $
+// $Id: TestSchedulerAppC.nc,v 1.1.2.4 2006-06-15 12:04:30 klueska Exp $
 
-/*									tab:4
+/*	
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -33,10 +33,12 @@
  * TestScheduler is a simple scheduler test that posts three CPU
  * intensive tasks of different durations. It is not intended to be
  * of great use to TinyOS programmers; rather, it is a sanity check
- * for schedulers.
+ * for schedulers. For details and information on how to
+ * replace the scheduler, refer to TEP 106.
  *
  * @author Philip Levis
  * @date Aug 10 2005
+ * @see TEP 106: Tasks and Schedulers
  */
 
 configuration TestSchedulerAppC {}

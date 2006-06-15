@@ -1,6 +1,4 @@
-// $Id: NullC.nc,v 1.1.2.4 2005-08-08 22:58:24 scipio Exp $
-
-/*									tab:4
+/*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -19,8 +17,9 @@
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
- *
- * Copyright (c) 2002-2003 Intel Corporation
+ */
+/*
+ * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -29,8 +28,14 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
-
+/**
+ * Null is an empty skeleton application.  It is useful to test that the
+ * build environment is functional in its most minimal sense, i.e., you
+ * can correctly compile an application.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ * @date February 4, 2006
+ */
 module NullC
 {
   uses interface Boot;
