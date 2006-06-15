@@ -627,7 +627,73 @@ implementation
 }
     </pre>
     
+    <p>Internal functions act just like C functions: they don't need the <tt>
+	call</tt> or <tt>signal</tt> keywords.</p>
 
+    <h1>Split-Phase Operations</h1>
+
+    <p>Because nesC interfaces are wired at compile time,
+      callbacks (events) in TinyOS are very efficient. In most
+      C-like languages, callbacks have to be registered at run-time
+      with a function pointer. This can prevent the compiler from
+      being able to optimize code across callback call paths. Since
+      they are wired statically in nesC, the compiler knows exactly
+      what functions are called where and can optimize heavily.</p>
+
+    <p>The ability to optimize across component boundaries is
+      very important in TinyOS, because it has no blocking operations.
+      Instead, every long-running operation is <b>split-phase</b>.
+      In a blocking system, when a program calls a long-running operation,
+      the call does not return until the operation is complete: the program
+      blocks. In a split-phase system, when a program calls a long-running
+      operation, the call returns immediately, and the called abstraction
+      issues a callback when it completes. This approach is called
+      split-phase because it splits invocation and completion into two
+      separate phases of execution. Here is a simple example of the
+      difference between the two:</p>
+
+<center>
+    <table>
+      <tr><td align=center>Blocking</td> <td align=center>Split-Phase</td></tr>
+      <tr>
+        <td valign=top>
+<pre>
+if (send() == SUCCESS) {
+  sendCount++;
+}
+</pre>
+</td>
+        <td valign=top>
+<pre>
+// start phase
+send(); 
+
+//completion phase
+void sendDone(error_t err) {
+  if (err == SUCCESS) {
+    sendCount++;
+  }
+}
+</pre>
+</td>
+      </tr>
+    </table>
+</center>
+
+    <p>Split-phase code is often a bit more verbose and complex than
+     sequential code. But 
+    <p>Split-phase interfaces enable a TinyOS component to easily start
+      several operations at once and have them execute in parallel.
+      Also, split-phase operations can save memory. This is because
+      when a program calls a blocking operation, all of the state it
+      has stored on the call stack (e.g., variables declared in functions)
+      have to be saved. As determining the exact size of the stack is
+      difficult, operating systems often choose a very conservative
+      and therefore large size.</p>
+
+    <p>Of course, if there is data that has to be kept across the 
+      call, split-phase operations still need to save it.
+      
 <a name=#related_docs>
 <h1>Related Documentation</h1>
 </a>

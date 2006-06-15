@@ -1,0 +1,154 @@
+<html>
+<head>
+    <title>Device Programming</title>
+</head>
+
+<body bgcolor="#f8f8ff" link="#005BB7" vlink="#005BB7">
+
+<table border=0 hspace=4 cellspacing=2 width="100%" cellpadding=3>
+<tr bgcolor="#e0e0ff">
+<td width="100%">
+<font face="tahoma,arial,helvetica"><b><big><big>
+Device Programm</big></big></b><font size="5"><b>ing</b></font><p>
+Last updated 03 Sep 2003
+</font>
+</td></tr>
+</table>
+
+    <p>
+    The TinyOS development environment includes features to ease programming 
+    devices.&nbsp; First, it directly supports a variety of device programmers, including:</p>
+
+    <ul>
+      <li>The MIB500 (Crossobw) or any other standard parallel-port programmer 
+      board.</li>
+      <li>The MIB510 (Crossbow's serial port based programming device)</li>
+      <li>The 
+      <a href="http://www.atmel.com/dyn/products/tools_card.asp?tool_id=2726">Atmel AVRISP</a></li>
+      <li>The
+      <a href="http://berkeley.intel-research.net/pbuonado/EPRB/index.html">
+      Ethernet PRogramming Board (EPRB)</a></li>
+</ul>
+
+    <p>
+    The second key feature permits programming each device with a unique address 
+    attribute without having to compile the application each time. </p>
+
+    <p>
+    This document describes how to use these features in TinyOS-1.1.</p>
+
+    <p>
+<table border=0 hspace=4 cellspacing=2 width="100%" cellpadding=3>
+<tr bgcolor="#e0e0ff">
+<td width="100%"><b><font face="arial,helvetica">Using Programmers</font></b></td>
+</tr></table>
+
+    <p>
+    The standard programming software used in TinyOS is the
+    <font face="Times New Roman">µ In-System Programmer or '<tt>uisp</tt>'.&nbsp; This 
+    program, which comes as a part of the TinyOS release, takes various 
+    arguments according to the programmer hardware and the particular 
+    programming action desired (erase, verify, program, etc..).&nbsp; To 
+    simplify using this tool, the TinyOS environment invokes uisp for you with 
+    the correct arguments whenever you issue an 'install' or 'reinstall'.&nbsp; 
+    You only need specify the type of device you are using and how to 
+    communicate with it.&nbsp; This is done using environment variables.</font></p>
+
+    <p>
+    <b><i>MIB500/Parallel Port Programmers</i></b></p>
+
+    <blockquote>
+
+    <p>
+    This is the default programmer device.&nbsp; No additional command line 
+    parameters need to be specified when using this programmer.</p>
+
+    </blockquote>
+
+    <p>
+    <b><i>MIB510</i></b></p>
+
+    <blockquote>
+
+    <p>
+    Define: <tt>MIB510=&lt;dev&gt; </tt> where &lt;dev&gt; is the name of the serial port where 
+    the device is attached (i.e. /dev/ttyS0).</p>
+
+    <p>
+    example: <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <tt>bash% MIB510=/dev/ttyS1 make install mica</tt></p>
+
+    </blockquote>
+
+    <p>
+    <b><i>AVRISP</i></b></p>
+
+    <blockquote>
+
+    <p>
+    Define: <tt>AVRISP=&lt;dev&gt;</tt> where &lt;dev&gt; is the name of the serial port where the 
+    device is attached (i.e. /dev/ttyS0).</p>
+
+    <p>
+    example: <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <tt>bash% AVRISP=/dev/ttyS1 make install mica</tt></p>
+
+    </blockquote>
+
+    <p>
+    <b><i>EPRB</i></b></p>
+
+    <blockquote>
+
+    <p>
+    Define: <tt>EPRB=&lt;host&gt;</tt> where &lt;host&gt; is the DNS name or IP address of the EPRB 
+    device.</p>
+
+    <p>
+    example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp; bash% <tt>EPRB=123.45.67.89 make install mica</tt></p>
+
+    </blockquote>
+
+    <p>
+    &nbsp;</p>
+
+    <p>
+    Note that the defining a default programmer can also be done from the
+    <a href="buildenv.html">Makelocal</a> file to eliminate having to retype it.</p>
+
+
+<table border=0 hspace=4 cellspacing=2 width="100%" cellpadding=3>
+<tr bgcolor="#e0e0ff">
+<td width="100%"><b><font face="arial,helvetica">Device Addressing</font></b></td>
+</tr></table>
+
+    <p>
+    The programming tools also include a method of programming unique node 
+    addresses without having to edit the TinyOS source code directly.&nbsp; To 
+    set the node address during program load, use the following install syntax:</p>
+
+<blockquote>
+
+    <p>
+    <tt>make [re]install.&lt;addr&gt; &lt;platform&gt; </tt></p>
+
+    <p>
+    where <tt>&lt;addr&gt;</tt> is the desired device address and <tt>&lt;platform&gt;</tt> is the 
+    target platform. Do not use the reserved values <tt>TOS_BCAST_ADDR 
+    (0xFFFF)</tt> or <tt>TOS_UART_ADDR (0x007E)</tt>. </p>
+
+    <p>
+    <tt>install</tt> - Compile the application for the target platform, set the address 
+    and program the device.</p>
+
+    <p>
+    <tt>reinstall</tt> - Set the address and program the device ONLY (does not 
+    recompile). This option is significantly faster. </p>
+
+</blockquote>
+
+
+<hr>
+<b><a href="index.html"> Tutorial Index </a></b></body>
+</html>
