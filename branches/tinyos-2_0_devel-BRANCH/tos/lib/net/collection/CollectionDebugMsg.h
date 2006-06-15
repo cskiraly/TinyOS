@@ -22,6 +22,8 @@ enum {
     NET_C_TREE_NO_ROUTE   = 0x30,   //:        :no args
     NET_C_TREE_NEW_PARENT = 0x31,   //:        :parent_id, hopcount, metric
     NET_C_TREE_ROUTE_INFO = 0x32,   //:periodic:parent_id, hopcount, metric
+    NET_C_TREE_SENT_BEACON = 0x33,
+    NET_C_TREE_RCV_BEACON = 0x34,
 
     NET_C_DBG_1 = 0x40,             //:any     :uint16_t a
     NET_C_DBG_2 = 0x41,             //:any     :uint16_t a, b, c
