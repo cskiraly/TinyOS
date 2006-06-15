@@ -31,17 +31,19 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-15 16:40:29 $
+ * @version $Revision: 1.1.2.1.4.1 $ $Date: 2006-06-15 19:27:51 $
  */
 
 
 generic module Msp430SpiNoDmaP() {
-  
+
   provides interface Resource[ uint8_t id ];
+  provides interface ResourceConfigure[ uint8_t id ];
   provides interface SpiByte;
   provides interface SpiPacket[ uint8_t id ];
-  
+
   uses interface Resource as UsartResource[ uint8_t id ];
+  uses interface Msp430SpiConfigure[ uint8_t id ];
   uses interface HplMsp430Usart as Usart;
   uses interface HplMsp430UsartInterrupts as UsartInterrupts;
   uses interface Leds;
@@ -49,41 +51,44 @@ generic module Msp430SpiNoDmaP() {
 }
 
 implementation {
-  
+
   enum {
     SPI_ATOMIC_SIZE = 2,
   };
-  
+
   norace uint8_t* m_tx_buf;
   norace uint8_t* m_rx_buf;
   norace uint16_t m_len;
   norace uint16_t m_pos;
   norace uint8_t m_client;
-  
+
   void signalDone();
   task void signalDone_task();
 
   async command error_t Resource.immediateRequest[ uint8_t id ]() {
-    error_t result = call UsartResource.immediateRequest[ id ]();
-    if ( result == SUCCESS )
-      call Usart.setModeSPI();
-    return result;
+    return call UsartResource.immediateRequest[ id ]();
   }
-  
+
   async command error_t Resource.request[ uint8_t id ]() {
     return call UsartResource.request[ id ]();
   }
-  
+
   async command uint8_t Resource.isOwner[ uint8_t id ]() {
     return call UsartResource.isOwner[ id ]();
   }
-  
+
   async command void Resource.release[ uint8_t id ]() {
     call UsartResource.release[ id ]();
   }
 
+  async command void ResourceConfigure.configure[ uint8_t id ]() {
+    call Usart.setModeSpi(call Msp430SpiConfigure.getConfig[id]());
+  }
+
+  async command void ResourceConfigure.unconfigure[ uint8_t id ]() {
+  }
+
   event void UsartResource.granted[ uint8_t id ]() {
-    call Usart.setModeSPI();
     signal Resource.granted[ id ]();
   }
 
@@ -96,8 +101,12 @@ implementation {
   }
 
   default async command error_t UsartResource.request[ uint8_t id ]() { return FAIL; }
-  default async command error_t UsartResource.immediateRequest[ uint8_t id ]() { return FAIL; }  
-  default async command void UsartResource.release[ uint8_t id ]() {}  
+  default async command error_t UsartResource.immediateRequest[ uint8_t id ]() { return FAIL; }
+  default async command void UsartResource.release[ uint8_t id ]() {}
+  default async command msp430_spi_config_t Msp430SpiConfigure.getConfig[uint8_t id]() {
+    return msp430_spi_default_config;
+  }
+
   default event void Resource.granted[ uint8_t id ]() {}
 
   void continueOp() {
@@ -127,7 +136,7 @@ implementation {
   async command error_t SpiPacket.send[ uint8_t id ]( uint8_t* tx_buf,
                                                       uint8_t* rx_buf,
                                                       uint16_t len ) {
-    
+
     m_client = id;
     m_tx_buf = tx_buf;
     m_rx_buf = rx_buf;
@@ -151,7 +160,7 @@ implementation {
   }
 
   async event void UsartInterrupts.rxDone( uint8_t data ) {
-    
+
     if ( m_rx_buf )
       m_rx_buf[ m_pos-1 ] = data;
 
@@ -164,7 +173,7 @@ implementation {
   }
 
   void signalDone() {
-    signal SpiPacket.sendDone[ m_client ]( m_tx_buf, m_rx_buf, m_len, 
+    signal SpiPacket.sendDone[ m_client ]( m_tx_buf, m_rx_buf, m_len,
 					   SUCCESS );
   }
 
