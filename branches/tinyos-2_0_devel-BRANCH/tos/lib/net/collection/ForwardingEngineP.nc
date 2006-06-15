@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.20 2006-06-15 17:12:44 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.21 2006-06-15 17:20:08 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-15 17:12:44 $
+ *  @date   $Date: 2006-06-15 17:20:08 $
  */
 
 #include <ForwardingEngine.h>
@@ -150,7 +150,7 @@ implementation {
     fe_queue_entry_t *qe;
     dbg("Forwarder", "%s: sending packet from client %hhu: %x, len %hhu\n", __FUNCTION__, client, msg, len);
     if (!running) {return EOFF;}
-    if (len > call Send.maxPayloadLength) {return ESIZE;}
+    if (len > call Send.maxPayloadLength[client]()) {return ESIZE;}
     
     call Packet.setPayloadLength(msg, len);
     hdr = getHeader(msg);
