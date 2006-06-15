@@ -1,4 +1,4 @@
-/* -*- mode:c++; indent-tabs-mode:nil -*- 
+/* 
  * Copyright (c) 2006, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -39,33 +39,40 @@
 configuration CsmaMacC {
   provides {
     interface SplitControl;
-    interface MacSend;
-    interface MacReceive;
+    interface Send;
+    interface Receive;
+    interface ChannelMonitorData;
   }
   uses {
-    interface PhySend as PacketSend;
-    interface PhyReceive as PacketReceive;
+    interface AsyncSend as PacketSend;
+    interface Receive as PacketReceive;
         
+    interface Packet;
+    interface PhyPacketRx;
+    //FIXME: RadioModes machen... :)
     interface Tda5250Control;  
-    interface UartPhyControl;
   }
 }
 implementation {
-  components  MainC,
-      CsmaMacP,
-      RssiFixedThresholdCMC as Cca,
-      new Alarm32khzC() as Timer,
-      RandomLfsrC,
-      PlatformLedsC;
-              
+  components  CsmaMacP,
+              RssiFixedThresholdCMC as Cca,
+              new TimerMilliC() as MinClearTimer,
+              new TimerMilliC() as RxPacketTimer,
+              new TimerMilliC() as BackoffTimer,
+              MainC,
+              RandomLfsrC;
+
     MainC.SoftwareInit -> CsmaMacP;
               
     SplitControl = CsmaMacP;
     
-    MacSend = CsmaMacP;
-    MacReceive = CsmaMacP;
+    Send = CsmaMacP;
+    Receive = CsmaMacP;
     Tda5250Control = CsmaMacP;
-    UartPhyControl = CsmaMacP;
+    ChannelMonitorData = Cca.ChannelMonitorData;
+
+    PhyPacketRx = CsmaMacP;
+    Packet = CsmaMacP;
     
     CsmaMacP = PacketSend;
     CsmaMacP = PacketReceive;
@@ -76,10 +83,8 @@ implementation {
     CsmaMacP.ChannelMonitorControl -> Cca.ChannelMonitorControl;
     CsmaMacP.Random -> RandomLfsrC;
 
-    CsmaMacP.Timer -> Timer;
-    CsmaMacP.Led0 -> PlatformLedsC.Led0;
-    CsmaMacP.Led1 -> PlatformLedsC.Led1;
-    CsmaMacP.Led2 -> PlatformLedsC.Led2;
-    CsmaMacP.Led3 -> PlatformLedsC.Led3;
+    CsmaMacP.MinClearTimer -> MinClearTimer;    
+    CsmaMacP.RxPacketTimer -> RxPacketTimer;    
+    CsmaMacP.BackoffTimer -> BackoffTimer;    
 }
 
