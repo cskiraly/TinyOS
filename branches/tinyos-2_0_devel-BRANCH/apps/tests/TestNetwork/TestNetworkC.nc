@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.10 $ $Date: 2006-06-15 02:11:53 $
+ * @version $Revision: 1.1.2.11 $ $Date: 2006-06-15 17:21:46 $
  */
 
 #include <Timer.h>
@@ -71,7 +71,7 @@ implementation {
       signal ReadSensor.readDone(SUCCESS, 0);
       return;
     }
-    dbg("TestNetworkC", "TestDisseminationC: Timer fired.\n");
+    //dbg("TestNetworkC", "TestDisseminationC: Timer fired.\n");
     busy = TRUE;
   }
 
@@ -127,7 +127,7 @@ implementation {
 
   event message_t* 
   Receive.receive(message_t* msg, void* payload, uint8_t len) {
-    dbg("TestNetworkC,Traffic,Route", "Received packet at %s from node %hhu.\n", sim_time_string(), call CollectionPacket.getOrigin(msg));
+    dbg("TestNetworkC", "Received packet at %s from node %hhu.\n", sim_time_string(), call CollectionPacket.getOrigin(msg));
     call Leds.led1Toggle();    
     if (!uartbusy) {
       message_t* tmp = recvPtr;
