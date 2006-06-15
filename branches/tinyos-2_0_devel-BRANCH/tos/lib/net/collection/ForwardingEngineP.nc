@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.19 2006-06-15 16:44:46 rfonseca76 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.20 2006-06-15 17:12:44 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-15 16:44:46 $
+ *  @date   $Date: 2006-06-15 17:12:44 $
  */
 
 #include <ForwardingEngine.h>
@@ -150,6 +150,7 @@ implementation {
     fe_queue_entry_t *qe;
     dbg("Forwarder", "%s: sending packet from client %hhu: %x, len %hhu\n", __FUNCTION__, client, msg, len);
     if (!running) {return EOFF;}
+    if (len > call Send.maxPayloadLength) {return ESIZE;}
     
     call Packet.setPayloadLength(msg, len);
     hdr = getHeader(msg);
@@ -273,6 +274,12 @@ implementation {
         // send a debug message to the uart
         call CollectionDebug.logEvent(NET_C_FE_SUBSEND_BUSY);
       }
+      else if (eval == ESIZE) {
+	dbg("Forwarder", "%s: subsend failed from ESIZE: truncate packet.\n", __FUNCTION__);
+	call Packet.setPayloadLength(qe->msg, call Packet.maxPayloadLength());
+	post sendTask();
+	call CollectionDebug.logEvent(NET_C_FE_SUBSEND_SIZE);
+      }
     }
   }
 
@@ -384,9 +391,11 @@ implementation {
     uint8_t netlen;
     collection_id_t collectid;
     collectid = hdr->collectid;
-
+    if (len > call SubSend.maxPayloadLength()) {
+      return msg;
+    }
     // If I'm the root, signal receive. 
-    if (call RootControl.isRoot())
+    else if (call RootControl.isRoot())
       return signal Receive.receive[collectid](msg, 
                         call Packet.getPayload(msg, &netlen), 
                         call Packet.payloadLength(msg));
