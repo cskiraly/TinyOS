@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.9 $ $Date: 2006-06-14 21:52:38 $
+ * @version $Revision: 1.1.2.10 $ $Date: 2006-06-15 17:21:45 $
  */
 #include "TestNetwork.h"
 #include "Collection.h"
@@ -24,6 +24,7 @@ implementation {
   components SerialActiveMessageC;
   components new SerialAMSenderC(AM_COLLECTION_DEBUG) as UARTSender;
   components UARTDebugSenderP as DebugSender;
+  components RandomC;
 
   TestNetworkC.Boot -> MainC;
   TestNetworkC.RadioControl -> ActiveMessageC;
@@ -39,6 +40,7 @@ implementation {
   TestNetworkC.UARTSend -> SerialAMSenderC.AMSend;
   TestNetworkC.CollectionPacket -> Collector;
   TestNetworkC.TreeRoutingInspect -> Collector;
+  TestNetworkC.Random -> RandomC;
 
   DebugSender.Boot -> MainC;
   DebugSender.UARTSend -> UARTSender;
