@@ -1,4 +1,4 @@
-/* $Id: QueueC.nc,v 1.1.2.4 2006-06-07 23:39:03 scipio Exp $ */
+/* $Id: QueueC.nc,v 1.1.2.5 2006-06-15 17:22:57 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-07 23:39:03 $
+ *  @date   $Date: 2006-06-15 17:22:57 $
  */
 
    
@@ -56,6 +56,7 @@ implementation {
   }
 
   void printQueue() {
+#ifdef TOSSIM
     int i, j;
     dbg("QueueC", "head <-");
     for (i = head; i < head + size; i++) {
@@ -67,6 +68,7 @@ implementation {
       dbg_clear("QueueC", "] ");
     }
     dbg_clear("QueueC", "<- tail\n");
+#endif
   }
   
   command queue_t Queue.dequeue() {
