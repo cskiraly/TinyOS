@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.9 $ $Date: 2006-06-14 14:38:37 $
+ * @version $Revision: 1.1.2.10 $ $Date: 2006-06-15 02:11:53 $
  */
 
 #include <Timer.h>
@@ -28,6 +28,7 @@ module TestNetworkC {
   uses interface AMSend as UARTSend;
   uses interface CollectionPacket;
   uses interface TreeRoutingInspect;
+  uses interface Random;
 }
 implementation {
   task void uartEchoTask();
@@ -36,6 +37,7 @@ implementation {
   message_t* recvPtr = &uartpacket;
   uint8_t msglen;
   bool busy = FALSE, uartbusy = FALSE;
+  bool firstTimer = TRUE;
   
   event void Boot.booted() {
     call SerialControl.start();
@@ -52,7 +54,7 @@ implementation {
       if (TOS_NODE_ID % 500 == 0) {
 	call RootControl.setRoot();
       }
-      call Timer.startPeriodic(1024);
+      call Timer.startOneShot(call Random.rand16() & 0x7FFF);
     }
   }
 
@@ -61,6 +63,10 @@ implementation {
   
   event void Timer.fired() {
     call Leds.led0Toggle();
+    if (firstTimer) {
+      firstTimer = FALSE;
+      call Timer.startPeriodic(1024);
+    }
     if (busy || call ReadSensor.read() != SUCCESS) {
       signal ReadSensor.readDone(SUCCESS, 0);
       return;
