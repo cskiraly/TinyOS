@@ -34,8 +34,8 @@
  * @author Philip Levis
  */
 
-#ifndef _I2C_FLAGS_H
-#define _I2C_FLAGS_H
+#ifndef _I2C_H
+#define _I2C_H
 
 typedef struct { } TI2CExtdAddr;
 typedef struct { } TI2CBasicAddr;
@@ -49,4 +49,4 @@ enum {
 };
 
 
-#endif /* _I2C_FLAGS_H */
+#endif /* _I2C_H */
