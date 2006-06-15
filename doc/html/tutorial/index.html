@@ -7,60 +7,69 @@
 
 <body>
 
-<div class="title">TinyOS Tutorial </div>
-<div class="subtitle">Last updated 18 May 2006</div>
+      <div class="title">TinyOS 2.0 Tutorials </div>
+      <div class="subtitle">Last updated 14 Jun 2006</div>
 
-<h2><a href="lesson1.html">Lesson 1: TinyOS Component Model</a></h2>
 
-<dd>Lesson 1 introduces the major concepts of the TinyOS Component
-model: components, configurations, interfaces, commands,
-events. There is an exercise which shows how to compile an existing sample application.
-</dd>
+      These brief tutorials are intended to get you started with TinyOS. They show
+      you the basics of writing, compiling, and installing TinyOS applications.
+      They introduce the basic TinyOS abstractions: computation, communication,
+      sensing, and storage. The later tutorials go a little deeper into some of
+      the more advanced areas of TinyOS, such as handling interrupts,
+      power management, and how platforms are organized. For the beta2 release,
+      only tutorials 1-5 are ready.
+      
+      <h1><a href="lesson1.html">Lesson 1: TinyOS</a></h1>
+      
+      <dd>Lesson 1 introduces the major concepts of TinyOS: components, modules,
+	configurations and interfaces. It shows you how to compile and install
+	a TinyOS program on a mote.
+      </dd>
 
-<h2><a href="lesson2.html">Lesson 2: Modules and the TinyOS Execution Model</a></h2>
+      <h1><a href="lesson2.html">Lesson 2: Modules and the TinyOS Execution Model</a></h1>
+      
+      <dd>Lesson 2 explains the TinyOS execution model, looking more closely
+	at modules. It explains events, commands and their relationships to
+	interfaces in greater depth, introducing split-phase operations.
+	It explains tasks, the basic mechanism in TinyOS for components to
+	cooperatively share the processor.
+      </dd>
 
-<dd>Lesson 2 explains the TinyOS execution model: events
-and commands are revisited in the execution context, tasks are introduced.
-With that knowledge, modules are revisited explained. Split-phase
-operations are described and discussed.
-There is an exercise that modifies the sample application to use a task. 
-</dd>
+      <h1><a href="lesson3.html">Lesson 3: Communications</a></h1>
+      
+      <dd> Lesson 3 introduces the TinyOS communication model. There is an exercise that
+	illustrates sending and receiving messages.
+      </dd>
 
-<h2><a href="lesson3.html">Lesson 3: Communications</a></h2>
+      <h1><a href="lesson4.html">Lesson 4: Sensing</a></h1>
+      
+      <dd>Lesson 4 explains how to sample sensors in TinyOS. There is an exercise that
+	periodically samples a sensor and displays the value on the leds. 
+      </dd>
 
-<dd> Lesson 3 introduces the TinyOS communication model. There is an exercise that
-illustrates sending and receiving messages.
-</dd>
+      <h1><a href="lesson5.html">Lesson 5: Boot Sequence</a></h1>
+      
+      <dd>Lesson 5 details the boot sequence and, in doing so, answers the question, "But where is main()?".
+      </dd>
 
-<h2><a href="lesson4.html">Lesson 4: Sensing</a></h2>
+      <h1><ax href="lesson6.html">Lesson 6: Storage</a></h1>
+      
+      <dd> Lesson 6 introduces the TinyOS model model. A sample
+	application illustrates storing data.
+      </dd>
+      
+      <h1><ax href="lesson7.html">Lesson 7: Power Management</a></h1>
 
-<dd>Lesson 4 explains how sensors are sampled in TinyOS. There is an exercise that periodically samples
-a sensor and displays the value on the leds. 
-</dd>
+      <dd> Lesson 7 introduces the TinyOS power management model. There is an exercise that 
+	illustrates how to turn components on and off.
+      </dd>
 
-<h2><a href="lesson5.html">Lesson 5: Boot Sequence</a></h2>
-
-<dd>Lesson 5 details the boot sequence and, in doing so, answers the question, "But where is main()?".
-</dd>
-
-<h2><a href="lesson6.html">Lesson 6: Storage</a></h2>
-
-<dd> Lesson 6 introduces the TinyOS model model. A sample
-application illustrates storing data.
-</dd>
-
-<h2><a href="lesson7.html">Lesson 7: Power Management</a></h2>
-
-<dd> Lesson 7 introduces the TinyOS power management model. There is an exercise that 
-illustrates how to turn components on and off.
-</dd>
-
-<h2><a href="lesson8.html">Lesson 8: Concurrency</a></h2>
+<h1><ax href="lesson8.html">Lesson 8: Concurrency</a></h1>
 
 <dd> Lesson 8 introduces the TinyOS concurrency model. Tasks are revisited and async code is introduced. 
 </dd>
 
-<h2><a href="lesson9.html">Lesson 9: Platforms</a></h2>
+<h1><ax href="lesson9.html">Lesson 9: Platforms</a></h1>
 
 <dd>
   - chips vs. platforms
@@ -68,10 +77,12 @@ illustrates how to turn components on and off.
   - Sensorboards
 </dd>
 
-<h2><a href="lesson10.html">Lesson 10: TOSSIM</a></h2>
+<h1><a href="lesson10.html">Lesson 10: TOSSIM</a></h1>
 
-<dd> Lesson 5 introduces the TinyOS communication model. A sample
-application illustrates sending and receiving messages.
+<dd> Lesson 10 introduces TOSSIM, a TinyOS simulator. TOSSIM allows
+	you to compile your TinyOS applications into a simulation
+	framework, where you can perform reproducible tests and debug
+	your code with standard development tools.
 </dd>
 
 </body>

@@ -72,13 +72,87 @@ msp430-objcopy --output-target=ihex build/telosb/main.exe build/telosb/main.ihex
 	as building TOSSIM requires several steps, such as building shared
 	libraries and scripting support.</p>
 
+      <h2>Making sure you're invoking the right version of the nesC compiler</h2>
+
+      <p>If you see an error message along the lines of this:</p>
+
+<pre>
+BlinkAppC.nc:46: syntax error before `new'
+make: *** [exe0] Error 1
+</pre>
+
+      <p>Then you are invoking an older version of the nesc compiler. 
+         Check by typing <tt>ncc --version</tt>. You should see:</p>
+
+<pre>
+ncc: 1.2.1
+nescc: 1.2.6
+</pre>
+
+   
+      <p>Followed by some information on what version of the C compiler
+      is being used. If you see different versions than those above,
+      your compilation problems are most probably due to the fact that
+      make is invoking the wrong version. This can easily happen if 
+      you are upgrading from TinyOS 1.x.</p>
+
+      <p><tt>ncc</tt> is a script that invokes the full compiler, 
+      <tt>nescc</tt>. It lives in <tt>tinyos-2.x/tools/tinyos/ncc</tt>.
+      If you've installed from an RPM, then the RPM put the new
+      version of <tt>ncc</tt> in <tt>/usr/bin</tt>. You can see which
+      version make is invoking by typing <tt>which ncc</tt>:
+
+<pre>
+$ which ncc
+/usr/local/bin/ncc
+$ /usr/local/bin/ncc --version
+Unknown target mica
+Known targets for TinyOS directory /opt/tinyos-2.x/tos
+and the specified include directories are:
+none.
+</pre>
+
+      <p>In this case, the version of ncc is so old that it doesn't even
+      respond to the <tt>--version</tt> flag. In contrast,</p>
+
+<pre>
+$ /usr/bin/ncc --version
+ncc: 1.2.1
+nescc: 1.2.5
+</pre>
+
+      <p>The best solution to this problem is to move the old ncc to
+      a different name (keep in around in case you need to go back
+      to your old setup):</p>
+
+<pre>
+$ mv /usr/local/bin/ncc /usr/local/bin/ncc.old
+$ which ncc
+/usr/bin/ncc
+</pre>      
+
+      <p>You can apply the same process for <tt>nescc</tt>:</p>
+
+<pre>
+$ nescc --version
+ncc: 1.1.2
+$ which nescc
+/usr/local/bin/nescc
+$ /usr/bin/nescc --version
+nescc: 1.2.5
+$ mv /usr/local/bin/nescc /usr/local/bin/nescc.old
+$ which nescc
+/usr/bin/nescc
+</pre>
+      
       <h2>Installing on a mica-family mote (micaz, mica2)</h2>
       
       <p>Now that we've compiled the application it's time to program the
-	mote and run it. This example will use the Mica mote and the
+	mote and run it. This example will use a Mica mote and the
 	parallel-port-based programming board (<span
 	  style="font-family: monospace;">mib500</span>). Instructions on how to
-	use other programming boards and telosb motes are <a href="programmers.html">here</a>.
+	use other programming boards are <a href="programmers.html">here</a>,
+	  and instructions for telos motes are <A href="#telos">here</a>
 	To download your program onto the mote, place the mote board (or mote
 	and sensor stack) into the bay on the programming board, as shown
 	below. You can either supply a 3 volt supply to the connector on the
@@ -141,8 +215,9 @@ Fuse Extended Byte set to 0xff
 rm -f build/micaz/main.exe.out build/micaz/main.srec.out 
       </pre>
 
-      <h2>Installing on telos-family mote (telosa, telosb)</h2>
 
+	<A name="#telos"><h2>Installing on telos-family mote (telosa, telosb)</h2></A>
+	
       <p>Because Telos motes are USB devices, they register with
          your OS when you plug them in. Typing <code>motelist</code>
          will display which nodes are currently plugged in:</p>
