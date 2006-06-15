@@ -58,10 +58,10 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  * @author Joe Polastre
- * @version $Revision: 1.1.2.5 $ $Date: 2006-03-15 16:40:29 $
+ * @version $Revision: 1.1.2.5.4.1 $ $Date: 2006-06-15 19:27:51 $
  */
 
-#include "msp430UsartResource.h"
+#include "Msp430Usart.h"
 
 configuration HplMsp430Usart0C {
 
@@ -72,18 +72,18 @@ configuration HplMsp430Usart0C {
 }
 
 implementation {
-  
+
   components HplMsp430Usart0P as HplUsartP;
   components HplMsp430GeneralIOC as GIO;
-  
+
   AsyncStdControl = HplUsartP;
   HplMsp430Usart = HplUsartP;
   HplMsp430UsartInterrupts = HplUsartP;
-  
+
   HplUsartP.SIMO -> GIO.SIMO0;
   HplUsartP.SOMI -> GIO.SOMI0;
   HplUsartP.UCLK -> GIO.UCLK0;
   HplUsartP.URXD -> GIO.URXD0;
   HplUsartP.UTXD -> GIO.UTXD0;
-  
+
 }

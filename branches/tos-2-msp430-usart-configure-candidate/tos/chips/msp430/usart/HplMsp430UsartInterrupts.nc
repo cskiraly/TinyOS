@@ -35,10 +35,10 @@
  *
  * @author Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author Joe Polastre
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-15 16:40:29 $
+ * @version $Revision: 1.1.2.1.4.1 $ $Date: 2006-06-15 19:27:51 $
  */
  
-#include "msp430usart.h"
+#include "Msp430Usart.h"
 
 interface HplMsp430UsartInterrupts {
 

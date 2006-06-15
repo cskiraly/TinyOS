@@ -30,42 +30,42 @@
  */
 
 /**
+ * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.2.4.1 $ $Date: 2006-06-15 19:27:51 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-06-15 19:27:52 $
  */
 
-configuration Msp430SpiDma0P {
+configuration Msp430UsartShare1P {
 
+  provides interface HplMsp430UsartInterrupts as Interrupts[ uint8_t id ];
   provides interface Resource[ uint8_t id ];
-  provides interface ResourceControl [uint8_t id];
-  provides interface SpiByte;
-  provides interface SpiPacket[ uint8_t id ];
+  provides interface ArbiterInfo;
 
-  uses interface Resource as UsartResource[ uint8_t id ];
-  uses interface Msp430SpiConfigure[ uint8_t id ];
-  uses interface HplMsp430UsartInterrupts as UsartInterrupts;
+  uses interface ResourceConfigure[ uint8_t id ];
 
 }
 
 implementation {
 
-  components new Msp430SpiDmaP() as SpiP;
-  Resource = SpiP.Resource;
-  ResourceControl = SpiP.ResourceControl;
-  Msp430SpiConfigure = SpiP.Msp430SpiConfigure;
-  SpiByte = SpiP.SpiByte;
-  SpiPacket = SpiP.SpiPacket;
-  UsartResource = SpiP.UsartResource;
-  UsartInterrupts = SpiP.UsartInterrupts;
+  components new Msp430UsartShareP() as UsartShareP;
+  Interrupts = UsartShareP;
+  UsartShareP.RawInterrupts -> UsartC;
 
-  components HplMsp430Usart0C as UsartC;
-  SpiP.Usart -> UsartC;
+  components new FcfsArbiterC( MSP430_HPLUSART1_RESOURCE ) as ArbiterC;
+  Resource = ArbiterC;
+  ResourceConfigure = ArbiterC;
+  ArbiterInfo = ArbiterC;
+  UsartShareP.ArbiterInfo -> ArbiterC;
 
-  components Msp430DmaC as DmaC;
-  SpiP.DmaChannel1 -> DmaC.Channel1;
-  SpiP.DmaChannel2 -> DmaC.Channel2;
+  components new AsyncStdControlPowerManagerC() as PowerManagerC;
+  PowerManagerC.ArbiterInit -> ArbiterC;
+  PowerManagerC.ResourceController -> ArbiterC;
 
-  components LedsC as Leds;
-  SpiP.Leds -> Leds;
+  components HplMsp430Usart1C as UsartC;
+  PowerManagerC.AsyncStdControl -> UsartC;
+
+  components MainC;
+  MainC.SoftwareInit -> ArbiterC;
+  MainC.SoftwareInit -> PowerManagerC;
 
 }

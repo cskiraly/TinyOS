@@ -31,10 +31,10 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.2.4.1 $ $Date: 2006-06-15 19:27:51 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-06-15 19:27:51 $
  */
 
-configuration Msp430SpiDma0P {
+configuration Msp430SpiDma1P {
 
   provides interface Resource[ uint8_t id ];
   provides interface ResourceControl [uint8_t id];
@@ -58,7 +58,7 @@ implementation {
   UsartResource = SpiP.UsartResource;
   UsartInterrupts = SpiP.UsartInterrupts;
 
-  components HplMsp430Usart0C as UsartC;
+  components HplMsp430Usart1C as UsartC;
   SpiP.Usart -> UsartC;
 
   components Msp430DmaC as DmaC;

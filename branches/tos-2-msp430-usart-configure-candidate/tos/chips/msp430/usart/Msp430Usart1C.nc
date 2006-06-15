@@ -30,42 +30,37 @@
  */
 
 /**
+ * Provides an interface for USART1 on the MSP430.
+ *
+ * @author Vlado Handziski <handisk@tkn.tu-berlin.de>
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.2.4.1 $ $Date: 2006-06-15 19:27:51 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-06-15 19:27:52 $
  */
 
-configuration Msp430SpiDma0P {
+generic configuration Msp430Usart1C() {
 
-  provides interface Resource[ uint8_t id ];
-  provides interface ResourceControl [uint8_t id];
-  provides interface SpiByte;
-  provides interface SpiPacket[ uint8_t id ];
+  provides interface Resource;
+  provides interface ArbiterInfo;
+  provides interface HplMsp430Usart;
+  provides interface HplMsp430UsartInterrupts;
 
-  uses interface Resource as UsartResource[ uint8_t id ];
-  uses interface Msp430SpiConfigure[ uint8_t id ];
-  uses interface HplMsp430UsartInterrupts as UsartInterrupts;
-
+  uses interface ResourceConfigure;
 }
 
 implementation {
 
-  components new Msp430SpiDmaP() as SpiP;
-  Resource = SpiP.Resource;
-  ResourceControl = SpiP.ResourceControl;
-  Msp430SpiConfigure = SpiP.Msp430SpiConfigure;
-  SpiByte = SpiP.SpiByte;
-  SpiPacket = SpiP.SpiPacket;
-  UsartResource = SpiP.UsartResource;
-  UsartInterrupts = SpiP.UsartInterrupts;
+  enum {
+    CLIENT_ID = unique( MSP430_HPLUSART1_RESOURCE ),
+  };
 
-  components HplMsp430Usart0C as UsartC;
-  SpiP.Usart -> UsartC;
+  components Msp430UsartShare1P as UsartShareP;
 
-  components Msp430DmaC as DmaC;
-  SpiP.DmaChannel1 -> DmaC.Channel1;
-  SpiP.DmaChannel2 -> DmaC.Channel2;
+  Resource = UsartShareP.Resource[ CLIENT_ID ];
+  ResourceConfigure = UsartShareP.ResourceConfigure[ CLIENT_ID ];
+  ArbiterInfo = UsartShareP.ArbiterInfo;
+  HplMsp430UsartInterrupts = UsartShareP.Interrupts[ CLIENT_ID ];
 
-  components LedsC as Leds;
-  SpiP.Leds -> Leds;
+  components HplMsp430Usart1C as UsartC;
+  HplMsp430Usart = UsartC;
 
 }

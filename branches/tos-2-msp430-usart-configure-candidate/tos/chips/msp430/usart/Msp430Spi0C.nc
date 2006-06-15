@@ -36,32 +36,35 @@
  * place of Msp430SpiNoDma0P.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.7 $ $Date: 2006-04-05 18:46:23 $
+ * @version $Revision: 1.1.2.7.4.1 $ $Date: 2006-06-15 19:27:51 $
  */
 
-#include "msp430UsartResource.h"
+#include "Msp430Usart.h"
 
 generic configuration Msp430Spi0C() {
-  
+
   provides interface Resource;
   provides interface SpiByte;
   provides interface SpiPacket;
-  
+
+  uses interface Msp430SpiConfigure;
 }
 
 implementation {
-  
+
   enum {
     CLIENT_ID = unique( MSP430_SPIO_BUS ),
   };
-  
+
   components Msp430SpiNoDma0P as SpiP;
   Resource = SpiP.Resource[ CLIENT_ID ];
   SpiByte = SpiP.SpiByte;
   SpiPacket = SpiP.SpiPacket[ CLIENT_ID ];
+  Msp430SpiConfigure = SpiP.Msp430SpiConfigure[ CLIENT_ID ];
 
   components new Msp430Usart0C() as UsartC;
+  SpiP.ResourceConfigure[ CLIENT_ID ] <- UsartC.ResourceConfigure;
   SpiP.UsartResource[ CLIENT_ID ] -> UsartC.Resource;
   SpiP.UsartInterrupts -> UsartC.HplMsp430UsartInterrupts;
-  
+
 }

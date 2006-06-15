@@ -31,35 +31,37 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-04-05 18:44:55 $
+ * @version $Revision: 1.1.2.2.4.1 $ $Date: 2006-06-15 19:27:52 $
  */
 
 configuration Msp430UsartShare0P {
-  
+
   provides interface HplMsp430UsartInterrupts as Interrupts[ uint8_t id ];
   provides interface Resource[ uint8_t id ];
   provides interface ArbiterInfo;
-  
+
+  uses interface ResourceConfigure[ uint8_t id ];
 }
 
 implementation {
-  
+
   components new Msp430UsartShareP() as UsartShareP;
   Interrupts = UsartShareP;
   UsartShareP.RawInterrupts -> UsartC;
-  
+
   components new FcfsArbiterC( MSP430_HPLUSART0_RESOURCE ) as ArbiterC;
   Resource = ArbiterC;
+  ResourceConfigure = ArbiterC;
   ArbiterInfo = ArbiterC;
   UsartShareP.ArbiterInfo -> ArbiterC;
-  
+
   components new AsyncStdControlPowerManagerC() as PowerManagerC;
   PowerManagerC.ArbiterInit -> ArbiterC;
   PowerManagerC.ResourceController -> ArbiterC;
-  
+
   components HplMsp430Usart0C as UsartC;
   PowerManagerC.AsyncStdControl -> UsartC;
-  
+
   components MainC;
   MainC.SoftwareInit -> ArbiterC;
   MainC.SoftwareInit -> PowerManagerC;
