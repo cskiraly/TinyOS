@@ -1,4 +1,4 @@
-// $Id: SerialP.nc,v 1.1.2.10 2006-06-15 06:03:50 bengreenstein Exp $
+// $Id: SerialP.nc,v 1.1.2.11 2006-06-16 18:09:07 bengreenstein Exp $
 /*									
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
@@ -35,7 +35,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.10 $
+ * Revision: $Revision: 1.1.2.11 $
  * 
  */
 
@@ -670,20 +670,22 @@ implementation {
         
       case TXSTATE_INFO:
         atomic {
-          uint8_t nextByte;
-
           txResult = call SerialFrameComm.putData(txBuf[txIndex].buf);
           txCRC = crcByte(txCRC,txBuf[txIndex].buf);
           ++txByteCnt;
           
           if (txIndex == TX_DATA_INDEX){
+            uint8_t nextByte;
             nextByte = signal SendBytePacket.nextByte();
+            if (txBuf[txIndex].state == BUFFER_COMPLETE || txByteCnt >= SERIAL_MTU){
+              txState = TXSTATE_FCS1;
+            }
+            else { /* never called on ack b/c ack is BUFFER_COMPLETE initially */
+              txBuf[txIndex].buf = nextByte;
+            }
           }
-          if (txBuf[txIndex].state == BUFFER_COMPLETE || txByteCnt >= SERIAL_MTU){
+          else { // TX_ACK_INDEX
             txState = TXSTATE_FCS1;
-          }
-          else { /* never called on ack b/c ack is BUFFER_COMPLETE initially */
-            txBuf[txIndex].buf = nextByte;
           }
         }
         break;
