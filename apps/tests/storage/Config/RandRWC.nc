@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.4 2006-06-07 23:08:24 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.5 2006-06-16 22:53:10 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -64,9 +64,9 @@ implementation {
   }
 
   void resetSeed(int offset) {
-    shiftReg = 119 * 119 * ((TOS_NODE_ID >> 1) + 1 + offset);
+    shiftReg = 119 * 119 * ((TOS_NODE_ID % 100) + 1 + offset);
     initSeed = shiftReg;
-    mask = 137 * 29 * ((TOS_NODE_ID >> 1) + 1 + offset);
+    mask = 137 * 29 * ((TOS_NODE_ID % 100) + 1 + offset);
   }
   
   void report(error_t e) {
@@ -240,10 +240,20 @@ implementation {
   };
 
   void done() {
+    uint8_t act = TOS_NODE_ID / 100;
+
     call Leds.led2Toggle();
 
-    if (TOS_NODE_ID & 1)
+    switch (act)
       {
+      case 0:
+	if (testCount < sizeof actions)
+	  doAction(actions[testCount]);
+	else
+	  success();
+	break;
+
+      default:
 	if (testCount)
 	  success();
 	else
@@ -265,11 +275,8 @@ implementation {
 	    /* And check we have the right data */
 	    doAction(A_READ);
 	  }
+	break;
       }
-    else if (testCount < sizeof actions)
-      doAction(actions[testCount]);
-    else
-      success();
     testCount++;
   }
 

@@ -3,23 +3,27 @@ Author/Contact: tinyos-help@millennium.berkeley.edu
 
 Description:
 
-Application to test the LogStorageC abstraction. There must be a
-volumes-<chip>.xml file in this directory describing the test volume
-for your flash chip.
+Application to test the LogStorageC abstraction, using the log in linear
+mode. There must be a volumes-<chip>.xml file in this directory describing
+a 256kB volume named LOGTEST for your flash chip.
 
-The mote id controls a random seed used in the test (k), and the actual
-test performed
-k * 4: perform a full test
-k * 4 + 1: erase the log
-k * 4 + 2: read the log
-k * 4 + 3: write some data to the log
+The mote id is of the form T*100 + k, where k is a random seed and
+T specifies the test to be performed:
 
-The read test expects to see one or more consecutive results of the
-data written by the write test. The last write data can be partial.
-So, for instance, you could run the test with mote id = 5, then 7 twice
-to erase the log and write 3 copies of the data sequence for k = 1, then
-run with mote id = 6 to test all these writes. Or you can just run the
-test with mote id = 4 to do a complete test.
+T = 0: perform a full test
+T = 1: erase the log
+T = 2: read the log
+T = 3: write some data to the log
+
+The read test expects to see one or more consecutive results of the data
+written by the write test (with the same seed). The last write data can be
+partial.  So, for instance, you could run the test with mote id = 104, then
+304 twice to erase the log and write 2 copies of the data sequence for k =
+4, then run with mote id = 204 to test all these writes. Or you can just
+run the test with mote id = 4 to do a complete test.
+
+If the log fills up (which should take 4 or 5 write operations), the write 
+will fail, but a subsequent read will succeed.
 
 A successful test will turn on the green led. A failed test will turn on
 the red led. The yellow led blinks during the steps of the full test.
@@ -30,4 +34,4 @@ Known bugs/limitations:
 
 None.
 
-$Id: README.txt,v 1.1.2.2 2006-05-31 23:33:47 idgay Exp $
+$Id: README.txt,v 1.1.2.3 2006-06-16 22:53:10 idgay Exp $

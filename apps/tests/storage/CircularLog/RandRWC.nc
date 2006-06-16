@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.4 2006-06-01 16:35:31 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.5 2006-06-16 22:53:10 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -32,9 +32,9 @@ module RandRWC {
 implementation {
   enum {
     SIZE = 1024L * 256,
-    NWRITES = SIZE / 512,
     RECSIZE = 32,
-    NRECS = 16
+    NRECS = 16,
+    NWRITES = SIZE / (2 * RECSIZE),
   };
 
   uint16_t shiftReg;
@@ -61,9 +61,9 @@ implementation {
   }
 
   void resetSeed() {
-    shiftReg = 119 * 119 * ((TOS_NODE_ID >> 2) + 1);
+    shiftReg = 119 * 119 * ((TOS_NODE_ID % 100) + 1);
     initSeed = shiftReg;
-    mask = 137 * 29 * ((TOS_NODE_ID >> 2) + 1);
+    mask = 137 * 29 * ((TOS_NODE_ID % 100) + 1);
   }
   
   uint8_t data[NRECS * RECSIZE], rdata[RECSIZE];
@@ -212,19 +212,30 @@ implementation {
   };
 
   void done() {
+    uint8_t act = TOS_NODE_ID / 100;
+
     call Leds.led2Toggle();
 
-    if (TOS_NODE_ID & 3)
+    switch (act)
       {
+      case 0:
+	if (testCount < sizeof actions)
+	  doAction(actions[testCount]);
+	else
+	  success();
+	break;
+
+      case A_ERASE: case A_READ: case A_WRITE:
 	if (testCount)
 	  success();
 	else
-	  doAction(TOS_NODE_ID & 3);
+	  doAction(act);
+	break;
+
+      default:
+	fail(FAIL);
+	break;
       }
-    else if (testCount < sizeof actions)
-      doAction(actions[testCount]);
-    else
-      success();
     testCount++;
   }
 }

@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.8 2006-05-01 19:19:29 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.9 2006-06-16 22:53:10 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -31,14 +31,6 @@ module RandRWC {
 }
 implementation {
   enum {
-    S_ERASE,
-    S_WRITE,
-    S_COMMIT,
-    S_VERIFY,
-    S_READ
-  } state;
-
-  enum {
     SIZE = 1024L * 256,
     NWRITES = SIZE / 4096,
   };
@@ -65,16 +57,18 @@ implementation {
   }
 
   void resetSeed() {
-    shiftReg = 119 * 119 * ((TOS_NODE_ID >> 2) + 1);
+    shiftReg = 119 * 119 * ((TOS_NODE_ID % 100) + 1);
     initSeed = shiftReg;
-    mask = 137 * 29 * ((TOS_NODE_ID >> 2) + 1);
+    mask = 137 * 29 * ((TOS_NODE_ID % 100) + 1);
   }
   
   uint8_t data[512], rdata[512];
-  int count;
+  int count, testCount;
   uint32_t addr, len;
   uint16_t offset;
   message_t reportmsg;
+
+  void done();
 
   void report(error_t e) {
     uint8_t *msg = call AMSend.getPayload(&reportmsg);
@@ -92,6 +86,11 @@ implementation {
   void fail(error_t e) {
     call Leds.led0On();
     report(e);
+  }
+
+  void success() {
+    call Leds.led1On();
+    report(0x80);
   }
 
   bool scheck(error_t r) __attribute__((noinline)) {
@@ -135,24 +134,12 @@ implementation {
     for (i = 0; i < sizeof data; i++)
       data[i++] = rand() >> 8;
 
-    if (TOS_NODE_ID & 1)
-      {
-	state = S_ERASE;
-	scheck(call BlockWrite.erase());
-      }
-    else
-      {
-	state = S_VERIFY;
-	scheck(call BlockRead.verify());
-      }
+    done();
   }
 
   void nextRead() {
     if (++count == NWRITES)
-      {
-	call Leds.led1On();
-	report(0xc0);
-      }
+      done();
     else
       {
 	setParameters();
@@ -164,7 +151,6 @@ implementation {
     if (++count == NWRITES)
       {
 	call Leds.led2Toggle();
-	state = S_COMMIT;
 	scheck(call BlockWrite.commit());
       }
     else
@@ -183,28 +169,13 @@ implementation {
     if (scheck(result))
       {
 	call Leds.led2Toggle();
-	state = S_WRITE;
-	count = 0;
-	resetSeed();
 	nextWrite();
       }
   }
 
   event void BlockWrite.commitDone(error_t result) {
     if (scheck(result))
-      {
-	if (TOS_NODE_ID & 2)
-	  {
-	    call Leds.led2Toggle();
-	    state = S_VERIFY;
-	    scheck(call BlockRead.verify());
-	  }
-	else
-	  {
-	    call Leds.led1On();
-	    report(0x80);
-	  }
-      }
+      done();
   }
 
   event void BlockRead.readDone(storage_addr_t x, void* buf, storage_len_t rlen, error_t result) __attribute__((noinline)) {
@@ -217,14 +188,61 @@ implementation {
     if (scheck(result))
       {
 	call Leds.led2Toggle();
-	state = S_READ;
-	count = 0;
-	resetSeed();
 	nextRead();
       }
   }
 
   event void BlockRead.computeCrcDone(storage_addr_t x, storage_len_t y, uint16_t z, error_t result) {
+  }
+
+  enum { A_READ = 2, A_WRITE };
+
+  void doAction(int act) {
+    count = 0;
+    resetSeed();
+
+    switch (act)
+      {
+      case A_WRITE:
+	scheck(call BlockWrite.erase());
+	break;
+      case A_READ:
+	scheck(call BlockRead.verify());
+	break;
+      }
+  }
+
+  const uint8_t actions[] = {
+    A_WRITE,
+    A_READ
+  };
+
+  void done() {
+    uint8_t act = TOS_NODE_ID / 100;
+
+    call Leds.led2Toggle();
+
+    switch (act)
+      {
+      case 0:
+	if (testCount < sizeof actions)
+	  doAction(actions[testCount]);
+	else
+	  success();
+	break;
+
+      case A_READ: case A_WRITE:
+	if (testCount)
+	  success();
+	else
+	  doAction(act);
+	break;
+
+      default:
+	fail(FAIL);
+	break;
+      }
+    testCount++;
   }
 
 }
