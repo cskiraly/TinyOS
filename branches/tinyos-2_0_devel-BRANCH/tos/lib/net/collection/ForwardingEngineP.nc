@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.21 2006-06-15 17:20:08 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.22 2006-06-16 12:59:59 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-15 17:20:08 $
+ *  @date   $Date: 2006-06-16 12:59:59 $
  */
 
 #include <ForwardingEngine.h>
@@ -252,6 +252,7 @@ implementation {
 	}
 	else {
 	  dbg("Forwarder", "%s: forwarded packet.\n", __FUNCTION__);
+          call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, 0xaa, TOS_NODE_ID, dest);
 	}
         return;
       }
@@ -300,6 +301,7 @@ implementation {
       // immediate retransmission is the worst thing to do.
       // Retry in 512-1023 ms
       uint16_t r = call Random.rand16();
+      call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL, error, TOS_NODE_ID, call AMPacket.destination(msg));
       r &= 0x1ff;
       r += 512;
       call RetxmitTimer.startOneShot(r);
@@ -310,6 +312,7 @@ implementation {
       // immediate retransmission is the worst thing to do.
       // Retry in 128-255ms
       uint16_t r = call Random.rand16();
+      call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_WAITACK, error, TOS_NODE_ID, call AMPacket.destination(msg));
       r &= 0x7f;
       r += 128;
       call RetxmitTimer.startOneShot(r);
@@ -319,6 +322,7 @@ implementation {
       network_header_t* hdr;
       uint8_t client = qe->client;
       dbg("Forwarder", "%s: our packet for client %hhu, remove %p from queue\n", __FUNCTION__, client, qe);
+      call CollectionDebug.logEventRoute(NET_C_FE_SENT_MSG, error, TOS_NODE_ID, call AMPacket.destination(msg));
       clientPtrs[client] = qe;
       hdr = getHeader(qe->msg);
       call SendQueue.dequeue();
@@ -329,6 +333,7 @@ implementation {
     else if (call MessagePool.size() < call MessagePool.maxSize()) {
       // A successfully forwarded packet.
       dbg("Forwarder,Route", "%s: successfully forwarded packet (client: %hhu), message pool is %hhu/%hhu.\n", __FUNCTION__, qe->client, call MessagePool.size(), call MessagePool.maxSize());
+      call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, error, TOS_NODE_ID, call AMPacket.destination(msg));
       call SendQueue.dequeue();
       call MessagePool.put(qe->msg);
       //qe->msg = NULL;
@@ -391,6 +396,7 @@ implementation {
     uint8_t netlen;
     collection_id_t collectid;
     collectid = hdr->collectid;
+    call CollectionDebug.logEvent(NET_C_FE_RCV_MSG);
     if (len > call SubSend.maxPayloadLength()) {
       return msg;
     }
