@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xI2CMasterP.nc,v 1.1.2.1 2006-03-01 03:28:42 philipb Exp $ */
+/* $Id: HalPXA27xI2CMasterP.nc,v 1.1.2.2 2006-06-16 18:57:05 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -35,22 +35,25 @@
  * @author Phil Buonadonna
  */
 
-#include <I2CFlags.h>
+#include <I2C.h>
 
 module HalPXA27xI2CMasterP
 {
   provides interface Init;
-  provides interface I2CPacketAdv;
+  provides interface I2CPacket<TI2CBasicAddr>;
 
   uses interface HplPXA27xI2C as I2C;
 }
 
 implementation
 {
+  // These states don't necessarily reflect the state of the I2C bus, rather the state of this
+  // module WRT an operation.  I.E. the module might be in STATE_IDLE, but the I2C bus still
+  // held by the master for a continued read.
   enum {
     I2C_STATE_IDLE,
     I2C_STATE_READSTART,
-    I2C_STATE_READDATA,
+    I2C_STATE_READ,
     I2C_STATE_READEND,
     I2C_STATE_WRITE,
     I2C_STATE_WRITEEND,
@@ -62,6 +65,41 @@ implementation
   uint8_t *mCurBuf, mCurBufLen, mCurBufIndex;
   i2c_flags_t mCurFlags;
   const uint32_t mBaseICRFlags = (ICR_FM | ICR_BEIE | ICR_IUE | ICR_SCLE);
+
+  static void readNextByte() {
+    if (mCurBufIndex >= (mCurBufLen - 1)) {
+      mI2CState = I2C_STATE_READEND;
+      if (mI2CFlags & I2C_STOP) {
+	call I2C.setICR((mBaseICRFlags) | (ICR_ALDIE | ICR_DRFIE | ICR_ACKNAK | ICR_TB | ICR_STOP));
+      }
+      else if (mI2C_FLAGS & I2C_ACK_END) {
+	call I2C.setICR((mBaseICRFlags) | (ICR_ALDIE | ICR_DRFIE | ICR_TB));
+      }
+      else {
+	call I2C.setICR((mBaseICRFlags) | (ICR_ALDIE | ICR_DRFIE | ICR_ACKNAK | ICR_TB));
+      }
+    }
+    else {
+      call I2C.setICR((mBaseICRFlags) | (ICR_ALDIE | ICR_DRFIE | ICR_TB));
+    }
+    return;
+  }
+
+  static void writeNextByte() {
+    if (mCurBufIndex >= mCurBufLen) {
+      mI2CState = I2C_STATE_WRITEEND;
+      if (mI2CFlags & I2C_STOP) {
+	call I2C.setICR((mBaseICRFlags) | (ICR_ALDIE | ICR_TB | ICR_STOP));
+      }
+      else {
+	call I2C.setICR((mBaseICRFlags) | (ICR_ALDIE | ICR_TB));
+      }
+    }
+    else {
+      call I2C.setICR((mBaseICRfFlags) | (ICR_ALDIE | ICR_TB));
+    }
+    return;
+  }
   
   static error_t startI2CTransact(uint8_t nextState, uint16_t addr, uint8_t length, uint8_t *data, 
 			   i2c_flags_t flags, bool bRnW) {
@@ -89,18 +127,25 @@ implementation
       return error;
     }
 
-    if (call I2C.getISR() | ISR_UB) {
-      return EBUSY;
+    if (flags & I2C_START) {
+      tmpAddr = (rRnW) ? 0x1 : 0x0;
+      tmpAddr |= ((addr << 1) & 0xFE);
+      call I2C.setIDBR(tmpAddr);
+      call I2C.setICR( mBaseICRFlags | ICR_ITEIE | ICR_TB | ICR_START);
     }
-
-    tmpAddr = (rRnW) ? 0x1 : 0x0;
-    tmpAddr |= ((addr << 1) & 0xFE);
-
-    call I2C.setIDBR(tmpAddr);
-    call I2C.setICR( mBaseICRFlags | ICR_ITEIE | ICR_TB | ICR_START);
-    
+    else if (bRnW) {
+      atomic {
+	readNextByte();
+      }
+    }
+    else {
+      atomic {
+	writeNextByte();
+      }
+    }
     return error;
   }
+
 
   task void handleReadError() {
     call I2C.setISR(0x7F0);
@@ -109,7 +154,7 @@ implementation
     call I2C.setICR(mBaseICRFlags);
     mI2CState = I2C_STATE_IDLE;
     atomic {
-      signal I2CPacketAdv.readPacketDone(mCurTargetAddr,mCurBufLen,mCurBuf,FAIL);
+      signal I2CPacket.readDone(FAIL,mCurTargetAddr,mCurBufLen,mCurBuf);
     }
     return;
   }
@@ -121,7 +166,7 @@ implementation
     call I2C.setICR(mBaseICRFlags);
     mI2CState = I2C_STATE_IDLE;
     atomic {
-      signal I2CPacketAdv.readPacketDone(mCurTargetAddr,mCurBufLen,mCurBuf,FAIL);
+      signal I2CPacket.readDone(FAIL,mCurTargetAddr,mCurBufLen,mCurBuf);
     }
     return;
   }
@@ -132,19 +177,30 @@ implementation
     }    
   }
 
-  async command error_t I2CPacketAdv.readPacket(uint16_t addr, uint8_t length, uint8_t* data, i2c_flags_t flags) {
+  async command error_t I2CPacket.read(i2c_flags_t flags, uint16_t addr, uint8_t length, uint8_t* data) {
     error_t error = SUCCESS;
     uint8_t tmpAddr;
 
-    error = startI2CTransact(I2C_STATE_READSTART,addr,length,data,flags,TRUE);
+    if ((flags & I2C_ACKEND) && (flags & I2C_STOP)) {
+      error = EINVAL;
+      return error;
+    }
+
+    if (flags & I2C_START) {
+      error = startI2CTransact(I2C_STATE_READSTART,addr,length,data,flags,TRUE);
+    }
+    else {
+      error = startI2CTransact(I2C_STATE_READ,addr,length,data,flags,TRUE);
+    }
     return error;
   }
 
-  async command error_t I2CPacketAdv.writePacket(uint16_t addr, uint8_t length, uint8_t* data, i2c_flags_t flags) {
+  async command error_t I2CPacket.write(i2c_flags_t flags, uint16_t addr, uint8_t length, uint8_t* data) {
     error_t error = SUCCESS;
     uint8_t tmpAddr;
 
-    error = startI2CTransact(I2C_STATE_WRTESTART,addr,length,data,flags,FALSE);
+    error = startI2CTransact(I2C_STATE_WRITE,addr,length,data,flags,FALSE);
+
     return error;
   }
 
@@ -156,86 +212,61 @@ implementation
     switch (mI2CState) {
     case I2C_STATE_IDLE:
       // Should never get here. Reset all pending interrupts.
-      call I2C.setISR(valISR);
       break;
 
     case I2C_STATE_READSTART:
-      call I2C.setISR(ISR_ITE | ISR_ALD);
-      if (call I2C.getISR() & ISR_BED) {
+      if (valISR & (ISR_BED | ISR_ALD)) {
 	mI2CState = I2C_STATE_ERROR;
 	post handleReadError();
 	break;
       }
-      call I2C.setICR((mBaseICRFlags) | (ICR_ALDIE | ICR_DRFIE | ICR_TB)); 
-      mI2CState = I2C_STATE_READ;
+      readNextByte();
       break;
 
     case I2C_STATE_READ:
-      call I2C.setISR(ISR_IRF);
-      if (call I2C.getISR() & (ISR_BED | ISR_ALD)) {
+      if (valISR & (ISR_BED | ISR_ALD)) {
 	mI2CState = I2C_STATE_ERROR;
 	post handleReadError();
 	break;
       }
       mCurBuf[mCurBufIndex] = call I2C.getIDBR();
       mCurBufIndex++;
-      if (mCurBufIndex >= (mCurBufLen - 1)) {
-	call I2C.setICR((mBaseICRFlags) | (ICR_ALDIE | ICR_DRFIE | ICR_ACKNAK | ICR_TB | ICR_STOP));
-	mI2CState = I2C_STATE_READEND;
-      }
-      else {
-	call I2C.setICR((mBaseICRFlags) | (ICR_ALDIE | ICR_DRFIE | ICR_TB));
-      }
+      readNextByte();
       break;
 
     case I2C_STATE_READEND:
-      call I2C.setISR(ISR_IRF);
-      if (call I2C.getISR() & (ISR_BED | ISR_ALD)) {
+      if (valISR & (ISR_BED | ISR_ALD)) {
 	mI2CState = I2C_STATE_ERROR;
 	post handleReadError();
 	break;
       }
       mCurBuf[mCurBufIndex] = call I2C.getIDBR();
       mI2CState = I2C_STATE_IDLE;
-      signal I2CPacketAdv.readPacketDone(mCurTargetAddr,mCurBufLen,mCurBuf,SUCCESS);
+      signal I2CPacket.readDone(SUCCESS,mCurTargetAddr,mCurBufLen,mCurBuf);
       break;
 
-    case I2C_STATE_WRITESTART:
-      call I2C.setISR(ISR_ALD);
-      // Fall through...
     case I2C_STATE_WRITE:
-      call I2C.setISR(ISR_ITE);
-      if (call I2C.getISR() & (ISR_BED | ISR_ALD)) {
+      if (valISR & (ISR_BED | ISR_ALD)) {
 	mI2CState = I2C_STATE_ERROR;
 	post handleWriteError();
 	break;
       }
       call I2C.setIDBR(mCurBuf[mCurBufIndex]);
       mCurBufIndex++;
-      if (mCurBufIndex >= mCurBufLen) {
-	call I2C.setICR((mBaseICRFlags) | (ICR_ALDIE | ICR_TB | ICR_STOP));
-	mI2CState = I2C_STATE_WRITEEND;
-      }
-      else {
-	call I2C.setICR((mBaseICRfFlags) | (ICR_ALDIE | ICR_TB | ICR_STOP));
-	mI2CState = I2C_STATE_WRITE;
-      }
+
       break;
 
     case I2C_STATE_WRITEEND:
-      call I2C.setISR(ISR_ITE);
-      if (call I2C.getISR() & (ISR_BED | ISR_ALD)) {
+      if (valISR & (ISR_BED | ISR_ALD)) {
 	mI2CState = I2C_STATE_ERROR;
 	post handleWriteError();
 	break;
       }
       mI2CState= I2C_STATE_IDLE;
-      signal I2CPacketAdv.writePacketDone(mCurTargetAddr,mCurBufLen,mCurBuf,SUCCESS);
+      signal I2CPacket.writeDone(SUCCESS,mCurTargetAddr,mCurBufLen,mCurBuf);
       break;
 
     default:
-      // Clear all pending interupts
-      call I2C.setISR(valISR);
       break;
     }
 
@@ -243,13 +274,13 @@ implementation
     return;
   }
 
-  default async event void I2CPacketAdv.readPacketDone(uint16_t addr, uint8_t length, 
-						    uint8_t* data, error_t error) {
+  default async event void I2CPacket.readone(error_t error, uint16_t addr, 
+					     uint8_t length, uint8_t* data) {
     return;
   }
 
-  default async event void I2CPacketAdv.writePacketDone(uint16_t addr, uint8_t length, 
-						     uint8_t* data, error_t error) { 
+  default async event void I2CPacket.writePacketDone(error_t error, uint16_t addr, 
+						     uint8_t length, uint8_t* data) { 
     return;
   }
 }
