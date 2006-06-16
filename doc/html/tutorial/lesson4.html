@@ -1,0 +1,225 @@
+<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+  <title>Lesson 4: Sensing</title>
+  <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<!-- $Id: lesson4.html,v 1.1.2.1 2006-06-16 15:51:23 janhauer Exp $ -->
+
+<div class="title">Lesson 4: Sensing</div>
+<div class="subtitle">Last Modified: 16 June 2006</div>
+
+<p> This lesson introduces sensor data acquisition in TinyOS. It demonstrates a
+simple sensor application that periodically takes sensor readings and displays
+the values on the leds.  
+
+<h1>Introduction</h1>
+
+<p> Sensing is an integral part of sensor network applications. In TinyOS 1.x
+sensing was syntactically connected with analog-to-digital converters (ADCs):
+TinyOS 1.x applications such as <code>Oscilloscope</code> or <code>Sense</code>
+used the <code>ADC</code> and <code>ADCControl</code> interfaces to collect
+sensor data. When new platforms appeared with sensors that were read out via
+the serial interface, not only additional interfaces like <code>ADCError</code>
+had to be introduced, but it became clear that equating a sensor with an ADC is
+difficult.
+
+<p> Usually sensing involves two tasks: configuring a sensor (i.e. the hardware
+module it is attached to, for example an ADC or SPI) and reading the sensor
+data.  The first task is tricky, because a sensing application like, for
+example, <code>Sense</code> is meant to run on any TinyOS platform. How can
+<code>Sense</code> know the configuration details (e.g. input channel, the
+required reference voltage, etc.) of an attached sensor ? It can't, because the
+configuration details of, for example, the light sensor on the <i>tmote</i>
+platform will be different from the <i>micaz</i> platform.  Unless
+<code>Sense</code> knows about all sensors on all platforms it can't perform
+the configuration task, since the interfaces for the configuration of a sensor
+will differ from platform to platform (and potentially from sensor to sensor).
+However, the second task - reading the sensor data - can be solved so that the
+<code>Sense</code> application can collect sensor data even though it is
+agnostic to the platform it is running on. 
+
+<p> In TinyOS 2.0 <i>platform independent</i> sensing applications such as
+<code>Oscilloscope</code>, <code>Sense</code> or <code>RadioSenseToLeds</code>
+are not using configuration interfaces like <code>ADCControl</code> anymore;
+instead they are only using the standard data acquisition interfaces
+<code>Read</code>, <code>ReadStream</code> or <code>ReadNow</code> for
+collecting sensor data. All configuration details are hidden from the
+application and this is why you can compile <code>Sense</code> and display
+sensor data on the <i>tmote</i> or the <i>micaz</i> platform, even though the
+actual sensors and their connection to the rest of the system may be completely
+different.
+
+<p> This raises some questions:
+
+<ul>
+
+<li> Since the <code>SenseC</code> application component only uses standard
+data acquisition interfaces who defines what sensor is actually sampled ?
+
+<li> If the <code>SenseC</code> application component is not configuring the
+sensor, who is responsible for that ?
+
+<li> How can an application like <code>Sense</code> display sensor data when it
+does not know the details about sensor configuration ? This includes questions
+like "what is the value range of the sensor data" or "is a temperature reading
+to be interpreted in degree Celsius or Fahrenheit" ?
+
+<li> Let's assume there are several sensors on a platform: what steps have to
+be done to let the <code>Sense</code> or <code>Oscilloscope</code> application
+display data of a different sensor ?
+
+</ul> 
+
+<p> After reading this tutorial you should be able to answer these questions.
+Using the <code>Sense</code> application as an example, the following sections
+explain how the data acquisition interfaces are to be used, how the
+configuration procedure works and, as an example, how <code>Sense</code> can be
+hooked up to a different than the default sensor on the <i>tmote</i> platform.
+
+<h1>The Sense application</h1>
+
+The <code>Sense</code> application can be found in
+<code>tinyos-2.x/apps/Sense</code>.  Let's first look at the <code><a
+href="../../../apps/Sense/SenseAppC.nc">SenseAppC.nc</a></code> configuration:
+
+<pre>
+configuration SenseAppC 
+{ 
+} 
+implementation { 
+  components SenseC, MainC, LedsC, new TimerMilliC();
+  components new DemoSensorC() as Sensor;
+
+  SenseC.Boot -> MainC;
+  SenseC.Leds -> LedsC;
+  SenseC.Timer -> TimerMilliC;
+  SenseC.Read -> Sensor;
+}
+</pre>
+
+The <code>SenseAppC</code> configuration looks similar to the
+<code>BlinkAppC</code> configuration described in <a href="lesson1.html">lesson
+1</a> (if you have not done so, read the sections on the Blink application in
+lesson 1 first). To understand the wiring let's look at the signature of the
+<code><a href="../../../apps/Sense/SenseC.nc">SenseC.nc</a></code> module:
+
+<pre>
+module SenseC
+{
+  uses {
+    interface Boot;
+    interface Leds;
+    interface Timer&lt;TMilli&gt;;
+    interface Read&lt;uint16_t&gt;;
+  }
+} 
+</pre>
+
+Like the <code>BlinkC.nc</code> module the <code>SenseC.nc</code> module uses
+the interfaces <code>Boot</code>, <code>Leds</code> and
+<code>Timer&lt;TMilli&gt;</code>. Additionally, it uses the
+<code>Read&lt;uint16_t&gt;</code> interface. The 	sequence of actions in the
+<code>SenseC.nc</code> implementation is simple: <code>SenseC.nc</code> uses
+the <code>Boot</code> interface to start a periodic timer after the system has
+been initialized. Every time the timer expires <code>SenseC.nc</code> is
+signalled a timer event and reads data via the
+<code>Read&lt;uint16_t&gt;</code> interface. Reading data is a split-phase
+operation, it is divided in a command <code>Read.read()</code> and an event
+<code>Read.readDone()</code>. Thus every time the timer expires
+<code>SenseC.nc</code> calls <code>Read.read()</code> and waits for the
+<code>Read.readDone()</code> event. When data is signalled in the
+<code>Read.readDone()</code> event <code>SenseC.nc</code> displays it on the
+leds: the least significant bit is displayed on led 0 (0 = off, 1 = on), the
+second least significant bit is displayed on led 1 and so on. <p> The <code><a
+href="../../../tos/interfaces/Read.nc">Read</a></code> interface can be used to
+read a single piece of sensor data, let's look at it in detail:
+
+<pre>
+interface Read&lt;val_t&gt; {
+  /**
+   * Initiates a read of the value.
+   *
+   * @return SUCCESS if a readDone() event will eventually come back.
+   */
+  command error_t read();
+
+  /**
+   * Signals the completion of the read().
+   *
+   * @param result SUCCESS if the read() was successful
+   * @param val the value that has been read
+   */
+  event void readDone( error_t result, val_t val );
+}
+</pre>
+
+If you are not familiar with generic interfaces you will wonder what the
+meaning of &lt;val_t&gt; (in the first line) is and why the signature of
+<code>SenseC.nc</code> is using <code>Read&lt;uint16_t&gt;</code> ?
+
+<p> What you see above is a <i>generic interface definition</i>, because the
+<code>Read</code> interface takes a type parameter. What generic interfaces are
+is explained in the nesC Language Reference Manual (version 1.2 and above).
+Here it is enough to know that generic interfaces have at least one type
+parameter and two components can be wired together only if both instantiate the
+interface with the same type. This means that since <code>SenseC.nc</code> is
+using the <code>uint16_t</code> variant of the <code>Read</code> interface, it
+can only be wired to a component that provides the
+<code>Read&lt;uint16_t&gt;</code> interface.  If you tried to wire
+<code>SenseC.nc</code> to a component that provides, for example, a
+<code>Read&lt;uint8_t&gt;</code> interface you would get a nesC error.
+
+Recall that the wiring is defined in the <code>SenseAppC.nc</code>
+configuration. Let's have look, which component the
+<code>Read&lt;uint16_t&gt;</code> interface of <code>SenseC.nc</code> is wired
+to. Two lines in the <code>SenseAppC</code> configuration establish the wiring:
+
+<pre>
+  components new DemoSensorC() as Sensor;
+</pre>
+and
+<pre>
+  SenseC.Read -> Sensor;
+</pre>
+
+This means that the <code>DemoSensorC</code> must provide the
+<code>Read&lt;uint16_t&gt;</code> interface, which <code>SenseC.nc</code> uses
+(it must be the <code>uint16_t</code> variant of the <code>Read</code>
+interface, otherwise we could not compile <code>Sense</code>). 
+
+<p> It is important to recall that the <code>SenseC.nc</code> module has no way
+of telling which sensor it is connected to; in fact it cannot even tell whether
+it is getting data from a sensor at all, because it can be wired to any
+component that provides a <code>Read&lt;uint16_t&gt;</code> interface. If there
+was a platform without any sensors, its <code>DemoSensorC</code> component
+would simply return dummy values. The last sentence hints that the
+<code>DemoSensorC</code> component is different for every platform (or sensor):
+therefore you will not find <code>DemoSensorC.nc</code> in the TinyOS libraries
+<code>tinyos-2.x/tos/lib</code>. Instead <code>DemoSensorC.nc</code> has to be
+written for every platform, because, for example, on the <i>tmote</i> platform
+<code>DemoSensorC</code> needs to be implemented differently than on the the
+<i>micaz</i> platform. This is the answer to the first question asked in the
+introduction: the <i>platform dependent</i> <code>DemoSensorC</code> component
+defines which sensor the <code>Sense</code> application is sampling.
+
+<p> This works as long as one condition is met: every platform that wants to
+run sensing applications such as <code>Oscilloscope</code>, <code>Sense</code>
+or <code>RadioSenseToLeds</code> must provide their own version of
+<code>DemoSensorC</code>. Let's look at this component in more detail.
+
+<h1>The DemoSensorC component</h1>
+<h1>Running the Sense application</h1>
+
+<!-- Begin footer -->
+<br>
+<hr>
+<center>
+<p>&lt;&nbsp;<b><a href="lesson2.html">Previous Lesson</a></b> |&nbsp; <b><a
+ href="index.html">Top</a></b> &nbsp;|&nbsp; <b><a href="lesson4.html">Next Lesson </a>&nbsp;&gt;</b>
+</center>
+
+</body>
+</html>
