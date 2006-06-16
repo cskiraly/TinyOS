@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-06-16 00:25:58 $
-:version: $Revision: 1.1.2.7 $
+:date: $Date: 2006-06-16 00:26:36 $
+:version: $Revision: 1.1.2.8 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -303,9 +303,9 @@ ul.auto-toc {
 <td>Cory Sharp, Martin Turon, David Gay</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">22-Sep-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.3</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.4</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2005-12-14</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-16</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -1026,12 +1026,12 @@ at 31.25kHz (plus clock rate inaccuracy). At 7.37MHz, they run at
 ~28.8kHz.</p>
 </li>
 </ul>
-<p>When an Atmega128 is in any power-saving mode, hardware timers 1, 2 and
-3 stop counting. The default Atmega128 power management <em>will</em> enter
-these power-saving modes even when timers 1 and 3 are enabled, so
-time as measured by timers 1 and 3 does <em>not</em> represent real time.
-However, if any alarms are actives on timers 1 and 3, the Atmega128
-power management will not enter power-saving modes.</p>
+<p>When an Atmega128 is in any power-saving mode, hardware timers 1, 2 and 3
+stop counting. The default Atmega128 power management <em>will</em> enter these
+power-saving modes even when timers 1 and 3 are enabled, so time as
+measured by timers 1 and 3 does <em>not</em> represent real time.  However, if any
+alarms built on timers 1 or 3 are active, the Atmega128 power management
+will not enter power-saving modes.</p>
 <p>The mica family HIL components are built as follows:</p>
 <ul class="simple">
 <li>TimerMilliC: built using AlarmMilli32C (consuming its single compare
