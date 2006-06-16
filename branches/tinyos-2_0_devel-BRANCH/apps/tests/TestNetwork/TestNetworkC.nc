@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.11 $ $Date: 2006-06-15 17:21:46 $
+ * @version $Revision: 1.1.2.12 $ $Date: 2006-06-16 12:55:23 $
  */
 
 #include <Timer.h>
@@ -38,6 +38,7 @@ implementation {
   uint8_t msglen;
   bool busy = FALSE, uartbusy = FALSE;
   bool firstTimer = TRUE;
+  uint16_t seqno;
   
   event void Boot.booted() {
     call SerialControl.start();
@@ -54,7 +55,10 @@ implementation {
       if (TOS_NODE_ID % 500 == 0) {
 	call RootControl.setRoot();
       }
-      call Timer.startOneShot(call Random.rand16() & 0x7FFF);
+      seqno = 0;
+      if (TOS_NODE_ID == 142) {
+      	call Timer.startOneShot(call Random.rand16() & 0x7FFF);
+      }
     }
   }
 
@@ -89,6 +93,8 @@ implementation {
     call TreeRoutingInspect.getHopcount(&hopcount);
     call TreeRoutingInspect.getMetric(&metric);
 
+    msg->source = TOS_NODE_ID;
+    msg->seqno = seqno;
     msg->data = val;
     msg->parent = parent;
     msg->hopcount = hopcount;
@@ -104,6 +110,7 @@ implementation {
       dbg("TestNetworkC", "%s: Transmission failed.\n", __FUNCTION__);
     }
     else {
+      seqno++; 
       dbg("TestNetworkC", "%s: Transmission succeeded.\n", __FUNCTION__);
 
     }
@@ -133,7 +140,7 @@ implementation {
       message_t* tmp = recvPtr;
       recvPtr = msg;
       uartbusy = TRUE;
-      msglen = len;
+      msglen = len + 4;
       post uartEchoTask();
       call Leds.led2Toggle();
       return tmp;
