@@ -408,6 +408,7 @@ implementation
 	metadata.flags = F_SYNC | F_LASTVALID;
 	metadata.lastRecordOffset = 0;
 	setWritePage(firstPage);
+	s[client].circled = FALSE;
 	s[client].wpos = 0;
 	wmetadataStart();
       }
@@ -608,6 +609,11 @@ implementation
     appendContinue();
   }
 
+  void appendSyncDone() {
+    s[client].wpos = metadata.pos + PAGE_SIZE;
+    appendStart();
+  }
+
   void appendStart() {
     storage_len_t vlen = (storage_len_t)npages() * PAGE_SIZE;
 
@@ -659,6 +665,10 @@ implementation
     metaState = META_WRITE;
     firstPage = s[client].wpage; // remember page to commit
     metadata.pos = s[client].wpos - s[client].woffset;
+    metadata.magic = PERSISTENT_MAGIC;
+    if (s[client].circled)
+      metadata.flags |= F_CIRCLED;
+
     call At45db.computeCrc(firstPage, 0, PAGE_SIZE, 0);
 
     /* We move to the next page now. If writing the metadata fails, we'll
@@ -675,10 +685,6 @@ implementation
 
   void wmetadataCrcDone(uint16_t crc) {
     uint8_t i, *md;
-
-    metadata.magic = PERSISTENT_MAGIC;
-    if (s[client].circled)
-      metadata.flags |= F_CIRCLED;
 
     // Include metadata in crc
     md = (uint8_t *)&metadata;
@@ -914,7 +920,7 @@ implementation
       else switch (s[client].request)
 	{
 	case R_ERASE: eraseMetadataDone(); break;
-	case R_APPEND: appendStart(); break;
+	case R_APPEND: appendSyncDone(); break;
 	case R_SYNC: syncMetadataDone(); break;
 	}
   }
