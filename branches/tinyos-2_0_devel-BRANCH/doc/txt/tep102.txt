@@ -10,8 +10,8 @@ Timers
 :Author: Cory Sharp, Martin Turon, David Gay
 
 :Draft-Created: 22-Sep-2004
-:Draft-Version: $Revision: 1.1.2.3 $
-:Draft-Modified: $Date: 2005-12-14 23:52:36 $
+:Draft-Version: $Revision: 1.1.2.4 $
+:Draft-Modified: $Date: 2006-06-16 00:25:58 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -344,7 +344,7 @@ errors.
 A hardware timer with precision *P* and width *W* SHOULD be exposed as a
 several components::
 
-  configuration CounterPW {
+  configuration CounterPWC {
     provides interface Counter<TP, uintW_t>;
   } ... 
   generic configuration AlarmPWC {
@@ -353,7 +353,7 @@ several components::
 
 and, except if *W* is 32::
 
-  configuration CounterP32 {
+  configuration CounterP32C {
     provides interface Counter<TP, uint32_t>;
   } ... 
   generic configuration AlarmP32C {
@@ -689,32 +689,82 @@ These generic components include appropriate configuration parameters
     uses interface HplTimer<timer_size> as Timer;
   } ...
 
-Appendix C: a mote: Mica2 timer subsystem
+Appendix C: a mote: Mica family timer subsystem
 ====================================================================
 
-The mica2 HAL exposes its four timers as follows: 
+Members of the mica family (mica2, mica2dot, micaz) use the Atmega128
+microprocessor and have external crystals at 4 or 7.37MHz. Additionally,
+they can be run from an internal oscillator at 1, 2, 4, or 8 MHz. The
+internal oscillator is less precise, but allows for much faster startup
+from power-down and power-save modes (6 clocks vs 16000 clocks). Finally,
+power consumption is lower at the lower frequencies. 
+
+The mica family members support operation at all these frequencies via
+a ``MHZ`` preprocessor symbol, which can be defined to 1, 2, 4, or 8.
+If undefined, it defaults to a platform-dependent value (4 for mica2dot,
+8 for mica2 and micaz).
+
+The mica family configures its four timers in part based on the value
+of this MHZ symbol:
 
 * Timer 0: divides the external 32768Hz crystal by 32 to build AlarmMilli8C
   and AlarmMilli32C (see Section 3). As timer 0 has a single compare
   register, these can only be instantiated once.
   Timing accuracy is as good as the external crystal.
-* Timer 1: the internal oscillator is divided by 8 to build AlarmMicro16C
-  and AlarmMicro32C (see Section 3). 3 compare registers are available.
-  The timing accuracy depends on how the mica2 is clocked:
+* Timer 1: the 16-bit hardware timer 1 is set to run at 1MHz if possible.
+  However, the set of dividers for timer 1 is limited to 1, 8,
+  64, 256 and 1024. So, when clocked at 2 or 4MHz, a divider of 1 is
+  selected and timer 1 runs at 2 or 4MHz. To reflect this fact, the 
+  HAL components exposing timer 1 are named ``CounterOne16C`` and
+  ``AlarmOne16C`` (rather than the ``CounterMicro16C`` ``AlarmMicro16C``
+  as suggested in Section 3).
 
-  - internal 8MHz clock: depends on how well the clock is calibrated
+  When building the 32-bit counter and 32-bit alarms, the rate of
+  timer 1 is adjusted in software to 1MHz. Thus the 32-bit HAL components
+  for timer *are* named ``CounterMicro32C`` and ``AlarmMicro32C``.
+
+  Three compare registers are available on timer1, so up to three instances
+  of ``AlarmOne16C`` and/or ``AlarmMicro32C`` can be created. The timing
+  accuracy depends on how the mote is clocked:
+
+  - internal clock: depends on how well the clock is calibrated
   - external 7.37MHz crystal: times will be off by ~8.6%
-  - selecting other clocking options will produce gross inaccuracy
+  - external 4MHz crystal: times will be as accurate as the crystal
+* Timer 2: this timer is not currently exposed by the HAL.
 
-* Timer 2, 3: these timers are not currently exposed by the HAL.
+* Timer 3: the 16-bit hardware timer 3 is set to run at a rate close to
+  32768Hz, if possible. As with timer 1, the limited set of dividers makes
+  this impossible at some clock frequencies, so the 16-bit timer 3 HAL
+  components are named ``CounterThree16C`` and ``AlarmThree16C``. As 
+  with timer 1, the rate of timer 3 is adjusted in software when
+  building the 32-bit counter and 32-bit alarms, giving components
+  ``Counter32khz32C`` and ``Alarm32khz32C``. As with timer 1, three compare
+  registers, hence up to three instances of ``Alarm32khz32C`` and/or
+  ``AlarmThree16C`` are available.
 
-The mica2 HIL components are built as follows:
+  At 1, 2, 4 and 8MHz, ``Counter32khz32C`` and ``Alarm32khz32C`` run
+  at 31.25kHz (plus clock rate inaccuracy). At 7.37MHz, they run at
+  ~28.8kHz.
+
+When an Atmega128 is in any power-saving mode, hardware timers 1, 2 and 3
+stop counting. The default Atmega128 power management *will* enter these
+power-saving modes even when timers 1 and 3 are enabled, so time as
+measured by timers 1 and 3 does *not* represent real time.  However, if any
+alarms built on timers 1 or 3 are active, the Atmega128 power management
+will not enter power-saving modes.
+
+The mica family HIL components are built as follows:
 
 * TimerMilliC: built using AlarmMilli32C (consuming its single compare
   register)
 * BusyWaitMicroC: implemented using a simple software busy-wait loop which
-  waits for 8 cycles per requested microsecond. Accuracy is the same as
-  with Timer 1.
+  waits for ``MHZ`` cycles per requested microsecond. Accuracy is the same as
+  Timer 1.
 
+Finally, the mica family motes measure their clock rate at boot time, based
+on the external 32768Hz crystal. The results of this clock rate measurement
+are made available via the ``cyclesPerJiffy`` command of the
+``Atm128Calibrate`` interface of the ``MeasureClockC`` component. This
+command reports the number of cycles per 1/32768s. Please see this interface
+definition for other useful commands for more accurate timing.
 
-We include here as an example some of the source code for the above components:
