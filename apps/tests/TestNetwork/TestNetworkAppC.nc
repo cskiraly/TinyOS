@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.10 $ $Date: 2006-06-15 17:21:45 $
+ * @version $Revision: 1.1.2.11 $ $Date: 2006-06-16 12:55:23 $
  */
 #include "TestNetwork.h"
 #include "Collection.h"
@@ -42,7 +42,11 @@ implementation {
   TestNetworkC.TreeRoutingInspect -> Collector;
   TestNetworkC.Random -> RandomC;
 
+  components new PoolC(message_t, 10) as DebugMessagePool;
+  components new QueueC(message_t*, 10) as DebugSendQueue;
   DebugSender.Boot -> MainC;
   DebugSender.UARTSend -> UARTSender;
+  DebugSender.MessagePool -> DebugMessagePool;
+  DebugSender.SendQueue -> DebugSendQueue;
   Collector.CollectionDebug -> DebugSender;
 }
