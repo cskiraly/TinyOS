@@ -1,16 +1,18 @@
-README for Log
+README for Config
 Author/Contact: tinyos-help@millennium.berkeley.edu
 
 Description:
 
 Application to test the ConfigStorageC abstraction. There must be a
-volumes-<chip>.xml file in this directory describing the test volume
-for your flash chip.
+volumes-<chip>.xml file in this directory describing the a volume
+named CONFIGTEST capable of storing 2kB of config data.
 
-The mote id controls a random seed used in the test (k), and the actual
-test performed
-k * 2: do a bunch of writes, reads and commits
-k * 2 + 1: check if the result of a previous run with id = k * 2 is correct
+The mote id is of the form T*100 + k, where k is a random seed and
+T specifies the test to be performed:
+
+T = 0: do a bunch of writes, reads and commits
+T != 0: check if the contents of the volume are consistent with 
+        a previous run with T = 0 and the same random seed
 
 A successful test will turn on the green led. A failed test will turn on
 the red led. The yellow led blinks to indicate test progress
@@ -21,4 +23,4 @@ Known bugs/limitations:
 
 None.
 
-$Id: README.txt,v 1.1.2.1 2006-05-25 22:21:46 idgay Exp $
+$Id: README.txt,v 1.1.2.2 2006-06-16 22:53:10 idgay Exp $
