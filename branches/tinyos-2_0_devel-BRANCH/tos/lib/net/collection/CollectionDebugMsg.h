@@ -18,6 +18,9 @@ enum {
     NET_C_FE_RCV_MSG =  0x21,  //:next hop receive:msg uid, origin, last_hop
     NET_C_FE_FWD_MSG =  0x22,  //:fwd msg         :msg uid, origin, next_hop
     NET_C_FE_DST_MSG =  0x23,  //:base app. recv  :msg_uid, origin, last_hop
+    NET_C_FE_SENDDONE_FAIL = 0x24,
+    NET_C_FE_SENDDONE_WAITACK = 0x25,
+
 
     NET_C_TREE_NO_ROUTE   = 0x30,   //:        :no args
     NET_C_TREE_NEW_PARENT = 0x31,   //:        :parent_id, hopcount, metric
@@ -50,6 +53,7 @@ typedef nx_struct CollectionDebugMsg {
             nx_uint16_t c;
         } dbg;
     } data;
+    nx_uint16_t seqno;
 } CollectionDebugMsg;
 
 #endif
