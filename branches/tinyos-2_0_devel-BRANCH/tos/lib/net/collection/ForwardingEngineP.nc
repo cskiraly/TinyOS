@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.22 2006-06-16 12:59:59 rfonseca76 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.23 2006-06-16 13:48:55 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-16 12:59:59 $
+ *  @date   $Date: 2006-06-16 13:48:55 $
  */
 
 #include <ForwardingEngine.h>
@@ -252,7 +252,6 @@ implementation {
 	}
 	else {
 	  dbg("Forwarder", "%s: forwarded packet.\n", __FUNCTION__);
-          call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, 0xaa, TOS_NODE_ID, dest);
 	}
         return;
       }
