@@ -441,7 +441,13 @@ implementation
 
     if (metadata.flags & F_SYNC) /* must start on next page */
       {
-	setWritePage(firstPage + 1);
+	/* We need to special case the empty log, as we don't want
+	   to wrap around in the case of a full, non-circular log
+	   with a sync on its last page. */
+	if (firstPage == lastPage && !metadata.pos)
+	  setWritePage(firstVolumePage());
+	else
+	  setWritePage(firstPage + 1);
 	s[client].wpos = metadata.pos + PAGE_SIZE;
       }
     else
@@ -544,7 +550,7 @@ implementation
   }
 
   void locateFirstReadDone() {
-    crcPage(firstPage);
+    crcPage(lastPage);
   }
 
   /* Locate log beginning and ending. See description at top of file. */
