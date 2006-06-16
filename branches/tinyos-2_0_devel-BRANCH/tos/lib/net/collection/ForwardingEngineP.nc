@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.23 2006-06-16 13:48:55 rfonseca76 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.24 2006-06-16 14:17:38 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-16 13:48:55 $
+ *  @date   $Date: 2006-06-16 14:17:38 $
  */
 
 #include <ForwardingEngine.h>
@@ -362,22 +362,35 @@ implementation {
       call CollectionDebug.logEvent(NET_C_FE_QENTRY_POOL_EMPTY);
     }
     else {
-      message_t* newMsg = call MessagePool.get();
-      fe_queue_entry_t *qe = call QEntryPool.get();
+      message_t* newMsg;
+      fe_queue_entry_t *qe;
 
+      newMsg = call MessagePool.get();
+      if (newMsg == NULL)
+        call CollectionDebug.logEventSimple(NET_C_FE_MESSAGE_POOL_ERR, 
+                                            NET_C_POOL_BAD_GET);
+      qe = call QEntryPool.get();
+      if (qe == NULL)
+        call CollectionDebug.logEventSimple(NET_C_FE_QE_POOL_ERR,
+                                            NET_C_POOL_BAD_GET);
       qe->msg = m;
       qe->client = 0xff;
       
       if (call SendQueue.enqueue(qe) == SUCCESS) {
-	dbg("Forwarder,Route", "%s forwarding packet %p with queue size %hhu\n", __FUNCTION__, m, call SendQueue.size());
-	if (!call RetxmitTimer.isRunning()) {
-	  post sendTask();
-	}
-	return newMsg;
-      }
-      else {
-        call MessagePool.put(newMsg);
-        call QEntryPool.put(qe);
+	      dbg("Forwarder,Route", 
+            "%s forwarding packet %p with queue size %hhu\n", 
+            __FUNCTION__, m, call SendQueue.size());
+	      if (!call RetxmitTimer.isRunning())
+	        post sendTask();
+	      return newMsg;
+      } else {
+        // SendQueue refused to enqueue; release resources
+        if (call MessagePool.put(newMsg) != SUCCESS)
+          call CollectionDebug.logEventSimple(NET_C_FE_MESSAGE_POOL_ERR,
+                                              NET_C_POOL_BAD_PUT);
+        if (call QEntryPool.put(qe) != SUCCESS)
+          call CollectionDebug.logEventSimple(NET_C_FE_QE_POOL_ERR,
+                                              NET_C_POOL_BAD_PUT);
       }
     }
 
