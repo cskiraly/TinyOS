@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.24 2006-06-16 14:17:38 kasj78 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.25 2006-06-16 19:05:42 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-16 14:17:38 $
+ *  @date   $Date: 2006-06-16 19:05:42 $
  */
 
 #include <ForwardingEngine.h>
@@ -334,18 +334,22 @@ implementation {
       dbg("Forwarder,Route", "%s: successfully forwarded packet (client: %hhu), message pool is %hhu/%hhu.\n", __FUNCTION__, qe->client, call MessagePool.size(), call MessagePool.maxSize());
       call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, error, TOS_NODE_ID, call AMPacket.destination(msg));
       call SendQueue.dequeue();
-      call MessagePool.put(qe->msg);
-      //qe->msg = NULL;
-      //qe->client = 255;
-      call QEntryPool.put(qe);      
+      if (call MessagePool.put(qe->msg) != SUCCESS)
+        call CollectionDebug.logEventSimple(NET_C_FE_MESSAGE_POOL_ERR,
+                                            NET_C_POOL_BAD_PUT);
+      if (call QEntryPool.put(qe) != SUCCESS)
+        call CollectionDebug.logEventSimple(NET_C_FE_QE_POOL_ERR,
+                                            NET_C_POOL_BAD_PUT);
       sending = FALSE;
       post sendTask();
     }
     else {
-      dbg("Forwarder", "%s: BUG: we have a pool entry, but the pool is full, client is %hhu.\n", __FUNCTION__, qe->client);
-      sendDoneBug();    // It's a forwarded packet, but there's no room the pool;
-      // someone has double-stored a pointer somewhere and we have nowhere
-      // to put this, so we have to leak it...
+      // Size of the message pool is maximum.  It's a forwarded
+      // packet, but there's no room the pool; someone has
+      // double-stored a pointer somewhere and we have nowhere to put
+      // this, so we have to leak it.
+      dbg("Forwarder", "%s: BUG: have a pool entry, but pool is full, client is %hhu.\n", __FUNCTION__, qe->client);
+      sendDoneBug();    
     }
   }
 
