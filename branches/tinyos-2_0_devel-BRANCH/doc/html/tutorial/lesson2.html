@@ -681,7 +681,14 @@ void sendDone(error_t err) {
 </center>
 
     <p>Split-phase code is often a bit more verbose and complex than
-     sequential code. But 
+     sequential code. But it has several advantages. First, split-phase
+     calls do not tie up stack memory while they are executing. Second,
+     they keep the system reponsive: there is never a situation when
+     an application needs to take an action but all of its threads are
+     tied up in blocking calls. Third, it tends to reduce stack
+     utilization, as creating large variables on the stack is rarely
+     useful.</p>
+
     <p>Split-phase interfaces enable a TinyOS component to easily start
       several operations at once and have them execute in parallel.
       Also, split-phase operations can save memory. This is because
@@ -689,11 +696,50 @@ void sendDone(error_t err) {
       has stored on the call stack (e.g., variables declared in functions)
       have to be saved. As determining the exact size of the stack is
       difficult, operating systems often choose a very conservative
-      and therefore large size.</p>
+      and therefore large size.  Of course, if there is data that 
+      has to be kept across the 
+      call, split-phase operations still need to save it.</p>
 
-    <p>Of course, if there is data that has to be kept across the 
-      call, split-phase operations still need to save it.
-      
+    <p>The command <tt>Timer.startOneShot</tt> is an example of
+     a split-phase call. The user of the Timer inteface calls the command,
+     which returns immediately. Some time later (specified by the
+     argument), the component providing Timer signals <tt>Timer.fired</tt>.
+     In a system with blocking calls, a program might use <tt>sleep()</tt>:
+
+     <center>
+       <table>
+         <tr>
+           <td align=center>Blocking</td><td align=center>Split-phase</td>
+         </tr>
+         <tr>
+           <td valign=top>
+             <pre>
+state = WAITING;
+op1();
+sleep(500);
+op2();
+state = RUNNING
+             </pre>
+           </td>
+           <td valign=top>
+             <pre>
+state = WAITING;
+op1();
+call Timer.startOneShot(500);
+
+command void Timer.fired() {
+  op2();
+  state = RUNNING;
+}
+             </pre>
+           </td>
+         </tr>
+       </table>
+     </center> 
+
+<p>In the next lesson, we'll look at one of the most basic
+split-phase operations: sending packets.</p>
+
 <a name=#related_docs>
 <h1>Related Documentation</h1>
 </a>

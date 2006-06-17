@@ -1,225 +1,596 @@
 <!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-  <title>Lesson 4: Sensing</title>
+  <title>Lesson 4: SerialForwarder</title>
   <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
 </head>
 <body>
+    <div class="title">Lesson 4: SerialForwarder</div>
+    <div class="subtitle">Last updated 16 Jun 2006</div>
 
-<!-- $Id: lesson4.html,v 1.1.2.1 2006-06-16 15:51:23 janhauer Exp $ -->
+<p>To goal of this lesson is to show you how to communicate with a
+mote from PC. This will allow you to collect data from the network
+send commands to motes, and monitor network traffic.</p>
 
-<div class="title">Lesson 4: Sensing</div>
-<div class="subtitle">Last Modified: 16 June 2006</div>
 
-<p> This lesson introduces sensor data acquisition in TinyOS. It demonstrates a
-simple sensor application that periodically takes sensor readings and displays
-the values on the leds.  
+<h1>Packet sources and TestSerial</h1>
 
-<h1>Introduction</h1>
+<p>The first step is to check that you are able to get your PC to 
+communicate with a mote. Most motes have a serial port or similar
+interface. For example, the mica family can directly control a serial
+port: programming boards basically connect the mote's serial port
+pins to the actual serial port on the board. Telos motes also have
+a serial interface, but it talks to their USB hardware, which
+is similar in functionality but very different in terms of cables and
+connectors.</p>
 
-<p> Sensing is an integral part of sensor network applications. In TinyOS 1.x
-sensing was syntactically connected with analog-to-digital converters (ADCs):
-TinyOS 1.x applications such as <code>Oscilloscope</code> or <code>Sense</code>
-used the <code>ADC</code> and <code>ADCControl</code> interfaces to collect
-sensor data. When new platforms appeared with sensors that were read out via
-the serial interface, not only additional interfaces like <code>ADCError</code>
-had to be introduced, but it became clear that equating a sensor with an ADC is
-difficult.
-
-<p> Usually sensing involves two tasks: configuring a sensor (i.e. the hardware
-module it is attached to, for example an ADC or SPI) and reading the sensor
-data.  The first task is tricky, because a sensing application like, for
-example, <code>Sense</code> is meant to run on any TinyOS platform. How can
-<code>Sense</code> know the configuration details (e.g. input channel, the
-required reference voltage, etc.) of an attached sensor ? It can't, because the
-configuration details of, for example, the light sensor on the <i>tmote</i>
-platform will be different from the <i>micaz</i> platform.  Unless
-<code>Sense</code> knows about all sensors on all platforms it can't perform
-the configuration task, since the interfaces for the configuration of a sensor
-will differ from platform to platform (and potentially from sensor to sensor).
-However, the second task - reading the sensor data - can be solved so that the
-<code>Sense</code> application can collect sensor data even though it is
-agnostic to the platform it is running on. 
-
-<p> In TinyOS 2.0 <i>platform independent</i> sensing applications such as
-<code>Oscilloscope</code>, <code>Sense</code> or <code>RadioSenseToLeds</code>
-are not using configuration interfaces like <code>ADCControl</code> anymore;
-instead they are only using the standard data acquisition interfaces
-<code>Read</code>, <code>ReadStream</code> or <code>ReadNow</code> for
-collecting sensor data. All configuration details are hidden from the
-application and this is why you can compile <code>Sense</code> and display
-sensor data on the <i>tmote</i> or the <i>micaz</i> platform, even though the
-actual sensors and their connection to the rest of the system may be completely
-different.
-
-<p> This raises some questions:
-
-<ul>
-
-<li> Since the <code>SenseC</code> application component only uses standard
-data acquisition interfaces who defines what sensor is actually sampled ?
-
-<li> If the <code>SenseC</code> application component is not configuring the
-sensor, who is responsible for that ?
-
-<li> How can an application like <code>Sense</code> display sensor data when it
-does not know the details about sensor configuration ? This includes questions
-like "what is the value range of the sensor data" or "is a temperature reading
-to be interpreted in degree Celsius or Fahrenheit" ?
-
-<li> Let's assume there are several sensors on a platform: what steps have to
-be done to let the <code>Sense</code> or <code>Oscilloscope</code> application
-display data of a different sensor ?
-
-</ul> 
-
-<p> After reading this tutorial you should be able to answer these questions.
-Using the <code>Sense</code> application as an example, the following sections
-explain how the data acquisition interfaces are to be used, how the
-configuration procedure works and, as an example, how <code>Sense</code> can be
-hooked up to a different than the default sensor on the <i>tmote</i> platform.
-
-<h1>The Sense application</h1>
-
-The <code>Sense</code> application can be found in
-<code>tinyos-2.x/apps/Sense</code>.  Let's first look at the <code><a
-href="../../../apps/Sense/SenseAppC.nc">SenseAppC.nc</a></code> configuration:
+<p>The basic abstraction for mote-PC communication is a <b>packet
+source</b>. A packet source is exactly that: a communication medium
+over which an application can receive packets from and send packets to
+a mote. Examples of packet sources include serial ports, TCP sockets,
+and the SerialForwarder tool. Most TinyOS communication tools take
+an optional <code>-comm</code> parameter, which allows you to 
+specify the packet source as a string. For example:
 
 <pre>
-configuration SenseAppC 
-{ 
-} 
-implementation { 
-  components SenseC, MainC, LedsC, new TimerMilliC();
-  components new DemoSensorC() as Sensor;
-
-  SenseC.Boot -> MainC;
-  SenseC.Leds -> LedsC;
-  SenseC.Timer -> TimerMilliC;
-  SenseC.Read -> Sensor;
-}
+$ java net.tinyos.tools.Listen -comm serial@COM1:telos
 </pre>
 
-The <code>SenseAppC</code> configuration looks similar to the
-<code>BlinkAppC</code> configuration described in <a href="lesson1.html">lesson
-1</a> (if you have not done so, read the sections on the Blink application in
-lesson 1 first). To understand the wiring let's look at the signature of the
-<code><a href="../../../apps/Sense/SenseC.nc">SenseC.nc</a></code> module:
+tells the Listen tool to use the COM1 serial port (on a Windows
+machine) at the correct speed for a telos mote, while
 
 <pre>
-module SenseC
-{
-  uses {
-    interface Boot;
-    interface Leds;
-    interface Timer&lt;TMilli&gt;;
-    interface Read&lt;uint16_t&gt;;
-  }
-} 
+$ java net.tinyos.tools.Listen -comm serial@/dev/ttyS0:micaz
 </pre>
 
-Like the <code>BlinkC.nc</code> module the <code>SenseC.nc</code> module uses
-the interfaces <code>Boot</code>, <code>Leds</code> and
-<code>Timer&lt;TMilli&gt;</code>. Additionally, it uses the
-<code>Read&lt;uint16_t&gt;</code> interface. The 	sequence of actions in the
-<code>SenseC.nc</code> implementation is simple: <code>SenseC.nc</code> uses
-the <code>Boot</code> interface to start a periodic timer after the system has
-been initialized. Every time the timer expires <code>SenseC.nc</code> is
-signalled a timer event and reads data via the
-<code>Read&lt;uint16_t&gt;</code> interface. Reading data is a split-phase
-operation, it is divided in a command <code>Read.read()</code> and an event
-<code>Read.readDone()</code>. Thus every time the timer expires
-<code>SenseC.nc</code> calls <code>Read.read()</code> and waits for the
-<code>Read.readDone()</code> event. When data is signalled in the
-<code>Read.readDone()</code> event <code>SenseC.nc</code> displays it on the
-leds: the least significant bit is displayed on led 0 (0 = off, 1 = on), the
-second least significant bit is displayed on led 1 and so on. <p> The <code><a
-href="../../../tos/interfaces/Read.nc">Read</a></code> interface can be used to
-read a single piece of sensor data, let's look at it in detail:
+tells Listen to use the serial port <code>/dev/ttyS0</code> (on
+a UNIX machine) at the correct speed for a micaz mote.</p>
+
+<p>The first step to testing your serial port is to install
+the <code>apps/tests/TestSerial</code> application on a mote. This 
+application sends a packet to the serial port every second,
+and when it receives a packet over the serial port it displays
+the packet's sequence number on the LEDs.</p>
+
+<p>Once you have installed <code>TestSerial</code>, you need
+to run the corresponding Java application that communicates with
+it over the serial port. This is built when you build the TinyOS
+application. From in the application directory, type:</p>
 
 <pre>
-interface Read&lt;val_t&gt; {
-  /**
-   * Initiates a read of the value.
-   *
-   * @return SUCCESS if a readDone() event will eventually come back.
-   */
-  command error_t read();
-
-  /**
-   * Signals the completion of the read().
-   *
-   * @param result SUCCESS if the read() was successful
-   * @param val the value that has been read
-   */
-  event void readDone( error_t result, val_t val );
-}
+$ java TestSerial
 </pre>
 
-If you are not familiar with generic interfaces you will wonder what the
-meaning of &lt;val_t&gt; (in the first line) is and why the signature of
-<code>SenseC.nc</code> is using <code>Read&lt;uint16_t&gt;</code> ?
-
-<p> What you see above is a <i>generic interface definition</i>, because the
-<code>Read</code> interface takes a type parameter. What generic interfaces are
-is explained in the nesC Language Reference Manual (version 1.2 and above).
-Here it is enough to know that generic interfaces have at least one type
-parameter and two components can be wired together only if both instantiate the
-interface with the same type. This means that since <code>SenseC.nc</code> is
-using the <code>uint16_t</code> variant of the <code>Read</code> interface, it
-can only be wired to a component that provides the
-<code>Read&lt;uint16_t&gt;</code> interface.  If you tried to wire
-<code>SenseC.nc</code> to a component that provides, for example, a
-<code>Read&lt;uint8_t&gt;</code> interface you would get a nesC error.
-
-Recall that the wiring is defined in the <code>SenseAppC.nc</code>
-configuration. Let's have look, which component the
-<code>Read&lt;uint16_t&gt;</code> interface of <code>SenseC.nc</code> is wired
-to. Two lines in the <code>SenseAppC</code> configuration establish the wiring:
+<p>Because you haven't specified a packet source, TestSerial
+will fall back to a default, which is a SerialForwarder. Since
+you don't have a SerialForwarder running, TestSerial will
+exit, complaining that it can't connect to one. So let's specify
+the serial port as the source. The syntax for a serial port 
+source is as follows:</p>
 
 <pre>
-  components new DemoSensorC() as Sensor;
-</pre>
-and
-<pre>
-  SenseC.Read -> Sensor;
+   serial@&lt;PORT&gt;:&lt;SPEED&gt;
 </pre>
 
-This means that the <code>DemoSensorC</code> must provide the
-<code>Read&lt;uint16_t&gt;</code> interface, which <code>SenseC.nc</code> uses
-(it must be the <code>uint16_t</code> variant of the <code>Read</code>
-interface, otherwise we could not compile <code>Sense</code>). 
+<p>PORT depends on your platform and where you have plugged the mote in.
+For Windows/Cygwin platforms, it is COM<i>N</i>, where <i>N</i> is
+the port number. For Linux/UNIX machines, it is 
+<code>/dev/ttyS</code><i>N</i>. The SPEED can either be a numeric value,
+or the name of a platform. Specifying a platform name tells the
+serial packet source to use the default speed for the platform. Valid
+platforms are:</p>
 
-<p> It is important to recall that the <code>SenseC.nc</code> module has no way
-of telling which sensor it is connected to; in fact it cannot even tell whether
-it is getting data from a sensor at all, because it can be wired to any
-component that provides a <code>Read&lt;uint16_t&gt;</code> interface. If there
-was a platform without any sensors, its <code>DemoSensorC</code> component
-would simply return dummy values. The last sentence hints that the
-<code>DemoSensorC</code> component is different for every platform (or sensor):
-therefore you will not find <code>DemoSensorC.nc</code> in the TinyOS libraries
-<code>tinyos-2.x/tos/lib</code>. Instead <code>DemoSensorC.nc</code> has to be
-written for every platform, because, for example, on the <i>tmote</i> platform
-<code>DemoSensorC</code> needs to be implemented differently than on the the
-<i>micaz</i> platform. This is the answer to the first question asked in the
-introduction: the <i>platform dependent</i> <code>DemoSensorC</code> component
-defines which sensor the <code>Sense</code> application is sampling.
-
-<p> This works as long as one condition is met: every platform that wants to
-run sensing applications such as <code>Oscilloscope</code>, <code>Sense</code>
-or <code>RadioSenseToLeds</code> must provide their own version of
-<code>DemoSensorC</code>. Let's look at this component in more detail.
-
-<h1>The DemoSensorC component</h1>
-<h1>Running the Sense application</h1>
-
-<!-- Begin footer -->
-<br>
-<hr>
-<center>
-<p>&lt;&nbsp;<b><a href="lesson2.html">Previous Lesson</a></b> |&nbsp; <b><a
- href="index.html">Top</a></b> &nbsp;|&nbsp; <b><a href="lesson4.html">Next Lesson </a>&nbsp;&gt;</b>
+<CENTER>
+<table>
+<tr><td>Platform</td><td>Speed (baud)</td></tr>
+<tr><td colspan=2><hr></td></tr>
+<tr><td>telos</td><td>115200</td></tr>
+<tr><td>telosb</td><td>115200</td></tr>
+<tr><td>tmote</td><td>115200</td></tr>
+<tr><td>micaz</td><td>57600</td></tr>
+<tr><td>mica2</td><td>57600</td></tr>
+<tr><td>mica2dot</td><td>19200</td></tr>
+<tr><td>eyes</td><td>115200</td></tr>
+<tr><td>intelmote2</td><td>115200</td></tr>
+</table>
 </center>
+<br>
 
+<p>The Java file <tt>support/sdk/java/net/tinyos/packet/BaudRate.java</tt>
+determines these mappings. Unlike in TinyOS 1.x, all platforms have a common
+serial packet format. Following the table, these two serial 
+specfications are identical:</p>
+
+<pre>
+serial@COM1:micaz
+serial@COM1:57600
+</pre>
+
+<p>If you run <code>TestSerial</code> with the proper PORT and SPEED
+settings, you should see output like this:</p>
+
+<pre>
+
+</pre>
+
+<p>and the mote LEDs will blink.</p>
+
+<h2>Cannot find JNI error</h2>
+
+<p>If you try to run TestSerial and receive an error that Java cannot find
+TOSComm JNI support, this means the Java Native Interface (JNI) files
+that control the serial port haven't been correctly installed. Run
+the command <code>tos-install-jni</code>. If this command does
+not exist, go to
+<code>tinyos-2.x/tools/tinyos/java</code>. If the directory has a
+<code>Makefile</code> in it, type <code>make; make install</code>.
+If the directory does not have a <code>Makefile</code>, go to
+<code>tinyos-2.x/tools</code> and type:</p>
+
+<pre>
+$ ./Bootstrap
+$ ./configure
+$ ./make
+$ ./make install
+</pre>
+
+<p>Then type <code>tos-install-jni</code>. This should install
+serial support in your system.</p>
+
+<h2>MOTECOM</h2>
+
+<p>If you do not pass a
+<code>-comm</code> parameter, then tools will check the 
+<code>MOTECOM</code> environment variable for a packet source,
+and if there is no <code>MOTECOM</code>, they default to a
+SerialForwarder. This means that if you're always communicating
+with a mote over your serial port, you can just set <code>MOTECOM</code>
+and no longer have to specify the <code>-comm</code> parameter.
+For example:</p>
+
+<pre>
+export MOTECOM=serial@COM1:19200 # mica baud rate
+export MOTECOM=serial@COM1:mica  # mica baud rate, again
+export MOTECOM=serial@COM2:mica2 # the mica2 baud rate, on a different serial port
+export MOTECOM=serial@COM3:57600 # explicit mica2 baud rate
+</pre>
+
+<p>Try setting your MOTECOM variable and running TestSerial without
+a <code>-comm</code> parameter.</p>
+
+
+<h1>BaseStation and net.tinyos.tools.Listen</h1>
+
+<p><code>BaseStation</code> is a basic TinyOS utility application.
+It acts as a bridge between the serial port and radio network.
+When it receives a packet from the serial port,
+it transmits it on the radio; when it receives a packets over
+the radio, it transmits it to the serial port. Because TinyOS
+has a toolchain for generating and sending packets to a mote
+over a serial port, using a BaseStation allows PC tools to
+communicate directly with mote networks.</p>
+
+<p>Take one of the two nodes that had BlinkToRadio installed
+and install BaseStation on it. If you turn on the node that still
+has BlinkToRadio installed, you should see LED 1 on the BaseStation
+blinking. BaseStation toggles LED 0 whenever it sends a packet 
+to the radio and LED 1 whenever it sends a packet to the 
+serial port. It toggles LED 2 whenever it has to drop a packet:
+this can happen when one of the two receives packets faster
+than the other can send them (e.g., receiving micaZ radio packets
+at 256kbps but sending serial packets at 57.6kbps).</p>
+
+<p>BaseStation is receiving your BlinkToRadio packets and sending
+them to the serial port, so if it is plugged into a PC we can
+view these packets. The Java tool Listen is a basic packet
+sniffer: it prints out the binary contents of any packet it hears.
+Run Listen, using either MOTECOM or a -comm parameter:</p>:
+
+<pre>
+$ java net.tinyos.tools.Listen
+</pre>
+
+<p>Listen creates a packet source and just prints out every
+packet it sees. Your output should look something like this:</p>
+
+<pre>
+
+</pre>
+
+
+<p>Listen is simply printing out the
+packets that are coming from the mote. Each data packet that comes out
+of the mote contains several fields of data. Some of these fields are
+generic Active Message fields, and are defined in 
+<tt>tinyos-2.x/tos/serial/Serial.h</tt>. 
+Recall that the data payload of the message, which is defined in BlinkToRadio.h, is:</p>
+
+<pre>
+typedef nx_struct BlinkToRadioMsg {
+  nx_uint16_t nodeid;
+  nx_uint16_t counter;
+} BlinkToRadioMsg;
+</pre>
+
+The overall message format for the BlinkToRadioC application is as
+follows: </p>
+<ul>
+  <li> <b>Destination address</b> (2 bytes)</li>
+  <li> <b>Message length</b> (1 byte)</li>
+  <li> <b>Group ID</b> (1 byte)</li>
+  <li> <b>Active Message handler type</b> (1 byte)</li>
+  <li> <b>Payload</b> (up to 28 bytes):</li>
+  <ul>
+    <li> <b>source mote ID</b> (2 bytes)</li>
+    <li> <b>sample counter</b> (2 bytes)</li>
+  </ul>
+</ul>
+So we can interpret the data packet as follows:
+<table hspace="0" cellpadding="0" cellspacing="10" border="0">
+  <tbody>
+    <tr bgcolor="#d0d0d0">
+      <td><b>dest addr</b></td>
+      <td><b>handlerID</b></td>
+      <td><b>groupID</b></td>
+      <td><b>msg len</b></td>
+      <td><b>source addr</b></td>
+      <td><b>counter</b></td>
+    </tr>    <tr>
+      <td bgcolor="#d0d0ff">ff ff</td>
+      <td bgcolor="#d0d0ff">0a</td>
+      <td bgcolor="#d0d0ff">7d</td>
+      <td bgcolor="#d0d0ff">06</td>
+      <td bgcolor="#d0ffd0">?? ??</td>
+      <td bgcolor="#d0ffd0">00 14</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The source address depends on what mote ID you installed your
+BlinkToRadio application with. The default (if you do not specify
+and ID) is <code>00 01</code>.
+Note that the data is sent by the mote in <i>big-endian</i>
+format;  for example, <code>00 14</code> means 20 (16 * 1 + 4).
+This format is independent of the endian-ness of the processor,
+because the packet format is an <code>nx_struct</code>, which is
+a network format, that is, big-endian and byte-aligned. Using
+<code>nx_struct</code> (rather than a standard C <code>struct</code>)
+for a message payload ensures that it will work across platforms.</p>
+
+<p>As you watch the packets scroll by, you should see the counter
+field increase as the BlinkToRadio app increments its counter.</p>
+
+<h1>MIG: generating packet objects</h1>
+
+<p>The <tt>Listen</tt> program is the most basic way of communicating
+with the mote; it just prints binary packets to the screen. Obviously 
+it is not easy to visualize the sensor data
+using this program. What we'd really like is a better way of retrieving
+and observing data coming from the sensor network. Of course, exactly
+what data to display and how to visualize it can be very application 
+specific. For this reason, TinyOS only 
+has a few applications for visualizing simple
+sensor data (in the next lesson, you'll use the Oscilloscope application), 
+but it provides support for building new visualization or logging systems.
+</p> 
+
+<p>One problem with Listen is that it just dumps binary data: a user has
+to be able to read the bytes and parse them into a given packet format.
+The TinyOS toolchain makes this process easier by providing tools for
+automatically generating message objects from packet descriptions.
+Rather than parse packet formats manually, you can use the <code>mig</code>
+(Message Interface Generator) tool to build a Java, Python, or C interface
+to the message structure. Given a sequence of bytes, the MIG-generated
+code will automatically parse each of the fields in the packet, and it
+provides a set of standard accessors and mutators for printing out 
+received packets or generating new ones.</p>
+
+<p>The mig tool takes three basic arguments: what programming language
+to generate code for (Java, Python, or C), which file in which to find
+the structure, and the name of the structure. The tool also takes standard
+C options, such as -I for includes and -D for defines. 
+
+<p>The <tt>SerialForwarder</tt> program is used to read packet data
+from a serial port and forward it over an Internet connection, so that
+other programs can be written to communicate with the sensor network
+over the Internet. To run the serial forwarder, cd to <tt>tools/java</tt>
+and run the program </p>
+<pre>&nbsp; java net.tinyos.sf.SerialForwarder -comm serial@COM1:&lt;baud rate&gt;</pre>
+This will open up a GUI window that looks similar to the following:
+<center>
+<p><img height="300" width="500" src="imgs/SerialForwarder.JPG"></p>
+</center>
+<p>The <tt>-comm</tt> argument tells <tt>SerialForwarder </tt>to
+communicate over serial port <span style="font-family: monospace;">COM1</span>.<tt>
+</tt>The<span style="font-family: monospace;">-comm</span> argument
+specifies where
+the packets <span style="font-family: monospace;">SerialForwarder</span>
+should forward come from, using the same syntax as the <span
+ style="font-family: monospace;">MOTECOM</span> environment variable
+you
+saw above (you can run '<span style="font-family: monospace;">java
+net.tinyos.packet.BuildSource</span>' to get a list of valid sources).
+Unlike most other programs, SerialForwarder does not pay attention to
+the <span style="font-family: monospace;">MOTECOM</span> environment
+variable; you must use the <span style="font-family: monospace;">-comm</span>
+argument to specify the packet source (The rationale is that you would
+typically set <span style="font-family: monospace;">MOTECOM</span> to
+specify a serial forwarder, and that serial forwader should talk to,
+e.g., a serial port. You wouldn't want the <span
+ style="font-family: monospace;">SerialForwarder</span> to talk to
+itself...). </p>
+<p>The <tt>&lt;baud rate&gt;</tt> argument tells <tt>SerialForwarder </tt>to
+communicate at specified baud rate. <tt> </tt></p>
+<p><tt>SerialForwarder </tt>does not display the packet data itself,
+but rather updates the packet counters in the lower-right hand corner
+of
+the window. Once running, the serial forwarder listens for network
+client connections on a given TCP port (9001 is the default), and
+simply
+forwards TinyOS messages from the serial port to the network client
+connection, and vice versa. Note that multiple applications can connect
+to the serial forwarder at once, and all of them will receive a copy of
+the messages from the sensor network. </p>
+<p>More information is available on <span
+ style="font-family: monospace;">SerialForwarder</span> and packet
+sources is found in the <a href="../serialcomm/index.html">
+SerialForwarder Documentation</a><br>
+&nbsp;
+<table hspace="4" width="100%" cellpadding="3" cellspacing="2"
+ border="0">
+  <tbody>
+    <tr bgcolor="#e0e0ff">
+      <td width="100%"><b><font face="arial,helvetica">Starting the
+Oscilloscope GUI</font></b></td>
+    </tr>
+  </tbody>
+</table>
+</p>
+<p>It is now time to graphically display the data coming from the
+motes. Leaving the serial forwarder running, execute the command </p>
+<pre>&nbsp; java net.tinyos.oscope.oscilloscope</pre>
+This will pop up a window containing a graphical display of the sensor
+readings from the mote (If you get an error like "port COM1 busy", you
+probably forgot to unset the MOTECOM environment variable at the end of
+the Listen example. Do that now). It connects to the serial forwarder
+over the network and retrieves packet data, parses the sensor readings
+from each packet, and draws it on the graph:
+<center>
+<p><img width="600" height="600" border="0" src="imgs/oscilloscope.JPG"></p>
+</center>
+<p>The <i>x</i>-axis of the graph is the packet counter number and the
+<i>y</i>-axis
+is the sensor light reading. If the mote has been running for a while,
+its packet counter might be quite large, so the readings might not
+appear on the graph; just power-cycle the mote to reset its packet
+counter to 0. If you don't see any light readings on the display, try
+zooming out on the Y axis (the values might be out of the displayed
+range) or selecting the "Scrolling" push button (the sample number may
+be out of the displayed range, "Scrolling" automatically scrolls to the
+most recent values).<br>
+&nbsp;
+<table hspace="4" width="100%" cellpadding="3" cellspacing="2"
+ border="0">
+  <tbody>
+    <tr bgcolor="#e0e0ff">
+      <td width="100%"><b><font face="arial,helvetica">Using MIG to
+communicate with motes</font></b></td>
+    </tr>
+  </tbody>
+</table>
+</p>
+<p><a href="../../nesc/doc/mig.html">MIG (Message Interface Generator)</a>
+is a tool that is used to automatically generate Java classes that
+correspond to Active Message types that you use in your mote
+applications. MIG reads in the nesC <tt>struct</tt> definitions for
+message types in your mote application and generates a Java class for
+each message type that takes care of the gritty details of packing and
+unpacking fields in the message's byte format. Using MIG saves you from
+the trouble of parsing message formats in your Java application. </p>
+<p>MIG is used in conjunction with the <tt><a
+ href="../../tools/java/net/tinyos/message">net.tinyos.message</a></tt>
+package, which provides a number of routines for sending and receiving
+messages through the MIG-generated message classes. <tt><a
+ href="../../nesc/doc/ncg.html">NCG(nesC Constant Generator)</a></tt>
+is
+a tool to extract constants from nesC files for use with other
+applications and is typically used in conjunction with <tt>MIG</tt>. </p>
+<p>Let's look at the code from <tt><a
+ href="../../tools/java/net/tinyos/oscope/GraphPanel.java">tools/java/net/tinyos/oscope/GraphPanel.java</a></tt>
+(part of the <tt>oscilloscope</tt> program) that communicates with the
+serial forwarder. First, the program connects to the serial forwarder
+and registers a handler to be invoked when a packet arrives. All of
+this
+is done through the <tt><a
+ href="../../tools/java/net/tinyos/message/MoteIF.java">net.tinyos.message.MoteIF</a></tt>
+interface: </p>
+<center>
+<table hspace="4" width="80%" cellpadding="3" cellspacing="2" border="0">
+  <tbody>
+    <tr bgcolor="#e0e0e0">
+      <td width="100%"><b>GraphPanel.java</b>
+      <pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // OK, connect to the serial forwarder and start receiving data<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mote = new MoteIF(PrintStreamMessenger.err, oscilloscope.group_id);<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mote.registerListener(new OscopeMsg(), this);</pre>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</center>
+<p><tt>MoteIF</tt> represents a Java interface for sending and
+receiving
+messages to and from motes. The host and port number of the serial
+forwarder are obtained from the environment variable <tt>MOTECOM</tt>.
+You initialize <tt>MoteIF</tt> with&nbsp; <tt><a
+ href="../../tools/java/net/tinyos/util/PrintStreamMessenger.java">PrintStreamMessenger</a></tt>
+which indicates where to send status messages (<tt>System.err</tt>), as
+well as an (optional) Active Message group ID. This group ID must
+correspond to the group ID used by your motes. </p>
+<p>We register a message listener (<tt>this</tt>) for the message type <tt>OscopeMsg</tt>.<tt>OscopeMsg</tt>
+is automatically generated by <tt>MIG</tt> from the nesC definition
+for <tt>struct
+OscopeMsg</tt>, which we saw earlier in <tt>OscopeMsg.h</tt>. Look at <tt><a
+ href="../../tools/java/net/tinyos/oscope/Makefile">tools/java/net/tinyos/oscope/Makefile</a></tt>
+for an example of how this class is generated. You will see: </p>
+<pre>&nbsp; OscopeMsg.java:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $(MIG) -java-classname=$(PACKAGE).OscopeMsg $(APP)/OscopeMsg.h OscopeMsg -o $@</pre>
+Essentially, this generates <tt>OscopeMsg.java</tt> from the message
+type <tt>struct OscopeMsg</tt> in the header file <a
+ href="../../apps/Oscilloscope/OscopeMsg.h">apps<tt>/Oscilloscope/OscopeMsg.h</tt></a>.
+<p><tt>GraphPanel</tt> implements the <tt>MessageListener</tt>
+interface, which defines the interface for receiving messages from the
+serial forwarder. Each time a message of the appropriate type is
+received, the <tt>messageReceived()</tt> method is invoked in <tt>GraphPanel</tt>.
+It looks like this: </p>
+<center>
+<table hspace="4" width="80%" cellpadding="3" cellspacing="2" border="0">
+  <tbody>
+    <tr bgcolor="#e0e0e0">
+      <td width="100%"><b>GraphPanel.java</b>
+      <pre>  public void messageReceived(int dest_addr, Message msg) {<br>    if (msg instanceof OscopeMsg) {<br>      oscopeReceived( dest_addr, (OscopeMsg)msg);<br>    } else {<br>      throw new RuntimeException("messageReceived: Got bad message type: "+msg);<br>    }<br>  }<br><br>  public void oscopeReceived(int dest_addr, OscopeMsg omsg) {<br>    boolean foundPlot = false;<br>    int moteID, packetNum, channelID, channel = -1, i;<br><br>    moteID = omsg.get_sourceMoteID();<br>    channelID = omsg.get_channel();<br>    packetNum = omsg.get_lastSampleNumber();<br>&nbsp;&nbsp;  <br>&nbsp;&nbsp;&nbsp; /* ... */</pre>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</center>
+<p><tt>messageReceived()</tt> is called with two arguments: the
+destination address of the packet, and the message itself (<tt>net.tinyos.message.Message</tt>).<tt>Message</tt>
+is just the base class for the application-defined message types; in
+this case we want to cast it to <tt>OscopeMsg</tt> which represents
+the
+actual message format we are using here. </p>
+<p>Once we have the <tt>OscopeMsg</tt> we can extract fields from it
+using the handy <tt>get_sourceMoteID()</tt>, <tt>get_lastSampleNumber()</tt>,
+and <tt>get_channel()</tt> methods. If we look at <tt>struct OscopeMsg</tt>
+in <tt>OscopeMsg.h</tt> we'll see that each of these methods
+corresponds
+to a field in the message type: </p>
+<center>
+<table hspace="4" width="80%" cellpadding="3" cellspacing="2" border="0">
+  <tbody>
+    <tr bgcolor="#e0e0e0">
+      <td width="100%"><b>OscopeMsg.h</b>
+      <pre>struct OscopeMsg<br>{<br>&nbsp;&nbsp;&nbsp; uint16_t sourceMoteID;<br>&nbsp;&nbsp;&nbsp; uint16_t lastSampleNumber;<br>&nbsp;&nbsp;&nbsp; uint16_t channel;<br>&nbsp;&nbsp;&nbsp; uint16_t data[BUFFER_SIZE];<br>};</pre>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</center>
+<p>Each field in a MIG-generated class has at least eight methods
+associated with it: </p>
+<ul>
+  <li> <tt>isSigned_<i>fieldname</i></tt> - Indicates whether or not
+this field is a signed quantity.</li>
+  <li> <tt>isArray_<i>fieldname</i></tt> - Indicates whether or not
+this
+field is an array.</li>
+  <li> <tt>get_<i>fieldname</i></tt> - Return the value of this field.</li>
+  <li> <tt>set_<i>fieldname</i></tt> - Set the value of this field.</li>
+  <li> <tt>offset_<i>fieldname</i></tt> - Return the offset (in bytes)
+for this field.</li>
+  <li> <tt>offsetBits_<i>fieldname</i></tt> - Return the offset (in
+bits) for this field.</li>
+  <li> <tt>size_<i>fieldname</i></tt> - Return the length (in bytes)
+of
+this field.</li>
+  <li> <tt>sizeBits_<i>fieldname</i></tt> - Return the length (in
+bits)
+of this field.</li>
+</ul>
+Note that additional methods are generated for fields that are arrays.<br>
+<p>The remainder of <tt>messageReceived()</tt> pulls the sensor
+readings out of the message and places them on the graph.
+<table hspace="4" width="100%" cellpadding="3" cellspacing="2"
+ border="0">
+  <tbody>
+    <tr bgcolor="#e0e0ff">
+      <td width="100%"><b><font face="arial,helvetica">Sending a
+message through MIG</font></b></td>
+    </tr>
+  </tbody>
+</table>
+</p>
+<p>It is also possible to send a message to the motes using MIG. The <tt>Oscilloscope</tt>
+application sends messages of type <tt>AM_OSCOPERESETMSG</tt>, which
+causes the mote to reset its packet counter. Looking at <tt>clear_data()</tt>
+in <tt>GraphPanel.java</tt>, we see how messages are sent to the
+motes: </p>
+<center>
+<table hspace="4" width="80%" cellpadding="3" cellspacing="2" border="0">
+  <tbody>
+    <tr bgcolor="#e0e0e0">
+      <td width="100%"><b>GraphPanel.java</b>
+      <pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; try {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mote.send(MoteIF.TOS_BCAST_ADDR, new OscopeResetMsg());<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; } catch (IOException ioe) {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; System.err.println("Warning: Got IOException sending reset message: "+ioe);<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ioe.printStackTrace();<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</pre>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</center>
+<p>All we need to do is invoke <tt>MoteIF.send()</tt> with the
+destination address and the message that we wish to send. Here, <tt>MoteIF.TOS_BCAST_ADDR</tt>
+is used to represent the broadcast destination address, which is
+identical to <tt>TOS_BCAST_ADDR</tt> used in the nesC code. <br>
+&nbsp;
+<table hspace="4" width="100%" cellpadding="3" cellspacing="2"
+ border="0">
+  <tbody>
+    <tr bgcolor="#e0e0ff">
+      <td width="100%"><b><nobr><font face="arial,helvetica">Exercises</font></nobr></b></td>
+    </tr>
+  </tbody>
+</table>
+</p>
+<p>Transmit the light sensor readings over the radio to another mote
+that sends them over the serial port! </p>
+<p>The <tt>apps/Oscilloscope</tt> mote application is written to use
+the serial port and the light sensor. Instead, look at <tt><a
+ href="../../apps/OscilloscopeRF">apps/OscillosopeRF</a></tt>, which
+transmits the sensor readings over the radio. In order to use this
+application, you need to use one mote as a gateway that receives data
+packets over the radio and transmits them over the serial port. <tt><a
+ href="../../apps/TOSBase">apps/TOSBase</a></tt> is an application that
+does this; it simply forwards packets between the radio and the UART
+(in
+both directions). </p>
+<p><b>Extra Credit</b>: Can you figure out how to display sensor
+readings on the oscilloscope GUI from two motes simultaneously? (Note
+that the oscillosope GUI is already capable of displaying sensor
+readings from multiple motes. You have to ensure that those readings
+are
+correctly transmitted and received over the network.) This setup would
+look like the following diagram. </p>
+<center>
+<p><img width="720" height="540" src="imgs/Serial_Forward_topology.jpg"></p>
+</center>
+<p> </p>
+<hr><b><a href="lesson5.html">&lt; Previous Lesson</a></b> | <b><a
+ href="lesson7.html">Next Lesson &gt;</a></b> | <b><a href="index.html">Top</a></b>
+<!--  LocalWords:  TinyOS nesC nc async norace BlinkM FooM ncc SingleTimer Leds
+ --><!--  LocalWords:  LedsC StdControl tos init TimerC redOn redOff uint redToggle
+ -->
+<!--  LocalWords:  metadata html nesdoc gcc exe avr objcopy srec uisp mib dprog
+ --><!--  LocalWords:  towards dapa xff ThinkPad dlpt Makelocal micasb Wshadow DDEF
+ -->
+<!--  LocalWords:  finline fnesc cfile lm Atmel ATmega nesC's nesc SenseM rdata
+ --><!--  LocalWords:  ADCControl SounderControl dataReady getData rcombine someval
+ -->
+<!--  LocalWords:  ADControl fooControl barControl MyTimer uniqueCount basicsb
+ --><!--  LocalWords:  sensorboard Makerules sensorboards SenseTask taskname INTMSG
+ -->
+<!--  LocalWords:  SenseTaskM putdata processData CntToLedsAndRfm RfmToLeds Msg
+ --><!--  LocalWords:  CntToRfmAndLeds IntToLeds IntToRfm IntOutput outputComplete
+ -->
+<!--  LocalWords:  IntToRfmM GenericComm SendMsg bool struct IntMsg src BCAST
+ --><!--  LocalWords:  ADDR sizeof TOSH sendDone GenricComm AMStandard RfmToInt pc
+ -->
+<!--  LocalWords:  UARTNoCRCPacket RadioCRCPacket ActiveMessage RfmToIntM xfff
+ --><!--  LocalWords:  ReceiveIntMsg ReceiveMsg MsgPtr addr SenseToRfm TOSSIM DBG
+ -->
+<!--  LocalWords:  TinyViz ffff crc usr dbg const printf prepended bitmask gdb
+ --><!--  LocalWords:  ledsOn gdbinit plugin API TestTinyViz cd tinyviz plugins RFM
+ -->
+<!--  LocalWords:  FakeLocation RadioModelPlugin LocationPlugin afterwards disc
+ --><!--  LocalWords:  DebugMsgEvent TestTinyVizM AutoRun autorun numsec stopstring
+ -->
+<!--  LocalWords:  gridrandom DebugMsgPlugin RadioLinkPlugin radiomodel precmd
+ --><!--  LocalWords:  radioscaling nummotes logfile txt logfiles arConfig TOSSIM's
+ -->
 </body>
 </html>

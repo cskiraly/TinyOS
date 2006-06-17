@@ -6,7 +6,7 @@
 </head>
 <body>
 
-$Id: lesson3.html,v 1.1.2.4 2006-06-15 22:53:55 scipio Exp $
+$Id: lesson3.html,v 1.1.2.5 2006-06-17 19:33:56 scipio Exp $
 
 <div class="title">Lesson 3: Communications</div>
 <div class="subtitle">Last Modified: 18 May 2006</div>
@@ -235,7 +235,16 @@ instead of a counter.
 <h2>Reimplementing Blink</h2>
 
 As a first step, we can reimplement <code>Blink</code> using a single
-timer and counter.  Consider <code>BlinkToRadioC.nc</code>:
+timer and counter.  Create a new directory in <tt>apps</tt> named
+<tt>BlinkToRadio</tt>:
+
+<pre>
+$ cd tinyos-2.x/apps
+$ mkdir BlinkToRadio
+</pre>
+
+Inside this directory, create a file <code>BlinkToRadioC.nc</code>, which
+has this code: 
 
 <pre>
 #include &lt;Timer.h&gt;
@@ -359,9 +368,24 @@ implementation {
 }
 </pre>
 
-The <code>BlinkToRadioAppC</code> should look familiar to you since it is
+<p>The <code>BlinkToRadioAppC</code> should look familiar to you since it is
 essentially a subset of the <code>Blink</code> application/configuration
-from an earlier lesson.
+from an earlier lesson.</p>
+
+<p>These three files constitute all of the application code: the only other
+thing it needs is a Makefile. Create a file named <code>Makefile</code>. For
+an application as simple as this one, the Makefile is very short:</p>
+
+<pre>
+COMPONENT=BlinkToRadioAppC
+include $(MAKERULES)
+
+</pre>
+
+<p>The first line tells the TinyOS make system that the top-level
+application component is BlinkToRadioAppC. The second line 
+loads in the TinyOS build system, which has all of the rules
+for building and installing on different platforms.</p>
 
 <h2>Defining a Message Structure</h2>
 
@@ -920,7 +944,7 @@ This lesson has introduced radio communications TinyOS 2.x.
 
 <ul>
 <li> (1) <a name="fn1"><a href="../tep111.html">TEP 111: message_t</a></a>
-<li> (2) <a name="fn2"><a href="../tep116.html">TEP 107: Packet Protocols</a></a>
+<li> (2) <a name="fn2"><a href="../tep116.html">TEP 116: Packet Protocols</a></a>
 </ul>
 
 <p><a name="hint15">(3)</a><b>Programming Hint 15:</b>Always use platform
