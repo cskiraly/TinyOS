@@ -1,11 +1,11 @@
 <!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-  <title>Lesson 4: SerialForwarder</title>
+  <title>Lesson 4: Mote-PC serial communication and SerialForwarder</title>
   <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-    <div class="title">Lesson 4: SerialForwarder</div>
+    <div class="title">Lesson 4: Mote-PC serial communication and SerialForwarder</div>
     <div class="subtitle">Last updated 16 Jun 2006</div>
 
 <p>To goal of this lesson is to show you how to communicate with a
@@ -30,20 +30,20 @@ over which an application can receive packets from and send packets to
 a mote. Examples of packet sources include serial ports, TCP sockets,
 and the SerialForwarder tool. Most TinyOS communication tools take
 an optional <code>-comm</code> parameter, which allows you to 
-specify the packet source as a string. For example:
+specify the packet source as a string. For example:</p>
 
 <pre>
 $ java net.tinyos.tools.Listen -comm serial@COM1:telos
 </pre>
 
-tells the Listen tool to use the COM1 serial port (on a Windows
-machine) at the correct speed for a telos mote, while
+<p>tells the Listen tool to use the COM1 serial port (on a Windows
+machine) at the correct speed for a telos mote, while</p>
 
 <pre>
 $ java net.tinyos.tools.Listen -comm serial@/dev/ttyS0:micaz
 </pre>
 
-tells Listen to use the serial port <code>/dev/ttyS0</code> (on
+<p>tells Listen to use the serial port <code>/dev/ttyS0</code> (on
 a UNIX machine) at the correct speed for a micaz mote.</p>
 
 <p>The first step to testing your serial port is to install
@@ -288,309 +288,291 @@ received packets or generating new ones.</p>
 <p>The mig tool takes three basic arguments: what programming language
 to generate code for (Java, Python, or C), which file in which to find
 the structure, and the name of the structure. The tool also takes standard
-C options, such as -I for includes and -D for defines. 
+C options, such as -I for includes and -D for defines. The TestSerial
+application, for example, uses mig so that it can easily create
+and parse the packets over the serial port. If you go back to TestSerial
+and type <code>make clean;make</code>, you should see this:</p>
 
-<p>The <tt>SerialForwarder</tt> program is used to read packet data
-from a serial port and forward it over an Internet connection, so that
-other programs can be written to communicate with the sensor network
-over the Internet. To run the serial forwarder, cd to <tt>tools/java</tt>
-and run the program </p>
-<pre>&nbsp; java net.tinyos.sf.SerialForwarder -comm serial@COM1:&lt;baud rate&gt;</pre>
-This will open up a GUI window that looks similar to the following:
+<pre>
+rm -rf build *.class TestSerialMsg.java
+rm -rf _TOSSIMmodule.so TOSSIM.pyc TOSSIM.py
+mkdir -p build/telosb
+mig java -target=telosb -I%T/lib/oski -java-classname=TestSerialMsg TestSerial.h TestSerialMsg -o TestSerialMsg.java
+javac *.java
+    compiling TestSerialAppC to a telosb binary
+ncc -o build/telosb/main.exe -Os -O -mdisable-hwmul -Wall -Wshadow -DDEF_TOS_AM_GROUP=0x66 -Wnesc-all -DCC2420_DEF_CHANNEL=19 -target=telosb -fnesc-cfile=build/telosb/app.c -board= -I%T/lib/oski  TestSerialAppC.nc -lm 
+    compiled TestSerialAppC to build/telosb/main.exe
+            6300 bytes in ROM
+             281 bytes in RAM
+msp430-objcopy --output-target=ihex build/telosb/main.exe build/telosb/main.ihex
+    writing TOS image
+</pre>
+
+<p>Before building the TinyOS application, the Makefile has a rule
+for generating <code>TestSerialMsg.java</code>. It then compiles
+TestSerialMsg.java as well as TestSerial.java, and finally
+compiles the TinyOS application. Looking at the Makefile, we can see
+that it has a few more rules than the one for BlinkToRadio:</p>
+
+<pre>
+COMPONENT=TestSerialAppC
+BUILD_EXTRA_DEPS += TestSerial.class
+CLEAN_EXTRA = *.class TestSerialMsg.java
+
+TestSerial.class: $(wildcard *.java) TestSerialMsg.java
+        javac *.java
+
+TestSerialMsg.java:
+        mig java -target=$(PLATFORM) -java-classname=TestSerialMsg TestSerial.h TestSerialMsg -o $@
+
+include $(MAKERULES)
+</pre>
+
+<p>The <code>BUILD_EXTRA_DEPS</code> line tells the TinyOS make system
+that the TinyOS application has additional dependencies that must
+be satisfied before it can be built. The Makefile tells the make system
+that <code>TestSerial.class</code>, the Java application that we ran
+to test serial communication. The <code>CLEAN_EXTRA</code> line tells
+the make system extra things that need to be done when a user types
+<code>make clean</code> to clean up.</p>
+
+<p>The <code>BUILD_EXTRA_DEPS</code> line tells make to compile 
+TestSerial.class before the application; the line</p>
+
+<pre>
+TestSerial.class: $(wildcard *.java) TestSerialMsg.java
+        javac *.java
+</pre>
+
+<p>tells it that TestSerial.class depends on all of the .java files 
+in the directory as well as TestSerialMsg.java. Once all of these
+dependencies are resolved, the make system will call <code>javac
+*.java</code>, which creates TestSerial.class. The final line,</p>
+
+<pre>
+TestSerialMsg.java:
+        mig java -target=$(PLATFORM) -java-classname=TestSerialMsg TestSerial.h TestSerialMsg -o $@
+</pre>
+
+<p>tells the make system how to create TestSerialMsg.java, the
+Java class representing the packet sent between the mote and PC.
+Because TestSerialMsg.java is a dependency for TestSerial.class,
+make will create it if it is needed. To create TestSerialMsg.java,
+the Makefile invokes the mig tool. Let's step through the parameters
+one by one:</p>
+
+<table>
+<tr>  <td>mig</td>  <td width=60></td>                <td>Invoke mig</td> </tr>
+<tr>  <td>java</td> <td></td>                         <td>Build a Java class</td> </tr>
+<tr>  <td>-target=$(PLATFORM)</td> <td></td>          <td>For the specified platform (<A HREF="#platforms">1</A>)</td></tr>
+<tr>  <td>-java-classname=TestSerialMsg</td><td></td> <td>Name the Java class TestSerialMsg</td> </tr>
+<tr>  <td>TestSerial.h</td>        <td></td>          <td>The structure is in TestSerial.h</td> </tr>
+<tr>  <td>TestSerialMsg</td>      <td></td>           <td>The structure is named TestSerialMsg</td></tr>
+<tr>  <td>-o $@</td>               <td></td>          <td>Write the file to $@, which is TestSerialMsg.java</tr></tr>
+</table>
+
+<p>Let's build a Java packet object for BlinkToRadio.  Open the Makefile for 
+BlinkToRadio and add a dependency:</p>
+
+<pre>
+BUILD_EXTRA_DEPS=BlinkToRadioMsg.class
+</pre>
+
+<p>Then add a step which explains how to compile a .java to a .class:</p>
+
+<pre>
+BlinkToRadioMsg.class: BlinkToRadioMsg.java
+        javac BlinkToRadioMsg.java
+</pre>
+
+<p><b>Note that there must be a tab before javac, and not just spaces.</b>
+Finally, add the line which explains how to create BlinkToRadioMsg.java:</p>
+
+<pre>
+BlinkToRadioMsg.java:
+        mig java -target=$(PLATFORM) -java-classname=BlinkToRadioMsg BlinkToRadio.h BlinkToRadioMsg -o $@
+</pre>
+
+<p>As with javac, there must be a tab (not spaces) before mig. 
+Now, when you type <code>make</code> in <code>BlinkToRadio/</code>, 
+the make system will compile BlinkToRadioMsg.class, a Java class
+that parses a binary packet into message fields that can be accessed
+through methods.</p>
+
+<p>There is one more step, however. When you compiled, you probably saw this warning:
+
+<pre>
+warning: Cannot determine AM type for BlinkToRadioMsg
+         (Looking for definition of AM_BLINKTORADIOMSG)
+</pre>
+
+<p>One part of the TinyOS communication toolchain requires being able to
+figure out which AM types correspond to what kinds of packets.
+To determine this, for a packet type named X, mig looks for a constant
+of the form <code>AM_X</code>. The warning is because we defined our
+AM type as AM_BLINKTORADIO, but mig wants AM_BLINKTORADIOMSG. Modify
+BlinkToRadio.h so that it defines the latter. You'll also need to
+update BlinkToRadioAppC.nc so that the arguments to AMSenderC
+and AMReceiverC use it. Recompile the application, and you should
+see no warning. Install it on a mote.</p>
+
+<p>Now that we have a Java message class, we can use it to
+print out the messages we see from the BaseStation. With 
+BaseStation plugged into the serial port and BlinkToRadio
+running on another mote, from the BlinkToRadio directory
+type</p>
+
+<pre>
+java net.tinyos.tools.MsgReader BlinkToRadioMsg
+</pre>
+
+<p>Now, when the BaseStation sends a packet to the serial
+port, MsgReader reads it, looks at its AM type, and if
+it matches the AM type of one of the Java message classes
+passed at the command line, it prints out the packet. You
+should see output like this:</p>
+
+<pre></pre>
+
+<h1>SerialForwarder and other packet sources</h1>
+
+<p>One problem with directly using the serial port is that
+only one PC program can interact with the mote. Additionally,
+it requires you to run the application on the PC which is
+physically connected to the mote. The SerialForwarder tool
+is a simple way to remove both of these limitations.</p>
+
+<p>Most generally, the <tt>SerialForwarder</tt> program 
+opens a packet source and lets many applications connect
+to it over a TCP/IP stream in order to use that source. 
+For example, you can run a SerialForwarder whose packet
+source is the serial port; instead of connecting to the
+serial port directly, applications connect to the 
+SerialForwarder, which acts as a proxy to read and write
+packets. Since applications connect to SerialForwarder
+over TCP/IP, applications can connect over the Internet.</p>
+
+<p>SerialForwarder is the second kind of packet source.
+A SerialForwarder source has this syntax:</p>
+
+<pre>
+sf@HOST:PORT
+</pre>
+
+<p>HOST and PORT are optional: they default to localhost (the
+local machine) and 9001. For example,</p>
+
+<pre>
+sf@dark.cs.berkeley.edu:1948
+</pre> 
+
+<p>will connect to a SerialForwarder running on the computer
+dark.cs.berkeley.edu and port 1948.</p>
+
+<p>The first step is to run a SerialForwarder; since it
+takes one packet source and exports it as an sf source,
+it takes a packet source parameter just like the other
+tools we've used so far: you can pass a -comm parameter,
+use MOTECOM, or just rely on the default. Close your
+MsgReader application so that it no longer uses
+the serial port, and run a SerialForwarder:</p>
+
+<pre>
+java net.tinyos.sf.SerialForwarder
+</pre>
+
+<p>You should see a window like this pop up:
+
 <center>
 <p><img height="300" width="500" src="imgs/SerialForwarder.JPG"></p>
 </center>
-<p>The <tt>-comm</tt> argument tells <tt>SerialForwarder </tt>to
-communicate over serial port <span style="font-family: monospace;">COM1</span>.<tt>
-</tt>The<span style="font-family: monospace;">-comm</span> argument
-specifies where
-the packets <span style="font-family: monospace;">SerialForwarder</span>
-should forward come from, using the same syntax as the <span
- style="font-family: monospace;">MOTECOM</span> environment variable
-you
-saw above (you can run '<span style="font-family: monospace;">java
-net.tinyos.packet.BuildSource</span>' to get a list of valid sources).
-Unlike most other programs, SerialForwarder does not pay attention to
-the <span style="font-family: monospace;">MOTECOM</span> environment
-variable; you must use the <span style="font-family: monospace;">-comm</span>
-argument to specify the packet source (The rationale is that you would
-typically set <span style="font-family: monospace;">MOTECOM</span> to
-specify a serial forwarder, and that serial forwader should talk to,
-e.g., a serial port. You wouldn't want the <span
- style="font-family: monospace;">SerialForwarder</span> to talk to
-itself...). </p>
-<p>The <tt>&lt;baud rate&gt;</tt> argument tells <tt>SerialForwarder </tt>to
-communicate at specified baud rate. <tt> </tt></p>
-<p><tt>SerialForwarder </tt>does not display the packet data itself,
-but rather updates the packet counters in the lower-right hand corner
-of
-the window. Once running, the serial forwarder listens for network
-client connections on a given TCP port (9001 is the default), and
-simply
-forwards TinyOS messages from the serial port to the network client
-connection, and vice versa. Note that multiple applications can connect
-to the serial forwarder at once, and all of them will receive a copy of
-the messages from the sensor network. </p>
-<p>More information is available on <span
- style="font-family: monospace;">SerialForwarder</span> and packet
-sources is found in the <a href="../serialcomm/index.html">
-SerialForwarder Documentation</a><br>
-&nbsp;
-<table hspace="4" width="100%" cellpadding="3" cellspacing="2"
- border="0">
-  <tbody>
-    <tr bgcolor="#e0e0ff">
-      <td width="100%"><b><font face="arial,helvetica">Starting the
-Oscilloscope GUI</font></b></td>
-    </tr>
-  </tbody>
-</table>
-</p>
-<p>It is now time to graphically display the data coming from the
-motes. Leaving the serial forwarder running, execute the command </p>
-<pre>&nbsp; java net.tinyos.oscope.oscilloscope</pre>
-This will pop up a window containing a graphical display of the sensor
-readings from the mote (If you get an error like "port COM1 busy", you
-probably forgot to unset the MOTECOM environment variable at the end of
-the Listen example. Do that now). It connects to the serial forwarder
-over the network and retrieves packet data, parses the sensor readings
-from each packet, and draws it on the graph:
+
+<p>Since SerialForwarder takes any packet source as its source, you
+can even string SerialForwaders along:</p>
+
+<pre>
+java net.tinyos.sf.SerialForwader -port 9002 -comm sf@localhost:9001
+</pre>
+
+<p>This command opens a second SerialForwarder, whose source is the first
+SerialForwarder. You'll see that the client count of the first one has
+increased to one. It's rare that you'd ever want to do this, but it
+demonstrates that in the message support libraries you can 
+use a variety of packet sources.</p>
+
+<p>Close the second SerialForwarder (the one listening on port 9002).
+Run MsgReader again, but this time tell it to connect to your
+SerialForwarder:</p>
+
+<pre>
+java net.tinyos.tools.MsgReader -comm sf@localhost:9001 BlinkToRadioMsg
+</pre>
+
+<p>You will see the client count increment, and MsgReader will start
+printing out packets.</p>
+
+<h2>Packet Sources</h2>
+
+<p>In addition to serial ports and SerialForwarders, the TinyOS
+messaging library supports a third packet source, motes which
+are connected to an ethernet port through a Crossbow MIB 600 
+ethernet board. This is the full
+set of packet sources:
+
+<br>
 <center>
-<p><img width="600" height="600" border="0" src="imgs/oscilloscope.JPG"></p>
-</center>
-<p>The <i>x</i>-axis of the graph is the packet counter number and the
-<i>y</i>-axis
-is the sensor light reading. If the mote has been running for a while,
-its packet counter might be quite large, so the readings might not
-appear on the graph; just power-cycle the mote to reset its packet
-counter to 0. If you don't see any light readings on the display, try
-zooming out on the Y axis (the values might be out of the displayed
-range) or selecting the "Scrolling" push button (the sample number may
-be out of the displayed range, "Scrolling" automatically scrolls to the
-most recent values).<br>
-&nbsp;
-<table hspace="4" width="100%" cellpadding="3" cellspacing="2"
- border="0">
-  <tbody>
-    <tr bgcolor="#e0e0ff">
-      <td width="100%"><b><font face="arial,helvetica">Using MIG to
-communicate with motes</font></b></td>
-    </tr>
-  </tbody>
-</table>
-</p>
-<p><a href="../../nesc/doc/mig.html">MIG (Message Interface Generator)</a>
-is a tool that is used to automatically generate Java classes that
-correspond to Active Message types that you use in your mote
-applications. MIG reads in the nesC <tt>struct</tt> definitions for
-message types in your mote application and generates a Java class for
-each message type that takes care of the gritty details of packing and
-unpacking fields in the message's byte format. Using MIG saves you from
-the trouble of parsing message formats in your Java application. </p>
-<p>MIG is used in conjunction with the <tt><a
- href="../../tools/java/net/tinyos/message">net.tinyos.message</a></tt>
-package, which provides a number of routines for sending and receiving
-messages through the MIG-generated message classes. <tt><a
- href="../../nesc/doc/ncg.html">NCG(nesC Constant Generator)</a></tt>
-is
-a tool to extract constants from nesC files for use with other
-applications and is typically used in conjunction with <tt>MIG</tt>. </p>
-<p>Let's look at the code from <tt><a
- href="../../tools/java/net/tinyos/oscope/GraphPanel.java">tools/java/net/tinyos/oscope/GraphPanel.java</a></tt>
-(part of the <tt>oscilloscope</tt> program) that communicates with the
-serial forwarder. First, the program connects to the serial forwarder
-and registers a handler to be invoked when a packet arrives. All of
-this
-is done through the <tt><a
- href="../../tools/java/net/tinyos/message/MoteIF.java">net.tinyos.message.MoteIF</a></tt>
-interface: </p>
-<center>
-<table hspace="4" width="80%" cellpadding="3" cellspacing="2" border="0">
-  <tbody>
-    <tr bgcolor="#e0e0e0">
-      <td width="100%"><b>GraphPanel.java</b>
-      <pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // OK, connect to the serial forwarder and start receiving data<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mote = new MoteIF(PrintStreamMessenger.err, oscilloscope.group_id);<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mote.registerListener(new OscopeMsg(), this);</pre>
-      </td>
-    </tr>
-  </tbody>
+<table>
+<tr>
+<td><b>Syntax</b></td>
+<td width=100></td>
+<td><b>Source</b></td>
+</tr>
+<tr>
+<td>serial@PORT:SPEED</td>
+<td></td>
+<td>Serial ports</td>
+</tr>
+<tr>
+<td>sf@HOST:PORT</td>
+<td></td>
+<td>SerialForwarder, TMote Connect</td>
+</tr>
+<tr>
+<td>network@HOST:PORT</td>
+<td></td>
+<td>MIB 600</td>
+</tr>
 </table>
 </center>
-<p><tt>MoteIF</tt> represents a Java interface for sending and
-receiving
-messages to and from motes. The host and port number of the serial
-forwarder are obtained from the environment variable <tt>MOTECOM</tt>.
-You initialize <tt>MoteIF</tt> with&nbsp; <tt><a
- href="../../tools/java/net/tinyos/util/PrintStreamMessenger.java">PrintStreamMessenger</a></tt>
-which indicates where to send status messages (<tt>System.err</tt>), as
-well as an (optional) Active Message group ID. This group ID must
-correspond to the group ID used by your motes. </p>
-<p>We register a message listener (<tt>this</tt>) for the message type <tt>OscopeMsg</tt>.<tt>OscopeMsg</tt>
-is automatically generated by <tt>MIG</tt> from the nesC definition
-for <tt>struct
-OscopeMsg</tt>, which we saw earlier in <tt>OscopeMsg.h</tt>. Look at <tt><a
- href="../../tools/java/net/tinyos/oscope/Makefile">tools/java/net/tinyos/oscope/Makefile</a></tt>
-for an example of how this class is generated. You will see: </p>
-<pre>&nbsp; OscopeMsg.java:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $(MIG) -java-classname=$(PACKAGE).OscopeMsg $(APP)/OscopeMsg.h OscopeMsg -o $@</pre>
-Essentially, this generates <tt>OscopeMsg.java</tt> from the message
-type <tt>struct OscopeMsg</tt> in the header file <a
- href="../../apps/Oscilloscope/OscopeMsg.h">apps<tt>/Oscilloscope/OscopeMsg.h</tt></a>.
-<p><tt>GraphPanel</tt> implements the <tt>MessageListener</tt>
-interface, which defines the interface for receiving messages from the
-serial forwarder. Each time a message of the appropriate type is
-received, the <tt>messageReceived()</tt> method is invoked in <tt>GraphPanel</tt>.
-It looks like this: </p>
+
+<p>In the <code>network</code> packet source, the default MIB 600 port is 10002.
+The Moteiv TMote Connect appliance is a SerialForwarder packet source.</p>
+
+<h2>The tool side</h2>
+
+<p>Code for the Java messaging toolchain lives in two java packages:
+<code>net.tinyos.message</code> and <code>net.tinyos.packet</code>.
+The <code>packet</code> package contains all of the code for 
+packet sources and their protocols: it is what reads and writes
+bytes. The <code>message</code> package is what turns streams of
+bytes into meaningful messages and provides packet source independent
+classes for communicating with motes.</p>
+
+<p>The key class for sending and receiving packets is <code>MoteIF</code>.
+It has methods for registering packet listeners (callbacks when a packet
+arrives) and sending packets. The tools <code>MsgReader</code>,
+<code>Listen</code>, and <code>Send</code> are good places to start
+to learn how to get Java applications to communicate with motes.</p>
+
+<p>There is also support for python and C.</p>
+
+<br>
+<hr>
 <center>
-<table hspace="4" width="80%" cellpadding="3" cellspacing="2" border="0">
-  <tbody>
-    <tr bgcolor="#e0e0e0">
-      <td width="100%"><b>GraphPanel.java</b>
-      <pre>  public void messageReceived(int dest_addr, Message msg) {<br>    if (msg instanceof OscopeMsg) {<br>      oscopeReceived( dest_addr, (OscopeMsg)msg);<br>    } else {<br>      throw new RuntimeException("messageReceived: Got bad message type: "+msg);<br>    }<br>  }<br><br>  public void oscopeReceived(int dest_addr, OscopeMsg omsg) {<br>    boolean foundPlot = false;<br>    int moteID, packetNum, channelID, channel = -1, i;<br><br>    moteID = omsg.get_sourceMoteID();<br>    channelID = omsg.get_channel();<br>    packetNum = omsg.get_lastSampleNumber();<br>&nbsp;&nbsp;  <br>&nbsp;&nbsp;&nbsp; /* ... */</pre>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<p>&lt;&nbsp;<b><a href="lesson3.html">Previous Lesson</a></b> |&nbsp; <b><a
+ href="index.html">Top</a></b> &nbsp;|&nbsp; <b><a href="lesson5.html">Next Lesson </a>&nbsp;&gt;</b>
 </center>
-<p><tt>messageReceived()</tt> is called with two arguments: the
-destination address of the packet, and the message itself (<tt>net.tinyos.message.Message</tt>).<tt>Message</tt>
-is just the base class for the application-defined message types; in
-this case we want to cast it to <tt>OscopeMsg</tt> which represents
-the
-actual message format we are using here. </p>
-<p>Once we have the <tt>OscopeMsg</tt> we can extract fields from it
-using the handy <tt>get_sourceMoteID()</tt>, <tt>get_lastSampleNumber()</tt>,
-and <tt>get_channel()</tt> methods. If we look at <tt>struct OscopeMsg</tt>
-in <tt>OscopeMsg.h</tt> we'll see that each of these methods
-corresponds
-to a field in the message type: </p>
-<center>
-<table hspace="4" width="80%" cellpadding="3" cellspacing="2" border="0">
-  <tbody>
-    <tr bgcolor="#e0e0e0">
-      <td width="100%"><b>OscopeMsg.h</b>
-      <pre>struct OscopeMsg<br>{<br>&nbsp;&nbsp;&nbsp; uint16_t sourceMoteID;<br>&nbsp;&nbsp;&nbsp; uint16_t lastSampleNumber;<br>&nbsp;&nbsp;&nbsp; uint16_t channel;<br>&nbsp;&nbsp;&nbsp; uint16_t data[BUFFER_SIZE];<br>};</pre>
-      </td>
-    </tr>
-  </tbody>
-</table>
-</center>
-<p>Each field in a MIG-generated class has at least eight methods
-associated with it: </p>
-<ul>
-  <li> <tt>isSigned_<i>fieldname</i></tt> - Indicates whether or not
-this field is a signed quantity.</li>
-  <li> <tt>isArray_<i>fieldname</i></tt> - Indicates whether or not
-this
-field is an array.</li>
-  <li> <tt>get_<i>fieldname</i></tt> - Return the value of this field.</li>
-  <li> <tt>set_<i>fieldname</i></tt> - Set the value of this field.</li>
-  <li> <tt>offset_<i>fieldname</i></tt> - Return the offset (in bytes)
-for this field.</li>
-  <li> <tt>offsetBits_<i>fieldname</i></tt> - Return the offset (in
-bits) for this field.</li>
-  <li> <tt>size_<i>fieldname</i></tt> - Return the length (in bytes)
-of
-this field.</li>
-  <li> <tt>sizeBits_<i>fieldname</i></tt> - Return the length (in
-bits)
-of this field.</li>
-</ul>
-Note that additional methods are generated for fields that are arrays.<br>
-<p>The remainder of <tt>messageReceived()</tt> pulls the sensor
-readings out of the message and places them on the graph.
-<table hspace="4" width="100%" cellpadding="3" cellspacing="2"
- border="0">
-  <tbody>
-    <tr bgcolor="#e0e0ff">
-      <td width="100%"><b><font face="arial,helvetica">Sending a
-message through MIG</font></b></td>
-    </tr>
-  </tbody>
-</table>
-</p>
-<p>It is also possible to send a message to the motes using MIG. The <tt>Oscilloscope</tt>
-application sends messages of type <tt>AM_OSCOPERESETMSG</tt>, which
-causes the mote to reset its packet counter. Looking at <tt>clear_data()</tt>
-in <tt>GraphPanel.java</tt>, we see how messages are sent to the
-motes: </p>
-<center>
-<table hspace="4" width="80%" cellpadding="3" cellspacing="2" border="0">
-  <tbody>
-    <tr bgcolor="#e0e0e0">
-      <td width="100%"><b>GraphPanel.java</b>
-      <pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; try {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mote.send(MoteIF.TOS_BCAST_ADDR, new OscopeResetMsg());<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; } catch (IOException ioe) {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; System.err.println("Warning: Got IOException sending reset message: "+ioe);<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ioe.printStackTrace();<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</pre>
-      </td>
-    </tr>
-  </tbody>
-</table>
-</center>
-<p>All we need to do is invoke <tt>MoteIF.send()</tt> with the
-destination address and the message that we wish to send. Here, <tt>MoteIF.TOS_BCAST_ADDR</tt>
-is used to represent the broadcast destination address, which is
-identical to <tt>TOS_BCAST_ADDR</tt> used in the nesC code. <br>
-&nbsp;
-<table hspace="4" width="100%" cellpadding="3" cellspacing="2"
- border="0">
-  <tbody>
-    <tr bgcolor="#e0e0ff">
-      <td width="100%"><b><nobr><font face="arial,helvetica">Exercises</font></nobr></b></td>
-    </tr>
-  </tbody>
-</table>
-</p>
-<p>Transmit the light sensor readings over the radio to another mote
-that sends them over the serial port! </p>
-<p>The <tt>apps/Oscilloscope</tt> mote application is written to use
-the serial port and the light sensor. Instead, look at <tt><a
- href="../../apps/OscilloscopeRF">apps/OscillosopeRF</a></tt>, which
-transmits the sensor readings over the radio. In order to use this
-application, you need to use one mote as a gateway that receives data
-packets over the radio and transmits them over the serial port. <tt><a
- href="../../apps/TOSBase">apps/TOSBase</a></tt> is an application that
-does this; it simply forwards packets between the radio and the UART
-(in
-both directions). </p>
-<p><b>Extra Credit</b>: Can you figure out how to display sensor
-readings on the oscilloscope GUI from two motes simultaneously? (Note
-that the oscillosope GUI is already capable of displaying sensor
-readings from multiple motes. You have to ensure that those readings
-are
-correctly transmitted and received over the network.) This setup would
-look like the following diagram. </p>
-<center>
-<p><img width="720" height="540" src="imgs/Serial_Forward_topology.jpg"></p>
-</center>
-<p> </p>
-<hr><b><a href="lesson5.html">&lt; Previous Lesson</a></b> | <b><a
- href="lesson7.html">Next Lesson &gt;</a></b> | <b><a href="index.html">Top</a></b>
-<!--  LocalWords:  TinyOS nesC nc async norace BlinkM FooM ncc SingleTimer Leds
- --><!--  LocalWords:  LedsC StdControl tos init TimerC redOn redOff uint redToggle
- -->
-<!--  LocalWords:  metadata html nesdoc gcc exe avr objcopy srec uisp mib dprog
- --><!--  LocalWords:  towards dapa xff ThinkPad dlpt Makelocal micasb Wshadow DDEF
- -->
-<!--  LocalWords:  finline fnesc cfile lm Atmel ATmega nesC's nesc SenseM rdata
- --><!--  LocalWords:  ADCControl SounderControl dataReady getData rcombine someval
- -->
-<!--  LocalWords:  ADControl fooControl barControl MyTimer uniqueCount basicsb
- --><!--  LocalWords:  sensorboard Makerules sensorboards SenseTask taskname INTMSG
- -->
-<!--  LocalWords:  SenseTaskM putdata processData CntToLedsAndRfm RfmToLeds Msg
- --><!--  LocalWords:  CntToRfmAndLeds IntToLeds IntToRfm IntOutput outputComplete
- -->
-<!--  LocalWords:  IntToRfmM GenericComm SendMsg bool struct IntMsg src BCAST
- --><!--  LocalWords:  ADDR sizeof TOSH sendDone GenricComm AMStandard RfmToInt pc
- -->
-<!--  LocalWords:  UARTNoCRCPacket RadioCRCPacket ActiveMessage RfmToIntM xfff
- --><!--  LocalWords:  ReceiveIntMsg ReceiveMsg MsgPtr addr SenseToRfm TOSSIM DBG
- -->
-<!--  LocalWords:  TinyViz ffff crc usr dbg const printf prepended bitmask gdb
- --><!--  LocalWords:  ledsOn gdbinit plugin API TestTinyViz cd tinyviz plugins RFM
- -->
-<!--  LocalWords:  FakeLocation RadioModelPlugin LocationPlugin afterwards disc
- --><!--  LocalWords:  DebugMsgEvent TestTinyVizM AutoRun autorun numsec stopstring
- -->
-<!--  LocalWords:  gridrandom DebugMsgPlugin RadioLinkPlugin radiomodel precmd
- --><!--  LocalWords:  radioscaling nummotes logfile txt logfiles arConfig TOSSIM's
- -->
+
 </body>
 </html>
+
