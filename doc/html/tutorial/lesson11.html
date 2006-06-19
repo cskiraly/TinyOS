@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<!--- $Id: lesson11.html,v 1.1.2.1 2006-06-19 00:12:45 scipio Exp $ --->
+<!--- $Id: lesson11.html,v 1.1.2.2 2006-06-19 00:20:06 scipio Exp $ --->
 
 <div class="title">Lesson 11: Simulation with TOSSIM</div>
 <div class="subtitle">Last Modified: 18 May 2006</div>
@@ -1316,6 +1316,39 @@ the radio thinks it is receiving a packet. So setting the
 above watchpoint will cause gdb to break whenever 
 node 23 starts receiving a packet or returns to searching
 for packet preambles.</p>
+
+<p>Generic components add another wrinkle. Since they use
+a code-copying approach, each instance of a generic has its
+own separate functions and variables (this is mostly due to the
+fact that you can pass types to them). Take, for example,
+<code>AMQueueImplP</code>, which is used in both the radio
+AM stack and the serial AM stack. If you use gdb on an
+application that uses both serial and radio communication and
+try to break on its Send.send, you'll see an error:</p>
+
+<pre>
+(gdb) break *AMQueueImplP$Send$send
+No symbol "AMQueueImplP$Send$send" in current context.
+</pre>
+
+<p>nesC gives each generic a unique number. So if you
+have an application in which there is a single copy
+of AMQueueImplP, its name will actually be AMQueueImplP$0.
+For example, in RadioCountToLeds, this will work:</p>
+
+<pre>
+(gdb) break *AMQueueImplP$0$Send$send
+Breakpoint 5 at 0x8051b29: file AMQueueImplP.nc, line 79.
+</pre>
+
+<p>If you have multiple instances of a generic in a 
+program, there is unfortunately no easy way to figure out each one's
+name besides looking at the source code or stepping into them.
+E.g., if you application uses serial and radio communication,
+knowing which stack has AMQueueImpl$0 and which has AMQueueImplP$1
+requires either stepping through their send operation or looking
+at their <code>app.c</code> files.
+</p>
 
 <h1>Conclusions</h1>
 
