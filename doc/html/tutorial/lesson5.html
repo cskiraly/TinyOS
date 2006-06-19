@@ -6,14 +6,17 @@
 </head>
 <body>
 
-<!-- $Id: lesson5.html,v 1.1.2.6 2006-06-17 19:33:56 scipio Exp $ -->
+<!-- $Id: lesson5.html,v 1.1.2.7 2006-06-19 15:54:12 janhauer Exp $ -->
 
 <div class="title">Lesson 5: Sensing</div>
 <div class="subtitle">Last Modified: 16 June 2006</div>
 
-<p> This lesson introduces sensor data acquisition in TinyOS. It demonstrates a
-simple sensor application that periodically takes sensor readings and displays
-the values on the leds.  
+<p> This lesson introduces sensor data acquisition in TinyOS. It demonstrates
+two sensor applications: a simple application, called <code>Sense</code>, that
+periodically takes sensor readings and displays the values on the LEDs and a
+more sophisticated application, called <code>Oscilloscope</code>, that sends
+sensor readings to the PC where they can be visualized using a dedicated
+graphical user interface.  
 
 <h1>Introduction</h1>
 
@@ -26,14 +29,14 @@ the serial interface, not only additional interfaces like <code>ADCError</code>
 had to be introduced, but it became clear that equating a sensor with an ADC is
 difficult.
 
-<p> Usually sensing involves two tasks: configuring a sensor (i.e. the hardware
-module it is attached to, for example an ADC or SPI) and reading the sensor
-data.  The first task is tricky, because a sensing application like, for
+<p> Usually sensing involves two tasks: configuring a sensor (and/or the
+hardware module it is attached to, for example an ADC or SPI) and reading the
+sensor data.  The first task is tricky, because a sensing application like, for
 example, <code>Sense</code> is meant to run on any TinyOS platform. How can
 <code>Sense</code> know the configuration details (e.g. input channel, the
 required reference voltage, etc.) of an attached sensor ? It can't, because the
 configuration details of, for example, the light sensor on the <i>tmote</i>
-platform will be different from the <i>micaz</i> platform.  Unless
+platform will be different from the <i>eyes</i> platform.  Unless
 <code>Sense</code> knows about all sensors on all platforms it can't perform
 the configuration task, since the interfaces for the configuration of a sensor
 will differ from platform to platform (and potentially from sensor to sensor).
@@ -48,7 +51,7 @@ instead they are only using the standard data acquisition interfaces
 <code>Read</code>, <code>ReadStream</code> or <code>ReadNow</code> for
 collecting sensor data. All configuration details are hidden from the
 application and this is why you can compile <code>Sense</code> and display
-sensor data on the <i>tmote</i> or the <i>micaz</i> platform, even though the
+sensor data on the <i>telosb</i> or the <i>micaz</i> platform, even though the
 actual sensors and their connection to the rest of the system may be completely
 different.
 
@@ -77,7 +80,7 @@ display data of a different sensor ?
 Using the <code>Sense</code> application as an example, the following sections
 explain how the data acquisition interfaces are to be used, how the
 configuration procedure works and, as an example, how <code>Sense</code> can be
-hooked up to a different than the default sensor on the <i>tmote</i> platform.
+hooked up to a different than the default sensor on the <i>telosb</i> platform.
 
 <h1>The Sense application</h1>
 
@@ -157,25 +160,27 @@ interface Read&lt;val_t&gt; {
 </pre>
 
 If you are not familiar with generic interfaces you will wonder what the
-meaning of &lt;val_t&gt; (in the first line) is and why the signature of
-<code>SenseC.nc</code> is using <code>Read&lt;uint16_t&gt;</code> ?
-
-<p> What you see above is a <i>generic interface definition</i>, because the
+meaning of <code>&lt;val_t&gt;</code> (in the first line) is and why the
+signature of <code>SenseC.nc</code> is using <code>Read&lt;uint16_t&gt;</code>.
+What you see above is a <i>generic interface definition</i>, because the
 <code>Read</code> interface takes a type parameter. What generic interfaces are
 is explained in the nesC Language Reference Manual (version 1.2 and above).
 Here it is enough to know that generic interfaces have at least one type
-parameter and two components can be wired together only if both instantiate the
-interface with the same type. This means that since <code>SenseC.nc</code> is
-using the <code>uint16_t</code> variant of the <code>Read</code> interface, it
-can only be wired to a component that provides the
-<code>Read&lt;uint16_t&gt;</code> interface.  If you tried to wire
+parameter and two components can be wired together only if they provide/use the
+interface with the same types (when you look at the <code>readDone</code>
+event, you will notice that it passes a parameter of the
+<code>&lt;val_t&gt;</code> parameter). This means that since
+<code>SenseC.nc</code> is using the <code>uint16_t</code> variant of the
+<code>Read</code> interface, it can only be wired to a component that provides
+the <code>Read&lt;uint16_t&gt;</code> interface and thus <code>SenseC.nc</code>
+reads 16 bit unsigned integer values.  If you tried to wire
 <code>SenseC.nc</code> to a component that provides, for example, a
-<code>Read&lt;uint8_t&gt;</code> interface you would get a nesC error.
+<code>Read&lt;uint8_t&gt;</code> interface you would get a nesC error. 
 
-Recall that the wiring is defined in the <code>SenseAppC.nc</code>
-configuration. Let's have look, which component the
-<code>Read&lt;uint16_t&gt;</code> interface of <code>SenseC.nc</code> is wired
-to. Two lines in the <code>SenseAppC</code> configuration establish the wiring:
+<p>Recall that the wiring is defined in the <code>SenseAppC.nc</code>
+configuration. Let's take a look, which component <code>SenseC.nc</code> is
+wired to with the <code>Read&lt;uint16_t&gt;</code> interface in the
+<code>SenseAppC</code> configuration:
 
 <pre>
   components new DemoSensorC() as Sensor;
@@ -185,33 +190,120 @@ and
   SenseC.Read -> Sensor;
 </pre>
 
-This means that the <code>DemoSensorC</code> must provide the
-<code>Read&lt;uint16_t&gt;</code> interface, which <code>SenseC.nc</code> uses
-(it must be the <code>uint16_t</code> variant of the <code>Read</code>
-interface, otherwise we could not compile <code>Sense</code>). 
+This means that the <i>generic</i> <code>DemoSensorC</code> component provides
+the <code>Read&lt;uint16_t&gt;</code> interface to <code>SenseC.nc</code> (a
+<i>generic component</i> is a component that can be instantiated more than once
+and can take constant and type arguments; each instantiation represent a
+different components).
 
-<p> It is important to recall that the <code>SenseC.nc</code> module has no way
-of telling which sensor it is connected to; in fact it cannot even tell whether
-it is getting data from a sensor at all, because it can be wired to any
-component that provides a <code>Read&lt;uint16_t&gt;</code> interface. If there
-was a platform without any sensors, its <code>DemoSensorC</code> component
-would simply return dummy values. The last sentence hints that the
-<code>DemoSensorC</code> component is different for every platform (or sensor):
-therefore you will not find <code>DemoSensorC.nc</code> in the TinyOS libraries
-<code>tinyos-2.x/tos/lib</code>. Instead <code>DemoSensorC.nc</code> has to be
-written for every platform, because, for example, on the <i>tmote</i> platform
+<p> It is important to understand that the <code>SenseC.nc</code> module has no
+way of telling which sensor it is connected to; in fact it cannot even tell
+whether it is getting data from a sensor at all, because it can be wired to any
+component that provides a <code>Read&lt;uint16_t&gt;</code> interface. On a
+platform without any built-in sensors (like <i>micaz</i>) the
+<code>DemoSensorC</code> component would simply return dummy values. The last
+sentence hints that the <code>DemoSensorC</code> component is different for
+every platform: therefore you will not find <code>DemoSensorC.nc</code> in the
+TinyOS libraries. Instead <code>DemoSensorC.nc</code> has to be written for
+every platform, because, for example, on the <i>telosb</i> platform
 <code>DemoSensorC</code> needs to be implemented differently than on the the
 <i>micaz</i> platform. This is the answer to the first question asked in the
 introduction: the <i>platform dependent</i> <code>DemoSensorC</code> component
-defines which sensor the <code>Sense</code> application is sampling.
+defines which sensor the <code>Sense</code> or <code>Oscilloscope</code>
+application is sampling and every platform that wants to run sensing
+applications such as <code>Oscilloscope</code>, <code>Sense</code> or
+<code>RadioSenseToLeds</code> has to provide its own version of
+<code>DemoSensorC</code>. 
 
-<p> This works as long as one condition is met: every platform that wants to
-run sensing applications such as <code>Oscilloscope</code>, <code>Sense</code>
-or <code>RadioSenseToLeds</code> must provide their own version of
-<code>DemoSensorC</code>. Let's look at this component in more detail.
+<h2>The DemoSensorC component</h2>
 
-<h1>The DemoSensorC component</h1>
-<h1>Running the Sense application</h1>
+<p> Let's have a closer look at the <code>DemoSensorC</code> component. Every
+<code>DemoSensorC</code> component has the following signature:
+
+<pre>
+generic configuration DemoSensorC()
+{
+  provides interface Read&lt;uint16_t&gt;;
+}
+</pre>
+
+In its implementation section, however, <code>DemoSensorC</code> may differ
+from platform to platform. For example, on the <i>telosb</i> platform
+<code>DemoSensorC</code> instantiates a component called <code>VoltageC</code>,
+which reads data from the internal voltage sensor. Because the <i>micaz</i>
+doesn't have any built-in sensors, on the <i>micaz</i> platform
+<code>DemoSensorC</code> instantiates a component called
+<code>ConstantSensorC</code>, which simply returns a constant. Thus
+<code>DemoSensorC</code> is a means of indirecting sensor data acquisition from
+a platform-specific sensor component (like <code>VoltageC</code>) to
+platform-independent applications like <code>Sense</code> or
+<code>Oscilloscope</code>. 
+
+<p> How can <code>Sense</code> be changed to sample another than the platform's
+default sensor (e.g. <code>VoltageC</code> on <i>telosb</i>)? Usually this
+requires changing only a single line of code in <code>DemoSensorC</code>; for
+example, if you wanted to replace the <code>VoltageC</code> component on
+<i>telosb</i> by the constant sensor component <code>ConstantSensorC</code> you
+could change (in <code>DemoSensorC</code>)
+
+<pre>
+components new VoltageC() as DemoSensor;
+</pre>
+to something like
+<pre>
+components new ConstantSensorC(uint16_t, 0xbeef) as DemoSensor;
+</pre>
+
+Sensor components are usually located in the respective platform directory
+(<code>tinyos-2.x/tos/platforms</code>), in the respective sensorboard
+directory (<code>tinyos-2.x/tos/sensorboards</code>) or, in case of
+microprocessor-internal sensors, in the respective chips directory
+(<code>tinyos-2.x/tos/chips</code>). <code>ConstantSensorC</code> can be found
+in <code>tinyos-2.x/tos/system</code>.
+
+
+<h2>Running the Sense application</h2>
+
+<code>Sense</code> is a simple sensing demo application, it periodically
+samples the default sensor (via <code>DemoSensorC</code>) and displays the
+bottom bits of the readings on the LEDs. To compile the <code>Sense</code>
+application, go to the <code>apps/Sense</code> directory and depending on which
+hardware you have, type e.g. <code>make telosb install</code> or <code>make
+micaz install</code>.  If you get errors like the following
+
+<pre>
+SenseAppC.nc:50: component DemoSensorC not found
+SenseAppC.nc:50: component `DemoSensorC' is not generic
+SenseAppC.nc:55: no match
+</pre>
+
+your platform has not implemented the <code>DemoSensorC</code> component. For a
+quick solution you can copy the <code>DemoSensorC</code> from
+<code>tinyos-2.x/tos/platforms/micaz</code> to your platform directory; then
+you will see constant "sensor" readings (a good starting point on how to create
+sensor components is probably <a href="../tep101.html">TEP 101</a> and <a
+href="../tep114.html">TEP 114</a>). 
+
+<p> Once you have installed the application the bottom bits of the sensor
+readings are displayed on the node's LEDs (0 = off, 1 = on). If your
+<code>DemoSensorC</code> represents a sensor, whose values change quickly (e.g.
+a light sensor when you move your hand over it) you should be seeing the LEDs
+toggle, otherwise <code>Sense</code> is not so impressive. Let's have a look at
+a more interisting application: <code>Oscilloscope</code>.
+
+<h1>The Oscilloscope application</h1>
+
+<p>
+<a name="#related_docs">
+<h1>Related Documentation</h1>
+</a>
+</p><ul>
+<li> <a href="http://nescc.sourceforge.net/papers/nesc-ref.pdf">NesC reference manual</a>
+</li><li> <a href="../tep101.html">TEP 101: ADC</a>
+</li><li> <a href="../tep114.html">TEP 114: SIDs: Source and Sink Independent Drivers</a>
+</li><li> <a href="http://csl.stanford.edu/%7Epal/pubs/tinyos-programming-1-0.pdf">TinyOS Programming Guide</a>
+</li></ul>
+
 
 <!-- Begin footer -->
 <br>
