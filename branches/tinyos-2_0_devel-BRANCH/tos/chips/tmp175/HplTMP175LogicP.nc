@@ -37,7 +37,7 @@
  * outside configuration/module according to the host platform.
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-25 22:54:34 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-06-19 18:20:59 $
  */
 
 generic module HplTMP175LogicP(uint16_t devAddr)
@@ -69,7 +69,7 @@ implementation {
   uint8_t mConfigRegVal;
   norace error_t mmSSError;
 
-  static error_t doSetReg(uint8_t nextState, uint8_t reg, uint8_t val) {
+  static error_t doSetReg(uint8_t nextState, uint8_t reg, uint16_t val) {
     error_r error = SUCCESS;
 
     atomic {
@@ -86,7 +86,33 @@ implementation {
     mI2CBuffer[0] = reg;
     mI2CBuffer[1] = val;
 
-    error = call I2CPacket.writePacket(devAddr,2,mI2CBuffer);
+    error = call I2CPacket.write((I2C_START | I2C_STOP),devAddr,2,mI2CBuffer);
+    
+    if (error) 
+      atomic mState = STATE_IDLE;
+
+    return error;
+  }
+
+  static error_t doSetRegWord(uint8_t nextState, uint8_t reg, uint16_t val) {
+    error_r error = SUCCESS;
+
+    atomic {
+      if (mState == STATE_IDLE) {
+	mState = nextState;
+      }
+      else {
+	error = EBUSY;
+      }
+    }
+    if (error)
+      return error;
+
+    mI2CBuffer[0] = reg;
+    mI2CBuffer[1] = (val >> 8) & 0xFF;
+    mI2CBuffer[2] = val & 0xFF;
+
+    error = call I2CPacket.writePacket((I2C_START | I2C_STOP),devAddr,3,mI2CBuffer);
     
     if (error) 
       atomic mState = STATE_IDLE;
@@ -163,11 +189,11 @@ implementation {
   }
   
   command error_t HplTMP175.setTLowReg(uint16_t val){ 
-    return doSetReg(STATE_SETLOW,TMP175_PTR_TLOW,val);  
+    return doSetRegWord(STATE_SETLOW,TMP175_PTR_TLOW,val);  
   }
 
   command error_t HplTMP175.setTHighReg(uint16_t val){
-    return doSetReg(STATE_SETTHIGH,TMP175_PTR_THIGH,val); 
+    return doSetRegWord(STATE_SETTHIGH,TMP175_PTR_THIGH,val); 
   }
 
   async event void I2CPacket.readDone(uint16_t chipAddr, uint8_t len, uint8_t *buf, error_t i2c_error) {

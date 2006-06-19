@@ -36,13 +36,12 @@
  * Note that only the data path uses split phase resource arbitration
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-06-19 18:20:59 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-06-19 18:23:10 $
  */
 
 generic module HplTMP175ReaderP()
 {
   provides interface Read<uint16_t> as Temperature;
-  provides interface HalTMP175Advanced;
 
   uses interface HplTMP175;
   uses interface Resource as TMP175Resource;
@@ -79,134 +78,10 @@ implementation {
 
   event void HplTMP175.measureTemperatureDone(error_t tmp175_error, uint16_t val) {
     call TMP175Resource.release();
-    signal Temperature.reaDone(tmp175_error,val);
+    signal Temperature.readDone(tmp175_error,val);
     return;
   }
 
-  command error_t HalTMP175Advanced.setThermostatMode(bool useInt) {
-    error_t error;
-    uint8_t newRegVal;
-
-    error = call TMP175Resource.immediateRequest();
-    if (error) {
-      return error;
-    }
-    mState = STATE_SET_MODE;
-
-    if (useInt) {
-      newRegVal = mConfigRegVal | TMP175_CFG_TM;
-    }
-    else {
-      newRegVal = mConfigRegVal & ~TMP175_CFG_TM;
-    }
-
-    error = call HplTMP715.setConfigReg(newRegVal);
-    if (error) {
-      call TMP175Resource.release();
-    }
-    else {
-      mConfigRegVal = newRegVal;
-    }
-
-    return error;
-  }
-
-
-  command error_t HalTMP175Advanced.setPolarity(bool polarity) {
-    error_t error;
-    uint8_t newRegVal;
-
-    error = call TMP175Resource.immediateRequest();
-    if (error) {
-      return error;
-    }
-    mState = STATE_SET_POLARITY;
-
-    if (useInt) {
-      newRegVal = mConfigRegVal | TMP175_CFG_TM;
-    }
-    else {
-      newRegVal = mConfigRegVal & ~TMP175_CFG_TM;
-    }
-
-    error = call HplTMP715.setConfigReg(newRegVal);
-    if (error) {
-      call TMP175Resource.release();
-    }
-    else {
-      mConfigRegVal = newRegVal;
-    }
-
-    return error;
-  }
-
-  command error_t HalTMP175Advanced.setFaultQueue(tmp175_fqd_t depth) {
-
-  }
-
-  command error_t HalTMP175Advanced.setResolution(tmp175_res_t res) {
-
-  }
-
-  command error_t HalTMP175Advanced.setTLow(uint16_t val) {
-
-  }
-
-  command error_t HalTMP175Advanced.setTHigh(uint16_t val) {
-
-  }
-
-  task void handleConfigReg() {
-    error_t lasterror;
-    atomic lasterror = mHplError;
-    call TMP175Resource.release();
-    switch (mState) {
-    case STATE_SET_MODE:
-      signal HalTMP175Advanced.setThermostatModeDone(lasterror);
-      break;
-    case STATE_SET_POLARITY:
-      signal HalTMP175Advanced.setPolarityDone(lasterror);
-      break;
-    case STATE_SET_FQ:
-      signal HalTMP175Advanced.setFaultQueueDone(lasterror);
-      break;
-    case STATE_SET_RES:
-      signal HalTMP175Advanced.setResolutionDone(lasterror);
-      break;
-    default:
-      break;
-    }
-    mState = STATE_NONE;
-    return;
-  }
-
-  async event void HplTMP175.setConfigRegDone(error_t error) {
-    mHplError = error;
-    post handleConfigReg();
-    return;
-  }
-
-  async event void HplTMP175.setTLowRegDone(error_t error) {
-
-
-  }
-
-  async event void HplTMP175.setTHighRegDone(error_t error) {
-
-
-  }
-
-  async event void HplTMP175.alertThreshold() {
-
-
-  }
-
-  default event void HalTMP175Advanced.setTHighDone(error_t error) { return; }
-  default event void HalTMP175Advanced.setThermostatModeDone(error_t error){ return; } 
-  default event void HalTMP175Advanced.setPolarityDone(error_t error){ return; }
-  default event void HalTMP175Advanced.setFaultQueueDone(error_t error){ return; }
-  default event void HalTMP175Advanced.setResolutionDone(error_t error){ return; }
-  default event void HalTMP175Advanced.setTLowDone(error_t error){ return; }
-  default event void HalTMP175Advanced.alertThreshold(){ return; }
+  default event void Temperature.readDone(error_t error, uint16_t val) {return ;}
 
 }

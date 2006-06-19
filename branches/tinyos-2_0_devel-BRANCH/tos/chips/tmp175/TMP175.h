@@ -33,7 +33,7 @@
  * Types and definitions for the TI TMP175
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-25 22:54:34 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-06-19 18:20:59 $
  */
 
 #ifndef _TMP175_H
@@ -50,5 +50,19 @@
 #define TMP175_CFG_POL		(1 << 2)
 #define TMP175_CFG_TM		(1 << 1)
 #define TMP175_CFG_SD		(1 << 0)
+
+typedef enum {
+  TMP175_FQD_1 = 0,
+  TMP175_FQD_2 = 1,
+  TMP175_FQD_4 = 2,
+  TMP175_FQD_6 = 3
+} tmp175_fqd_t;
+
+typedef enum {
+  TMP175_RES_9BIT,
+  TMP175_RES_10BIT,
+  TMP175_RES_11BIT,
+  TMP175_RES_12BIT
+} tmp175_res_t;
 
 #endif /* _TMP175_H */
