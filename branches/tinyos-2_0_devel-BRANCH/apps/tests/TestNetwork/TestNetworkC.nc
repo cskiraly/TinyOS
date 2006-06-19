@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.12 $ $Date: 2006-06-16 12:55:23 $
+ * @version $Revision: 1.1.2.13 $ $Date: 2006-06-19 21:21:38 $
  */
 
 #include <Timer.h>
@@ -56,9 +56,7 @@ implementation {
 	call RootControl.setRoot();
       }
       seqno = 0;
-      if (TOS_NODE_ID == 142) {
-      	call Timer.startOneShot(call Random.rand16() & 0x7FFF);
-      }
+      call Timer.startOneShot(call Random.rand16() & 0x1ff);
     }
   }
 
@@ -67,6 +65,7 @@ implementation {
   
   event void Timer.fired() {
     call Leds.led0Toggle();
+    dbg("TestNetworkC", "TestNetworkC: Timer fired.\n");
     if (firstTimer) {
       firstTimer = FALSE;
       call Timer.startPeriodic(1024);
@@ -75,7 +74,6 @@ implementation {
       signal ReadSensor.readDone(SUCCESS, 0);
       return;
     }
-    //dbg("TestNetworkC", "TestDisseminationC: Timer fired.\n");
     busy = TRUE;
   }
 

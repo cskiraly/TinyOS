@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 {
   int fd,i;
 
-  if (argc != 5) {
+  if (argc != 3) {
     fprintf(stderr, "Usage: %s <host> <port> - print received packets\n", argv[0]);
     exit(2);
   }

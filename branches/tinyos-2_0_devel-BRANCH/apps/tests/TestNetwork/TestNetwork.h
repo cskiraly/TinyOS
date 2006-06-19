@@ -11,6 +11,8 @@ typedef nx_struct TestNetworkMsg {
   nx_uint16_t metric;
   nx_uint16_t data;
   nx_uint8_t hopcount;
+  nx_uint16_t sendCount;
+  nx_uint16_t sendSuccessCount;
 } TestNetworkMsg;
 
 #endif
