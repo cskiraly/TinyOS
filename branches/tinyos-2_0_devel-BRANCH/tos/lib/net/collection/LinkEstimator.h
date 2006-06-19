@@ -1,4 +1,4 @@
-/* $Id: LinkEstimator.h,v 1.1.2.1 2006-06-09 02:14:43 gnawali Exp $ */
+/* $Id: LinkEstimator.h,v 1.1.2.2 2006-06-19 21:22:04 scipio Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -24,6 +24,8 @@
  *
  */
 
+#ifndef LINK_ESITIMATOR_H
+#define LINK_ESITIMATOR_H
 /*
  @ author Omprakash Gnawali
  @ Created: June 08, 2006
@@ -78,7 +80,9 @@ enum {
   MATURE_ENTRY = 0x2,
   // Flag to indicate that this link has received the
   // first sequence number
-  INIT_ENTRY = 0x4
+  INIT_ENTRY = 0x4,
+  // The upper layer has said this link seems bad
+  PROBLEM_ENTRY = 0x8
 };
 
 
@@ -96,3 +100,4 @@ typedef struct neighbor_table_entry {
 } neighbor_table_entry_t;
 
 
+#endif

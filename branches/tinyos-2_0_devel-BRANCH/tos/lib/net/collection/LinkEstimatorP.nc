@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.15 2006-06-09 02:17:36 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.16 2006-06-19 21:22:04 scipio Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -252,12 +252,16 @@ implementation {
   void updateNeighborEntryIdx(uint8_t idx, uint8_t seq) {
     uint8_t packetGap;
 
+    // Clear the PROBLEM_ENTRY flag when we receive an
+    // update
+    NeighborTable[idx].flags &= ~PROBLEM_ENTRY;
+    
     if (NeighborTable[idx].flags & INIT_ENTRY) {
       dbg("LI", "Init entry update\n");
       NeighborTable[idx].lastseq = seq;
       NeighborTable[idx].flags ^= INIT_ENTRY;
     }
-
+    
     packetGap = seq - NeighborTable[idx].lastseq;
     dbg("LI", "updateNeighborEntryIdx: prevseq %d, curseq %d, gap %d\n",
 	NeighborTable[idx].lastseq, seq, packetGap);
@@ -457,7 +461,10 @@ implementation {
     idx = findIdx(neighbor);
     if (idx == INVALID_RVAL) {
       return INFINITY;
-    } else {
+    } else if (NeighborTable[idx].flags & PROBLEM_ENTRY) {
+      return INFINITY;
+    }
+    else {
       return computeBidirEETX(NeighborTable[idx].inquality,
 			      NeighborTable[idx].outquality);
     };
@@ -514,6 +521,14 @@ implementation {
     return FAIL;
   }
 
+  command void LinkEstimator.reportBadLink(am_addr_t addr) {
+    uint8_t nidx = findIdx(addr);
+    if (nidx == INVALID_RVAL) {
+      return;
+    }
+    NeighborTable[nidx].flags |= PROBLEM_ENTRY;
+  }
+  
   // get the link layer source address for the incoming packet
   command am_addr_t LinkSrcPacket.getSrc(message_t* msg) {
     linkest_header_t* hdr = getHeader(msg);

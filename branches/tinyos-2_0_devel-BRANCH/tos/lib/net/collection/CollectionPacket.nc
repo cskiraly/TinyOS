@@ -1,4 +1,4 @@
-/* $Id: CollectionPacket.nc,v 1.1.2.1 2006-06-10 19:11:58 scipio Exp $ */
+/* $Id: CollectionPacket.nc,v 1.1.2.2 2006-06-19 21:22:04 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-10 19:11:58 $
+ *  @date   $Date: 2006-06-19 21:22:04 $
  */
 
 #include <AM.h>
@@ -39,4 +39,7 @@ interface CollectionPacket {
 
   command uint8_t getControl(message_t* msg);
   command void setControl(message_t* msg, uint8_t control);
+
+  command uint8_t getGradient(message_t* msg);
+  command void setGradient(message_t* msg, uint8_t control);
 }
