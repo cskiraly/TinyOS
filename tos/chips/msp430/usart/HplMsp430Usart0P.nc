@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
@@ -29,7 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
 
-/**
+/*
  * Copyright (c) 2004-2005, Technische Universitat Berlin
  * All rights reserved.
  *
@@ -65,7 +65,7 @@
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * @author: Jonathan Hui <jhui@archedrock.com>
  * @author: Joe Polastre
- * @version $Revision: 1.1.2.5 $ $Date: 2006-03-15 16:40:29 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-06-19 11:12:24 $
  */
 
 module HplMsp430Usart0P {

@@ -1,4 +1,4 @@
-/**
+/*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and
@@ -27,15 +27,14 @@
  * the MSP430. Code for low power calculation copied from older
  * msp430hardware.h by Vlado Handziski, Joe Polastre, and Cory Sharp.
  *
- * <pre>
- *  $Id: McuSleepC.nc,v 1.1.2.2 2005-11-11 21:21:34 jwhui Exp $
- * </pre>
  *
  * @author Philip Levis
  * @author Vlado Handziski
  * @author Joe Polastre
  * @author Cory Sharp
  * @date   October 26, 2005
+ * @see  Please refer to TEP 112 for more information about this component and its
+ *          intended use.
  *
  */
 

@@ -1,4 +1,3 @@
-//$Id: Msp430InterruptC.nc,v 1.1.2.1 2006-01-27 23:28:12 jwhui Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -21,11 +20,13 @@
  */
 
 /**
- * Implementation of the GPIO interrupt abstraction from TEP117 for
+ * Implementation of the GPIO interrupt abstraction for
  * the TI MSP430 microcontroller.
  *
  * @author Jonathan Hui
  * @author Joe Polastre
+ * @see  Please refer to TEP 117 for more information about this component and its
+ *          intended use.
  */
 
 generic module Msp430InterruptC() {

@@ -27,20 +27,21 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.12 $
- * $Date: 2006-06-06 11:27:41 $
+ * $Revision: 1.1.2.13 $
+ * $Date: 2006-06-19 11:12:23 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
 /** 
- * Please refer to TEP 101 for more information about this component and its
- * intended use. This component represents the HAL2 of the MSP430 ADC12
+ * This component represents the HAL2 of the MSP430 ADC12
  * subsystem. Clients SHOULD NOT wire to <code>AdcC</code> directly but should
  * go via <code>AdcReadClientC</code>, <code>AdcReadNowClientC</code> or
  * <code>AdcReadStreamClientC</code>.
  *
  * @author Jan Hauer
+ * @see  Please refer to TEP 101 for more information about this component and its
+ *          intended use.
  */
 
 module AdcC {

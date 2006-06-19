@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
@@ -29,7 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
 
-/**
+/*
  * "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
  *
@@ -54,7 +54,7 @@
  * @author Ben Greenstein <ben@cs.ucla.edu>
  * @author Jonathan Hui <jhui@archedrock.com>
  * @author Joe Polastre <info@moteiv.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-15 16:33:56 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-06-19 11:12:23 $
  */
 
 #include "Msp430Dma.h"

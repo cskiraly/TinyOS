@@ -27,15 +27,14 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-31 18:43:40 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-06-19 11:12:23 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
 /** 
- * Please refer to TEP 101 for more information about this component and its
- * intended use. This component allows a client to access the MSP430 ADC12
+ * This component allows a client to access the MSP430 ADC12
  * (12-bit analog-to-digital converter) via the <code>Read</code> interface. A
  * client must wire the <code>Msp430Adc12Config</code> interface to a component
  * that returns its ADC12 configuration data. Depending on the
@@ -44,6 +43,8 @@
  * configuration data includes VREF as reference voltage.
  *
  * @author Jan Hauer
+ * @see  Please refer to TEP 101 for more information about this component and its
+ *          intended use.
  */
 
 #include <Msp430Adc12.h>

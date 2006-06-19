@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-04-05 18:44:55 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-06-19 11:12:24 $
  */
 
 configuration Msp430SpiDma0P {

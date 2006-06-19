@@ -1,4 +1,3 @@
-//$Id: GpioCaptureC.nc,v 1.1.2.4 2006-01-29 04:33:33 vlahan Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.

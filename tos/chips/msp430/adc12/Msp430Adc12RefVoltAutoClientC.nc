@@ -25,14 +25,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $ $Date: 2006-01-31 18:43:40 $ @author: Jan Hauer
+ * $Revision: 1.1.2.3 $ $Date: 2006-06-19 11:12:23 $ @author: Jan Hauer
  * <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
  
 /** 
- * Please refer to TEP 101 for more information about this component and its
- * intended use. This component realizes the HAL1 representation and allows an
+ * This component realizes the HAL1 representation and allows an
  * MSP430-specific client to access the MSP430 ADC12 (12-bit analog-to-digital
  * converter) via the <code>Msp430Adc12SingleChannel</code> and
  * <code>Resource</code> interface.  According to TEP 108 a client must reserve
@@ -45,6 +44,8 @@
  * that the reference voltage is stable. 
  * 
  * @author Jan Hauer
+ * @see  Please refer to TEP 101 for more information about this component and its
+ *          intended use.
  */
 
 generic configuration Msp430Adc12RefVoltAutoClientC()
