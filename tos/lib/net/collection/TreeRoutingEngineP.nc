@@ -2,7 +2,7 @@
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
 //#define TEST_INSERT
-/* $Id: TreeRoutingEngineP.nc,v 1.1.2.14 2006-06-19 21:22:05 scipio Exp $ */
+/* $Id: TreeRoutingEngineP.nc,v 1.1.2.15 2006-06-19 22:11:18 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,7 +30,7 @@
  *  Acknowledgment: based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
  *                           MultiHopLQI
  *                           
- *  @date   $Date: 2006-06-19 21:22:05 $
+ *  @date   $Date: 2006-06-19 22:11:18 $
  *  @see Net2-WG
  */
 
@@ -220,8 +220,8 @@ implementation {
         }
 
         //now choose between current/best
-        if (minMetric != MAX_METRIC) {
-            if (currentMetric == MAX_METRIC ||
+        if (minMetric < MAX_METRIC) {
+            if (currentMetric >= MAX_METRIC ||
                 minMetric + PARENT_SWITCH_THRESHOLD < currentMetric) {
                 // routeInfo.metric will not store the composed metric.
                 // since the linkMetric may change, we will compose whenever
@@ -237,11 +237,15 @@ implementation {
                 }
             }
         }    
-
+	else if (currentMetric >= MAX_METRIC) {
+	  routeInfo.parent = INVALID_ADDR;
+	  routeInfo.metric = MAX_METRIC;
+	  routeInfo.hopcount = 0;
+	}
         //finally, tell people what happened
         if (justEvicted && routeInfo.parent == INVALID_ADDR) 
             signal Routing.noRoute();
-        else if (!justEvicted && minMetric != MAX_METRIC)
+        else if (!justEvicted && minMetric <= MAX_METRIC)
             signal Routing.routeFound();
         justEvicted = FALSE; 
     }
