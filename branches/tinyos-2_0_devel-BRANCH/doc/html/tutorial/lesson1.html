@@ -144,15 +144,25 @@ $ mv /usr/local/bin/nescc /usr/local/bin/nescc.old
 $ which nescc
 /usr/bin/nescc
 </pre>
-      
-      <h2>Installing on a mica-family mote (micaz, mica2)</h2>
-      
+     
       <p>Now that we've compiled the application it's time to program the
-	mote and run it. This example will use a Mica mote and the
+	mote and run it.  The next step depends on what family of mote you
+         are programming.</p>
+
+      <ul>
+        <li><A HREF="#mica">Installing on a mica-family mote</A></li>
+        <li><A HREF="#telos">Installing on a telos-family mote</A></li>
+        <li><A HREF="#tinynode">Installing on a tinynode mote</A></li>
+        <li><A HREF="#eyes">Installing on an eyes-family mote</A></li>
+        <li><A HREF="#intel">Installing on an IntelMote2</A></li>
+      </ul> 
+      
+      <h2><A NAME="mica">Installing on a mica-family mote (micaz, mica2)</A></h2>
+      
+      <p>This example will use a Mica mote and the
 	parallel-port-based programming board (<span
 	  style="font-family: monospace;">mib500</span>). Instructions on how to
-	use other programming boards are <a href="programmers.html">here</a>,
-	  and instructions for telos motes are <A href="#telos">here</a>
+	use other programming boards are <a href="programmers.html">here</a>.
 	To download your program onto the mote, place the mote board (or mote
 	and sensor stack) into the bay on the programming board, as shown
 	below. You can either supply a 3 volt supply to the connector on the
@@ -309,7 +319,34 @@ UCC89MXV   /dev/ttyUSB3 Telos (Rev B 2004-09-27)
 	it at installation. For example, if you type <tt>make micaz install.5</tt>
 	or <tt>make micaz reinstall.5</tt>, you will install the application
 	on a node and give it 5 as its identifier.</b></p>
-	  
+	
+<A name="tinynode"><h2>Installing on a TinyNode mote</h2></A>
+<p>There are different ways to program a TinyNode mote depending on how
+it is connected to your computer. The most common case is to connect
+it to a serial port using either the standard extension board (SEB) or
+the MamaBoard. <i>(The other possible methods are to use a Mamaboard with a Digi
+Connect ethernet adaptor and program a node over the network, or to
+use a JTAG adaptor. These are not covered in this tutorial; please
+refer to the Tinynode documentation for further details.)</i>
+
+<p>To install an application on a TinyNode mote using the
+serial port, enter the following command, taking care to
+replace <tt>/dev/ttyXXX</tt> with the file device corresponding to the
+serial port that the tinynode is plugged into.</p>
+
+<pre>
+  make tinynode reinstall.2 bsl,/dev/XXX
+</pre>
+
+As with the telos and eyes platforms, this command will reprogram your
+mote using the <tt>tos-bsl</tt> utility, and you will see similar
+output on your screen as given above for telos.
+
+<A NAME="eyes"><h2>Installing on an eyes-family mote</h2></A>
+
+<A NAME="intel"><h2>Installing on an IntelMote2</h2></A>
+
+  
 <h1>Components and Interfaces</h1>
 
       <p>Now that you've installed Blink, let's look at how

@@ -566,9 +566,89 @@ to learn how to get Java applications to communicate with motes.</p>
 
 <p>There is also support for python and C.</p>
 
+<h1>Sending a packet to the serial port in TinyOS</h1>
+
+<p>Sending an AM packet to the serial port in TinyOS is very
+much like sending it to the radio. A component uses the AMSend
+interface, calls <code>AMSend.send</code>, and handles
+<code>AMSend.sendDone</code>. The serial stack will send
+it over the serial port regardless of the AM address specified.</p>
+
+<p>The TinyOS serial stack follows the same programming `model as the radio
+stack. There is a <code>SerialActiveMessageC</code> for turning
+the stack on and off (mote processors often cannot enter their
+lowest power state while the serial stack is on), and generic
+components for sending and receiving packets. As the serial
+stack is a dedicated link, however, it does not provide a
+snooping interface, and it does not filter based on the destination
+address of the packet. These are the serial communication components
+and their radio analogues:</p>
+
+<center>
+<table cellspacing=4 cellpadding=2>
+  <tr align=center><td bgcolor="#d0d0d0"><b>Serial</b></td><td width=10></td><td bgcolor="#d0d0ff"><b>Radio</b></td></tr>
+  <tr>
+    <td bgcolor="#d0d0d0">SerialActiveMessageC</td>
+    <td></td>
+    <td bgcolor="#d0d0ff">ActiveMessageC</td>
+  </tr>
+  <tr>
+    <td bgcolor="#d0d0d0">SerialAMSenderC</td>
+    <td></td>
+    <td bgcolor="#d0d0ff">AMSenderC</td>
+  </tr>
+  <tr>
+    <td bgcolor="#d0d0d0">SerialAMReceiverC</td>
+    <td></td>
+    <td bgcolor="#d0d0ff">AMReceiverC</td>
+  </tr>
+</table>
+</center>
+
+<p>Because serial AM communication has the same interfaces as radio
+AM communication, you can in most situations use them interchangably.
+For example, to make BlinkToRadio send packets to the serial port
+rather than the radio, all you have to do is change the
+BlinkToRadioAppC configuration:</p>
+
+<center>
+<table>
+ <tr><td><b>Radio</b></td><td width=10></td><td><b>Serial</b></td></tr>
+ <tr><td>
+<pre>
+  components ActiveMessageC;
+  components new AMSenderC(AM_BLINKTORADIOMSG);
+
+  BlinkToRadioC.AMSend -> AMSenderC;
+  BlinkToRadioC.AMControl -> ActiveMessageC;
+</pre>
+</td>
+<td></td>
+<td>
+<pre>
+  components SerialActiveMessageC;
+  components new SerialAMSenderC(AM_BLINKTORADIOMSG);
+
+  BlinkToRadioC.AMSend -> SerialAMSenderC;
+  BlinkToRadioC.AMControl -> SerialActiveMessageC;
+</pre>
+</td>
+</tr>
+</table>
+</center>
+</table>
 <br>
 <hr>
 <center>
+
+<p>Now, rather than have BlinkToRadio send packets which a BaseStation
+recieves and forwards to the serial port, the application will
+send them directly to a serial port. Connect a MsgReader to test
+that this is happening. Note that the binary code and data size
+has changed significantly, as nesC has included the serial stack
+rather than the radio stack.</p>
+
+
 <p>&lt;&nbsp;<b><a href="lesson3.html">Previous Lesson</a></b> |&nbsp; <b><a
  href="index.html">Top</a></b> &nbsp;|&nbsp; <b><a href="lesson5.html">Next Lesson </a>&nbsp;&gt;</b>
 </center>
