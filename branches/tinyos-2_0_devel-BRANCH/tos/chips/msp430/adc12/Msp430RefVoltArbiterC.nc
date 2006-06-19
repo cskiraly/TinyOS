@@ -27,14 +27,13 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-31 18:43:40 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-06-19 11:12:23 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
 /** 
- *
  * This component is meant to intercept requests to the <code>Resource</code>
  * interface on their way to the arbiter. It checks whether the client requires
  * the internal reference voltage generator of the MSP430 to be switched on by

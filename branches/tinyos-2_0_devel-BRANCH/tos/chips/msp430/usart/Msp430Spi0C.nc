@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
@@ -36,7 +36,7 @@
  * place of Msp430SpiNoDma0P.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.7 $ $Date: 2006-04-05 18:46:23 $
+ * @version $Revision: 1.1.2.8 $ $Date: 2006-06-19 11:12:24 $
  */
 
 #include "msp430UsartResource.h"

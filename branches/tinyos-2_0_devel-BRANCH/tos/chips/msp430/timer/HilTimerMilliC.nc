@@ -1,4 +1,3 @@
-//$Id: HilTimerMilliC.nc,v 1.1.2.1 2006-01-18 22:11:20 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -20,16 +19,18 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
-
-// The TinyOS Timer interfaces are discussed in TEP 102.
-
-// TimerMilliC is the TinyOS TimerMilli component.  OSKI will expect
-// TimerMilliC to exist.  It's in the platform directory so that the platform
-// can directly manage how it chooses to implement the timer.  It is fully
-// expected that the standard TinyOS MultiplexTimerM component will be used for
-// all platforms, and that this configuration only specifies (implicitly or
-// explicitly) how precisely to use the hardware resources.
+/**
+ * TimerMilliC is the TinyOS TimerMilli component.  OSKI will expect
+ * TimerMilliC to exist.  It's in the platform directory so that the platform
+ * can directly manage how it chooses to implement the timer.  It is fully
+ * expected that the standard TinyOS MultiplexTimerM component will be used for
+ * all platforms, and that this configuration only specifies (implicitly or
+ * explicitly) how precisely to use the hardware resources.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ * @see  Please refer to TEP 102 for more information about this component and its
+ *          intended use.
+ */
 
 #include "Timer.h"
 
@@ -49,4 +50,3 @@ implementation
   VirtualizeTimerC.TimerFrom -> AlarmToTimerC;
   AlarmToTimerC.Alarm -> AlarmMilliC;
 }
-

@@ -1,4 +1,3 @@
-// $Id: msp430hardware.h,v 1.1.2.13 2006-02-17 22:51:19 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.

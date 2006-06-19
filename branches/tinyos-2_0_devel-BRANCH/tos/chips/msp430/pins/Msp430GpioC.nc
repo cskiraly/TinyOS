@@ -1,4 +1,3 @@
-//$Id: Msp430GpioC.nc,v 1.1.2.1 2006-01-27 23:28:12 jwhui Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -21,10 +20,12 @@
  */
 
 /**
- * Implementation of the general-purpose I/O abstraction from TEP117
+ * Implementation of the general-purpose I/O abstraction
  * for the TI MSP430 microcontroller.
  *
  * @author Joe Polastre
+ * @see  Please refer to TEP 117 for more information about this component and its
+ *          intended use.
  */
 
 generic module Msp430GpioC() {

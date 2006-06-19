@@ -1,4 +1,4 @@
-//$Id: Msp430ClockP.nc,v 1.1.2.2 2006-02-14 17:01:43 idgay Exp $
+//$Id: Msp430ClockP.nc,v 1.1.2.3 2006-06-19 11:12:23 klueska Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
@@ -20,7 +20,9 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
+/**
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ */
 
 #include "Msp430Timer.h"
 

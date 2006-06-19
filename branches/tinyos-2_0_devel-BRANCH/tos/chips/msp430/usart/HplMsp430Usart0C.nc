@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
@@ -29,7 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
 
-/**
+/*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
  *
@@ -58,7 +58,7 @@
  *
  * @author Jonathan Hui <jhui@archedrock.com>
  * @author Joe Polastre
- * @version $Revision: 1.1.2.5 $ $Date: 2006-03-15 16:40:29 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-06-19 11:12:24 $
  */
 
 #include "msp430UsartResource.h"

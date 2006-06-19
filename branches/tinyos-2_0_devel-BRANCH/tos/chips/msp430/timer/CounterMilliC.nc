@@ -1,4 +1,3 @@
-//$Id: CounterMilliC.nc,v 1.1.2.5 2006-01-29 04:33:33 vlahan Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
@@ -20,11 +19,14 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
-
-// The TinyOS Timer interfaces are discussed in TEP 102.
-
-// CounterMilliC is the counter to be used for all Millis.
+/**
+ * Counter3MilliC is the counter to be used for all Millis
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ * @see  Please refer to TEP 102 for more information about this component and its
+ *          intended use.
+ */
+    
 configuration CounterMilliC
 {
   provides interface Counter<TMilli,uint32_t> as CounterMilli32;

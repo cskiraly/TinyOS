@@ -1,4 +1,3 @@
-//$Id: Msp430CounterC.nc,v 1.1.2.1 2006-01-29 04:33:33 vlahan Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
@@ -20,12 +19,15 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
-
-// The TinyOS Timer interfaces are discussed in TEP 102.
-
-// Msp430Counter is a generic component that wraps the MSP430 HPL timers into a
-// TinyOS Counter.
+/**
+ * Msp430Counter is a generic component that wraps the MSP430 HPL timers into a
+ * TinyOS Counter.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ * @see  Please refer to TEP 102 for more information about this component and its
+ *          intended use.
+ */
+ 
 generic module Msp430CounterC( typedef frequency_tag )
 {
   provides interface Counter<frequency_tag,uint16_t> as Counter;

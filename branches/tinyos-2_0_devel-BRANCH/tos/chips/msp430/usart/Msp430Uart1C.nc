@@ -1,4 +1,4 @@
-/**                                                                      tab:2
+/*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
  *
@@ -20,10 +20,9 @@
  * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
  * CALIFORNIA HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
  * UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
- *
- * $ Revision: $
- * $ Date: $
- *
+ */
+
+/**
  * @author Joe Polastre
  */
 

@@ -27,18 +27,19 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-01-31 18:43:40 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-06-19 11:12:23 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
 /** 
- * Please refer to TEP 101 for more information about this interface and its
- * intended use. This interface is used by the ADC subsystem to pull a client's
+ * This interface is used by the ADC subsystem to pull a client's
  * ADC12 configuration in order to prepare the hardware.
  * 
  * @author Jan Hauer
+ * @see  Please refer to TEP 101 for more information about this component and its
+ *          intended use.
  */
 
 #include <Msp430Adc12.h>

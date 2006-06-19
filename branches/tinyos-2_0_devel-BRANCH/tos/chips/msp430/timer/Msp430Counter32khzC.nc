@@ -1,4 +1,3 @@
-//$Id: Msp430Counter32khzC.nc,v 1.1.2.2 2006-02-14 17:01:43 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
@@ -20,11 +19,13 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
-
-// The TinyOS Timer interfaces are discussed in TEP 102.
-
-// Msp430Counter32khC provides the standard 32khz counter for the MSP430.
+/**
+ * Msp430Counter32khC provides the standard 32khz counter for the MSP430.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ * @see  Please refer to TEP 102 for more information about this component and its
+ *          intended use.
+ */
 
 #include "Timer.h"
 

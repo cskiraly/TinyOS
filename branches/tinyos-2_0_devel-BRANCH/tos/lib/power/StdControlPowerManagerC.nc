@@ -23,14 +23,12 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-03-10 02:19:23 $ 
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-06-19 11:13:08 $ 
  * ======================================================================== 
  */
  
 /**
- * Please refer to TEP 115 for more information about this component and its
- * intended use.<br><br>
  *
  * This component povides a power management policy for managing the power
  * states of non-virtualized devices.  Non-virtualized devices are shared
@@ -52,6 +50,8 @@
  * <code>SplitControlPowerManagerC</code> component respectively.
  * 
  * @author Kevin Klues (klueska@cs.wustl.edu)
+ * @see  Please refer to TEP 115 for more information about this component and its
+ *          intended use.
  */
  
 generic configuration StdControlPowerManagerC()

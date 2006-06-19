@@ -1,4 +1,3 @@
-//$Id: Counter32khzC.nc,v 1.1.2.6 2006-02-14 17:01:43 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
@@ -20,11 +19,13 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
-
-// The TinyOS Timer interfaces are discussed in TEP 102.
-
-// Counter32khzC is the counter to be used for all 32khzs.
+/**
+ * Counter32khzC is the counter to be used for all 32khzs.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ * @see  Please refer to TEP 102 for more information about this component and its
+ *          intended use.
+ */
 
 #include "Timer.h"
 

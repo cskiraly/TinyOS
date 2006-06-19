@@ -1,4 +1,3 @@
-//$Id: Msp430TimerC.nc,v 1.1.2.2 2006-02-11 10:20:34 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
@@ -19,8 +18,10 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
-
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
+ 
+/**
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ */
 
 configuration Msp430TimerC
 {

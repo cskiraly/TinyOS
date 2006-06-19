@@ -1,4 +1,3 @@
-//$Id: HplMsp430InterruptP.nc,v 1.1.2.1 2006-01-27 23:28:12 jwhui Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
