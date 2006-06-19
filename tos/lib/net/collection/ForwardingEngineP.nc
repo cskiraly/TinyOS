@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.25 2006-06-16 19:05:42 kasj78 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.26 2006-06-19 21:22:04 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-16 19:05:42 $
+ *  @date   $Date: 2006-06-19 21:22:04 $
  */
 
 #include <ForwardingEngine.h>
@@ -58,6 +58,8 @@ generic module ForwardingEngineP() {
     interface CollectionId[uint8_t client];
     interface AMPacket;
     interface CollectionDebug;
+    interface TreeRoutingInspect;
+    interface LinkEstimator;
   }
 }
 implementation {
@@ -79,19 +81,35 @@ implementation {
    * is being used, and control access to the data-link layer.*/
   bool sending = FALSE;
 
-  /* Keeps track of whether we are currently sending to the UART a
-   * debug message. */
+  /* Keeps track of how many consecutive unacknowledged transmissions
+     we have observed. If unackCount >= (3 * linkETX), then we
+     tell the routing engine that the link has a problem. */
+  uint8_t unackedCount = 0;
 
+  /* Keep track of the last parent address we sent to, so that
+     unacked packets to an old parent are not incorrectly attributed
+     to a new parent. */
+  am_addr_t lastParent;
+
+  /* Per collection send client state: each one gets an
+     entry in the send queue. */
   enum {
     CLIENT_COUNT = uniqueCount(UQ_COLLECTION_CLIENT)
   };
-
+  
   fe_queue_entry_t clientEntries[CLIENT_COUNT];
   fe_queue_entry_t* clientPtrs[CLIENT_COUNT];
 
+  /* The loopback message is used when a root node
+     sends a packet to the collection layer. We need to
+     signal a receive, but because the send path expects to
+     be able to get its packet back, we need to copy the
+     packet in a receive buffer and then do the standard
+     buffer swapping. */
   message_t loopbackMsg;
   message_t* loopbackMsgPtr;
 
+  
   command error_t Init.init() {
     int i;
     for (i = 0; i < CLIENT_COUNT; i++) {
@@ -99,6 +117,8 @@ implementation {
       dbg("Forwarder", "clientPtrs[%hhu] = %p\n", i, clientPtrs[i]);
     }
     loopbackMsgPtr = &loopbackMsg;
+    unackedCount = 0;
+    lastParent = call AMPacket.address();
     return SUCCESS;
   }
 
@@ -155,8 +175,8 @@ implementation {
     call Packet.setPayloadLength(msg, len);
     hdr = getHeader(msg);
     hdr->origin = TOS_NODE_ID;
-    hdr->collectid = call CollectionId.fetch[client]();
-
+    hdr->collectId = call CollectionId.fetch[client]();
+    
     if (clientPtrs[client] == NULL) {
       dbg("Forwarder", "%s: send failed as client is busy.\n", __FUNCTION__);
       return EBUSY;
@@ -226,22 +246,33 @@ implementation {
       fe_queue_entry_t* qe = call SendQueue.head();
       uint8_t payloadLen = call SubPacket.payloadLength(qe->msg);
       am_addr_t dest = call UnicastNameFreeRouting.nextHop();
+      uint16_t gradient;
+      /* If our current parent is not the same as the last parent
+	 we sent do, then reset the count of unacked packets: don't
+	 penalize a new parent for the failures of a prior one.*/
+      if (dest != lastParent) {
+	unackedCount = 0;
+	lastParent = dest;
+      }
+      
       dbg("Forwarder", "Sending queue entry %p\n", qe);
+      
       if (call RootControl.isRoot()) {
-	collection_id_t collectid = getHeader(qe->msg)->collectid;
+	collection_id_t collectId = getHeader(qe->msg)->collectId;
 	memcpy(loopbackMsgPtr, qe->msg, sizeof(message_t));
 	ackPending = FALSE;
 	
 	dbg("Forwarder", "%s: I'm a root, so loopback and signal receive.\n", __FUNCTION__);
-	loopbackMsgPtr = signal Receive.receive[collectid](loopbackMsgPtr,
+	loopbackMsgPtr = signal Receive.receive[collectId](loopbackMsgPtr,
 							  call Packet.getPayload(loopbackMsgPtr, NULL), 
 							  call Packet.payloadLength(loopbackMsgPtr));
 	signal SubSend.sendDone(qe->msg, SUCCESS);
 	return;
       }
+      call TreeRoutingInspect.getMetric(&gradient);
       
       ackPending = (call PacketAcknowledgements.requestAck(qe->msg) == SUCCESS);
-      
+      getHeader(qe->msg)->gradient = gradient & 0xff;
       eval = call SubSend.send(dest, qe->msg, payloadLen);
       if (eval == SUCCESS) {
 	// Successfully submitted to the data-link layer.
@@ -277,7 +308,9 @@ implementation {
       else if (eval == ESIZE) {
 	dbg("Forwarder", "%s: subsend failed from ESIZE: truncate packet.\n", __FUNCTION__);
 	call Packet.setPayloadLength(qe->msg, call Packet.maxPayloadLength());
-	post sendTask();
+	if (!call RetxmitTimer.isRunning()) {
+	  post sendTask();
+	}
 	call CollectionDebug.logEvent(NET_C_FE_SUBSEND_SIZE);
       }
     }
@@ -315,6 +348,11 @@ implementation {
       r &= 0x7f;
       r += 128;
       call RetxmitTimer.startOneShot(r);
+      unackedCount++;
+      if (unackedCount >= ((3 * call LinkEstimator.getLinkQuality(call AMPacket.destination(qe->msg))) / 10)) {
+	call TreeRoutingInspect.reportBadRoute(call AMPacket.destination(qe->msg));
+	unackedCount = 0;
+      }
       dbg("Forwarder", "%s: not acked, retry in %hu ms\n", __FUNCTION__, r);
     }
     else if (qe->client < CLIENT_COUNT) {
@@ -327,7 +365,10 @@ implementation {
       call SendQueue.dequeue();
       signal Send.sendDone[client](msg, SUCCESS);
       sending = FALSE;
-      post sendTask();
+      unackedCount = 0;
+      if (!call RetxmitTimer.isRunning()) {
+	post sendTask();
+      }
     }
     else if (call MessagePool.size() < call MessagePool.maxSize()) {
       // A successfully forwarded packet.
@@ -341,7 +382,10 @@ implementation {
         call CollectionDebug.logEventSimple(NET_C_FE_QE_POOL_ERR,
                                             NET_C_POOL_BAD_PUT);
       sending = FALSE;
-      post sendTask();
+      unackedCount = 0;
+      if (!call RetxmitTimer.isRunning()) {
+	post sendTask();
+      }
     }
     else {
       // Size of the message pool is maximum.  It's a forwarded
@@ -368,15 +412,33 @@ implementation {
     else {
       message_t* newMsg;
       fe_queue_entry_t *qe;
+      uint16_t gradient;
+      if (call TreeRoutingInspect.getMetric(&gradient) != SUCCESS) {
+	return m;
+      }
 
       newMsg = call MessagePool.get();
-      if (newMsg == NULL)
+      if (newMsg == NULL) {
         call CollectionDebug.logEventSimple(NET_C_FE_MESSAGE_POOL_ERR, 
                                             NET_C_POOL_BAD_GET);
+	return m;
+      }
       qe = call QEntryPool.get();
-      if (qe == NULL)
+      if (qe == NULL) {
         call CollectionDebug.logEventSimple(NET_C_FE_QE_POOL_ERR,
                                             NET_C_POOL_BAD_GET);
+	call MessagePool.put(newMsg);
+	return m;
+      }
+      if (call CollectionPacket.getGradient(m) < gradient) {
+	uint16_t r = call Random.rand16();
+	r &= 0x7f;
+	r += 128;
+	dbg("Forwarder", "%s: Asked to forward a packet from a node that is shallower in the tree (%hu < %hu). Back off, and send a beacon.\n", __FUNCTION__, call CollectionPacket.getGradient(qe->msg), gradient);
+	call TreeRoutingInspect.triggerRouteUpdate();
+	call RetxmitTimer.startOneShot(r);
+      }
+	
       qe->msg = m;
       qe->client = 0xff;
       
@@ -410,20 +472,20 @@ implementation {
   SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
     network_header_t* hdr = getHeader(msg);
     uint8_t netlen;
-    collection_id_t collectid;
-    collectid = hdr->collectid;
+    collection_id_t collectId;
+    collectId = hdr->collectId;
     call CollectionDebug.logEvent(NET_C_FE_RCV_MSG);
     if (len > call SubSend.maxPayloadLength()) {
       return msg;
     }
     // If I'm the root, signal receive. 
     else if (call RootControl.isRoot())
-      return signal Receive.receive[collectid](msg, 
+      return signal Receive.receive[collectId](msg, 
                         call Packet.getPayload(msg, &netlen), 
                         call Packet.payloadLength(msg));
     // I'm on the routing path and Intercept indicates that I
     // should not forward the packet.
-    else if (!signal Intercept.forward[collectid](msg, 
+    else if (!signal Intercept.forward[collectId](msg, 
                         call Packet.getPayload(msg, &netlen), 
                         call Packet.payloadLength(msg)))
       return msg;
@@ -455,7 +517,7 @@ implementation {
   event message_t* 
   SubSnoop.receive(message_t* msg, void *payload, uint8_t len) {
     network_header_t* hdr = getHeader(msg);
-    return signal Snoop.receive[hdr->collectid] (msg, (void *)(hdr + 1), 
+    return signal Snoop.receive[hdr->collectId] (msg, (void *)(hdr + 1), 
                                           len - sizeof(network_header_t));
   }
   
@@ -497,11 +559,11 @@ implementation {
   }
 
   command uint8_t CollectionPacket.getCollectionID(message_t* msg) {
-    return getHeader(msg)->collectid;
+    return getHeader(msg)->collectId;
   }
   
   command void CollectionPacket.setCollectionID(message_t* msg, uint8_t id) {
-    getHeader(msg)->collectid = id;
+    getHeader(msg)->collectId = id;
   }
 
   command uint8_t CollectionPacket.getControl(message_t* msg) {
@@ -512,25 +574,34 @@ implementation {
     getHeader(msg)->control = control;
   }
 
+  command uint8_t CollectionPacket.getGradient(message_t* msg) {
+    return getHeader(msg)->gradient;
+  }
+  
+  command void CollectionPacket.setGradient(message_t* msg, uint8_t gradient) {
+    getHeader(msg)->gradient = gradient;
+  }
+
+  event void LinkEstimator.evicted(am_addr_t addr) {}
   
   default event void
   Send.sendDone[uint8_t client](message_t *msg, error_t error) {
   }
 
   default event bool
-  Intercept.forward[collection_id_t collectid](message_t* msg, void* payload, 
+  Intercept.forward[collection_id_t collectId](message_t* msg, void* payload, 
                                                uint16_t len) {
     return TRUE;
   }
 
   default event message_t *
-  Receive.receive[collection_id_t collectid](message_t *msg, void *payload,
+  Receive.receive[collection_id_t collectId](message_t *msg, void *payload,
                                              uint8_t len) {
     return msg;
   }
 
   default event message_t *
-  Snoop.receive[collection_id_t collectid](message_t *msg, void *payload,
+  Snoop.receive[collection_id_t collectId](message_t *msg, void *payload,
                                            uint8_t len) {
     return msg;
   }

@@ -7,7 +7,8 @@
 typedef nx_struct {
   nx_uint8_t control;
   nx_am_addr_t origin;
-  nx_uint8_t collectid;
+  nx_uint8_t collectId;
+  nx_uint8_t gradient;
 } network_header_t;
 
 typedef struct {
