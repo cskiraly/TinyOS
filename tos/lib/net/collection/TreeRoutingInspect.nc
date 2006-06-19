@@ -1,4 +1,4 @@
-/* $Id: TreeRoutingInspect.nc,v 1.1.2.1 2006-06-10 19:24:22 rfonseca76 Exp $ */
+/* $Id: TreeRoutingInspect.nc,v 1.1.2.2 2006-06-19 20:14:34 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -23,7 +23,7 @@
 
 /*
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-06-10 19:24:22 $
+ *  @date   $Date: 2006-06-19 20:14:34 $
  *  @see Net2-WG
  */
 
@@ -50,4 +50,14 @@ interface TreeRoutingInspect {
          * The caller MUST NOT use the value in parent if the return is not SUCCESS 
 	 */
 	command error_t getMetric(uint16_t* metric);
+
+	/* Inform the routing engine that the route through neighbor is bad.
+         * This should mean that the routing engine should do something to avoid
+         * this neighbor or fix the route */
+	command void reportBadRoute(am_addr_t neighbor);
+
+	/* This informs the routing engine to update its routing information,
+         * possibly by sending a beacon */
+	command void triggerRouteUpdate();
+
 }
