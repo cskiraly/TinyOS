@@ -2,7 +2,7 @@
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
 //#define TEST_INSERT
-/* $Id: TreeRoutingEngineP.nc,v 1.1.2.12 2006-06-16 13:00:57 rfonseca76 Exp $ */
+/* $Id: TreeRoutingEngineP.nc,v 1.1.2.13 2006-06-19 20:19:33 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,7 +30,7 @@
  *  Acknowledgment: based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
  *                           MultiHopLQI
  *                           
- *  @date   $Date: 2006-06-16 13:00:57 $
+ *  @date   $Date: 2006-06-19 20:19:33 $
  *  @see Net2-WG
  */
 
@@ -527,6 +527,15 @@ implementation {
             dbg("TreeRouting", "%s OK, updated entry\n", __FUNCTION__);
         }
         return SUCCESS;
+    }
+
+    /* Will tell the link estimator to blacklist this neighbor until the next
+     * update time */
+    command void reportBadRoute(am_addr_t neighbor) {
+    }
+
+    /* Send a beacon */
+    command void triggerRouteUpdate() {
     }
 
     /* if this gets expensive, introduce indirection through an array of pointers */
