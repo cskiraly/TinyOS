@@ -8,7 +8,7 @@ import sys
 t = Tossim([])
 r = t.radio()
 
-f = open("topo.10x10.txt", "r")
+f = open("sparse-grid.txt", "r")
 lines = f.readlines()
 for line in lines:
   s = line.split()
@@ -18,7 +18,7 @@ for line in lines:
     elif s[0] == "noise":
       r.setNoise(int(s[1]), float(s[2]), float(s[3]))
 
-for i in range(0, 100):
+for i in range(0, 10):
   m = t.getNode(i);
   time = randint(t.ticksPerSecond(), 10 * t.ticksPerSecond())
   m.bootAtTime(time)
@@ -27,15 +27,17 @@ for i in range(0, 100):
 print "Starting simulation."
 
 #t.addChannel("AM", sys.stdout)
-t.addChannel("TreeRouting", sys.stdout)
-t.addChannel("TestNetworkC", sys.stdout)
+#t.addChannel("TreeRouting", sys.stdout)
 #t.addChannel("TestNetworkC", sys.stdout)
-t.addChannel("Route", sys.stdout)
-t.addChannel("PointerBug", sys.stdout)
-t.addChannel("QueueC", sys.stdout)
+#t.addChannel("Route", sys.stdout)
+#t.addChannel("PointerBug", sys.stdout)
+#t.addChannel("QueueC", sys.stdout)
 #t.addChannel("Gain", sys.stdout)
 t.addChannel("Forwarder", sys.stdout)
-t.addChannel("Acks", sys.stdout)
+t.addChannel("TestNetworkC", sys.stdout)
+#t.addChannel("App", sys.stdout)
+#t.addChannel("Traffic", sys.stdout)
+#t.addChannel("Acks", sys.stdout)
 
 while (t.time() < 1000 * t.ticksPerSecond()):
   t.runNextEvent()

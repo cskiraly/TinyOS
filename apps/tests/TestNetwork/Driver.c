@@ -13,14 +13,14 @@ int main() {
  }
 
 
- // t->addChannel("Gain", stdout);
+ t->addChannel("TestNetworkC", stdout);
  t->addChannel("Forwarder", stdout);
- t->addChannel("PointerBug", stdout);
- t->addChannel("QueueC", stdout);
- t->addChannel("PoolP", stdout);
+// t->addChannel("PointerBug", stdout);
+// t->addChannel("QueueC", stdout);
+// t->addChannel("PoolP", stdout);
  //t->addChannel("LITest", stdout);
  //t->addChannel("AM", stdout);
- t->addChannel("Route", stdout);
+// t->addChannel("Route", stdout);
 
  Radio* r = t->radio();
  for (int i = 0; i < 10; i++) {
