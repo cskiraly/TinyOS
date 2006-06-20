@@ -7,7 +7,7 @@ Collection
 :Type: Documentary
 :Status: Draft
 :TinyOS-Version: 2.x
-:Author: Rodrigo Fonseca, Omprakash Gnawali, and Kyle Jamieson
+:Author: Rodrigo Fonseca, Omprakash Gnawali, Kyle Jamieson, and Philip Levis
 
 :Draft-Created: 09-Feb-2006
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
@@ -24,18 +24,17 @@ Abstract
 
 The memo documents the interfaces, components, and semantics used by
 collection protocol in TinyOS 2.x. Collection provides a best-effort,
-multihop delivery of packets to the root of a specified tree.
+multihop delivery of packets to the root of a tree.
 
 1. Introduction
 ====================================================================
 
-One of the most common functions that a sensor network performs is
-collection of data from the network to a base station. Upon generating
-data, either by sensing or other means, a node uses the collection
-protocol to send the data to a base station. The data is forwarded by
-the nodes between the sender and the base station towards the base
-station. Processing, visualization, and archival of data is done at
-the base station. 
+Collection to a base station is one of the most common functions that
+a sensor network performs. Upon generating data, either by sensing or
+other means, a node uses a collection protocol to send the data to a
+base station. The data is forwarded by the nodes between the sender
+and the base station towards the base station. Processing,
+visualization, and archival of data is done at the base station.
 
 Often there MAY be multiple such base stations or gateway nodes
 (referred to as roots in the rest of the document) in a collection
@@ -45,16 +44,6 @@ protocol building its own tree. Collection provides a best-effort,
 multihop delivery of packets to the root of a specified tree. In
 addition, collection provides mechanism to intercept packets for
 in-network processing and snoop the packets in transit.
-
-The proposed collection protocol uses two principals to encourage
-evolution of components and ease of use: modularization and tree-based
-naming. The neighbor management and link estimation are are decoupled
-from the routing protocol. So are routing protocol and the forwarding
-element. This modularization allows these components to evolve
-independently while maximizing reuse of existing components. Using
-tree based naming lesses the burden on applications while determining
-the end point of collection. The discovery and selection of root is
-performed internally by collection.
 
 Different applications desire different properties in a collection
 protocol. Some applications might have ADUs larger than the ones that
@@ -75,23 +64,24 @@ consumer, snooper, and in-network processor. Depending on their role,
 the nodes use different interfaces to interact with the collection
 component.
 
-The nodes that generate data to be sent to the root are producers. The
-producers use the Send interface[_tep116] to send data to the root of
-the collection tree. The collection tree identifier is be specified as
-a parameter to Send during instantiation.
+The nodes that generate data to be sent to the root are
+*producers*. The producers use the Send interface [1_] to send
+data to the root of the collection tree. The collection tree
+identifier is be specified as a parameter to Send during
+instantiation.
 
-Root nodes that receive data from the network are consumers. The
-consumers use the Receive interface[_tep116] to receive a message
+Root nodes that receive data from the network are *consumers*. The
+consumers use the Receive interface [1_] to receive a message
 delivered by collection. The collection tree identifier is be
 specified as a parameter to Receive during instantiation.
 
-The nodes that overhear messages in transit are snoopers. The snoopers
-use the Receive interface[_tep116] to receive a snooped message. The
+The nodes that overhear messages in transit are *snoopers*. The snoopers
+use the Receive interface [1_] to receive a snooped message. The
 collection tree identifier is be specified as a parameter to Receive
 during instantiation.
 
 The nodes can process a packet that are in transit. These in-network
-processors use the Intercept interface [_tep116] to receive and
+*processors* use the Intercept interface [1_] to receive and
 update a packet. The collection tree identifier is be specified as a
 parameter to Intercept during instantiation.
 
@@ -100,50 +90,122 @@ interface. RootControl.setRoot() MUST make the current node a root of
 the tree specified during instantiation. RootControl.unsetRoot() MUST
 make the current root no longer a root in the tree specified during
 instantiation. RootControl.unsetRoot() MAY be called on a node that is
-not a root.
+not a root::
 
-interface RootControl {
-	command error_t setRoot();
-	command error_t unsetRoot();
-	command bool isRoot();
-}
+  interface RootControl {
+    command error_t setRoot();
+    command error_t unsetRoot();
+    command bool isRoot();
+  }
 
 
-3 Collection Service
+3 Collection Services
 ====================================================================
 
-A collection service MUST provide one component, CollectionC,
+A collection service MUST provide one component, TreeCollectionC,
 which has the following signature::
 
-generic configuration CollectionC {
-	provides {
-		interface Send[uint8_t tree_id]
-		interface Receive[uint8_t tree_id];
-		interface Intercept[uint8_t tree_id];
-		interface Receive as Snoop[uint8_t tree_id];
-		interface Packet;
-		interface RootControl[uint8_t tree_id];
-	}
+  configuration TreeCollectionC {
+    provides {
+      interface StdControl;
+      interface Send[uint8_t client];
+      interface Receive[collection_id_t id];
+      interface Receive as Snoop[collection_id_t];
+      interface Intercept[collection_id_t id];
+      interface RootControl;
+      interface Packet;
+      interface CollectionPacket;
+      interface TreeRoutingInspect;
+    }
+    uses {
+      interface CollectionId[uint8_t client];
+    }
+  }
+
+
+TreeCollectionC MAY have additional interfaces, but they MUST have
+default functions on all outgoing invocations (commands for uses,
+events for provides) of those interfaces so that it can operate
+properly if they are not wired.
+
+Components SHOULD NOT wire to TreeCollectionC.Send. The generic
+component CollectionSenderC (described in section 3.1) provides
+a virtualized sending interface.
+
+Receive, Snoop, and Intercept are all parameterized by
+collection_id_t. Each collection_id_t corresponds to a different
+protocol operating on top of collection, in the same way that
+different am_id_t values represent different protocols operating on
+top of active messages. All packets sent with a particular
+collection_id_t generally have the same payload format, so that
+snoopers, intercepters, and receivers can parse it properly.
+
+Receive.receive MUST NOT be signaled on non-root
+nodes. TreeCollectionC MAY signal Receive.receive on a root node when
+a data packet successfully arrives at that node. If a root node calls
+Send, TreeCollectionC MUST treat it as it if were a received packet.
+Note that the buffer swapping semantics of Receive.receive, when
+combined with the pass semantics of Send, require that TreeCollectionC
+make a copy of the buffer if it signals Receive.receive.
+
+If TreeCollectionC receives a data packet to forward and it is not a
+root node, it MAY signal Intercept.forward.
+
+If TreeCollectionC receives a data packet that a different node
+is supposed to forward, it MAY signal Snoop.receive.
+
+RootControl allows a node to be made a collection tree root.
+TreeCollectionC SHOULD NOT configure a node as a root by default.
+
+Packet and CollectionPacket allow components to access collection
+data packet fields [1_].
+
+TreeRoutingInspect provides information on the current position of
+the node in a routing tree::
+
+  interface TreeRoutingInspect {
+    command error_t getParent(am_addr_t* parent);
+    command error_t getHopcount(uint8_t* hopcount);
+    command error_t getMetric(uint16_t* metric);
+  }
+
+In each of these commands, if the return value is not SUCCESS, the
+value stored in the pointer argument is undefined. The getMetric
+command provides a measure of the quality of a node's route to the
+base station. This routing metric MUST be monotonically increasing
+across hops. In a collection tree, if node A is the parent of node B,
+then node B's metric value MUST be greater than node A's.
+
+3.1 CollectionSenderC
+--------------------------------------------------------------------
+
+Collection has a virtualized sending abstraction, the generic
+component CollectionSenderC::
+
+generic configuration CollectionSenderC(collection_id_t collectid) {
+  provides {
+    interface Send;
+    interface Packet;
+  }
 }
 
-CollectionC.Receive.receive is signalled at the root when a collection
-packet matching the tree_id arrives at a node. CollectionC.Send.send
-returns EBUSY only if there is a send request outstanding on this
-CollectionC. CollectionC.Intercept.receive is signalled when a
-collection packet is received with destination the address matching
-the local address node. CollectionC.Snoop.receive is signalled when a
-collection packet matching the tree_id is received.
-
-RootControl.setRoot() is called to make a node into a root of the
-collection tree. CollectionC SHOULD NOT configure a node as a root by
-default.
-
-4 Collection Components
+This abstraction follows a similar virtualization approach to
+AMSenderC [1_], except that it is parameterized by a collection_id_t
+rather than an am_id_t.
+  
+4 Implementation
 ====================================================================
 
-Collection consists of three components: LinkEstimatorP,
-MTreeRoutingTreeP, and ForwardingEngineP.
+An implementation of this TEP can be found in
+``tinyos-2.x/tos/lib/net/collection``. The implementation consists of
+three major components, which are wired together to form a
+CollectionC: LinkEstimatorP, TreeRoutingEngineP, and ForwardingEngineP.
 
+This decomposition tries to encourage evolution of components and ease
+of use through modularization. Neighbor management and link estimation
+are are decoupled from the routing protocol. Furthermore, the routing
+protocol and route selection are decoupled from the forwarding policies,
+such as queueing and timing.
 
 4.1 LinkEstimatorP
 --------------------------------------------------------------------
@@ -162,26 +224,26 @@ results in a smaller return value. The range of value SHOULD be
 linear. Radio provided values such as LQI or RSI, beacon based link
 estimation to compute ETX, or their combination are some possible
 approaches to estimating link qualities. LinkEstimatorP MAY have its
-own control messages to compute bi-directional link qualities.
+own control messages to compute bi-directional link qualities::
 
-typedef uint16_t neighbor_t
+  typedef uint16_t neighbor_t
 
-LinkEstimatorP {
-	provides {
-		interface LinkEstimator;
-		interface NeighborTable;
-	}
-}
+  LinkEstimatorP {
+    provides {
+      interface LinkEstimator;
+      interface NeighborTable;
+    }
+  }
 
-interface LinkEstimator {
-	command uint8_t getLinkQuality(neighbot_t neighbor);
-	command uint8_t getReverseQuality(neighbot_t neighbor);
-	command uint8_t getForwardQuality(neighbot_t neighbor);
-}
+  interface LinkEstimator {
+    command uint8_t getLinkQuality(neighbot_t neighbor);
+    command uint8_t getReverseQuality(neighbot_t neighbor);
+    command uint8_t getForwardQuality(neighbot_t neighbor);
+  }
 
-interface NeighborTable {
-	event void evicted(neighbot_t neighbor)
-}
+  interface NeighborTable {
+    event void evicted(neighbot_t neighbor)
+  }
 
 
 4.2 MTreeRoutingTreeP
@@ -195,31 +257,30 @@ on which collection is implemented MUST be a tree-based routing
 protocol with a single or multiple roots. MTreeRoutingTreeP SHOULD
 allow a node to be configured as a root or a non-root node
 dynamically. MTreeRoutingTreeP MAY maintain multiple next hops to a
-root.
+root::
 
-MTreeRoutingEngineP
-	provides {
-		interface REControl[uint8_t tree_id];
-		interface RootControl[uint8_t tree_id];
-		interface Routing[uint8_t tree_id];
-	} 
-	uses {
-		interface LinkEstimator;
-		interface NeighborTable;
-		interface AMSend[COLLECTION_CONTROL_AM_ID];
-		interface Receive[COLLECTION_CONTROL_AM_ID];
-	}
-}
+  MTreeRoutingEngineP
+    provides {
+      interface REControl[uint8_t tree_id];
+      interface RootControl[uint8_t tree_id];
+      interface Routing[uint8_t tree_id];
+    } 
+    uses {
+      interface LinkEstimator;
+      interface NeighborTable;
+      interface AMSend[COLLECTION_CONTROL_AM_ID];
+      interface Receive[COLLECTION_CONTROL_AM_ID];
+    }
+  }
 
-interface REControl {
-	command error_t initializeRH(message_t *msg);
-	command uint8_t getHeaderSize();
-}
+  interface REControl {
+    command error_t initializeRH(message_t *msg);
+    command uint8_t getHeaderSize();
+  }
 
-
-interface Routing {
-	command result_t getNextHops(neighbor_t* nextHops, uint8_t* n);
-}
+  interface Routing {
+    command result_t getNextHops(neighbor_t* nextHops, uint8_t* n);
+  }
 
 
 4.3 ForwardingEngineP
@@ -227,23 +288,23 @@ interface Routing {
 
 ForwardingEngineP component provides all the top level interface
 (except RootControl) which is used by an application to interact with
-CollectionC.
+CollectionC::
 
-ForwardingEngineP {
-	provides {
-		interface Send[uint8_t tree_id]
-		interface Receive[uint8_t tree_id];
-		interface Intercept;
-		interface Snoop;
-		interface Packet;
-	}
-	uses {
-		interface REControl;
-		interface Routing[uint8_t tree_id];
-		interface SendMsg[COLLECTION_DATA_AM_ID];
-		interface ReceiveMsg[COLLECTION_DATA_AM_ID];
-	}
-}
+  generic module ForwardingEngineP() {
+    provides {
+      interface Send[uint8_t tree_id]
+      interface Receive[uint8_t tree_id];
+      interface Intercept;
+      interface Snoop;
+      interface Packet;
+    }
+    uses {
+      interface REControl;
+      interface Routing[uint8_t tree_id];
+      interface SendMsg[COLLECTION_DATA_AM_ID];
+      interface ReceiveMsg[COLLECTION_DATA_AM_ID];
+    }
+  }
 
 The forwarding engine MUST must try to transmit a collection packet to
 the first next hop. The forwarding engine MAY perform network-level
@@ -280,10 +341,20 @@ multiple next hops towards a given destination.
 | Cambridge, MA 02139 
 |
 | email - jamieson@csail.mit.edu
+|
+|
+| Philip Levis
+| 358 Gates Hall
+| Computer Science Laboratory
+| Stanford University
+| Stanford, CA 94305
+|
+| phone - +1 650 725 9046
+| email - pal@cs.stanford.edu
 
 
 6. Citations
 ====================================================================
 
-.. [tep116] TEP 116: Packet Protocols
+.. [1] TEP 116: Packet Protocols
  

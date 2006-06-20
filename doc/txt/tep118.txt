@@ -10,8 +10,8 @@ Dissemination
 :Author: Philip Levis and Gilman Tolle
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2006-02-08 21:59:16 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-06-20 23:48:21 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -24,30 +24,31 @@ Dissemination
 Abstract
 ====================================================================
 
-The memo documents the interfaces, components, and semantics for disseminating
-small (smaller than a single packet payload) pieces of data in TinyOS 2.x. 
-Dissemination is reliable delivery of a piece of data to every node in a network.
+The memo documents the interfaces, components, and semantics for
+disseminating small (smaller than a single packet payload) pieces of
+data in TinyOS 2.x.  Dissemination is reliably delivering a piece of
+data to every node in a network.
 
 1. Introduction
 ====================================================================
 
-Dissemination is a basic building block of sensor network applications.
-The ability to reliably deliver a piece of data to every node 
-allows administrators to reconfigure, query, and reprogram a network.
-Reliability is important because it makes the operation robust 
-to temporary disconnections or high packet loss. Unlike flooding protocols,
-which are discrete efforts that terminate, possibly not delivering
-the data to some nodes, dissemination achieves reliability by using
-a continuous approach that can detect when a node is missing the data.
+Dissemination is a basic sensor network protocol. The ability to
+reliably deliver a piece of data to every node allows administrators
+to reconfigure, query, and reprogram a network.  Reliability is
+important because it makes the operation robust to temporary
+disconnections or high packet loss. Unlike flooding protocols, which
+are discrete efforts that terminate, possibly not delivering the data
+to some nodes, dissemination achieves reliability by using a
+continuous approach that can detect when a node is missing the data.
 
 Depending on the size of the data item, dissemination protocols can
-differ greatly: efficiently disseminating tens of kilobytes of a binary
-requires a different protocol than disseminating a two-byte configuration
-constant. Looking more deeply, however, there are similarities. Separating
-a dissemination protocol into two parts --- control traffic and data
-traffic --- shows that while the data traffic protocols are greatly
-dependent on the size of the data item, the control traffic tends to be
-the same or very similar.
+differ greatly: efficiently disseminating tens of kilobytes of a
+binary requires a different protocol than disseminating a two-byte
+configuration constant. Looking more deeply, however, there are
+similarities. Separating a dissemination protocol into two parts ---
+control traffic and data traffic --- shows that while the data traffic
+protocols are greatly dependent on the size of the data item, the
+control traffic tends to be the same or very similar.
 
 Being able to reliably disseminate small values into a network is a
 useful building block for sensornet applications. It allows an
@@ -55,10 +56,11 @@ administrator to inject small programs or commands and configuration
 constants. Because TinyOS nodes have limited RAM, these dissemination
 services have the assumption that data values have some form of
 versioning. Dissemination propagates only the most recent version.
-This means that if a node is disconnected from a network and the network
-goes through eight versions of a disseminated value, when it rejoins the
-network it will only see the most recent. The rest of this document describes 
-a set of components and interfaces for a dissemination service of this kind.
+This means that if a node is disconnected from a network and the
+network goes through eight versions of a disseminated value, when it
+rejoins the network it will only see the most recent. The rest of this
+document describes a set of components and interfaces for a
+dissemination service of this kind.
 
 2. Dissemination interfaces
 ====================================================================
@@ -85,21 +87,20 @@ Additionally, doing so wastes RAM, as it can be easily re-obtained.
 The service signals a changed() event whenever the dissemination value
 changes, in case the consumer needs to perform some computation on it.
 
-DisseminationUpdate has a single command, change, which takes a pointer
-as an argument. This pointer is not stored: a provider of
+DisseminationUpdate has a single command, ``change``, which takes a
+pointer as an argument. This pointer is not stored: a provider of
 DisseminationUpdate MUST copy the data into its own allocated memory.
 
-A dissemination protocol MUST reach consensus on the newest value in
-a network (assuming the network is connected).
-Calling change implicitly increases the version number of the data item
-so that it will be disseminated to every node in the network. This
-change is local, however. If a node that is out-of-date calls change,
-the new value might not disseminate, as other nodes might already
-have a newer value. If two nodes with the same version number call 
-change but pass different values, then the network might reach consensus
-when nodes have different values. The dissemination protocol therefore
-MUST have a tie-breaking mechanism, so that eventually every node has
-the same data value.
+A dissemination protocol MUST reach consensus on the newest value in a
+network (assuming the network is connected).  Calling change
+implicitly makes the data item "newer" so that it will be disseminated
+to every node in the network. This change is local, however. If a node
+that is out-of-date also calls change, the new value might not
+disseminate, as other nodes might already have a newer value. If two
+nodes call change at the same time but pass different values, then the
+network might reach consensus when nodes have different values. The
+dissemination protocol therefore MUST have a tie-breaking mechanism,
+so that eventually every node has the same data value.
 
 3 Dissemination Service
 ====================================================================
@@ -182,15 +183,20 @@ interface, but will be used internally.
 5. More Complex Dissemination
 ====================================================================
 
-You can use this low-level networking primitive to build more complex
-dissemination systems. For example, if you want have a dissemination
-that only nodes which satisfy a predicate receive, you can do that by
-making the <t> a struct that stores a predicate and data value in it,
-and layering the predicate evaluation on top of the above interfaces.
-This also means that you can build up a very different style of
-dissemination interface, if you wanted to try to unify both
-communication modes: once you have predicates you can have addressing,
-and then you could just present dissemination as AMSend or Send.
+An application can use this low-level networking primitive to build
+more complex dissemination systems. For example, if you want have a
+dissemination that only nodes which satisfy a predicate receive, you
+can do that by making the <t> a struct that stores a predicate and
+data value in it, and layering the predicate evaluation on top of the
+above interfaces.
+
+6. Implementation
+====================================================================
+
+An implementation of this TEP can be found in
+``tinyos-2.x/tos/lib/net``. This dissemination implementation uses
+network trickles [2]_. Each dissemination value has a separate
+trickle.
 
 6. Author's Address
 ====================================================================
@@ -215,6 +221,7 @@ and then you could just present dissemination as AMSend or Send.
 7. Citations
 ====================================================================
 
-.. [tep111] TEP 111: message_t.
+.. [1] TEP 111: message_t.
 
+.. [2] Philip Levis, Neil Patel, David Culler, and Scott Shenker. "Trickle: A Self-Regulating Algorithm for Code Maintenance and Propagation in Wireless Sensor Networks." In Proceedings of the First USENIX/ACM Symposium on Networked Systems Design and Implementation (NSDI 2004).
  
