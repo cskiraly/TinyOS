@@ -1,4 +1,4 @@
-/* $Id: PMICM.nc,v 1.1.2.2 2006-02-14 17:01:45 idgay Exp $ */
+/* $Id: PMICM.nc,v 1.1.2.3 2006-06-20 19:58:12 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -261,7 +261,7 @@ implementation {
       update |= ISR_BED;
       //trace(DBG_USR1,"bus error");
     }
-    call PI2C.setISR(update); //PISR = update;
+    call PI2C.setISAR(update); //PISR = update;
   }
   
   async event void PMICGPIO.interruptGPIOPin(){
