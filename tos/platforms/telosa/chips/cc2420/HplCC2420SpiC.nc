@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2005-2006 Arched Rock Corporation
+/*
+ * Copyright (c) 2005-2006 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -33,8 +33,8 @@
  * HPL implementation of the SPI bus for the ChipCon CC2420 radio
  * connected to a TI MSP430 processor.
  *
- * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-03-15 16:40:36 $
+ * @author Jonathan Hui <jhui@archrock.com>
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-06-20 18:56:06 $
  */
 
 generic configuration HplCC2420SpiC() {

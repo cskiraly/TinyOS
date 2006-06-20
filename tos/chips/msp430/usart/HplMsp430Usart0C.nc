@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Arched Rock Corporation
+ * Copyright (c) 2005-2006 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -56,9 +56,9 @@
 /**
  * An HPL abstraction of USART0 on the MSP430.
  *
- * @author Jonathan Hui <jhui@archedrock.com>
+ * @author Jonathan Hui <jhui@archrock.com>
  * @author Joe Polastre
- * @version $Revision: 1.1.2.6 $ $Date: 2006-06-19 11:12:24 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-06-20 18:56:05 $
  */
 
 #include "msp430UsartResource.h"

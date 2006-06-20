@@ -26,17 +26,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-03-15 16:40:32 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-06-20 18:56:05 $
  * ========================================================================
  */
 
- /**
- * Header file for creating string constants for arbitration of
- * USART0 and USART1 modules on the MSP430
- *
- * @author Kevin Klues <klues@tkn.tu-berlin.de>
- */
+ /*
+  * Header file for creating string constants for arbitration of
+  * USART0 and USART1 modules on the MSP430
+  *
+  * @author Kevin Klues <klues@tkn.tu-berlin.de>
+  */
 
  #ifndef MSP430USARTRESOURCE_H
  #define MSP430USARTRESOURCE_H
