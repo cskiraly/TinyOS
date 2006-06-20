@@ -1,4 +1,4 @@
-/// $Id: HplAtm128Interrupt.nc,v 1.1.2.2 2006-01-27 21:55:55 mturon Exp $
+/// $Id: HplAtm128Interrupt.nc,v 1.1.2.3 2006-06-20 17:23:38 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -21,6 +21,8 @@
  */
 
 /**
+ * Interface to an Atmega128 external interrupt pin
+ *
  * @author Joe Polastre
  * @author Martin Turon
  */

@@ -1,4 +1,4 @@
-// $Id: HplCC1000.nc,v 1.1.2.2 2006-01-27 18:46:00 idgay Exp $
+// $Id: HplCC1000.nc,v 1.1.2.3 2006-06-20 17:23:38 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -36,8 +36,8 @@
  */
 
 /**
- * Low-level CC1000 radio-access operations that must be provided by every
- * platform.
+ * Low-level CC1000 radio-access operations that must be provided by a
+ * platform wishing to use this CC1000 implementation.
  *
  * @author Jason Hill
  * @author David Gay
