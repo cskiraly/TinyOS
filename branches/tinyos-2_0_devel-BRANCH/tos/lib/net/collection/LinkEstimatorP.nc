@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.16 2006-06-19 21:22:04 scipio Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.17 2006-06-20 03:08:54 scipio Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -461,9 +461,10 @@ implementation {
     idx = findIdx(neighbor);
     if (idx == INVALID_RVAL) {
       return INFINITY;
-    } else if (NeighborTable[idx].flags & PROBLEM_ENTRY) {
-      return INFINITY;
-    }
+    } 
+   // else if (NeighborTable[idx].flags & PROBLEM_ENTRY) {
+   //   return INFINITY;
+   // }
     else {
       return computeBidirEETX(NeighborTable[idx].inquality,
 			      NeighborTable[idx].outquality);
