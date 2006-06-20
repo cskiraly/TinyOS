@@ -16,13 +16,11 @@ enum {
     NET_C_FE_MESSAGE_POOL_ERR = 0x18,
     NET_C_FE_QE_POOL_ERR = 0x19,
 
-    NET_C_FE_SENT_MSG = 0x20,  //:app. send       :msg uid, origin, next_hop
-    NET_C_FE_RCV_MSG =  0x21,  //:next hop receive:msg uid, origin, last_hop
-    NET_C_FE_FWD_MSG =  0x22,  //:fwd msg         :msg uid, origin, next_hop
-    NET_C_FE_DST_MSG =  0x23,  //:base app. recv  :msg_uid, origin, last_hop
+    NET_C_FE_SENT_MSG = 0x20,  //:app. send     :next hop, local addr, origin
+    NET_C_FE_RCV_MSG =  0x21,  //:receive msg   :last hop, local addr, origin
+    NET_C_FE_FWD_MSG =  0x22,  //:fwd msg       :next hop, local addr, origin
     NET_C_FE_SENDDONE_FAIL = 0x24,
     NET_C_FE_SENDDONE_WAITACK = 0x25,
-
 
     NET_C_TREE_NO_ROUTE   = 0x30,   //:        :no args
     NET_C_TREE_NEW_PARENT = 0x31,   //:        :parent_id, hopcount, metric
@@ -33,6 +31,8 @@ enum {
     NET_C_DBG_1 = 0x40,             //:any     :uint16_t a
     NET_C_DBG_2 = 0x41,             //:any     :uint16_t a, b, c
     NET_C_DBG_3 = 0x42,             //:any     :uint16_t a, b, c
+
+    //NET_C_FE_DST_MSG =  0x23,  //:base app. recv  :msg_uid, origin, last_hop
 };
 
 enum {
