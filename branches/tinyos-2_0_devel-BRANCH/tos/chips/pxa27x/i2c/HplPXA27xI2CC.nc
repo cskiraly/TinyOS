@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xI2CC.nc,v 1.1.2.2 2006-03-28 02:16:02 philipb Exp $ */
+/* $Id: HplPXA27xI2CC.nc,v 1.1.2.3 2006-06-20 19:59:43 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -45,8 +45,6 @@ implementation
   components PlatformP;
 
   I2C = HplPXA27xI2CP;
-
-  HplPXA27xI2CP.Init <- PlatformP.InitL1;
 
   HplPXA27xI2CP.I2CIrq -> HplPXA27xInterruptM.PXA27xIrq[PPID_I2C];
 }
