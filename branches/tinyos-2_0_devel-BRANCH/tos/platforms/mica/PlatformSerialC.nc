@@ -1,6 +1,6 @@
-/// $Id: PlatformSerialC.nc,v 1.1.2.4 2005-10-31 20:07:33 scipio Exp $
+/// $Id: PlatformSerialC.nc,v 1.1.2.5 2006-06-20 17:16:14 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
