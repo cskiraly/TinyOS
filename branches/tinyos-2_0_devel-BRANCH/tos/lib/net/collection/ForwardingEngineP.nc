@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.27 2006-06-20 00:17:44 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.28 2006-06-20 02:36:54 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-20 00:17:44 $
+ *  @date   $Date: 2006-06-20 02:36:54 $
  */
 
 #include <ForwardingEngine.h>
@@ -273,6 +273,7 @@ implementation {
       
       ackPending = (call PacketAcknowledgements.requestAck(qe->msg) == SUCCESS);
       getHeader(qe->msg)->gradient = gradient & 0xff;
+      getHeader(qe->msg)->sender = TOS_NODE_ID;
       eval = call SubSend.send(dest, qe->msg, payloadLen);
       if (eval == SUCCESS) {
 	// Successfully submitted to the data-link layer.
@@ -359,7 +360,8 @@ implementation {
       network_header_t* hdr;
       uint8_t client = qe->client;
       dbg("Forwarder", "%s: our packet for client %hhu, remove %p from queue\n", __FUNCTION__, client, qe);
-      call CollectionDebug.logEventRoute(NET_C_FE_SENT_MSG, error, TOS_NODE_ID, call AMPacket.destination(msg));
+      call CollectionDebug.logEventRoute(NET_C_FE_SENT_MSG, call
+        AMPacket.destination(msg), TOS_NODE_ID, getHeader(qe->msg)->origin);
       clientPtrs[client] = qe;
       hdr = getHeader(qe->msg);
       call SendQueue.dequeue();
@@ -373,7 +375,10 @@ implementation {
     else if (call MessagePool.size() < call MessagePool.maxSize()) {
       // A successfully forwarded packet.
       dbg("Forwarder,Route", "%s: successfully forwarded packet (client: %hhu), message pool is %hhu/%hhu.\n", __FUNCTION__, qe->client, call MessagePool.size(), call MessagePool.maxSize());
-      call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, error, TOS_NODE_ID, call AMPacket.destination(msg));
+      call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, 
+        call AMPacket.destination(msg), TOS_NODE_ID, 
+        getHeader(qe->msg)->origin);
+
       call SendQueue.dequeue();
       if (call MessagePool.put(qe->msg) != SUCCESS)
         call CollectionDebug.logEventSimple(NET_C_FE_MESSAGE_POOL_ERR,
@@ -474,7 +479,8 @@ implementation {
     uint8_t netlen;
     collection_id_t collectId;
     collectId = hdr->collectId;
-    call CollectionDebug.logEvent(NET_C_FE_RCV_MSG);
+    call CollectionDebug.logEventRoute(NET_C_FE_RCV_MSG, hdr->sender,
+      TOS_NODE_ID, hdr->origin);
     if (len > call SubSend.maxPayloadLength()) {
       return msg;
     }
