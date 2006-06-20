@@ -1,4 +1,4 @@
-/* $Id: LinkEstimator.h,v 1.1.2.2 2006-06-19 21:22:04 scipio Exp $ */
+/* $Id: LinkEstimator.h,v 1.1.2.3 2006-06-20 16:18:08 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -83,6 +83,9 @@ enum {
   INIT_ENTRY = 0x4,
   // The upper layer has said this link seems bad
   PROBLEM_ENTRY = 0x8
+  // The upper layer has requested that this link be pinned
+  // Useful if we don't want to lose the root from the table
+  PINNED_ENTRY = 0x10
 };
 
 
