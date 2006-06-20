@@ -1,4 +1,4 @@
-/* $Id: LinkEstimator.nc,v 1.1.2.6 2006-06-20 16:18:08 gnawali Exp $ */
+/* $Id: LinkEstimator.nc,v 1.1.2.7 2006-06-20 21:16:28 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -25,7 +25,7 @@
  * provided quality increases when the true link quality increases.
  *  @author Rodrigo Fonseca
  *  @author Omprakash Gnawali
- *  @date   $Date: 2006-06-20 16:18:08 $
+ *  @date   $Date: 2006-06-20 21:16:28 $
  */
 
 /* Quality of a link is defined by the implementor of this interface.
@@ -46,15 +46,6 @@ interface LinkEstimator {
   /* insert this neighbor into the neighbor table */
   command error_t insertNeighbor(am_addr_t neighbor);
 
-  /* pin a neighbor so that it does not get evicted */
-  command error_t pinNeighbor(am_addr_t neighbor);
-
-  /* pin a neighbor so that it does not get evicted */
-  command error_t unpinNeighbor(am_addr_t neighbor);
-
-  /* mark that the upper layer has a problem with this link */
-  command error_t reportBadLink(am_addr_t neighbor);
-  
   /* signal when this neighbor is evicted from the neighbor table */
   event void evicted(am_addr_t neighbor);
 }

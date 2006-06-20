@@ -7,7 +7,7 @@ enum {
     INVALID_ADDR  = TOS_BCAST_ADDR,
     ETX_THRESHOLD = 50,      // link quality=20% -> ETX=5 -> Metric=50 
     PARENT_SWITCH_THRESHOLD = 15,
-    MAX_METRIC = 0xFF,
+    MAX_METRIC = 0xFFFF,
 }; 
  
 
