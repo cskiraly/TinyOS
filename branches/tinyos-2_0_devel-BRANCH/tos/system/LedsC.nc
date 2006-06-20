@@ -1,4 +1,4 @@
-// $Id: LedsC.nc,v 1.1.2.8 2006-02-14 17:50:11 idgay Exp $
+// $Id: LedsC.nc,v 1.1.2.9 2006-06-20 00:31:42 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -21,6 +21,12 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 /**
+ *
+ * The basic TinyOS LEDs abstraction.
+ *
+ * @author Phil Buonadonna
+ * @author David Gay
+ * @author Philip Levis
  * @author Joe Polastre
  */
 

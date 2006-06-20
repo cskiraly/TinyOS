@@ -1,4 +1,4 @@
-// $Id: ActiveMessageImplP.nc,v 1.1.2.3 2006-05-27 21:18:10 henridf Exp $
+// $Id: ActiveMessageImplP.nc,v 1.1.2.4 2006-06-20 00:31:42 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,9 +30,8 @@
 
 
 /**
- * The underlying configuration of the AM layer. Wires the AM
- * implementation (ActiveMessageC) to the boot sequence, and exports
- * the AM interfaces.
+ * The underlying configuration of the AM layer.  and exports
+ * the AM interfaces. <b>Deprecated</b> and so should not be wired to.
  *
  * @author Philip Levis
  * @date   January 5 2005
