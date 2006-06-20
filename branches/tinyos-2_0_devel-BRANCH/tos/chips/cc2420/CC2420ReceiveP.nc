@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2005-2006 Arched Rock Corporation
+/*
+ * Copyright (c) 2005-2006 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -30,8 +30,8 @@
  */
 
 /**
- * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.9 $ $Date: 2006-03-23 21:10:56 $
+ * @author Jonathan Hui <jhui@archrock.com>
+ * @version $Revision: 1.1.2.10 $ $Date: 2006-06-20 18:56:04 $
  */
 
 module CC2420ReceiveP {
@@ -166,7 +166,9 @@ implementation {
     uint8_t* buf = (uint8_t*)header;
     uint8_t length = buf[ 0 ];
 
-    if ( m_state == S_RX_HEADER ) {
+    switch( m_state ) {
+
+    case S_RX_HEADER:
       m_state = S_RX_PAYLOAD;
       if ( length + 1 > m_bytes_left ) {
 	reset_state();
@@ -184,10 +186,10 @@ implementation {
 	call RXFIFO.continueRead( (length <= MAC_PACKET_SIZE) ? buf + 1 : NULL,
 				  length );
       }
-    }
-
-    else {
-
+      break;
+      
+    case S_RX_PAYLOAD:
+      
       call CSN.set();
       call SpiResource.release();
       
@@ -213,13 +215,15 @@ implementation {
       }
       
       waitForNextPacket();
+      break;
 
+    default:
+      call CSN.set();
+      call SpiResource.release();
+      break;
+      
     }
-
-  }
-
-  uint16_t flipBytes( uint16_t x ) {
-    return ( x << 8 ) | ( x >> 8 );
+    
   }
 
   task void receiveDone_task() {

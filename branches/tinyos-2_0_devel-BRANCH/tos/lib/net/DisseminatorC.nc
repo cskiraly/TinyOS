@@ -1,7 +1,7 @@
 #include <DisseminationEngine.h>
 
 /*
- * Copyright (c) 2006 Arched Rock Corporation
+ * Copyright (c) 2006 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -13,7 +13,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -42,8 +42,8 @@
  * @param t the type of the object that will be disseminated
  * @param key the 16-bit identifier of the disseminated object
  *
- * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-02 22:08:53 $
+ * @author Gilman Tolle <gtolle@archrock.com>
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-06-20 18:56:06 $
  */
 
 generic configuration DisseminatorC(typedef t, uint16_t key) {

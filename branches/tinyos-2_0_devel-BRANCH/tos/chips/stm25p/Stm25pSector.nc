@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2005-2006 Arch Rock Corporation
  * All rights reserved.
  *
@@ -36,7 +36,7 @@
  * committed to non-volatile storage.
  *
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-06-06 17:57:18 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-06-20 18:56:05 $
  */
 
 #include "Stm25p.h"

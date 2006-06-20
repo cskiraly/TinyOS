@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Arched Rock Corporation
+ * Copyright (c) 2005 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -42,8 +42,8 @@
  * 
  * @param val_t the type of the object that will be returned
  *
- * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-01-28 02:05:16 $
+ * @author Gilman Tolle <gtolle@archrock.com>
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-06-20 18:56:06 $
  */
 
 interface Get<val_t> {
