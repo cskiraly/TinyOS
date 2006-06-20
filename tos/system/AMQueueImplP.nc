@@ -1,4 +1,4 @@
-// $Id: AMQueueImplP.nc,v 1.1.2.4 2006-06-09 01:48:28 scipio Exp $
+// $Id: AMQueueImplP.nc,v 1.1.2.5 2006-06-20 00:31:42 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -23,7 +23,10 @@
  */
 
 /**
- * The implementation of the AM send queue.
+ * An AM send queue that provides a Service Instance pattern for
+ * formatted packets and calls an underlying AMSend in a round-robin
+ * fashion. Used to share L2 bandwidth between different communication
+ * clients.
  *
  * @author Philip Levis
  * @date   Jan 16 2006
@@ -74,6 +77,16 @@ implementation {
     current = QUEUE_EMPTY;
   }
   
+
+  /**
+   * Accepts a properly formatted AM packet for later sending.
+   * Assumes that someone has filled in the AM packet fields
+   * (destination, AM type).
+   *
+   * @param msg - the message to send
+   * @param len - the length of the payload
+   *
+   */
   
   command error_t Send.send[uint8_t clientId](message_t* msg,
                                               uint8_t len) {
@@ -153,6 +166,7 @@ implementation {
   event void AMSend.sendDone[am_id_t id](message_t* msg, error_t err) {
     if (queue[current].msg == msg) {
       uint8_t last = current;
+      dbg("PointerBug", "%s received send done for %p, signaling for %p.\n", __FUNCTION__, msg, queue[current].msg);
       queue[last].msg = NULL;
       tryToSend();
       signal Send.sendDone[last](msg, err);

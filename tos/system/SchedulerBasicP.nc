@@ -1,4 +1,4 @@
-// $Id: SchedulerBasicP.nc,v 1.1.2.5 2006-02-14 17:01:46 idgay Exp $
+// $Id: SchedulerBasicP.nc,v 1.1.2.6 2006-06-20 00:31:42 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -28,15 +28,9 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
-/*
- *
- * Authors:		Philip Levis
- * Date last modified:  $Id: SchedulerBasicP.nc,v 1.1.2.5 2006-02-14 17:01:46 idgay Exp $
- *
- */
 
 /**
- * SchedulerBasic implements the default TinyOS scheduler sequence, as
+ * SchedulerBasicP implements the default TinyOS scheduler sequence, as
  * documented in TEP 106.
  *
  * @author Philip Levis

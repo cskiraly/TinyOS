@@ -1,4 +1,4 @@
-// $Id: ActiveMessageAddressC.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
+// $Id: ActiveMessageAddressC.nc,v 1.1.2.3 2006-06-20 00:31:42 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -27,7 +27,7 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  *
- * Date last modified:  $Id: ActiveMessageAddressC.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
+ * Date last modified:  $Id: ActiveMessageAddressC.nc,v 1.1.2.3 2006-06-20 00:31:42 scipio Exp $
  *
  */
 
@@ -45,10 +45,19 @@ module ActiveMessageAddressC  {
 implementation {
   am_addr_t addr = TOS_AM_ADDRESS;
 
+  /**
+   * Get the node's default AM address.
+   * @return address
+   */
   async command am_addr_t amAddress() {
     return addr;
   }
-
+  
+  /**
+   * Set the node's default AM address.
+   *
+   * @param a - the address.
+   */
   async command void setAmAddress(am_addr_t a) {
     addr = a;
   }

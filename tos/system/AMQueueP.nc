@@ -1,4 +1,4 @@
-// $Id: AMQueueP.nc,v 1.1.2.3 2006-05-15 16:42:04 scipio Exp $
+// $Id: AMQueueP.nc,v 1.1.2.4 2006-06-20 00:31:42 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -23,7 +23,7 @@
  */
 
 /**
- * The fair-share AM send queue.
+ * The fair-share send queue for AM radio communication.
  *
  * @author Philip Levis
  * @date   Jan 16 2006
