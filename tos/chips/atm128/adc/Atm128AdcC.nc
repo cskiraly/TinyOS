@@ -1,6 +1,6 @@
-/// $Id: Atm128AdcC.nc,v 1.1.2.9 2006-04-13 17:38:02 idgay Exp $
+/// $Id: Atm128AdcC.nc,v 1.1.2.10 2006-06-20 17:14:29 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its

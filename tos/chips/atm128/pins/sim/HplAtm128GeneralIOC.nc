@@ -1,6 +1,6 @@
-// $Id: HplAtm128GeneralIOC.nc,v 1.1.2.1 2006-01-15 23:44:53 scipio Exp $
+// $Id: HplAtm128GeneralIOC.nc,v 1.1.2.2 2006-06-20 17:14:29 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its

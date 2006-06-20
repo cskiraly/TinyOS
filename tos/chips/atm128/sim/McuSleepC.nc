@@ -1,4 +1,4 @@
-/**
+/*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and
@@ -27,7 +27,7 @@
  * for the Atmega128. It currently does nothing.
  *
  * <pre>
- *  $Id: McuSleepC.nc,v 1.1.2.2 2006-01-29 20:32:24 scipio Exp $
+ *  $Id: McuSleepC.nc,v 1.1.2.3 2006-06-20 17:14:29 idgay Exp $
  * </pre>
  *
  * @author Philip Levis
