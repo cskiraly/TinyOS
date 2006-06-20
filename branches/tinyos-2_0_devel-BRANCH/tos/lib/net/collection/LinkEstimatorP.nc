@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.19 2006-06-20 17:26:30 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.20 2006-06-20 21:16:28 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -222,10 +222,6 @@ implementation {
 	dbg("LI", "Not mature, so continuing\n");
 	continue;
       }
-      if (NeighborTable[i].flags & PINNED_ENTRY) {
-	dbg("LI", "Pinned entry, so continuing\n");
-	continue;
-      }
       thisQuality = NeighborTable[i].inquality;
       if (thisQuality < worstQuality) {
 	worstNeighborIdx = i;
@@ -256,16 +252,12 @@ implementation {
   void updateNeighborEntryIdx(uint8_t idx, uint8_t seq) {
     uint8_t packetGap;
 
-    // Clear the PROBLEM_ENTRY flag when we receive an
-    // update
-    NeighborTable[idx].flags &= ~PROBLEM_ENTRY;
-    
     if (NeighborTable[idx].flags & INIT_ENTRY) {
       dbg("LI", "Init entry update\n");
       NeighborTable[idx].lastseq = seq;
-      NeighborTable[idx].flags &= ~INIT_ENTRY;
+      NeighborTable[idx].flags ^= INIT_ENTRY;
     }
-    
+
     packetGap = seq - NeighborTable[idx].lastseq;
     dbg("LI", "updateNeighborEntryIdx: prevseq %d, curseq %d, gap %d\n",
 	NeighborTable[idx].lastseq, seq, packetGap);
@@ -465,11 +457,7 @@ implementation {
     idx = findIdx(neighbor);
     if (idx == INVALID_RVAL) {
       return INFINITY;
-    } 
-   // else if (NeighborTable[idx].flags & PROBLEM_ENTRY) {
-   //   return INFINITY;
-   // }
-    else {
+    } else {
       return computeBidirEETX(NeighborTable[idx].inquality,
 			      NeighborTable[idx].outquality);
     };
@@ -526,37 +514,6 @@ implementation {
     return FAIL;
   }
 
-  // pin a neighbor so that it does not get evicted */
-  command error_t LinkEstimator.pinNeighbor(am_addr_t neighbor) {
-    uint8_t nidx = findIdx(neighbor);
-    if (nidx == INVALID_RVAL) {
-      return FAIL;
-    }
-    NeighborTable[nidx].flags |= PINNED_ENTRY;
-    return SUCCESS;
-  }
-
-  // pin a neighbor so that it does not get evicted
-  command error_t LinkEstimator.unpinNeighbor(am_addr_t neighbor) {
-    uint8_t nidx = findIdx(neighbor);
-    if (nidx == INVALID_RVAL) {
-      return FAIL;
-    }
-    NeighborTable[nidx].flags &= ~PINNED_ENTRY;
-    return SUCCESS;
-  }
-
-
-  // upper layer requests to flag a link as a bad link
-  command error_t LinkEstimator.reportBadLink(am_addr_t addr) {
-    uint8_t nidx = findIdx(addr);
-    if (nidx == INVALID_RVAL) {
-      return FAIL;
-    }
-    NeighborTable[nidx].flags |= PROBLEM_ENTRY;
-    return SUCCESS;
-  }
-  
   // get the link layer source address for the incoming packet
   command am_addr_t LinkSrcPacket.getSrc(message_t* msg) {
     linkest_header_t* hdr = getHeader(msg);

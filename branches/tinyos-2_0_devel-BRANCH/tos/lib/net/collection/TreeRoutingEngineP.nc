@@ -2,7 +2,7 @@
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
 //#define TEST_INSERT
-/* $Id: TreeRoutingEngineP.nc,v 1.1.2.15 2006-06-19 22:11:18 scipio Exp $ */
+/* $Id: TreeRoutingEngineP.nc,v 1.1.2.16 2006-06-20 21:16:28 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,7 +30,7 @@
  *  Acknowledgment: based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
  *                           MultiHopLQI
  *                           
- *  @date   $Date: 2006-06-19 22:11:18 $
+ *  @date   $Date: 2006-06-20 21:16:28 $
  *  @see Net2-WG
  */
 
@@ -162,10 +162,8 @@ implementation {
     }
 
     /* updates the routing information, using the info that has been received
-     * from neighbor beacons. Three things can cause this info to change: 
-     * neighbor beacons, changes in link estimates (including neighbor
-     * evictions), and feedback from the forwarding layer that a route is
-     * bad (which can change link estimates). */
+     * from neighbor beacons. Two things can cause this info to change: 
+     * neighbor beacons, changes in link estimates, including neighbor eviction */
     task void updateRouteTask() {
         uint8_t i;
         routing_table_entry* entry;
@@ -220,8 +218,8 @@ implementation {
         }
 
         //now choose between current/best
-        if (minMetric < MAX_METRIC) {
-            if (currentMetric >= MAX_METRIC ||
+        if (minMetric != MAX_METRIC) {
+            if (currentMetric == MAX_METRIC ||
                 minMetric + PARENT_SWITCH_THRESHOLD < currentMetric) {
                 // routeInfo.metric will not store the composed metric.
                 // since the linkMetric may change, we will compose whenever
@@ -237,15 +235,11 @@ implementation {
                 }
             }
         }    
-	else if (currentMetric >= MAX_METRIC) {
-	  routeInfo.parent = INVALID_ADDR;
-	  routeInfo.metric = MAX_METRIC;
-	  routeInfo.hopcount = 0;
-	}
+
         //finally, tell people what happened
         if (justEvicted && routeInfo.parent == INVALID_ADDR) 
             signal Routing.noRoute();
-        else if (!justEvicted && minMetric <= MAX_METRIC)
+        else if (!justEvicted && minMetric != MAX_METRIC)
             signal Routing.routeFound();
         justEvicted = FALSE; 
     }
@@ -533,25 +527,6 @@ implementation {
             dbg("TreeRouting", "%s OK, updated entry\n", __FUNCTION__);
         }
         return SUCCESS;
-    }
-
-    /* Will tell the link estimator to blacklist this neighbor until the next
-     * update time */
-    command void TreeRoutingInspect.reportBadRoute(am_addr_t neighbor) {
-      call LinkEstimator.reportBadLink(neighbor);
-      post updateRouteTask();
-    }
-
-    /* Send a beacon */
-    command void TreeRoutingInspect.triggerRouteUpdate() {
-      // Random time in interval 64-127ms
-      uint16_t time = call Random.rand16();
-      time &= 0x3f; 
-      time += 64;
-      if (call BeaconTimer.gett0() + call BeaconTimer.getdt() - call BeaconTimer.getNow() >= time) {
-	call BeaconTimer.stop();
-	call BeaconTimer.startOneShot(time);
-      }
     }
 
     /* if this gets expensive, introduce indirection through an array of pointers */
