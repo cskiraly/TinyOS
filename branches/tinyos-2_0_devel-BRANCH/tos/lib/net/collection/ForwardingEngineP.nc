@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.26 2006-06-19 21:22:04 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.27 2006-06-20 00:17:44 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-19 21:22:04 $
+ *  @date   $Date: 2006-06-20 00:17:44 $
  */
 
 #include <ForwardingEngine.h>
@@ -434,7 +434,7 @@ implementation {
 	uint16_t r = call Random.rand16();
 	r &= 0x7f;
 	r += 128;
-	dbg("Forwarder", "%s: Asked to forward a packet from a node that is shallower in the tree (%hu < %hu). Back off, and send a beacon.\n", __FUNCTION__, call CollectionPacket.getGradient(qe->msg), gradient);
+	dbg("Forwarder", "%s: Asked to forward a packet from a node that is shallower in the tree (%hu < %hu). Back off, and send a beacon.\n", __FUNCTION__, call CollectionPacket.getGradient(m), gradient);
 	call TreeRoutingInspect.triggerRouteUpdate();
 	call RetxmitTimer.startOneShot(r);
       }
