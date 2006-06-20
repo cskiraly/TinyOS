@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xI2CMasterP.nc,v 1.1.2.2 2006-06-16 18:57:05 philipb Exp $ */
+/* $Id: HalPXA27xI2CMasterP.nc,v 1.1.2.3 2006-06-20 19:43:58 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -128,7 +128,7 @@ implementation
     }
 
     if (flags & I2C_START) {
-      tmpAddr = (rRnW) ? 0x1 : 0x0;
+      tmpAddr = (bRnW) ? 0x1 : 0x0;
       tmpAddr |= ((addr << 1) & 0xFE);
       call I2C.setIDBR(tmpAddr);
       call I2C.setICR( mBaseICRFlags | ICR_ITEIE | ICR_TB | ICR_START);
