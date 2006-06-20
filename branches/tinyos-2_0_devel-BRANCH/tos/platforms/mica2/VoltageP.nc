@@ -1,6 +1,6 @@
-/// $Id: VoltageP.nc,v 1.1.2.6 2006-02-16 18:45:51 idgay Exp $
+/// $Id: VoltageP.nc,v 1.1.2.7 2006-06-20 17:14:29 idgay Exp $
 
-/**
+/*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its

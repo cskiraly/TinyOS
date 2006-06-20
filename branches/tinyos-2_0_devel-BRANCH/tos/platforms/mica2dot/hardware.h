@@ -1,4 +1,4 @@
-/**                                                                     tab:4
+/*                                                                     tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
  *  this license.  If you do not agree to this license, do not download,
@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.2 2006-05-01 19:20:52 idgay Exp $
+ *  $Id: hardware.h,v 1.1.2.3 2006-06-20 17:14:29 idgay Exp $
  */
 
 #ifndef HARDWARE_H
