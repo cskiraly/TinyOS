@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.18 2006-06-20 16:18:08 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.19 2006-06-20 17:26:30 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -528,7 +528,7 @@ implementation {
 
   // pin a neighbor so that it does not get evicted */
   command error_t LinkEstimator.pinNeighbor(am_addr_t neighbor) {
-    uint8_t nidx = findIdx(addr);
+    uint8_t nidx = findIdx(neighbor);
     if (nidx == INVALID_RVAL) {
       return FAIL;
     }
@@ -537,12 +537,12 @@ implementation {
   }
 
   // pin a neighbor so that it does not get evicted
-  command error_t unpinNeighbor(am_addr_t neighbor) {
-    uint8_t nidx = findIdx(addr);
+  command error_t LinkEstimator.unpinNeighbor(am_addr_t neighbor) {
+    uint8_t nidx = findIdx(neighbor);
     if (nidx == INVALID_RVAL) {
       return FAIL;
     }
-    NeighborTable[idx].flags &= ~PINNED_ENTRY;
+    NeighborTable[nidx].flags &= ~PINNED_ENTRY;
     return SUCCESS;
   }
 
