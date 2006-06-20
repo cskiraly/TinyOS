@@ -6,19 +6,22 @@
 </head>
 <body>
 
-<!-- $Id: lesson5.html,v 1.1.2.7 2006-06-19 15:54:12 janhauer Exp $ -->
+<!-- $Id: lesson5.html,v 1.1.2.8 2006-06-20 17:07:18 janhauer Exp $ -->
 
 <div class="title">Lesson 5: Sensing</div>
 <div class="subtitle">Last Modified: 16 June 2006</div>
 
 <p> This lesson introduces sensor data acquisition in TinyOS. It demonstrates
-two sensor applications: a simple application, called <code>Sense</code>, that
-periodically takes sensor readings and displays the values on the LEDs and a
-more sophisticated application, called <code>Oscilloscope</code>, that sends
-sensor readings to the PC where they can be visualized using a dedicated
-graphical user interface.  
+two sensor applications: a simple application called <a href="#sense">Sense</a>
+that periodically takes sensor readings and displays the values on the LEDs.
+And a more sophisticated application called <a
+href="#oscilloscope">Oscilloscope</a> where nodes periodically broadcast their
+sensor readings to a basestation node. Using the Mote-PC serial communication
+described in the <a href="lesson4.html">previous lesson</a> the basestation
+forwards the sensor readings to the PC, where they are visualized with a
+dedicated graphical user interface.  
 
-<h1>Introduction</h1>
+<a name="introduction"><h1>Introduction</h1></a>
 
 <p> Sensing is an integral part of sensor network applications. In TinyOS 1.x
 sensing was syntactically connected with analog-to-digital converters (ADCs):
@@ -82,9 +85,11 @@ explain how the data acquisition interfaces are to be used, how the
 configuration procedure works and, as an example, how <code>Sense</code> can be
 hooked up to a different than the default sensor on the <i>telosb</i> platform.
 
-<h1>The Sense application</h1>
+<a name="sense"><h1>The Sense application</h1></a>
 
-The <code>Sense</code> application can be found in
+<code>Sense</code> is a simple sensing demo application. It periodically
+samples the default sensor and displays the bottom bits of the readings on the
+LEDs. The <code>Sense</code> application can be found in
 <code>tinyos-2.x/apps/Sense</code>.  Let's first look at the <code><a
 href="../../../apps/Sense/SenseAppC.nc">SenseAppC.nc</a></code> configuration:
 
@@ -167,20 +172,20 @@ What you see above is a <i>generic interface definition</i>, because the
 is explained in the nesC Language Reference Manual (version 1.2 and above).
 Here it is enough to know that generic interfaces have at least one type
 parameter and two components can be wired together only if they provide/use the
-interface with the same types (when you look at the <code>readDone</code>
-event, you will notice that it passes a parameter of the
-<code>&lt;val_t&gt;</code> parameter). This means that since
-<code>SenseC.nc</code> is using the <code>uint16_t</code> variant of the
-<code>Read</code> interface, it can only be wired to a component that provides
-the <code>Read&lt;uint16_t&gt;</code> interface and thus <code>SenseC.nc</code>
-reads 16 bit unsigned integer values.  If you tried to wire
+interface with the same types (note that the <code>readDone</code> event passes
+a parameter of the <code>&lt;val_t&gt;</code> parameter, which is a placeholder
+for the actual data type). This means that since <code>SenseC.nc</code> is
+using the <code>uint16_t</code> variant of the <code>Read</code> interface, it
+can only be wired to a component that provides the
+<code>Read&lt;uint16_t&gt;</code> interface and thus <code>SenseC.nc</code>
+expects to read 16 bit unsigned integer sensor readings.  If you tried to wire
 <code>SenseC.nc</code> to a component that provides, for example, a
 <code>Read&lt;uint8_t&gt;</code> interface you would get a nesC error. 
 
 <p>Recall that the wiring is defined in the <code>SenseAppC.nc</code>
-configuration. Let's take a look, which component <code>SenseC.nc</code> is
-wired to with the <code>Read&lt;uint16_t&gt;</code> interface in the
-<code>SenseAppC</code> configuration:
+configuration. Let's again take a look, which component <code>SenseC.nc</code>
+is wired to with the <code>Read&lt;uint16_t&gt;</code> interface in the
+<code>SenseAppC</code> configuration. The interesting lines are
 
 <pre>
   components new DemoSensorC() as Sensor;
@@ -207,17 +212,17 @@ every platform: therefore you will not find <code>DemoSensorC.nc</code> in the
 TinyOS libraries. Instead <code>DemoSensorC.nc</code> has to be written for
 every platform, because, for example, on the <i>telosb</i> platform
 <code>DemoSensorC</code> needs to be implemented differently than on the the
-<i>micaz</i> platform. This is the answer to the first question asked in the
-introduction: the <i>platform dependent</i> <code>DemoSensorC</code> component
-defines which sensor the <code>Sense</code> or <code>Oscilloscope</code>
-application is sampling and every platform that wants to run sensing
-applications such as <code>Oscilloscope</code>, <code>Sense</code> or
-<code>RadioSenseToLeds</code> has to provide its own version of
-<code>DemoSensorC</code>. 
+<i>micaz</i> platform. This is the answer to the first question asked in the <a
+href="#introduction">introduction</a>: the <i>platform dependent</i>
+<code>DemoSensorC</code> component defines which sensor the <code>Sense</code>
+or <code>Oscilloscope</code> application is sampling and every platform that
+wants to run sensing applications such as <code>Oscilloscope</code>,
+<code>Sense</code> or <code>RadioSenseToLeds</code> has to provide its own
+version of <code>DemoSensorC</code>. 
 
-<h2>The DemoSensorC component</h2>
+<a name="demosensorc"><h2>The DemoSensorC component</h2></a>
 
-<p> Let's have a closer look at the <code>DemoSensorC</code> component. Every
+<p> Let's take a closer look at the <code>DemoSensorC</code> component. Every
 <code>DemoSensorC</code> component has the following signature:
 
 <pre>
@@ -233,18 +238,18 @@ from platform to platform. For example, on the <i>telosb</i> platform
 which reads data from the internal voltage sensor. Because the <i>micaz</i>
 doesn't have any built-in sensors, on the <i>micaz</i> platform
 <code>DemoSensorC</code> instantiates a component called
-<code>ConstantSensorC</code>, which simply returns a constant. Thus
+<code>ConstantSensorC</code>, which returns a constant value. Thus
 <code>DemoSensorC</code> is a means of indirecting sensor data acquisition from
 a platform-specific sensor component (like <code>VoltageC</code>) to
 platform-independent applications like <code>Sense</code> or
 <code>Oscilloscope</code>. 
 
 <p> How can <code>Sense</code> be changed to sample another than the platform's
-default sensor (e.g. <code>VoltageC</code> on <i>telosb</i>)? Usually this
-requires changing only a single line of code in <code>DemoSensorC</code>; for
-example, if you wanted to replace the <code>VoltageC</code> component on
-<i>telosb</i> by the constant sensor component <code>ConstantSensorC</code> you
-could change (in <code>DemoSensorC</code>)
+default sensor? Usually this requires changing only a single line of code in
+<code>DemoSensorC</code>; for example, if you wanted to replace the
+<code>VoltageC</code> component on <i>telosb</i> by the constant sensor
+component <code>ConstantSensorC</code> you could change (in
+<code>DemoSensorC</code>)
 
 <pre>
 components new VoltageC() as DemoSensor;
@@ -254,7 +259,8 @@ to something like
 components new ConstantSensorC(uint16_t, 0xbeef) as DemoSensor;
 </pre>
 
-Sensor components are usually located in the respective platform directory
+Which sensors are available depends on the platform. Sensor components are
+usually located in the respective platform directory
 (<code>tinyos-2.x/tos/platforms</code>), in the respective sensorboard
 directory (<code>tinyos-2.x/tos/sensorboards</code>) or, in case of
 microprocessor-internal sensors, in the respective chips directory
@@ -264,12 +270,10 @@ in <code>tinyos-2.x/tos/system</code>.
 
 <h2>Running the Sense application</h2>
 
-<code>Sense</code> is a simple sensing demo application, it periodically
-samples the default sensor (via <code>DemoSensorC</code>) and displays the
-bottom bits of the readings on the LEDs. To compile the <code>Sense</code>
-application, go to the <code>apps/Sense</code> directory and depending on which
-hardware you have, type e.g. <code>make telosb install</code> or <code>make
-micaz install</code>.  If you get errors like the following
+To compile the <code>Sense</code> application, go to the
+<code>apps/Sense</code> directory and depending on which hardware you have,
+type e.g. <code>make telosb install</code>.  If you get errors like the
+following
 
 <pre>
 SenseAppC.nc:50: component DemoSensorC not found
@@ -278,7 +282,7 @@ SenseAppC.nc:55: no match
 </pre>
 
 your platform has not implemented the <code>DemoSensorC</code> component. For a
-quick solution you can copy the <code>DemoSensorC</code> from
+quick solution you can copy <code>DemoSensorC.nc</code> from
 <code>tinyos-2.x/tos/platforms/micaz</code> to your platform directory; then
 you will see constant "sensor" readings (a good starting point on how to create
 sensor components is probably <a href="../tep101.html">TEP 101</a> and <a
@@ -286,15 +290,137 @@ href="../tep114.html">TEP 114</a>).
 
 <p> Once you have installed the application the bottom bits of the sensor
 readings are displayed on the node's LEDs (0 = off, 1 = on). If your
-<code>DemoSensorC</code> represents a sensor, whose values change quickly (e.g.
-a light sensor when you move your hand over it) you should be seeing the LEDs
-toggle, otherwise <code>Sense</code> is not so impressive. Let's have a look at
-a more interisting application: <code>Oscilloscope</code>.
+<code>DemoSensorC</code> represents a sensor, whose readings change quickly
+(e.g. a light sensor when you move your hand over it) you should be seeing the
+LEDs toggle, otherwise <code>Sense</code> is not so impressive. Let's have a
+look at a more interesting application: <code>Oscilloscope</code>.
 
-<h1>The Oscilloscope application</h1>
+<a name="oscilloscope"><h1>The Oscilloscope application</h1></a>
+
+<code>Oscilloscope</code> is an application that let's you visualize sensor
+readings on the PC. Every node that has <code>Oscilloscope</code> installed
+periodically samples the default sensor (<a href="#demosensorc">via
+<code>DemoSensorC</code></a>) and broadcasts a message with 10 accumulated
+readings over the radio. A node running the <code>BaseStation</code>
+application will forward these messages to the PC using the serial
+communication. To run <code>Oscilloscope</code> you therefore need at least two
+nodes: one node attached to your PC running the <code>BaseStation</code>
+application (<code>BaseStation</code> can be found at
+<code>tinyos-2.x/apps/BaseStation</code> and was introduced in the <a
+href="lesson4.html">previous lesson</a>) and one or more nodes running the
+<code>Oscilloscope</code> application. 
+
+<p> Let's take a look at the <code><a
+href="../../../apps/Oscilloscope/OscilloscopeAppC.nc">OscilloscopeAppC.nc</a></code>
+configuration:
+
+<pre>
+configuration OscilloscopeAppC 
+{ 
+}
+implementation
+{
+  components OscilloscopeC, MainC, ActiveMessageC, LedsC,
+    new TimerMilliC(), new DemoSensorC() as Sensor,
+    new AMSenderC(AM_OSCILLOSCOPE), new AMReceiverC(AM_OSCILLOSCOPE);
+
+  OscilloscopeC.Boot -> MainC;
+  OscilloscopeC.RadioControl -> ActiveMessageC;
+  OscilloscopeC.AMSend -> AMSenderC;
+  OscilloscopeC.Receive -> AMReceiverC;
+  OscilloscopeC.Timer -> TimerMilliC;
+  OscilloscopeC.Read -> Sensor;
+  OscilloscopeC.Leds -> LedsC;
+}
+</pre>
+
+The actual implementation of the application is in <code><a
+href="../../../apps/Oscilloscope/OscilloscopeC.nc">OscilloscopeC.nc</a></code>.
+This is the signature of <code>OscilloscopeC.nc</code>:
+
+<pre>
+module OscilloscopeC
+{
+  uses {
+    interface Boot;
+    interface SplitControl as RadioControl;
+    interface AMSend;
+    interface Receive;
+    interface Timer<TMilli>;
+    interface Read<uint16_t>;
+    interface Leds;
+  }
+}
+</pre>
+
+<code>Oscilloscope</code> is a combination of different building blocks
+introduced in previous parts of the tutorial. Like <a
+href="#sense"><code>Sense</code></a> <code>Oscilloscope</code> uses
+<code>DemoSensorC</code> and a timer to periodically sample the default sensor
+of a platform. When it has gathered 10 sensor readings
+<code>OscilloscopeC</code> puts them into a message and broadcasts the message
+via the <code>AMSend</code> interface over the radio.
+<code>OscilloscopeC</code> uses the <code>Receive</code> interface for
+synchronization purposes (see below) and the <code>RadioControl</code>
+interface, which is a actually a <code>SplitControl</code> interface, to switch
+on the radio. If you want to know more about mote-mote radio communication read
+<a href="lesson3.html">lesson 3</a>.
+
+<h2>Running the Oscilloscope application</h2>
+
+To install the <code>Oscilloscope</code> application go to
+<code>tinyos-2.x/apps/Oscilloscope</code> and depending on which hardware you
+have, type e.g. <code>make telosb install,1</code>. Note the "<code>,1</code>"
+after the <code>install</code> option, which assigns ID 1 to the node.
+Assigning IDs to nodes is necessary to differentiate them later on in the GUI,
+so make sure you assign different IDs to all nodes on which
+<code>Oscilloscope</code> is installed (e.g. install <code>Oscilloscope</code>
+on a second node with <code>make telosb install,2</code> and so on). A node
+running <code>Oscilloscope</code> will togle its second LED for every message
+it has sent and it will toggle its third LED when it has received an
+<code>Oscilloscope</code> message from another node (incoming messages are used
+for sequence number synchronization to let nodes catch up when they are
+switched on later than the others; they are also used for changing the sample
+rate that defines how often sensor values are read). In case of a problem with
+the radio connection the first LED will toggle. As usual, on the
+<code>BaseStation</code> node you should see the second LED toggle for every
+message bridged from radio to serial.
+
+
+<h2>Running the Java GUI</h2>
+
+To visualize the sensor readings on your PC first go to
+<code>tinyos-2.x/apps/Oscilloscope/java</code> and type <code>make</code>. This
+compiles the necessary message classes and the <code>Oscilloscope</code> Java
+GUI. Now start a SerialForwarder and make sure it connects to the node on which
+you have installed the <code>BaseStation</code> application (how this is done
+is explained in the <a href="lesson4.html">previous lesson</a>). In case you
+have problems with the Java compilation or the serial connection work through
+the <a href="lesson4.html">previous lesson</a>. 
+
+<p>When you have at least one node running <code>Oscilloscope</code> on it you
+should see SerialForwarder increasing the number of packets it has read from
+the <code>BaseStation</code> (once every 2.5 seconds, at least). Now start the
+GUI by typing <code>./run</code> (in
+<code>tinyos-2.x/apps/Oscilloscope/java</code>). You should see a window
+similar to the one below:
 
 <p>
-<a name="#related_docs">
+<CENTER>
+  <IMG SRC="img/oscilloscope.jpg">
+</CENTER>
+</p>
+
+Each node is represented by a graph of different color (you can change the
+color by clicking on it in the mote table). The x-axis is the packet counter
+number and the y-axis is the sensor reading. To can change the sample rate,
+edit the content in the "sample rate" input box. When you press enter, a
+message is created and broadcast via the <code>BaseStation</code> node to all
+nodes in the network telling it the new sample rate. You can clear all received
+data on the graphical display by clicking on the "clear data" button.
+
+<p>
+<a name="related_docs">
 <h1>Related Documentation</h1>
 </a>
 </p><ul>
