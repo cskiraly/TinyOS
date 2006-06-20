@@ -1,4 +1,4 @@
-/// $Id: HplAtm128Timer.nc,v 1.1.2.3 2006-01-27 21:40:07 mturon Exp $
+/// $Id: HplAtm128Timer.nc,v 1.1.2.4 2006-06-20 17:23:38 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -24,7 +24,7 @@
 
 /**
  * Basic interface to the hardware timers on an ATmega128.  
- * 
+ * <p>
  * This interface is designed to be independent of whether the underlying 
  * hardware is an 8-bit or 16-bit wide counter.  As such, timer_size is 
  * specified via a generics parameter.  Because this is exposing a common 

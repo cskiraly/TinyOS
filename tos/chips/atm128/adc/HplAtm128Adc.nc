@@ -1,4 +1,4 @@
-/// $Id: HplAtm128Adc.nc,v 1.1.2.3 2006-01-27 23:13:22 idgay Exp $
+/// $Id: HplAtm128Adc.nc,v 1.1.2.4 2006-06-20 17:23:38 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -27,7 +27,7 @@
 /**
  * HPL interface to the Atmega128 A/D conversion subsystem. Please see the
  * Atmega128 manual for full details on the functioning of this subsystem.
- *
+ * <p>
  * A word of warning: the Atmega128 SLEEP instruction initiates an A/D
  * conversion when the ADC and ADC interrupt are enabled.
  *

@@ -1,4 +1,4 @@
-/// $Id: HplAtm128TimerCtrl8.nc,v 1.1.2.2 2006-01-27 17:56:06 idgay Exp $
+/// $Id: HplAtm128TimerCtrl8.nc,v 1.1.2.3 2006-06-20 17:23:38 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -23,7 +23,7 @@
  */
 
 /**
- * HPL Interface to Atmega128 16-bit timer control registers
+ * HPL Interface to Atmega128 8-bit timer control registers
  *
  * @author Martin Turon <mturon@xbow.com>
  */

@@ -1,4 +1,4 @@
-/// $Id: HplAtm128InterruptSig.nc,v 1.1.2.2 2006-01-27 21:55:55 mturon Exp $
+/// $Id: HplAtm128InterruptSig.nc,v 1.1.2.3 2006-06-20 17:23:38 idgay Exp $
 
 /*
  *  Copyright (c) 2004-2005 Crossbow Technology, Inc.
@@ -26,10 +26,12 @@
  */
 
 /**
- * Exposes just the interrupt vector routine for 
- * easy linking to generic components.
+ * Interface to an Atmega128 external interrupt pin that exposes just the
+ * interrupt vector routine for easy linking to generic components (see
+ * HplAtm128Interrupt for the full interface).
  *
  * @author Martin Turon <mturon@xbow.com>
+ * @see HplAtm128Interrupt
  */
 interface HplAtm128InterruptSig
 {
