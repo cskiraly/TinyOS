@@ -28,22 +28,19 @@
  *
  */
  
-/** 
-  * The basic address-free message sending interface in asnyc context. 
-  *
-  * This interface provides similar functionality as the Send interface
-  * but is provided by the MAC layer. 
-  *
-  * @author Philipp Huppertz
-  * @date   March 21 2006
-  * @see    Send
-  */ 
-
-
-
 #include <TinyError.h>
 #include <message.h>
-
+ 
+/** 
+  * This interface is similar to the Send interface.
+  *
+  * It provides the same basic functionality as the Send interface in async 
+  * context. It is provided by the MAC layer of byte radios. 
+  *
+  * @see    Send
+  *
+  * @author Philipp Huppertz
+  */ 
 interface MacSend {
 
     /** 
@@ -68,11 +65,7 @@ interface MacSend {
   
   /**
   * Cancel a requested transmission. Returns SUCCESS if the 
-  * transmission was cancelled properly (not sent in its
-  * entirety). Note that the component may not know
-  * if the send was successfully cancelled, if the radio is
-  * handling much of the logic; in this case, a component
-  * should be conservative and return an appropriate error code.
+  * transmission was cancelled properly (not sent at all)
   *
   * @param   msg    the packet whose transmission should be cancelled
   * @return         SUCCESS if the packet was successfully cancelled, FAIL

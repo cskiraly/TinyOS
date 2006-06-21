@@ -27,19 +27,21 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * This interface is similar to the Receive interface.
- *   
- * The interface provides two events in async context which indicate that
- * a packet is detected or was received. Is provided by the MAC layer.
- *
- * @author Philipp Huppertz
- */ 
-
 
 #include <TinyError.h>
 #include <message.h>
 
+/**
+ * This interface is similar to the Receive interface.
+ *   
+ * The interface provides one event in async context which indicates that
+ * a packet was received. It Is provided by the MAC layer ofi
+ * a byte radio.
+ *
+ * @see Receive
+ *
+ * @author Philipp Huppertz
+ */ 
 interface MacReceive {
 
    /**
@@ -55,7 +57,7 @@ interface MacReceive {
    * the component's data. This would cause the mote to possibly
    * instead send a packet it most recently received.
    *
-   * @param  msg      the receied packet
+   * @param  msg      the received packet
    * @return          a packet buffer for the stack to use for the next
    *                  received packet.
    */

@@ -29,8 +29,9 @@
  */
  
 /**
- * PhyUart Control Interface
- * Commands to control the strucutre of the transmitted (physical) packet.
+ * This interface provides commands to control the structure of 
+ * transmitted (physical) packets and provides commands and events
+ * to control the physical layer of byte radios.
  *
  * @author Philipp Huppertz (huppertz@tkn.tu-berlin.de)
  */ 
@@ -42,19 +43,19 @@ interface UartPhyControl {
   * @param numPreambleBytes the numbeof preamble bytes.
   *
   * @return SUCCESS if it could be set (no current receiving/transmitting)
-            FALSE otherwise
+            FALSE otherwise.
   */
   command error_t setNumPreambles(uint16_t numPreambleBytes);
     
-  /*
+  /**
   * Sets the timeout after the byte-stream is considered dead if no more
   * bytes occur on the sending or receiving side. This means isBusy()
   * returns FALSE.
   *
-  * @param byteTimeout
+  * @param byteTimeout timeout in ms.
   *
   * @return SUCCESS if it could be set (no current receiving/transmitting)
-  *         FALSE otherwise
+  *         FALSE otherwise.
   */
   command error_t setByteTimeout(uint8_t byteTimeout);
   

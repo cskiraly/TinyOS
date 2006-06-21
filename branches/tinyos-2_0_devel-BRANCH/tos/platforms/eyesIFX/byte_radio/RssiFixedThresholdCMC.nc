@@ -48,7 +48,7 @@ implementation
     components RssiFixedThresholdCMP,
         new RssiSensorVccC() as Rssi,
         new BatteryLevelSensorC() as Voltage,
-        PlatformLedsC,
+        // PlatformLedsC,
         new TimerMilliC() as Timer,
         MainC;
 
@@ -64,6 +64,6 @@ implementation
     ChannelMonitorControl = RssiFixedThresholdCMP;
     ChannelMonitorData = RssiFixedThresholdCMP;
     BatteryLevel = RssiFixedThresholdCMP;
-    RssiFixedThresholdCMP.Led3 -> PlatformLedsC.Led3;
+    // RssiFixedThresholdCMP.Led3 -> PlatformLedsC.Led3;
     RssiFixedThresholdCMP.Timer -> Timer;    
 }

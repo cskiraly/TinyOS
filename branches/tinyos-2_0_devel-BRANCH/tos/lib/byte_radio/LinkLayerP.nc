@@ -26,31 +26,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Description --------------------------------------------------------
- * Implementation of Link Layer for PreambleSampleMAC
- *
- * This Link layer assumes
- *  - link speed on air is 19200 bit/s
- *  - a marshaller that handles packet reception, including timeouts
- *  - the sleep time to be around 100 ms
- *  - the wake time to be around 6ms
- *  - a MAC that handles busy channels and sleeping of the radio
- *  
- * This link layer provides:
- *  - adaptation of preamble length based on packet type (unicast with
- *    a preamble of full length, broadcast with reduced length)
- *  - strength field in dB (rather than some
- *    hardware specific measure), assuming a gradient of 14mv/dB
- *  - no retransmissions
- *  
- * - Author -------------------------------------------------------------
- * @author: Andreas Koepke <koepke@tkn.tu-berlin.de>
- * ========================================================================
  */
 
 #include "radiopacketfunctions.h"
 #include "message.h"
 
+/**
+ * This is the implementation of a really simple link layer. 
+ *
+ * @author Andreas Koepke <koepke@tkn.tu-berlin.de>
+ */
 module LinkLayerP {
     provides {
       interface Init;

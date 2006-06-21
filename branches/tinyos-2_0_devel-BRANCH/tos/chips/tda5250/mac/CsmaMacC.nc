@@ -26,16 +26,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Description ---------------------------------------------------------
- * CSMA MAC based on preamble sampling 
- * - Author --------------------------------------------------------------
+*/
+
+/**
+ * Confuguration for the CsmaMac.
+ *
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
  * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
- * ========================================================================
  */
-
-
 configuration CsmaMacC {
   provides {
     interface SplitControl;

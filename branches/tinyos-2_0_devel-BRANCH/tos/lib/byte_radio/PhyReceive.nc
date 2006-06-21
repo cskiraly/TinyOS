@@ -27,18 +27,21 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+#include <TinyError.h>
+#include <message.h>
+
 /**
  * This interface is similar to the Receive interface.
  *   
  * The interface provides two events in async context which indicate that
- * a packet is detected or was received. It is provided by the Phy layer.
+ * a packet is detected or was received. It is provided by the Phy layer
+ * of byte radios.
+ *
+ * @see Receive
  *
  * @author Philipp Huppertz
  */ 
-
-
-#include <TinyError.h>
-#include <message.h>
 
 interface PhyReceive {
    /**
@@ -55,7 +58,7 @@ interface PhyReceive {
    * the component's data. This would cause the mote to possibly
    * instead send a packet it most recently received.
    *
-   * @param  msg      the receied packet
+   * @param  msg      the received packet
    * @param  payload  a pointer to the packet's payload
    * @param  len      the length of the data region pointed to by payload
    * @param  error    FAIL if the packet was corrupted (e.g. wrong crc)
