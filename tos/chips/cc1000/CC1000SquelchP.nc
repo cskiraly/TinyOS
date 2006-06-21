@@ -1,4 +1,4 @@
-/* $Id: CC1000SquelchP.nc,v 1.1.2.1 2005-08-07 22:42:34 scipio Exp $
+/* $Id: CC1000SquelchP.nc,v 1.1.2.2 2006-06-21 16:58:04 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -26,6 +26,8 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+#include "CC1000Const.h"
+
 /**
  * Clear threshold estimation based on RSSI measurements.
  *
@@ -35,8 +37,6 @@
  * @author David Gay
  */
   
-#include "CC1000Const.h"
-
 module CC1000SquelchP
 {
   provides {

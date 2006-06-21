@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.15 2006-06-13 17:25:31 idgay Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.16 2006-06-21 16:58:03 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -28,6 +28,11 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+#include "message.h"
+#include "crc.h"
+#include "CC1000Const.h"
+#include "Timer.h"
+
 /**
  * A rewrite of the low-power-listening CC1000 radio stack.
  * This file contains the send and receive logic for the CC1000 radio.
@@ -35,7 +40,7 @@
  * via the ready-to-send event (rts) and starts transmission on reception
  * of the clear-to-send command (cts). It listens for packets if the
  * listen() command is called, and stops listening when off() is called.
- *
+ * <p>
  * This code has some degree of platform-independence, via the
  * CC1000Control, RSSIADC and SpiByteFifo interfaces which must be provided
  * by the platform. However, these interfaces may still reflect some
@@ -47,11 +52,6 @@
  * @author David Gay
  */
   
-#include "message.h"
-#include "crc.h"
-#include "CC1000Const.h"
-#include "Timer.h"
-
 module CC1000SendReceiveP {
   provides {
     interface Init;
@@ -111,10 +111,10 @@ implementation
 
   uint8_t radioState;
   struct {
-    uint8_t ack : 1;
-    uint8_t txBusy : 1;
-    uint8_t invert : 1;
-    uint8_t rxBitOffset : 3;
+    uint8_t ack : 1; 		/* acks enabled? */
+    uint8_t txBusy : 1;		/* send pending? */
+    uint8_t invert : 1;		/* data inverted? (see cc1000 datasheet) */
+    uint8_t rxBitOffset : 3;	/* bit-offset of received bytes */
   } f; // f for flags
   uint16_t count;
   uint16_t runningCrc;
@@ -131,16 +131,16 @@ implementation
 
   /* Packet structure accessor functions. Note that everything is
    * relative to the data field. */
-  cc1000_header_t* getHeader(message_t* amsg) {
-    return (cc1000_header_t*)(amsg->data - sizeof(cc1000_header_t));
+  cc1000_header_t *getHeader(message_t *amsg) {
+    return (cc1000_header_t *)(amsg->data - sizeof(cc1000_header_t));
   }
 
-  cc1000_footer_t* getFooter(message_t* amsg) {
-    return (cc1000_footer_t*)(amsg->footer);
+  cc1000_footer_t *getFooter(message_t *amsg) {
+    return (cc1000_footer_t *)(amsg->footer);
   }
   
-  cc1000_metadata_t* getMetadata(message_t* amsg) {
-    return (cc1000_metadata_t*)((uint8_t*)amsg->footer + sizeof(cc1000_footer_t));
+  cc1000_metadata_t *getMetadata(message_t *amsg) {
+    return (cc1000_metadata_t *)((uint8_t *)amsg->footer + sizeof(cc1000_footer_t));
   }
   
   /* State transition functions */
@@ -166,7 +166,7 @@ implementation
   }
 
   void enterRxState() {
-    cc1000_header_t* header = getHeader(rxBufPtr);
+    cc1000_header_t *header = getHeader(rxBufPtr);
     radioState = RX_STATE;
     header->length = sizeof rxBufPtr->data;
     count = sizeof(message_header_t) - sizeof(cc1000_header_t);
@@ -226,6 +226,7 @@ implementation
   }
 
   command error_t Init.init() {
+    f.ack = TRUE; /* We always ack, for now at least */
     call HplCC1000Spi.initSlave();
     return SUCCESS;
   }
@@ -254,12 +255,11 @@ implementation
 	if (f.txBusy || radioState == OFF_STATE)
 	  return FAIL;
 	else {
-	  cc1000_header_t* header = getHeader(msg);
-	  cc1000_metadata_t* md = getMetadata(msg);
+	  cc1000_header_t *header = getHeader(msg);
+
 	  f.txBusy = TRUE;
 	  header->length = len;
 	  txBufPtr = msg;
-	  call ByteRadio.setAck(md->ack);
 	}
       }
     signal ByteRadio.rts();
@@ -302,7 +302,7 @@ implementation
   }
 
   void txData() {
-    cc1000_header_t* txHeader = getHeader(txBufPtr);
+    cc1000_header_t *txHeader = getHeader(txBufPtr);
     sendNextByte();
     
     if (count < txHeader->length + sizeof(message_header_t))
@@ -361,16 +361,14 @@ implementation
 
 	if (rxShiftBuf == ACK_WORD)
 	  {
-	    cc1000_metadata_t* txMetadata = getMetadata(txBufPtr);
-	    txMetadata->ack = 1;
+	    getMetadata(txBufPtr)->ack = 1;
 	    enterTxDoneState();
 	    return;
 	  }
       }
     if (count >= MAX_ACK_WAIT)
       {
-	cc1000_metadata_t* txMetadata = getMetadata(txBufPtr);
-	txMetadata->ack = 0;
+	getMetadata(txBufPtr)->ack = 0;
 	enterTxDoneState();
       }
   }
@@ -475,7 +473,7 @@ implementation
   }
   
   async event void RssiRx.readDone(error_t result, uint16_t data) {
-    cc1000_metadata_t* rxMetadata = getMetadata(rxBufPtr);
+    cc1000_metadata_t *rxMetadata = getMetadata(rxBufPtr);
 
     if (result != SUCCESS)
       rxMetadata->strength = 0;
@@ -485,7 +483,7 @@ implementation
 
   void rxData(uint8_t in) {
     uint8_t nextByte;
-    cc1000_header_t* rxHeader = getHeader(rxBufPtr);
+    cc1000_header_t *rxHeader = getHeader(rxBufPtr);
 
     // rxLength is the offset into a message_t at which the packet
     // data ends: it is NOT equal to the number of bytes received,
@@ -518,8 +516,8 @@ implementation
   }
 
   void packetReceived() {
-    cc1000_footer_t* rxFooter = getFooter(rxBufPtr);
-    cc1000_header_t* rxHeader = getHeader(rxBufPtr);
+    cc1000_footer_t *rxFooter = getFooter(rxBufPtr);
+    cc1000_header_t *rxHeader = getHeader(rxBufPtr);
     // Packet filtering based on bad CRC's is done at higher layers.
     // So sayeth the TOS weenies.
     rxFooter->crc = (rxFooter->crc == runningCrc);
@@ -550,7 +548,7 @@ implementation
 
   task void signalPacketReceived() {
     message_t *pBuf;
-    cc1000_header_t* pHeader;
+    cc1000_header_t *pHeader;
     atomic
       {
 	if (radioState != RECEIVED_STATE)
@@ -601,10 +599,6 @@ implementation
   /* Interaction with rest of stack */
   /*--------------------------------*/
 
-  async command void ByteRadio.setAck(bool on) {
-    atomic f.ack = on;
-  }
-
   async command void ByteRadio.setPreambleLength(uint16_t bytes) {
     atomic preambleLength = bytes;
   }
@@ -623,16 +617,16 @@ implementation
 
   /* Abstract packet layout */
 
-  command void Packet.clear(message_t* msg) {
+  command void Packet.clear(message_t *msg) {
     memset(msg, 0, sizeof(message_t));
   }
 
-  command uint8_t Packet.payloadLength(message_t* msg) {
-    cc1000_header_t* header = getHeader(msg);
+  command uint8_t Packet.payloadLength(message_t *msg) {
+    cc1000_header_t *header = getHeader(msg);
     return header->length;
   }
  
-  command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
+  command void Packet.setPayloadLength(message_t *msg, uint8_t len) {
     getHeader(msg)->length  = len;
   }
   
@@ -640,31 +634,28 @@ implementation
     return TOSH_DATA_LENGTH;
   }
 
-  command void* Packet.getPayload(message_t* msg, uint8_t* len) {
+  command void* Packet.getPayload(message_t *msg, uint8_t *len) {
     if (len != NULL) {
-      cc1000_header_t* header = getHeader(msg);
+      cc1000_header_t *header = getHeader(msg);
+
       *len = header->length;
     }
     return (void*)msg->data;
   }
 
-  async command error_t PacketAcknowledgements.requestAck(message_t* msg) {
-    cc1000_metadata_t* md = getMetadata(msg);
-    md->ack = 1;
-    return SUCCESS;
+  async command error_t PacketAcknowledgements.requestAck(message_t *msg) {
+    return SUCCESS;		/* We always ack. */
   }
 
-  async command error_t PacketAcknowledgements.noAck(message_t* msg) {
-    cc1000_metadata_t* md = getMetadata(msg);
-    md->ack = 1;
-    return SUCCESS;
+  async command error_t PacketAcknowledgements.noAck(message_t *msg) {
+    return FAIL;		/* We always ack */
   }
 
-  command void* Receive.getPayload(message_t* m, uint8_t* len) {
+  command void* Receive.getPayload(message_t *m, uint8_t *len) {
     return call Packet.getPayload(m, len);
   }
 
-  command uint8_t Receive.payloadLength(message_t* m) {
+  command uint8_t Receive.payloadLength(message_t *m) {
     return call Packet.payloadLength(m);
   }
 
@@ -672,16 +663,15 @@ implementation
     return call Packet.maxPayloadLength();
   }
 
-  command void* Send.getPayload(message_t* m) {
+  command void* Send.getPayload(message_t *m) {
     return call Packet.getPayload(m, NULL);
   }
 
-  async command bool PacketAcknowledgements.wasAcked(message_t* msg) {
-    cc1000_metadata_t* md = getMetadata(msg);
-    return md->ack;
+  async command bool PacketAcknowledgements.wasAcked(message_t *msg) {
+    return getMetadata(msg)->ack;
   }
   // Default events for radio send/receive coordinators do nothing.
   // Be very careful using these, or you'll break the stack.
-  default async event void RadioTimeStamping.transmittedSFD(uint16_t time, message_t* msgBuff) { }
+  default async event void RadioTimeStamping.transmittedSFD(uint16_t time, message_t *msgBuff) { }
   default async event void RadioTimeStamping.receivedSFD(uint16_t time) { }
 }

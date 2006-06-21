@@ -1,4 +1,4 @@
-// $Id: CC1000Const.h,v 1.1.2.6 2006-06-20 17:23:38 idgay Exp $
+// $Id: CC1000Const.h,v 1.1.2.7 2006-06-21 16:58:03 idgay Exp $
 
 /* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */ 
 /*									tab:4
@@ -39,7 +39,7 @@
  * 
  */
 
-/**
+/*
  * Constants for CC1000 radio
  *
  * @author Phil Buonadonna
