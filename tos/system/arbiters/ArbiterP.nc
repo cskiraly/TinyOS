@@ -73,7 +73,6 @@
 generic module ArbiterP() {
   provides {
     interface Resource[uint8_t id];
-    interface ImmediateResource[uint8_t id];
     interface ArbiterInfo;
   }
   uses {
@@ -87,8 +86,8 @@ implementation {
   enum {NO_RES = 0xFF};
 
   uint8_t state = RES_IDLE;
-  uint8_t resId = NO_RES;
-  uint8_t reqResId;
+  norace uint8_t resId = NO_RES;
+  norace uint8_t reqResId;
   
   task void grantedTask();
   
@@ -121,17 +120,6 @@ implementation {
       return call Queue.enqueue(id);
     }
   }
-
-  async command error_t ImmediateResource.request[uint8_t id]() {
-    atomic {
-      if(state == RES_IDLE) {
-        state = RES_BUSY;
-        resId = id;
-        return SUCCESS;
-      }
-      return FAIL;
-    }
-  }    
    
   /**
     Release the use of the shared resource
@@ -145,7 +133,7 @@ implementation {
     users can put in a request for immediate access to 
     the resource.
   */
-  command error_t Resource.release[uint8_t id]() {
+  async command error_t Resource.release[uint8_t id]() {
     bool released = FALSE;
     atomic {
       if(state == RES_BUSY && resId == id) {
@@ -166,10 +154,6 @@ implementation {
       return SUCCESS;
     }
     return FAIL;
-  }
-
-  async command error_t ImmediateResource.release[uint8_t id]() {
-      return call Resource.release[id]();
   }
     
   /**
@@ -200,10 +184,6 @@ implementation {
       if(resId == id) return TRUE;
       else return FALSE;
     }
-  }
-  
-  async command uint8_t ImmediateResource.isOwner[uint8_t id]() {
-    return call Resource.isOwner[id]();
   }
   
   task void grantedTask() {

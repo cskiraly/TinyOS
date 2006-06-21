@@ -48,13 +48,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-/*
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-05-22 22:39:13 $ 
- * ======================================================================== 
- */
  
 /**
  * Please refer to TEP 108 for more information about this component and its
@@ -77,10 +70,10 @@
  * @author Philip Levis
  */
  
-generic module AsyncArbiterP(uint8_t controllerId) {
+generic module ControlledArbiterP(uint8_t controllerId) {
   provides {
-    interface AsyncResource[uint8_t id];
-    interface ImmediateResource[uint8_t id];
+    interface Resource[uint8_t id];
+    interface ResourceController;
     interface ArbiterInfo;
   }
   uses {
@@ -92,12 +85,14 @@ implementation {
 
   enum {RES_IDLE, RES_GRANTING, RES_BUSY};
   enum {NO_RES = 0xFF};
+  enum {CONTROLLER_ID = controllerId};
 
   uint8_t state = RES_IDLE;
-  uint8_t resId = NO_RES;
-  uint8_t reqResId;
+  norace uint8_t resId = NO_RES;
+  norace uint8_t reqResId;
   
   task void grantedTask();
+  task void requestedTask();
   
   /**
     Request the use of the shared resource
@@ -117,7 +112,7 @@ implementation {
     is waiting on a pending granted() event, an EBUSY value will 
     be returned to the caller.
   */
-  async command error_t AsyncResource.request[uint8_t id]() {
+  async command error_t Resource.request[uint8_t id]() {
     atomic {
       if(state == RES_IDLE) {
         state = RES_GRANTING;
@@ -125,20 +120,26 @@ implementation {
         post grantedTask();
         return SUCCESS;
       }
+      if(resId == CONTROLLER_ID)
+        post requestedTask();
       return call Queue.enqueue(id);
     }
   }
 
-  async command error_t ImmediateResource.immediateRequest() {
+  async command error_t ResourceController.request() {
+    return call Resource.request[CONTROLLER_ID]();
+  }
+
+  async command error_t ResourceController.immediateRequest() {
     atomic {
       if(state == RES_IDLE) {
-        state = RES_BUSY;
-        resId = CONTROLLER_ID;
+        atomic state = RES_BUSY;
+        atomic resId = CONTROLLER_ID;
         return SUCCESS;
       }
       return FAIL;
     }
-  }  
+  }
    
   /**
     Release the use of the shared resource
@@ -152,10 +153,10 @@ implementation {
     users can put in a request for immediate access to 
     the resource.
   */
-  async command void AsyncResource.release[uint8_t id]() {
+  async command error_t Resource.release[uint8_t id]() {
     bool released = FALSE;
     atomic {
-      if (state == RES_BUSY && resId == id) {
+      if(state == RES_BUSY && resId == id) {
         reqResId = call Queue.dequeue();
         if(reqResId != NO_RES) {
           state = RES_GRANTING;
@@ -164,17 +165,21 @@ implementation {
         else {
           resId = NO_RES;
           state = RES_IDLE;
-          post idleTask();
         }
         released = TRUE;
       }
     }
-    if(released == TRUE)
+    if(resId == NO_RES)
+      signal ResourceController.idle();
+    if(released == TRUE) {
       call ResourceConfigure.unconfigure[id]();
+      return SUCCESS;
+    }
+    return FAIL;
   }
-  
-  async command void AsyncResourceController.release() {
-    call AsyncResource.release[CONTROLLER_ID]();
+
+  async command error_t ResourceController.release() {
+    return call Resource.release[CONTROLLER_ID]();
   }
     
   /**
@@ -200,46 +205,45 @@ implementation {
   /**
    * Returns my user id.
    */      
-  async command uint8_t AsyncResource.isOwner[uint8_t id]() {
+  async command uint8_t Resource.isOwner[uint8_t id]() {
     atomic {
       if(resId == id) return TRUE;
       else return FALSE;
     }
   }
-  
-  async command uint8_t AsyncResourceController.isOwner() {
-    return call AsyncResource.isOwner[CONTROLLER_ID]();
+
+  async command uint8_t ResourceController.isOwner() {
+    return call Resource.isOwner[CONTROLLER_ID]();
   }
   
+  //Task for pulling the Resource.granted() signal
+    //into synchronous context  
   task void grantedTask() {
-    uint8_t tmpId;
-    atomic {
-      tmpId = resId = reqResId;
-      state = RES_BUSY;
-    }
-    call ResourceConfigure.configure[tmpId]();
-    signal AsyncResource.granted[tmpId]();
+    uint8_t tempId;
+    atomic resId = tempId = reqResId;
+    atomic state = RES_BUSY;
+    call ResourceConfigure.configure[tempId]();
+    signal Resource.granted[tempId]();
   }
 
+  //Task for pulling the ResourceController.requested() signal
+    //into synchronous context  
   task void requestedTask() {
-    signal AsyncResourceController.requested();
-  }
-
-  task void idleTask() {
-    signal AsyncResourceController.idle();
+    signal ResourceController.requested();
   }
   
-  //Default event/command handlers
-      
-  default event void AsyncResource.granted[uint8_t id]() {
-    signal AsyncResourceController.granted();
+  //Default event/command handlers for all of the other
+    //potential users/providers of the parameterized interfaces 
+    //that have not been connected to.  
+  default event void Resource.granted[uint8_t id]() {
+    signal ResourceController.granted();
   }
   
-  default event void AsyncResourceController.granted() {
+  default event void ResourceController.granted() {
   }
-  default event void AsyncResourceController.requested() {
+  default event void ResourceController.requested() {
   }
-  default event void AsyncResourceController.idle() {
+  default async event void ResourceController.idle() {
   }
   default async command void ResourceConfigure.configure[uint8_t id]() {
   }

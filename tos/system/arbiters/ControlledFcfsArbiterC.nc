@@ -52,7 +52,7 @@
 /*
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2006-05-15 18:15:34 $ 
+ * $Date: 2006-06-21 15:59:00 $ 
  * ======================================================================== 
  */
  
@@ -74,26 +74,27 @@
  * @param <b>resourceName</b> -- The name of the Resource being shared
  * 
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
- * @author Philip Levis
  */
  
-generic configuration AsyncRoundRobinArbiterC(char resourceName[]) {
+generic configuration ControlledFcfsArbiterC(char resourceName[]) {
   provides {
-    interface AsyncResource as Resource[uint8_t id];
-    interface AsyncResourceController as ResourceController;
+    interface Resource[uint8_t id];
+    interface ResourceController;
     interface ArbiterInfo;
   }
+  uses interface ResourceConfigure[uint8_t id];
 }
 implementation {
   components MainC;
-  components new AsyncRoundRobinQueueC(uniqueCount(resourceName)) as Queue;
-  components new AsyncArbiterP(uniqueCount(resourceName)) as Arbiter;
+  components new AsyncFcfsQueueC(uniqueCount(resourceName)) as Queue;
+  components new ControlledArbiterP(uniqueCount(resourceName)) as Arbiter;
 
   MainC.SoftwareInit -> Queue;
 
   Resource = Arbiter;
   ResourceController = Arbiter;
   ArbiterInfo = Arbiter;
+  ResourceConfigure = Arbiter;
 
   Arbiter.Queue -> Queue;
 }

@@ -73,9 +73,9 @@
 generic configuration FcfsArbiterC(char resourceName[]) {
   provides {
     interface Resource[uint8_t id];
-    interface ImmediateResource[uint8_t id];
     interface ArbiterInfo;
   }
+  uses interface ResourceConfigure[uint8_t id];
 }
 implementation {
   components MainC;
@@ -85,8 +85,8 @@ implementation {
   MainC.SoftwareInit -> Queue;
 
   Resource = Arbiter;
-  ImmediateResource = Arbiter;
   ArbiterInfo = Arbiter;
+  ResourceConfigure = Arbiter;
 
   Arbiter.Queue -> Queue;
 }

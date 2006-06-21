@@ -55,8 +55,8 @@
  * <br>
  *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
- * @version  $Revision: 1.1.4.2 $
- * @date $Date: 2006-05-15 18:35:24 $
+ * @version  $Revision: 1.1.4.3 $
+ * @date $Date: 2006-06-21 16:02:04 $
  */
  
 #define TEST_ARBITER_RESOURCE   "Test.Arbiter.Resource"
@@ -67,7 +67,7 @@ implementation {
   new TimerMilliC() as Timer0,
   new TimerMilliC() as Timer1,
   new TimerMilliC() as Timer2,
-  new RoundRobinArbiterC(TEST_ARBITER_RESOURCE) as Arbiter;
+  new ControlledRoundRobinArbiterC(TEST_ARBITER_RESOURCE) as Arbiter;
 
      enum {
        RESOURCE0_ID = unique(TEST_ARBITER_RESOURCE),

@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2.6.2 $
- * $Date: 2006-06-07 10:47:17 $ 
+ * $Revision: 1.1.2.2.6.3 $
+ * $Date: 2006-06-21 15:58:09 $ 
  * ======================================================================== 
  */
  
@@ -64,16 +64,11 @@ generic module AsyncDeferredPowerManagerP(uint32_t delay) {
 }
 implementation {
 
-  norace struct {
-   uint8_t stopping :1;
-  } f; //for flags
-
   task void timerTask() { 
     call TimerMilli.startOneShot(delay); 
   }
 
   command error_t Init.init() {
-    f.stopping = FALSE;
     call ResourceController.request();
     return SUCCESS;
   }
@@ -83,24 +78,15 @@ implementation {
     call ResourceController.release();
   }
 
-  async event void ResourceController.immediateRequested() {
-    if(f.stopping == FALSE) {
-      call AsyncStdControl.start();
-      call ResourceController.immediateRelease();
-    }
-  }  
-
   async event void ResourceController.idle() {
     if(!(call ArbiterInfo.inUse()))
       post timerTask();
   }
 
   event void TimerMilli.fired() {
-    if(call ResourceController.request() == SUCCESS) {
-      f.stopping = TRUE;
+    if(call ResourceController.immediateRequest() == SUCCESS) {
       call PowerDownCleanup.cleanup();
       call AsyncStdControl.stop();
-      f.stopping = FALSE;
     }    
   }
 
