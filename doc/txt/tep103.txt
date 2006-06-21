@@ -10,8 +10,8 @@ Permanent Data Storage (Flash)
 :Author: David Gay, Jonathan Hui
 
 :Draft-Created: 27-Sep-2004
-:Draft-Version: $Revision: 1.1.2.11 $
-:Draft-Modified: $Date: 2006-06-14 21:32:42 $
+:Draft-Version: $Revision: 1.1.2.12 $
+:Draft-Modified: $Date: 2006-06-21 17:44:10 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 
@@ -25,9 +25,9 @@ Permanent Data Storage (Flash)
 Abstract
 ====================================================================
 
-This memo documents a set of hardware-independent, non-volatile storage
-interfaces for TinyOS 2.x, and some principles for the HPL and HAL layers
-for various flash chips.
+This memo documents a set of hardware-independent interfaces to non-volatile
+storage for TinyOS 2.x. It describes some design principles for the HPL and
+HAL layers of various flash chips.
 
 1. Introduction
 ====================================================================
@@ -35,10 +35,10 @@ for various flash chips.
 Flash chips are a form of EEPROM (electrically-eraseable, programmable
 read-only memory), distinguished by a fast erase capability. However,
 erases can only be done in large units (from 256B to 128kB depending on the
-flash chip). Erases are the only way to switch bits from 0 to 1, the
-programming operation can only switch 1's to 0's. Additionally, some
-chips requires that programming only happen once between each erase,
-or that it be performed in relatively large units (e.g., 256B). 
+flash chip). Erases are the only way to switch bits from 0 to 1, and
+programming operations can only switch 1's to 0's. Additionally, some
+chips require that programming only happen once between each erase,
+or that it be in relatively large units (e.g., 256B). 
 
 In the table below, we summarise these differences by categorising
 flash chips by their underlying technology (NOR vs NAND). We also
@@ -72,7 +72,7 @@ flash, values are from a Samsung datasheet). Energy/byte for reads appears
 to depend mostly on how long the read takes (the power consumptions are
 comparable), i.e., on the efficiency of the bus + processor.
 
-Early motes used with TinyOS all used a flash chip from the AT45DB
+Early TinyOS platforms all used a flash chip from the AT45DB
 family. In TinyOS 1.x, this chip could be accessed through three
 different components:
 
@@ -81,9 +81,9 @@ different components:
 - Using a high-level memory-like interface (``ByteEEPROMC``) with
   read, write and logging operations.
 - Using a simple file system (``Matchbox``) with sequential-only
-  files.
+  files [1_].
 
-Some more recent motes use different flash chips: the ST M25P family (Telos
+Some more recent platforms use different flash chips: the ST M25P family (Telos
 rev. B, eyes) and the Intel Strataflash (Intel Mote2). None of the
 three components listed above are supported on these chips:
 
@@ -116,38 +116,38 @@ flexibility offered by a filing system (e.g., arbitrary numbers of
 files) is overkill, and may come at the expense of implementation
 and runtime complexity.
 
-Instead, in TinyOS 2.x, we divide flash chips into separate volumes (with
-sizes fixed at compile-time). Each volume is dedicated to a high-level
-storage services useful for sensor network applications. We have so far
-identified three such services: large objects written in a single session,
+Instead, TinyOS 2.x, divides flash chips into separate volumes (with
+sizes fixed at compile-time). Each volume provides a single storage
+abstraction (the abstraction defines the format). So far there are three
+such abstractions: large objects written in a single session,
 small objects with arbitrary reads and writes, and logs. This approach
 has two advantages:
 
-- Each service is relatively easy to implement on a new flash chip, and
+- Each abstraction is relatively easy to implement on a new flash chip, and
   has relatively little overhead.
 - The problem of dealing with the limited number of erase cycles/block
   is simplified: it is unlikely that user applications will need to
   rewrite the same small object 100'000 times, or cycle 100'000 times
-  through their log. Thus the services can mostly ignore the need for
+  through their log. Thus the abstractions can mostly ignore the need for
   "wear levelling" (ensuring that each block of the flash is erased
   the same number of time, to maximise flash chip lifetime).
 
-New services (including a filing system...) can easily be added to this
-framework.
+New abstractions (including a filing system) can easily be added to this
+framework, or can be built on top of these abstractions.
 
 The rest of this TEP covers some principles for the organisation of
 flash chips (Section 2), then describes the flash volumes and
-storage services in detail (Section 3).
+storage abstractions in detail (Section 3).
 
 
 2. HPL/HAL/HIL Architecture
 ====================================================================
 
-The flash chip architecture aligns with the three-layer Hardware
+The flash chip architecture dollows the three-layer Hardware
 Abstraction Architecture (HAA), with each chip providing a presentation
 layer (HPL, Section 2.1), adaptation layer (HAL, Section 2.2) and
-platform-independent interface layer (the storage services described in
-Section 3). The implementation of these layers SHOULD be found in the
+platform-independent interface layer (the storage abstractions described in
+Section 3) [2_]. The implementation of these layers SHOULD be found in the
 ``tos/chips/CHIPNAME`` directory. If a flash chip is part of a larger
 family with a similar interface, the HAA SHOULD support all family members
 by relying, e.g., on platform-provided configuration information.
@@ -163,8 +163,9 @@ The flash HPL has a chip-dependent, system-independent interface. The
 implementation of this HPL is system-dependent. The flash HPL SHOULD be
 stateless. 
 
-The flash chip's HPL SHOULD connect to platform-specific components
-providing access to the flash chip on a particular mote; these components
+To remain platform independent, a flash chip's HPL SHOULD connect to
+platform-specific components
+providing access to the flash chip; these components
 SHOULD be placed in the ``tos/platforms/PLATFORM/chips/CHIPNAME``
 directory. If the flash chip implementation supports a family of 
 flash chips, this directory MAY also contain a file describing the
@@ -179,14 +180,14 @@ HAL. Flash HAL's SHOULD expose a ``Resource`` interface and automatically
 power-manage the underlying flash chip. Finally, the flash HAL MUST
 provide a way to access the volume information specified by the
 programmer (see Section 3). This allows users to build new flash
-services that interact cleanly with the rest of the flash system.
+abstractions that interact cleanly with the rest of the flash system.
 
 
-3. Non-Volatile Storage Services in TinyOS 2.x 
+3. Non-Volatile Storage Abstracitons in TinyOS 2.x 
 ===================================================================
 
 The HIL implementations are system-independent, but chip (family)
-dependent. They implement the three storage services and
+dependent. They implement the three storage abstractions and
 volume structure discussed in the introduction.
 
 3.1. Volumes
@@ -221,7 +222,7 @@ The compile-time tool MUST prepend 'VOLUME\_' to each volume name in
 the XML file and '#define' each resulting name to map to a unique
 integer. 
 
-The storage services are accessed by instantiating generic
+The storage abstractions are accessed by instantiating generic
 components that take the volume macro as argument: ::
 
   components new BlockStorageC(VOLUME_DELUGE0);
@@ -229,20 +230,20 @@ components that take the volume macro as argument: ::
 If the named volume is not in the specification, nesC will give a
 compile-time error since the symbol will be undefined.
 
-A volume MUST NOT be used with more than one storage service instance.
+A volume MUST NOT be used with more than one storage abstraction instance.
 
 
 3.2 Large objects
 ------------------------------------------------------------------
 
 The motivating example for large objects is the transmission or long-term
-storage of large objects. For instance, programs in a network-reprogramming
+storage of large pieces of data. For instance, programs in a network-reprogramming
 system, or large data-packets in a reliable data-transmission system. Such
 objects have two interesting characteristics: each byte in the object is
 written at most once, and a full object is written in a single "session"
 (i.e., without the mote rebooting).
 
-This leads to the definition of the ``BlockStorageC`` service for storing
+This leads to the definition of the ``BlockStorageC`` abstraction for storing
 large objects:
 
 - A large object ranges from a few kilobytes upwards.
@@ -286,21 +287,21 @@ operations (all split-phase, except ``BlockRead.getSize``):
 - ``BlockRead.getSize``: return bytes available for large object storage in
   volume.
 
-For full details on arguments, etc, see the comments in the interface
-definitions.
+For full details on arguments and other considerations, see the comments in
+the interface definitions.
 
 
 3.3 Logging
 ------------------------------------------------------------------
 
-Logging of results, events, etc is a common requirement in sensor
+Event and reuslt logging is a common requirement in sensor
 networks. Such logging should be reliable (a mote crash should not
 lose data). It should also be easy to extract data from the log,
 either partially or fully. Some logs are *linear* (stop logging when
 the volume is full), others are *circular* (the oldest data is
 overwritten when the volume is full).
 
-The ``LogStorageC`` service supports these requirements.  The log is record
+The ``LogStorageC`` abstraction supports these requirements.  The log is record
 based: each call to ``LogWrite.append`` (see below) creates a new
 record. On failure (crash or reboot), the log is guaranteed to only lose
 whole records from the end of the log. Additionally, once a circular log
@@ -374,7 +375,7 @@ mote id, radio frequency, sample rates, etc. Such data is not large, but
 losing it may lead to a mote misbehaving or losing contact with the
 network.
 
-The ``ConfigStorageC`` service stores a single small object in a volume. It:
+The ``ConfigStorageC`` abstraction stores a single small object in a volume. It:
 
 - Assumes that configuration data is relatively small (a few
   hundred bytes).
@@ -448,6 +449,15 @@ An ST M25P implementation can be found in tinyos-2.x/tos/chips/stm25p.
 |
 | phone - +1 415 692 0828
 | email - jhui@archedrock.com
+
+6. Citations
+====================================================================
+
+.. [1] David Gay. "Design of Matchbox, the simple filing system for
+   motes. (version 1.0)."
+
+.. [2] TEP 2: Hardware Abstraction Architecture.
+
 
 Appendix A. HAA for some existing flash chips
 ====================================================================
