@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:Date: $Date: 2006-06-21 11:50:39 $
-:Revision: $Revision: 1.1.2.4.2.1 $
+:Date: $Date: 2006-06-21 17:37:46 $
+:Revision: $Revision: 1.1.2.4.2.2 $
 :Copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -315,9 +315,9 @@ ul.auto-toc {
 <br />Vlado Handziski</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">28-Mar-2005</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.6</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.6.2.1</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-02-16</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-21</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -514,6 +514,7 @@ interface Resource {
   async command error_t request();
   event void granted();
   async command void release();
+  async command isOwner();
 }
 </pre>
 <p>A client lets an arbiter know it needs access to a resource by
@@ -530,6 +531,24 @@ calls to the request command before receiving a granted event, an
 EBUSY value is returned, and the request is not queued.  In this way,
 clients are not able to queue up multiple requests, thus blocking the
 requests from other clients.</p>
+<p>The isOwner command can be called by a client to see if it is the
+current owner of the resource.  This command is mostly used
+for runtime checks to make sure that clients not owning a resource
+are not able to use it.  If a call to isOwner fails, then no call
+should be made to commands provided by that resource.  An example of
+where isOwner is used can be seen in the HplTda5250DataP component of
+the Infeneon Tda5250 radio implementation:</p>
+<pre class="literal-block">
+async command error_t HplTda5250Data.tx(uint8_t data) {
+  if(call UartResource.isOwner() == FALSE)
+    return FAIL;
+  call Usart.tx(data);
+  return SUCCESS;
+}
+</pre>
+<p>A call to the HplTda5250Data.tx command will fail if the radio does
+not currently have control of the underlying Usart resource.  If it
+does, then the Usart.tx(data) command is called as it should be.</p>
 <p>An arbiter MUST provide exactly one parameterized Resource interface,
 where the parameter is a client ID, following the Service
 Instance pattern[sipattern]_.  An arbitrated component SomeNameP MUST
@@ -627,6 +646,7 @@ interface ResourceController {
   async command void release();
   async event void requested();
   async event void idle();
+  async command isOwner();
 }
 </pre>
 <p>An arbiter signals the requested event if the client currently has the resource

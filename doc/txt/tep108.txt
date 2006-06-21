@@ -10,8 +10,8 @@ Resource Arbitration
 :Authors: Kevin Klues, Philip Levis, David Gay, David Culler, Vlado Handziski
 
 :Draft-Created: 28-Mar-2005
-:Draft-Version: $Revision: 1.1.2.6.2.1 $
-:Draft-Modified: $Date: 2006-06-21 11:50:39 $
+:Draft-Version: $Revision: 1.1.2.6.2.2 $
+:Draft-Modified: $Date: 2006-06-21 17:37:46 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -224,6 +224,7 @@ using the Resource interface::
     async command error_t request();
     event void granted();
     async command void release();
+    async command isOwner();
   }
 
 A client lets an arbiter know it needs access to a resource by
@@ -239,7 +240,26 @@ exclusive access to the resource.  If a client ever makes multiple
 calls to the request command before receiving a granted event, an
 EBUSY value is returned, and the request is not queued.  In this way,
 clients are not able to queue up multiple requests, thus blocking the
-requests from other clients.  
+requests from other clients.
+
+The isOwner command can be called by a client to see if it is the
+current owner of the resource.  This command is mostly used
+for runtime checks to make sure that clients not owning a resource
+are not able to use it.  If a call to isOwner fails, then no call
+should be made to commands provided by that resource.  An example of
+where isOwner is used can be seen in the HplTda5250DataP component of
+the Infeneon Tda5250 radio implementation::
+
+  async command error_t HplTda5250Data.tx(uint8_t data) {
+    if(call UartResource.isOwner() == FALSE)
+      return FAIL;
+    call Usart.tx(data);
+    return SUCCESS;
+  }
+
+A call to the HplTda5250Data.tx command will fail if the radio does
+not currently have control of the underlying Usart resource.  If it
+does, then the Usart.tx(data) command is called as it should be.
 
 An arbiter MUST provide exactly one parameterized Resource interface,
 where the parameter is a client ID, following the Service
@@ -341,7 +361,8 @@ requested(), and the command immediateRequest()::
     event void granted();
     async command void release();
     async event void requested(); 
-    async event void idle(); 
+    async event void idle();
+    async command isOwner();
   }
 
 
