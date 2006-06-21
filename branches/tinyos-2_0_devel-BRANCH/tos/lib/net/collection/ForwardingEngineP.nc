@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.29 2006-06-20 21:16:28 rfonseca76 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.30 2006-06-21 00:15:15 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,8 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-20 21:16:28 $
+ *  @author Kyle Jamieson
+ *  @date   $Date: 2006-06-21 00:15:15 $
  */
 
 #include <ForwardingEngine.h>
@@ -61,6 +62,10 @@ generic module ForwardingEngineP() {
   }
 }
 implementation {
+  /* Starts the retxmit timer with a random number masked by the given
+   * mask and added to the given offset.
+   */
+  static void startRetxmitTimer(uint16_t mask, uint16_t offset);
 
   /* Keeps track of whether the routing layer is running; if not,
    * it will not send packets. */
@@ -222,7 +227,7 @@ implementation {
       return;
     }
     else {
-      error_t eval;
+      error_t subsendResult;
       fe_queue_entry_t* qe = call SendQueue.head();
       uint8_t payloadLen = call SubPacket.payloadLength(qe->msg);
       am_addr_t dest = call UnicastNameFreeRouting.nextHop();
@@ -242,8 +247,8 @@ implementation {
       
       ackPending = (call PacketAcknowledgements.requestAck(qe->msg) == SUCCESS);
       
-      eval = call SubSend.send(dest, qe->msg, payloadLen);
-      if (eval == SUCCESS) {
+      subsendResult = call SubSend.send(dest, qe->msg, payloadLen);
+      if (subsendResult == SUCCESS) {
 	// Successfully submitted to the data-link layer.
 	sending = TRUE;
 	dbg("Forwarder", "%s: subsend succeeded with %p.\n", __FUNCTION__, qe->msg);
@@ -255,7 +260,7 @@ implementation {
 	}
         return;
       }
-      else if (eval == EOFF) {
+      else if (subsendResult == EOFF) {
 	// The radio has been turned off underneath us. Assume that
 	// this is for the best. When the radio is turned back on, we'll
 	// handle a startDone event and resume sending.
@@ -264,7 +269,7 @@ implementation {
         // send a debug message to the uart
       	call CollectionDebug.logEvent(NET_C_FE_SUBSEND_OFF);
       }
-      else if (eval == EBUSY) {
+      else if (subsendResult == EBUSY) {
 	// This shouldn't happen, as we sit on top of a client and
         // control our own output; it means we're trying to
         // double-send (bug). This means we expect a sendDone, so just
@@ -274,7 +279,7 @@ implementation {
         // send a debug message to the uart
         call CollectionDebug.logEvent(NET_C_FE_SUBSEND_BUSY);
       }
-      else if (eval == ESIZE) {
+      else if (subsendResult == ESIZE) {
 	dbg("Forwarder", "%s: subsend failed from ESIZE: truncate packet.\n", __FUNCTION__);
 	call Packet.setPayloadLength(qe->msg, call Packet.maxPayloadLength());
 	post sendTask();
@@ -297,49 +302,43 @@ implementation {
       return;
     }
     else if (error != SUCCESS) {
-      // immediate retransmission is the worst thing to do.
-      // Retry in 512-1023 ms
-      uint16_t r = call Random.rand16();
-      call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL, error, TOS_NODE_ID, call AMPacket.destination(msg));
-      r &= 0x1ff;
-      r += 512;
-      call RetxmitTimer.startOneShot(r);
-      dbg("Forwarder", "%s: send failed, retry in %hu ms\n", __FUNCTION__, r);
+      // Immediate retransmission is the worst thing to do.
+      dbg("Forwarder", "%s: send failed\n", __FUNCTION__);
+      call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL, error, TOS_NODE_ID, 
+                                         call AMPacket.destination(msg));
+      startRetxmitTimer(SENDDONE_FAIL_WINDOW, SENDDONE_FAIL_OFFSET);
     }
-    // AckPending is for case when DL cannot support acks
     else if (ackPending && !call PacketAcknowledgements.wasAcked(msg)) {
-      // immediate retransmission is the worst thing to do.
-      // Retry in 128-255ms
-      uint16_t r = call Random.rand16();
-      call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_WAITACK, error, TOS_NODE_ID, call AMPacket.destination(msg));
-      r &= 0x7f;
-      r += 128;
-      call RetxmitTimer.startOneShot(r);
-      dbg("Forwarder", "%s: not acked, retry in %hu ms\n", __FUNCTION__, r);
+      // AckPending is for case when DL cannot support acks.
+      dbg("Forwarder", "%s: not acked\n", __FUNCTION__);
+      call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_WAITACK, error, TOS_NODE_ID, 
+                                         call AMPacket.destination(msg));
+      startRetxmitTimer(SENDDONE_NOACK_WINDOW, SENDDONE_NOACK_OFFSET);
     }
     else if (qe->client < CLIENT_COUNT) {
       network_header_t* hdr;
       uint8_t client = qe->client;
-      dbg("Forwarder", "%s: our packet for client %hhu, remove %p from queue\n", __FUNCTION__, client, qe);
-      call CollectionDebug.logEventRoute(NET_C_FE_SENT_MSG, error, TOS_NODE_ID, call AMPacket.destination(msg));
+      dbg("Forwarder", "%s: our packet for client %hhu, remove %p from queue\n", 
+          __FUNCTION__, client, qe);
+      call CollectionDebug.logEventRoute(NET_C_FE_SENT_MSG, error, TOS_NODE_ID, 
+                                         call AMPacket.destination(msg));
       clientPtrs[client] = qe;
       hdr = getHeader(qe->msg);
       call SendQueue.dequeue();
       signal Send.sendDone[client](msg, SUCCESS);
       sending = FALSE;
-      post sendTask();
+      startRetxmitTimer(SENDDONE_OK_WINDOW, SENDDONE_OK_OFFSET);
     }
     else if (call MessagePool.size() < call MessagePool.maxSize()) {
       // A successfully forwarded packet.
       dbg("Forwarder,Route", "%s: successfully forwarded packet (client: %hhu), message pool is %hhu/%hhu.\n", __FUNCTION__, qe->client, call MessagePool.size(), call MessagePool.maxSize());
-      call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, error, TOS_NODE_ID, call AMPacket.destination(msg));
+      call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, error, TOS_NODE_ID, 
+                                         call AMPacket.destination(msg));
       call SendQueue.dequeue();
       call MessagePool.put(qe->msg);
-      //qe->msg = NULL;
-      //qe->client = 255;
       call QEntryPool.put(qe);      
       sending = FALSE;
-      post sendTask();
+      startRetxmitTimer(SENDDONE_OK_WINDOW, SENDDONE_OK_OFFSET);
     }
     else {
       dbg("Forwarder", "%s: BUG: we have a pool entry, but the pool is full, client is %hhu.\n", __FUNCTION__, qe->client);
@@ -520,5 +519,13 @@ implementation {
 
   default command collection_id_t CollectionId.fetch[uint8_t client]() {
     return 0;
+  }
+
+  static void startRetxmitTimer(uint16_t mask, uint16_t offset) {
+    uint16_t r = call Random.rand16();
+    r &= mask;
+    r += offset;
+    call RetxmitTimer.startOneShot(r);
+    dbg("Forwarder", "started rexmit timer in %hu ms\n", r);
   }
 }
