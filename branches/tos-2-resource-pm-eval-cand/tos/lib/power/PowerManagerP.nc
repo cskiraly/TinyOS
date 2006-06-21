@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3.2.2 $
- * $Date: 2006-06-07 10:47:17 $ 
+ * $Revision: 1.1.2.3.2.3 $
+ * $Date: 2006-06-21 15:58:09 $ 
  * ======================================================================== 
  */
  
@@ -83,8 +83,6 @@ implementation {
       call SplitControl.start();
     }
     else f.requested = TRUE;
-  }
-  async event void ResourceController.immediateRequested() {
   }
   
   default command error_t StdControl.start() {

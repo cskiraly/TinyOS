@@ -60,8 +60,8 @@
  * predefined arbitration policy.
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.9.2.2 $
- * @date $Date: 2006-06-07 10:47:17 $
+ * @version $Revision: 1.1.2.9.2.3 $
+ * @date $Date: 2006-06-21 16:00:57 $
  */
 
 interface Resource {
@@ -90,7 +90,7 @@ interface Resource {
   *             FAIL You tried to release but you are not the
   *                    owner of the resource and you have no requests pending
   */
-  command error_t release();
+  async command error_t release();
 
   /**
    *  Check if the user of this interface is the current

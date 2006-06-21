@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4.6.2 $
- * $Date: 2006-06-07 10:47:17 $ 
+ * $Revision: 1.1.2.4.6.3 $
+ * $Date: 2006-06-21 15:58:09 $ 
  * ======================================================================== 
  */
  
@@ -89,9 +89,6 @@ implementation {
     else atomic f.requested = TRUE;
   }
 
-  async event void ResourceController.immediateRequested() {
-  }
-
   default command error_t StdControl.start() {
     return SUCCESS;
   }
@@ -110,7 +107,7 @@ implementation {
   }
 
   event void TimerMilli.fired() {
-    if(call ResourceController.request() == SUCCESS) {
+    if(call ResourceController.immediateRequest() == SUCCESS) {
       f.stopping = TRUE;
       call PowerDownCleanup.cleanup();
       call StdControl.stop();
