@@ -1,4 +1,4 @@
-/* $Id: CC1000RssiP.nc,v 1.1.2.3 2006-01-27 18:46:00 idgay Exp $
+/* $Id: CC1000RssiP.nc,v 1.1.2.4 2006-06-21 16:58:03 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -31,12 +31,12 @@
  *   RSSI fun. It's used for lots of things, and a request to read it
  *   for one purpose may have to be discarded if conditions change. For
  *   example, if we've initiated a noise-floor measure, but start 
- *   receiving a packet, we have to:
- *   - cancel the noise-floor measure (we don't know if the value will
+ *   receiving a packet, we have to:<ul>
+ *   <li>cancel the noise-floor measure (we don't know if the value will
  *     reflect the received packet or the previous idle state)
- *   - start an RSSI measurement so that we can report signal strength
+ *   <li>start an RSSI measurement so that we can report signal strength
  *     to the application
- *
+ *   </ul><p>
  *   This module hides the complexities of cancellation from the rest of
  *   the stack.
  */

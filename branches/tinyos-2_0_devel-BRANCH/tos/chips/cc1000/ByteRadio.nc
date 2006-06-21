@@ -1,4 +1,4 @@
-/* $Id: ByteRadio.nc,v 1.1.2.5 2005-06-03 19:14:54 idgay Exp $
+/* $Id: ByteRadio.nc,v 1.1.2.6 2006-06-21 16:58:03 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -41,12 +41,6 @@ interface ByteRadio
    * Transmission complete.
    */
   async event void sendDone();
-
-  /**
-   * Enable/disable synchronous acknowledgments
-   * @param on TRUE to turn acks on, FALSE to turn them off.
-   */
-  async command void setAck(bool on);
 
   /**
    * Set message preamble length.

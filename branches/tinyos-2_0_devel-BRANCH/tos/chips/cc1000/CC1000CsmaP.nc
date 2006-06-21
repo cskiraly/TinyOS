@@ -1,4 +1,4 @@
-// $Id: CC1000CsmaP.nc,v 1.1.2.12 2006-06-13 17:25:31 idgay Exp $
+// $Id: CC1000CsmaP.nc,v 1.1.2.13 2006-06-21 16:58:03 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -29,11 +29,16 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
+#include "message.h"
+#include "crc.h"
+#include "CC1000Const.h"
+#include "Timer.h"
+
 /**
  * A rewrite of the low-power-listening CC1000 radio stack.
  * This file contains the CSMA and low-power listening logic. Actual
  * packet transmission and reception is in SendReceive.
- *
+ * <p>
  * This code has some degree of platform-independence, via the
  * CC1000Control, RSSIADC and SpiByteFifo interfaces which must be provided
  * by the platform. However, these interfaces may still reflect some
@@ -45,11 +50,6 @@
  * @author David Gay
  */
   
-#include "message.h"
-#include "crc.h"
-#include "CC1000Const.h"
-#include "Timer.h"
-
 module CC1000CsmaP {
   provides {
     interface Init;
