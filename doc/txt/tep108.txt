@@ -10,8 +10,8 @@ Resource Arbitration
 :Authors: Kevin Klues, Philip Levis, David Gay, David Culler, Vlado Handziski
 
 :Draft-Created: 28-Mar-2005
-:Draft-Version: $Revision: 1.1.2.8 $
-:Draft-Modified: $Date: 2006-06-13 16:44:17 $
+:Draft-Version: $Revision: 1.1.2.9 $
+:Draft-Modified: $Date: 2006-06-21 06:33:32 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -112,7 +112,7 @@ Generally, a physical and dedicated abstraction is just an interface
 which its user wires to. For example, on the Atmega128, Timer 2 is
 presented by the component HplAtm128Timer2C::
 
-  module HplAtmTimer2C {
+  module HplAtm128Timer2C {
     provides {
       interface HplTimer<uint8_t>   as Timer2;
       interface HplTimerCtrl8       as Timer2Ctrl;
