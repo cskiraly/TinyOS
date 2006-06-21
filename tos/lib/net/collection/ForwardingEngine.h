@@ -4,6 +4,52 @@
 #include <AM.h>
 #include <message.h>
 
+#if PLATFORM_MICA2
+
+// 512-1023 ms
+#define SENDDONE_FAIL_WINDOW 0x01ff
+#define SENDDONE_FAIL_OFFSET 512
+
+// 128-255 ms.
+#define SENDDONE_NOACK_WINDOW 0x007f
+#define SENDDONE_NOACK_OFFSET 128
+
+// 128-255 ms.
+#define SENDDONE_OK_WINDOW 0x007f
+#define SENDDONE_OK_OFFSET 128
+
+#elif PLATFORM_MICAZ
+
+// 512-1023 ms
+#define SENDDONE_FAIL_WINDOW 0x01ff
+#define SENDDONE_FAIL_OFFSET 512
+
+// 128-255 ms.
+#define SENDDONE_NOACK_WINDOW 0x007f
+#define SENDDONE_NOACK_OFFSET 128
+
+// 128-255 ms.
+#define SENDDONE_OK_WINDOW 0x007f
+#define SENDDONE_OK_OFFSET 128
+
+#elif PLATFORM_TELOS
+
+// 512-1023 ms
+#define SENDDONE_FAIL_WINDOW 0x01ff
+#define SENDDONE_FAIL_OFFSET 512
+
+// 64-128 ms
+#define SENDDONE_NOACK_WINDOW 0x003f
+#define SENDDONE_NOACK_OFFSET 64
+
+// 32-64 ms
+#define SENDDONE_OK_WINDOW 0x001f
+#define SENDDONE_OK_OFFSET 32
+
+#else
+#error "forwarding engine todo"
+#endif
+
 typedef nx_struct {
   nx_uint8_t control;
   nx_am_addr_t origin;
