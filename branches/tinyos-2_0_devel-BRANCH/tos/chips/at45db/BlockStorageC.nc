@@ -1,4 +1,4 @@
-// $Id: BlockStorageC.nc,v 1.1.2.7 2006-06-02 16:36:23 idgay Exp $
+// $Id: BlockStorageC.nc,v 1.1.2.8 2006-06-21 16:59:18 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -12,6 +12,8 @@
 /**
  * Implementation of the block storage abstraction from TEP103 for the
  * Atmel AT45DB serial data flash.
+ *
+ * @param volid Volume to use for block storage
  *
  * @author David Gay
  */

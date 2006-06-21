@@ -1,4 +1,4 @@
-/// $Id: HplAtm128UartP.nc,v 1.1.2.2 2006-05-01 19:20:52 idgay Exp $
+/// $Id: HplAtm128UartP.nc,v 1.1.2.3 2006-06-21 16:59:18 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,10 +22,14 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
-/// @author David Gay
-
 #include <Atm128Uart.h>
+
+/** 
+ * Private component of the Atmega128 serial port HPL.
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ * @author David Gay
+ */
 
 module HplAtm128UartP
 {

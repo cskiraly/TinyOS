@@ -1,4 +1,4 @@
-/* $Id: Atm128AdcP.nc,v 1.1.2.5 2006-02-17 00:26:47 idgay Exp $
+/* $Id: Atm128AdcP.nc,v 1.1.2.6 2006-06-21 16:59:18 idgay Exp $
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -46,15 +46,18 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR 
  * MODIFICATIONS.
  */
+
+#include "Atm128Adc.h"
+
 /**
+ * Internal component of the Atmega128 A/D HAL.
+ *
  * @author Jason Hill
  * @author David Gay
  * @author Philip Levis
  * @author Phil Buonadonna
  * @author Hu Siquan <husq@xbow.com>
  */
-
-#include "Atm128Adc.h"
 
 module Atm128AdcP 
 {

@@ -27,6 +27,9 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
+#include <Storage.h>
+#include <crc.h>
+
 /**
  * Private component of the AT45DB implementation of the log storage
  * abstraction.
@@ -34,9 +37,6 @@
  * @author: David Gay <dgay@acm.org>
  * @author: Jonathan Hui <jwhui@cs.berkeley.edu>
  */
-
-#include <Storage.h>
-#include <crc.h>
 
 module LogStorageP {
   provides {

@@ -1,4 +1,4 @@
-/// $Id: Atm128AdcC.nc,v 1.1.2.10 2006-06-20 17:14:29 idgay Exp $
+/// $Id: Atm128AdcC.nc,v 1.1.2.11 2006-06-21 16:59:18 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -29,12 +29,15 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+
+#include "Atm128Adc.h"
+
 /**
+ * HAL for the Atmega128 A/D conversion susbsystem.
+ *
  * @author Hu Siquan <husq@xbow.com>
  * @author David Gay
  */
-
-#include "Atm128Adc.h"
 
 configuration Atm128AdcC
 {

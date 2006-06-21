@@ -1,4 +1,4 @@
-// $Id: Alarm32khz32C.nc,v 1.1.2.4 2006-06-12 19:11:01 idgay Exp $
+// $Id: Alarm32khz32C.nc,v 1.1.2.5 2006-06-21 16:59:18 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -13,7 +13,7 @@
  * family 32kHz Alarm is built on hardware timer 1, and actually runs at
  * CPU frequency / 256. You can use the MeasureClockC.cyclesPerJiffy()
  * command to figure out the exact frequency.
- *
+ * <p>
  * Upto three of these alarms can be created (one per hardware compare
  * register). Note that creating one of these Alarms consumes a 16-bit
  * 32kHz Alarm (see Alarm32khz16C).

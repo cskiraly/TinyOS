@@ -1,4 +1,4 @@
-/// $Id: HplAtm128AdcC.nc,v 1.1.2.2 2006-06-20 17:14:29 idgay Exp $
+/// $Id: HplAtm128AdcC.nc,v 1.1.2.3 2006-06-21 16:59:18 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,11 +22,15 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
-/// @author Hu Siquan <husq@xbow.com>
-/// @author David Gay
-
 #include "Atm128Adc.h"
+
+/**
+ * HPL for the Atmega128 A/D conversion susbsystem.
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ * @author Hu Siquan <husq@xbow.com>
+ * @author David Gay
+ */
 
 module HplAtm128AdcC {
   provides interface HplAtm128Adc;

@@ -1,4 +1,4 @@
-/// $Id: HplAtm128UartC.nc,v 1.1.2.3 2006-02-17 00:26:47 idgay Exp $
+/// $Id: HplAtm128UartC.nc,v 1.1.2.4 2006-06-21 16:59:18 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -22,11 +22,16 @@
  * MODIFICATIONS.
  */
 
-/// @author Martin Turon <mturon@xbow.com>
-/// @author David Gay
+/// 
 
 #include <Atm128Uart.h>
 
+/**
+ * HPL for the Atmega 128 serial ports.
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ * @author David Gay
+ */
 configuration HplAtm128UartC
 {
   provides {

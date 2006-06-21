@@ -1,4 +1,4 @@
-// $Id: HplAt45dbIOP.nc,v 1.1.2.1 2006-05-01 19:20:18 idgay Exp $
+// $Id: HplAt45dbIOP.nc,v 1.1.2.2 2006-06-21 16:59:18 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -30,7 +30,7 @@
  */
 /**
  * Low level hardware access to the onboard AT45DB flash chip.
- *
+ * <p>
  * Note: This component includes optimised bit-banging SPI code with the
  * pins hardwired.  Don't copy it to some other platform without
  * understanding it (see txByte).

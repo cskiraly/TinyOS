@@ -12,7 +12,7 @@
  * Provides access to all basic AT45DB operations plus operations to 
  * wait for the flash to go idle or finish a comparison. See the AT45DB
  * family datasheets for full details on these operations.
- *
+ * <p>
  * This interface only supports one operation at a time.
  *
  * @author David Gay
