@@ -1,4 +1,4 @@
-// $Id: MeasureClockC.nc,v 1.1.2.7 2006-04-28 23:18:57 idgay Exp $
+// $Id: MeasureClockC.nc,v 1.1.2.8 2006-06-21 16:59:18 idgay Exp $
 /*
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
@@ -8,6 +8,9 @@
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
  * 94704.  Attention:  Intel License Inquiry.
  */
+#include <MicaTimer.h>
+#include <scale.h>
+
 /**
  * Measure cpu clock frequency at boot time. Provides an Atm128Calibrate
  * interface so that other components can adjust their calibration as
@@ -15,9 +18,6 @@
  *
  * @author David Gay
  */
-
-#include <MicaTimer.h>
-#include <scale.h>
 
 module MeasureClockC {
   provides {

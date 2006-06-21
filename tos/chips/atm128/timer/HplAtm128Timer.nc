@@ -1,4 +1,4 @@
-/// $Id: HplAtm128Timer.nc,v 1.1.2.4 2006-06-20 17:23:38 idgay Exp $
+/// $Id: HplAtm128Timer.nc,v 1.1.2.5 2006-06-21 16:59:18 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -32,12 +32,13 @@
  * that is exposed is access to the overflow capability.  Compare and capture
  * functionality are exposed on separate interfaces to allow easy 
  * configurability via wiring.
- *  
- * This interface provides four major groups of functionality:
- *      1) Timer Value: get/set current time
- *      2) Overflow Interrupt event
- *      3) Control of Overflow Interrupt: start/stop/clear...
- *      4) Timer Initialization: turn on/off clock source
+ * <p>
+ * This interface provides four major groups of functionality:<ol>
+ *      <li>Timer Value: get/set current time
+ *      <li>Overflow Interrupt event
+ *      <li>Control of Overflow Interrupt: start/stop/clear...
+ *      <li>Timer Initialization: turn on/off clock source
+ * </ol>
  *
  * @author Martin Turon <mturon@xbow.com>
  */

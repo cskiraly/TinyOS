@@ -11,7 +11,7 @@
 /**
  * Interface between generic byte-at-a-time AT45DB HPL implementation and
  * its platform specific aspects.
- * 
+ * <p>
  * Each platform must provide its own HPL implementation for its AT45DB
  * flash chip. To simplify this task, this directory provides a generic HPL
  * implementation (HplAt45dbByteC) which can easily be used to build an

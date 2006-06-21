@@ -1,4 +1,4 @@
-// $Id: AlarmThree16C.nc,v 1.1.2.1 2006-04-28 23:18:57 idgay Exp $
+// $Id: AlarmThree16C.nc,v 1.1.2.2 2006-06-21 16:59:18 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -15,10 +15,10 @@
  * command to figure out the exact frequency, or the 
  * MeasureClockC.calibrateMicro() command to convert a number of microseconds
  * to the near-microsecond units used by this component.
- *
+ * <p>
  * Assumes an ~8MHz CPU clock, replace this component if you are running at
  * a radically different frequency.
- *
+ * <p>
  * Upto three of these alarms can be created (one per hardware compare
  * register). 
  *

@@ -1,4 +1,4 @@
-// $Id: AlarmMicro32C.nc,v 1.1.2.3 2006-04-28 23:18:57 idgay Exp $
+// $Id: AlarmMicro32C.nc,v 1.1.2.4 2006-06-21 16:59:18 idgay Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -15,7 +15,7 @@
  * command to figure out the exact frequency, or the 
  * MeasureClockC.calibrateMicro() command to convert a number of microseconds
  * to the near-microsecond units used by this component.
- *
+ * <p>
  * Upto three of these alarms can be created (one per hardware compare
  * register). Note that creating one of these Alarms consumes a 16-bit
  * microsecond Alarm (see AlarmMicro16C).
