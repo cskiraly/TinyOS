@@ -1,8 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-//#define TEST_INSERT
-/* $Id: TreeRoutingEngineP.nc,v 1.1.2.16 2006-06-20 21:16:28 rfonseca76 Exp $ */
+/* $Id: TreeRoutingEngineP.nc,v 1.1.2.17 2006-06-21 00:17:35 gnawali Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,7 +29,7 @@
  *  Acknowledgment: based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
  *                           MultiHopLQI
  *                           
- *  @date   $Date: 2006-06-20 21:16:28 $
+ *  @date   $Date: 2006-06-21 00:17:35 $
  *  @see Net2-WG
  */
 
@@ -88,10 +87,6 @@ implementation {
     uint8_t routingTableFind(am_addr_t);
     error_t routingTableUpdateEntry(am_addr_t, am_addr_t , uint8_t, uint16_t);
     error_t routingTableEvict(am_addr_t neighbor);
-#ifdef TEST_INSERT
-    error_t routingTableInsert(am_addr_t from);
-    uint8_t victim;
-#endif
 
 
     command error_t Init.init() {
@@ -107,9 +102,6 @@ implementation {
         maxLength = call BeaconSend.maxPayloadLength();
         dbg("TreeRoutingCtl","TreeRouting initialized. (used payload:%d max payload:%d!\n", 
               sizeof(beaconMsg), maxLength);
-#ifdef TEST_INSERT
-        victim = 0;
-#endif
         return SUCCESS;
     }
 
@@ -192,7 +184,10 @@ implementation {
             }
             
             linkMetric = evaluateMetric(call LinkEstimator.getLinkQuality(entry->neighbor));
-            dbg("TreeRouting", "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: %d]\n",  i, entry->neighbor, entry->info.parent, entry->info.hopcount, linkMetric);
+            dbg("TreeRouting", 
+                "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: %d]\n",  
+                i, entry->neighbor, entry->info.parent, 
+                entry->info.hopcount, linkMetric);
             dbg_clear("TreeRouting", "   metric: %hu.\n", linkMetric);
             pathMetric = linkMetric + entry->info.metric;
             //for current parent
@@ -228,6 +223,8 @@ implementation {
                 parentChanges++;
                 dbg("TreeRouting","Changed parent. from %d to %d\n", routeInfo.parent, best->neighbor);
                 call CollectionDebug.logEventRoute(NET_C_TREE_NEW_PARENT, best->neighbor, best->info.hopcount + 1, best->info.metric); 
+                call LinkEstimator.unpinNeighbor(routeInfo.parent);
+                call LinkEstimator.pinNeighbor(best->neighbor);
                 atomic {
                     routeInfo.parent = best->neighbor;
                     routeInfo.metric = best->info.metric;
@@ -324,12 +321,14 @@ implementation {
         //call CollectionDebug.logEventRoute(NET_C_TREE_RCV_BEACON, rcvBeacon->parent, rcvBeacon->hopcount, rcvBeacon->metric);
         //update neighbor table
         if (rcvBeacon->parent != INVALID_ADDR) {
-#ifdef TEST_INSERT
-        if (rcvBeacon->hopcount == 0) {
-            dbg("TreeRouting","from a root, inserting if not in table\n");
-            routingTableInsert(from);
-        }
-#endif
+
+            //TODO: also, if better than my current parent's path metric, insert
+            if (rcvBeacon->hopcount == 0) {
+                dbg("TreeRouting","from a root, inserting if not in table\n");
+                call LinkEstimator.insertNeighbor(from);
+                call LinkEstimator.pinNeighbor(from);
+            }
+
             routingTableUpdateEntry(from, rcvBeacon->parent, rcvBeacon->hopcount, rcvBeacon->metric);
         }
         
@@ -452,39 +451,6 @@ implementation {
         return i;
     }
 
-
-#ifdef TEST_INSERT
-    /* Temporary function mostly for testing. this should be implemented
-     * in the link estimator table */
-    error_t routingTableInsert(am_addr_t from) {
-        uint8_t idx, i;
-        //static uint8_t victim = 0;
-        idx = routingTableFind(from);
-        if (idx == routingTableSize) {
-            //table is full: replace someone not root and not parent
-            for (i = 0; i < routingTableActive; i++) {
-                idx = (victim + 1) % routingTableActive;
-                if (routingTable[idx].info.parent == INVALID_ADDR ||
-                    (routingTable[idx].info.hopcount != 0 &&
-                     routeInfo.parent != routingTable[idx].neighbor))
-                    break;
-            }
-            if (i == routingTableActive) 
-                return FAIL;
-            victim = (victim + i) % routingTableActive;
-            idx = victim;
-            dbg("TreeRouting", "%s table full replacing idx %d\n", __FUNCTION__,idx);
-        } else if (idx == routingTableActive) {
-            //not found and there is space
-            dbg("TreeRouting", "%s table not full inserting at idx %d\n", __FUNCTION__,idx);
-            routingTableActive++;
-        }
-        //replace victim
-        routingTable[idx].neighbor = from;
-        routeInfoInit(&routingTable[idx].info);
-        return SUCCESS;
-    }
-#endif
 
     error_t routingTableUpdateEntry(am_addr_t from, am_addr_t parent, 
                             uint8_t hopcount, uint16_t metric)
