@@ -29,14 +29,17 @@
 * - Description ---------------------------------------------------------
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.3 $
-* $Date: 2006-06-08 15:31:05 $
+* $Revision: 1.1.2.4 $
+* $Date: 2006-06-21 14:45:11 $
 * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
 * ========================================================================
 */
 
 /**
- * UartPhyC
+ * Configuration for the byte radio physical layer. Together with the
+ * PacketSerializerP the UartPhyP module turns byte streams into packets.
+ *
+ * @see PacketSerializerP
  *
  * @author Philipp Huppertz <huppertz@tkn.tu-berlin.de>
  */

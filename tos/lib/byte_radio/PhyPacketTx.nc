@@ -27,14 +27,14 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-05-31 13:53:03 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-06-21 14:45:10 $
  * ========================================================================
  */
 
 /**
- * Physical Packet Transmission Interface.
- * Commands and event provided by the Physical Layer
+ * Physical Packet Transmission Interface for byte radios.
+ * Commands and events provided by the Physical Layer
  * to communicate with upper layers about the status of a 
  * packet that is being transmitted.
  *

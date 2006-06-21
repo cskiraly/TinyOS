@@ -29,19 +29,21 @@
  
  
  /**
- * Channel Monitor interface.
+ * 
+ * This interface is an abstraction of Clear Channel Assessment (CCA) in byte radios.
+ * It provides commands and events to perform CCA.
  *
- * Provides commands and events concerning the channel state.
+ * @see ChannelMonitorControl
+ * @see ChannelMonitorData
  *
- * @author: Kevin Klues (klues@tkn.tu-berlin.de)
- * ========================================================================
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
  */
 interface ChannelMonitor {
     /** 
     * Start observing the channel.
     * Either the event channelBusy() or channelIdle() will be indicated.
     *
-    * @return SUCCESS on succes
+    * @return SUCCESS on success
     *         FAIL otherwise.
     */
     async command error_t start();

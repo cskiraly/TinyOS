@@ -28,21 +28,19 @@
  *
  */
  
-/** 
-  * The basic address-free message sending interface in asnyc context. 
-  *
-  * This interface provides similar functionality as the Send interface
-  * but is provided by the Phy Layer.
-  *
-  * @author Philipp Huppertz
-  * @date   March 21 2006
-  * @see    Send
-  */ 
-
-
-
 #include <TinyError.h>
 #include <message.h>
+ 
+/** 
+  * This interface is similar to the Send interface.
+  *
+  * This interface provides the basic functionality of the Send interface
+  * in async context. It is provided by the Phy Layer.
+  *
+  * @see    Send
+  *
+  * @author Philipp Huppertz
+  */ 
 
 interface PhySend {
 
@@ -73,7 +71,7 @@ interface PhySend {
   * 
   * @param msg   the message which was requested to send
   * @param error SUCCESS if it was transmitted successfully, FAIL if
-  *              it was not, ECANCEL if it was cancelled via <tt>cancel</tt>
+  *              it was not.
   */ 
   async event void sendDone(message_t* msg, error_t error);
 }

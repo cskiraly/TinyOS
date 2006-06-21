@@ -27,8 +27,8 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.6 $
-* $Date: 2006-06-07 19:54:53 $
+* $Revision: 1.1.2.7 $
+* $Date: 2006-06-21 14:45:10 $
 * @author: Kevin Klues (klues@tkn.tu-berlin.de)
 * ========================================================================
 */
@@ -144,9 +144,7 @@ implementation {
           case RADIO_MODE_SLEEP_TRANSITION:
             call HplTda5250Config.SetSlaveMode();
             call HplTda5250Config.SetSleepMode();
-            call HplTda5250Data.disableTx();
-            call HplTda5250Data.disableRx();
-            call DataResource.release();
+            call ConfigResource.release();
             atomic radioMode = RADIO_MODE_SLEEP;
             signal Tda5250Control.SleepModeDone();
             break;
@@ -295,6 +293,8 @@ implementation {
           }
         }
         if(mode == RADIO_MODE_SLEEP_TRANSITION) {
+          call HplTda5250Data.disableTx();	
+          call HplTda5250Data.disableRx();	
           call DataResource.release();
           if (call ConfigResource.immediateRequest() == SUCCESS) {
             switchConfigResource();

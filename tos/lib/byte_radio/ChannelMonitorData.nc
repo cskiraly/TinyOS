@@ -29,17 +29,24 @@
  */
 
 /**
- * Data interface for RSSI components that use a floating threshold
+ * This interface is used by byte radio CCA components based on RSSI 
+ * valid detection with a floating threshold.
  *
- * @author: Kevin Klues (klues@tkn.tu-berlin.de)
- * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
+ * It provides commands and events to read the Signal to Noise Ratio 
+ * (SNR) and noisefloor of the radio channel.
+ *
+ * @see ChannelMonitor
+ * @see ChannelMonitorControl 
+ *
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
+ * @author Andreas Koepke (koepke@tkn.tu-berlin.de)
  */
 interface ChannelMonitorData
 {
     /** 
      * Sets the gradient for the conversion of mV and dB. 
      *
-     *  @param grad - grad = mV/dB
+     *  @param grad This is calculated as grad = mV/dB
      */
     async command void setGradient(int16_t grad);
     
@@ -59,17 +66,17 @@ interface ChannelMonitorData
      */
     async command error_t getSnr();
     
-    /*
+    /**
      * Returns the SNR value in dB.
      *
-     * @param snr - The SNR value in dB.
+     * @param snr The SNR value in dB.
     */
     async event void getSnrDone(int16_t snr);
 
     /** 
      * Get the noisefloor in mV.
      *
-     * @return The noise floor in mV.
+     * @return The noisefloor in mV.
      */
     async command uint16_t getNoiseFloor();
 }

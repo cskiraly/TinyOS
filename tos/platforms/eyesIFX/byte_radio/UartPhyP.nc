@@ -29,21 +29,23 @@
  * - Description ---------------------------------------------------------
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-06-14 17:12:08 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2006-06-21 14:45:11 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
  * ========================================================================
  */
 
+#include "manchester.h"
+
 /**
- * UartPhyP module
+ * Implementation of the physical layer for the eyesIFX byte radio.
+ * Together with the PacketSerializerP this module turns byte streams 
+ * into packets.
  *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  * @author Philipp Huppertz <huppertz@tkn.tu-berlin.de>
  */
-#include "manchester.h"
-
 module UartPhyP {
     provides {
         interface Init;
@@ -70,10 +72,12 @@ implementation
         STATE_FOOTER_START,
         STATE_FOOTER_DONE
     } phyState_t;
-  
+
+
+
 
 #define PREAMBLE_LENGTH   4
-#define BYTE_TIME         35
+#define BYTE_TIME         22
 #define PREAMBLE_BYTE     0x55
 #define SYNC_BYTE         0xFF
 #define SFD_BYTE          0x05
@@ -101,11 +105,7 @@ implementation
     
     command error_t UartPhyControl.setNumPreambles(uint16_t numPreambleBytes) {
         atomic {
-            if (phyState == STATE_PREAMBLE) {
-                return FAIL;
-            } else {
-                numPreambles = numPreambleBytes;
-            }
+            numPreambles = numPreambleBytes;
         }
         return SUCCESS;
     }
@@ -114,7 +114,7 @@ implementation
         if (call RxByteTimer.isRunning() == TRUE) {
             return FAIL;
         } else {
-            atomic byteTime = byteTimeout;
+            atomic byteTime = byteTimeout * 33;
             return SUCCESS;
         }
     }
@@ -286,7 +286,8 @@ implementation
                     if(decodedByte != 0xff) {
                         bufByte = decodedByte << 4;
                         phyState = STATE_DATA_LOW;
-                    } else {
+                    }
+                    else {
                         resetState();
                     }
                     break;
@@ -294,9 +295,10 @@ implementation
                     decodedByte = manchesterDecodeByte(data);
                     if(decodedByte != 0xff) {
                         bufByte |= decodedByte;
-                        signal SerializerRadioByteComm.rxByteReady(bufByte);   
                         phyState = STATE_DATA_HIGH;
-                    } else {
+                        signal SerializerRadioByteComm.rxByteReady(bufByte);
+                    }
+                    else {
                         resetState();
                     }
                     break;

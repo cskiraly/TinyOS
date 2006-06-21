@@ -29,10 +29,14 @@
 */
 
 /**
-* Control interface for RSSI components that use a floating threshold.
+* This control interface is used by byte radio CCA components based on RSSI 
+* valid detection with a floating threshold.
 *
-* @author: Kevin Klues (klues@tkn.tu-berlin.de)
-* @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
+* @see ChannelMonitor
+* @see ChannelMonitorData
+*
+* @author Kevin Klues (klues@tkn.tu-berlin.de)
+* @author Andreas Koepke (koepke@tkn.tu-berlin.de)
 */
 interface ChannelMonitorControl
 {
@@ -45,7 +49,7 @@ interface ChannelMonitorControl
   async command error_t updateNoiseFloor();
   
   /**
-  * Indicates that the noise floor has been updated.
+  * Indicates that the noisefloor has been updated.
   */
   event void updateNoiseFloorDone();
 }

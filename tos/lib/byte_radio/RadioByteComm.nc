@@ -1,4 +1,3 @@
-// $Id: RadioByteComm.nc,v 1.1.2.3 2006-01-31 12:25:32 phihup Exp $
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
  * All rights reserved.
@@ -30,11 +29,12 @@
 
 
 /** 
- * A byte-level communication interface
+ * A byte-level communication interface for byte radios.
  * It signals byte receptions and
  * provides a split-phased byte send interface. txByteReady states
  * that the component can accept another byte in its queue to send,
  * while txDone states that the send queue has been emptied.
+ *
  * @author Jason Hill
  * @author David Gay
  * @author Philip Levis

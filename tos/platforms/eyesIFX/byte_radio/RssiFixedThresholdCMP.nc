@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-06-08 15:31:05 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-06-21 14:45:11 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
  * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
@@ -52,7 +52,7 @@ module RssiFixedThresholdCMP {
         interface Read<uint16_t> as Voltage;
         interface Timer<TMilli> as Timer;
         // interface Resource as RssiAdcResource;
-        interface GeneralIO as Led3;
+        // interface GeneralIO as Led3;
     }
 }
 implementation
@@ -128,7 +128,6 @@ implementation
     uint16_t rssi;           // rssi in [mV]
     
     /****************  Tasks  *******************/
-    task void RssiReadTask();
     task void UpdateNoiseFloorTask();
     task void GetChannelStateTask();
     task void SnrReadyTask();
@@ -194,21 +193,10 @@ implementation
      
     /**************** RSSI *******************/
     void rssiRead() {
-        // if(call Rssi.read() != SUCCESS) post RssiReadTask();
         if(call Rssi.read() != SUCCESS) signalFailure();
-        // call Led3.set();
-    }
-
-    task void RssiReadTask() {
-        rssiRead();
     }
     
-    /*event void RssiAdcResource.granted() {
-        rssiRead();
-    }
-    */
-    
-     event void Rssi.readDone(error_t result, uint16_t data) {
+    event void Rssi.readDone(error_t result, uint16_t data) {
         if(result == SUCCESS) {
             // call Led3.clr();
             // call RssiAdcResource.release();
@@ -266,17 +254,14 @@ implementation
     
     /**************** ChannelMonitor *******************/  
     async command error_t ChannelMonitor.start() {
-        error_t res = FAIL;
+        error_t res = SUCCESS;
         atomic {
             if(state != VOID) {
-                if (state == IDLE) {
+                if(state == IDLE) {
                     state = CCA;
-                    //res = call RssiAdcResource.request();
                     res = SUCCESS;
-                    rssiRead();
-                } else {
-                    res = post GetChannelStateTask();
                 }
+                post GetChannelStateTask();
             }
         }
         return res;
@@ -292,7 +277,7 @@ implementation
     
     task void GetChannelStateTask() {
         atomic {
-            if(state != IDLE) {
+            if((state != IDLE) && (state != CCA)) {
                 post GetChannelStateTask();
             } else {
               state = CCA;

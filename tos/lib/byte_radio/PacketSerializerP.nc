@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.7 $
- * $Date: 2006-06-08 15:31:05 $
+ * $Revision: 1.1.2.8 $
+ * $Date: 2006-06-21 14:45:10 $
  * ========================================================================
  */
 
@@ -37,7 +37,10 @@
 #include "radiopacketfunctions.h"
 
 /**
- * PacketSerializerP module
+ * This module in conjunction with the UartPhyC turns byte streams
+ * into packtes.
+ *
+ * @see UartPhyC
  *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
  * @author Philipp Huppertz <huppertz@tkn.tu-berlin.de>

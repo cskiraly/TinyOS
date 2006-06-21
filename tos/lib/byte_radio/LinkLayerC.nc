@@ -29,11 +29,10 @@
  */
  
  /**
- *  LinkLayer.
+ * This is the configuration for a really simple link layer.
  *
- * @author: Kevin Klues (klues@tkn.tu-berlin.de)
- * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
- * ========================================================================
+ * @author Kevin Klues (klues@tkn.tu-berlin.de)
+ * @author Philipp Huppertz (huppertz@tkn.tu-berlin.de)
  */
 configuration LinkLayerC {
    provides {

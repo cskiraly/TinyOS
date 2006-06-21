@@ -26,19 +26,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * - Description ---------------------------------------------------------
- * A Csma Mac
- * - Author --------------------------------------------------------------
- * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
- * @author: Kevin Klues (klues@tkn.tu-berlin.de)
- * @author Philipp Huppertz (huppertz@tkn.tu-berlin.de)
- * ========================================================================
  */
 
 
 #include "radiopacketfunctions.h"
 #include "flagfunctions.h"
 
+ /**
+  * An implementation of a Csma Mac.
+  * 
+  * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
+  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
+  * @author Philipp Huppertz (huppertz@tkn.tu-berlin.de)
+*/
 module CsmaMacP {
     provides {
         interface Init;
