@@ -27,13 +27,19 @@
  * @author Jonathan Hui
  * @author Philip Levis
  * @author Joe Polastre
- * @date   October 10 2005
+ * @date   June 21 2006
  */
+
 interface PacketAcknowledgements {
 
   /**
-   * Enable acknowledgments on this packet.
+   * Tell a protocol that when it sends this packet, it should use synchronous
+   * acknowledgments.
+   * The acknowledgment is synchronous as the caller can check whether the
+   * ack was received through the wasAcked() command as soon as a send operation
+   * completes.
    *
+   * @param msg - A message which should be acknowledged when transmitted.
    * @return SUCCESS if acknowledgements are enabled, EBUSY
    * if the communication layer cannot enable them at this time, FAIL
    * if it does not support them.
@@ -42,8 +48,10 @@ interface PacketAcknowledgements {
   async command error_t requestAck( message_t* msg );
 
   /**
-   * Disable acknowledgments on this packet. 
+   * Tell a protocol that when it sends this packet, it should not use
+   * synchronous acknowledgments.
    *
+   * @param msg - A message which should not be acknowledged when transmitted.
    * @return SUCCESS if acknowledgements are disabled, EBUSY
    * if the communication layer cannot disable them at this time, FAIL
    * if it cannot support unacknowledged communication.
@@ -52,10 +60,13 @@ interface PacketAcknowledgements {
   async command error_t noAck( message_t* msg );
 
   /**
-   * Whether or not a given packet was acknowledged. If a packet
-   * layer does not support acknowledgements, this must return always
+   * Tell a caller whether or not a transmitted packet was acknowledged.
+   * If acknowledgments on the packet had been disabled through noAck(),
+   * then the return value is undefined. If a packet
+   * layer does not support acknowledgements, this command must return always
    * return FALSE.
    *
+   * @param msg - A transmitted message.
    * @return Whether the packet was acknowledged.
    *
    */
