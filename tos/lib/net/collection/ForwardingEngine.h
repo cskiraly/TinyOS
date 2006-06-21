@@ -50,6 +50,10 @@
 #error "forwarding engine todo"
 #endif
 
+enum {
+  MAX_RETRIES = 4
+};
+
 typedef nx_struct {
   nx_uint8_t control;
   nx_am_addr_t origin;
@@ -59,6 +63,7 @@ typedef nx_struct {
 typedef struct {
   message_t *msg;
   uint8_t client;
+  uint8_t retries;
 } fe_queue_entry_t;
 
 #endif

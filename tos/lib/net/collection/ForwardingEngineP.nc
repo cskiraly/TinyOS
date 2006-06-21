@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.30 2006-06-21 00:15:15 kasj78 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.31 2006-06-21 02:16:53 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-21 00:15:15 $
+ *  @date   $Date: 2006-06-21 02:16:53 $
  */
 
 #include <ForwardingEngine.h>
@@ -84,8 +84,10 @@ implementation {
    * is being used, and control access to the data-link layer.*/
   bool sending = FALSE;
 
-  /* Keeps track of whether we are currently sending to the UART a
-   * debug message. */
+  /* Keep track of the last parent address we sent to, so that
+     unacked packets to an old parent are not incorrectly attributed
+     to a new parent. */
+  am_addr_t lastParent;
 
   enum {
     CLIENT_COUNT = uniqueCount(UQ_COLLECTION_CLIENT)
@@ -104,6 +106,7 @@ implementation {
       dbg("Forwarder", "clientPtrs[%hhu] = %p\n", i, clientPtrs[i]);
     }
     loopbackMsgPtr = &loopbackMsg;
+    lastParent = call AMPacket.address();
     return SUCCESS;
   }
 
@@ -170,6 +173,7 @@ implementation {
     qe = clientPtrs[client];
     qe->msg = msg;
     qe->client = client;
+    qe->retries = MAX_RETRIES;
     dbg("Forwarder", "%s: queue entry for %hhu is %hhu deep\n", __FUNCTION__, client, call SendQueue.size());
     if (call SendQueue.enqueue(qe) == SUCCESS) {
       if (radioOn && !call RetxmitTimer.isRunning()) {
@@ -231,33 +235,41 @@ implementation {
       fe_queue_entry_t* qe = call SendQueue.head();
       uint8_t payloadLen = call SubPacket.payloadLength(qe->msg);
       am_addr_t dest = call UnicastNameFreeRouting.nextHop();
+      /* If our current parent is not the same as the last parent
+	 we sent do, then reset the count of unacked packets: don't
+	 penalize a new parent for the failures of a prior one.*/
+      if (dest != lastParent) {
+	qe->retries = MAX_RETRIES;
+	lastParent = dest;
+      }
+ 
       dbg("Forwarder", "Sending queue entry %p\n", qe);
       if (call RootControl.isRoot()) {
-	collection_id_t collectid = getHeader(qe->msg)->collectid;
-	memcpy(loopbackMsgPtr, qe->msg, sizeof(message_t));
-	ackPending = FALSE;
+        collection_id_t collectid = getHeader(qe->msg)->collectid;
+        memcpy(loopbackMsgPtr, qe->msg, sizeof(message_t));
+        ackPending = FALSE;
 	
-	dbg("Forwarder", "%s: I'm a root, so loopback and signal receive.\n", __FUNCTION__);
-	loopbackMsgPtr = signal Receive.receive[collectid](loopbackMsgPtr,
+        dbg("Forwarder", "%s: I'm a root, so loopback and signal receive.\n", __FUNCTION__);
+        loopbackMsgPtr = signal Receive.receive[collectid](loopbackMsgPtr,
 							  call Packet.getPayload(loopbackMsgPtr, NULL), 
 							  call Packet.payloadLength(loopbackMsgPtr));
-	signal SubSend.sendDone(qe->msg, SUCCESS);
-	return;
+        signal SubSend.sendDone(qe->msg, SUCCESS);
+        return;
       }
       
       ackPending = (call PacketAcknowledgements.requestAck(qe->msg) == SUCCESS);
       
       subsendResult = call SubSend.send(dest, qe->msg, payloadLen);
       if (subsendResult == SUCCESS) {
-	// Successfully submitted to the data-link layer.
-	sending = TRUE;
-	dbg("Forwarder", "%s: subsend succeeded with %p.\n", __FUNCTION__, qe->msg);
-	if (qe->client < CLIENT_COUNT) {
-	  dbg("Forwarder", "%s: client packet.\n", __FUNCTION__);
-	}
-	else {
-	  dbg("Forwarder", "%s: forwarded packet.\n", __FUNCTION__);
-	}
+        // Successfully submitted to the data-link layer.
+        sending = TRUE;
+        dbg("Forwarder", "%s: subsend succeeded with %p.\n", __FUNCTION__, qe->msg);
+        if (qe->client < CLIENT_COUNT) {
+	        dbg("Forwarder", "%s: client packet.\n", __FUNCTION__);
+        }
+        else {
+	        dbg("Forwarder", "%s: forwarded packet.\n", __FUNCTION__);
+        }
         return;
       }
       else if (subsendResult == EOFF) {
@@ -310,10 +322,30 @@ implementation {
     }
     else if (ackPending && !call PacketAcknowledgements.wasAcked(msg)) {
       // AckPending is for case when DL cannot support acks.
-      dbg("Forwarder", "%s: not acked\n", __FUNCTION__);
-      call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_WAITACK, error, TOS_NODE_ID, 
+      if (--qe->retries) { 
+        dbg("Forwarder", "%s: not acked\n", __FUNCTION__);
+        call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_WAITACK, error, TOS_NODE_ID, 
                                          call AMPacket.destination(msg));
-      startRetxmitTimer(SENDDONE_NOACK_WINDOW, SENDDONE_NOACK_OFFSET);
+        startRetxmitTimer(SENDDONE_NOACK_WINDOW, SENDDONE_NOACK_OFFSET);
+      } else {
+        //max retries, dropping packet
+        if (qe->client < CLIENT_COUNT) {
+            clientPtrs[qe->client] = qe;
+            signal Send.sendDone[qe->client](msg, FAIL);
+            call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL_ACK_SEND, 
+                                               error, TOS_NODE_ID, 
+                                               call AMPacket.destination(msg));
+        } else {
+            call MessagePool.put(qe->msg);
+            call QEntryPool.put(qe);      
+            call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL_ACK_FWD, 
+                                               error, TOS_NODE_ID, 
+                                               call AMPacket.destination(msg));
+        }
+        call SendQueue.dequeue();
+        sending = FALSE;
+        startRetxmitTimer(SENDDONE_OK_WINDOW, SENDDONE_OK_OFFSET);
+      }
     }
     else if (qe->client < CLIENT_COUNT) {
       network_header_t* hdr;
@@ -366,6 +398,7 @@ implementation {
 
       qe->msg = m;
       qe->client = 0xff;
+      qe->retries = MAX_RETRIES;
       
       if (call SendQueue.enqueue(qe) == SUCCESS) {
 	dbg("Forwarder,Route", "%s forwarding packet %p with queue size %hhu\n", __FUNCTION__, m, call SendQueue.size());

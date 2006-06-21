@@ -20,6 +20,8 @@ enum {
     NET_C_FE_DST_MSG =  0x23,  //:base app. recv  :msg_uid, origin, last_hop
     NET_C_FE_SENDDONE_FAIL = 0x24,
     NET_C_FE_SENDDONE_WAITACK = 0x25,
+    NET_C_FE_SENDDONE_FAIL_ACK_SEND = 0x26,
+    NET_C_FE_SENDDONE_FAIL_ACK_FWD  = 0x27,
 
 
     NET_C_TREE_NO_ROUTE   = 0x30,   //:        :no args
