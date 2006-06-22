@@ -10,8 +10,8 @@ Packet Protocols
 :Author: Philip Levis
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.9 $
-:Draft-Modified: $Date: 2006-06-13 16:44:17 $
+:Draft-Version: $Revision: 1.1.2.10 $
+:Draft-Modified: $Date: 2006-06-22 05:06:54 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -347,6 +347,20 @@ and use the pointer returned from ``receive``. The pointer passed as
 a parameter to ``receive`` MUST NOT be touched, used, or stored after
 the signaling of ``receive.``
 
+2.4 Dispatch
+--------------------------------------------------------------------
+
+A packet protocol MAY have a dispatch identifier. This generally manifests
+as the protocol component provided parameterized interfaces (rather than
+a single interface instances). A dispatch identifier allows multiple 
+services to use a protocol independently. If a protocol provides a
+dispatch mechanism, then each dispatch identifier SHOULD correspond to
+a single packet format: if an identifier corresponds to multiple packet
+formats, then there is no way to disambiguate them. Packets whose internal 
+structure depends on their fields (for example,
+a packet that has a control field which indicates which optional fields
+are present) do not pose such problems.
+
 3. HIL: ActiveMessageC
 ====================================================================
 
@@ -393,15 +407,26 @@ include choosing one radio or having some form of address-based
 dispatch.
 
 
-4. Services: AMSenderC, AMReceiverC, AMSnooperC, AMSnoopingReceiverC
+4. AM Services: AMSenderC, AMReceiverC, AMSnooperC, AMSnoopingReceiverC
 ====================================================================
 
-TinyOS 2.x provides four component virtualizations to applications:
+TinyOS 2.x provides four component single-hop communication
+virtualizations to applications:
 AMReceiverC, AMSnooperC, AMSnoopingReceiverC, and AMSenderC. Each is a
 generic component that takes an active message ID as a
 parameter. These components assume the existence of ActiveMessageC.
 
-4.1 AMReceiverC
+4.1 Dispatch: ``am_id_t``
+--------------------------------------------------------------------
+
+Active messages have an 8-bit type field, which allows multiple
+protocols to all use AM communication without conflicting. Following
+the guidelines for protocol dispatch identifiers, each
+am_id_t used in a network SHOULD have a single packet format, so
+that the am_id_t, combined with the packet contents, are sufficient
+to determine the exact packet format.
+
+4.2 AMReceiverC
 --------------------------------------------------------------------
 
 AMReceiverC has the following signature::
@@ -422,7 +447,7 @@ NOT instantiate two AMReceivers with the same am_id_t and MUST NOT
 instantiate an AMReceiver and an AMSnoopingReceiver with the same
 am_id_t.
 
-4.2 AMSnooperC
+4.3 AMSnooperC
 --------------------------------------------------------------------
 
 AMSnooper has an identical signature to AMReceiver::
@@ -443,7 +468,7 @@ NOT instantiate two AMSnoopers with the same am_id_t and MUST NOT
 instantiate an AMSnooper and an AMSnoopingReceiver with the same
 am_id_t.
 
-4.3 AMSnoopingReceiverC
+4.4 AMSnoopingReceiverC
 --------------------------------------------------------------------
 
 AMSnoopingReceiverC has an identical signature to AMReceiverC::
@@ -463,7 +488,7 @@ swaps buffers, a program that instantiates an AMSnoopingReceiverC with
 a certain am_id_t MUST NOT instantiate another AMSnoopingReceiverC,
 AMSnooperC, or AMReceiverC with the same am_id_t.
 
-4.4 AMSender 
+4.5 AMSender 
 --------------------------------------------------------------------
 
 AMSenderC has the following signature::
@@ -485,7 +510,7 @@ but it MUST be fair, where fair means that each client with outstanding
 packets receives a reasonable approximation of an equal share of the 
 available transmission bandwidth.
 
-4.5 Power Management
+4.6 Power Management
 --------------------------------------------------------------------
 
 The communication virtualizations do not support power management.
