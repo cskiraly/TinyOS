@@ -191,7 +191,9 @@ generic configuration CollectionSenderC(collection_id_t collectid) {
 
 This abstraction follows a similar virtualization approach to
 AMSenderC [1_], except that it is parameterized by a collection_id_t
-rather than an am_id_t.
+rather than an am_id_t. As with am_id_t, every collection_id_t SHOULD
+have a single packet format, so that receivers can parse a packet
+based on its collection ID and contents.
   
 4 Implementation
 ====================================================================
