@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.33 2006-06-22 14:09:47 rfonseca76 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.34 2006-06-22 17:05:24 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-22 14:09:47 $
+ *  @date   $Date: 2006-06-22 17:05:24 $
  */
 
 #include <ForwardingEngine.h>
@@ -321,7 +321,9 @@ implementation {
     else if (error != SUCCESS) {
       // Immediate retransmission is the worst thing to do.
       dbg("Forwarder", "%s: send failed\n", __FUNCTION__);
-      call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL, error, TOS_NODE_ID, 
+      call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL, 
+					 call CollectionPacket.getSequenceNumber(msg), 
+					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
       startRetxmitTimer(SENDDONE_FAIL_WINDOW, SENDDONE_FAIL_OFFSET);
     }
@@ -329,7 +331,9 @@ implementation {
       // AckPending is for case when DL cannot support acks.
       if (--qe->retries) { 
         dbg("Forwarder", "%s: not acked\n", __FUNCTION__);
-        call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_WAITACK, error, TOS_NODE_ID, 
+        call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_WAITACK, 
+					 call CollectionPacket.getSequenceNumber(msg), 
+					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
         startRetxmitTimer(SENDDONE_NOACK_WINDOW, SENDDONE_NOACK_OFFSET);
       } else {
@@ -338,14 +342,16 @@ implementation {
             clientPtrs[qe->client] = qe;
             signal Send.sendDone[qe->client](msg, FAIL);
             call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL_ACK_SEND, 
-                                               error, TOS_NODE_ID, 
-                                               call AMPacket.destination(msg));
+					 call CollectionPacket.getSequenceNumber(msg), 
+					 call CollectionPacket.getOrigin(msg), 
+                                         call AMPacket.destination(msg));
         } else {
             call MessagePool.put(qe->msg);
             call QEntryPool.put(qe);      
             call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL_ACK_FWD, 
-                                               error, TOS_NODE_ID, 
-                                               call AMPacket.destination(msg));
+					 call CollectionPacket.getSequenceNumber(msg), 
+					 call CollectionPacket.getOrigin(msg), 
+                                         call AMPacket.destination(msg));
         }
         call SendQueue.dequeue();
         sending = FALSE;
@@ -357,7 +363,9 @@ implementation {
       uint8_t client = qe->client;
       dbg("Forwarder", "%s: our packet for client %hhu, remove %p from queue\n", 
           __FUNCTION__, client, qe);
-      call CollectionDebug.logEventRoute(NET_C_FE_SENT_MSG, error, TOS_NODE_ID, 
+      call CollectionDebug.logEventRoute(NET_C_FE_SENT_MSG, 
+					 call CollectionPacket.getSequenceNumber(msg), 
+					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
       clientPtrs[client] = qe;
       hdr = getHeader(qe->msg);
@@ -369,7 +377,9 @@ implementation {
     else if (call MessagePool.size() < call MessagePool.maxSize()) {
       // A successfully forwarded packet.
       dbg("Forwarder,Route", "%s: successfully forwarded packet (client: %hhu), message pool is %hhu/%hhu.\n", __FUNCTION__, qe->client, call MessagePool.size(), call MessagePool.maxSize());
-      call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, error, TOS_NODE_ID, 
+      call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, 
+					 call CollectionPacket.getSequenceNumber(msg), 
+					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
       call SentCache.insert(call CollectionPacket.getPacketID(qe->msg));
       call SendQueue.dequeue();
@@ -442,7 +452,10 @@ implementation {
     msg_uid = call CollectionPacket.getPacketID(msg);
     collectid = hdr->collectid;
 
-    call CollectionDebug.logEvent(NET_C_FE_RCV_MSG);
+    call CollectionDebug.logEventRoute(NET_C_FE_RCV_MSG,
+					 call CollectionPacket.getSequenceNumber(msg), 
+					 call CollectionPacket.getOrigin(msg), 
+                                         call AMPacket.destination(msg));
     if (len > call SubSend.maxPayloadLength()) {
       return msg;
     }
