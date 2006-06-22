@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.31 2006-06-21 02:16:53 rfonseca76 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.32 2006-06-22 13:43:28 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-21 02:16:53 $
+ *  @date   $Date: 2006-06-22 13:43:28 $
  */
 
 #include <ForwardingEngine.h>
@@ -53,6 +53,7 @@ generic module ForwardingEngineP() {
     interface Pool<fe_queue_entry_t> as QEntryPool;
     interface Pool<message_t> as MessagePool;
     interface Timer<TMilli> as RetxmitTimer;
+    interface Cache<uint32_t> as SentCache;
     interface PacketAcknowledgements;
     interface Random;
     interface RootControl;
@@ -88,6 +89,8 @@ implementation {
      unacked packets to an old parent are not incorrectly attributed
      to a new parent. */
   am_addr_t lastParent;
+  
+  uint8_t seqno;
 
   enum {
     CLIENT_COUNT = uniqueCount(UQ_COLLECTION_CLIENT)
@@ -107,6 +110,7 @@ implementation {
     }
     loopbackMsgPtr = &loopbackMsg;
     lastParent = call AMPacket.address();
+    seqno = 0;
     return SUCCESS;
   }
 
@@ -163,6 +167,7 @@ implementation {
     call Packet.setPayloadLength(msg, len);
     hdr = getHeader(msg);
     hdr->origin = TOS_NODE_ID;
+    hdr->seqno  = seqno++;
     hdr->collectid = call CollectionId.fetch[client]();
 
     if (clientPtrs[client] == NULL) {
@@ -366,6 +371,7 @@ implementation {
       dbg("Forwarder,Route", "%s: successfully forwarded packet (client: %hhu), message pool is %hhu/%hhu.\n", __FUNCTION__, qe->client, call MessagePool.size(), call MessagePool.maxSize());
       call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, error, TOS_NODE_ID, 
                                          call AMPacket.destination(msg));
+      call SentCache.insert(CollectionPacket.getPacketID(qe->msg));
       call SendQueue.dequeue();
       call MessagePool.put(qe->msg);
       call QEntryPool.put(qe);      
@@ -426,11 +432,39 @@ implementation {
     network_header_t* hdr = getHeader(msg);
     uint8_t netlen;
     collection_id_t collectid;
+
+    uint32_t msg_uid;
+    bool duplicate = FALSE;
+    fe_queue_entry_t* qe;
+
+
+    msg_uid = CollectionPacket.getPacketID(msg);
     collectid = hdr->collectid;
+
     call CollectionDebug.logEvent(NET_C_FE_RCV_MSG);
     if (len > call SubSend.maxPayloadLength()) {
       return msg;
     }
+
+    //See if we remember having seen this packet
+    //We look in the sent cache ...
+    if (call SentCache.lookup(msg_uid)) {
+        call CollectionDebug.logEvent(NET_C_FE_DUPLICATE_CACHE);
+        return msg;
+    }
+    //... and in the queue for duplicates
+    for (i = call Queue.size(); --i ;) {
+        qe = call Queue.element(i);
+        if (call CollectionPacket.getPacketID(qe->msg) == msg_uid) {
+            duplicate = TRUE;
+            break;
+        }
+    }
+    if (duplicate) {
+        call CollectionDebug.logEvent(NET_C_FE_DUPLICATE_QUEUE);
+        return msg;
+    }
+
     // If I'm the root, signal receive. 
     else if (call RootControl.isRoot())
       return signal Receive.receive[collectid](msg, 
@@ -506,7 +540,7 @@ implementation {
   command am_addr_t CollectionPacket.getOrigin(message_t* msg) {
     return getHeader(msg)->origin;
   }
-  
+
   command void CollectionPacket.setOrigin(message_t* msg, am_addr_t addr) {
     getHeader(msg)->origin = addr;
   }
@@ -525,6 +559,18 @@ implementation {
   
   command void CollectionPacket.setControl(message_t* msg, uint8_t control) {
     getHeader(msg)->control = control;
+  }
+
+  command uint8_t getSequenceNumber(message_t* msg) {
+    return getHeader(msg)->seqno;
+  }
+
+  command void setSequenceNumber(message_t* msg, uint8_t seqno) {
+    getHeader(msg)->seqno = seqno;
+  }
+
+  command uint32_t CollectionPacket.getPacketID(message_t* msg) {
+    return ((uint32_t)(getHeader(msg)->origin) << 16) | (uint32_t)(getHeader(msg)->seqno);  
   }
 
   
