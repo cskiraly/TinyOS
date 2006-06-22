@@ -29,7 +29,38 @@
 	compilation options.  The makefile system definitions are
 	located in tinyos-2.x/support/make.</p>
 
-      <p>The first thing to check is that you have the TinyOS build system
+      <p>The first step is to check that your environment is set up 
+         correctly. Run the <code>tos-check-env</code> command:</p>
+
+<pre>
+$ tos-check-env
+</pre>
+
+      <p>This script checks pretty much everything that the TinyOS
+         environment needs. Most of the warnings should be somewhat
+         self-explanatory, if you are at all accustomed to a UNIX
+         environment. If you are having trouble with warnings, your
+         best bet is to join and ask questions on the 
+         <A HREF="https://mail.millennium.berkeley.edu/mailman/listinfo/tinyos-help">tinyos-help</A> email list. It's almost always the
+         case that if you've run into a problem, someone else has too.
+         Searching the <A HREF="http://mail.millennium.berkeley.edu/pipermail/tinyos/">help archives</A> can therefore be
+         useful.</p>
+
+      <p>If your system says that no such command is involved, then
+         chances are you need to install the TinyOS tools (tos-*).
+         Go to <code>tinyos-2.x/tools/tinyos</code> and type:</p>
+
+<pre>
+$ configure
+$ make 
+$ make install
+</pre>
+
+      <p>On Linux systems, you will either need superuser abilities or
+         access to <code>sudo</code>  for the last command.</p>
+
+
+      <p>The second thing to check is that you have the TinyOS build system
 	enabled. This involves the MAKERULES environment variable. In a shell,
 	type</p>
 
@@ -94,7 +125,9 @@ nescc: 1.2.6
       is being used. If you see different versions than those above,
       your compilation problems are most probably due to the fact that
       make is invoking the wrong version. This can easily happen if 
-      you are upgrading from TinyOS 1.x.</p>
+      you are upgrading from TinyOS 1.x. You might have passed the
+      tos-check-env because you have the right compiler on your system,
+      but for some reason make is invoking the wrong one.</p>
 
       <p><tt>ncc</tt> is a script that invokes the full compiler, 
       <tt>nescc</tt>. It lives in <tt>tinyos-2.x/tools/tinyos/ncc</tt>.
