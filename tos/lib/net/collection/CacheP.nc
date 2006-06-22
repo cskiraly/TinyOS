@@ -2,14 +2,14 @@
  * Insert on an element not in the cache will replace the oldest.
  * Insert on an element already in the cache will refresh its age.
  */
-generic module CacheP(typedef key_t @integer(), uint8_t size) {
+generic module CacheP(typedef cache_key_t @integer(), uint8_t size) {
     provides {
         interface Init;
-        interface Cache<key_t>;
+        interface Cache<cache_key_t>;
     }
 }
 implementation {
-    key_t cache[size];
+    cache_key_t cache[size];
     uint8_t first;
     uint8_t count;
 
@@ -33,9 +33,9 @@ implementation {
     }
 
     /* if key is in cache returns the index (offset by first), otherwise returns count */
-    uint8_t lookup(key_t key) {
+    uint8_t lookup(cache_key_t key) {
         uint8_t i;
-	key_t k;
+	cache_key_t k;
         for (i = 0; i < count; i++) {
 	   k = cache[(i + first) % size];
            if (k == key)
@@ -61,7 +61,7 @@ implementation {
         count--;
     }
 
-    command void Cache.insert(key_t key) {
+    command void Cache.insert(cache_key_t key) {
         uint8_t i;
         if (count == size ) {
             //remove someone. If item not in 
@@ -77,14 +77,14 @@ implementation {
         count++;
     }
 
-    command bool Cache.lookup(key_t key) {
+    command bool Cache.lookup(cache_key_t key) {
         return (lookup(key) < count);
     }
 
     /* Removes the item if in the cache.
      * Returns SUCCESS if item was in cache,
      *         FAIL if item was not in cache */
-    command error_t Cache.remove(key_t key) {
+    command error_t Cache.remove(cache_key_t key) {
     }
 
 }
