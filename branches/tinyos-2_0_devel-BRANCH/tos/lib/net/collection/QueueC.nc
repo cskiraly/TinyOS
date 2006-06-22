@@ -1,4 +1,4 @@
-/* $Id: QueueC.nc,v 1.1.2.5 2006-06-15 17:22:57 scipio Exp $ */
+/* $Id: QueueC.nc,v 1.1.2.6 2006-06-22 13:43:28 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 /*
  *  @author Philip Levis
- *  @date   $Date: 2006-06-15 17:22:57 $
+ *  @date   $Date: 2006-06-22 13:43:28 $
  */
 
    
@@ -98,4 +98,10 @@ implementation {
     }
   }
   
+  command t Queue.element(uint8_t index) {
+    index += head;
+    index %= QUEUE_SIZE;
+    return queue[index];
+  }  
+
 }

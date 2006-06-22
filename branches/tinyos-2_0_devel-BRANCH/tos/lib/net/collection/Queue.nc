@@ -1,4 +1,4 @@
-/* $Id: Queue.nc,v 1.1.2.2 2006-05-01 16:43:07 kasj78 Exp $ */
+/* $Id: Queue.nc,v 1.1.2.3 2006-06-22 13:43:28 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-05-01 16:43:07 $
+ *  @date   $Date: 2006-06-22 13:43:28 $
  */
 
    
@@ -35,7 +35,39 @@ interface Queue<t> {
   command uint8_t size();
   command uint8_t maxSize();
 
+  /**
+   * Get the head of the queue without removing it. If the queue
+   * is empty, the return value is undefined.
+   *
+   * @return The head of the queue.
+   */
   command t head();
+  
+  /**
+   * Remove the head of the queue. If the queue is empty, the return
+   * value is undefined.
+   *
+   * @return The head of the queue.
+   */
   command t dequeue();
+
+  /**
+   * Enqueue an element to the tail of the queue.
+   *
+   * @param newVal - the element to enqueue
+   * @return SUCCESS if the element was enqueued successfully, FAIL
+   *                 if it was not enqueued.
+   */
   command error_t enqueue(t newVal);
+
+  /**
+   * Return the nth element of the queue without dequeueing it, 
+   * where 0 is the head of the queue and (size - 1) is the tail. 
+   * If the element requested is larger than the current queue size,
+   * the return value is undefined.
+   *
+   * @param index - the index of the element to return
+   * @return the requested element in the queue.
+   */
+  command t element(uint8_t index);
 }

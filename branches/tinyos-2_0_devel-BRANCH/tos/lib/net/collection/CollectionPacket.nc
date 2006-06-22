@@ -1,4 +1,4 @@
-/* $Id: CollectionPacket.nc,v 1.1.2.3 2006-06-20 21:16:28 rfonseca76 Exp $ */
+/* $Id: CollectionPacket.nc,v 1.1.2.4 2006-06-22 13:43:28 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-20 21:16:28 $
+ *  @date   $Date: 2006-06-22 13:43:28 $
  */
 
 #include <AM.h>
@@ -39,4 +39,11 @@ interface CollectionPacket {
 
   command uint8_t getControl(message_t* msg);
   command void setControl(message_t* msg, uint8_t control);
+
+  command uint8_t getSequenceNumber(message_t* msg);
+  command void setSequenceNumber(message_t* msg, uint8_t seqno);
+
+  /* Returns a 32bit number which is a concatenation of
+   * the origin and the sequence number */
+  command uint32_t getPacketID(message_t* msg);
 }
