@@ -41,6 +41,7 @@ enum {
 typedef nx_struct {
   nx_uint8_t control;
   nx_am_addr_t origin;
+  nx_uint8_t seqno;
   nx_uint8_t collectid;
 } network_header_t;
 
