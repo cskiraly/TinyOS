@@ -2,10 +2,10 @@
  * Insert on an element not in the cache will replace the oldest.
  * Insert on an element already in the cache will refresh its age.
  */
-generic module CacheP(typedef key_t, uint8_t size) {
+generic module CacheP(typedef key_t @integer(), uint8_t size) {
     provides {
         interface Init;
-        interface Cache<key_t>
+        interface Cache<key_t>;
     }
 }
 implementation {
@@ -35,8 +35,10 @@ implementation {
     /* if key is in cache returns the index (offset by first), otherwise returns count */
     uint8_t lookup(key_t key) {
         uint8_t i;
+	key_t k;
         for (i = 0; i < count; i++) {
-           if (cache[(i + first) % size] == key)
+	   k = cache[(i + first) % size];
+           if (k == key)
             break; 
         }
         return i;

@@ -8,6 +8,6 @@ interface Cache<t> {
 
     /* Returns true if item is in the cache, false otherwise */
     command bool lookup(t item);
-    command errot_t remove(t item);
+    command error_t remove(t item);
 }
 

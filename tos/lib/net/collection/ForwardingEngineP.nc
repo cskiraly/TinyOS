@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.32 2006-06-22 13:43:28 rfonseca76 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.33 2006-06-22 14:09:47 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-22 13:43:28 $
+ *  @date   $Date: 2006-06-22 14:09:47 $
  */
 
 #include <ForwardingEngine.h>
@@ -371,7 +371,7 @@ implementation {
       dbg("Forwarder,Route", "%s: successfully forwarded packet (client: %hhu), message pool is %hhu/%hhu.\n", __FUNCTION__, qe->client, call MessagePool.size(), call MessagePool.maxSize());
       call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, error, TOS_NODE_ID, 
                                          call AMPacket.destination(msg));
-      call SentCache.insert(CollectionPacket.getPacketID(qe->msg));
+      call SentCache.insert(call CollectionPacket.getPacketID(qe->msg));
       call SendQueue.dequeue();
       call MessagePool.put(qe->msg);
       call QEntryPool.put(qe);      
@@ -436,9 +436,10 @@ implementation {
     uint32_t msg_uid;
     bool duplicate = FALSE;
     fe_queue_entry_t* qe;
+    uint8_t i;
 
 
-    msg_uid = CollectionPacket.getPacketID(msg);
+    msg_uid = call CollectionPacket.getPacketID(msg);
     collectid = hdr->collectid;
 
     call CollectionDebug.logEvent(NET_C_FE_RCV_MSG);
@@ -453,8 +454,8 @@ implementation {
         return msg;
     }
     //... and in the queue for duplicates
-    for (i = call Queue.size(); --i ;) {
-        qe = call Queue.element(i);
+    for (i = call SendQueue.size(); --i ;) {
+        qe = call SendQueue.element(i);
         if (call CollectionPacket.getPacketID(qe->msg) == msg_uid) {
             duplicate = TRUE;
             break;
@@ -561,12 +562,12 @@ implementation {
     getHeader(msg)->control = control;
   }
 
-  command uint8_t getSequenceNumber(message_t* msg) {
+  command uint8_t CollectionPacket.getSequenceNumber(message_t* msg) {
     return getHeader(msg)->seqno;
   }
 
-  command void setSequenceNumber(message_t* msg, uint8_t seqno) {
-    getHeader(msg)->seqno = seqno;
+  command void CollectionPacket.setSequenceNumber(message_t* msg, uint8_t _seqno) {
+    getHeader(msg)->seqno = _seqno;
   }
 
   command uint32_t CollectionPacket.getPacketID(message_t* msg) {

@@ -27,6 +27,7 @@ implementation {
     FORWARD_COUNT = 5,
     TREE_ROUTING_TABLE_SIZE = 10,
     QUEUE_SIZE = CLIENT_COUNT + FORWARD_COUNT,
+    CACHE_SIZE = 4,
   };
 
   components ActiveMessageC;
@@ -49,6 +50,9 @@ implementation {
 
   components new QueueC(fe_queue_entry_t*, QUEUE_SIZE) as SendQueueP;
   Forwarder.SendQueue -> SendQueueP;
+
+  components new CacheC(uint32_t, CACHE_SIZE) as SentCacheP;
+  Forwarder.SentCache -> SentCacheP;
 
   components new TimerMilliC() as RoutingBeaconTimer;
   components LinkEstimatorP as Estimator;
