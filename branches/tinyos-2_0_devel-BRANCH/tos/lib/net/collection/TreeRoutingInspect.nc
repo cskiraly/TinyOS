@@ -1,4 +1,4 @@
-/* $Id: TreeRoutingInspect.nc,v 1.1.2.3 2006-06-20 21:16:28 rfonseca76 Exp $ */
+/* $Id: TreeRoutingInspect.nc,v 1.1.2.4 2006-06-23 20:24:38 kasj78 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -23,31 +23,35 @@
 
 /*
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-06-20 21:16:28 $
+ *  @date   $Date: 2006-06-23 20:24:38 $
  *  @see Net2-WG
  */
 
 
 interface TreeRoutingInspect {
-	/* Get the parent of the node in the tree. 
-	 * The pointer is allocated by the caller.
-         * If the parent is invalid, return FAIL. 
-         * The caller MUST NOT use the value in parent if the return is not SUCCESS 
+  /* Get the parent of the node in the tree.  The pointer is allocated
+   * by the caller.  If the parent is invalid, return FAIL.  The
+   * caller MUST NOT use the value in parent if the return is not
+   * SUCCESS 
 	 */
 	command error_t getParent(am_addr_t* parent);
 
-	/* Get the depth (hopcount) of the node in the tree. 
-	 * The pointer is allocated by the caller.
-         * If the parent is invalid, return FAIL (no info). 
-         * The caller MUST NOT use the value in parent if the return is not SUCCESS 
+  /* Get the depth (hopcount) of the node in the tree.  The pointer is
+   * allocated by the caller.  If the parent is invalid, return FAIL
+   * (no info).  The caller MUST NOT use the value in parent if the
+   * return is not SUCCESS 
 	 */
 	command error_t getHopcount(uint8_t* hopcount);
 
-	/* Get the path quality metric for the current path to the root through the 
-         * current parent.
-	 * The pointer is allocated by the caller.
-         * If the parent is invalid, return FAIL (no info). 
-         * The caller MUST NOT use the value in parent if the return is not SUCCESS 
+  /* Get the path quality metric for the current path to the root
+   * through the current parent.  The pointer is allocated by the
+   * caller.  If the parent is invalid, return FAIL (no info).  The
+   * caller MUST NOT use the value in parent if the return is not
+   * SUCCESS 
 	 */
 	command error_t getMetric(uint16_t* metric);
+
+  /* This informs the routing engine to update its routing
+   * information, possibly by sending a beacon */
+  command void triggerRouteUpdate();
 }

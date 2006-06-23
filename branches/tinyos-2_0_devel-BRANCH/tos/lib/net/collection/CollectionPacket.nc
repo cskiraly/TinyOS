@@ -1,4 +1,4 @@
-/* $Id: CollectionPacket.nc,v 1.1.2.4 2006-06-22 13:43:28 rfonseca76 Exp $ */
+/* $Id: CollectionPacket.nc,v 1.1.2.5 2006-06-23 20:24:38 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-22 13:43:28 $
+ *  @date   $Date: 2006-06-23 20:24:38 $
  */
 
 #include <AM.h>
@@ -42,6 +42,9 @@ interface CollectionPacket {
 
   command uint8_t getSequenceNumber(message_t* msg);
   command void setSequenceNumber(message_t* msg, uint8_t seqno);
+
+  command uint16_t getGradient(message_t* msg);
+  command void setGradient(message_t* msg, uint16_t gradient);
 
   /* Returns a 32bit number which is a concatenation of
    * the origin and the sequence number */

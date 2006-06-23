@@ -75,6 +75,7 @@ implementation {
   Router.BeaconTimer -> RoutingBeaconTimer;
   Router.CollectionDebug = CollectionDebug;
   Forwarder.CollectionDebug = CollectionDebug;
+  Forwarder.TreeRoutingInspect -> Router;
   TreeRoutingInspect = Router;
  
   components new TimerMilliC() as RetxmitTimer;

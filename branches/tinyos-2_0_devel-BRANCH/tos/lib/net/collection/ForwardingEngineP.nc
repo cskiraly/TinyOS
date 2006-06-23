@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.37 2006-06-23 18:02:42 kasj78 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.38 2006-06-23 20:24:38 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-23 18:02:42 $
+ *  @date   $Date: 2006-06-23 20:24:38 $
  */
 
 #include <ForwardingEngine.h>
@@ -54,6 +54,7 @@ generic module ForwardingEngineP() {
     interface Pool<message_t> as MessagePool;
     interface Timer<TMilli> as RetxmitTimer;
     interface Cache<uint32_t> as SentCache;
+    interface TreeRoutingInspect;
     interface PacketAcknowledgements;
     interface Random;
     interface RootControl;
@@ -240,6 +241,8 @@ implementation {
       uint8_t payloadLen = call SubPacket.payloadLength(qe->msg);
       am_addr_t dest = call UnicastNameFreeRouting.nextHop();
       uint32_t msg_uid = call CollectionPacket.getPacketID(qe->msg);
+      uint16_t gradient;
+
       if (call SentCache.lookup(msg_uid)) {
         call CollectionDebug.logEvent(NET_C_FE_DUPLICATE_CACHE_AT_SEND);
         call SendQueue.dequeue();
@@ -267,6 +270,14 @@ implementation {
         signal SubSend.sendDone(qe->msg, SUCCESS);
         return;
       }
+      
+      // Loop-detection functionality:
+      if (call TreeRoutingInspect.getMetric(&gradient) != SUCCESS) {
+        // If we have no metric, set our gradient conservatively so
+        // that other nodes don't automatically drop our packets.
+        gradient = 0;
+      }
+      call CollectionPacket.setGradient(qe->msg, gradient);
       
       ackPending = (call PacketAcknowledgements.requestAck(qe->msg) == SUCCESS);
       
@@ -417,25 +428,44 @@ implementation {
     else {
       message_t* newMsg = call MessagePool.get();
       fe_queue_entry_t *qe = call QEntryPool.get();
+      uint16_t gradient;
 
       qe->msg = m;
       qe->client = 0xff;
       qe->retries = MAX_RETRIES;
+
       
       if (call SendQueue.enqueue(qe) == SUCCESS) {
-	dbg("Forwarder,Route", "%s forwarding packet %p with queue size %hhu\n", __FUNCTION__, m, call SendQueue.size());
-	if (!call RetxmitTimer.isRunning()) {
-	  post sendTask();
-	}
-	return newMsg;
-      }
-      else {
+        dbg("Forwarder,Route", "%s forwarding packet %p with queue size %hhu\n", __FUNCTION__, m, call SendQueue.size());
+        // Loop-detection code:
+        if (call TreeRoutingInspect.getMetric(&gradient) == SUCCESS) {
+          // We only check for loops if we know our own metric
+          if (call CollectionPacket.getGradient(m) < gradient) {
+            // The incoming packet's metric (gradient) is less than our
+            // own gradient.  Trigger a route update and backoff.
+            call TreeRoutingInspect.triggerRouteUpdate();
+            startRetxmitTimer(LOOPY_WINDOW, LOOPY_OFFSET);
+            call CollectionDebug.logEvent(NET_C_FE_LOOP_DETECTED);
+          }
+        }
+
+        if (!call RetxmitTimer.isRunning()) {
+          // sendTask is only immediately posted if we don't detect a
+          // loop.
+          post sendTask();
+        }
+        
+        // Successful function exit point:
+        return newMsg;
+      } else {
+        // There was a problem enqueuing to the send queue.
         call MessagePool.put(newMsg);
         call QEntryPool.put(qe);
       }
     }
 
-    // send a debug message to the uart
+    // Resource acquisition problem.  Send a debug message to the
+    // uart.
     call CollectionDebug.logEvent(NET_C_FE_SEND_QUEUE_FULL);
 
     // We'll have to drop the packet on the floor: not enough
@@ -581,6 +611,14 @@ implementation {
   
   command void CollectionPacket.setControl(message_t* msg, uint8_t control) {
     getHeader(msg)->control = control;
+  }
+
+  command uint16_t CollectionPacket.getGradient(message_t* msg) {
+    return getHeader(msg)->gradient;
+  }
+
+  command void CollectionPacket.setGradient(message_t* msg, uint16_t gradient) {
+    getHeader(msg)->gradient = gradient;
   }
 
   command uint8_t CollectionPacket.getSequenceNumber(message_t* msg) {
