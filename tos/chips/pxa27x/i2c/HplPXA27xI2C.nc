@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xI2C.nc,v 1.1.2.2 2006-06-16 18:57:05 philipb Exp $ */
+/* $Id: HplPXA27xI2C.nc,v 1.1.2.3 2006-06-23 22:32:43 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -45,6 +45,7 @@ interface HplPXA27xI2C
   async command void setICR(uint32_t val);
   async command uint32_t getICR();
 
+ async command void setISR(uint32_t val);
   async command uint32_t getISR();
   
   async command void setISAR(uint32_t val);

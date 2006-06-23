@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xI2CP.nc,v 1.1.2.3 2006-06-16 18:57:05 philipb Exp $ */
+/* $Id: HplPXA27xI2CP.nc,v 1.1.2.4 2006-06-23 22:32:43 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -116,6 +116,14 @@ implementation
     switch(dev) {
     case 0: return ICR; break;
     case 1: return PICR; break;
+    default: return 0;
+    }
+  }
+
+ async command uint32_t I2C.setISR(uint32_t val) { 
+    switch(dev) {
+    case 0: return ISR = val; break;
+    case 1: return PISR = val; break;
     default: return 0;
     }
   }
