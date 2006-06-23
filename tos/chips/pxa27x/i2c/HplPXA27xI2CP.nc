@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xI2CP.nc,v 1.1.2.4 2006-06-23 22:32:43 philipb Exp $ */
+/* $Id: HplPXA27xI2CP.nc,v 1.1.2.5 2006-06-23 23:22:07 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -44,6 +44,7 @@ generic module HplPXA27xI2CP(uint8_t dev)
   provides interface HplPXA27xI2C as I2C; 
 
   uses interface HplPXA27xInterrupt as I2CIrq;
+
 }
 
 implementation
@@ -120,11 +121,11 @@ implementation
     }
   }
 
- async command uint32_t I2C.setISR(uint32_t val) { 
+ async command void I2C.setISR(uint32_t val) { 
     switch(dev) {
-    case 0: return ISR = val; break;
-    case 1: return PISR = val; break;
-    default: return 0;
+    case 0: ISR = val; break;
+    case 1: PISR = val; break;
+    default: break;
     }
   }
 
