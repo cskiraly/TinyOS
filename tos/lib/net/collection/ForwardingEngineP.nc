@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.36 2006-06-23 04:47:12 rfonseca76 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.37 2006-06-23 18:02:42 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-23 04:47:12 $
+ *  @date   $Date: 2006-06-23 18:02:42 $
  */
 
 #include <ForwardingEngine.h>
@@ -224,7 +224,8 @@ implementation {
       dbg("Forwarder", "%s: queue empty, don't send\n", __FUNCTION__);
       return;
     }
-    else if (!call UnicastNameFreeRouting.hasRoute()) {
+    else if (!call RootControl.isRoot() && 
+             !call UnicastNameFreeRouting.hasRoute()) {
       dbg("Forwarder", "%s: no route, don't send, start retry timer\n", __FUNCTION__);
       call RetxmitTimer.startOneShot(10000);
 
