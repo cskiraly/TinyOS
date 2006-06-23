@@ -24,6 +24,7 @@ enum {
     NET_C_FE_SENDDONE_FAIL_ACK_FWD  = 0x27,
     NET_C_FE_DUPLICATE_CACHE = 0x28,  //dropped duplicate packet seen in cache
     NET_C_FE_DUPLICATE_QUEUE = 0x29,  //dropped duplicate packet seen in queue
+    NET_C_FE_DUPLICATE_CACHE_AT_SEND = 0x2A,  //dropped duplicate packet seen in cache
 
 
     NET_C_TREE_NO_ROUTE   = 0x30,   //:        :no args
