@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-06-16 16:02:32 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-06-23 14:07:13 $
  * @author: Jan Hauer
  * ========================================================================
  */
@@ -36,7 +36,7 @@
 /**
  * 
  * Sensing demo application. See README.txt file in this directory for usage
- * instructions and have a look at tinyos-2.x/doc/html/tutorial/lesson4.html
+ * instructions and have a look at tinyos-2.x/doc/html/tutorial/lesson5.html
  * for a general tutorial on sensing in TinyOS.
  * 
  * @author Jan Hauer
