@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: TreeRoutingEngineP.nc,v 1.1.2.17 2006-06-21 00:17:35 gnawali Exp $ */
+/* $Id: TreeRoutingEngineP.nc,v 1.1.2.18 2006-06-23 20:24:38 kasj78 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -29,7 +29,7 @@
  *  Acknowledgment: based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
  *                           MultiHopLQI
  *                           
- *  @date   $Date: 2006-06-21 00:17:35 $
+ *  @date   $Date: 2006-06-23 20:24:38 $
  *  @see Net2-WG
  */
 
@@ -382,6 +382,18 @@ implementation {
         *metric = routeInfo.metric;
         return SUCCESS;
     }
+
+    command void TreeRoutingInspect.triggerRouteUpdate() {
+      // Random time in interval 64-127ms
+      uint16_t time = call Random.rand16();
+      time &= 0x3f; 
+      time += 64;
+      if (call BeaconTimer.gett0() + call BeaconTimer.getdt() -
+  call BeaconTimer.getNow() >= time) {
+         call BeaconTimer.stop();
+         call BeaconTimer.startOneShot(time);
+        }
+     }
 
     /* RootControl interface */
     /** sets the current node as a root, if not already a root */

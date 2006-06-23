@@ -12,7 +12,9 @@ enum {
   SENDDONE_NOACK_WINDOW=0x007f,
   SENDDONE_NOACK_OFFSET=128,
   SENDDONE_OK_WINDOW=0x007f,
-  SENDDONE_OK_OFFSET=128
+  SENDDONE_OK_OFFSET=128,
+  LOOPY_WINDOW=0x01ff,
+  LOOPY_OFFSET=512,
 };
 
 #elif PLATFORM_MICAZ || PLATFORM_TELOSA || PLATFORM_TELOSB
@@ -23,7 +25,9 @@ enum {
   SENDDONE_NOACK_WINDOW=0x003f,
   SENDDONE_NOACK_OFFSET=64,
   SENDDONE_OK_WINDOW=0x001f,
-  SENDDONE_OK_OFFSET=32
+  SENDDONE_OK_OFFSET=32,
+  LOOPY_WINDOW=0x01ff,
+  LOOPY_OFFSET=512,
 };
 
 #endif
@@ -37,6 +41,7 @@ typedef nx_struct {
   nx_am_addr_t origin;
   nx_uint8_t seqno;
   nx_uint8_t collectid;
+  nx_uint16_t gradient;
 } network_header_t;
 
 typedef struct {
