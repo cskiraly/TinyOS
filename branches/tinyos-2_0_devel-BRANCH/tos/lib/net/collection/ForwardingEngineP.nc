@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.35 2006-06-22 18:27:04 rfonseca76 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.36 2006-06-23 04:47:12 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-22 18:27:04 $
+ *  @date   $Date: 2006-06-23 04:47:12 $
  */
 
 #include <ForwardingEngine.h>
@@ -151,8 +151,6 @@ implementation {
     }
   }
 
-  task void sendTask();
-
   network_header_t* getHeader(message_t* m) {
     return (network_header_t*)call SubPacket.getPayload(m, NULL);
   }
@@ -240,6 +238,13 @@ implementation {
       fe_queue_entry_t* qe = call SendQueue.head();
       uint8_t payloadLen = call SubPacket.payloadLength(qe->msg);
       am_addr_t dest = call UnicastNameFreeRouting.nextHop();
+      uint32_t msg_uid = call CollectionPacket.getPacketID(qe->msg);
+      if (call SentCache.lookup(msg_uid)) {
+        call CollectionDebug.logEvent(NET_C_FE_DUPLICATE_CACHE_AT_SEND);
+        call SendQueue.dequeue();
+	post sendTask();
+        return;
+      }
       /* If our current parent is not the same as the last parent
 	 we sent do, then reset the count of unacked packets: don't
 	 penalize a new parent for the failures of a prior one.*/
