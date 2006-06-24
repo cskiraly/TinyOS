@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.38 2006-06-23 20:24:38 kasj78 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.39 2006-06-24 00:38:21 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-23 20:24:38 $
+ *  @date   $Date: 2006-06-24 00:38:21 $
  */
 
 #include <ForwardingEngine.h>
@@ -219,10 +219,12 @@ implementation {
     dbg("Forwarder", "%s: Trying to send a packet. Queue size is %hhu.\n", __FUNCTION__, call SendQueue.size());
     if (sending) {
       dbg("Forwarder", "%s: busy, don't send\n", __FUNCTION__);
+      call CollectionDebug.logEvent(NET_C_FE_SENDING_BUSY);
       return;
     }
     else if (call SendQueue.empty()) {
       dbg("Forwarder", "%s: queue empty, don't send\n", __FUNCTION__);
+      call CollectionDebug.logEvent(NET_C_FE_SENDQUEUE_EMPTY);
       return;
     }
     else if (!call RootControl.isRoot() && 
