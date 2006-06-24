@@ -46,7 +46,7 @@ $ tos-check-env
          Searching the <A HREF="http://mail.millennium.berkeley.edu/pipermail/tinyos/">help archives</A> can therefore be
          useful.</p>
 
-      <p>If your system says that no such command is involved, then
+      <p>If your system says some command is not available, then
          chances are you need to install the TinyOS tools (tos-*).
          Go to <code>tinyos-2.x/tools/tinyos</code> and type:</p>
 
@@ -83,7 +83,7 @@ $ make install
 	application's directory. To compile Blink, go the <code>apps/Blink</code>
 	directory and depending on which hardware you have, type <tt>make micaz</tt>,
 	<tt>make mica2</tt>, <tt>make telosb</tt>, or, for simulation, type
-	<tt>make micaz sim</tt>.</p>. You should see output such as this:
+	<tt>make micaz sim</tt>.</p> You should see output such as this:
 
       <pre>
 dark /root/src/tinyos-2.x/apps/Blink -4-> make telosb
@@ -190,22 +190,29 @@ $ which nescc
         <li><A HREF="#intel">Installing on an IntelMote2</A></li>
       </ul> 
       
-      <h2><A NAME="mica">Installing on a mica-family mote (micaz, mica2)</A></h2>
+      <h2><A NAME="mica">Installing on a mica-family mote (micaz, mica2, mica2dot)</A></h2>
       
-      <p>This example will use a Mica mote and the
-	parallel-port-based programming board (<span
-	  style="font-family: monospace;">mib500</span>). Instructions on how to
+      <p>This example uses a Mica2 mote and the
+	serial-based programming board (<span
+	  style="font-family: monospace;">mib510</span>). Instructions on how to
 	use other programming boards are <a href="programmers.html">here</a>.
 	To download your program onto the mote, place the mote board (or mote
 	and sensor stack) into the bay on the programming board, as shown
-	below. You can either supply a 3 volt supply to the connector on the
-	programming board or power the node directly. The red LED (labeled D2)
+	below. You can either supply a 3 or 5 volt supply to the connector on the
+	programming board or power the node directly. The green LED (labeled PWR)
 	on the programming board will be on when power is supplied. If you are
 	using batteries to power the mote, be sure the mote is switched on (the
-	power switch should be towards the connector). </p>
-      <p>Plug the 32-pin connector into the parallel port of a computer
-	configured with the TinyOS tools, using a standard DB32 parallel port
-	cable. </p>
+	power switch should be towards the connector). The ON/OFF switch on the
+        mib510 board should normally be left in the OFF position. Only switch it
+	to ON if you have problems programming the mote and when you are done
+	programming, switch it back to OFF (when the switch is ON the mote 
+	cannot send data to the PC). </p>
+
+      <p>Plug the 9-pin connector into the serial port of a computer
+	configured with the TinyOS tools, using a pass-through (not null-modem!) 
+	DB9 serial cable. If your computer does not have a serial port, you can
+        easily obtain DB9-serial-to-USB cables. </p>
+
       <center>
 	<table border="0" cellspacing="2" cellpadding="3" hspace="4">
 	  <tbody>
@@ -214,52 +221,60 @@ $ which nescc
 	      <td><img src="img/mica-onboard.jpg" height="240" width="320"></td>
 	    </tr>
 	    <tr>
-	      <td><i>Mica mote next to the programming board</i></td>
-	      <td><i>Mica mote connected to the programming board</i></td>
+	      <td><i>Mica2 mote next to the programming board</i></td>
+	      <td><i>Mica2 mote connected to the programming board</i></td>
 	    </tr>
 	  </tbody>
 	</table>
       </center>
-      <p>Type: <tt>make micaz reinstall</tt>. If the installation is successful you
-	should see something like the following: </p>
+
+<p>Type: 
+<pre>make mica2 reinstall mib510 MIB510=<i>serialport</i></pre>
+where <i>serialport</i> is the serial port device name. Under Windows, if
+your serial port is <tt>COM<i>n</i>:</tt>, you must use
+<tt>/dev/ttyS<i>n-1</i></tt> as the device name. On Linux, the device name
+is typically <tt>/dev/ttyS</tt><i>n</i> for a regular serial port and
+<tt>/dev/ttyUSB<i>n</i></tt> or <tt>/dev/usb/tts/<i>n</i></tt> for a
+USB-serial cable (the name depends on the Linux distribution). Additionally,
+on Linux, you will typically need to make this serial port world writeable.
+As superuser, execute the following command:
+<pre>chmod 666 <i>serialport</i></pre>
+<p>
+If the installation is successful you should see something like the
+following (if you don't, try repeating the <tt>make</tt> command): </p>
       
       <pre>
-cp build/micaz/main.srec build/micaz/main.srec.out
-    installing micaz binary with dapa
-uisp -dprog=dapa --wr_fuse_h=0xd9 -dpart=ATmega128 --wr_fuse_e=ff  --erase 
-pulse
-Atmel AVR ATmega128 is found.
-Erasing device ...
-pulse
-Reinitializing device
-Atmel AVR ATmega128 is found.
-
-Fuse High Byte set to 0xd9
-
-Fuse Extended Byte set to 0xff
-sleep 1      
-uisp -dprog=dapa --wr_fuse_h=0xd9 -dpart=ATmega128 --wr_fuse_e=ff  --upload if=build/micaz/main.srec.out
-pulse
+cp build/mica2/main.srec build/mica2/main.srec.out
+    installing mica2 binary using mib510
+uisp -dprog=mib510 -dserial=/dev/ttyUSB1 --wr_fuse_h=0xd9 -dpart=ATmega128 
+     --wr_fuse_e=ff  --erase --upload if=build/mica2/main.srec.out
+Firmware Version: 2.1
 Atmel AVR ATmega128 is found.
 Uploading: flash
 
 Fuse High Byte set to 0xd9
 
 Fuse Extended Byte set to 0xff
-sleep 1      
-uisp -dprog=dapa --wr_fuse_h=0xd9 -dpart=ATmega128 --wr_fuse_e=ff  --verify if=build/micaz/main.srec.out
-pulse
-Atmel AVR ATmega128 is found.
-Verifying: flash
-
-Fuse High Byte set to 0xd9
-
-Fuse Extended Byte set to 0xff
-rm -f build/micaz/main.exe.out build/micaz/main.srec.out 
+rm -f build/mica2/main.exe.out build/mica2/main.srec.out
       </pre>
 
 
 	<A name="#telos"><h2>Installing on telos-family mote (telosa, telosb)</h2></A>
+<p>Telos motes are USB devices, and can be plugged into any USB port:
+      <center>
+	<table border="0" cellspacing="2" cellpadding="3" hspace="4">
+	  <tbody>
+	    <tr>
+	      <td><img src="img/telos.jpg" height="240" width="320"></td>
+	      <td><img src="img/telos2.jpg" height="240" width="320"></td>
+	    </tr>
+	    <tr>
+	      <td><i>Telos mote</i></td>
+	      <td><i>Telos mote plugged into a USB port</i></td>
+	    </tr>
+	  </tbody>
+	</table>
+      </center>
 	
       <p>Because Telos motes are USB devices, they register with
          your OS when you plug them in. Typing <code>motelist</code>
@@ -271,35 +286,35 @@ Reference  CommPort   Description
 UCC89MXV   COM4       Telos (Rev B 2004-09-27)
 </pre>
 
-<p><i>motelist</i> tells you which ports have motes attached. In 
-this case a TelosB mote is connected to COM port 4. Now you can 
-install the application using:</p>
+<p><i>motelist</i> tells you which ports have motes attached. Under
+Windows, it displays the mote's COM port (in this case 4), under Linux it
+displays just the USB serial port number (e.g., 2). Confusingly, the
+Windows version of the code installer (<tt>tos-bsl</tt>) takes the COM port
+number - 1 as it's argument (in this case 3); under Linux it takes the USB
+device name (e.g., /dev/ttyUSB2 or /dev/tts/usb/2 if motelist reports that
+the mote is device 2). On Linux, as with the mica programmers, you will
+typically need to make the USB serial port world writeable.  As superuser,
+execute the following command: 
+<pre>chmod 666 <i>usb-device-name</i></pre>
+
+Now you can install the application using one of:</p>
 
 <pre>
-  make telosb reinstall.2 bsl,3
+  make telosb reinstall bsl,3            # Windows example
+  make telosb reinstall bsl,/dev/ttyUSB2 # Linux example
 </pre>
 
-<p>This would compile an image suitable for the telosb platform and install 
-it with a mote ID of 2 using the <code>tos-bsl</code> loader on 
-COM port 4 (the bsl argument uses n-1 notation: the COM port is 4 but 
-the argument on the make line is 3 (4-1)). Again, see the Getting Started 
+<p>This would compile an image suitable for the telosb platform and install
+it with a mote ID of 2 on a mote connected to COM4 on Windows or
+/dev/ttyUSB2 on Linux. If you have a single mote installed, you can skip
+the bsl and device name/number arguments. Again, see the Getting Started
 Guide for your chosen platform for the exact make parameters.</p>
 
 <p>You should see something like this scroll by:</p>
 
 <pre>
-mkdir -p build/telosb
-    compiling BlinkAppC to a telosb binary
-ncc -o build/telosb/main.exe -Os -O -mdisable-hwmul -Wall -Wshadow -DDEF_TOS_AM_GROUP=0x7d -Wnesc-all -target=telosb -fnesc-cfile=build/telosb/app.c -board=   BlinkAppC.nc -lm 
-    compiled BlinkToRadioAppC to build/telosb/main.exe
-            2782 bytes in ROM
-             61 bytes in RAM
-msp430-objcopy --output-target=ihex build/telosb/main.exe build/telosb/main.ihex
-    writing TOS image
-tos-set-symbols --objcopy msp430-objcopy --objdump msp430-objdump --target ihex build/telosb/main.ihex build/telosb/main.ihex.out-2 TOS_NODE_ID=2 ActiveMessageAddressC$addr=2
-    found mote on COM4 (using bsl,auto)
     installing telosb binary using bsl
-tos-bsl --telosb -c 16 -r -e -I -p build/telosb/main.ihex.out-2
+tos-bsl --telosb -c 16 -r -e -I -p build/telosb/main.ihex.out
 MSP430 Bootstrap Loader Version: 1.39-telos-8
 Mass Erase...
 Transmit default password ...
@@ -310,49 +325,10 @@ Changing baudrate to 38400 ...
 Program ...
 2782 bytes programmed.
 Reset device ...
-rm -f build/telosb/main.exe.out-2 build/telosb/main.ihex.out-2
+rm -f build/telosb/main.exe.out-2 build/telosb/main.ihex.out
 </pre>
 
-      <p>This assumes you're running Windows. Things are slightly
-	different on Linux. Instead of COM4 you'll find a numbered
-	"file" in the /dev directory. The actual name of this file
-	varies from distribution to distribution and depends on how
-	the motes are physically connected  (i.e., via serial or USB).</p>
-
-<pre>
-$ motelist
-Reference  CommPort   Description
----------- ---------- ----------------------------------------
-UCC89MXV   /dev/ttyUSB3 Telos (Rev B 2004-09-27)
-</pre>
-
-      <p>You use the same command to install, except you don't substract 1. 
-	The ports are already numbered starting at 0.</p>
-
-      <pre>
-  make telosb install.2 bsl,/dev/ttyUSB3
-      </pre>
 	      
-      <h2>Installation options</h2>
-      
-      <p>You can now test the program by unplugging the mote from the
-	programming board and turning on the power switch (if it's not already
-	on). With any luck the three LEDs should be displaying a counter
-	incrementing at 4Hz.</p>
-      
-      <p>The <tt>reinstall</tt> command told the make system to
-	install the currently compiled binary: it skips the
-	compilation process. Type <tt>make clean</tt> to clean up all
-	of the compiled binary files, then type <tt>make micaz install</tt>
-	This will recompile Blink and install it on one action.</p>
-      
-      <p>Networking almost always requires motes to have unique identifiers.
-	When you compile a TinyOS application, it has a default unique
-	identifier of 1. To give a node a different identifier, you can specify
-	it at installation. For example, if you type <tt>make micaz install.5</tt>
-	or <tt>make micaz reinstall.5</tt>, you will install the application
-	on a node and give it 5 as its identifier.</b></p>
-	
 <A name="tinynode"><h2>Installing on a TinyNode mote</h2></A>
 <p>There are different ways to program a TinyNode mote depending on how
 it is connected to your computer. The most common case is to connect
@@ -368,7 +344,7 @@ replace <tt>/dev/ttyXXX</tt> with the file device corresponding to the
 serial port that the tinynode is plugged into.</p>
 
 <pre>
-  make tinynode reinstall.2 bsl,/dev/XXX
+  make tinynode reinstall bsl,/dev/XXX
 </pre>
 
 As with the telos and eyes platforms, this command will reprogram your
@@ -380,6 +356,26 @@ output on your screen as given above for telos.
 <A NAME="intel"><h2>Installing on an IntelMote2</h2></A>
 
   
+<h1>Installation options</h1>
+
+<p>You can now test the program by unplugging the mote from the
+programming board and turning on the power switch (if it's not already
+on). With any luck the three LEDs should be displaying a counter
+incrementing at 4Hz.</p>
+
+<p>The <tt>reinstall</tt> command told the make system to
+install the currently compiled binary: it skips the
+compilation process. Type <tt>make clean</tt> to clean up all
+of the compiled binary files, then type, e.g., <tt>make telosb install</tt>
+This will recompile Blink and install it on one action.</p>
+
+<p>Networking almost always requires motes to have unique identifiers.
+When you compile a TinyOS application, it has a default unique
+identifier of 1. To give a node a different identifier, you can specify
+it at installation. For example, if you type <tt>make telosb install.5</tt>
+or <tt>make telosb reinstall.5</tt>, you will install the application
+on a node and give it 5 as its identifier.</b></p>
+	
 <h1>Components and Interfaces</h1>
 
       <p>Now that you've installed Blink, let's look at how
@@ -434,7 +430,7 @@ output on your screen as given above for telos.
 "<tt>BlinkC.nc</tt>", and a <b>configuration</b>, called
 "<tt>BlinkAppC.nc</tt>".  Remember that all applications require a
 top-level configuration file, which is typically named after the
-application itself. In this case <tt>BlinkApp.nc</tt> is the
+application itself. In this case <tt>BlinkAppC.nc</tt> is the
 configuration for the Blink application and the source file that the
 nesC compiler uses to generate an executable file. <tt>BlinkC.nc</tt>,
 on the other hand, actually provides the <i>implementation</i> of the
@@ -558,7 +554,7 @@ via the <i>as</i> keyword which is simply an alias<a href="#hint10">(2)</a>.
 <p>As we continue reviewing the BlinkAppC application, keep in mind that the
 BlinkAppC component is not the same as the BlinkC component. Rather,
 the BlinkAppC component is composed of the BlinkC component along with
-MainC and LedsC.
+MainC, LedsC and the three timers.
 
 <p>The remainder of the BlinkAppC configuration consists of connecting
 interfaces used by components to interfaces provided by others. The
@@ -596,7 +592,7 @@ called <tt>BlinkC</tt>and declares the interfaces it provides and
 uses.&nbsp; The <tt>BlinkC</tt>&nbsp; module <b>uses</b> three
 instances of the interface <tt>Timer&lt;TMilli&gt;</tt> using the
 names Timer0, Timer1 and Timer2 (the <tt>&lt;TMilli&gt;</tt> syntax
-simply supplies the generic Timer component with the required timer
+simply supplies the generic Timer interface with the required timer
 precision). Lastly, the <tt>BlinkC</tt>
 module also uses the Leds and Boot interfaces. This means that BlinkC
 may call any command declared in the interfaces it uses and must also
@@ -613,7 +609,7 @@ LedsC</tt> line wires the <tt>Leds</tt> interface used by the
 <tt>BlinkC</tt> component to the <tt>Leds</tt> interface provided by
 the <tt>LedsC</tt> component.
 
-<p>NesC uses arrows to bind interfaces to one another.  The right arrow
+<p>nesC uses arrows to bind interfaces to one another.  The right arrow
 (<tt>A-&gt;B</tt>) as "A wires to B". The left side of the arrow (A)
 is a user of the interface, while the right side of the arrow (B) is
 the provider. A full wiring is <tt>A.a-&gt;B.b</tt>, which means
@@ -700,7 +696,7 @@ configurations.</p>
 <p>To generate documentation for an application, type</p>
 
 <pre>
-  make <platform> docs
+  make <i>platform</i> docs
 </pre>
 
 <p>You should see a long list of interfaces and components stream by. If you
@@ -711,11 +707,11 @@ see the error message</p>
 <p>then you need to <A HREF="http://www.graphviz.org/Download..php">install
 graphviz</A>, which is the program that draws the component graphs.</p>
 
-<p>Once you've generated the documentation, go to <tt>doc/nesdoc</tt>. You
+<p>Once you've generated the documentation, go to <tt>tinyos-2.x/doc/nesdoc</tt>. You
 should see a directory for your platform: open its <tt>index.html</tt>, and
 you'll see a list of the components and interfaces for which you've
 generated documentation. For example, if you generated documentation
-for Blink on the telos platform, you'll see documentation for interfaces
+for Blink on the telosb platform, you'll see documentation for interfaces
 such as Boot, Leds, and Timer, as well as some from the underlying hardware
 implementations, such as Msp430TimerEvent and HplMsp430GeneralIO.</p>
 
@@ -785,7 +781,7 @@ including the TinyOS concurrency model and executable code.
 <li> mica mote Getting Started Guide at <a href="http://www.xbow.com">Crossbow</a>
 <li> telos mote Getting Started Guide for <a href="http://www.moteiv.com">Moteiv</a>
 <li> <a href="https://sourceforge.net/projects/nescc">nesc at sourceforge</a>
-<li> <a href="http://nescc.sourceforge.net/papers/nesc-ref.pdf">NesC reference manual</a>
+<li> <a href="http://nescc.sourceforge.net/papers/nesc-ref.pdf">nesC reference manual</a>
 <li> <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">TinyOS Programming Guide</a>
 <li> <a href="../tep3.html">TEP 3: TinyOS Coding Conventions</a>
 <li> <a href="../tep102.html">TEP 102: Timers</a>
@@ -796,17 +792,20 @@ including the TinyOS concurrency model and executable code.
 <p>
 <hr>
 
-<p><a name="timermillic_footnote">(1)</a> The TimerMilliC
-component is a <i>generic component</i> which means that, unlike
-non-generic components, it can be instantiated more than once.
-Generic components can take typed arguments and in this case, that
-typed argument defines the timer's required precision.  A full
-explanation of generic components is outside this document's scope,
-but you can read about them in <!-- TODO: Need to update this link to a real file><a
-href="../../nesc/user/generics-1.2.txt"> -->the nesc generic component
-documentation</a>.
+<p><a name="timermillic_footnote">(1)</a> The TimerMilliC component is a
+<i>generic component</i> which means that, unlike non-generic components,
+it can be instantiated more than once.  Generic components can take types
+and constants as arguments, though in this case TimerMilliC takes
+none. There are also <i>generic interafces</i>, which take type arguments
+only. The Timer interface provided by TimerMilliC is a generic interface;
+its type argument defines the timer's required precision (this prevents
+programmer from wiring, e.g., microsecond timer users to millisecond timer
+providers).  A full explanation of generic components is outside this
+document's scope, but you can read about them in <!-- TODO: Need to update
+this link to a real file><a href="../../nesc/user/generics-1.2.txt"> -->the
+nesc generic component documentation</a>.
 
-<p><a name="hint10">(4)</a>
+<p><a name="hint10">(2)</a>
 <b>Programming Hint 10:</b> Use the <i>as</i> keyword liberally. From  
 <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf"><i>TinyOS Programming</i></a>
 
