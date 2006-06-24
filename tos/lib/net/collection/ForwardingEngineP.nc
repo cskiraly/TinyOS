@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.39 2006-06-24 00:38:21 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.40 2006-06-24 13:25:40 kasj78 Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -25,7 +25,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-24 00:38:21 $
+ *  @date   $Date: 2006-06-24 13:25:40 $
  */
 
 #include <ForwardingEngine.h>
@@ -219,7 +219,7 @@ implementation {
     dbg("Forwarder", "%s: Trying to send a packet. Queue size is %hhu.\n", __FUNCTION__, call SendQueue.size());
     if (sending) {
       dbg("Forwarder", "%s: busy, don't send\n", __FUNCTION__);
-      call CollectionDebug.logEvent(NET_C_FE_SENDING_BUSY);
+      call CollectionDebug.logEvent(NET_C_FE_SEND_BUSY);
       return;
     }
     else if (call SendQueue.empty()) {
@@ -365,9 +365,11 @@ implementation {
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
         } else {
-            call MessagePool.put(qe->msg);
-            call QEntryPool.put(qe);      
-            call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL_ACK_FWD, 
+           if (call MessagePool.put(qe->msg) != SUCCESS)
+             call CollectionDebug.logEvent(NET_C_FE_PUT_MSGPOOL_ERR);
+           if (call QEntryPool.put(qe) != SUCCESS)
+             call CollectionDebug.logEvent(NET_C_FE_PUT_QEPOOL_ERR);
+           call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL_ACK_FWD, 
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
@@ -402,8 +404,10 @@ implementation {
                                          call AMPacket.destination(msg));
       call SentCache.insert(call CollectionPacket.getPacketID(qe->msg));
       call SendQueue.dequeue();
-      call MessagePool.put(qe->msg);
-      call QEntryPool.put(qe);      
+      if (call MessagePool.put(qe->msg) != SUCCESS)
+        call CollectionDebug.logEvent(NET_C_FE_PUT_MSGPOOL_ERR);
+      if (call QEntryPool.put(qe) != SUCCESS)
+        call CollectionDebug.logEvent(NET_C_FE_PUT_QEPOOL_ERR);
       sending = FALSE;
       startRetxmitTimer(SENDDONE_OK_WINDOW, SENDDONE_OK_OFFSET);
     }
@@ -428,9 +432,21 @@ implementation {
       call CollectionDebug.logEvent(NET_C_FE_QENTRY_POOL_EMPTY);
     }
     else {
-      message_t* newMsg = call MessagePool.get();
-      fe_queue_entry_t *qe = call QEntryPool.get();
+      message_t* newMsg;
+      fe_queue_entry_t *qe;
       uint16_t gradient;
+      
+      qe = call QEntryPool.get();
+      if (qe == NULL) {
+        call CollectionDebug.logEvent(NET_C_FE_GET_MSGPOOL_ERR);
+        return m;
+      }
+
+      newMsg = call MessagePool.get();
+      if (newMsg == NULL) {
+        call CollectionDebug.logEvent(NET_C_FE_GET_QEPOOL_ERR);
+        return m;
+      }
 
       qe->msg = m;
       qe->client = 0xff;
@@ -461,8 +477,10 @@ implementation {
         return newMsg;
       } else {
         // There was a problem enqueuing to the send queue.
-        call MessagePool.put(newMsg);
-        call QEntryPool.put(qe);
+        if (call MessagePool.put(newMsg) != SUCCESS)
+          call CollectionDebug.logEvent(NET_C_FE_PUT_MSGPOOL_ERR);
+        if (call QEntryPool.put(qe) != SUCCESS)
+          call CollectionDebug.logEvent(NET_C_FE_PUT_QEPOOL_ERR);
       }
     }
 

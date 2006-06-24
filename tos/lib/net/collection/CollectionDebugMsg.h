@@ -17,6 +17,10 @@ enum {
     NET_C_FE_SEND_BUSY = 0x19,
 
     NET_C_FE_SENDQUEUE_EMPTY = 0x50,
+    NET_C_FE_PUT_MSGPOOL_ERR = 0x51,
+    NET_C_FE_PUT_QEPOOL_ERR = 0x52,
+    NET_C_FE_GET_MSGPOOL_ERR = 0x53,
+    NET_C_FE_GET_QEPOOL_ERR = 0x54,
 
     NET_C_FE_SENT_MSG = 0x20,  //:app. send       :msg uid, origin, next_hop
     NET_C_FE_RCV_MSG =  0x21,  //:next hop receive:msg uid, origin, last_hop
