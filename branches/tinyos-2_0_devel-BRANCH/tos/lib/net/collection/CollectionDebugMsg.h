@@ -15,7 +15,8 @@ enum {
     NET_C_FE_SUBSEND_SIZE = 0x17,
     NET_C_FE_LOOP_DETECTED = 0x18,
     NET_C_FE_SEND_BUSY = 0x19,
-    NET_C_FE_SENDQUEUE_EMPTY = 0x20,
+
+    NET_C_FE_SENDQUEUE_EMPTY = 0x50,
 
     NET_C_FE_SENT_MSG = 0x20,  //:app. send       :msg uid, origin, next_hop
     NET_C_FE_RCV_MSG =  0x21,  //:next hop receive:msg uid, origin, last_hop
