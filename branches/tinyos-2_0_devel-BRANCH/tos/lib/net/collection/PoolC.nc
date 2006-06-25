@@ -1,4 +1,4 @@
-/* $Id: PoolC.nc,v 1.1.2.2 2006-05-16 17:36:42 kasj78 Exp $ */
+/* $Id: PoolC.nc,v 1.1.2.3 2006-06-25 18:58:48 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -22,9 +22,11 @@
  * ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-/*
+/**
+ *  A general dynamic memory pool component.
+ *
  *  @author Philip Levis
- *  @date   $Date: 2006-05-16 17:36:42 $
+ *  @date   $Date: 2006-06-25 18:58:48 $
  */
 
 generic configuration PoolC(typedef pool_t, uint8_t POOL_SIZE) {
