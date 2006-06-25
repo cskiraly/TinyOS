@@ -1,4 +1,4 @@
-/* $Id: PoolP.nc,v 1.1.2.4 2006-05-23 20:55:00 kasj78 Exp $ */
+/* $Id: PoolP.nc,v 1.1.2.5 2006-06-25 18:58:48 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -22,10 +22,12 @@
  * ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-/*
+/**
+ *  Implementation of a general dynamic memory pool component.
+ *
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-05-23 20:55:00 $
+ *  @date   $Date: 2006-06-25 18:58:48 $
  */
 
 generic module PoolP(typedef pool_t, uint8_t size) {

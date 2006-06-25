@@ -1,4 +1,4 @@
-/* $Id: Queue.nc,v 1.1.2.3 2006-06-22 13:43:28 rfonseca76 Exp $ */
+/* $Id: Queue.nc,v 1.1.2.4 2006-06-25 18:58:48 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -22,10 +22,13 @@
  * ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-/*
+/**
+ *  Interface to a FIFO list (queue) that contains items
+ *  of a specific type. The queue has a maximum size.
+ *
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-22 13:43:28 $
+ *  @date   $Date: 2006-06-25 18:58:48 $
  */
 
    
