@@ -1,25 +1,33 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.43 2006-06-26 15:31:26 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.44 2006-06-26 16:55:09 scipio Exp $ */
 /*
- * "Copyright (c) 2006 Stanford University. All rights reserved.
+ * Copyright (c) 2006 Stanford University.
+ * All rights reserved.
  *
- * Permission to use, copy, modify, and distribute this software and
- * its documentation for any purpose, without fee, and without written
- * agreement is hereby granted, provided that the above copyright
- * notice, the following two paragraphs and the author appear in all
- * copies of this software.
- * 
- * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
- * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
- * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
- * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- * 
- * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
- * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND STANFORD UNIVERSITY
- * HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
- * ENHANCEMENTS, OR MODIFICATIONS."
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ * - Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ * - Neither the name of the Stanford University nor the names of
+ *   its contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL STANFORD
+ * UNIVERSITY OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /**
@@ -64,8 +72,8 @@
  *  <table>
  *    <tr>
  *      <td><b>Case</b></td>
- *      <td><b>Min. Wait (ms)</b></td>
- *      <td><b>Max. Wait (ms)</b></td>
+ *      <td><b>CC2420 Wait (ms)</b></td>
+ *      <td><b>Other Wait (ms)</b></td>
  *      <td><b>Description</b></td>
  *    </tr>
  *    <tr>
@@ -78,16 +86,16 @@
  *    </tr>
  *    <tr>
  *      <td>Success</td>
- *      <td>16</td>
- *      <td>31</td>
+ *      <td>16-31</td>
+ *      <td>128-255</td>
  *      <td>When the ForwardingEngine successfully sends a packet to the next
  *          hop, it waits this long before sending the next packet in the queue.
  *          </td>
  *    </tr>
  *    <tr>
  *      <td>Ack Failure</td>
- *      <td>8</td>
- *      <td>15</td>
+ *      <td>8-15</td>
+ *      <td>128-255</td>
  *      <td>If the link layer supports acks and the ForwardingEngine did not
  *          receive an acknowledgment from the next hop, it waits this long before
  *          trying a retransmission. If the packet has exceeded the retransmission
@@ -95,8 +103,8 @@
  *    </tr>
  *    <tr>
  *      <td>Loop Detection</td>
- *      <td>32</td>
- *      <td>63</td>
+ *      <td>32-63</td>
+ *      <td>512-1023</td>
  *      <td>If the ForwardingEngine is asked to forward a packet from a node that
  *          believes it is closer to the root, the ForwardingEngine pauses its
  *          transmissions for this interval and triggers the RoutingEngine to 
@@ -112,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-26 15:31:26 $
+ *  @date   $Date: 2006-06-26 16:55:09 $
  */
 
 #include <ForwardingEngine.h>
