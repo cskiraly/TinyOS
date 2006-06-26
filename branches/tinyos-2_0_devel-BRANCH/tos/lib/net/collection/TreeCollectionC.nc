@@ -51,7 +51,7 @@ implementation {
   components new QueueC(fe_queue_entry_t*, QUEUE_SIZE) as SendQueueP;
   Forwarder.SendQueue -> SendQueueP;
 
-  components new CacheC(uint32_t, CACHE_SIZE) as SentCacheP;
+  components new LruIntCacheC(uint32_t, CACHE_SIZE) as SentCacheP;
   Forwarder.SentCache -> SentCacheP;
 
   components new TimerMilliC() as RoutingBeaconTimer;
