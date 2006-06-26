@@ -1,4 +1,4 @@
-/* $Id: CollectionPacket.nc,v 1.1.2.6 2006-06-26 16:55:09 scipio Exp $ */
+/* $Id: CollectionPacket.nc,v 1.1.2.7 2006-06-26 18:01:05 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -33,7 +33,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-26 16:55:09 $
+ *  @date   $Date: 2006-06-26 18:01:05 $
  */
 
 #include <AM.h>
@@ -54,7 +54,8 @@ interface CollectionPacket {
   command uint16_t getGradient(message_t* msg);
   command void setGradient(message_t* msg, uint16_t gradient);
 
-  /* Returns a 32bit number which is a concatenation of
+  /** 
+   * Returns a 32bit number which is a concatenation of
    * the origin and the sequence number */
   command uint32_t getPacketID(message_t* msg);
 }
