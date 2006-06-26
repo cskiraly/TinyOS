@@ -481,7 +481,7 @@ sf@HOST:PORT
 </pre>
 
 <p>HOST and PORT are optional: they default to localhost (the
-local machine) and 9001. For example,</p>
+local machine) and 9002. For example,</p>
 
 <pre>
 sf@dark.cs.berkeley.edu:1948
@@ -505,14 +505,14 @@ java net.tinyos.sf.SerialForwarder
 <p>You should see a window like this pop up:
 
 <center>
-<p><img height="300" width="500" src="imgs/SerialForwarder.JPG"></p>
+<p><img height="300" width="500" src="img/sf.gif"></p>
 </center>
 
 <p>Since SerialForwarder takes any packet source as its source, you
 can even string SerialForwaders along:</p>
 
 <pre>
-java net.tinyos.sf.SerialForwader -port 9002 -comm sf@localhost:9001
+java net.tinyos.sf.SerialForwarder -port 9002 -comm sf@localhost:9002
 </pre>
 
 <p>This command opens a second SerialForwarder, whose source is the first
@@ -526,7 +526,7 @@ Run MsgReader again, but this time tell it to connect to your
 SerialForwarder:</p>
 
 <pre>
-java net.tinyos.tools.MsgReader -comm sf@localhost:9001 BlinkToRadioMsg
+java net.tinyos.tools.MsgReader -comm sf@localhost:9002 BlinkToRadioMsg
 </pre>
 
 <p>You will see the client count increment, and MsgReader will start
@@ -566,8 +566,9 @@ set of packet sources:
 </table>
 </center>
 
-<p>In the <code>network</code> packet source, the default MIB 600 port is 10002.
-The Moteiv TMote Connect appliance is a SerialForwarder packet source.</p>
+<p>In the <code>network</code> packet source, the default MIB 600 port
+is 10002. The Moteiv TMote Connect appliance is a SerialForwarder
+packet source.</p>
 
 <h2>The tool side</h2>
 
