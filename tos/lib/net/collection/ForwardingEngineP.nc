@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.44 2006-06-26 16:55:09 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.45 2006-06-26 22:55:33 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-26 16:55:09 $
+ *  @date   $Date: 2006-06-26 22:55:33 $
  */
 
 #include <ForwardingEngine.h>
@@ -608,6 +608,8 @@ implementation {
       }
 
       memset(newMsg, 0, sizeof(message_t));
+      memset(m->metadata, 0, sizeof(message_metadata_t));
+      
       qe->msg = m;
       qe->client = 0xff;
       qe->retries = MAX_RETRIES;
