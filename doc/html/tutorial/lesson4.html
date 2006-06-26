@@ -9,7 +9,7 @@
     <div class="subtitle">Last updated 16 Jun 2006</div>
 
 <p>To goal of this lesson is to show you how to communicate with a
-mote from PC. This will allow you to collect data from the network
+mote from PC. This will allow you to collect data from the network,
 send commands to motes, and monitor network traffic.</p>
 
 
@@ -110,7 +110,18 @@ serial@COM1:57600
 settings, you should see output like this:</p>
 
 <pre>
-
+Sending packet 1
+Received packet sequence number 4
+Sending packet 2
+Received packet sequence number 5
+Sending packet 3
+Received packet sequence number 6
+Sending packet 4
+Received packet sequence number 7
+Received packet sequence number 8
+Sending packet 5
+Received packet sequence number 9
+Sending packet 6
 </pre>
 
 <p>and the mote LEDs will blink.</p>
@@ -194,7 +205,17 @@ $ java net.tinyos.tools.Listen
 packet it sees. Your output should look something like this:</p>
 
 <pre>
-
+00 FF FF 04 22 06 00 02 00 01
+00 FF FF 04 22 06 00 02 00 02
+00 FF FF 04 22 06 00 02 00 03
+00 FF FF 04 22 06 00 02 00 04
+00 FF FF 04 22 06 00 02 00 05
+00 FF FF 04 22 06 00 02 00 06
+00 FF FF 04 22 06 00 02 00 07
+00 FF FF 04 22 06 00 02 00 08
+00 FF FF 04 22 06 00 02 00 09
+00 FF FF 04 22 06 00 02 00 0A
+00 FF FF 04 22 06 00 02 00 0B
 </pre>
 
 
@@ -230,18 +251,18 @@ So we can interpret the data packet as follows:
   <tbody>
     <tr bgcolor="#d0d0d0">
       <td><b>dest addr</b></td>
-      <td><b>handlerID</b></td>
-      <td><b>groupID</b></td>
       <td><b>msg len</b></td>
+      <td><b>groupID</b></td>
+      <td><b>handlerID</b></td>
       <td><b>source addr</b></td>
       <td><b>counter</b></td>
     </tr>    <tr>
       <td bgcolor="#d0d0ff">ff ff</td>
-      <td bgcolor="#d0d0ff">0a</td>
-      <td bgcolor="#d0d0ff">7d</td>
+      <td bgcolor="#d0d0ff">04</td>
+      <td bgcolor="#d0d0ff">22</td>
       <td bgcolor="#d0d0ff">06</td>
-      <td bgcolor="#d0ffd0">?? ??</td>
-      <td bgcolor="#d0ffd0">00 14</td>
+      <td bgcolor="#d0ffd0">00 02</td>
+      <td bgcolor="#d0ffd0">00 0B</td>
     </tr>
   </tbody>
 </table>
@@ -250,7 +271,7 @@ So we can interpret the data packet as follows:
 BlinkToRadio application with. The default (if you do not specify
 and ID) is <code>00 01</code>.
 Note that the data is sent by the mote in <i>big-endian</i>
-format;  for example, <code>00 14</code> means 20 (16 * 1 + 4).
+format;  for example, <code>01 02</code> means 258 (256*1 + 2).
 This format is independent of the endian-ness of the processor,
 because the packet format is an <code>nx_struct</code>, which is
 a network format, that is, big-endian and byte-aligned. Using
