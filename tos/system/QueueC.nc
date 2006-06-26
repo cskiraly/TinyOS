@@ -1,4 +1,4 @@
-/* $Id: QueueC.nc,v 1.1.2.1 2006-06-26 16:52:17 scipio Exp $ */
+/* $Id: QueueC.nc,v 1.1.2.2 2006-06-26 17:05:33 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -34,7 +34,7 @@
  *  A general FIFO queue component, whose queue has a bounded size.
  *
  *  @author Philip Levis
- *  @date   $Date: 2006-06-26 16:52:17 $
+ *  @date   $Date: 2006-06-26 17:05:33 $
  */
 
    
@@ -108,10 +108,10 @@ implementation {
     }
   }
   
-  command queue_t Queue.element(uint8_t index) {
-    index += head;
-    index %= QUEUE_SIZE;
-    return queue[index];
+  command queue_t Queue.element(uint8_t idx) {
+    idx += head;
+    idx %= QUEUE_SIZE;
+    return queue[idx];
   }  
 
 }

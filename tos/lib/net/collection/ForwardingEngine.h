@@ -76,7 +76,6 @@ enum {
   SENDDONE_OK_WINDOW        = SENDDONE_OK_OFFSET    - 1,
 };
 
-#endif
 
 /* 
  * The number of times the ForwardingEngine will try to 

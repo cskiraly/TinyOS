@@ -1,4 +1,4 @@
-/* $Id: Queue.nc,v 1.1.4.2 2006-06-26 16:52:17 scipio Exp $ */
+/* $Id: Queue.nc,v 1.1.4.3 2006-06-26 17:05:33 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -36,7 +36,7 @@
  *
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-26 16:52:17 $
+ *  @date   $Date: 2006-06-26 17:05:33 $
  */
 
    
@@ -98,5 +98,5 @@ interface Queue<t> {
    * @param index - the index of the element to return
    * @return the requested element in the queue.
    */
-  command t element(uint8_t index);
+  command t element(uint8_t idx);
 }
