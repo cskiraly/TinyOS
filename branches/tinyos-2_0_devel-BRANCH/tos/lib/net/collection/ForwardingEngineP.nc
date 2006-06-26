@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.42 2006-06-25 18:58:48 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.43 2006-06-26 15:31:26 scipio Exp $ */
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *
@@ -24,7 +24,8 @@
 
 /**
  *  The ForwardingEngine is responsible for queueing and scheduling outgoing
- *  packets. It maintains a pool of forwarding messages and a packet send 
+ *  packets in a collection protocol. It maintains a pool of forwarding messages 
+ *  and a packet send 
  *  queue. A ForwardingEngine with a forwarding message pool of size <i>F</i> 
  *  and <i>C</i> CollectionSenderC clients has a send queue of size
  *  <i>F + C</i>. This implementation has a large number of configuration
@@ -111,7 +112,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-25 18:58:48 $
+ *  @date   $Date: 2006-06-26 15:31:26 $
  */
 
 #include <ForwardingEngine.h>
@@ -177,15 +178,28 @@ implementation {
      to a new parent. */
   am_addr_t lastParent;
   
+  /* Network-level sequence number, so that receivers
+   * can distinguish retransmissions from different packets. */
   uint8_t seqno;
 
   enum {
     CLIENT_COUNT = uniqueCount(UQ_COLLECTION_CLIENT)
   };
 
+  /* Each sending client has its own reserved queue entry.
+     If the client has a packet pending, its queue entry is in the 
+     queue, and its clientPtr is NULL. If the client is idle,
+     its queue entry is pointed to by clientPtrs. */
+
   fe_queue_entry_t clientEntries[CLIENT_COUNT];
   fe_queue_entry_t* clientPtrs[CLIENT_COUNT];
 
+  /* The loopback message is for when a collection roots calls
+     Send.send. Since Send passes a pointer but Receive allows
+     buffer swaps, the forwarder copies the sent packet into 
+     the loopbackMsgPtr and performs a buffer swap with it.
+     See sendTask(). */
+     
   message_t loopbackMsg;
   message_t* loopbackMsgPtr;
 
@@ -211,8 +225,13 @@ implementation {
     return SUCCESS;
   }
 
+  /* sendTask is where the first phase of all send logic
+   * exists (the second phase is in SubSend.sendDone()). */
   task void sendTask();
   
+  /* ForwardingEngine keeps track of whether the underlying
+     radio is powered on. If not, it enqueues packets;
+     when it turns on, it then starts sending packets. */ 
   event void RadioControl.startDone(error_t err) {
     if (err == SUCCESS) {
       radioOn = TRUE;
@@ -221,7 +240,12 @@ implementation {
       }
     }
   }
-  
+ 
+  /* 
+   * If the ForwardingEngine has stopped sending packets because
+   * these has been no route, then as soon as one is found, start
+   * sending packets.
+   */ 
   event void UnicastNameFreeRouting.routeFound() {
     post sendTask();
   }
@@ -241,7 +265,16 @@ implementation {
   network_header_t* getHeader(message_t* m) {
     return (network_header_t*)call SubPacket.getPayload(m, NULL);
   }
-  
+ 
+  /*
+   * The send call from a client. Return EBUSY if the client is busy
+   * (clientPtrs is NULL), otherwise configure its queue entry
+   * and put it in the send queue. If the ForwardingEngine is not
+   * already sending packets (the RetxmitTimer isn't running), post
+   * sendTask. It could be that the engine is running and sendTask
+   * has already been posted, but the post-once semantics make this
+   * not matter.
+   */ 
   command error_t Send.send[uint8_t client](message_t* msg, uint8_t len) {
     network_header_t* hdr;
     fe_queue_entry_t *qe;
@@ -286,7 +319,8 @@ implementation {
   }
 
   command error_t Send.cancel[uint8_t client](message_t* msg) {
-    // XXX TODO: cancel not implemented yet.
+    // cancel not implemented. will require being able
+    // to pull entries out of the queue.
     return FAIL;
   }
 
@@ -298,9 +332,23 @@ implementation {
     return call Packet.getPayload(msg, NULL);
   }
 
-  
-  // Note that we don't actually remove the packet from the
-  // queue until it is successfully sent.
+  /*
+   * These is where all of the send logic is. When the ForwardingEngine
+   * wants to send a packet, it posts this task. The send logic is
+   * independent of whether it is a forwarded packet or a packet from
+   * a send client. 
+   *
+   * The task first checks that there is a packet to send and that
+   * there is a valid route. It then marshals the relevant arguments
+   * and prepares the packet for sending. If the node is a collection
+   * root, it signals Receive with the loopback message. Otherwise,
+   * it sets the packet to be acknowledged and sends it. It does not
+   * remove the packet from the send queue: while sending, the 
+   * packet being sent is at the head of the queue; a packet is dequeued
+   * in the sendDone handler, either due to retransmission failure
+   * or to a successful send.
+   */
+
   task void sendTask() {
     dbg("Forwarder", "%s: Trying to send a packet. Queue size is %hhu.\n", __FUNCTION__, call SendQueue.size());
     if (sending) {
@@ -415,6 +463,17 @@ implementation {
     call CollectionDebug.logEvent(NET_C_FE_BAD_SENDDONE);
   }
 
+  /*
+   * The second phase of a send operation; based on whether the transmission was
+   * successful, the ForwardingEngine either stops sending or starts the
+   * RetxmitTimer with an interval based on what has occured. If the send was
+   * successful or the maximum number of retransmissions has been reached, then
+   * the ForwardingEngine dequeues the current packet. If the packet is from a
+   * client it signals Send.sendDone(); if it is a forwarded packet it returns
+   * the packet and queue entry to their respective pools.
+   * 
+   */
+
   event void SubSend.sendDone(message_t* msg, error_t error) {
     fe_queue_entry_t *qe = call SendQueue.head();
     dbg("Forwarder", "%s to %hu and %hhu\n", __FUNCTION__, call AMPacket.destination(msg), error);
@@ -505,6 +564,12 @@ implementation {
     }
   }
 
+  /*
+   * Function for preparing a packet for forwarding. Performs
+   * a buffer swap from the message pool. If there are no free
+   * message in the pool, it returns the passed message and does not
+   * put it on the send queue.
+   */
   message_t* forward(message_t* m) {
     if (call MessagePool.empty()) {
       dbg("Route", "%s cannot forward, message pool empty.\n", __FUNCTION__);
@@ -579,7 +644,15 @@ implementation {
     // resources available to forward.
     return m;
   }
-  
+ 
+  /*
+   * Received a message to forward. Check whether it is a duplicate by
+   * checking the packets currently in the queue as well as the 
+   * send history cache (in case we recently forwarded this packet).
+   * The cache is important as nodes immediately forward packets
+   * but wait a period before retransmitting after an ack failure.
+   * If this node is a root, signal receive.
+   */ 
   event message_t* 
   SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
     network_header_t* hdr = getHeader(msg);
