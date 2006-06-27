@@ -21,9 +21,10 @@
  */
 
 /**
- * An LRU cache that stores integers. Inserting an element not in 
- * the cache will replace the oldest.
- * Inserting an element already in the cache will refresh its age.
+ * An LRU cache that stores integer values, where an insert operation
+ * indicates "use".  Inserting an element not in the cache will replace 
+ * the oldest, and inserting an element already in the cache will refresh 
+ * its age.
  *
  * @author Rodrigo Fonseca
  * @author Philip Levis 
