@@ -29,29 +29,42 @@ multihop delivery of packets to the root of a tree.
 1. Introduction
 ====================================================================
 
-Collection to a base station is one of the most common functions that
-a sensor network performs. Upon generating data, either by sensing or
-other means, a node uses a collection protocol to send the data to a
-base station. The data is forwarded by the nodes between the sender
-and the base station towards the base station. Processing,
-visualization, and archival of data is done at the base station.
+Collecting data at a base station is a common requirement of sensor
+network applications. The general approach used is to build one
+or more collection *trees*, each of which is rooted at a base
+station. When a node has data which needs to be collected, it 
+sends the data up the tree, and it forwards collection data that
+other nodes send to it. Sometimes, depending on the form of data
+collection, systems need to be able to inspect packets as they go
+by, either to gather statistics, compute aggregates, or suppress
+redundant transmissions.
 
-Often there MAY be multiple such base stations or gateway nodes
-(referred to as roots in the rest of the document) in a collection
-tree that spans a network. Furthermore, there can be multiple trees in
-a single network as a result of running different protocols; each
-protocol building its own tree. Collection provides a best-effort,
-multihop delivery of packets to the root of a specified tree. In
-addition, collection provides mechanism to intercept packets for
-in-network processing and snoop the packets in transit.
+When a network has multiple base stations that act as *root* nodes,
+rather than one tree, it has a *forest* of trees. By picking a 
+parent node, a collection protocol implicitly joins one of these
+trees. Collection provides a best-effort,
+multihop delivery of packets to one of a network's tree roots:
+it is an *anycast* protocol.
 
-Different applications desire different properties in a collection
-protocol. Some applications might have ADUs larger than the ones that
-are directly accomodated by the collection interface. Some
-applications might require reliable delivery of data. While collection
-does not address these and many other specific needs of an
-application, it provides interfaces and components on top of which
-these services can be built.
+Given the limited state that nodes can store and a general need
+for distributed tree building algorithms, simple collection protocols
+encounter several challenges. These challenges are not unique to
+collection protocols. Instead, they represent a subset of common
+networking algorithmic edge cases that occur in this protocol
+family:
+
+  * Loop detection, detecting when a node selects one of its
+    descendants as a new parent.
+
+  * Duplicate suppression, detecting and dealing with when lost 
+    acknowledgments are causing packets to replicate in the 
+    network, wasting bandwidth.
+
+  * Link estimation, evaluating the link quality to single-hop
+    neighbors.
+
+  * Self-interference, preventing forwarding packets along the route
+    from introducing interference for subsequent packets.
 
 The rest of this document describes a set of components and interfaces
 for a collection service outlined above.
@@ -248,73 +261,89 @@ own control messages to compute bi-directional link qualities::
   }
 
 
-4.2 MTreeRoutingTreeP
+4.2 TreeRoutingEngineP
 --------------------------------------------------------------------
 
-LinkEstimatorP is responsible for computing routes to the roots of a
+TreeRoutingEngineP is responsible for computing routes to the roots of a
 tree. It uses NeighborTable and LinkEstimator interfaces to learn
 about the nodes in the neighbor table maintained by LinkEstimatorP and
 the quality of links to and from the neighbors. The routing protocol
 on which collection is implemented MUST be a tree-based routing
-protocol with a single or multiple roots. MTreeRoutingTreeP SHOULD
-allow a node to be configured as a root or a non-root node
-dynamically. MTreeRoutingTreeP MAY maintain multiple next hops to a
-root::
+protocol with a single or multiple roots. TreeRoutingEngineP 
+allows a node to be configured as a root or a non-root node
+dynamically. TreeRoutingEngineP maintains multiple candidate next hops::
 
-  MTreeRoutingEngineP
+  generic module TreeRoutingEngineP(uint8_t routingTableSize) {
     provides {
-      interface REControl[uint8_t tree_id];
-      interface RootControl[uint8_t tree_id];
-      interface Routing[uint8_t tree_id];
+        interface UnicastNameFreeRouting as Routing;
+        interface RootControl;
+        interface TreeRoutingInspect;
+        interface StdControl;
+        interface Init;
     } 
     uses {
-      interface LinkEstimator;
-      interface NeighborTable;
-      interface AMSend[COLLECTION_CONTROL_AM_ID];
-      interface Receive[COLLECTION_CONTROL_AM_ID];
+        interface AMSend as BeaconSend;
+        interface Receive as BeaconReceive;
+        interface LinkEstimator;
+        interface AMPacket;
+        interface LinkSrcPacket;
+        interface SplitControl as RadioControl;
+        interface Timer<TMilli> as BeaconTimer;
+        interface Random;
+        interface CollectionDebug;
     }
   }
-
-  interface REControl {
-    command error_t initializeRH(message_t *msg);
-    command uint8_t getHeaderSize();
-  }
-
-  interface Routing {
-    command result_t getNextHops(neighbor_t* nextHops, uint8_t* n);
-  }
-
 
 4.3 ForwardingEngineP
 --------------------------------------------------------------------
 
-ForwardingEngineP component provides all the top level interface
-(except RootControl) which is used by an application to interact with
-CollectionC::
+The ForwardingEngineP component provides all the top level interfaces
+(except RootControl) which TreeCollectionC provides and an application 
+uses:: 
 
   generic module ForwardingEngineP() {
     provides {
-      interface Send[uint8_t tree_id]
-      interface Receive[uint8_t tree_id];
-      interface Intercept;
-      interface Snoop;
+      interface Init;
+      interface StdControl;
+      interface Send[uint8_t client];
+      interface Receive[collection_id_t id];
+      interface Receive as Snoop[collection_id_t id];
+      interface Intercept[collection_id_t id];
       interface Packet;
+      interface CollectionPacket;
     }
     uses {
-      interface REControl;
-      interface Routing[uint8_t tree_id];
-      interface SendMsg[COLLECTION_DATA_AM_ID];
-      interface ReceiveMsg[COLLECTION_DATA_AM_ID];
+      interface AMSend as SubSend;
+      interface Receive as SubReceive;
+      interface Receive as SubSnoop;
+      interface Packet as SubPacket;
+      interface UnicastNameFreeRouting;
+      interface SplitControl as RadioControl;
+      interface Queue<fe_queue_entry_t*> as SendQueue;
+      interface Pool<fe_queue_entry_t> as QEntryPool;
+      interface Pool<message_t> as MessagePool;
+      interface Timer<TMilli> as RetxmitTimer;
+      interface Cache<uint32_t> as SentCache;
+      interface TreeRoutingInspect;
+      interface PacketAcknowledgements;
+      interface Random;
+      interface RootControl;
+      interface CollectionId[uint8_t client];
+      interface AMPacket;
+      interface CollectionDebug;
     }
   }
 
-The forwarding engine MUST must try to transmit a collection packet to
-the first next hop. The forwarding engine MAY perform network-level
-retransmissions to alternate next hops returned by Routing.getNextHops
-should the trasmission to the firstnext hop fail. This might allow
-recoveries in routing on time scales shorter than those required for
-route convergence, and leverages routing engines that can provide
-multiple next hops towards a given destination.
+ForwardingEngineP uses a large number of interfaces, which can be
+broken up into a few groups of functionality:
+
+  * Single hop communication: SubSend, SubReceive, SubSnoop,
+    SubPacket, PacketAcknowledgments, AMPacket
+  * Routing: UnicastNameFreeRouting, TreeRoutingInspect, 
+    RootControl, CollectionId, SentCache
+  * Queue and buffer management: SendQueue, MessagePool,
+    QEntryPool
+  * Packet timing: Random, RetxmitTimer
 
 
 5. Author's Address
