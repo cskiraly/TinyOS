@@ -1,5 +1,5 @@
 /*									tab:4
- * "Copyright (c) 2000-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2006 The Regents of the University  of California.  
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -22,7 +22,7 @@
 
 /**
  * This interface allows a component to enable or disable acknowledgments
- * on per-packet basis.
+ * on a per-packet basis.
  *
  * @author Jonathan Hui
  * @author Philip Levis
