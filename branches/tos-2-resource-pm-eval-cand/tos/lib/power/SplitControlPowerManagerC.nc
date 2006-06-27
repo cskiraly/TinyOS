@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3.2.1 $
- * $Date: 2006-05-15 18:23:15 $ 
+ * $Revision: 1.1.2.3.2.2 $
+ * $Date: 2006-06-27 21:09:38 $ 
  * ======================================================================== 
  */
  
@@ -55,9 +55,6 @@
  */
  
 generic configuration SplitControlPowerManagerC() {
-  provides {
-    interface Init;
-  }
   uses {
     interface SplitControl;
 
@@ -68,8 +65,6 @@ generic configuration SplitControlPowerManagerC() {
 }
 implementation {
   components  new PowerManagerP() as PowerManager;
-
-  Init = PowerManager;
  
   PowerManager.SplitControl = SplitControl;
 

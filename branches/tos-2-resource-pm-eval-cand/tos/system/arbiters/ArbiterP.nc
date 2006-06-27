@@ -120,6 +120,17 @@ implementation {
       return call Queue.enqueue(id);
     }
   }
+
+  async command error_t Resource.immediateRequest[uint8_t id]() {
+    atomic {
+      if(state == RES_IDLE) {
+        state = RES_BUSY;
+        resId = id;
+        return SUCCESS;
+      }
+      return FAIL;
+    }
+  }
    
   /**
     Release the use of the shared resource

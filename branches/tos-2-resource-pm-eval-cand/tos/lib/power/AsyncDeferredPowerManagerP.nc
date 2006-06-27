@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2.6.3 $
- * $Date: 2006-06-21 15:58:09 $ 
+ * $Revision: 1.1.2.2.6.4 $
+ * $Date: 2006-06-27 21:09:38 $ 
  * ======================================================================== 
  */
  
@@ -50,9 +50,6 @@
  */
  
 generic module AsyncDeferredPowerManagerP(uint32_t delay) {
-  provides {
-    interface Init;
-  }
   uses {
     interface AsyncStdControl;
 
@@ -68,29 +65,25 @@ implementation {
     call TimerMilli.startOneShot(delay); 
   }
 
-  command error_t Init.init() {
-    call ResourceController.request();
-    return SUCCESS;
-  }
-
   event void ResourceController.requested() {
+    call TimerMilli.stop();
     call AsyncStdControl.start();
     call ResourceController.release();
   }
 
-  async event void ResourceController.idle() {
-    if(!(call ArbiterInfo.inUse()))
+  async event void ResourceController.immediateRequested() {
+    call TimerMilli.stop();
+    call AsyncStdControl.start();
+    call ResourceController.release();
+  }
+
+  async event void ResourceController.granted() {
       post timerTask();
   }
 
   event void TimerMilli.fired() {
-    if(call ResourceController.immediateRequest() == SUCCESS) {
-      call PowerDownCleanup.cleanup();
-      call AsyncStdControl.stop();
-    }    
-  }
-
-  event void ResourceController.granted() {
+    call PowerDownCleanup.cleanup();
+    call AsyncStdControl.stop();
   }
 
   default async command void PowerDownCleanup.cleanup() {
