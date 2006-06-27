@@ -51,16 +51,16 @@ interface Init {
 
 <p>To provide the initialization flexibility required by sensor
 network components, the TinyOS's boot sequence breaks down the component
-initialization into either a <i>platform initialization phase</i> and a <i>software 
+initialization into a <i>platform initialization phase</i> and a <i>software 
 initialization phase</i>. This is accomplished by making the TinyOS component that
-executes the boot sequence provide two <code>Init</code interfaces:
+executes the boot sequence provide two <code>Init</code> interfaces:
 one called <code>PlatformInit</code> and one called <code>SoftwareInit</code>.
 
 <p>The defining difference between the two is that the platform
 initialization phase precedes the software initialization phase and
 component writers can choose to wire their components interfaces to 
 the most appropriate <code>Init</code><a href="#hint8">(1)</a>.
-Any component that requires initialization can implement the <code>Init</code 
+Any component that requires initialization can implement the <code>Init</code>
 interface and wire the implementation to either the <code>PlatformInit</code> or
 <code>PlatformInit</code interface. 
 
@@ -120,7 +120,8 @@ module RealMainP {
 }
 implementation {
   int main() __attribute__ ((C, spontaneous)) {
-    
+    atomic 
+      {    
 	call Scheduler.init(); 
     
 	call PlatformInit.init();    
@@ -150,8 +151,8 @@ the <code>booted()</code> event.
 
 Lastly, note that the task loop is entered. Hopefully you can now
 understand the mechanism by which TinyOS runs its tasks serially with
-respect to each other, but yes the task look can be interrupted by
-event code since interrupts have been enabled.
+respect to each other. Note that the task look can be interrupted by
+async code since interrupts have been enabled.
 
 <p>
 <a name=#related_docs>
@@ -162,7 +163,7 @@ event code since interrupts have been enabled.
 <li> <a href="../tep107.html">TEP 107: Boot Sequence</a>
 </ul>
 
-<p><a name="hint3">(4)</a><b>Programming Hint 8:</b> In the top-level 
+<p><b>Programming Hint 8:</b> In the top-level 
 configuration of a software abstraction, auto-wire Init to MainC. This removes the
 burden of wiring Init from the programmer, which removes unnecessary work from the
 boot sequence and removes the possibility of bugs from forgetting to wire.
