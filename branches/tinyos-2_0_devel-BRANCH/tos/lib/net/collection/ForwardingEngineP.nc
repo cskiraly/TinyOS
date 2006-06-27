@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.45 2006-06-26 22:55:33 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.46 2006-06-27 20:44:14 rfonseca76 Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-26 22:55:33 $
+ *  @date   $Date: 2006-06-27 20:44:14 $
  */
 
 #include <ForwardingEngine.h>
@@ -493,7 +493,7 @@ implementation {
     else if (error != SUCCESS) {
       // Immediate retransmission is the worst thing to do.
       dbg("Forwarder", "%s: send failed\n", __FUNCTION__);
-      call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL, 
+      call CollectionDebug.logEventMsg(NET_C_FE_SENDDONE_FAIL, 
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
@@ -503,7 +503,7 @@ implementation {
       // AckPending is for case when DL cannot support acks.
       if (--qe->retries) { 
         dbg("Forwarder", "%s: not acked\n", __FUNCTION__);
-        call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_WAITACK, 
+        call CollectionDebug.logEventMsg(NET_C_FE_SENDDONE_WAITACK, 
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
@@ -513,7 +513,7 @@ implementation {
         if (qe->client < CLIENT_COUNT) {
             clientPtrs[qe->client] = qe;
             signal Send.sendDone[qe->client](msg, FAIL);
-            call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL_ACK_SEND, 
+            call CollectionDebug.logEventMsg(NET_C_FE_SENDDONE_FAIL_ACK_SEND, 
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
@@ -522,7 +522,7 @@ implementation {
              call CollectionDebug.logEvent(NET_C_FE_PUT_MSGPOOL_ERR);
            if (call QEntryPool.put(qe) != SUCCESS)
              call CollectionDebug.logEvent(NET_C_FE_PUT_QEPOOL_ERR);
-           call CollectionDebug.logEventRoute(NET_C_FE_SENDDONE_FAIL_ACK_FWD, 
+           call CollectionDebug.logEventMsg(NET_C_FE_SENDDONE_FAIL_ACK_FWD, 
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
@@ -537,7 +537,7 @@ implementation {
       uint8_t client = qe->client;
       dbg("Forwarder", "%s: our packet for client %hhu, remove %p from queue\n", 
           __FUNCTION__, client, qe);
-      call CollectionDebug.logEventRoute(NET_C_FE_SENT_MSG, 
+      call CollectionDebug.logEventMsg(NET_C_FE_SENT_MSG, 
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
@@ -551,7 +551,7 @@ implementation {
     else if (call MessagePool.size() < call MessagePool.maxSize()) {
       // A successfully forwarded packet.
       dbg("Forwarder,Route", "%s: successfully forwarded packet (client: %hhu), message pool is %hhu/%hhu.\n", __FUNCTION__, qe->client, call MessagePool.size(), call MessagePool.maxSize());
-      call CollectionDebug.logEventRoute(NET_C_FE_FWD_MSG, 
+      call CollectionDebug.logEventMsg(NET_C_FE_FWD_MSG, 
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
@@ -678,7 +678,7 @@ implementation {
     msg_uid = call CollectionPacket.getPacketID(msg);
     collectid = hdr->collectid;
 
-    call CollectionDebug.logEventRoute(NET_C_FE_RCV_MSG,
+    call CollectionDebug.logEventMsg(NET_C_FE_RCV_MSG,
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
@@ -857,4 +857,25 @@ implementation {
     call RetxmitTimer.startOneShot(r);
     dbg("Forwarder", "started rexmit timer in %hu ms\n", r);
   }
+
+  /* Default implementations for CollectionDebug calls.
+   * These allow CollectionDebug not to be wired to anything if debugging
+   * is not desired. */
+
+    default command error_t CollectionDebug.logEvent(uint8_t type) {
+        return SUCCESS;
+    }
+    default command error_t CollectionDebug.logEventSimple(uint8_t type, uint16_t arg) {
+        return SUCCESS;
+    }
+    default command error_t CollectionDebug.logEventDbg(uint8_t type, uint16_t arg1, uint16_t arg2, uint16_t arg3) {
+        return SUCCESS;
+    }
+    default command error_t CollectionDebug.logEventMsg(uint8_t type, uint16_t msg, am_addr_t origin, am_addr_t node) {
+        return SUCCESS;
+    }
+    default command error_t CollectionDebug.logEventRoute(uint8_t type, am_addr_t parent, uint8_t hopcount, uint16_t metric) {
+        return SUCCESS;
+    }
+   
 }
