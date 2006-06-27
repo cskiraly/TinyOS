@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<!-- $Id: lesson5.html,v 1.1.2.10 2006-06-24 00:05:31 idgay Exp $ -->
+<!-- $Id: lesson5.html,v 1.1.2.11 2006-06-27 22:54:18 idgay Exp $ -->
 
 <div class="title">Lesson 5: Sensing</div>
 <div class="subtitle">Last Modified: 16 June 2006</div>
@@ -62,10 +62,10 @@ different.
 
 <ul>
 
-<li> Since the <code>SenseC</code> application component only uses standard
+<li> Since the <code>Sense</code> application component only uses standard
 data acquisition interfaces who defines what sensor it samples ?
 
-<li> If the <code>SenseC</code> application component is not configuring the
+<li> If the <code>Sense</code> application component is not configuring the
 sensor, who is responsible for that ?
 
 <li> How can an application like <code>Sense</code> display sensor data when it
@@ -170,7 +170,7 @@ If you are not familiar with generic interfaces you will wonder what the
 meaning of <code>&lt;val_t&gt;</code> (in the first line) is and why the
 signature of <code>SenseC.nc</code> is using <code>Read&lt;uint16_t&gt;</code>.
 What you see above is a <i>generic interface definition</i>, because the
-<code>Read</code> interface takes a type parameter. What generic interfaces are
+<code>Read</code> interface takes a type parameter. Generic interfaces are
 is explained in the nesC Language Reference Manual (version 1.2 and above).
 Here it is enough to know that generic interfaces have at least one type
 parameter and two components can be wired together only if they provide/use the
@@ -182,7 +182,8 @@ can only be wired to a component that provides the
 <code>Read&lt;uint16_t&gt;</code> interface and thus <code>SenseC.nc</code>
 expects to read 16 bit unsigned integer sensor data.  If you tried to wire
 <code>SenseC.nc</code> to a component that provides, for example, a
-<code>Read&lt;uint8_t&gt;</code> interface you would get a nesC error. 
+<code>Read&lt;uint8_t&gt;</code> interface you would get an error from the
+nesC compiler. 
 
 <p>Recall that the wiring is defined in the <code>SenseAppC.nc</code>
 configuration. Let's again take a look, which component <code>SenseC.nc</code>
@@ -200,8 +201,8 @@ and
 This means that the <i>generic</i> <code>DemoSensorC</code> component provides
 the <code>Read&lt;uint16_t&gt;</code> interface to <code>SenseC.nc</code> (a
 <i>generic component</i> is a component that can be instantiated more than once
-and can take constant and type arguments; each instantiation represent a
-different components).
+and can take constant and type arguments; each instantiation is a
+different component).
 
 <p> It is important to understand that the <code>SenseC.nc</code> module has no
 way of telling which sensor it is connected to; in fact it cannot even tell
@@ -221,7 +222,10 @@ href="#introduction">introduction</a>: the <i>platform dependent</i>
 or <code>Oscilloscope</code> application is sampling and every platform that
 wants to run sensing applications such as <code>Oscilloscope</code>,
 <code>Sense</code> or <code>RadioSenseToLeds</code> has to provide its own
-version of <code>DemoSensorC</code>. 
+version of <code>DemoSensorC</code>. Additionally, sensor boards may come
+with their own version of <code>DemoSensorC</code> (e.g., the 
+<code>basicsb</code> sensorboard for the mica-family of motes is defined to
+be that board's light sensor).
 
 <a name="demosensorc"><h2>The DemoSensorC component</h2></a>
 
@@ -291,6 +295,13 @@ quick solution you can copy <code>DemoSensorC.nc</code> from
 you will see constant "sensor" readings (a good starting point on how to create
 sensor components is probably <a href="../tep101.html">TEP 101</a> and <a
 href="../tep114.html">TEP 114</a>). 
+
+<p>If you have a mica-family mote and a "basic" (mda100) sensor board, you
+can get a more interesting test by compiling with
+<pre>
+SENSORBOARD=basicsb make <i>platform</i> install
+</pre>
+to run <code>Sense</code> using the mda100's light sensor.
 
 <p> Once you have installed the application the bottom bits of the sensor
 readings are displayed on the node's LEDs (0 = off, 1 = on). If your
