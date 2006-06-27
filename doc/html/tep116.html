@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-06-13 16:44:17 $
-:version: $Revision: 1.1.2.8 $
+:date: $Date: 2006-06-27 20:23:04 $
+:version: $Revision: 1.1.2.9 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -303,9 +303,9 @@ ul.auto-toc {
 <td>Philip Levis</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">10-Dec-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.8</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.10</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-13</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-22</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -621,6 +621,19 @@ and use the pointer returned from <tt class="docutils literal"><span class="pre"
 a parameter to <tt class="docutils literal"><span class="pre">receive</span></tt> MUST NOT be touched, used, or stored after
 the signaling of <tt class="docutils literal"><span class="pre">receive.</span></tt></p>
 </div>
+<div class="section">
+<h2><a id="dispatch" name="dispatch">2.4 Dispatch</a></h2>
+<p>A packet protocol MAY have a dispatch identifier. This generally manifests
+as the protocol component provided parameterized interfaces (rather than
+a single interface instances). A dispatch identifier allows multiple
+services to use a protocol independently. If a protocol provides a
+dispatch mechanism, then each dispatch identifier SHOULD correspond to
+a single packet format: if an identifier corresponds to multiple packet
+formats, then there is no way to disambiguate them. Packets whose internal
+structure depends on their fields (for example,
+a packet that has a control field which indicates which optional fields
+are present) do not pose such problems.</p>
+</div>
 </div>
 <div class="section">
 <h1><a id="hil-activemessagec" name="hil-activemessagec">3. HIL: ActiveMessageC</a></h1>
@@ -666,13 +679,23 @@ include choosing one radio or having some form of address-based
 dispatch.</p>
 </div>
 <div class="section">
-<h1><a id="services-amsenderc-amreceiverc-amsnooperc-amsnoopingreceiverc" name="services-amsenderc-amreceiverc-amsnooperc-amsnoopingreceiverc">4. Services: AMSenderC, AMReceiverC, AMSnooperC, AMSnoopingReceiverC</a></h1>
-<p>TinyOS 2.x provides four component virtualizations to applications:
+<h1><a id="am-services-amsenderc-amreceiverc-amsnooperc-amsnoopingreceiverc" name="am-services-amsenderc-amreceiverc-amsnooperc-amsnoopingreceiverc">4. AM Services: AMSenderC, AMReceiverC, AMSnooperC, AMSnoopingReceiverC</a></h1>
+<p>TinyOS 2.x provides four component single-hop communication
+virtualizations to applications:
 AMReceiverC, AMSnooperC, AMSnoopingReceiverC, and AMSenderC. Each is a
 generic component that takes an active message ID as a
 parameter. These components assume the existence of ActiveMessageC.</p>
 <div class="section">
-<h2><a id="amreceiverc" name="amreceiverc">4.1 AMReceiverC</a></h2>
+<h2><a id="dispatch-am-id-t" name="dispatch-am-id-t">4.1 Dispatch: <tt class="docutils literal"><span class="pre">am_id_t</span></tt></a></h2>
+<p>Active messages have an 8-bit type field, which allows multiple
+protocols to all use AM communication without conflicting. Following
+the guidelines for protocol dispatch identifiers, each
+am_id_t used in a network SHOULD have a single packet format, so
+that the am_id_t, combined with the packet contents, are sufficient
+to determine the exact packet format.</p>
+</div>
+<div class="section">
+<h2><a id="amreceiverc" name="amreceiverc">4.2 AMReceiverC</a></h2>
 <p>AMReceiverC has the following signature:</p>
 <pre class="literal-block">
 generic configuration AMReceiverC(am_id_t t) {
@@ -692,7 +715,7 @@ instantiate an AMReceiver and an AMSnoopingReceiver with the same
 am_id_t.</p>
 </div>
 <div class="section">
-<h2><a id="amsnooperc" name="amsnooperc">4.2 AMSnooperC</a></h2>
+<h2><a id="amsnooperc" name="amsnooperc">4.3 AMSnooperC</a></h2>
 <p>AMSnooper has an identical signature to AMReceiver:</p>
 <pre class="literal-block">
 generic configuration AMSnooperC(am_id_t t) {
@@ -712,7 +735,7 @@ instantiate an AMSnooper and an AMSnoopingReceiver with the same
 am_id_t.</p>
 </div>
 <div class="section">
-<h2><a id="amsnoopingreceiverc" name="amsnoopingreceiverc">4.3 AMSnoopingReceiverC</a></h2>
+<h2><a id="amsnoopingreceiverc" name="amsnoopingreceiverc">4.4 AMSnoopingReceiverC</a></h2>
 <p>AMSnoopingReceiverC has an identical signature to AMReceiverC:</p>
 <pre class="literal-block">
 generic configuration AMSnoopingReceiverC(am_id_t t) {
@@ -731,7 +754,7 @@ a certain am_id_t MUST NOT instantiate another AMSnoopingReceiverC,
 AMSnooperC, or AMReceiverC with the same am_id_t.</p>
 </div>
 <div class="section">
-<h2><a id="amsender" name="amsender">4.4 AMSender</a></h2>
+<h2><a id="amsender" name="amsender">4.5 AMSender</a></h2>
 <p>AMSenderC has the following signature:</p>
 <pre class="literal-block">
 generic configuration AMSenderC(am_id_t AMId) {
@@ -752,7 +775,7 @@ packets receives a reasonable approximation of an equal share of the
 available transmission bandwidth.</p>
 </div>
 <div class="section">
-<h2><a id="power-management" name="power-management">4.5 Power Management</a></h2>
+<h2><a id="power-management" name="power-management">4.6 Power Management</a></h2>
 <p>The communication virtualizations do not support power management.
 ActiveMessageC provides SplitControl for explicit power control.
 For packet communication to operate properly, a component in an

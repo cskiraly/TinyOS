@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-06-09 21:12:17 $
-:version: $Revision: 1.1.2.2 $
+:date: $Date: 2006-06-27 20:23:04 $
+:version: $Revision: 1.1.2.3 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -303,9 +303,9 @@ ul.auto-toc {
 <td>Philip Levis and Gilman Tolle</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">10-Dec-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.2</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.3</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-02-08</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-20</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -320,38 +320,40 @@ TEP 1.</p>
 </div>
 <div class="section">
 <h1><a id="abstract" name="abstract">Abstract</a></h1>
-<p>The memo documents the interfaces, components, and semantics for disseminating
-small (smaller than a single packet payload) pieces of data in TinyOS 2.x.
-Dissemination is reliable delivery of a piece of data to every node in a network.</p>
+<p>The memo documents the interfaces, components, and semantics for
+disseminating small (smaller than a single packet payload) pieces of
+data in TinyOS 2.x.  Dissemination is reliably delivering a piece of
+data to every node in a network.</p>
 </div>
 <div class="section">
 <h1><a id="introduction" name="introduction">1. Introduction</a></h1>
-<p>Dissemination is a basic building block of sensor network applications.
-The ability to reliably deliver a piece of data to every node
-allows administrators to reconfigure, query, and reprogram a network.
-Reliability is important because it makes the operation robust
-to temporary disconnections or high packet loss. Unlike flooding protocols,
-which are discrete efforts that terminate, possibly not delivering
-the data to some nodes, dissemination achieves reliability by using
-a continuous approach that can detect when a node is missing the data.</p>
+<p>Dissemination is a basic sensor network protocol. The ability to
+reliably deliver a piece of data to every node allows administrators
+to reconfigure, query, and reprogram a network.  Reliability is
+important because it makes the operation robust to temporary
+disconnections or high packet loss. Unlike flooding protocols, which
+are discrete efforts that terminate, possibly not delivering the data
+to some nodes, dissemination achieves reliability by using a
+continuous approach that can detect when a node is missing the data.</p>
 <p>Depending on the size of the data item, dissemination protocols can
-differ greatly: efficiently disseminating tens of kilobytes of a binary
-requires a different protocol than disseminating a two-byte configuration
-constant. Looking more deeply, however, there are similarities. Separating
-a dissemination protocol into two parts --- control traffic and data
-traffic --- shows that while the data traffic protocols are greatly
-dependent on the size of the data item, the control traffic tends to be
-the same or very similar.</p>
+differ greatly: efficiently disseminating tens of kilobytes of a
+binary requires a different protocol than disseminating a two-byte
+configuration constant. Looking more deeply, however, there are
+similarities. Separating a dissemination protocol into two parts ---
+control traffic and data traffic --- shows that while the data traffic
+protocols are greatly dependent on the size of the data item, the
+control traffic tends to be the same or very similar.</p>
 <p>Being able to reliably disseminate small values into a network is a
 useful building block for sensornet applications. It allows an
 administrator to inject small programs or commands and configuration
 constants. Because TinyOS nodes have limited RAM, these dissemination
 services have the assumption that data values have some form of
 versioning. Dissemination propagates only the most recent version.
-This means that if a node is disconnected from a network and the network
-goes through eight versions of a disseminated value, when it rejoins the
-network it will only see the most recent. The rest of this document describes
-a set of components and interfaces for a dissemination service of this kind.</p>
+This means that if a node is disconnected from a network and the
+network goes through eight versions of a disseminated value, when it
+rejoins the network it will only see the most recent. The rest of this
+document describes a set of components and interfaces for a
+dissemination service of this kind.</p>
 </div>
 <div class="section">
 <h1><a id="dissemination-interfaces" name="dissemination-interfaces">2. Dissemination interfaces</a></h1>
@@ -375,20 +377,19 @@ store this pointer, as it may not be constant across updates.
 Additionally, doing so wastes RAM, as it can be easily re-obtained.
 The service signals a changed() event whenever the dissemination value
 changes, in case the consumer needs to perform some computation on it.</p>
-<p>DisseminationUpdate has a single command, change, which takes a pointer
-as an argument. This pointer is not stored: a provider of
+<p>DisseminationUpdate has a single command, <tt class="docutils literal"><span class="pre">change</span></tt>, which takes a
+pointer as an argument. This pointer is not stored: a provider of
 DisseminationUpdate MUST copy the data into its own allocated memory.</p>
-<p>A dissemination protocol MUST reach consensus on the newest value in
-a network (assuming the network is connected).
-Calling change implicitly increases the version number of the data item
-so that it will be disseminated to every node in the network. This
-change is local, however. If a node that is out-of-date calls change,
-the new value might not disseminate, as other nodes might already
-have a newer value. If two nodes with the same version number call
-change but pass different values, then the network might reach consensus
-when nodes have different values. The dissemination protocol therefore
-MUST have a tie-breaking mechanism, so that eventually every node has
-the same data value.</p>
+<p>A dissemination protocol MUST reach consensus on the newest value in a
+network (assuming the network is connected).  Calling change
+implicitly makes the data item &quot;newer&quot; so that it will be disseminated
+to every node in the network. This change is local, however. If a node
+that is out-of-date also calls change, the new value might not
+disseminate, as other nodes might already have a newer value. If two
+nodes call change at the same time but pass different values, then the
+network might reach consensus when nodes have different values. The
+dissemination protocol therefore MUST have a tie-breaking mechanism,
+so that eventually every node has the same data value.</p>
 </div>
 <div class="section">
 <h1><a id="dissemination-service" name="dissemination-service">3 Dissemination Service</a></h1>
@@ -400,7 +401,7 @@ generic configuration DisseminatorC(typedef t, uint16_t key) {
   provides interface DisseminationUpdate &lt;t&gt;;
 }
 </pre>
-<p>The t argument MUST be able to fit in a single message_t[<a class="reference" href="#tep111">tep111</a>]  after
+<p>The t argument MUST be able to fit in a single message_t[<a href="#id4" name="id5"><span class="problematic" id="id5">tep111_</span></a>]  after
 considering the headers that the dissemination protocol introduces.
 A dissemination implementation SHOULD have a compile error if a larger
 type than this is used.</p>
@@ -465,15 +466,19 @@ interface, but will be used internally.</p>
 </div>
 <div class="section">
 <h1><a id="more-complex-dissemination" name="more-complex-dissemination">5. More Complex Dissemination</a></h1>
-<p>You can use this low-level networking primitive to build more complex
-dissemination systems. For example, if you want have a dissemination
-that only nodes which satisfy a predicate receive, you can do that by
-making the &lt;t&gt; a struct that stores a predicate and data value in it,
-and layering the predicate evaluation on top of the above interfaces.
-This also means that you can build up a very different style of
-dissemination interface, if you wanted to try to unify both
-communication modes: once you have predicates you can have addressing,
-and then you could just present dissemination as AMSend or Send.</p>
+<p>An application can use this low-level networking primitive to build
+more complex dissemination systems. For example, if you want have a
+dissemination that only nodes which satisfy a predicate receive, you
+can do that by making the &lt;t&gt; a struct that stores a predicate and
+data value in it, and layering the predicate evaluation on top of the
+above interfaces.</p>
+</div>
+<div class="section">
+<h1><a id="implementation" name="implementation">6. Implementation</a></h1>
+<p>An implementation of this TEP can be found in
+<tt class="docutils literal"><span class="pre">tinyos-2.x/tos/lib/net</span></tt>. This dissemination implementation uses
+network trickles <a class="footnote-reference" href="#id3" id="id1" name="id1">[2]</a>. Each dissemination value has a separate
+trickle.</p>
 </div>
 <div class="section">
 <h1><a id="author-s-address" name="author-s-address">6. Author's Address</a></h1>
@@ -498,12 +503,24 @@ and then you could just present dissemination as AMSend or Send.</p>
 </div>
 <div class="section">
 <h1><a id="citations" name="citations">7. Citations</a></h1>
-<table class="docutils citation" frame="void" id="tep111" rules="none">
+<table class="docutils footnote" frame="void" id="id2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a name="tep111">[tep111]</a></td><td>TEP 111: message_t.</td></tr>
+<tr><td class="label"><a name="id2">[1]</a></td><td>TEP 111: message_t.</td></tr>
 </tbody>
 </table>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1" name="id3">[2]</a></td><td>Philip Levis, Neil Patel, David Culler, and Scott Shenker. &quot;Trickle: A Self-Regulating Algorithm for Code Maintenance and Propagation in Wireless Sensor Networks.&quot; In Proceedings of the First USENIX/ACM Symposium on Networked Systems Design and Implementation (NSDI 2004).</td></tr>
+</tbody>
+</table>
+</div>
+<div class="system-messages section">
+<h1>Docutils System Messages</h1>
+<div class="system-message" id="id4">
+<p class="system-message-title">System Message: <a name="id4">ERROR/3</a> (<tt class="docutils">txt/tep118.txt</tt>, line 116); <em><a href="#id5">backlink</a></em></p>
+Unknown target name: &quot;tep111&quot;.</div>
 </div>
 </div>
 </body>
