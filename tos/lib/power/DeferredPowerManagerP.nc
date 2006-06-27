@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4.6.3 $
- * $Date: 2006-06-21 15:58:09 $ 
+ * $Revision: 1.1.2.4.6.4 $
+ * $Date: 2006-06-27 21:09:38 $ 
  * ======================================================================== 
  */
  
@@ -50,9 +50,6 @@
  */
  
 generic module DeferredPowerManagerP(uint32_t delay) {
-  provides {
-    interface Init;
-  }
   uses {
     interface StdControl;
     interface SplitControl;
@@ -65,28 +62,23 @@ generic module DeferredPowerManagerP(uint32_t delay) {
 }
 implementation {
 
-  norace struct {
-   uint8_t stopping :1;
-   uint8_t requested :1;
-  } f; //for flags
+  norace bool stopping = FALSE;
+  bool requested  = FALSE;
 
   task void timerTask() { 
     call TimerMilli.startOneShot(delay); 
   }
 
-  command error_t Init.init() {
-    f.stopping = FALSE;
-    f.requested = FALSE;
-    call ResourceController.request();
-    return SUCCESS;
-  }
-
   event void ResourceController.requested() {
-    if(f.stopping == FALSE) {
+    if(stopping == FALSE) {
+      call TimerMilli.stop();
       call StdControl.start();
       call SplitControl.start();
     }
-    else atomic f.requested = TRUE;
+    else atomic requested = TRUE;
+  }
+
+  async event void ResourceController.immediateRequested() {
   }
 
   default command error_t StdControl.start() {
@@ -101,32 +93,26 @@ implementation {
     call ResourceController.release();
   }
 
-  async event void ResourceController.idle() {
-    if(!(call ArbiterInfo.inUse()))
-      post timerTask();
+  async event void ResourceController.granted() {
+    post timerTask();
   }
 
   event void TimerMilli.fired() {
-    if(call ResourceController.immediateRequest() == SUCCESS) {
-      f.stopping = TRUE;
+      stopping = TRUE;
       call PowerDownCleanup.cleanup();
       call StdControl.stop();
       call SplitControl.stop();
-    }
   }
 
   event void SplitControl.stopDone(error_t error) {
-    if(f.requested == TRUE) {
+    if(requested == TRUE) {
       call StdControl.start();
       call SplitControl.start();
     }
     atomic {
-      f.requested = FALSE;
-      f.stopping = FALSE;
+      requested = FALSE;
+      stopping = FALSE;
     }
-  }
-
-  event void ResourceController.granted() {
   }
 
   default command error_t StdControl.stop() {

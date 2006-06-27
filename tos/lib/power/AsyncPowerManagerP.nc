@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3.2.3 $
- * $Date: 2006-06-21 15:58:09 $ 
+ * $Revision: 1.1.2.3.2.4 $
+ * $Date: 2006-06-27 21:09:38 $ 
  * ======================================================================== 
  */
  
@@ -46,9 +46,6 @@
  */
  
 generic module AsyncPowerManagerP() {
-  provides {
-    interface Init;
-  }
   uses {
     interface AsyncStdControl;
 
@@ -58,25 +55,20 @@ generic module AsyncPowerManagerP() {
   }
 }
 implementation {
-  
-  command error_t Init.init() {
-    call ResourceController.request();
-    return SUCCESS;
-  }
 
   event void ResourceController.requested() {
     call AsyncStdControl.start();
     call ResourceController.release(); 
   }
 
-  async event void ResourceController.idle() {
-    if(call ResourceController.immediateRequest() == SUCCESS) {
-      call PowerDownCleanup.cleanup();
-      call AsyncStdControl.stop();
-    }
-  }
+  async event void ResourceController.immediateRequested() {
+    call AsyncStdControl.start();
+    call ResourceController.release();
+  } 
 
-  event void ResourceController.granted() {
+  async event void ResourceController.granted() {
+    call PowerDownCleanup.cleanup();
+    call AsyncStdControl.stop();
   }
 
   default async command void PowerDownCleanup.cleanup() {

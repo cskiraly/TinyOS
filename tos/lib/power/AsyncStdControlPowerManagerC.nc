@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4.2.1 $
- * $Date: 2006-05-15 18:23:15 $ 
+ * $Revision: 1.1.2.4.2.2 $
+ * $Date: 2006-06-27 21:09:38 $ 
  * ======================================================================== 
  */
  
@@ -56,9 +56,6 @@
  
 generic configuration AsyncStdControlPowerManagerC()
 {
-  provides {
-    interface Init;
-  }
   uses {
     interface AsyncStdControl;
 
@@ -69,8 +66,6 @@ generic configuration AsyncStdControlPowerManagerC()
 }
 implementation {
   components new AsyncPowerManagerP() as PowerManager;
-
-  Init = PowerManager;
  
   PowerManager.AsyncStdControl = AsyncStdControl;
 

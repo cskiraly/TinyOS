@@ -60,8 +60,8 @@
  * predefined arbitration policy.
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.9.2.3 $
- * @date $Date: 2006-06-21 16:00:57 $
+ * @version $Revision: 1.1.2.9.2.4 $
+ * @date $Date: 2006-06-27 21:09:38 $
  */
 
 interface Resource {
@@ -76,6 +76,15 @@ interface Resource {
    *               granted event is pending
    */
   async command error_t request();
+
+  /**
+  * Request immediate access to a shared resource. You must call release()
+  * when you are done with it.
+  *
+  * @return SUCCESS When a request has been accepted. <br>
+  *            FAIL The request cannot be fulfilled
+  */
+  async command error_t immediateRequest();
 
   /**
    * You are now in control of the resource.
