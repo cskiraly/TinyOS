@@ -1,4 +1,4 @@
-// $Id: BuildSource.java,v 1.1.2.4 2006-02-16 01:21:26 idgay Exp $
+// $Id: BuildSource.java,v 1.1.2.5 2006-06-27 22:21:40 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -46,8 +46,8 @@ import net.tinyos.util.*;
  * (note that the JNI code for net.tinyos.util.Env must be installed for
  * this to work - see net/tinyos/util/Env.INSTALL for details). When
  * MOTECOM is undefined (or the JNI code for Env.java cannot be found), the
- * packet source is "sf@localhost:9001" (new serial-forwarder, on localhost
- * port 9001).
+ * packet source is "sf@localhost:9002" (new serial-forwarder, on localhost
+ * port 9002).
  *
  * Packet sources can either be specified by strings (when calling
  * <code>makePacketSource</code>, or by calling a specific makeXXX method
@@ -120,12 +120,12 @@ public class BuildSource {
 
     /**
      * Make the specified packet source
-     * @param name Name of the packet source, or null for "sf@localhost:9001"
+     * @param name Name of the packet source, or null for "sf@localhost:9002"
      * @return The packet source, or null if it could not be made
      */
     public static PacketSource makePacketSource(String name) {
 	if (name == null)
-	    name = "sf@localhost:9001"; // default source
+	    name = "sf@localhost:9002"; // default source
 
 	ParseArgs parser = new ParseArgs(name, "@");
 	String source = parser.next();
@@ -169,12 +169,12 @@ public class BuildSource {
 
     /**
      * Make a serial-forwarder source  (tcp/ip client) from an argument string
-     * @param args "hostname:port-number", or null for "localhost:9001"
+     * @param args "hostname:port-number", or null for "localhost:9002"
      * @return The new PacketSource or null for invalid arguments
      */
     public static PacketSource makeArgsSF(String args) {
 	if (args == null)
-	    args = "localhost:9001";
+	    args = "localhost:9002";
 
 	ParseArgs parser = new ParseArgs(args, ":");
 	String host = parser.next();
