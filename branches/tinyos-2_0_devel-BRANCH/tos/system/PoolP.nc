@@ -1,4 +1,4 @@
-/* $Id: PoolP.nc,v 1.1.2.1 2006-06-26 16:52:17 scipio Exp $ */
+/* $Id: PoolP.nc,v 1.1.2.2 2006-06-27 19:54:58 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -33,10 +33,20 @@
 
 /**
  *  Implementation of a general dynamic memory pool component.
+ *  Note that the allocation/deallocation policies are 
+ *  different than traditional dynamic allocators such as
+ *  malloc or slab allocators. When initialized, the Pool
+ *  contains <code>size</code> items of type <code>pool_t</code>.
+ *  These elements can be removed from the pool for use with 
+ *  <code>Pool.get</code>, and new elements can be placed in
+ *  the pool with <code>Pool.put</code>. The pool allows 
+ *  components to <code>put</code> elements besides those which
+ *  were obtained with <code>get</code>. The pool can never have
+ *  more than <code>size</code> elements in it.
  *
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-26 16:52:17 $
+ *  @date   $Date: 2006-06-27 19:54:58 $
  */
 
 generic module PoolP(typedef pool_t, uint8_t size) {
