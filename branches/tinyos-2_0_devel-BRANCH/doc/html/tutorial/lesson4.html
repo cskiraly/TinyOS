@@ -6,11 +6,16 @@
 </head>
 <body>
     <div class="title">Lesson 4: Mote-PC serial communication and SerialForwarder</div>
-    <div class="subtitle">Last updated 16 Jun 2006</div>
+    <div class="subtitle">Last updated June 27 2006</div>
 
 <p>To goal of this lesson is to show you how to communicate with a
-mote from PC. This will allow you to collect data from the network,
+mote from a PC. This will allow you to collect data from the network,
 send commands to motes, and monitor network traffic.</p>
+
+<p>This tutorial presents the Java-based infrastructure for communicating
+with motes. There is also a C-based infrastructure, found in support/sdk/c.
+Please see the documentation found there, and the <code>mig</code> and 
+<code>ncg</code> man pages for more details.
 
 
 <h1>Packet sources and TestSerial</h1>
@@ -61,6 +66,14 @@ application. From in the application directory, type:</p>
 $ java TestSerial
 </pre>
 
+If you get a message like
+<pre>
+The java class is not found:  TestSerial
+</pre>
+it means that you either haven't compiled the Java code (try running <code>
+make <i>platform</i></code> again) or you don't have <code>.</code> (the
+current directory) in your Java <code>CLASSPATH</code>.
+
 <p>Because you haven't specified a packet source, TestSerial
 will fall back to a default, which is a SerialForwarder. Since
 you don't have a SerialForwarder running, TestSerial will
@@ -73,12 +86,20 @@ source is as follows:</p>
 </pre>
 
 <p>PORT depends on your platform and where you have plugged the mote in.
-For Windows/Cygwin platforms, it is COM<i>N</i>, where <i>N</i> is
-the port number. For Linux/UNIX machines, it is 
-<code>/dev/ttyS</code><i>N</i>. The SPEED can either be a numeric value,
-or the name of a platform. Specifying a platform name tells the
-serial packet source to use the default speed for the platform. Valid
-platforms are:</p>
+For Windows/Cygwin platforms, it is COM<i>N</i>, where <i>N</i> is the port
+number. For Linux/UNIX machines, it is <code>/dev/ttyS</code><i>N</i> for a
+built-in serial port, or one of <code>/dev/ttyUSB<i>N</I></code> or
+<code>/dev/usb/tts/<i>N</I></code> for a serial-over-USB port. Additionally
+as we saw in <a href="lesson1.html">lesson 1</a>, on Linux you will
+typically need to make this serial port world writeable.  As superuser,
+execute the following command:
+<pre>chmod 666 <i>serialport</i></pre>
+<p>
+
+<p>The SPEED
+can either be a numeric value, or the name of a platform. Specifying a
+platform name tells the serial packet source to use the default speed for
+the platform. Valid platforms are:</p>
 
 <CENTER>
 <table>
@@ -129,14 +150,14 @@ Sending packet 6
 <h2>Cannot find JNI error</h2>
 
 <p>If you try to run TestSerial and receive an error that Java cannot find
-TOSComm JNI support, this means the Java Native Interface (JNI) files
-that control the serial port haven't been correctly installed. Run
-the command <code>tos-install-jni</code>. If this command does
-not exist, go to
-<code>tinyos-2.x/tools/tinyos/java</code>. If the directory has a
-<code>Makefile</code> in it, type <code>make; make install</code>.
-If the directory does not have a <code>Makefile</code>, go to
-<code>tinyos-2.x/tools</code> and type:</p>
+TOSComm JNI support, this means the Java Native Interface (JNI) files that
+control the serial port haven't been correctly installed. Run the command
+<code>tos-install-jni</code> (on Linux, do this as the superuser). If this
+command does not exist, go to <code>tinyos-2.x/tools/tinyos/java</code>. If
+the directory has a <code>Makefile</code> in it, type <code>make</code>
+and (again, on Linux, as superuser) <code>make
+install</code>.  If the directory does not have a <code>Makefile</code>, go
+to <code>tinyos-2.x/tools</code> and type:</p>
 
 <pre>
 $ ./Bootstrap
@@ -181,7 +202,7 @@ has a toolchain for generating and sending packets to a mote
 over a serial port, using a BaseStation allows PC tools to
 communicate directly with mote networks.</p>
 
-<p>Take one of the two nodes that had BlinkToRadio installed
+<p>Take one of the two nodes that had BlinkToRadio (from <a href="lesson3.html">lesson 3</a>) installed
 and install BaseStation on it. If you turn on the node that still
 has BlinkToRadio installed, you should see LED 1 on the BaseStation
 blinking. BaseStation toggles LED 0 whenever it sends a packet 
@@ -195,7 +216,7 @@ at 256kbps but sending serial packets at 57.6kbps).</p>
 them to the serial port, so if it is plugged into a PC we can
 view these packets. The Java tool Listen is a basic packet
 sniffer: it prints out the binary contents of any packet it hears.
-Run Listen, using either MOTECOM or a -comm parameter:</p>:
+Run Listen, using either MOTECOM or a -comm parameter:</p>
 
 <pre>
 $ java net.tinyos.tools.Listen
@@ -219,12 +240,12 @@ packet it sees. Your output should look something like this:</p>
 </pre>
 
 
-<p>Listen is simply printing out the
-packets that are coming from the mote. Each data packet that comes out
-of the mote contains several fields of data. Some of these fields are
-generic Active Message fields, and are defined in 
-<tt>tinyos-2.x/tos/serial/Serial.h</tt>. 
-Recall that the data payload of the message, which is defined in BlinkToRadio.h, is:</p>
+<p>Listen is simply printing out the packets that are coming from the
+mote. Each data packet that comes out of the mote contains several fields
+of data. The first byte (00) indicates that this is packet is an AM
+packet. The next fields are the generic Active Message fields, defined in
+<tt>tinyos-2.x/tos/serial/Serial.h</tt>.  Finally, the remaining fields are
+the data payload of the message, which was defined in BlinkToRadio.h as:</p>
 
 <pre>
 typedef nx_struct BlinkToRadioMsg {
@@ -233,8 +254,8 @@ typedef nx_struct BlinkToRadioMsg {
 } BlinkToRadioMsg;
 </pre>
 
-The overall message format for the BlinkToRadioC application is as
-follows: </p>
+The overall message format for the BlinkToRadioC application is
+therefore (ignoring the first 00 byte): </p>
 <ul>
   <li> <b>Destination address</b> (2 bytes)</li>
   <li> <b>Message length</b> (1 byte)</li>
@@ -344,7 +365,7 @@ TestSerial.class: $(wildcard *.java) TestSerialMsg.java
         javac *.java
 
 TestSerialMsg.java:
-        mig java -target=$(PLATFORM) -java-classname=TestSerialMsg TestSerial.h TestSerialMsg -o $@
+        mig java -target=null -java-classname=TestSerialMsg TestSerial.h TestSerialMsg -o $@
 
 include $(MAKERULES)
 </pre>
@@ -372,7 +393,7 @@ dependencies are resolved, the make system will call <code>javac
 
 <pre>
 TestSerialMsg.java:
-        mig java -target=$(PLATFORM) -java-classname=TestSerialMsg TestSerial.h TestSerialMsg -o $@
+        mig java -target=null -java-classname=TestSerialMsg TestSerial.h TestSerialMsg -o $@
 </pre>
 
 <p>tells the make system how to create TestSerialMsg.java, the
@@ -385,12 +406,18 @@ one by one:</p>
 <table>
 <tr>  <td>mig</td>  <td width=60></td>                <td>Invoke mig</td> </tr>
 <tr>  <td>java</td> <td></td>                         <td>Build a Java class</td> </tr>
-<tr>  <td>-target=$(PLATFORM)</td> <td></td>          <td>For the specified platform (<A HREF="#platforms">1</A>)</td></tr>
+<tr>  <td>-target=null</td> <td></td>          	      <td>For the <code>null</code>platform</td></tr>
 <tr>  <td>-java-classname=TestSerialMsg</td><td></td> <td>Name the Java class TestSerialMsg</td> </tr>
 <tr>  <td>TestSerial.h</td>        <td></td>          <td>The structure is in TestSerial.h</td> </tr>
 <tr>  <td>TestSerialMsg</td>      <td></td>           <td>The structure is named TestSerialMsg</td></tr>
 <tr>  <td>-o $@</td>               <td></td>          <td>Write the file to $@, which is TestSerialMsg.java</tr></tr>
 </table>
+
+<p>The <code>null</code> platform is a special platform which is convenient to use
+as the target when using <code>mig</code>. It includes all the standard
+system components, but with dummy do-nothing implementations. Building an
+application for the <code>null</code> platform is useless, but it allows
+<code>mig</code> to extract the layout of packets.
 
 <p>Let's build a Java packet object for BlinkToRadio.  Open the Makefile for 
 BlinkToRadio and add a dependency:</p>
@@ -411,7 +438,7 @@ Finally, add the line which explains how to create BlinkToRadioMsg.java:</p>
 
 <pre>
 BlinkToRadioMsg.java:
-        mig java -target=$(PLATFORM) -java-classname=BlinkToRadioMsg BlinkToRadio.h BlinkToRadioMsg -o $@
+        mig java -target=null -java-classname=BlinkToRadioMsg BlinkToRadio.h BlinkToRadioMsg -o $@
 </pre>
 
 <p>As with javac, there must be a tab (not spaces) before mig. 
@@ -512,7 +539,7 @@ java net.tinyos.sf.SerialForwarder
 can even string SerialForwaders along:</p>
 
 <pre>
-java net.tinyos.sf.SerialForwarder -port 9002 -comm sf@localhost:9002
+java net.tinyos.sf.SerialForwarder -port 9003 -comm sf@localhost:9002
 </pre>
 
 <p>This command opens a second SerialForwarder, whose source is the first
@@ -521,7 +548,7 @@ increased to one. It's rare that you'd ever want to do this, but it
 demonstrates that in the message support libraries you can 
 use a variety of packet sources.</p>
 
-<p>Close the second SerialForwarder (the one listening on port 9002).
+<p>Close the second SerialForwarder (the one listening on port 9003).
 Run MsgReader again, but this time tell it to connect to your
 SerialForwarder:</p>
 
@@ -596,7 +623,7 @@ interface, calls <code>AMSend.send</code>, and handles
 <code>AMSend.sendDone</code>. The serial stack will send
 it over the serial port regardless of the AM address specified.</p>
 
-<p>The TinyOS serial stack follows the same programming `model as the radio
+<p>The TinyOS serial stack follows the same programming model as the radio
 stack. There is a <code>SerialActiveMessageC</code> for turning
 the stack on and off (mote processors often cannot enter their
 lowest power state while the serial stack is on), and generic
@@ -661,7 +688,6 @@ BlinkToRadioAppC configuration:</p>
 </table>
 <br>
 <hr>
-<center>
 
 <p>Now, rather than have BlinkToRadio send packets which a BaseStation
 recieves and forwards to the serial port, the application will
@@ -670,7 +696,16 @@ that this is happening. Note that the binary code and data size
 has changed significantly, as nesC has included the serial stack
 rather than the radio stack.</p>
 
+<h1>Related Documentation</h1>
 
+<ul>
+<li> <a name="fn1"><a href="../tep113.html">TEP 113: Serial Communication</a></a>
+<li> <code>mig</code> man page
+<li> <code>ncg</code> man page
+<li> javadoc documentation for the net.tinyos.packet and net.tinyos.message packages
+</ul>
+
+<center>
 <p>&lt;&nbsp;<b><a href="lesson3.html">Previous Lesson</a></b> |&nbsp; <b><a
  href="index.html">Top</a></b> &nbsp;|&nbsp; <b><a href="lesson5.html">Next Lesson </a>&nbsp;&gt;</b>
 </center>
