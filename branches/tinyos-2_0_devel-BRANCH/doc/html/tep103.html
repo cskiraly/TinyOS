@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>Permanent Data Storage (Flash)</title>
 <meta name="author" content="David Gay, Jonathan Hui" />
 <style type="text/css">
@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-06-14 21:32:42 $
-:version: $Revision: 1.1.2.5 $
+:date: $Date: 2006-06-27 20:23:04 $
+:version: $Revision: 1.1.2.6 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -303,9 +303,9 @@ ul.auto-toc {
 <td>David Gay, Jonathan Hui</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">27-Sep-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.10</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.12</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-14</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-21</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -318,21 +318,21 @@ requests discussion and suggestions for improvements.  Distribution
 of this memo is unlimited. This memo is in full compliance with
 TEP 1.</p>
 </div>
-<div class="section" id="abstract">
-<h1><a name="abstract">Abstract</a></h1>
-<p>This memo documents a set of hardware-independent, non-volatile storage
-interfaces for TinyOS 2.x, and some principles for the HPL and HAL layers
-for various flash chips.</p>
+<div class="section">
+<h1><a id="abstract" name="abstract">Abstract</a></h1>
+<p>This memo documents a set of hardware-independent interfaces to non-volatile
+storage for TinyOS 2.x. It describes some design principles for the HPL and
+HAL layers of various flash chips.</p>
 </div>
-<div class="section" id="introduction">
-<h1><a name="introduction">1. Introduction</a></h1>
+<div class="section">
+<h1><a id="introduction" name="introduction">1. Introduction</a></h1>
 <p>Flash chips are a form of EEPROM (electrically-eraseable, programmable
 read-only memory), distinguished by a fast erase capability. However,
 erases can only be done in large units (from 256B to 128kB depending on the
-flash chip). Erases are the only way to switch bits from 0 to 1, the
-programming operation can only switch 1's to 0's. Additionally, some
-chips requires that programming only happen once between each erase,
-or that it be performed in relatively large units (e.g., 256B).</p>
+flash chip). Erases are the only way to switch bits from 0 to 1, and
+programming operations can only switch 1's to 0's. Additionally, some
+chips require that programming only happen once between each erase,
+or that it be in relatively large units (e.g., 256B).</p>
 <p>In the table below, we summarise these differences by categorising
 flash chips by their underlying technology (NOR vs NAND). We also
 include a column for Atmel's AT45DB flash chip family, as it has
@@ -344,9 +344,9 @@ Erase        :  Slow (seconds)      Fast (ms)      Fast (ms)
 Erase unit   :  Large (64KB-128KB)  Small (256B)   Medium (8K-32KB)
 Writes       :  Slow (100s kB/s)    Slow (60kB/s)  Fast (MBs/s)
 Write unit   :  1 bit               256B           100's of bytes
-Bit-errors   :  Low                 Low            High (requires ECC, 
+Bit-errors   :  Low                 Low            High (requires ECC,
                                                    bad-block mapping)
-Read         :  Fast*               Slow+I/O bus   Fast (but limited by 
+Read         :  Fast*               Slow+I/O bus   Fast (but limited by
                                                    I/O bus)
 Erase cycles :  10^4 - 10^5         10^4 **        10^5 - 10^7
 Intended use :  Code storage        Data storage   Data storage
@@ -363,7 +363,7 @@ derived from the timing and power consumption of erase and write operations
 flash, values are from a Samsung datasheet). Energy/byte for reads appears
 to depend mostly on how long the read takes (the power consumptions are
 comparable), i.e., on the efficiency of the bus + processor.</p>
-<p>Early motes used with TinyOS all used a flash chip from the AT45DB
+<p>Early TinyOS platforms all used a flash chip from the AT45DB
 family. In TinyOS 1.x, this chip could be accessed through three
 different components:</p>
 <ul class="simple">
@@ -372,9 +372,9 @@ access to per-page read, write and erase operations.</li>
 <li>Using a high-level memory-like interface (<tt class="docutils literal"><span class="pre">ByteEEPROMC</span></tt>) with
 read, write and logging operations.</li>
 <li>Using a simple file system (<tt class="docutils literal"><span class="pre">Matchbox</span></tt>) with sequential-only
-files.</li>
+files [<a class="reference" href="#id1">1</a>].</li>
 </ul>
-<p>Some more recent motes use different flash chips: the ST M25P family (Telos
+<p>Some more recent platforms use different flash chips: the ST M25P family (Telos
 rev. B, eyes) and the Intel Strataflash (Intel Mote2). None of the
 three components listed above are supported on these chips:</p>
 <ul class="simple">
@@ -382,7 +382,7 @@ three components listed above are supported on these chips:</p>
 <li><tt class="docutils literal"><span class="pre">ByteEEPROMC</span></tt> allows arbitrary rewrites of sections of the flash.
 This is not readily implementable on a flash chip with large erase units.</li>
 <li>The <tt class="docutils literal"><span class="pre">Matchbox</span></tt> implementation was AT45DB-specific. It was not
-reimplemented for these other chips, in part because it does not 
+reimplemented for these other chips, in part because it does not
 support some applications (e.g., network reprogramming) very well.</li>
 </ul>
 <p>One approach to hiding the differences between different flash chips is to
@@ -394,82 +394,83 @@ this approach has several drawbacks:</p>
 in a free, open-source operating system.</li>
 <li>To support arbitrary block writes where blocks are smaller than the
 erase unit, and to deal with the limited number of erase cycles/block
-requires remapping blocks. We believe that maintaining this remapping 
+requires remapping blocks. We believe that maintaining this remapping
 table is too expensive on many mote-class devices.</li>
 </ul>
 <p>Another approach to supporting multiple flash chips is to build a
 file system (like Matchbox) which can be implemented for multiple
-flash chips. However, TinyOS is currently targeted at running a 
+flash chips. However, TinyOS is currently targeted at running a
 single application, and many applications know their storage needs
 in advance: for instance, a little space for configuration data, and
 everything else for a log of all sampled data. In such cases, the
 flexibility offered by a filing system (e.g., arbitrary numbers of
 files) is overkill, and may come at the expense of implementation
 and runtime complexity.</p>
-<p>Instead, in TinyOS 2.x, we divide flash chips into separate volumes (with
-sizes fixed at compile-time). Each volume is dedicated to a high-level
-storage services useful for sensor network applications. We have so far
-identified three such services: large objects written in a single session,
+<p>Instead, TinyOS 2.x, divides flash chips into separate volumes (with
+sizes fixed at compile-time). Each volume provides a single storage
+abstraction (the abstraction defines the format). So far there are three
+such abstractions: large objects written in a single session,
 small objects with arbitrary reads and writes, and logs. This approach
 has two advantages:</p>
 <ul class="simple">
-<li>Each service is relatively easy to implement on a new flash chip, and
+<li>Each abstraction is relatively easy to implement on a new flash chip, and
 has relatively little overhead.</li>
 <li>The problem of dealing with the limited number of erase cycles/block
 is simplified: it is unlikely that user applications will need to
 rewrite the same small object 100'000 times, or cycle 100'000 times
-through their log. Thus the services can mostly ignore the need for
+through their log. Thus the abstractions can mostly ignore the need for
 &quot;wear levelling&quot; (ensuring that each block of the flash is erased
 the same number of time, to maximise flash chip lifetime).</li>
 </ul>
-<p>New services (including a filing system...) can easily be added to this
-framework.</p>
+<p>New abstractions (including a filing system) can easily be added to this
+framework, or can be built on top of these abstractions.</p>
 <p>The rest of this TEP covers some principles for the organisation of
 flash chips (Section 2), then describes the flash volumes and
-storage services in detail (Section 3).</p>
+storage abstractions in detail (Section 3).</p>
 </div>
-<div class="section" id="hpl-hal-hil-architecture">
-<h1><a name="hpl-hal-hil-architecture">2. HPL/HAL/HIL Architecture</a></h1>
-<p>The flash chip architecture aligns with the three-layer Hardware
+<div class="section">
+<h1><a id="hpl-hal-hil-architecture" name="hpl-hal-hil-architecture">2. HPL/HAL/HIL Architecture</a></h1>
+<p>The flash chip architecture dollows the three-layer Hardware
 Abstraction Architecture (HAA), with each chip providing a presentation
 layer (HPL, Section 2.1), adaptation layer (HAL, Section 2.2) and
-platform-independent interface layer (the storage services described in
-Section 3). The implementation of these layers SHOULD be found in the
+platform-independent interface layer (the storage abstractions described in
+Section 3) [<a class="reference" href="#id2">2</a>]. The implementation of these layers SHOULD be found in the
 <tt class="docutils literal"><span class="pre">tos/chips/CHIPNAME</span></tt> directory. If a flash chip is part of a larger
 family with a similar interface, the HAA SHOULD support all family members
 by relying, e.g., on platform-provided configuration information.</p>
 <p>Appendix A shows example HPL and HAL specifications for the AT45DB
 and ST M25P chip families.</p>
-<div class="section" id="hardware-presentation-layer-hpl">
-<h2><a name="hardware-presentation-layer-hpl">2.1 Hardware Presentation Layer (HPL)</a></h2>
+<div class="section">
+<h2><a id="hardware-presentation-layer-hpl" name="hardware-presentation-layer-hpl">2.1 Hardware Presentation Layer (HPL)</a></h2>
 <p>The flash HPL has a chip-dependent, system-independent interface. The
 implementation of this HPL is system-dependent. The flash HPL SHOULD be
 stateless.</p>
-<p>The flash chip's HPL SHOULD connect to platform-specific components
-providing access to the flash chip on a particular mote; these components
+<p>To remain platform independent, a flash chip's HPL SHOULD connect to
+platform-specific components
+providing access to the flash chip; these components
 SHOULD be placed in the <tt class="docutils literal"><span class="pre">tos/platforms/PLATFORM/chips/CHIPNAME</span></tt>
-directory. If the flash chip implementation supports a family of 
+directory. If the flash chip implementation supports a family of
 flash chips, this directory MAY also contain a file describing the
 particular flash chip found on the platform.</p>
 </div>
-<div class="section" id="hardware-adaptation-layer-hal">
-<h2><a name="hardware-adaptation-layer-hal">2.2 Hardware Adaptation Layer (HAL)</a></h2>
+<div class="section">
+<h2><a id="hardware-adaptation-layer-hal" name="hardware-adaptation-layer-hal">2.2 Hardware Adaptation Layer (HAL)</a></h2>
 <p>The flash HAL has a chip-dependent, system-independent interface and
 implementation. Flash families with a common HPL SHOULD have a common
 HAL. Flash HAL's SHOULD expose a <tt class="docutils literal"><span class="pre">Resource</span></tt> interface and automatically
 power-manage the underlying flash chip. Finally, the flash HAL MUST
 provide a way to access the volume information specified by the
 programmer (see Section 3). This allows users to build new flash
-services that interact cleanly with the rest of the flash system.</p>
+abstractions that interact cleanly with the rest of the flash system.</p>
 </div>
 </div>
-<div class="section" id="non-volatile-storage-services-in-tinyos-2-x">
-<h1><a name="non-volatile-storage-services-in-tinyos-2-x">3. Non-Volatile Storage Services in TinyOS 2.x</a></h1>
+<div class="section">
+<h1><a id="non-volatile-storage-abstracitons-in-tinyos-2-x" name="non-volatile-storage-abstracitons-in-tinyos-2-x">3. Non-Volatile Storage Abstracitons in TinyOS 2.x</a></h1>
 <p>The HIL implementations are system-independent, but chip (family)
-dependent. They implement the three storage services and
+dependent. They implement the three storage abstractions and
 volume structure discussed in the introduction.</p>
-<div class="section" id="volumes">
-<h2><a name="volumes">3.1. Volumes</a></h2>
+<div class="section">
+<h2><a id="volumes" name="volumes">3.1. Volumes</a></h2>
 <p>The division of the flash chip into fixed-size volumes is specified by
 an XML file that is placed in the application's directory (where one
 types 'make'). The XML file specifies the allocation as follows:</p>
@@ -497,24 +498,24 @@ tools supporting a platform.</p>
 <p>The compile-time tool MUST prepend 'VOLUME_' to each volume name in
 the XML file and '#define' each resulting name to map to a unique
 integer.</p>
-<p>The storage services are accessed by instantiating generic
+<p>The storage abstractions are accessed by instantiating generic
 components that take the volume macro as argument:</p>
 <pre class="literal-block">
 components new BlockStorageC(VOLUME_DELUGE0);
 </pre>
 <p>If the named volume is not in the specification, nesC will give a
 compile-time error since the symbol will be undefined.</p>
-<p>A volume MUST NOT be used with more than one storage service instance.</p>
+<p>A volume MUST NOT be used with more than one storage abstraction instance.</p>
 </div>
-<div class="section" id="large-objects">
-<h2><a name="large-objects">3.2 Large objects</a></h2>
+<div class="section">
+<h2><a id="large-objects" name="large-objects">3.2 Large objects</a></h2>
 <p>The motivating example for large objects is the transmission or long-term
-storage of large objects. For instance, programs in a network-reprogramming
+storage of large pieces of data. For instance, programs in a network-reprogramming
 system, or large data-packets in a reliable data-transmission system. Such
 objects have two interesting characteristics: each byte in the object is
 written at most once, and a full object is written in a single &quot;session&quot;
 (i.e., without the mote rebooting).</p>
-<p>This leads to the definition of the <tt class="docutils literal"><span class="pre">BlockStorageC</span></tt> service for storing
+<p>This leads to the definition of the <tt class="docutils literal"><span class="pre">BlockStorageC</span></tt> abstraction for storing
 large objects:</p>
 <ul class="simple">
 <li>A large object ranges from a few kilobytes upwards.</li>
@@ -552,18 +553,18 @@ given offset.</li>
 <li><tt class="docutils literal"><span class="pre">BlockRead.getSize</span></tt>: return bytes available for large object storage in
 volume.</li>
 </ul>
-<p>For full details on arguments, etc, see the comments in the interface
-definitions.</p>
+<p>For full details on arguments and other considerations, see the comments in
+the interface definitions.</p>
 </div>
-<div class="section" id="logging">
-<h2><a name="logging">3.3 Logging</a></h2>
-<p>Logging of results, events, etc is a common requirement in sensor
+<div class="section">
+<h2><a id="logging" name="logging">3.3 Logging</a></h2>
+<p>Event and reuslt logging is a common requirement in sensor
 networks. Such logging should be reliable (a mote crash should not
 lose data). It should also be easy to extract data from the log,
 either partially or fully. Some logs are <em>linear</em> (stop logging when
 the volume is full), others are <em>circular</em> (the oldest data is
 overwritten when the volume is full).</p>
-<p>The <tt class="docutils literal"><span class="pre">LogStorageC</span></tt> service supports these requirements.  The log is record
+<p>The <tt class="docutils literal"><span class="pre">LogStorageC</span></tt> abstraction supports these requirements.  The log is record
 based: each call to <tt class="docutils literal"><span class="pre">LogWrite.append</span></tt> (see below) creates a new
 record. On failure (crash or reboot), the log is guaranteed to only lose
 whole records from the end of the log. Additionally, once a circular log
@@ -589,7 +590,7 @@ operations (all split-phase except <tt class="docutils literal"><span class="pre
 <li><p class="first"><tt class="docutils literal"><span class="pre">LogWrite.erase</span></tt>: erase the log.</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">LogWrite.append</span></tt>: append some bytes to the log. In a circular log,
-this may overwrite the current read position. In this case, the 
+this may overwrite the current read position. In this case, the
 read position is implicitly advanced to the log's current beginning
 (i.e., as if <tt class="docutils literal"><span class="pre">LogRead.seek</span></tt> had been called with <tt class="docutils literal"><span class="pre">SEEK_BEGINNING</span></tt>).</p>
 <p>Each append creates a separate record. Log implementations may have a
@@ -612,7 +613,7 @@ read position (for use with <tt class="docutils literal"><span class="pre">LogRe
 <li><p class="first"><tt class="docutils literal"><span class="pre">LogRead.seek</span></tt>: set the read position to a value returned by
 a prior call to <tt class="docutils literal"><span class="pre">LogWrite.currentOffset</span></tt> or <tt class="docutils literal"><span class="pre">LogRead.currentOffset</span></tt>,
 or to the special <tt class="docutils literal"><span class="pre">SEEK_BEGINNING</span></tt> value. In a circular log, if
-the specified position has been overwritten, behave as if 
+the specified position has been overwritten, behave as if
 <tt class="docutils literal"><span class="pre">SEEK_BEGINNING</span></tt> was requested.</p>
 <p><tt class="docutils literal"><span class="pre">SEEK_BEGINNING</span></tt> positions the read position at the beginning of
 the oldest record still present in the log.</p>
@@ -624,13 +625,13 @@ Uses of <tt class="docutils literal"><span class="pre">sync</span></tt> and othe
 <p>For full details on arguments, etc, see the comments in the interface
 definitions.</p>
 </div>
-<div class="section" id="small-objects">
-<h2><a name="small-objects">3.4 Small objects:</a></h2>
+<div class="section">
+<h2><a id="small-objects" name="small-objects">3.4 Small objects:</a></h2>
 <p>Sensor network applications may need to store configuration data, e.g.,
 mote id, radio frequency, sample rates, etc. Such data is not large, but
 losing it may lead to a mote misbehaving or losing contact with the
 network.</p>
-<p>The <tt class="docutils literal"><span class="pre">ConfigStorageC</span></tt> service stores a single small object in a volume. It:</p>
+<p>The <tt class="docutils literal"><span class="pre">ConfigStorageC</span></tt> abstraction stores a single small object in a volume. It:</p>
 <ul class="simple">
 <li>Assumes that configuration data is relatively small (a few
 hundred bytes).</li>
@@ -650,7 +651,7 @@ generic configuration ConfigStorageC(volume_id_t volid) {
   }
 } ...
 </pre>
-<p>A small object MUST be mounted (via the <tt class="docutils literal"><span class="pre">Mount</span></tt> interface) before 
+<p>A small object MUST be mounted (via the <tt class="docutils literal"><span class="pre">Mount</span></tt> interface) before
 the first use.</p>
 <p>The <tt class="docutils literal"><span class="pre">Mount</span></tt> and <tt class="docutils literal"><span class="pre">ConfigStorage</span></tt> interfaces contain the following
 operations (all split-phase except <tt class="docutils literal"><span class="pre">ConfigStorage.getSize</span></tt> and
@@ -672,13 +673,13 @@ in the small object.</li>
 definitions.</p>
 </div>
 </div>
-<div class="section" id="implementations">
-<h1><a name="implementations">4. Implementations</a></h1>
+<div class="section">
+<h1><a id="implementations" name="implementations">4. Implementations</a></h1>
 <p>An AT45DB implementation can be found in tinyos-2.x/tos/chips/at45db.</p>
 <p>An ST M25P implementation can be found in tinyos-2.x/tos/chips/stm25p.</p>
 </div>
-<div class="section" id="authors-addresses">
-<h1><a name="authors-addresses">5. Authors' Addresses</a></h1>
+<div class="section">
+<h1><a id="authors-addresses" name="authors-addresses">5. Authors' Addresses</a></h1>
 <div class="line-block">
 <div class="line">David Gay</div>
 <div class="line">2150 Shattuck Ave, Suite 1300</div>
@@ -698,10 +699,26 @@ definitions.</p>
 <div class="line">email - <a class="reference" href="mailto:jhui&#64;archedrock.com">jhui&#64;archedrock.com</a></div>
 </div>
 </div>
-<div class="section" id="appendix-a-haa-for-some-existing-flash-chips">
-<h1><a name="appendix-a-haa-for-some-existing-flash-chips">Appendix A. HAA for some existing flash chips</a></h1>
-<div class="section" id="a-1-at45db">
-<h2><a name="a-1-at45db">A.1 AT45DB</a></h2>
+<div class="section">
+<h1><a id="citations" name="citations">6. Citations</a></h1>
+<table class="docutils footnote" frame="void" id="id1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="id1">[1]</a></td><td>David Gay. &quot;Design of Matchbox, the simple filing system for
+motes. (version 1.0).&quot;</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a name="id2">[2]</a></td><td>TEP 2: Hardware Abstraction Architecture.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section">
+<h1><a id="appendix-a-haa-for-some-existing-flash-chips" name="appendix-a-haa-for-some-existing-flash-chips">Appendix A. HAA for some existing flash chips</a></h1>
+<div class="section">
+<h2><a id="a-1-at45db" name="a-1-at45db">A.1 AT45DB</a></h2>
 <p>The Atmel AT45DB family HPL is:</p>
 <pre class="literal-block">
 configuration HplAt45dbC {
@@ -711,7 +728,7 @@ configuration HplAt45dbC {
 <p>The <tt class="docutils literal"><span class="pre">HplAt45db</span></tt> interface has flash-&gt;buffer, buffer-&gt;flash, compare
 buffer to flash, erase page, read, compute CRC, and write operations.  Most
 of these operations are asynchronous, i.e., their completion is signaled
-before the flash chip has completed the operation. The HPL also includes 
+before the flash chip has completed the operation. The HPL also includes
 operations to wait for asynchronous operations to complete.</p>
 <p>A generic, system-independent implementation of the HPL
 (<tt class="docutils literal"><span class="pre">HplAt45dbByteC</span></tt>) is included allowing platforms to just provide SPI and
@@ -751,8 +768,8 @@ copy. It also includes flush and sync operations to manage the cache.</p>
 <p>The <tt class="docutils literal"><span class="pre">At45dbVolume</span></tt> interface has operations to report volume size and
 map volume-relative pages to absolute pages.</p>
 </div>
-<div class="section" id="a-2-st-m25p">
-<h2><a name="a-2-st-m25p">A.2 ST M25P</a></h2>
+<div class="section">
+<h2><a id="a-2-st-m25p" name="a-2-st-m25p">A.2 ST M25P</a></h2>
 <p>The ST M25P family HPL is:</p>
 <pre class="literal-block">
 configuration Stm25pSpiC {

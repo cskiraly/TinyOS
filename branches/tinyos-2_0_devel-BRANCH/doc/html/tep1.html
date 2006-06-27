@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-06-09 21:12:17 $
-:version: $Revision: 1.1.2.5 $
+:date: $Date: 2006-06-27 20:23:04 $
+:version: $Revision: 1.1.2.6 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -303,9 +303,9 @@ ul.auto-toc {
 <td>Philip Levis</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">18-Oct-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.2</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.3</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-03-29</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-06-13</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -395,7 +395,7 @@ interoperability.</p>
 document metadata, for management and status. The body contains the
 content of the proposal.</p>
 <p>All TEPs MUST follow the TEP docutils template, and conform to
-reStructuredText standards <a class="citation-reference" href="#rst" id="id1" name="id1">[rst]</a>, to enable translation from
+reStructuredText standards <a class="footnote-reference" href="#id2" id="id1" name="id1">[1]</a>, to enable translation from
 reStructuredText to HTML and Latex.</p>
 <div class="section">
 <h2><a id="tep-header" name="tep-header">3.1 TEP Header</a></h2>
@@ -403,7 +403,12 @@ reStructuredText to HTML and Latex.</p>
 others which MAY be included. The first six header fields MUST be
 included in all TEPs, in the order stated here.</p>
 <p>The first field is &quot;TEP,&quot; and specifies the TEP number of the
-document. This document is TEP 1.</p>
+document. A TEP's number is unique.. This document is TEP 1. The
+TEP type (discussed below)
+determines how a number is assigned to it. Generally, when a document
+is ready to be a TEP, it is assigned the smallest available number.
+BCP TEPs start at 1 and all other TEPs (Documentary, Experimental,
+and Informational) start at 101.</p>
 <p>The second field states the name of the working group that produced
 the document. This document was produced by the Core Working Group.</p>
 <p>The third field is &quot;Type,&quot; and specifies the type of TEP the document
@@ -416,19 +421,17 @@ authors. Developers desiring to add code (or TEPs) to TinyOS SHOULD
 follow all current BCPs.</p>
 <p>Documentary TEPs describe a system or protocol that exists; a
 documentary TEP MUST reference an implementation that a reader can
-easily obtain. Compliance with Documentary TEPs is entirely OPTIONAL;
-they exist to simplify interoperability when it is needed, and to
-document TinyOS service implementations.</p>
+easily obtain.  Documentary TEPs simplify interoperability when
+needed, and document TinyOS service implementations.</p>
 <p>Informational TEPs provide information that is of interest to the
 community. Informational TEPs include data gathered on radio behavior,
 hardware characteristics, other aspects of TinyOS software/hardware,
-or experiences which would help the community it its goals.  It is
-RECOMMENDED that TEPs be aware of and consider Informational TEPs of
-relevance to its particular topic.</p>
+organizational and logistic information,
+or experiences which could help the community achieve its goals.</p>
 <p>Experimental TEPs describe a completely experimental approach to a
 problem, which are outside the TinyOS core and will not necessarily
-become part of it.  Experimental TEPs may describe systems that do not
-have a reference implementation (as Documentary ones do).</p>
+become part of it.  Unlike Documentary TEPs, Experimental TEPs may
+describe systems that do not have a reference implementation.</p>
 <p>The fourth field is &quot;Status,&quot; which specifies the status of the TEP.
 A TEP status can either be &quot;Draft,&quot; which means it is a work in
 progress, &quot;Final,&quot; which means it is complete and will not change, or
@@ -495,10 +498,10 @@ definitions taken from IETF RFC 2119.</p>
 </div>
 <div class="section">
 <h1><a id="citations" name="citations">7. Citations</a></h1>
-<table class="docutils citation" frame="void" id="rst" rules="none">
+<table class="docutils footnote" frame="void" id="id2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1" name="rst">[rst]</a></td><td>reStructuredText Markup Specification. &lt;<a class="reference" href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html">http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html</a>&gt;</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id1" name="id2">[1]</a></td><td>reStructuredText Markup Specification. &lt;<a class="reference" href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html">http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html</a>&gt;</td></tr>
 </tbody>
 </table>
 </div>

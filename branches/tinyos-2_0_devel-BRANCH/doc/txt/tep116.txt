@@ -10,8 +10,8 @@ Packet Protocols
 :Author: Philip Levis
 
 :Draft-Created: 10-Dec-2004
-:Draft-Version: $Revision: 1.1.2.10 $
-:Draft-Modified: $Date: 2006-06-22 05:06:54 $
+:Draft-Version: $Revision: 1.1.2.11 $
+:Draft-Modified: $Date: 2006-06-27 20:23:05 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -22,7 +22,7 @@ Packet Protocols
    TEP 1.
 
 Abstract
-====================================================================
+============================================================================
 
 The memo documents the interfaces used by packet protocol components in  
 TinyOS 2.x as well as the structure and implementation of ActiveMessageC, 
@@ -30,7 +30,7 @@ the basic data-link HIL component. It also documents the virtualized
 active message interfaces AMSender and AMReceiver.
 
 1. Introduction
-====================================================================
+============================================================================
 
 Sensor nodes are network-centric devices. Much of their software
 complexity comes from network protocols and their interactions.
@@ -88,7 +88,7 @@ as well as ActiveMessageC, the basic data-link packet communication
 HIL.
 
 2. Communication interfaces
-====================================================================
+============================================================================
 
 Packet-level communication has three basic classes of interfaces.
 *Packet* interfaces are for accessing message fields and payloads. 
@@ -362,7 +362,7 @@ a packet that has a control field which indicates which optional fields
 are present) do not pose such problems.
 
 3. HIL: ActiveMessageC
-====================================================================
+============================================================================
 
 A platform MUST provide ActiveMessageC as a basic HIL to 
 packet-level communication.  ActiveMessageC provides a best-effort, 
@@ -408,7 +408,7 @@ dispatch.
 
 
 4. AM Services: AMSenderC, AMReceiverC, AMSnooperC, AMSnoopingReceiverC
-====================================================================
+============================================================================
 
 TinyOS 2.x provides four component single-hop communication
 virtualizations to applications:
@@ -522,7 +522,7 @@ techniques, such as TDMA scheduling or low power listening, when
 "on."
 
 5. HAL Requirements
-====================================================================
+============================================================================
 
 A radio chip *X* MUST have a packet abstraction with the following
 signature::
@@ -542,7 +542,7 @@ the name of the radio chip. The component MAY have additional interfaces.
 These interfaces can either be chip-specific or chip-independent. 
 
 6. message_t
-====================================================================
+============================================================================
 
 Active messages are a basic single-hop packet abstraction. Therefore,
 following TEP 111 [3]_, all data link and active message headers
@@ -570,7 +570,7 @@ type field, however, has been added to the header structure in order
 to support AM dispatch.
 
 7. Implementation
-====================================================================
+============================================================================
 
 The following files in ``tinyos-2.x/tos/system`` provide reference 
 implementations of the abstractions described in this TEP.
@@ -605,7 +605,7 @@ The micaz platform and telos family have an ``ActiveMessageC.nc``
 which exports the interfaces of ``CC2420ActiveMessageC``.
 
 8. Author's Address
-====================================================================
+============================================================================
 
 | Philip Levis
 | 358 Gates Hall
@@ -616,7 +616,7 @@ which exports the interfaces of ``CC2420ActiveMessageC``.
 | phone - +1 650 725 9046
 
 9. Citations
-====================================================================
+============================================================================
 
 .. [1] The MintRoute protocol. ``tinyos-1.x/tos/lib/MintRoute``. Also, A. Woo, T. Tong, and D. Culler. "Taming the Underlying Challenges of Reliable Multihop Routing in Sensor Networks." SenSys 2003.
 
