@@ -13,7 +13,7 @@
     
     <h1>Modules and State</h1>
     
-    <p>Compiling TinyOS produces a single binary image that assumes
+    <p>Compiling TinyOS applications produces a single binary image that assumes
       it has complete control of the hardware. Therefore, a mote only
       runs one TinyOS image at a time. An image consists of the
       components needed for a single application. As most more platforms
@@ -363,12 +363,12 @@ interface Timer<precision_tag>
 
     <p>Invoking an interface command requires the <tt>call</tt> keyword,
       and invoking an interface event requires the <tt>signal</tt> keyword.
-      BlinkC does provide any interfaces, so its code
+      BlinkC does not provide any interfaces, so its code
       does not have any signal statements: in a later lesson,
       we'll look at the boot sequence, which signals the Boot.booted()
       event.</p>
     
-    <p>Next,look at the implementation of the <code>Timer.fired()</code>:</p>
+    <p>Next, look at the implementation of the <code>Timer.fired()</code>:</p>
 
 <pre></pre>
 <prehead>apps/Blink/BlinkC.nc:</prehead>
@@ -409,7 +409,7 @@ interface Timer<precision_tag>
       any kind of pre-emption. That is, when synchronous (sync) code
       starts running, it does not relinquish the CPU to other
       sync code until it completes. This simple mechanism allows
-      the TinyOS scheduler to minimize its RAM consumption can
+      the TinyOS scheduler to minimize its RAM consumption and
       keeps sync code very simple. However, it means that if one
       piece of sync code runs for a long time, it prevents other
       sync code from running, which can adversely affect system
@@ -490,14 +490,20 @@ event void Timer0.fired() {
       later. We can accomplish this with a <b>task</b>.</p>
 
     <p>A task is declared in your implementation module using the syntax
-    <pre>&nbsp; task void taskname() { ... }</pre>
-    where <tt>taskname()</tt> is whatever symbolic name you want to
-    assign to the task. Tasks must return <tt>void</tt> and may not
-    take any arguments. To dispatch a task for (later) execution, use
-    the syntax <pre>&nbsp; post taskname();</pre>
-    A component can post a task in a command, an event, or a task.
-    Because they are the root of a call graph, a tasks can safely both call
-    commands and signal events (there's no concern of infinite call loops).</p>
+    <pre>&nbsp; task void taskname() { ... }</pre> where
+    <tt>taskname()</tt> is whatever symbolic name you want to assign to the
+    task. Tasks must return <tt>void</tt> and may not take any
+    arguments. To dispatch a task for (later) execution, use the syntax
+    <pre>&nbsp; post taskname();</pre> A component can post a task in a
+    command, an event, or a task.  Because they are the root of a call
+    graph, a tasks can safely both call commands and signal events. We will
+    see later that, by convention, commands do not signal events to avoid
+    creating recursive loops across component boundaries (e.g., if command
+    X in component 1 signals event Y in component 2, which itself calls
+    command X in component 1). These loops would be hard for the programmer to
+    detect (as they depend on how the application is wired) and would lead to
+    large stack usage.</p>
+
 
     <p>Modify BlinkC to perform the loop in a task:</p>
 
@@ -583,8 +589,8 @@ task void computeTask() {
       can be made callable by another component. There are situations
       when a component wants private functions for its own internal
       use. A component can define standard C functions, which other
-      components cannot name and therefore cannot invoke directly. These
-      while these functions do not have the <tt>command</tt> or <tt>event</tt>
+      components cannot name and therefore cannot invoke directly. 
+      While these functions do not have the <tt>command</tt> or <tt>event</tt>
       modifier, they can freely call commands or signal events. For example,
       this is perfectly reasonable nesC code:</p>
 
@@ -687,7 +693,7 @@ void sendDone(error_t err) {
      an application needs to take an action but all of its threads are
      tied up in blocking calls. Third, it tends to reduce stack
      utilization, as creating large variables on the stack is rarely
-     useful.</p>
+     necessary.</p>
 
     <p>Split-phase interfaces enable a TinyOS component to easily start
       several operations at once and have them execute in parallel.
