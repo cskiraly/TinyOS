@@ -7,7 +7,7 @@ TFLAGS +=  -I$(TOSDIR)/../apps/tests/TestDissemination \
           -I.
 
 LIBMOTE = $(TOSDIR)/../support/sdk/c/libmote.a
-BUILD_EXTRA_DEPS += tn-injector #tn-listener
+#BUILD_EXTRA_DEPS += tn-injector #tn-listener
 LISTEN_OBJS = collection_msg.o test_network_msg.o tn-listener.o $(LIBMOTE)
 INJECT_OBJS = set_rate_msg.o tn-injector.o collection_debug_msg.o $(LIBMOTE)
 
