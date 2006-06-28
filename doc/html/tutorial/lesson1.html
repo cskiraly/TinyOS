@@ -186,7 +186,7 @@ $ which nescc
         <li><A HREF="#mica">Installing on a mica-family mote</A></li>
         <li><A HREF="#telos">Installing on a telos-family mote</A></li>
         <li><A HREF="#tinynode">Installing on a tinynode mote</A></li>
-        <li><A HREF="#eyes">Installing on an eyes-family mote</A></li>
+        <li><A HREF="#eyes">Installing on an eyesIFX-family mote</A></li>
         <li><A HREF="#intel">Installing on an IntelMote2</A></li>
       </ul> 
       
@@ -347,11 +347,89 @@ serial port that the tinynode is plugged into.</p>
   make tinynode reinstall bsl,/dev/XXX
 </pre>
 
-As with the telos and eyes platforms, this command will reprogram your
+As with the telos and eyesIFX platforms, this command will reprogram your
 mote using the <tt>tos-bsl</tt> utility, and you will see similar
 output on your screen as given above for telos.
 
-<A NAME="eyes"><h2>Installing on an eyes-family mote</h2></A>
+<A NAME="eyes"><h2>Installing on an eyesIFX-family mote</h2></A>
+
+<p>The eyesIFX motes have a mini-B USB connector, allowing easy
+programming and data exchange over the USB. The on-board serial-to-USB
+chip exports two separate serial devices: a lower-numbered one used
+exclusively for serial data communication, and a higher-numbered one
+used for programming of the microcontroller.</p>
+
+      <center>
+	<table border="0" cellspacing="2" cellpadding="3" hspace="4">
+	  <tbody>
+	    <tr>
+	      <td><img src="img/eyesIFX.jpg" height="140" width="320"></td>
+	      <td><img src="img/eyesIFX_usb.jpg" height="240" width="320"></td>
+	    </tr>
+	    <tr>
+	      <td><i>eyesIFXv2 mote</i></td>
+	      <td><i>eyesIFXv2 mote attached to a USB cable</i></td>
+	    </tr>
+	  </tbody>
+	</table>
+      </center>
+
+
+
+<p>The actual programming is performed by the <i>msp430-bsl</i> script,
+conveniently invoked using the same <i>make</i> rules as for the telos
+motes. In the most basic form:</p>
+
+<pre>
+  make eyesIFX install bsl
+</pre>
+
+<p>the install script defaults to programming using the /dev/ttyUSB1
+device on Linux and COM1 on Windows, giving output similar to this:</p>
+
+<pre>
+    installing eyesIFXv2 binary using bsl
+msp430-bsl --invert-test --invert-reset --f1x -c /dev/ttyUSB1 -r -e -I -p build/eyesIFXv2/main.ihex.out
+MSP430 Bootstrap Loader Version: 2.0
+Mass Erase...
+Transmit default password ...
+Invoking BSL...
+Transmit default password ...
+Current bootstrap loader version: 1.61 (Device ID: f16c)
+Program ...
+2720 bytes programmed.
+Reset device ...
+rm -f build/eyesIFXv2/main.exe.out build/eyesIFXv2/main.ihex.out
+</pre>
+
+<p> The programming device can also be explicitly set as a parameter
+of the <i>bsl</i> command using shorthand or full notation:</p>
+
+<pre>
+  make eyesIFX install bsl,USB3
+  make eyesIFX install bsl,/dev/ttyUSB3
+</pre>
+
+<p>The eyesIFX motes can be programmed over the provided JTAG interface
+with the help of the  msp430-jtag script:</p>
+
+<pre>
+  make eyesIFX install jtag
+</pre>
+
+<p>producing output as in the following:</p>
+
+<pre>
+    installing eyesIFXv2 binary using the parallel port jtag adapter
+msp430-jtag  -Iepr build/eyesIFXv2/main.ihex.out
+MSP430 parallel JTAG programmer Version: 2.0
+Mass Erase...
+Program...
+2720 bytes programmed.
+Reset device...
+Reset and release device...
+</pre>
+
 
 <A NAME="intel"><h2>Installing on an IntelMote2</h2></A>
 
