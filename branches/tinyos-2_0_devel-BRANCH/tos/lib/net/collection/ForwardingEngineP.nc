@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.46 2006-06-27 20:44:14 rfonseca76 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.47 2006-06-28 23:46:38 rfonseca76 Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-27 20:44:14 $
+ *  @date   $Date: 2006-06-28 23:46:38 $
  */
 
 #include <ForwardingEngine.h>
@@ -625,7 +625,10 @@ implementation {
             // own gradient.  Trigger a route update and backoff.
             call TreeRoutingInspect.triggerRouteUpdate();
             startRetxmitTimer(LOOPY_WINDOW, LOOPY_OFFSET);
-            call CollectionDebug.logEvent(NET_C_FE_LOOP_DETECTED);
+            call CollectionDebug.logEventMsg(NET_C_FE_LOOP_DETECTED,
+					 call CollectionPacket.getSequenceNumber(m), 
+					 call CollectionPacket.getOrigin(m), 
+                                         call AMPacket.destination(m));
           }
         }
 
