@@ -8,13 +8,14 @@ tools/release/extractor $NAME-$VERSION <<'EOF' | gzip >../$NAME-$VERSION.tar.gz
 !^./apps/MultihopOscilloscope
 !^./doc
 !^./overall-todo.txt
+!^./support/make/Makelocal
+!^./support/make/btnode3.target
 !^./support/make/telosa.target
 !^./tools
 !^./tos/chips/sht11
 !^./tos/sensorboards/mts300
 !^./tos/sensorboards/im2sb
 !^./tos/platforms/btnode3
-!^./support/make/Makelocal
 !/.cvsignore
 !/CVS/
 !/CVS$
