@@ -1,4 +1,4 @@
-// $Id: ListenRaw.java,v 1.1.2.3 2005-07-26 20:31:00 idgay Exp $
+// $Id: ListenRaw.java,v 1.1.2.4 2006-06-29 18:34:41 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -50,7 +50,9 @@ import net.tinyos.util.*;
 
 public class ListenRaw {
     private static String CLASS_NAME = "net.tinyos.tools.ListenRaw";
-    private static final int MAX_MSG_SIZE = 36;
+    private static final int MAX_MSG_SIZE = 40;
+    private static final int PORT_SPEED_TELOS = 115200;
+    private static final int PORT_SPEED_MICAZ = 57600;
     private static final int PORT_SPEED_MICA2 = 57600;
     private static final int PORT_SPEED_MICA2DOT = 19200;
     private static final int PORT_SPEED_MICA = 19200;
@@ -78,7 +80,7 @@ public class ListenRaw {
 	
 	//port.setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
 	// These are the mote UART parameters
-	port.setSerialPortParams(portSpeed, 8, 1, false);
+	port.setSerialPortParams(portSpeed, 8, SerialPort.STOPBITS_1, false);
 	printPortStatus();
 	System.out.println();
     }
@@ -108,6 +110,8 @@ public class ListenRaw {
 	System.err.println("options are:");
 	System.err.println("  -h, --help:    usage help");
 	System.err.println("  -p:            print available ports");
+	System.err.println("  -telos:        Telos ("+PORT_SPEED_TELOS+" bps) [default]");
+	System.err.println("  -micaz:        Mica2 ("+PORT_SPEED_MICAZ+" bps) [default]");
 	System.err.println("  -mica2:        Mica2 ("+PORT_SPEED_MICA2+" bps) [default]");
 	System.err.println("  -mica2dot:        Mica2Dot ("+PORT_SPEED_MICA2DOT+" bps)");
 	System.err.println("  -mica:         Mica ("+PORT_SPEED_MICA+" bps)");
@@ -126,6 +130,12 @@ public class ListenRaw {
 	for (int i = 0; i < args.length; i++) {
 	    if (args[i].equals("-h") || args[i].equals("--help")) {
 		printUsage();
+	    }
+	    if (args[i].equals("-telos")) {
+	        speed = PORT_SPEED_TELOS;
+	    }
+	    if (args[i].equals("-micaz")) {
+	        speed = PORT_SPEED_MICAZ;
 	    }
 	    if (args[i].equals("-mica2")) {
 	        speed = PORT_SPEED_MICA2;
