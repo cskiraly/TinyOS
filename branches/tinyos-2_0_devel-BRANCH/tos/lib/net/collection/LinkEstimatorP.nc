@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.21 2006-06-21 00:18:14 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.22 2006-06-29 01:13:57 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -71,7 +71,7 @@ implementation {
     INVALID_NEIGHBOR_ADDR = 0xff,
     INFINITY = 0xff,
     // update the link estimate this often
-    TABLEUPDATE_INTERVAL = 4,
+    TABLEUPDATE_INTERVAL = 6,
     // send a beacon this often unless user of
     // this component is sending a beacon atleast
     // at this rate
