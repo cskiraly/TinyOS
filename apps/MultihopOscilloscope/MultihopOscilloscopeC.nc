@@ -32,6 +32,7 @@ module MultihopOscilloscopeC {
     interface Receive as Snoop;
     interface Receive;
     interface AMSend as SerialSend;
+    interface CollectionPacket;
     interface RootControl;
 
     // Miscalleny:
@@ -120,9 +121,16 @@ implementation {
   event message_t*
   Receive.receive(message_t* msg, void *payload, uint8_t len) {
     if (uartbusy == FALSE) {
+      oscilloscope_t* in = (oscilloscope_t*)payload;
+      oscilloscope_t* out = (oscilloscope_t*)call SerialSend.getPayload(&uartbuf);
+      if (len != sizeof(oscilloscope_t)) {
+	return msg;
+      }
+      else {
+	memcpy(out, in, sizeof(oscilloscope_t));
+      }
       uartbusy = TRUE;
-      uartlen = len;
-      memcpy(&uartbuf, msg, sizeof(message_t));
+      uartlen = sizeof(oscilloscope_t);
       post uartSendTask();
     }
 
@@ -166,15 +174,15 @@ implementation {
   */
   event void Timer.fired() {
     if (reading == NREADINGS) {
-	    if (!sendbusy) {
-        oscilloscope_t *o = (oscilloscope_t *)call Send.getPayload(&sendbuf);
-	      memcpy(o, &local, sizeof(local));
-	      if (call Send.send(&sendbuf, sizeof(local)) == SUCCESS)
-	        sendbusy = TRUE;
+      if (!sendbusy) {
+	oscilloscope_t *o = (oscilloscope_t *)call Send.getPayload(&sendbuf);
+	memcpy(o, &local, sizeof(local));
+	if (call Send.send(&sendbuf, sizeof(local)) == SUCCESS)
+	  sendbusy = TRUE;
         else
           report_problem();
-	    }
-
+      }
+      
       reading = 0;
       /* Part 2 of cheap "time sync": increment our count if we didn't
          jump ahead. */
