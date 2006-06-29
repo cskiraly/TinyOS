@@ -42,14 +42,17 @@ module MultihopOscilloscopeC {
 }
 
 implementation {
+  task void uartSendTask();
   static void startTimer();
   static void fatal_problem();
   static void report_problem();
   static void report_sent();
   static void report_received();
 
+  uint8_t uartlen;
   message_t sendbuf;
-  bool sendbusy;
+  message_t uartbuf;
+  bool sendbusy=FALSE, uartbusy=FALSE;
 
   /* Current local state - interval, version and accumulated readings */
   oscilloscope_t local;
@@ -116,10 +119,21 @@ implementation {
   //
   event message_t*
   Receive.receive(message_t* msg, void *payload, uint8_t len) {
-    // XXX TODO XXX
+    if (uartbusy == FALSE) {
+      uartbusy = TRUE;
+      uartlen = len;
+      memcpy(&uartbuf, msg, sizeof(message_t));
+      post uartSendTask();
+    }
+
     return msg;
   }
 
+  task void uartSendTask() {
+    if (call SerialSend.send(0xffff, &uartbuf, uartlen) != SUCCESS) {
+      uartbusy = FALSE;
+    }
+  }
   //
   // Overhearing other traffic in the network.
   //
@@ -191,6 +205,7 @@ implementation {
   }
 
   event void SerialSend.sendDone(message_t *msg, error_t error) {
+    uartbusy = FALSE;
   }
 
   // Use LEDs to report various status issues.
