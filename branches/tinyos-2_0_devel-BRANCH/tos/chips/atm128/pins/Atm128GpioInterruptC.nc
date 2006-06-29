@@ -1,4 +1,4 @@
-/// $Id: Atm128GpioInterruptC.nc,v 1.1.2.2 2006-01-27 21:55:55 mturon Exp $
+/// $Id: Atm128GpioInterruptC.nc,v 1.1.2.3 2006-06-29 04:32:08 jwhui Exp $
 
 /**
  * @author Phil Levis
@@ -14,6 +14,8 @@ implementation {
 
   error_t enable( bool rising ) {
     atomic {
+      call Atm128Interrupt.disable();
+      call Atm128Interrupt.clear();
       call Atm128Interrupt.edge( rising );
       call Atm128Interrupt.enable();
     }
