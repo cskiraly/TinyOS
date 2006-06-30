@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: TreeRoutingEngineP.nc,v 1.1.2.18 2006-06-23 20:24:38 kasj78 Exp $ */
+/* $Id: TreeRoutingEngineP.nc,v 1.1.2.19 2006-06-30 01:31:15 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -24,12 +24,73 @@
  *
  */
 
-/*
+/** 
+ *  The TreeRoutingEngine is responsible for computing the routes for
+ *  collection.  It builds a set of trees rooted at specific nodes (roots) and
+ *  maintains these trees using information provided by the link estimator on
+ *  the quality of one hop links.
+ * 
+ *  <p>Each node is part of only one tree at any given time, but there is no
+ *  difference from the node's point of view of which tree it is part. In other
+ *  words, a message is sent towards <i>a</i> root, but which one is not
+ *  specified. It is assumed that the roots will work together to have all data
+ *  aggregated later if need be.  The tree routing engine's responsibility is
+ *  for each node to find the path with the least number of transmissions to
+ *  any one root.
+ *
+ *  <p>The tree is proactively maintained by periodic beacons sent by each
+ *  node. These beacons are jittered in time to prevent synchronizations in the
+ *  network. All nodes maintain the same <i>average</i> beacon sending rate
+ *  (defined by BEACON_INTERVAL +- 50%). The beacon contains the node's parent,
+ *  the current hopcount, and the cumulative path quality metric. The metric is
+ *  defined as the parent's metric plus the bidirectional quality of the link
+ *  between the current node and its parent.  The metric represents the
+ *  expected number of transmissions along the path to the root, and is 0 by
+ *  definition at the root.
+ * 
+ *  <p>Every time a node receives an update from a neighbor it records the
+ *  information if the node is part of the neighbor table. The neighbor table
+ *  keeps the best candidates for being parents i.e., the nodes with the best
+ *  path metric. The neighbor table does not store the full path metric,
+ *  though. It stores the parent's path metric, and the link quality to the
+ *  parent is only added when the information is needed: (i) when choosing a
+ *  parent and (ii) when choosing a route. The nodes in the neighbor table are
+ *  a subset of the nodes in the link estimator table, as a node is not
+ *  admitted in the neighbor table with an estimate of infinity.
+ * 
+ *  <p>There are two uses for the neighbor table, as mentioned above. The first
+ *  one is to select a parent. The parent is just the neighbor with the best
+ *  path metric. It serves to define the node's own path metric and hopcount,
+ *  and the set of child-parent links is what defines the tree. In a sense the
+ *  tree is defined to form a coherent propagation substrate for the path
+ *  metrics. The parent is (re)-selected periodically, immediately before a
+ *  node sends its own beacon, in the updateRouteTask.
+ *  
+ *  <p>The second use is to actually choose a next hop towards any root at
+ *  message forwarding time.  This need not be the current parent, even though
+ *  it is currently implemented as such.
+ *
+ *  <p>The operation of the routing engine has two main tasks and one main
+ *  event: updateRouteTask is called periodically and chooses a new parent;
+ *  sendBeaconTask broadcasts the current route information to the neighbors.
+ *  The main event is the receiving of a neighbor's beacon, which updates the
+ *  neighbor table.
+ *  
+ *  <p> The interface with the ForwardingEngine occurs through the nextHop()
+ *  call.
+ * 
+ *  <p> Any node can become a root, and routed messages from a subset of the
+ *  network will be routed towards it. The RootControl interface allows
+ *  setting, unsetting, and querying the root state of a node. By convention,
+ *  when a node is root its hopcount and metric are 0, and the parent is
+ *  itself. A root always has a valid route, to itself.
+ */
+
+ /* 
  *  @author Rodrigo Fonseca
- *  Acknowledgment: based on MintRoute, by Philip Buonadonna, Alec Woo, Terence Tong, Crossbow
- *                           MultiHopLQI
+ *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-06-23 20:24:38 $
+ *  @date   $Date: 2006-06-30 01:31:15 $
  *  @see Net2-WG
  */
 
@@ -58,13 +119,16 @@ generic module TreeRoutingEngineP(uint8_t routingTableSize) {
 implementation {
 
 
-    //No sense updating or sending beacons if radio is off
+    /* Keeps track of whether the radio is on. No sense updating or sending
+     * beacons if radio is off */
     bool radioOn = FALSE;
-    //Start and stop control this. Stops updating and sending beacons
+    /* Controls whether the node's periodic timer will fire. The node will not
+     * send any beacon, and will not update the route. Start and stop control this. */
     bool running = FALSE;
-    //Guards the beacon buffer
+    /* Guards the beacon buffer: only one beacon being sent at a time */
     bool sending = FALSE;
-    //Tells updateNeighbor that the parent was just evicted
+
+    /* Tells updateNeighbor that the parent was just evicted.*/ 
     bool justEvicted = FALSE;
 
     route_info_t routeInfo;
@@ -166,41 +230,45 @@ implementation {
 
         if (state_is_root)
             return;
-
+        
         best = NULL;
+        /* Minimum metric found among neighbors, initially infinity */
         minMetric = MAX_METRIC;
+        /* Metric through current parent, initially infinity */
         currentMetric = MAX_METRIC;
 
         dbg("TreeRouting","%s\n",__FUNCTION__);
 
-         //find best path in table, other than our current
+        /* Find best path in table, other than our current */
         for (i = 0; i < routingTableActive; i++) {
             entry = &routingTable[i];
 
             // Avoid bad entries and 1-hop loops
             if (entry->info.parent == INVALID_ADDR || entry->info.parent == my_ll_addr) {
-              dbg("TreeRouting", "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: NO ROUTE]\n",  i, entry->neighbor, entry->info.parent, entry->info.hopcount);
+              dbg("TreeRouting", 
+                  "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: NO ROUTE]\n",  
+                  i, entry->neighbor, entry->info.parent, entry->info.hopcount);
               continue;
             }
             
+            /* Compute this neighbor's path metric */
             linkMetric = evaluateMetric(call LinkEstimator.getLinkQuality(entry->neighbor));
             dbg("TreeRouting", 
                 "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: %d]\n",  
-                i, entry->neighbor, entry->info.parent, 
-                entry->info.hopcount, linkMetric);
-            dbg_clear("TreeRouting", "   metric: %hu.\n", linkMetric);
+                i, entry->neighbor, entry->info.parent, entry->info.hopcount, linkMetric);
             pathMetric = linkMetric + entry->info.metric;
-            //for current parent
+            /* Operations specific to the current parent */
             if (entry->neighbor == routeInfo.parent) {
                 dbg("TreeRouting", "   already parent.\n");
                 currentMetric = pathMetric;
-                //update routeInfo with parent's current info
+                /* update routeInfo with parent's current info */
                 atomic {
                     routeInfo.metric = entry->info.metric;
                     routeInfo.hopcount = entry->info.hopcount + 1;
                 }
                 continue;
             }
+            /* Ignore links that are bad */
             if (!passLinkMetricThreshold(linkMetric)) {
               dbg("TreeRouting", "   did not pass threshold.\n");
               continue;
@@ -212,7 +280,7 @@ implementation {
             }  
         }
 
-        //now choose between current/best
+        /* Now choose between the current parent and the best neighbor */
         if (minMetric != MAX_METRIC) {
             if (currentMetric == MAX_METRIC ||
                 minMetric + PARENT_SWITCH_THRESHOLD < currentMetric) {
@@ -233,15 +301,22 @@ implementation {
             }
         }    
 
-        //finally, tell people what happened
+        /* Finally, tell people what happened:  */
+        /* We can only loose a route to a parent if it has been evicted. If it hasn't 
+         * been just evicted then we already did not have a route */
         if (justEvicted && routeInfo.parent == INVALID_ADDR) 
             signal Routing.noRoute();
-        else if (!justEvicted && minMetric != MAX_METRIC)
+        /* On the other hand, if we didn't have a parent (no currentMetric) and now we
+         * do, then we signal route found. The exception is if we just evicted the 
+         * parent and immediately found a replacement route: we don't signal in this 
+         * case */
+        else if (!justEvicted && 
+                  currentMetric == MAX_METRIC &&
+                  minMetric != MAX_METRIC)
             signal Routing.routeFound();
         justEvicted = FALSE; 
     }
 
-    /* Inspection interface implementations */
     
 
     /* send a beacon advertising this node's routeInfo */
@@ -300,6 +375,8 @@ implementation {
         } 
     } 
 
+    /* Handle the receiving of beacon messages from the neighbors. We update the
+     * table, but wait for the next route update to choose a new parent */
     event message_t* BeaconReceive.receive(message_t* msg, void* payload, uint8_t len) {
         am_addr_t from;
         beacon_msg_t* rcvBeacon;
@@ -319,15 +396,18 @@ implementation {
             __FUNCTION__, from, 
             rcvBeacon->parent, rcvBeacon->hopcount, rcvBeacon->metric);
         //call CollectionDebug.logEventRoute(NET_C_TREE_RCV_BEACON, rcvBeacon->parent, rcvBeacon->hopcount, rcvBeacon->metric);
+
         //update neighbor table
         if (rcvBeacon->parent != INVALID_ADDR) {
 
-            //TODO: also, if better than my current parent's path metric, insert
+            /* If this node is a root, request a forced insert in the link
+             * estimator table and pin the node. */
             if (rcvBeacon->hopcount == 0) {
                 dbg("TreeRouting","from a root, inserting if not in table\n");
                 call LinkEstimator.insertNeighbor(from);
                 call LinkEstimator.pinNeighbor(from);
             }
+            //TODO: also, if better than my current parent's path metric, insert
 
             routingTableUpdateEntry(from, rcvBeacon->parent, rcvBeacon->hopcount, rcvBeacon->metric);
         }
@@ -336,7 +416,7 @@ implementation {
         return msg;
     }
 
-    /* signals that a neighbor is no longer reachable. need special care if
+    /* Signals that a neighbor is no longer reachable. need special care if
      * that neighbor is our parent */
     event void LinkEstimator.evicted(am_addr_t neighbor) {
         routingTableEvict(neighbor);
@@ -349,7 +429,7 @@ implementation {
     }
 
     /* Interface UnicastNameFreeRouting */
-    /* Simplest implementation: return the current routeInfo */
+    /* Simple implementation: return the current routeInfo */
     command am_addr_t Routing.nextHop() {
         return routeInfo.parent;    
     }
@@ -389,7 +469,7 @@ implementation {
       time &= 0x3f; 
       time += 64;
       if (call BeaconTimer.gett0() + call BeaconTimer.getdt() -
-  call BeaconTimer.getNow() >= time) {
+                                     call BeaconTimer.getNow() >= time) {
          call BeaconTimer.stop();
          call BeaconTimer.startOneShot(time);
         }
@@ -520,4 +600,25 @@ implementation {
         return SUCCESS; 
     }
     /*********** end routing table functions ***************/
+
+    /* Default implementations for CollectionDebug calls.
+     * These allow CollectionDebug not to be wired to anything if debugging
+     * is not desired. */
+
+    default command error_t CollectionDebug.logEvent(uint8_t type) {
+        return SUCCESS;
+    }
+    default command error_t CollectionDebug.logEventSimple(uint8_t type, uint16_t arg) {
+        return SUCCESS;
+    }
+    default command error_t CollectionDebug.logEventDbg(uint8_t type, uint16_t arg1, uint16_t arg2, uint16_t arg3) {
+        return SUCCESS;
+    }
+    default command error_t CollectionDebug.logEventMsg(uint8_t type, uint16_t msg, am_addr_t origin, am_addr_t node) {
+        return SUCCESS;
+    }
+    default command error_t CollectionDebug.logEventRoute(uint8_t type, am_addr_t parent, uint8_t hopcount, uint16_t metric) {
+        return SUCCESS;
+    }
+ 
 } 
