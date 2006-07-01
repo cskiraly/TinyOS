@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-06-23 14:07:13 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-07-01 18:10:50 $
  * @author: Jan Hauer
  * ========================================================================
  */
@@ -69,7 +69,19 @@ implementation
 
   event void Read.readDone(error_t result, uint16_t data) 
   {
-    if (result == SUCCESS)
-      call Leds.set((uint8_t) data);
+    if (result == SUCCESS){
+      if (data & 0x8000)
+        call Leds.led2On();
+      else
+        call Leds.led2Off();
+      if (data & 0x4000)
+        call Leds.led1On();
+      else
+        call Leds.led1Off();
+      if (data & 0x2000)
+        call Leds.led0On();
+      else
+        call Leds.led0Off();
+    }
   }
 }

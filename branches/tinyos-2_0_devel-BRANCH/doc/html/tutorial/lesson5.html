@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<!-- $Id: lesson5.html,v 1.1.2.11 2006-06-27 22:54:18 idgay Exp $ -->
+<!-- $Id: lesson5.html,v 1.1.2.12 2006-07-01 18:11:05 janhauer Exp $ -->
 
 <div class="title">Lesson 5: Sensing</div>
 <div class="subtitle">Last Modified: 16 June 2006</div>
@@ -171,7 +171,7 @@ meaning of <code>&lt;val_t&gt;</code> (in the first line) is and why the
 signature of <code>SenseC.nc</code> is using <code>Read&lt;uint16_t&gt;</code>.
 What you see above is a <i>generic interface definition</i>, because the
 <code>Read</code> interface takes a type parameter. Generic interfaces are
-is explained in the nesC Language Reference Manual (version 1.2 and above).
+explained in the nesC Language Reference Manual (version 1.2 and above).
 Here it is enough to know that generic interfaces have at least one type
 parameter and two components can be wired together only if they provide/use the
 interface with the same types (note that the <code>readDone</code> event passes
@@ -303,12 +303,12 @@ SENSORBOARD=basicsb make <i>platform</i> install
 </pre>
 to run <code>Sense</code> using the mda100's light sensor.
 
-<p> Once you have installed the application the bottom bits of the sensor
-readings are displayed on the node's LEDs (0 = off, 1 = on). If your
-<code>DemoSensorC</code> represents a sensor, whose readings change quickly
-(e.g. a light sensor when you move your hand over it) you should be seeing the
-LEDs toggle, otherwise <code>Sense</code> is not so impressive. Let's have a
-look at a more interesting application: <code>Oscilloscope</code>.
+<p> Once you have installed the application the three most significant bits of
+the sensor readings are displayed on the node's LEDs (0 = off, 1 = on). If your
+<code>DemoSensorC</code> represents a sensor whose readings are fluctuating
+greatly you may see the LEDs toggle, otherwise <code>Sense</code> is not so
+impressive.  Let's have a look at a more interesting application:
+<code>Oscilloscope</code>.
 
 <a name="oscilloscope"><h1>The Oscilloscope application</h1></a>
 
