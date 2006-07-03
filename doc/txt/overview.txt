@@ -81,7 +81,7 @@ a full active message communication layer.
 
 The HAA is described in TEP 2: Hardware Abstraction Architecture[TEP2_].
 
-Currently (as of the 2.0 beta release at TTX3), TinyOS 2.0 supports
+Currently (as of the 2.0 beta2 release in July 2006), TinyOS 2.0 supports
 the following platforms:
 
  * eyesIFXv2
@@ -93,6 +93,8 @@ the following platforms:
  * tinynode
  * btnode3
 
+
+The btnode3 platform is not included in the beta2 RPM.
 
 3. Scheduler
 ====================================================================
