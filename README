@@ -1,7 +1,27 @@
+This is the TinyOS 2.0.0-beta2 release. 
 
-This is the TinyOS 2.0.0-beta1 release. 
-
-You can find documentation for the 2.0.0-beta1 release online at:
+You can find documentation for the 2.0.0-beta2 release online at:
 http://www.tinyos.net/tinyos-2.x/doc/
+
+The basic directory structure is as follows:
+
+apps: Sample TinyOS applications.
+  tests: Sample TinyOS applications which test a part of the system.
+
+support: Non-nesC code for using TinyOS nodes
+  make: TinyOS make system
+  sdk: Standard developers kit: serial communication, etc.
+    c: C SDK (fully supported, but not exhaustively tested yet)
+    java: Java SDK (fully supported, heavily tested and used)
+    python: Python SDK (limited, not fully supported)
+
+tos: TinyOS source code (nesC, C)
+  chips: Chip-specific code
+  interfaces: Core system interfaces
+  lib: Extensions and larger common subsystems
+  platforms: Platform-specific code
+  sensorboards: Sensorboard drivers
+  system: Core system components
+  types: Core system data types (header files)
 
 
