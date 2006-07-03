@@ -42,4 +42,5 @@ TEP 113: Serial Communications, TEP 119: Collection.
 
 Notes:
 
-Motes whose TOS_NODE_ID is zero (modulo 500) are roots.
+MultihopOscilloscope configures a mote whose TOS_NODE_ID modulo 500 is zero 
+to be a collection root.
