@@ -1,4 +1,4 @@
-// $Id: HalPXA27xGeneralIOM.nc,v 1.1.2.2 2005-12-07 23:16:35 philipb Exp $
+// $Id: HalPXA27xGeneralIOM.nc,v 1.1.2.3 2006-07-05 21:24:13 philipb Exp $
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -42,6 +42,7 @@
 module HalPXA27xGeneralIOM {
   provides {
     interface GeneralIO[uint8_t pin];
+    interface HalPXA27xGpioInterrupt[uint8_t pin];
     interface GpioInterrupt[uint8_t pin];
   }
   uses {
@@ -89,7 +90,7 @@ implementation {
     return;
   }
 
-  async command error_t GpioInterrupt.enableRisingEdge[uint8_t pin]() {
+  async command error_t HalPXA27xGpioInterrupt.enableRisingEdge[uint8_t pin]() {
     atomic {
       call HplPXA27xGPIOPin.setGRERbit[pin](TRUE);
       call HplPXA27xGPIOPin.setGFERbit[pin](FALSE);
@@ -97,7 +98,7 @@ implementation {
     return SUCCESS;
   }
 
-  async command error_t GpioInterrupt.enableFallingEdge[uint8_t pin]() {
+  async command error_t HalPXA27xGpioInterrupt.enableFallingEdge[uint8_t pin]() {
     atomic {
       call HplPXA27xGPIOPin.setGRERbit[pin](FALSE);
       call HplPXA27xGPIOPin.setGFERbit[pin](TRUE);
@@ -105,7 +106,15 @@ implementation {
     return SUCCESS;
   }
 
-  async command error_t GpioInterrupt.disable[uint8_t pin]() {
+  async command error_t HalPXA27xGpioInterrupt.enableBothEdge[uint8_t pin]() {
+    atomic {
+      call HplPXA27xGPIOPin.setGRERbit[pin](TRUE);
+      call HplPXA27xGPIOPin.setGFERbit[pin](TRUE);
+    }
+    return SUCCESS;
+  }
+
+  async command error_t HalPXA27xGpioInterrupt.disable[uint8_t pin]() {
     atomic {
       call HplPXA27xGPIOPin.setGRERbit[pin](FALSE);
       call HplPXA27xGPIOPin.setGFERbit[pin](FALSE);
@@ -114,9 +123,27 @@ implementation {
     return SUCCESS;
   }
 
+  async command error_t GpioInterrupt.enableRisingEdge[uint8_t pin]() {
+    return call HalPXA27xGpioInterrupt.enableRisingEdge[pin]();
+  }
+
+  async command error_t GpioInterrupt.enableFallingEdge[uint8_t pin]() {
+    return call HalPXA27xGpioInterrupt.enableFallingEdge[pin]();
+  }
+
+  async command error_t GpioInterrupt.disable[uint8_t pin]() {
+    return call HalPXA27xGpioInterrupt.disable[pin]();
+  }
+
   async event void HplPXA27xGPIOPin.interruptGPIOPin[uint8_t pin]() {
     call HplPXA27xGPIOPin.clearGEDRbit[pin]();
+    signal HalPXA27xGpioInterrupt.fired[pin]();
     signal GpioInterrupt.fired[pin]();
+    return;
+  }
+  
+
+  default async event void HalPXA27xGpioInterrupt.fired[uint8_t pin]() {
     return;
   }
 
