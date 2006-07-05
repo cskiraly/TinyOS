@@ -1,6 +1,6 @@
-/* $Id: HalPXA27xI2CMasterC.nc,v 1.1.2.1 2006-03-28 02:16:57 philipb Exp $ */
+/* $Id: HalPXA27xI2CMasterC.nc,v 1.1.2.2 2006-07-05 19:01:46 philipb Exp $ */
 /*
- * Copyright (c) 2005 Arched Rock Corporation 
+ * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -11,7 +11,7 @@
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
  *  
- *   Neither the name of the Arched Rock Corporation nor the names of its
+ *   Neither the name of the Arch Rock Corporation nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  *
@@ -35,11 +35,14 @@
  * @author Phil Buonadonna
  */
 
-#include <I2CFlags.h>
+#include <I2C.h>
 
 configuration HalPXA27xI2CMasterC
 {
-  provides interface I2CPacketAdv;
+  provides interface I2CPacket<TI2CBasicAddr>;
+
+  uses interface HplPXA27xGPIOPin as I2CSCL;
+  uses interface HplPXA27xGPIOPin as I2CSDA;
 }
 
 implementation
@@ -48,9 +51,12 @@ implementation
   components HplPXA27xI2CC;
   components PlatformP;
 
-  I2CPacketAdv = HalPXA27xI2CMasterP;
+  I2CPacket = HalPXA27xI2CMasterP;
 
-  HalPXA27xI2CMasterP.Init <- PlatformP.L2Init;
+  HalPXA27xI2CMasterP.Init <- PlatformP.InitL2;
 
   HalPXA27xI2CMasterP.I2C -> HplPXA27xI2CC.I2C;
+
+  I2CSCL = HalPXA27xI2CMasterP.I2CSCL;
+  I2CSDA = HalPXA27xI2CMasterP.I2CSDA;
 }
