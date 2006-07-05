@@ -41,7 +41,7 @@ configuration BusyWaitMicroC
 
 implementation
 {
-  components new HalPXA27xBusWaitM(TMicro,13) as PXA27xBusyWaitMicro;
+  components new HalPXA27xBusyWaitM(TMicro,13) as PXA27xBusyWaitMicro;
   components HplPXA27xOSTimerC;
 
   BusyWaitMicro16 = PXA27xBusyWaitMicro.BusyWait;
