@@ -1,4 +1,4 @@
-// $Id: HplPXA27xInterruptM.nc,v 1.1.2.4 2005-12-07 23:30:40 philipb Exp $ 
+// $Id: HplPXA27xInterruptM.nc,v 1.1.2.5 2006-07-05 20:00:05 philipb Exp $ 
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -49,7 +49,7 @@ module HplPXA27xInterruptM
 {
   provides {
     interface HplPXA27xInterrupt as PXA27xIrq[uint8_t id];
-    interface HplPXA27xInterrupt as PXA27xFiq[uint8_t id];
+    interface HplPXA27xInterruptCntl;
   }
 }
 
@@ -84,19 +84,6 @@ implementation
 
   void hplarmv_fiq() __attribute__ ((interrupt ("FIQ"))) @C() @atomic_hwevent() {
 
-    uint32_t FIQPending;
-
-    FIQPending = getICHP();   // Determine which interrupt to service
-    FIQPending &= 0xFF;  // Mask off the IRQ portion
-
-    while (FIQPending & (1 << 15)) {
-      uint8_t PeripheralID = (FIQPending & 0x3f); // Get rid of the Valid bit
-      signal PXA27xFiq.fired[PeripheralID]();	  // Handler is responsible for clearing interrupt
-      FIQPending = getICHP();
-      FIQPending &= 0xFF;
-    }
-
-    return;
   } 
 
   static uint8_t usedPriorities = 0;
@@ -215,29 +202,29 @@ implementation
     return;
   }
 
-  async command error_t PXA27xFiq.allocate[uint8_t id]() 
-  {
-    return allocate(id, TRUE, TOSH_IRP_TABLE[id]);
+  async command void HplPXA27xInterruptCntl.setICCR_DIM(bool flag) {
+
+    if (flag) {
+      ICCR |= ICCR_DIM;
+    }
+    else {
+      ICCR = 0;
+    }
+    return;
+
   }
 
-  async command void PXA27xFiq.enable[uint8_t id]()
-  {
-    enable(id);
-    return;
-  }
+  async command bool HplPXA27xInterruptCntl.getICCR_DIM() {
+    bool result = FALSE;
 
-  async command void PXA27xFiq.disable[uint8_t id]()
-  {
-    disable(id);
-    return;
+    if (ICCR & ICCR_DIM) {
+      result = TRUE;
+    }
+
+    return result;
   }
 
   default async event void PXA27xIrq.fired[uint8_t id]() 
-  {
-    return;
-  }
-
-  default async event void PXA27xFiq.fired[uint8_t id]() 
   {
     return;
   }

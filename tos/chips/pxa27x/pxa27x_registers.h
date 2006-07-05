@@ -1,4 +1,4 @@
-// $Id: pxa27x_registers.h,v 1.1.2.7 2006-01-27 23:24:41 philipb Exp $ 
+// $Id: pxa27x_registers.h,v 1.1.2.8 2006-07-05 20:00:05 philipb Exp $ 
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -1191,6 +1191,8 @@
 #define ICPR2	_PXAREG(0x40D000AC) /* Interrupt Controller Pending register 2 25-6 */
 
 #define IPR_VALID	(1 << 31) 
+
+#define ICCR_DIM	(1 << 0)
 
 // Interrupt Controller Shortcuts 
 // Argument _id is a peripheral ID number
