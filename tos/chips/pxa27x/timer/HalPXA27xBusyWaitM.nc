@@ -57,9 +57,14 @@ implementation
     uint32_t dCounts;
     atomic {
       uint32_t t0 = call OST.getOSCR();
-      dCounts = (dt * 4) * valScale;
+      dCounts = (dt * 4) * val4xScale;
       dCounts >>= 2;
-      while (((call OST.getOSCR.get()) - t0) < dCounts);
+      while (((call OST.getOSCR()) - t0) < dCounts);
     }
   }
+
+  async event void OST.fired() {
+    return;
+  }
+
 }
