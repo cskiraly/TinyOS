@@ -1,0 +1,9 @@
+#-*-Makefile-*- vim:syntax=make
+#$Id: xnp.extra,v 1.1.2.1 2005-03-23 19:34:57 cssharp Exp $
+
+# This is for network reprogramming
+# If XNP is an extra, add the network reprogramming related files
+# to the search path and generate a timestamp to make each build unique.
+XNP_DIR := $(TOSDIR)/lib/Xnp
+PFLAGS := -I$(XNP_DIR) $(shell $(XNP_DIR)/ident.pl .ident_install_id $(COMPONENT)) $(PFLAGS)
+

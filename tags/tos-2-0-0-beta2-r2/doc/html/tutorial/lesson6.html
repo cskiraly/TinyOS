@@ -1,0 +1,181 @@
+<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+  <title>TinyOS Tutorial Lesson 6: TinyOS Boot and System Initialization</title>
+  <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<div class="title">Lesson 6: TinyOS Boot and System Initialization</div>
+<div class="subtitle">Last updated 18 May 2006</div>
+
+One of the frequently asked questions regarding TinyOS is, "Where is
+<code>main()</code>?".  In previous lessons, we deferred detailed discussion of the
+TinyOS boot sequence in favor of grasping the general idea. We will
+now revisit the boot sequence indetail. Understanding how TinyOS
+initializes will help solidify understanding of the execution model
+and answer the question "Where is <code>main()</code>?".
+ 
+The TinyOS boot sequence is comprised of three steps:
+<ul> 
+<li> Scheduler initialization
+<li> Component initialization
+<li> Signal that the boot process has completed 
+</ul>
+
+<p><b>Scheduler initialization.</b> The scheduler is initialized
+before any components are initialized. If the scheduler were not
+initialized before the components, component initialization
+routines would not be able to post tasks. While not all components
+require tasks to be posted, this gives the flexibility required for those compoenents that do. 
+
+<p>The <code>Scheduler</code> interface defines a scheduling
+component's signature in
+<code>tos/interfaces/Scheduler.nc</code>.  TinyOS developers can
+define their own scheduler to meet their application's needs.</p> An
+implementation of the <code>Scheduler</code> interface is provided in
+<code>tos/system/TinySchedulerC.nc</code>.</p>
+
+<p><b>Component initialization.</b> After the scheduler is initialized, 
+components are initialized. The <code>Init</code> interface implements only
+the single command <code>init()</code>. </p>
+
+<pre></pre>
+<prehead>tos/interfaces/Init.nc:</prehead>
+<pre>
+
+interface Init {
+  command error_t init();
+}
+</pre>
+
+<p>To provide the initialization flexibility required by sensor
+network components, the TinyOS's boot sequence breaks down the component
+initialization into either a <i>platform initialization phase</i> and a <i>software 
+initialization phase</i>. This is accomplished by making the TinyOS component that
+executes the boot sequence provide two <code>Init</code interfaces:
+one called <code>PlatformInit</code> and one called <code>SoftwareInit</code>.
+
+<p>The defining difference between the two is that the platform
+initialization phase precedes the software initialization phase and
+component writers can choose to wire their components interfaces to 
+the most appropriate <code>Init</code><a href="#hint8">(1)</a>.
+Any component that requires initialization can implement the <code>Init</code 
+interface and wire the implementation to either the <code>PlatformInit</code> or
+<code>PlatformInit</code interface. 
+
+<p>To fully conceptualize the two initialization options, it is
+helpful to look at the code that implements the boot sequence. The
+boot sequence is implemented in a system component called
+<code>RealMainP.nc</code>.
+
+<pre></pre>
+<prehead>tos/system/RealMainP.nc:</prehead>
+<pre>
+module RealMainP {
+  provides interface Boot;
+  uses interface Scheduler;
+  uses interface Init as PlatformInit;
+  uses interface Init as SoftwareInit;
+}
+implementation {
+  // implementation covered below
+}
+</pre>
+
+<p>Generally, you'll find <code>PlatformInit</code> implementations in low-level platform-specific code, and <code>
+SoftwareInit</code> implementations layers above the platform-specific code. 
+
+<p>And now to answer the question, "Where is main?". 
+<code>RealMainP</code> is hooked into TinyOS applications by the wiring in
+the <code>MainC</code> configuration which is, in turn, required to be wired into <i>every</i> application.
+
+<pre></pre>
+<prehead>tos/system/MainC.nc:</prehead>
+<pre>
+configuration MainC {
+  provides interface Boot;
+  uses interface Init as SoftwareInit;
+}
+implementation {
+  components PlatformC, RealMainP, TinySchedulerC;
+
+  RealMainP.Scheduler -> TinySchedulerC;
+  RealMainP.PlatformInit -> PlatformC;
+
+  // Export the SoftwareInit and Booted for applications
+  SoftwareInit = RealMainP.SoftwareInit;
+  Boot = RealMainP;
+}
+</pre>
+
+The last piece of the boot sequence story is the actual implementation in 
+<code>RealMainP.nc</code>:
+
+<pre></pre>
+<prehead>tos/system/RealMainP.nc:</prehead>
+<pre>
+module RealMainP {
+  // signature
+}
+implementation {
+  int main() __attribute__ ((C, spontaneous)) {
+    
+	call Scheduler.init(); 
+    
+	call PlatformInit.init();    
+	while (call Scheduler.runNextTask());
+
+	call SoftwareInit.init(); 
+	while (call Scheduler.runNextTask());
+      }
+
+    /* Enable interrupts now that system is ready. */
+    __nesc_enable_interrupt();
+
+    signal Boot.booted();
+
+    /* Spin in the Scheduler */       
+    call Scheduler.taskLoop();
+
+    ...
+  }
+
+</pre>
+
+Once the <code>Boot.booted()</code> event is signaled, components are free
+to call <code>start()</code> on any components they are using. Recall
+that in the <code>Blink</code> application, the timers were started from
+the <code>booted()</code> event.
+
+Lastly, note that the task loop is entered. Hopefully you can now
+understand the mechanism by which TinyOS runs its tasks serially with
+respect to each other, but yes the task look can be interrupted by
+event code since interrupts have been enabled.
+
+<p>
+<a name=#related_docs>
+<h1>Related Documentation</h1>
+</a>
+<ul>
+<li> <a href="../tep106.html">TEP 106: Schedulers and Tasks</a>
+<li> <a href="../tep107.html">TEP 107: Boot Sequence</a>
+</ul>
+
+<p><a name="hint3">(4)</a><b>Programming Hint 8:</b> In the top-level 
+configuration of a software abstraction, auto-wire Init to MainC. This removes the
+burden of wiring Init from the programmer, which removes unnecessary work from the
+boot sequence and removes the possibility of bugs from forgetting to wire.
+From Phil Levis' <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">
+<i>TinyOS Programming</i></a>
+
+<!-- Begin footer -->
+<br>
+<hr>
+<center>
+<p>&lt;&nbsp;<b><a href="lesson5.html">Previous Lesson</a></b> |&nbsp; <b><a
+ href="index.html">Top</a></b> &nbsp;|&nbsp; <b><a href="lesson11.html">Next Lesson </a>&nbsp;&gt;</b>
+</center>
+
+</body>
+</html>
