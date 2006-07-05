@@ -73,6 +73,7 @@
 generic module ControlledArbiterP(uint8_t controller_id) {
   provides {
     interface Resource[uint8_t id];
+    interface ResourceRequested[uint8_t id];
     interface ResourceController;
     interface ArbiterInfo;
   }
@@ -83,32 +84,33 @@ generic module ControlledArbiterP(uint8_t controller_id) {
 }
 implementation {
 
-  enum {RES_IDLE, RES_GRANTING, RES_IMM_GRANTING, RES_BUSY};
+  enum {RES_CONTROLLED, RES_GRANTING, RES_IMM_GRANTING, RES_BUSY};
   enum {NO_RES = 0xFF};
   enum {CONTROLLER_ID = controller_id};
 
-  uint8_t state = RES_IDLE;
+  uint8_t state = RES_CONTROLLED;
   norace uint8_t resId = CONTROLLER_ID;
   norace uint8_t reqResId;
   
   task void grantedTask();
-  task void requestedTask();
   
   async command error_t Resource.request[uint8_t id]() {
+    signal ResourceRequested.requested[resId]();
     atomic {
-      if(state == RES_IDLE) {
+      if(state == RES_CONTROLLED) {
         state = RES_GRANTING;
         reqResId = id;
-        post requestedTask();
-        return SUCCESS;
       }
+      else return call Queue.enqueue(id);
     }
-    return call Queue.enqueue(id);
+    signal ResourceController.requested();
+    return SUCCESS;
   }
 
   async command error_t Resource.immediateRequest[uint8_t id]() {
+    signal ResourceRequested.immediateRequested[resId]();
     atomic {
-      if(state == RES_IDLE) {
+      if(state == RES_CONTROLLED) {
         state = RES_IMM_GRANTING;
         reqResId = id;
       }
@@ -117,7 +119,7 @@ implementation {
     signal ResourceController.immediateRequested();
     if(resId == id)
       return SUCCESS;
-    state = RES_IDLE;
+    atomic state = RES_CONTROLLED;
     return FAIL;
   }
   
@@ -132,7 +134,7 @@ implementation {
         }
         else {
           resId = CONTROLLER_ID;
-          state = RES_IDLE;
+          state = RES_CONTROLLED;
         }
         released = TRUE;
       }
@@ -167,10 +169,6 @@ implementation {
     Check if the Resource is currently in use
   */    
   async command bool ArbiterInfo.inUse() {
-    atomic {
-      if ( state == RES_IDLE )
-        return FALSE;
-    }
     return TRUE;
   }
 
@@ -205,19 +203,19 @@ implementation {
     call ResourceConfigure.configure[resId]();
     signal Resource.granted[resId]();
   }
-
-  task void requestedTask() {
-    signal ResourceController.requested();
-  }
   
   //Default event/command handlers for all of the other
     //potential users/providers of the parameterized interfaces 
     //that have not been connected to.  
   default event void Resource.granted[uint8_t id]() {
-  } 
+  }
+  default async event void ResourceRequested.requested[uint8_t id]() {
+  }
+  default async event void ResourceRequested.immediateRequested[uint8_t id]() {
+  }
   default async event void ResourceController.granted() {
   }
-  default event void ResourceController.requested() {
+  default async event void ResourceController.requested() {
     call ResourceController.release();
   }
   default async event void ResourceController.immediateRequested() {

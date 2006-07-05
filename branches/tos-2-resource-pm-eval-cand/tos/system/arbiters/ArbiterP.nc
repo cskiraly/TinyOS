@@ -73,6 +73,7 @@
 generic module ArbiterP() {
   provides {
     interface Resource[uint8_t id];
+    interface ResourceRequested[uint8_t id];
     interface ArbiterInfo;
   }
   uses {
@@ -90,26 +91,9 @@ implementation {
   norace uint8_t reqResId;
   
   task void grantedTask();
-  
-  /**
-    Request the use of the shared resource
-    
-    If the user has not already requested access to the 
-    resource, the request will be either served immediately 
-    or queued for later service.  
-    A SUCCESS value will be returned and the user will receive 
-    the granted() event in synchronous context once it has 
-    been given access to the resource.
-    
-    Whenever requests are queued, the current owner of the bus 
-    will receive a requested() event, notifying him that another
-    user would like to have access to the resource.
-    
-    If the user has already requested access to the resource and
-    is waiting on a pending granted() event, an EBUSY value will 
-    be returned to the caller.
-  */
+  s
   async command error_t Resource.request[uint8_t id]() {
+    call ResourceRequested.requested[resId]();
     atomic {
       if(state == RES_IDLE) {
         state = RES_GRANTING;
@@ -122,6 +106,7 @@ implementation {
   }
 
   async command error_t Resource.immediateRequest[uint8_t id]() {
+    call ResourceRequested.immediateRequested[resId]();
     atomic {
       if(state == RES_IDLE) {
         state = RES_BUSY;
@@ -208,6 +193,10 @@ implementation {
   
   //Default event/command handlers
   default event void Resource.granted[uint8_t id]() {
+  }
+  default event void ResourceRequested.requested[uint8_t id]() {
+  }
+  default event void ResourceRequested.immediateRequested[uint8_t id]() {
   }
   default async command void ResourceConfigure.configure[uint8_t id]() {
   }

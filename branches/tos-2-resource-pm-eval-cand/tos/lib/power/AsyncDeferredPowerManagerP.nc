@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2.6.4 $
- * $Date: 2006-06-27 21:09:38 $ 
+ * $Revision: 1.1.2.2.6.5 $
+ * $Date: 2006-07-05 12:01:27 $ 
  * ======================================================================== 
  */
  
@@ -61,18 +61,28 @@ generic module AsyncDeferredPowerManagerP(uint32_t delay) {
 }
 implementation {
 
-  task void timerTask() { 
-    call TimerMilli.startOneShot(delay); 
+  norace bool stopTimer = FALSE;
+
+  task void stopTimerTask() {
+    call TimerMilli.stop();
+    stopTimer = FALSE;
   }
 
-  event void ResourceController.requested() {
-    call TimerMilli.stop();
+  task void timerTask() {
+    if(stopTimer == FALSE)
+      call TimerMilli.startOneShot(delay);
+  }
+
+  async event void ResourceController.requested() {
+    stopTimer = TRUE;
+    post stopTimerTask();
     call AsyncStdControl.start();
     call ResourceController.release();
   }
 
   async event void ResourceController.immediateRequested() {
-    call TimerMilli.stop();
+    stopTimer = TRUE;
+    post stopTimerTask();
     call AsyncStdControl.start();
     call ResourceController.release();
   }
@@ -82,8 +92,10 @@ implementation {
   }
 
   event void TimerMilli.fired() {
-    call PowerDownCleanup.cleanup();
-    call AsyncStdControl.stop();
+    if(stopTimer == FALSE) {
+      call PowerDownCleanup.cleanup();
+      call AsyncStdControl.stop();
+    }
   }
 
   default async command void PowerDownCleanup.cleanup() {
