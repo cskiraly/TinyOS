@@ -1,3 +1,4 @@
+// $Id: HalPXA27xSoftCaptureP.nc,v 1.1.2.1 2006-07-05 21:36:03 philipb Exp $
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -27,41 +28,55 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
  * DAMAGE.
  */
-
-/* 
- * Variant of the standard GpioInterrupt interface that provides a 
- * 'BOTH' trigger.
- * 
+/**
+ * Emulates GPIO capture functionality using GpioInterrupt and the 
+ * standard 32khz counter. Provides a method to capture on BOTH edges of
+ * a GPIO transition.
+ *
  * @author Phil Buonadonna
- * 
  */
+generic module HalPXA27xSoftCaptureP ()
+{
+  provides interface HalPXA27xGpioCapture;
+  uses {
+    interface HalPXA27xGpioInterrupt;
+    interface Counter<T32khz,uint32_t> as Counter32khz32;
+  }
+}
 
-interface HalPXA27xGpioInterrupt {
+implementation 
+{
 
-  /** 
-   * Enable an edge based interrupt. Calls to these functions are
-   * not cumulative: only the transition type of the last called 
-   * function will be monitored for.
-   *
-   *
-   * @return SUCCESS if the interrupt has been enabled
-   */
-  async command error_t enableRisingEdge();
-  async command error_t enableFallingEdge();
-  async command error_t enableBothEdge();
+  async command error_t HalPXA27xGpioCapture.captureRisingEdge() {
+    return (call HalPXA27xGpioInterrupt.enableRisingEdge());
+  }
 
-  /**  
-   * Diables an edge interrupt or capture interrupt
-   * 
-   * @return SUCCESS if the interrupt has been disabled
-   */ 
-  async command error_t disable();
+  async command error_t HalPXA27xGpioCapture.captureFallingEdge() {
+    return (call HalPXA27xGpioInterrupt.enableFallingEdge());
+  }
 
-  /**
-   * Fired when an edge interrupt occurs.
-   *
-   * NOTE: Interrupts keep running until "disable()" is called
-   */
-  async event void fired();
+  async command error_t HalPXA27xGpioCapture.captureBothEdge() {
+    return (call HalPXA27xGpioInterrupt.enableBothEdge());
+  }
 
+  async command void HalPXA27xGpioCapture.disable() {
+    call HalPXA27xGpioInterrupt.disable();
+    return;
+  }
+  
+  async event void HalPXA27xGpioInterrupt.fired() {
+    uint16_t captureTime;
+
+    captureTime = (uint16_t) call Counter32khz32.get();
+    signal HalPXA27xGpioCapture.captured(captureTime);
+    return;
+  }
+
+  async event void Counter32khz32.overflow() {
+    return;
+  }
+
+  default async event void HalPXA27xGpioCapture.captured(uint16_t time) {
+    return;
+  }
 }
