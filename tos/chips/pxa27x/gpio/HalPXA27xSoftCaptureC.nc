@@ -1,3 +1,4 @@
+// $Id: HalPXA27xSoftCaptureC.nc,v 1.1.2.1 2006-07-05 21:36:03 philipb Exp $
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -28,40 +29,27 @@
  * DAMAGE.
  */
 
-/* 
- * Variant of the standard GpioInterrupt interface that provides a 
- * 'BOTH' trigger.
- * 
+/**
+ * Emulates GPIO capture functionality using HalPXA27xGpioInterrupt and the 
+ * standard 32khz counter. Provides a method to capture on BOTH edges of
+ * a GPIO transition
+ *
  * @author Phil Buonadonna
- * 
  */
-
-interface HalPXA27xGpioInterrupt {
-
-  /** 
-   * Enable an edge based interrupt. Calls to these functions are
-   * not cumulative: only the transition type of the last called 
-   * function will be monitored for.
-   *
-   *
-   * @return SUCCESS if the interrupt has been enabled
-   */
-  async command error_t enableRisingEdge();
-  async command error_t enableFallingEdge();
-  async command error_t enableBothEdge();
-
-  /**  
-   * Diables an edge interrupt or capture interrupt
-   * 
-   * @return SUCCESS if the interrupt has been disabled
-   */ 
-  async command error_t disable();
-
-  /**
-   * Fired when an edge interrupt occurs.
-   *
-   * NOTE: Interrupts keep running until "disable()" is called
-   */
-  async event void fired();
-
+generic configuration HalPXA27xSoftCaptureC() 
+{
+  provides interface HalPXA27xGpioCapture;
+  uses interface HalPXA27xGpioInterrupt;
 }
+
+implementation
+{
+  components new HalPXa27xSoftCaptureP();
+  components Counter32khzC;
+  
+  HalPXA27xGpioCapture = HalPXA27xSoftCaptureP;
+  HalPXA27xGpioInterrupt = HalPXA27xSoftCaptureP;
+
+  HalPXA27xSoftCaptureP.Counter32khz32 -> Counter32khzC.Counter32khz32;
+}
+
