@@ -74,6 +74,7 @@ echo "done."
 # Remove JNI code on uninstall
 
 %changelog
+* Wed Jul 5 2006 <kwright@archrock.com> 1.2.2-1
 * Thu Feb 9 2006 <david.e.gay@intel.com> 1.2.1-2
 * Sat Feb 4 2006 <kwright@cs.berkeley.edu> 1.2.1-1
 - 1.2.1
