@@ -30,8 +30,8 @@
  * of the AsyncStdControl, StdControl, and SplitControl interfaces.
  *
  * @author Kevin Klues <klueska@cs.wustl.edu>
- * @version  $Revision: 1.1.4.5 $
- * @date $Date: 2006-06-27 21:09:38 $ 
+ * @version  $Revision: 1.1.4.6 $
+ * @date $Date: 2006-07-05 12:01:27 $ 
  */
  
 #define MYCOMPONENT_RESOURCE   "MyComponent.Resource"
@@ -44,8 +44,8 @@ implementation {
   components MyComponentP, LedsC, 
              new TimerMilliC() as StartTimer, new TimerMilliC() as StopTimer,
              new ControlledFcfsArbiterC(MYCOMPONENT_RESOURCE) as Arbiter,
-             new AsyncStdControlPowerManagerC() as PowerManager;
-//              new AsyncStdControlDeferredPowerManagerC(750) as PowerManager;
+//              new AsyncStdControlPowerManagerC() as PowerManager;
+             new AsyncStdControlDeferredPowerManagerC(750) as PowerManager;
 //              new StdControlPowerManagerC() as PowerManager;
 //              new StdControlDeferredPowerManagerC(750) as PowerManager;
 //              new SplitControlPowerManagerC() as PowerManager;

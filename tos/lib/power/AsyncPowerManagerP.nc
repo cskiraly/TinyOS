@@ -23,8 +23,8 @@
  
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3.2.4 $
- * $Date: 2006-06-27 21:09:38 $ 
+ * $Revision: 1.1.2.3.2.5 $
+ * $Date: 2006-07-05 12:01:27 $ 
  * ======================================================================== 
  */
  
@@ -56,7 +56,7 @@ generic module AsyncPowerManagerP() {
 }
 implementation {
 
-  event void ResourceController.requested() {
+  async event void ResourceController.requested() {
     call AsyncStdControl.start();
     call ResourceController.release(); 
   }
