@@ -1,4 +1,4 @@
-/* $Id: PMICC.nc,v 1.1.2.1 2006-02-01 23:56:59 philipb Exp $ */
+/* $Id: PMICC.nc,v 1.1.2.2 2006-07-05 18:28:34 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -85,7 +85,6 @@ implementation{
   Init = PMICM;
   PMIC = PMICM;
 
-  HplPXA27xPI2CC.Init <- PlatformP.InitL1;
   PMICM.Init <- PlatformP.InitL2;
 
   PMICM.chargeMonitorTimer -> TimerMilliC;
