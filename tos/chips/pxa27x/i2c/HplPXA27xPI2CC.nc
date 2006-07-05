@@ -1,6 +1,6 @@
-/* $Id: HplPXA27xPI2CC.nc,v 1.1.2.2 2006-03-28 02:16:02 philipb Exp $ */
+/* $Id: HplPXA27xPI2CC.nc,v 1.1.2.3 2006-07-05 19:01:47 philipb Exp $ */
 /*
- * Copyright (c) 2005 Arched Rock Corporation 
+ * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -11,7 +11,7 @@
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
  *  
- *   Neither the name of the Arched Rock Corporation nor the names of its
+ *   Neither the name of the Arch Rock Corporation nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  *
