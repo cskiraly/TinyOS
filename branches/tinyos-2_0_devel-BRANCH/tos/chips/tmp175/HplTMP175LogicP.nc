@@ -37,8 +37,11 @@
  * outside configuration/module according to the host platform.
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-06-19 18:20:59 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-07-06 23:20:16 $
  */
+
+#include "TMP175.h"
+#include "I2C.h"
 
 generic module HplTMP175LogicP(uint16_t devAddr)
 {
@@ -46,8 +49,9 @@ generic module HplTMP175LogicP(uint16_t devAddr)
   provides interface SplitControl;
   provides interface HplTMP175;
 
-  uses interface I2CPacket;
+  uses interface I2CPacket<TI2CBasicAddr>;
   uses interface GpioInterrupt as AlertInterrupt;
+  uses interface GeneralIO as InterruptPin;
 }
 
 implementation {
@@ -67,10 +71,10 @@ implementation {
   uint8_t mI2CBuffer[4];
   uint8_t mState;
   uint8_t mConfigRegVal;
-  norace error_t mmSSError;
+  norace error_t mSSError;
 
   static error_t doSetReg(uint8_t nextState, uint8_t reg, uint16_t val) {
-    error_r error = SUCCESS;
+    error_t error = SUCCESS;
 
     atomic {
       if (mState == STATE_IDLE) {
@@ -95,7 +99,7 @@ implementation {
   }
 
   static error_t doSetRegWord(uint8_t nextState, uint8_t reg, uint16_t val) {
-    error_r error = SUCCESS;
+    error_t error = SUCCESS;
 
     atomic {
       if (mState == STATE_IDLE) {
@@ -112,7 +116,7 @@ implementation {
     mI2CBuffer[1] = (val >> 8) & 0xFF;
     mI2CBuffer[2] = val & 0xFF;
 
-    error = call I2CPacket.writePacket((I2C_START | I2C_STOP),devAddr,3,mI2CBuffer);
+    error = call I2CPacket.write((I2C_START | I2C_STOP),devAddr,3,mI2CBuffer);
     
     if (error) 
       atomic mState = STATE_IDLE;
@@ -132,10 +136,14 @@ implementation {
     return;
   }
 
- command error_t Init.init() {
+  command error_t Init.init() {
+    // careful! this can be changed via polarity I believe
+    call InterruptPin.makeInput();
+    call AlertInterrupt.enableFallingEdge();
     mfPtrReset = FALSE;
     mConfigRegVal = 0;
     mState = STATE_STOPPED;
+    return SUCCESS;
   }
 
   command error_t SplitControl.start() {
@@ -149,7 +157,7 @@ implementation {
       }
     }
     
-    if error
+    if (error)
       return error;
     
     return doSetReg(STATE_STARTING,TMP175_PTR_CFG,(mConfigRegVal & ~TMP175_CFG_SD));
@@ -170,15 +178,15 @@ implementation {
 	error = EBUSY;
       }
     }
-    if error
+    if (error)
       return error;
 
     mI2CBuffer[0] = mI2CBuffer[1] = 0;
 
-    error = call I2C.readPacket(devAddr,2,mI2CBuffer);
+    error = call I2CPacket.read(I2C_START | I2C_STOP, devAddr,2,mI2CBuffer);
 
     if (error)
-      atomic mState = STATE_IDLE:
+      atomic mState = STATE_IDLE;
 
     return error;
 
@@ -189,14 +197,14 @@ implementation {
   }
   
   command error_t HplTMP175.setTLowReg(uint16_t val){ 
-    return doSetRegWord(STATE_SETLOW,TMP175_PTR_TLOW,val);  
+    return doSetRegWord(STATE_SETTLOW,TMP175_PTR_TLOW,val);  
   }
 
   command error_t HplTMP175.setTHighReg(uint16_t val){
     return doSetRegWord(STATE_SETTHIGH,TMP175_PTR_THIGH,val); 
   }
 
-  async event void I2CPacket.readDone(uint16_t chipAddr, uint8_t len, uint8_t *buf, error_t i2c_error) {
+  async event void I2CPacket.readDone(error_t i2c_error, uint16_t chipAddr, uint8_t len, uint8_t *buf) {
     uint16_t tempVal;
 
     switch (mState) {
@@ -204,7 +212,7 @@ implementation {
       tempVal = buf[0];
       tempVal = ((tempVal << 8) | buf[1]);
       mState = STATE_IDLE;
-      signal HplTMP175.measureTemperatureDone(error,tempVal);
+      signal HplTMP175.measureTemperatureDone(i2c_error,tempVal);
       break;
     default:
       break;
@@ -213,7 +221,7 @@ implementation {
     return;
   }
 
-  async event void I2CPacket.writeDone(uint16_t chipAddr, uint8_t len, uint8_t *buf, error_t i2c_error) {
+  async event void I2CPacket.writeDone(error_t i2c_error, uint16_t chipAddr, uint8_t len, uint8_t *buf) {
     error_t error = i2c_error;
 
     if (mfPtrReset) {
@@ -243,7 +251,7 @@ implementation {
 	signal HplTMP175.setTLowRegDone(error);
 	break;
       default:
-	mState = STATE_IDLE:
+	mState = STATE_IDLE;
 	break;
       }
     }
@@ -251,7 +259,7 @@ implementation {
       // Reset the PTR register back to the temperature register
       mI2CBuffer[0] = TMP175_PTR_TEMP;
       mfPtrReset = TRUE;
-      call I2C.writePacket(devAddr,1,mI2CBuffer);
+      call I2CPacket.write(I2C_START | I2C_STOP, devAddr,1,mI2CBuffer);
     } 
 
     return;
@@ -266,10 +274,10 @@ implementation {
 
   default event void SplitControl.startDone( error_t error ) { return; }
   default event void SplitControl.stopDone( error_t error ) { return; }
-  default event void HplTMP175.getTemperatureDone( error_t error, uint16_t val ){ return; }
-  default event void HplTMP175.setConfigRegDone( error_t error ){ return; }
-  default event void HplTMP175.setTHighRegDone(error_t error){ return; }
-  default event void HplTMP175.setTLowRegDone(error_t error){ return; }
-  default event void HplTMP175.alertThreshold(){ return; }
+  default async event void HplTMP175.measureTemperatureDone( error_t error, uint16_t val ){ return; }
+  default async event void HplTMP175.setConfigRegDone( error_t error ){ return; }
+  default async event void HplTMP175.setTHighRegDone(error_t error){ return; }
+  default async event void HplTMP175.setTLowRegDone(error_t error){ return; }
+  default async event void HplTMP175.alertThreshold(){ return; }
 
 }
