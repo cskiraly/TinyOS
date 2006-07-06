@@ -2,8 +2,8 @@
 
 Summary: TinyOS tools 
 Name: tinyos-tools
-Version: 1.2.1
-Release: 3
+Version: 1.2.2
+Release: 1
 License: Please see source
 Group: Development/System
 URL: http://www.tinyos.net/
@@ -11,7 +11,7 @@ BuildRoot: %{_tmppath}/%{name}-root
 Source0: %{name}-%{version}.tar.gz
 # This makes cygwin happy
 Provides: /bin/sh /bin/bash
-Requires: nesc >= 1.2.4
+Requires: nesc >= 1.2.7
 
 %description
 Tools for use with tinyos. Includes, for example: uisp, motelist, pybsl, mig,
@@ -24,7 +24,7 @@ repository under tinyos-2.x/tools.
 %build
 cd tools
 ./Bootstrap
-./configure --prefix=/usr
+TOSDIR=/opt/tinyos-2.x/tos ./configure --prefix=/usr
 make
 
 %install
@@ -74,6 +74,7 @@ echo "done."
 # Remove JNI code on uninstall
 
 %changelog
+* Wed Jul 5 2006 <kwright@archrock.com> 1.2.2-1
 * Thu Feb 9 2006 <david.e.gay@intel.com> 1.2.1-2
 * Sat Feb 4 2006 <kwright@cs.berkeley.edu> 1.2.1-1
 - 1.2.1
