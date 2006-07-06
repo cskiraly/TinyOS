@@ -33,10 +33,10 @@
  * Hpl interface for the MAXIM 136x series ADC chips.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-24 23:56:44 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-07-06 23:20:52 $
  */
 
-interface HplMAX163x {
+interface HplMAX136x {
 
   command error_t measureChannels(uint8_t *buf,uint8_t len);
   async event void measureChannelsDone( error_t error, uint8_t *buf, uint8_t len );
