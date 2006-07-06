@@ -2,7 +2,7 @@
  * Copyright (c) 2005-2006 Arch Rock Corporation
  * All rights reserved.
  *
- * Redistribution and use in so1urce and binary forms, with or without
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
  * - Redistributions of source code must retain the above copyright
@@ -33,7 +33,7 @@
  * Types and definitions for the ST LIS3L02DQ 3-axis Accelerometer
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-25 22:56:59 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-07-06 23:21:40 $
  */
 
 #ifndef _LIS3L02DQ_H
@@ -89,5 +89,12 @@
 #define LIS3L02DQ_WAKE_UP_CFG_YLIE	(1 << 2)
 #define LIS3L02DQ_WAKE_UP_CFG_XHIE	(1 << 1)
 #define LIS3L02DQ_WAKE_UP_CFG_XLIE	(1 << 0)
+
+typedef enum {
+  LIS_AFLAGS_NONE,
+  LIS_AFLAGS_HIGH,
+  LIS_AFLAGS_LOW,
+  LIS_AFLAGS_BOTH
+} lis_alertflags_t;
 
 #endif /* _LIS3L02DQ_H */
