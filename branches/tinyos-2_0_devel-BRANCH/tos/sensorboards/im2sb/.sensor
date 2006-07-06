@@ -36,9 +36,14 @@
 # by ncc.  And because of that, the current sensorboard's include directory
 # must be specified, otherwise its search order is last instead of first.
 #
-# $Id: .sensor,v 1.1.2.1 2006-05-31 22:18:12 philipb Exp $
+# $Id: .sensor,v 1.1.2.2 2006-07-06 23:28:18 philipb Exp $
 #
 push( @includes, qw(
   %T/sensorboards/im2sb
+  %T/chips/lis3l02dq
+  %T/chips/max136x
   %T/chips/sht11
+  %T/chips/tmp175
+  %T/chips/tsl2561
+
 ) );
