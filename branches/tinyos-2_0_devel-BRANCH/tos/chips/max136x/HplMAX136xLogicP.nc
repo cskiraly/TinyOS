@@ -35,8 +35,10 @@
  * interface.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-24 23:56:44 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-07-06 23:20:52 $
  */
+
+#include "I2C.h"
 
 generic module HplMAX136xLogicP(uint16_t devAddr)
 {
@@ -44,7 +46,7 @@ generic module HplMAX136xLogicP(uint16_t devAddr)
   provides interface SplitControl;
   provides interface HplMAX136x;
 
-  uses interface I2CPacketAdv;
+  uses interface I2CPacket<TI2CBasicAddr>;
   uses interface GpioInterrupt as InterruptAlert;
 }
 
@@ -60,7 +62,6 @@ implementation {
     STATE_ERROR
   };
 
-  uint8_t mI2CBuffer[16];
   uint8_t mState;
   bool mStopRequested;
   norace error_t mSSError;
@@ -79,7 +80,7 @@ implementation {
     if (error)
       return error;
 
-    error = call I2CPacket.writePacket(devAddr,len,buf,STOP_FLAG);
+    error = call I2CPacket.write(I2C_START | I2C_STOP, devAddr,len,buf);
     
     if (error) 
       atomic mState = STATE_IDLE;
@@ -98,16 +99,16 @@ implementation {
 	error = EBUSY;
       }
     }
-    if error
+    if (error)
       return error;
 
-    error = call I2CPacket.readPacket(devAddr,len,buf,STOP_FLAG);
+    error = call I2CPacket.read(I2C_START | I2C_STOP, devAddr,len,buf);
 
     if (error)
-      atomic mState = STATE_IDLE:
+      atomic mState = STATE_IDLE;
 
     return error;
-
+  }
 
   task void StartDone() {
     atomic mState = STATE_IDLE;
@@ -123,9 +124,10 @@ implementation {
 
   command error_t Init.init() {
     atomic {
-      mStopPending = FALSE;
-      mState = STATE_STOPPED:
+      mStopRequested = FALSE;
+      mState = STATE_STOPPED;
     }
+    return SUCCESS;
   }
 
   command error_t SplitControl.start() {
@@ -140,7 +142,7 @@ implementation {
     }
     if (error) 
       return error;
-
+    
     return post StartDone();
   }
 
@@ -170,7 +172,7 @@ implementation {
     return doWrite(STATE_SETCONFIG,configbuf,len);
   }
 
-  async event void I2CPacket.readDone(uint16_t chipAddr, uint8_t len, uint8_t *buf, error_t i2c_error) {
+  async event void I2CPacket.readDone(error_t i2c_error, uint16_t chipAddr, uint8_t len, uint8_t *buf) {
     uint16_t tempVal;
     error_t error = i2c_error;
 
@@ -186,7 +188,7 @@ implementation {
     return;
   }
 
-  async event void I2CPacket.writeDone(uint16_t chipAddr, uint8_t len, uint8_t *buf, error_t i2c_error) {
+  async event void I2CPacket.writeDone(error_t i2c_error, uint16_t chipAddr, uint8_t len, uint8_t *buf) {
     error_t error = i2c_error;
 
     switch (mState) {
@@ -195,8 +197,8 @@ implementation {
       signal HplMAX136x.setConfigDone(error,buf,len);
       break;
     default:
-      mState = STATE_IDLE:
-	break;
+      mState = STATE_IDLE;
+      break;
     }
     return;
   }
@@ -211,6 +213,6 @@ implementation {
   default event void SplitControl.startDone( error_t error ) { return; }
   default event void SplitControl.stopDone( error_t error ) { return; }
 
-  default event void HplMAX136x.alertThreshold(){ return; }
+  default async event void HplMAX136x.alertThreshold(){ return; }
 
 }
