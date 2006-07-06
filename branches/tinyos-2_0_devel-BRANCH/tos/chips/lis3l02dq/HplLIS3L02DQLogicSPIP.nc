@@ -35,10 +35,10 @@
  * interface and provides the HplLIS3L02DQ HPL interface.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-25 22:56:59 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-07-06 23:21:40 $
  */
 
-generic module HplLIS3L02DQLogicP()
+module HplLIS3L02DQLogicSPIP
 {
   provides interface Init;
   provides interface SplitControl;
@@ -46,6 +46,11 @@ generic module HplLIS3L02DQLogicP()
 
   uses interface SpiPacket;
   uses interface GpioInterrupt as InterruptAlert;
+
+  uses interface HplPXA27xGPIOPin as SPIRxD;
+  uses interface HplPXA27xGPIOPin as SPITxD;
+  uses interface HplPXA27xGPIOPin as SPICLK;
+  uses interface HplPXA27xGPIOPin as SPIFRM;
 }
 
 implementation {
@@ -82,8 +87,20 @@ implementation {
     atomic {
       if (!misInited) {
 	misInited = TRUE;
-	mState = STATE_STOPPED:
+	mState = STATE_STOPPED;
       }
+      call SPICLK.setGAFRpin(SSP1_SCLK_ALTFN);
+      call SPICLK.setGPDRbit(TRUE);
+
+      // Control CS pin manually
+      call SPIFRM.setGPSRbit(); // CS HIGH
+      call SPIFRM.setGPDRbit(TRUE);
+      //call SPIFRM.setGAFRpin(SSP1_SFRM_ALTFN);
+
+      call SPIRxD.setGAFRpin(SSP1_RXD_ALTFN);
+      call SPIRxD.setGPDRbit(FALSE);
+      call SPITxD.setGAFRpin(SSP1_TXD_ALTFN);
+      call SPITxD.setGPDRbit(TRUE);
     }
   }
 
@@ -100,7 +117,12 @@ implementation {
     if (error) 
       return error;
 
-    return post StartDone();
+    mSPITxBuf[0] = LIS3L02DQ_CTRL_REG1;
+    mSPITxBuf[1] = 0;
+    mSPITxBuf[1] = (LIS3L01DQ_CTRL_REG1_PD(1) | /*LIS3L01DQ_CTRL_REG1_ST |*/ LIS3L01DQ_CTRL_REG1_XEN | LIS3L01DQ_CTRL_REG1_YEN | LIS3L01DQ_CTRL_REG1_ZEN);
+    call SPIFRM.setGPCRbit(); // CS LOW
+    error = call SpiPacket.send(mSPITxBuf,mSPIRxBuf,2);
+    return error;
   }
 
   command error_t SplitControl.stop() {
@@ -123,13 +145,15 @@ implementation {
   command error_t HplLIS3L02DQ.getReg(uint8_t regAddr) {
     error_t error = SUCCESS;
 
-    if((regAddr < 0x16) || (regAddr > 0x2A)) {
+    if((regAddr < 0x16) || (regAddr > 0x2F)) {
       error = EINVAL;
       return error;
     }
     mSPITxBuf[0] = regAddr | (1 << 7); // Set the READ bit
     mSPIRxBuf[1] = 0;
-    error = call SPIPacket.send(mSPITxBuf,mSPIRxBuf,2);
+    mState = STATE_GETREG;
+    call SPIFRM.setGPCRbit(); // CS LOW
+    error = call SpiPacket.send(mSPITxBuf,mSPIRxBuf,2);
 
     return error;
 
@@ -138,28 +162,35 @@ implementation {
   command error_t HplLIS3L02DQ.setReg(uint8_t regAddr, uint8_t val) {
     error_t error = SUCCESS;
 
-    if((regAddr < 0x16) || (regAddr > 0x2A)) {
+    if((regAddr < 0x16) || (regAddr > 0x2F)) {
       error = EINVAL;
       return error;
     }
     mSPITxBuf[0] = regAddr;
-    mSPIRxBuf[1] = val;
-    error = call SPIPacket.send(mSPITxBuf,mSPIRxBuf,2);
+    mSPITxBuf[1] = val;
+    mState = STATE_SETREG;
+    error = call SpiPacket.send(mSPITxBuf,mSPIRxBuf,2);
 
     return error;
   }
 
-  async event void SPIPacket.sendDone(uint8_t* txBuf, uint8_t* rxBuf, uint16_t len, error_t spi_error ) {
+  async event void SpiPacket.sendDone(uint8_t* txBuf, uint8_t* rxBuf, uint16_t len, error_t spi_error ) {
     error_t error = spi_error;
 
     switch (mState) {
     case STATE_GETREG:
       mState = STATE_IDLE;
-      signal HplLIS3L02DQ.getReg(error, (txBuf[0] & 0x7F) , rxBuf[1]);
+      call SPIFRM.setGPSRbit(); // CS HIGH
+      signal HplLIS3L02DQ.getRegDone(error, (txBuf[0] & 0x7F) , rxBuf[1]);
       break;
     case STATE_SETREG:
       mState = STATE_IDLE;
-      signal HplLIS3L02DQ.getReg(error, (txBuf[0] & 0x7F), txBuf[1]);
+      signal HplLIS3L02DQ.setRegDone(error, (txBuf[0] & 0x7F), txBuf[1]);
+      break;
+    case STATE_STARTING:
+      mState = STATE_IDLE;
+      call SPIFRM.setGPSRbit();
+      post StartDone();
       break;
     default:
       mState = STATE_IDLE;
@@ -175,9 +206,14 @@ implementation {
     return;
   }
 
+  async event void SPITxD.interruptGPIOPin() {}
+  async event void SPIRxD.interruptGPIOPin() {}
+  async event void SPICLK.interruptGPIOPin() {}
+  async event void SPIFRM.interruptGPIOPin() {}
+
   default event void SplitControl.startDone( error_t error ) { return; }
   default event void SplitControl.stopDone( error_t error ) { return; }
 
-  default event void HplLIS3L02DQ.alertThreshold(){ return; }
+  default async event void HplLIS3L02DQ.alertThreshold(){ return; }
 
 }
