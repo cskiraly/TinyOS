@@ -4,7 +4,7 @@ VERSION=2.0.0beta2
 cd ../..
 rm -rf $NAME-$VERSION
 tools/release/extractor $NAME-$VERSION <<'EOF' | gzip >../$NAME-$VERSION.tar.gz
-!^./apps/tests/(eyesIFX|mica2|msp430|RadioStress|TestAlarm|TestAMService|TestBroadcast|TestPowerup|TestSerialBandwidth|TestSleep|TestTimerSync|TestTrickleTimer)
+!^./apps/tests/(eyesIFX|mica2|msp430|RadioStress|TestAlarm|TestAMService|TestBroadcast|TestCollection|TestNetwork|TestPowerManager|TestPowerup|TestSerialBandwidth|TestSleep|TestTimerSync|TestTreeRouting|TestTrickleTimer)
 !^./doc
 !^./overall-todo.txt
 !^./support/make/Makelocal
