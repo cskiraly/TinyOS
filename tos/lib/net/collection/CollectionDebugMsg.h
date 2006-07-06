@@ -5,6 +5,8 @@
 
 //Comment format ->   :meaning:args
 enum {
+    NET_C_DEBUG_STARTED = 0xDE,
+
     NET_C_FE_MSG_POOL_EMPTY = 0x10,    //::no args
     NET_C_FE_SEND_QUEUE_FULL = 0x11,   //::no args
     NET_C_FE_NO_ROUTE = 0x12,          //::no args
