@@ -34,7 +34,7 @@
  * Light-to-Digital converters.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-25 22:55:48 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-07-06 23:19:48 $
  */
 
 interface HplTSL256x {
@@ -53,7 +53,7 @@ interface HplTSL256x {
   async event void setTIMINGDone( error_t error );
 
   command error_t setTHRESHLOW(uint16_t val);
-  async event setTHRESHLOWDone(error_t error);
+  async event void setTHRESHLOWDone(error_t error);
 
   command error_t setTHRESHHIGH(uint16_t val);
   async event void setTHRESHHIGHDone(error_t error);
