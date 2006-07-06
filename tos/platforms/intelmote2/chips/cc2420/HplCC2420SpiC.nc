@@ -1,4 +1,4 @@
-/* $Id: HplCC2420SpiC.nc,v 1.1.2.2 2006-01-29 17:59:23 scipio Exp $ */
+/* $Id: HplCC2420SpiC.nc,v 1.1.2.3 2006-07-06 22:46:37 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -34,8 +34,7 @@
  */
 generic configuration HplCC2420SpiC() 
 {
-  
-  provides interface Init;
+
   provides interface Resource;
   provides interface SpiByte;
   provides interface SpiPacket;
@@ -51,9 +50,11 @@ implementation
 
   components IM2CC2420SpiP;
  
-  Init = IM2CC2420SpiP.Init;
   Resource = IM2CC2420SpiP.Resource[SPI_CLIENT_ID];
   SpiByte = IM2CC2420SpiP.SpiByte;
   SpiPacket = IM2CC2420SpiP.SpiPacket[SPI_CLIENT_ID];
-  
+
+  components PlatformP;
+  IM2CC2420SpiP.Init <- PlatformP.InitL3;
+
 }
