@@ -226,7 +226,7 @@ const uint8_t TOSH_IRP_TABLE[] = { 0xFF, // PPID  0 SSP_3 Service Req
 #define I2C_SCL (117)
 #define I2C_SCL_ALTFN (1)
 #define I2C_SDA (118)
-#define I2D_SDA_ALTFN (1)
+#define I2C_SDA_ALTFN (1)
 
 
 #if 0
