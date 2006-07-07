@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) 2004, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -27,55 +27,58 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.9 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-07-07 15:17:54 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
 /** 
- * This component represents the HAL1 of the MSP430 ADC12
- * subsystem. Clients SHOULD NOT wire to <code>Msp430Adc12C</code> directly but
- * should go via <code>Msp430Adc12ClientC</code> or
- * <code>Msp430Adc12RefVoltAutoClientC</code>.
- *
- * @author Jan Hauer
- * @see  Please refer to TEP 101 for more information about this component and its
- *          intended use.
+ * In contrast to the Msp430Adc12SingleChannel interface this interface
+ * separates between configuration and sampling of the ADC and therefore allows
+ * to minimize the time between the call to getSingleData and the start of
+ * the sampling.
+ * 
+ * @author Jan Hauer 
+ * @see  Please refer to TEP 101.
  */
 
 #include <Msp430Adc12.h> 
-configuration Msp430Adc12C 
-{ 
-  provides interface Resource[uint8_t id]; 
-  provides interface Msp430Adc12SingleChannel as SingleChannel[uint8_t id]; 
-  provides interface Msp430Adc12FastSingleChannel as FastSingleChannel[uint8_t id]; 
-} implementation { 
-  components Msp430Adc12P,HplAdc12P, Msp430TimerC, MainC, HplMsp430GeneralIOC, 
-             new RoundRobinArbiterC(MSP430ADC12_RESOURCE) as Arbiter;
+interface Msp430Adc12FastSingleChannel 
+{   
 
-  Resource = Arbiter;
-  SingleChannel = Msp430Adc12P.SingleChannel;
-  FastSingleChannel = Msp430Adc12P.FastSingleChannel;
+  /** 
+   * Configures the ADC hardware. If SUCCESS is returned, every subsequent call
+   * to <code>getSingleData()</code> will start the sampling immediately with
+   * the specified configuration.  However, the configuration is valid only
+   * until the ADC is released via the Resource interface (which is provided in
+   * conjunction with this interface), i.e. it must be configured every time
+   * the Resource interface grants access to the ADC (otherwise the
+   * configuration state is undefined).
+   * 
+   * @param config ADC12 configuration data.  
+   *
+   * @return SUCCESS means subsequent calls to <code>getSingleData()</code>
+   * will use the configuration.
+   */
+  async command error_t configure(const msp430adc12_channel_config_t *config);
   
-  Arbiter.Init <- MainC;
-  Msp430Adc12P.Init <- MainC;
-  Msp430Adc12P.ADCArbiterInfo -> Arbiter;
-  Msp430Adc12P.HplAdc12 -> HplAdc12P;
-  Msp430Adc12P.Port60 -> HplMsp430GeneralIOC.Port60;
-  Msp430Adc12P.Port61 -> HplMsp430GeneralIOC.Port61;
-  Msp430Adc12P.Port62 -> HplMsp430GeneralIOC.Port62;
-  Msp430Adc12P.Port63 -> HplMsp430GeneralIOC.Port63;
-  Msp430Adc12P.Port64 -> HplMsp430GeneralIOC.Port64;
-  Msp430Adc12P.Port65 -> HplMsp430GeneralIOC.Port65;
-  Msp430Adc12P.Port66 -> HplMsp430GeneralIOC.Port66;
-  Msp430Adc12P.Port67 -> HplMsp430GeneralIOC.Port67;
-
-  // exclusive access to TimerA expected
-  Msp430Adc12P.TimerA -> Msp430TimerC.TimerA;
-  Msp430Adc12P.ControlA0 -> Msp430TimerC.ControlA0;
-  Msp430Adc12P.ControlA1 -> Msp430TimerC.ControlA1;
-  Msp430Adc12P.CompareA0 -> Msp430TimerC.CompareA0;
-  Msp430Adc12P.CompareA1 -> Msp430TimerC.CompareA1;
+  /** 
+   * Samples an ADC channel once with the configuration passed in
+   * <code>configure()</code>. If SUCCESS is returned, an event
+   * <code>singleDataReady()</code> will be signalled with the conversion
+   * result. Otherwise <code>singleDataReady()</code> will not be signalled.
+   *
+   * @param config ADC12 configuration data.  @return SUCCESS means conversion
+   * data will be signalled in <code>singleDataReady()</code>.
+   */
+  async command error_t getSingleData(); 
+  
+   /** 
+    * Data from a call to <code>getSingleData()</code> is ready.
+    * 
+    * @param data Conversion result (lower 12 bit).  
+    */  
+  async event void singleDataReady(uint16_t data); 
 }
 

@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-06-19 11:12:23 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-07-07 15:17:54 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -164,5 +164,6 @@ interface Msp430Adc12SingleChannel
    * <code>getMultipleData()</code>.
    */    
   async event uint16_t* multipleDataReady(uint16_t *buffer, uint16_t
-      numSamples); }
+      numSamples); 
+}
 
