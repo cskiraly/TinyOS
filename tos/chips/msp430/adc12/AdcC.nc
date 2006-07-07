@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.14 $
- * $Date: 2006-07-01 18:26:04 $
+ * $Revision: 1.1.2.15 $
+ * $Date: 2006-07-07 15:13:27 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -128,7 +128,7 @@ implementation
   void task readDone()
   {
     call Resource.release[owner]();
-    signal Read.readDone[owner](SUCCESS, (value << 4));
+    signal Read.readDone[owner](SUCCESS, value);
   }
 
   async event error_t SingleChannel.singleDataReady[uint8_t client](uint16_t data)
@@ -139,7 +139,7 @@ implementation
       value = data;
       post readDone();
     } else { // was ReadNow.read request
-      signal ReadNow.readDone[client](SUCCESS, (data << 4));
+      signal ReadNow.readDone[client](SUCCESS, data);
     }
     return SUCCESS;
   }
@@ -227,11 +227,8 @@ implementation
       uint16_t *buf, uint16_t length)
   {
     error_t nextRequest;
-    uint16_t i;
     
     if (!resultBuf){
-      for (i=0; i<length/2; i++)
-        buf[i] = (buf[i] << 4);
       value = length;
       resultBuf = buf;
       post signalBufferDone();
