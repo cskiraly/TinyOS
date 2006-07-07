@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xSSPP.nc,v 1.1.2.1 2005-12-07 23:10:40 philipb Exp $ */
+/* $Id: HplPXA27xSSPP.nc,v 1.1.2.2 2006-07-07 00:31:57 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -65,7 +65,7 @@ implementation
       break;
     case 3: 
       CKEN |= CKEN4_SSP3;
-      call SSP3Irq.allocate();
+      //call SSP3Irq.allocate();
       call SSP3Irq.enable(); 
       break;
     default: 
