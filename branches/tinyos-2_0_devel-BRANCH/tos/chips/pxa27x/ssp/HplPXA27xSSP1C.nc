@@ -48,10 +48,10 @@ implementation
   components PlatformP;
 
   HplPXA27xSSP = HplPXA27xSSPP.HplPXA27xSSP[1];
-  SSPRxDMAReg = HplPXA27xSSPP.SSPRxDMAReg[1];
-  SSPTxDMAReg = HplPXA27xSSPP.SSPTxDMAReg[1];
+  SSPRxDMAReg = HplPXA27xSSPP.SSPRxDMAInfo[1];
+  SSPTxDMAReg = HplPXA27xSSPP.SSPTxDMAInfo[1];
 
   HplPXA27xSSPP.Init[1] <- PlatformP.InitL1;
 
-  HplPXA27xSSPP.SSP1Irq -> HplPXA27xInterrupM.PXA27xIrq[PPID_SSP1];
+  HplPXA27xSSPP.SSP1Irq -> HplPXA27xInterruptM.PXA27xIrq[PPID_SSP1];
 }
