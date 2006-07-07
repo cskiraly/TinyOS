@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Technische Universitaet Berlin
+ * Copyright (c) 2006, Technische Universitaet Berlin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,41 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-07-07 15:55:26 $
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-07-07 15:55:27 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
-/**
- *
- * Please refer to TEP 109 for more information about this component and its
- * intended use. This component is an example component that provides
- * platform-independent access to a sensor via the <code>Read</code> and
- * <code>ReadStream</code> interface. Which actual sensor this is, is variable
- * defined in the implementation part below.
- *
- * @author Jan Hauer
- */
-
-
-#include <sensors.h>
-generic configuration DemoSensorC()
+generic module ReadStreamShiftC(uint8_t bits)
 {
-  provides {
-    interface Read<uint16_t>;
-  }
+  provides interface ReadStream<uint16_t> as ReadStreamShifted;
+  uses interface ReadStream<uint16_t> as ReadStreamRaw;
 }
 implementation
 {
-  components SensorSettingsC as Settings;
-  components new AdcReadClientC() as AdcReadClient;
-  components new ReadShiftC(4) as ReadShift;
+  command error_t ReadStreamShifted.postBuffer(uint16_t* buf, uint16_t count) 
+  {
+    return call ReadStreamRaw.postBuffer(buf, count);
+  }
+  
+  command error_t ReadStreamShifted.read(uint32_t usPeriod) 
+  { 
+    return call ReadStreamRaw.read(usPeriod); 
+  }
 
-  Read = ReadShift;
-  ReadShift.ReadRaw -> AdcReadClient;
-  AdcReadClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];
+  event void ReadStreamRaw.bufferDone(error_t result, 
+			 uint16_t* buf, uint16_t count)
+  {
+    uint16_t i;
+    if (result == SUCCESS)
+      for (i=0; i<count; i++)
+        buf[i] <<= bits; 
+    signal ReadStreamShifted.bufferDone(result, buf, count);
+  }
+  
+  event void ReadStreamRaw.readDone(error_t result, uint32_t usActualPeriod) 
+  { 
+    signal ReadStreamShifted.readDone(result, usActualPeriod); 
+  }
 }
