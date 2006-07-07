@@ -15,4 +15,5 @@ tinyos.jar: all
 
 javadoc: all
 	rm -rf $(JAVADOCDIR)
+	mkdir -p $(JAVADOCDIR)
 	javadoc -d $(JAVADOCDIR) `find -name *.java`
