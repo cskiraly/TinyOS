@@ -1,0 +1,5 @@
+#-*-Makefile-*- vim:syntax=make
+#$Id: digi.extra,v 1.1.2.1 2006-04-24 16:06:48 henridf Exp $
+
+MSP_BSL_FLAGS = --slow --invert-test
+

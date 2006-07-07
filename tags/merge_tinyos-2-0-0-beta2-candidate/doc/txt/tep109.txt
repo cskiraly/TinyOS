@@ -1,0 +1,352 @@
+=========================
+Sensors and Sensor Boards
+=========================
+
+:TEP: 109
+:Group: Core Working Group 
+:Type: Documentary
+:Status: Draft
+:TinyOS-Version: 2.x
+:Author: David Gay, Phil Levis, Wei Hong, Joe Polastre, and Gilman Tolle
+
+:Draft-Created: 10-Jun-2006
+:Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
+
+.. Note::
+
+   This memo documents a part of TinyOS for the TinyOS Community, and
+   requests discussion and suggestions for improvements.  Distribution
+   of this memo is unlimited. This memo is in full compliance with
+   TEP 1.
+
+Abstract
+====================================================================
+
+This memo documents how sensor drivers are organized in TinyOS and how
+sets of sensor drivers are combined into sensor boards and sensor
+platforms, along with general principles followed by the components
+that provide access to sensors.
+
+1. Principles
+====================================================================
+
+This section describes the basic organization principles for sensor
+drivers in TinyOS.
+
+For background, a sensor may be attached to the microcontroller on a
+TinyOS platform through a few different types of connections:
+
+ * Included within the microcontroller itself
+ * Connected to general-purpose IO pins for level/edge detection
+ * Connected to an ADC in the microcontroller for voltage sampling
+ * Connected to general-purpose IO pins for digital communication
+ * Connected through a standard digital bus protocol (1-Wire, I2C, SPI)
+
+Physically, these connections may also be decoupled by attaching the
+sensors to a `sensor board`, which can be removed from the TinyOS
+platform, and may fit multiple different TinyOS platforms.
+
+The capabilities of a physical sensor are made available to a TinyOS
+application through a `sensor driver`. 
+
+According to the HAA [TEP2]_, TinyOS devices should provide both
+simple hardware-independent interfaces for common-case use (HIL) and
+rich hardware-dependent interfaces for special-case use (HAL). Sensor
+drivers should follow this spirit as well.
+
+TinyOS 2.x represents each sensor as an individual component. This
+allows the compilation process to minimize the amount of code
+included. A sensor board containing multiple sensors should be
+represented as a collection of components, one for each sensor,
+contained within a sensor board directory.
+
+Sensors, being physical devices that may be shared, can benefit from
+virtualization and arbitration. This document describes a design
+pattern for sensor virtualization that may be followed by sensor
+drivers.
+
+The same physical sensor may be attached to multiple different TinyOS
+platforms, through platform-dependent interconnections. The common
+logic of sensor driver should be factored into chip-dependent,
+platform-independent components, and those components should be bound
+to the hardware resources on a platform by platform-dependent
+components, and to the hardware resources on a sensor board by
+sensorboard-dependent components.
+
+A physical sensor has a general class and a specific set of
+performance characteristics, captured by the make and model of the
+sensor itself. The naming of the sensor driver components should
+reflect the specifc name of the sensor, and optionally provide a
+component with a generic name for application authors who only care
+about the general class of the sensor.
+
+This document assumes that sensors return uninterpreted values of
+arbitrary size or datatype. Conversion of sensor values to something
+with actual physical meaning is beyond the scope of this document.
+
+2. Sensor HIL Components
+====================================================================
+
+A sensor HIL component MUST provide:
+
+- One or more SID interfaces [TEP114]_, for reading data.
+
+A sensor HIL component MAY provide:
+
+- One or more SID interfaces [TEP114]_, for reading or
+  writing calibration coefficients or control registers.
+
+A sensor device driver SHOULD be a generic component that virtualizes
+access to the sensor. A sensor device driver can provide such
+virtualization for itself by defining a nesC generic client
+component. When a client component is being used, a call to a
+top-level SID interface should be delayed when the device is busy,
+rather than failing. This virtualization may be easier to accomplish
+by using one of the arbiters provided by the system.
+
+For example::
+
+  generic configuration SensirionSht11C() {
+    provides interface Read<uint16_t> as Temperature;
+    provides interface ReadStream<uint16_t> as TemperatureStream;
+    provides interface Read<uint16_t> as Humidity;
+    provides interface ReadStream<uint16_t> as HumidityStream;
+  }
+  implementation {
+    // connect to the ADC HIL, GPIO HAL, or sensor's HAL
+  }
+
+When a HIL component is being used, the sensor MUST initialize itself,
+either by including the `MainC` component and wiring to the
+`SoftwareInit` interface, or by allowing a lower-level component (like
+an ADC) to initialize itself.
+
+In addition, the HIL sensor driver MUST start the physical sensor
+automatically. For sensors without a constant power draw, the sensor
+MAY be started once at boot time by wiring to the `MainC.Boot`
+interface. Sensors that draw appreciable power MUST be started in
+response to a call to one of the top-level SID interfaces, and stopped
+some time after that call completes. One of the power-management
+components described in [TEP115]_ may be useful for this purpose.
+
+Sensor driver components SHOULD be named according to the make and
+model of the sensing device being presented. Using specific names
+gives the developer the option to bind to a particular sensor, which
+provides compile-time detection of missing sensors. However, wrapper
+components using "common" names MAY also be provided by the driver
+author, to support application developers who are only concerned with
+the particular type of the sensor and not its make, model, or detailed
+performance characteristics.
+
+A "common" naming layer atop a HIL may look like this::
+
+  generic configuration TemperatureC() {
+    provides interface Read<uint16_t>;
+    provides interface ReadStream<uint16_t>;
+  }
+  implementation {
+    components new SensirionSht11C();
+    Read = SensirionSht11C.Temperature;
+    ReadStream = SensirionSht11C.TemperatureStream;
+  }
+
+  generic configuration HumidityC() {
+    provides interface Read<uint16_t>;
+    provides interface ReadStream<uint16_t>;
+  }
+  implementation {
+    components new SensirionSht11C();
+    Read = SensirionSht11C.Humidity;
+    ReadStream = SensirionSht11C.HumidityStream;
+  }
+
+3. Sensor HAL Components
+====================================================================
+
+Sensors with a richer interface than would be supported by the SID
+interfaces MAY provide a HAL component in addition to a HIL
+component.
+
+A sensor HAL component MUST provide:
+
+- A SID-based interface or a specific hardware-dependent interface
+  with commands for sampling and controlling the sensor device.
+
+A sensor HAL component MAY need to provide:
+
+- A `StdControl` or `SplitControl` interface for manual power
+  management by the user, following the conventions described in
+  [TEP115]_.
+
+- A Resource[] interface for requesting access to the device and
+  possibly performing automated power management.
+
+- Any other interfaces needed to control the device.
+
+For example::
+
+  configuration SensirionSht11DeviceC {
+    provides interface Resource[ uint8_t client ];
+    provides interface SensirionSht11[ uint8_t client ];
+  }
+  implementation {
+    // connect to the sensor's platform-dependent HPL here
+  }
+
+4. Sensor HPL Components
+====================================================================
+
+A sensor HPL is necessarily platform-dependent or
+sensorboard-dependent. These components should provide access to the
+physical resources needed by the sensor, in a platform-independent
+manner that can be used by the shared logic of the sensor HAL
+components. In the case of bus-based sensors, this HPL may be nothing
+more than wiring to the appropriate bus interface for use by the HAL
+component.
+
+For example::
+
+  configuration HplSensirionSht11C {
+    provides interface Init;
+    provides interface Resource[ uint8_t id ];
+    provides interface GeneralIO as DATA;
+    provides interface GeneralIO as SCK;
+    provides interface GpioInterrupt as InterruptDATA;
+  }
+  implementation {
+    // connect to platform or sensorboard-dependent resources
+    // power-manage the sensor through platform-specific means
+  }
+
+5. Directory Organization Guidelines
+====================================================================
+
+Because the same physical sensor may be attached to TinyOS platforms
+in many different ways, the organization of sensor drivers should
+reflect the distinction between sensor and sensor interconnect.
+
+Sensor components commonly exist at three levels:
+platform-independent, sensorboard-dependent, and
+platform-dependent. Factoring a sensor driver into these three pieces
+allows for greater code reuse when the same sensor is attached to
+different sensorboards or platforms.
+
+Platform-independent sensor driver components for a particular sensor,
+like protocol logic, when in the core TinyOS 2.x source tree, SHOULD
+be placed into "tos/chips/<sensor>", where <sensor> reflects the make
+and model of the sensor device being supported. When not a part of the
+core source tree, this directory can be placed anywhere as long as the
+nesC compiler recieves a `-I` directive pointing to the sensor's
+directory. However, not all sensors have a sufficiently large amount
+of platform-independent logic to justify a separate "chips"
+directory. Sensor chips are more likely to be digital sensors than
+analog sensors, for example.
+
+A sensor board is a collection of sensor components with a fixed name,
+intended for attachment to multiple platforms. Each sensor board MUST
+have its own directory named <sensorboard>. Default TinyOS 2.x sensor
+boards are placed in "tos/sensorboards/<sensorboard>", but sensor
+board directories can be placed anywhere as long as the nesC compiler
+receives a `-I` directive pointing to the sensor board's directory.
+
+Both sensors and sensor boards MUST have unique names. Case is
+significant, but two sensor boards MUST differ in more than case. This
+is necessary to support platforms where filename case differences are
+not significant.
+
+Each sensor board directory MUST contain a `.sensor` file.  This file
+is a perl script which gets executed as part of the `ncc` nesC
+compiler frontend. It can add or modify any compile-time options
+necessary for a particular sensor board. It MAY modify the following
+perl variables, and MUST NOT modify any others:
+
+- @new_args: This is the array of arguments which will be passed to
+  nescc. For instance, you might add an include directive to @new_args
+  with push @new_args, `-Isomedir`. This could be used to include
+  subdirectories.
+
+- @commonboards: This can be set to a list of sensor board names which
+  should be added to the include path list. These sensor boards must be
+  in tinyos-2.x/tos/sensorboards.
+
+If the sensor board wishes to define any C types or constants, it
+SHOULD place these in a file named <sensorboard>.h in the sensor
+board's directory.
+
+A sensor board directory MAY contain a "chips" directory, with
+subdirectories for each of the sensors connected to the sensor board.
+If a "chips" subdirectory is used, sensorboard-dependent driver
+components needed to connect platform-independent logic to a
+particular attachment for that sensor should be placed in
+"<sensorboard>/chips/<sensor>".
+
+Components needed to connect the platform-independent sensor driver
+components or sensorboard-dependent components to the hardware
+resources available on a particular platform SHOULD be placed in
+"tos/<platform>/chips/<sensor>". In addition, components for a sensor
+that only exists on a particular platform should be placed in a such a
+directory.
+
+Sensors that exist as part of a larger chip, like a MCU internal
+voltage sensor, SHOULD be placed in a subdirectory of the chip's
+directory. "tos/<chip>/sensors/<sensor>".
+
+The `.platform` and `.sensor` files need to include enough `-I`
+directives to locate all of the necessary components needed to support
+the sensors on a platform and/or sensorboard.
+
+All of these directory organization guidelines are only intended for
+code that will enter the core source tree. In general, sensor
+components may be placed anywhere as long as the nesC compiler
+receives enough `-I` directives to locate all of the necessary pieces.
+
+6. Authors' Addresses
+====================================================================
+
+| David Gay
+| 2150 Shattuck Ave, Suite 1300
+| Intel Research
+| Berkeley, CA 94704
+|
+| phone - +1 510 495 3055
+|
+| email - david.e.gay@intel.com
+|
+| Wei Hong
+| Arch Rock
+| 657 Mission St. Suite 600
+| San Francisco, CA 94105
+|
+| email - wei.hong@gmail.com
+|
+| Philip Levis
+| 358 Gates Hall
+| Computer Science Department
+| 353 Serra Mall
+| Stanford, CA 94305
+|
+| phone - +1 650 725 9046
+|
+| email - pal@cs.stanford.edu
+| 
+| Joe Polastre
+| 467 Soda Hall
+| UC Berkeley
+| Berkeley, CA 94720
+|
+| email - polastre@cs.berkeley.edu
+|
+| Gilman Tolle
+| Arch Rock
+| 657 Mission St. Suite 600
+| San Francisco, CA 94105
+|
+| email - gtolle@archrock.com
+
+7. Citations
+====================================================================
+
+.. [TEP2] TEP 2: Hardware Abstraction Architecture
+.. [TEP114] TEP 114: SIDs: Source and Sink Indepedent Drivers
+.. [TEP115] TEP 115: Power Management of Non-Virtualized Devices
+
