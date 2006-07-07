@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Technische Universitaet Berlin
+ * Copyright (c) 2006, Technische Universitaet Berlin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,22 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-07-07 15:55:26 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
-/**
- *
- * Please refer to TEP 109 for more information about this component and its
- * intended use. This component is an example component that provides
- * platform-independent access to a sensor via the <code>Read</code> and
- * <code>ReadStream</code> interface. Which actual sensor this is, is variable
- * defined in the implementation part below.
- *
- * @author Jan Hauer
- */
-
-
-#include <sensors.h>
-generic configuration DemoSensorC()
+generic module ReadShiftC(uint8_t bits)
 {
-  provides {
-    interface Read<uint16_t>;
-  }
+  provides interface Read<uint16_t> as ReadShifted;
+  uses interface Read<uint16_t> as ReadRaw;
 }
 implementation
 {
-  components SensorSettingsC as Settings;
-  components new AdcReadClientC() as AdcReadClient;
-  components new ReadShiftC(4) as ReadShift;
-
-  Read = ReadShift;
-  ReadShift.ReadRaw -> AdcReadClient;
-  AdcReadClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];
+  command error_t ReadShifted.read() { return call ReadRaw.read(); }
+  event void ReadRaw.readDone(error_t result, uint16_t val) 
+  { 
+    signal ReadShifted.readDone(result, (val << bits)); 
+  }
 }

@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-31 18:53:36 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-07-07 15:55:26 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -57,9 +57,11 @@ generic configuration DemoSensorNowC()
 implementation
 {
   components SensorSettingsC as Settings;
-             
   components new AdcReadNowClientC() as AdcReadNowClient;
-  ReadNow = AdcReadNowClient;
+  components new ReadNowShiftC(4) as ReadNowShift;
+  
+  ReadNow = ReadNowShift;
+  ReadNowShift.ReadNowRaw -> AdcReadNowClient;
   Resource = AdcReadNowClient;
   AdcReadNowClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];  
 }
