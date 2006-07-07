@@ -1,4 +1,4 @@
-// $Id: Receiver.java,v 1.1.2.2 2006-02-16 01:21:25 idgay Exp $
+// $Id: Receiver.java,v 1.1.2.3 2006-07-07 19:01:32 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -106,7 +106,7 @@ public class Receiver implements PacketListenerIF {
     /**
      * Register a particular listener for a particular message type.
      * More than one listener can be registered for each message type.
-     * @param m specify message type and template we're listening for
+     * @param template specify message type and template we're listening for
      * @param listener destination for received messages
      */
     public void registerListener(Message template, MessageListener listener) {
@@ -121,7 +121,7 @@ public class Receiver implements PacketListenerIF {
 
     /**
      * Stop listening for messages of the given type with the given listener.
-     * @param m specify message type and template we're listening for
+     * @param template specify message type and template we're listening for
      * @param listener destination for received messages
      */
     public void deregisterListener(Message template, MessageListener listener) {
