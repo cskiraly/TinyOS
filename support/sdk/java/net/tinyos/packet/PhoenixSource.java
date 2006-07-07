@@ -1,4 +1,4 @@
-// $Id: PhoenixSource.java,v 1.1.2.2 2006-06-13 16:23:57 idgay Exp $
+// $Id: PhoenixSource.java,v 1.1.2.3 2006-07-07 19:01:32 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -118,7 +118,7 @@ public class PhoenixSource extends Thread implements PhoenixError {
     /**
      * Write a packet. Waits for PhoenixSource thread to start
      * @param packet Packet to write (same format as PacketSource)
-     * @param success false if packet wasn't received (only the serial 
+     * @return false if packet wasn't received (only the serial 
      *   and network packet sources currently provide this indication)
      *   Note that a true result does not guarantee reception
      */

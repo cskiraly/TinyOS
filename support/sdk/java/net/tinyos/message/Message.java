@@ -1,4 +1,4 @@
-// $Id: Message.java,v 1.1.2.4 2006-05-03 16:48:33 idgay Exp $
+// $Id: Message.java,v 1.1.2.5 2006-07-07 19:01:29 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -415,7 +415,7 @@ public class Message implements Cloneable {
      * Set the length bit signed little-endian int at offset to val
      * @param offset bit offset where the signed int starts
      * @param length bit length of the signed int
-     * @param val value to set the bit field to
+     * @param value value to set the bit field to
      * @exception ArrayIndexOutOfBoundsException for invalid offset, length
      * @exception IllegalArgumentException if val is an out-of-range value
      * for this bitfield
@@ -544,7 +544,7 @@ public class Message implements Cloneable {
      * Set the length bit signed big-endian int at offset to val
      * @param offset bit offset where the signed int starts
      * @param length bit length of the signed int
-     * @param val value to set the bit field to
+     * @param value value to set the bit field to
      * @exception ArrayIndexOutOfBoundsException for invalid offset, length
      * @exception IllegalArgumentException if val is an out-of-range value
      * for this bitfield
