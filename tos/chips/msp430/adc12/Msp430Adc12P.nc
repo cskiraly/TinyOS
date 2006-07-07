@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.8 $
- * $Date: 2006-06-06 13:45:08 $
+ * $Revision: 1.1.2.9 $
+ * $Date: 2006-07-07 15:17:54 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -39,6 +39,7 @@ module Msp430Adc12P
   provides {
     interface Init;
     interface Msp430Adc12SingleChannel as SingleChannel[uint8_t id];
+    interface Msp430Adc12FastSingleChannel as FastSingleChannel[uint8_t id]; 
 	}
 	uses {
     interface ArbiterInfo as ADCArbiterInfo;
@@ -70,13 +71,14 @@ implementation
   enum { // flags
     ADC_BUSY = 1,               /* request pending */
     TIMERA_USED = 2,            /* TimerA used for SAMPCON signal */
+    FAST_MODE = 4,
   };
 
   uint16_t *resultBuffer;        /* result buffer */
   uint16_t resultBufferLength;   /* length of buffer */
   uint16_t resultBufferIndex;    /* offset into buffer */
-  uint8_t clientID;              /* ID of interface that issued current request */
-  uint8_t flags;                 /* current state, see above */
+  norace uint8_t clientID;              /* ID of interface that issued current request */
+  norace uint8_t flags;                 /* current state, see above */
 
   // norace is safe, because Resource interface resolves conflicts  
   norace uint8_t conversionMode; /* current conversion conversionMode, see above */
@@ -190,8 +192,7 @@ implementation
     clientAccessFinished();
   }
 
-  async command error_t SingleChannel.getSingleData[uint8_t id](
-      const msp430adc12_channel_config_t *config)
+  error_t configureSingleData(uint8_t id, const msp430adc12_channel_config_t *config)
   {
     error_t result;
 #ifdef CHECK_ARGS
@@ -233,9 +234,33 @@ implementation
       call HplAdc12.setCtl1(ctl1);
       call HplAdc12.setMCtl(0, memctl);
       call HplAdc12.setIEFlags(0x01);
-      call HplAdc12.startConversion();
+      //call HplAdc12.startConversion();
     }
     return result;
+  }
+
+  async command error_t SingleChannel.getSingleData[uint8_t id](
+      const msp430adc12_channel_config_t *config)
+  {
+    error_t result = configureSingleData(id, config);
+    if (result == SUCCESS)
+      call HplAdc12.startConversion();
+    return result;
+  }
+
+  async command error_t FastSingleChannel.configure[uint8_t id](const msp430adc12_channel_config_t *config)
+  {
+    return configureSingleData(id, config);
+  }
+  
+  async command error_t FastSingleChannel.getSingleData[uint8_t id]()
+  {
+    if (clientID == id){
+      flags |= FAST_MODE;
+      call HplAdc12.startConversion();
+      return SUCCESS;
+    }
+    return FAIL;
   }
 
   async command error_t SingleChannel.getSingleDataRepeat[uint8_t id](
@@ -433,8 +458,18 @@ implementation
     switch (conversionMode) 
     { 
       case SINGLE_DATA:
-        stopConversionSingleChannel();
-        signal SingleChannel.singleDataReady[clientID](call HplAdc12.getMem(0));
+        if (flags & FAST_MODE){
+#ifdef P6PIN_AUTO_CONFIGURE
+          adc12memctl_t memctl = call HplAdc12.getMCtl(0);
+          resetAdcPin( memctl.inch );
+#endif
+          clientAccessFinished();
+          // stopConversionSingleChannel()
+          signal FastSingleChannel.singleDataReady[clientID](call HplAdc12.getMem(0));
+        } else {
+          stopConversionSingleChannel();
+          signal SingleChannel.singleDataReady[clientID](call HplAdc12.getMem(0));
+        }
         break;
       case SINGLE_DATA_REPEAT:
         {
@@ -490,6 +525,11 @@ implementation
   default async event error_t SingleChannel.singleDataReady[uint8_t id](uint16_t data)
   {
     return FAIL;
+  }
+  
+  default async event void FastSingleChannel.singleDataReady[uint8_t id](uint16_t data)
+  {
+    return;
   }
   
   default async event uint16_t* SingleChannel.multipleDataReady[uint8_t id](
