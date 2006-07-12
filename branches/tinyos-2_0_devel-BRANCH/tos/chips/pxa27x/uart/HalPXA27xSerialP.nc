@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSerialP.nc,v 1.1.2.2 2006-07-12 19:09:59 philipb Exp $ */
+/* $Id: HalPXA27xSerialP.nc,v 1.1.2.3 2006-07-12 21:57:51 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -165,7 +165,7 @@ implementation
 		  | DCMD_LEN(len));
 
     txAddr = (uint32_t) buf;
-    txDMAFlags |= DCMD_INCSRCADDR;
+    DMAFlags |= DCMD_INCSRCADDR;
 
     call TxDMA.setDCSR(DCSR_NODESCFETCH);
     call TxDMA.setDSADR(txAddr);
@@ -199,7 +199,7 @@ implementation
 
   async command error_t HalPXA27xSerialCntl.configPort(uint32_t baudrate, 
 							uint8_t databits, 
-							enum parity, 
+							uart_parity_t parity, 
 							uint8_t stopbits, 
 							bool flow_cntl) {
     uint32_t uiDivisor;
@@ -252,7 +252,7 @@ implementation
  
   }
     
-  async command error_t HplPXA27xSerialCntl.flushPort() {
+  async command error_t HalPXA27xSerialCntl.flushPort() {
 
     atomic {
       call UART.setFCR(FCR_RESETTF | FCR_RESETRF);

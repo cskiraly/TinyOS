@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xFFUARTC.nc,v 1.1.2.1 2006-07-12 19:10:00 philipb Exp $ */
+/* $Id: HplPXA27xFFUARTC.nc,v 1.1.2.2 2006-07-12 21:57:51 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -41,7 +41,7 @@ configuration HplPXA27xFFUARTC
 
 implementation 
 {
-  components HplPXA27xUARTP(&FFRBR);
+  components new HplPXA27xUARTP((uint32_t)&FFRBR);
   components HplPXA27xInterruptM;
 
   Init = HplPXA27xUARTP;
