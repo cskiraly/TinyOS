@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xUARTP.nc,v 1.1.2.1 2006-07-12 19:10:00 philipb Exp $ */
+/* $Id: HplPXA27xUARTP.nc,v 1.1.2.2 2006-07-12 21:36:57 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -30,18 +30,24 @@
  */
 /**
  * Provides low-level initialization, 1st level interrupt dispatch and register
- * access to the STUART.
+ * access for the different uarts.  It is a generic that's bound to 
+ * the particular UART upon creation.
+ *
+ * @param baseaddr. The base address of the associated uart. One of 
+ * &FFRBR, &BTRBR or &STRBR.
  * This component automatically handles setting of the DLAB bit for
  * divisor register access (DLL and DLH) 
  *
  * @author Phil Buonadonna
  */
 
-module HplPXA27xSTUARTP
+#include "PXA27X_UARTREG.h"
+
+generic module HplPXA27xUARTP{uint32_t base_addr)
 {
   provides interface Init;
-  provides interface HplPXA27xUART as STUART;
-  uses interface HplPXA27xInterrupt as STUARTIrq;
+  provides interface HplPXA27xUART as UART;
+  uses interface HplPXA27xInterrupt as UARTIrq;
 }
 
 implementation
@@ -57,69 +63,81 @@ implementation
     }
 
     if (!isInited) {
-      CKEN |= CKEN5_STUART;
-      call STUARTIrq.allocate();
-      call STUARTIrq.enable();
-      STLCR |= LCR_DLAB;
-      STDLL = 0x04;
-      STDLH = 0x00;
-      STLCR &= ~LCR_DLAB;
+      switch (uartid) {
+      case (0x40100000):
+	CKEN |= CKEN6_FFUART;
+	break;
+      case (0x40200000):
+	CKEN |= CKEN7_BTUART;
+	break;
+      case (0x40700000):
+	CKEN |= CKEN5_STUART;
+	break;
+      default:
+	breakt;
+      }
+      call UARTIrq.allocate();
+      call UARTIrq.enable();
+      UARTLCR(base_addr) |= LCR_DLAB;
+      UARTDLL(base_addr) = 0x04;
+      UARTDLH(base_addr) = 0x00;
+      UARTLCR(base_addr) &= ~LCR_DLAB;
     }
 
     return SUCCESS;
   }
 
-  async command uint32_t STUART.getRBR() { return STRBR; }
-  async command void STUART.setTHR(uint32_t val) { STRBR = val; }
-  async command void STUART.setDLL(uint32_t val) { 
-    STLCR |= LCR_DLAB;
-    STDLL = val; 
-    STLCR &= ~LCR_DLAB;
+  async command uint32_t UART.getRBR() { return UARTRBR(base_addr); }
+  async command void UART.setTHR(uint32_t val) { UARTTHR(base_addr) = val; }
+  async command void UART.setDLL(uint32_t val) { 
+    UARTLCR(base_addr) |= LCR_DLAB;
+    UARTDLL(base_addr) = val; 
+    UARTLCR(base_addr) &= ~LCR_DLAB;
   }
-  async command uint32_t STUART.getDLL() { 
+  async command uint32_t UART.getDLL() { 
     uint32_t val;
-    STLCR |= LCR_DLAB;
-    val = STDLL; 
-    STLCR &= ~LCR_DLAB;
+    UARTLCR(base_addr) |= LCR_DLAB;
+    val = UARTDLL(base_addr); 
+    UARTLCR(base_addr) &= ~LCR_DLAB;
     return val;
   }
-  async command void STUART.setDLH(uint32_t val) { 
-    STLCR |= LCR_DLAB;
-    STDLH = val; 
-    STLCR &= ~LCR_DLAB;
+  async command void UART.setDLH(uint32_t val) { 
+    UARTLCR(base_addr) |= LCR_DLAB;
+    UARTDLH(base_addr) = val; 
+    UARTLCR(base_addr) &= ~LCR_DLAB;
   }
-  async command uint32_t STUART.getDLH() { 
+  async command uint32_t UART.getDLH() { 
     uint32_t val;
-    STLCR |= LCR_DLAB;
-    val = STDLH;
-    STLCR &= ~LCR_DLAB;
+    UARTLCR(base_addr) |= LCR_DLAB;
+    val = UARTDLH(base_addr);
+    UARTLCR(base_addr) &= ~LCR_DLAB;
     return val;
   }
-  async command void STUART.setIER(uint32_t val) { STIER = val; }
-  async command uint32_t STUART.getIER() { return STIER; }
-  async command uint32_t STUART.getIIR() { return STIIR; }
-  async command void STUART.setFCR(uint32_t val) { STFCR = val; }
-  async command void STUART.setLCR(uint32_t val) { STLCR = val; }
-  async command uint32_t STUART.getLCR() { return STLCR; }
-  async command void STUART.setMCR(uint32_t val) { STMCR = val; }
-  async command uint32_t STUART.getMCR() { return STMCR; }
-  async command uint32_t STUART.getLSR() { return STLSR; }
-  async command uint32_t STUART.getMSR() { return STMSR; }
-  async command void STUART.setSPR(uint32_t val) { STSPR = val; }
-  async command uint32_t STUART.getSPR() { return STSPR; }
-  async command void STUART.setISR(uint32_t val) { STISR = val; }
-  async command uint32_t STUART.getISR() { return STISR; }
-  async command void STUART.setFOR(uint32_t val) { STFOR = val; }
-  async command uint32_t STUART.getFOR() { return STFOR; }
-  async command void STUART.setABR(uint32_t val) { STABR = val; }
-  async command uint32_t STUART.getABR() { return STABR; }
-  async command uint32_t STUART.getACR() { return STACR; }
+  async command void UART.setIER(uint32_t val) { UARTIER(base_addr) = val; }
+  async command uint32_t UART.getIER() { return UARTIER(base_addr); }
+  async command uint32_t UART.getIIR() { return UARTIIR(base_addr); }
+  async command void UART.setFCR(uint32_t val) { UARTFCR(base_addr) = val; }
+  async command void UART.setLCR(uint32_t val) { UARTLCR(base_addr) = val; }
+  async command uint32_t UART.getLCR() { return UARTLCR(base_addr); }
+  async command void UART.setMCR(uint32_t val) { UARTMCR(base_addr) = val; }
+  async command uint32_t UART.getMCR() { return UARTMCR(base_addr); }
+  async command uint32_t UART.getLSR() { return UARTLSR(base_addr); }
+  async command uint32_t UART.getMSR() { return UARTMSR(base_addr); }
+  async command void UART.setSPR(uint32_t val) { UARTSPR(base_addr) = val; }
+  async command uint32_t UART.getSPR() { return UARTSPR(base_addr); }
+  async command void UART.setISR(uint32_t val) { UARTISR(base_addr) = val; }
+  async command uint32_t UART.getISR() { return UARTISR(base_addr); }
+  async command void UART.setFOR(uint32_t val) { UARTFOR(base_addr) = val; }
+  async command uint32_t UART.getFOR() { return UARTFOR(base_addr); }
+  async command void UART.setABR(uint32_t val) { UARTABR(base_addr) = val; }
+  async command uint32_t UART.getABR() { return UARTABR(base_addr); }
+  async command uint32_t UART.getACR() { return UARTACR(base_addr); }
 
-  async event void STUARTIrq.fired () {
+  async event void UARTIrq.fired () {
 
-    signal STUART.interruptUART();
+    signal UART.interruptUART();
   }
 
-  default async event void STUART.interruptUART() { return; }
+  default async event void UART.interruptUART() { return; }
   
 }
