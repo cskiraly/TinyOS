@@ -1,4 +1,4 @@
-/* $Id: PXA27X_UARTREG.h,v 1.1.2.1 2006-07-12 19:10:00 philipb Exp $ */
+/* $Id: PXA27X_UARTREG.h,v 1.1.2.2 2006-07-12 21:57:51 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -45,7 +45,7 @@
 #define UARTMCR(_base) _PXAREG_OFFSET(_base,0x10)
 #define UARTLSR(_base) _PXAREG_OFFSET(_base,0x14)
 #define UARTMSR(_base) _PXAREG_OFFSET(_base,0x18)
-#define UARTSCR(_base) _PXAREG_OFFSET(_base,0x1C)
+#define UARTSPR(_base) _PXAREG_OFFSET(_base,0x1C)
 #define UARTISR(_base) _PXAREG_OFFSET(_base,0x20)
 #define UARTFOR(_base) _PXAREG_OFFSET(_base,0x24)
 #define UARTABR(_base) _PXAREG_OFFSET(_base,0x28)

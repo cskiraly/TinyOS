@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xUARTP.nc,v 1.1.2.2 2006-07-12 21:36:57 philipb Exp $ */
+/* $Id: HplPXA27xUARTP.nc,v 1.1.2.3 2006-07-12 21:57:51 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -43,7 +43,7 @@
 
 #include "PXA27X_UARTREG.h"
 
-generic module HplPXA27xUARTP{uint32_t base_addr)
+generic module HplPXA27xUARTP(uint32_t base_addr)
 {
   provides interface Init;
   provides interface HplPXA27xUART as UART;
@@ -63,7 +63,7 @@ implementation
     }
 
     if (!isInited) {
-      switch (uartid) {
+      switch (base_addr) {
       case (0x40100000):
 	CKEN |= CKEN6_FFUART;
 	break;
@@ -74,7 +74,7 @@ implementation
 	CKEN |= CKEN5_STUART;
 	break;
       default:
-	breakt;
+	break;
       }
       call UARTIrq.allocate();
       call UARTIrq.enable();

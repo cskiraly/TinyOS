@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xSTUARTC.nc,v 1.1.2.2 2006-07-12 19:10:00 philipb Exp $ */
+/* $Id: HplPXA27xSTUARTC.nc,v 1.1.2.3 2006-07-12 21:57:51 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -41,7 +41,7 @@ configuration HplPXA27xSTUARTC
 
 implementation 
 {
-  components HplPXA27xUARTP(&STRBR);
+  components new HplPXA27xUARTP((uint32_t)&STRBR);
   components HplPXA27xInterruptM;
 
   Init = HplPXA27xUARTP;

@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSerialCntl.nc,v 1.1.2.1 2006-07-12 19:09:59 philipb Exp $ */
+/* $Id: HalPXA27xSerialCntl.nc,v 1.1.2.2 2006-07-12 21:57:51 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -48,8 +48,8 @@ interface HalPXA27xSerialCntl
    */
   async command error_t configPort(uint32_t baudrate, 
 				    uint8_t databits, 
-				    enum parity, 
-				    uin8_t stopbits, 
+				    uart_parity_t parity, 
+				    uint8_t stopbits, 
 				    bool flow_cntl);
     
   /**
