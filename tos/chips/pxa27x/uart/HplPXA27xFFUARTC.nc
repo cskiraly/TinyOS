@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xSTUARTC.nc,v 1.1.2.2 2006-07-12 19:10:00 philipb Exp $ */
+/* $Id: HplPXA27xFFUARTC.nc,v 1.1.2.1 2006-07-12 19:10:00 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -33,20 +33,20 @@
  * @author Phil Buonadonna
  */
 
-configuration HplPXA27xSTUARTC 
+configuration HplPXA27xFFUARTC 
 {
   provides interface Init;
-  provides interface HplPXA27xUART as STUART;
+  provides interface HplPXA27xUART as FFUART;
 }
 
 implementation 
 {
-  components HplPXA27xUARTP(&STRBR);
+  components HplPXA27xUARTP(&FFRBR);
   components HplPXA27xInterruptM;
 
   Init = HplPXA27xUARTP;
-  STUART = HplPXA27xUARTP.UART;
+  FFUART = HplPXA27xUARTP.UART;
 
-  HplPXA27xUARTP.UARTIrq -> HplPXA27xInterruptM.PXA27xIrq[PPID_STUART];
+  HplPXA27xUARTP.UARTIrq -> HplPXA27xInterruptM.PXA27xIrq[PPID_FFUART];
 
 }

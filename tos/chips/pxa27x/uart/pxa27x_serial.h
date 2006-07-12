@@ -1,6 +1,6 @@
-/* $Id: HplPXA27xSTUARTC.nc,v 1.1.2.2 2006-07-12 19:10:00 philipb Exp $ */
+/* $Id: pxa27x_serial.h,v 1.1.2.1 2006-07-12 19:10:00 philipb Exp $ */
 /*
- * Copyright (c) 2005 Arch Rock Corporation 
+ * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -11,7 +11,7 @@
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
  *  
- *   Neither the name of the Arch Rock Corporation nor the names of its
+ *   Neither the name of the Arched Rock Corporation nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  *
@@ -28,25 +28,15 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
  * DAMAGE.
  */
-/**
- *
- * @author Phil Buonadonna
- */
 
-configuration HplPXA27xSTUARTC 
-{
-  provides interface Init;
-  provides interface HplPXA27xUART as STUART;
-}
 
-implementation 
-{
-  components HplPXA27xUARTP(&STRBR);
-  components HplPXA27xInterruptM;
+#ifndef _pxa27x_serial_h
+#define _pxa27x_serial_h
 
-  Init = HplPXA27xUARTP;
-  STUART = HplPXA27xUARTP.UART;
+enum {
+  EVEN,
+  ODD,
+  NONE
+};
 
-  HplPXA27xUARTP.UARTIrq -> HplPXA27xInterruptM.PXA27xIrq[PPID_STUART];
-
-}
+#endif /* _pxa27x_serial_h */
