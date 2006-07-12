@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xSTUARTC.nc,v 1.1.2.2 2006-07-12 19:10:00 philipb Exp $ */
+/* $Id: PXA27X_UARTREG.h,v 1.1.2.1 2006-07-12 19:10:00 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -11,7 +11,7 @@
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
  *  
- *   Neither the name of the Arch Rock Corporation nor the names of its
+ *   Neither the name of the Arched Rock Corporation nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  *
@@ -28,25 +28,31 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
  * DAMAGE.
  */
-/**
- *
- * @author Phil Buonadonna
+
+/* 
+ * Helper macros to make programming the HplPXA27xUARTP component easier
  */
 
-configuration HplPXA27xSTUARTC 
-{
-  provides interface Init;
-  provides interface HplPXA27xUART as STUART;
-}
+#ifndef _PXA27X_UARTREG_H
+#define _PXA27X_UARTREG_H
 
-implementation 
-{
-  components HplPXA27xUARTP(&STRBR);
-  components HplPXA27xInterruptM;
+#define UARTRBR(_base) _PXAREG_OFFSET(_base,0)
+#define UARTTHR(_base) _PXAREG_OFFSET(_base,0)
+#define UARTIER(_base) _PXAREG_OFFSET(_base,0x04)
+#define UARTIIR(_base) _PXAREG_OFFSET(_base,0x08)
+#define UARTFCR(_base) _PXAREG_OFFSET(_base,0x08)
+#define UARTLCR(_base) _PXAREG_OFFSET(_base,0x0C)
+#define UARTMCR(_base) _PXAREG_OFFSET(_base,0x10)
+#define UARTLSR(_base) _PXAREG_OFFSET(_base,0x14)
+#define UARTMSR(_base) _PXAREG_OFFSET(_base,0x18)
+#define UARTSCR(_base) _PXAREG_OFFSET(_base,0x1C)
+#define UARTISR(_base) _PXAREG_OFFSET(_base,0x20)
+#define UARTFOR(_base) _PXAREG_OFFSET(_base,0x24)
+#define UARTABR(_base) _PXAREG_OFFSET(_base,0x28)
+#define UARTACR(_base) _PXAREG_OFFSET(_base,0x2C)
 
-  Init = HplPXA27xUARTP;
-  STUART = HplPXA27xUARTP.UART;
+#define UARTDLL(_base) _PXAREG_OFFSET(_base,0)
+#define UARTDLH(_base) _PXAREG_OFFSET(_base,0x04)
 
-  HplPXA27xUARTP.UARTIrq -> HplPXA27xInterruptM.PXA27xIrq[PPID_STUART];
+#endif /* _PXA27X_UARTREG_H */
 
-}
