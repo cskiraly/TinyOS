@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.1.4.1 $ $Date: 2006-06-15 19:27:51 $
+ * @version $Revision: 1.1.2.1.4.2 $ $Date: 2006-07-13 20:38:18 $
  */
 
 
@@ -91,6 +91,7 @@ implementation {
     return call UsartResource.isOwner[ id ]();
   }
 
+  default async command error_t UsartResource.isOwner[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.request[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.immediateRequest[ uint8_t id ]() { return FAIL; }
   default async command void UsartResource.release[ uint8_t id ]() {}

@@ -37,10 +37,10 @@
  * @author Vlado Handziski (handzisk@tkn.tu-berlin.de)
  * @author Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author Joe Polastre
- * @version $Revision: 1.1.2.4.4.1 $ $Date: 2006-06-15 19:27:51 $
+ * @version $Revision: 1.1.2.4.4.2 $ $Date: 2006-07-13 20:38:18 $
  */
 
-#include "Msp430Usart.h"
+#include "msp430usart.h"
 
 interface HplMsp430Usart {
 

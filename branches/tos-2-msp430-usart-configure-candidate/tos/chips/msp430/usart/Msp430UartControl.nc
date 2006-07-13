@@ -28,13 +28,25 @@
  */
 
 /**
- * Interface used by Msp430Uart clients to reconfigure the UART before use
- * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-07-13 20:38:21 $
+ * Interface used by Msp430Uart clients to control/configure the Uart.
+ *
+ * @author Philipp Huppertz (huppertz@tkn.tu-berlin.de)
  */
+interface Msp430UartControl {
 
-#include "msp430usart.h"
-
-interface Msp430UartConfigure {
-  async command msp430_uart_config_t getConfig();
+  /**
+  * Sets the Uart to Rx mode.
+  */
+  async command void setModeRx();
+  
+  /**
+  * Sets the Uart to Tx mode.
+  */
+  async command void setModeTx();
+  
+  /**
+  * Sets the Uart to duplex mode.
+  */
+  async command void setModeDuplex();
+  
 }
