@@ -26,13 +26,13 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.6 $
-* $Date: 2006-03-15 16:40:35 $
+* $Revision: 1.1.2.6.4.1 $
+* $Date: 2006-07-13 20:38:21 $
 * ========================================================================
 */
 
-#include "msp430baudrates.h"
-#include "tda5250BusResourceId.h"
+#include "msp430usart.h"
+#include "tda5250BusResourceSettings.h"
 
 /**
  * Controlling the TDA5250 at the HPL layer.
@@ -43,6 +43,7 @@ configuration HplTda5250DataC {
   provides {
     interface Init;
     interface HplTda5250Data;
+    //interface ResourceRequested;
     interface Resource as Resource;
   }
 }
@@ -50,7 +51,8 @@ implementation {
 
 
   components HplTda5250DataP
-      , new Msp430Usart0C()
+      , new Msp430Uart0C()
+      //, Msp430UsartShare0P
       , Tda5250RadioIOC
       ;
 
@@ -59,7 +61,8 @@ implementation {
   HplTda5250Data = HplTda5250DataP;
 
   HplTda5250DataP.DATA -> Tda5250RadioIOC.Tda5250RadioDATA;
-  HplTda5250DataP.Usart -> Msp430Usart0C;
-  HplTda5250DataP.UsartInterrupts -> Msp430Usart0C;
-  HplTda5250DataP.UartResource -> Msp430Usart0C.Resource;
+  HplTda5250DataP.Uart -> Msp430Uart0C.SerialByteComm;
+  HplTda5250DataP.UartControl -> Msp430Uart0C.UartControl;
+  HplTda5250DataP.UartResourceConfigure <- Msp430Uart0C.Msp430UartConfigure;  
+  HplTda5250DataP.UartResource -> Msp430Uart0C.Resource;
 }

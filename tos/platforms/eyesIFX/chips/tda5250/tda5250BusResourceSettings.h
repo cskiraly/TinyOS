@@ -26,12 +26,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-29 02:55:07 $
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-07-13 20:38:21 $
  * ========================================================================
  */
 
-#include "msp430UsartResource.h"
+#include "msp430usart.h"
 
 #ifndef TDA5250BUSRESOURCEID_H
 #define TDA5250BUSRESOURCEID_H
@@ -39,5 +39,8 @@
 enum {
     TDA5250_UART_BUS_ID = unique(MSP430_UARTO_BUS)
 };
+
+msp430_uart_config_t tda5250_uart_config = {ubr: UBR_1MHZ_38400, umctl: UMCTL_1MHZ_38400, ssel: 0x02, pena: 0, pev: 0, spb: 0, clen: 1, listen: 0, mm: 0, ckpl: 0, urxse: 0, urxeie: 1, urxwie: 0};
+
 
 #endif

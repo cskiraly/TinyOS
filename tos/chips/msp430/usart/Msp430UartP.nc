@@ -3,7 +3,7 @@
 /**
  * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.7.4.1 $ $Date: 2006-06-15 19:27:51 $
+ * @version $Revision: 1.1.2.7.4.2 $ $Date: 2006-07-13 20:38:21 $
  */
 
 
@@ -11,6 +11,7 @@ generic module Msp430UartP() {
 
   provides interface Resource[ uint8_t id ];
   provides interface ResourceConfigure[ uint8_t id ];
+  provides interface Msp430UartControl as UartControl[ uint8_t id ];
   provides interface SerialByteComm;
 
   uses interface Resource as UsartResource[ uint8_t id ];
@@ -40,22 +41,44 @@ implementation {
   }
 
   async command void ResourceConfigure.configure[ uint8_t id ]() {
-    call Usart.setModeUart(call Msp430UartConfigure.getConfig[id]());
-    call Usart.clrIntr();
-    call Usart.enableIntr();
+    call UartControl.setModeDuplex[id]();
   }
 
   async command void ResourceConfigure.unconfigure[ uint8_t id ]() {
+    call Usart.disableIntr();
   }
 
   event void UsartResource.granted[ uint8_t id ]() {
     signal Resource.granted[ id ]();
   }
 
+  async command void UartControl.setModeRx[ uint8_t id ]() {
+    call Usart.setModeUartRx(call Msp430UartConfigure.getConfig[id]());
+    call Usart.clrIntr();
+    call Usart.enableRxIntr();
+  }
+  
+  async command void UartControl.setModeTx[ uint8_t id ]() {
+    call Usart.setModeUartTx(call Msp430UartConfigure.getConfig[id]());
+    call Usart.clrIntr();
+    call Usart.enableTxIntr();
+  }
+  
+  async command void UartControl.setModeDuplex[ uint8_t id ]() {
+    call Usart.setModeUart(call Msp430UartConfigure.getConfig[id]());
+    call Usart.clrIntr();
+    call Usart.enableIntr();
+  }
+  
   async command error_t SerialByteComm.put( uint8_t data ) {
     call Usart.tx( data );
     return SUCCESS;
   }
+
+// FIXME: needs to be implemented SerialByteComm...
+//   async command bool SerialByteComm.isTxDone() {
+//     return call Usart.isTxEmpty();
+//   }
 
   async event void UsartInterrupts.txDone() {
     signal SerialByteComm.putDone();
@@ -65,6 +88,7 @@ implementation {
     signal SerialByteComm.get( data );
   }
 
+  default async command error_t UsartResource.isOwner[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.request[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.immediateRequest[ uint8_t id ]() { return FAIL; }
   default async command void UsartResource.release[ uint8_t id ]() {}
