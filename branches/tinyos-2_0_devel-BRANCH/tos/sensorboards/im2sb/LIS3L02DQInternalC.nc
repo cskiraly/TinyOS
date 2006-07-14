@@ -1,4 +1,4 @@
-/* $Id: LIS3L02DQInternalC.nc,v 1.1.2.1 2006-07-06 23:23:41 philipb Exp $ */
+/* $Id: LIS3L02DQInternalC.nc,v 1.1.2.2 2006-07-14 16:30:29 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -50,6 +50,10 @@ implementation {
 
   components HplLIS3L02DQLogicSPIP as Logic;
   MainC.SoftwareInit -> Logic;
+
+  components GeneralIOC;
+  Logic.InterruptPin -> GeneralIOC.GeneralIO[GPIO_LIS3L02DQ_RDY_INT];
+  Logic.InterruptAlert -> GeneralIOC.GpioInterrupt[GPIO_LIS3L02DQ_RDY_INT];
 
   components HplPXA27xSSP1C;
   // 0: Motorola SPI

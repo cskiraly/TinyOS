@@ -1,4 +1,4 @@
-/* $Id: MAX136xInternalC.nc,v 1.1.2.1 2006-07-06 23:23:41 philipb Exp $ */
+/* $Id: MAX136xInternalC.nc,v 1.1.2.2 2006-07-14 16:30:29 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -50,7 +50,7 @@ implementation {
   components new HplMAX136xLogicP(MAX136_SLAVE_ADDR) as Logic;
   MainC.SoftwareInit -> Logic;
 
-  components HalPXA27xI2CMasterC as I2CC;
+  components new HalPXA27xI2CMasterC(TRUE) as I2CC;
   Logic.I2CPacket -> I2CC;
 
   components MAX136xInternalP as Internal;
