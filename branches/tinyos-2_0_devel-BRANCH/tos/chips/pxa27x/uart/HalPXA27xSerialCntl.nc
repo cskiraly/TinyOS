@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSerialCntl.nc,v 1.1.2.2 2006-07-12 21:57:51 kaisenl Exp $ */
+/* $Id: HalPXA27xSerialCntl.nc,v 1.1.2.3 2006-07-14 16:27:41 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -32,6 +32,8 @@
 /**
  * @author Phil Buonadonna
  */
+
+#include "pxa27x_serial.h"
 
 interface HalPXA27xSerialCntl
 {
