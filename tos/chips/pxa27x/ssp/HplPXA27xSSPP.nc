@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xSSPP.nc,v 1.1.2.2 2006-07-07 00:31:57 kaisenl Exp $ */
+/* $Id: HplPXA27xSSPP.nc,v 1.1.2.3 2006-07-14 16:28:23 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -38,8 +38,6 @@ module HplPXA27xSSPP
   provides {
     interface Init[uint8_t chnl];
     interface HplPXA27xSSP[uint8_t chnl];
-    interface HplPXA27xDMAInfo as SSPRxDMAInfo[uint8_t chnl];
-    interface HplPXA27xDMAInfo as SSPTxDMAInfo[uint8_t chnl];
   }
   uses {
     interface HplPXA27xInterrupt as SSP1Irq;
@@ -271,42 +269,6 @@ implementation
     case 1: return SSACD_1; break;
     case 2: return SSACD_2; break;
     case 3: return SSACD_3; break;
-    default: return 0;
-    }
-  }
-
-  async command uint32_t SSPRxDMAInfo.getAddr[uint8_t chnl]() {
-    switch (chnl) {
-    case 1: return (uint32_t) &SSDR_1; break;
-    case 2: return (uint32_t) &SSDR_2; break;
-    case 3: return (uint32_t) &SSDR_3; break;
-    default: return 0;
-    }
-  }
-
-  async command uint8_t SSPRxDMAInfo.getMapIndex[uint8_t chnl]() {
-    switch (chnl) {
-    case 1: return 13; break;
-    case 2: return 15; break;
-    case 3: return 66; break;
-    default: return 0;
-    }
-  }
-
-  async command uint32_t SSPTxDMAInfo.getAddr[uint8_t chnl]() {
-    switch (chnl) {
-    case 1: return (uint32_t) &SSDR_1; break;
-    case 2: return (uint32_t) &SSDR_2; break;
-    case 3: return (uint32_t) &SSDR_3; break;
-    default: return 0;
-    }
-  }
-
-  async command uint8_t SSPTxDMAInfo.getMapIndex[uint8_t chnl]() {
-    switch (chnl) {
-    case 1: return 14; break;
-    case 2: return 16; break;
-    case 3: return 67; break;
     default: return 0;
     }
   }
