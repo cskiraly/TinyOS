@@ -1,4 +1,4 @@
-/* $Id: LIS3L02DQInternalP.nc,v 1.1.2.1 2006-07-06 23:23:41 philipb Exp $ */
+/* $Id: LIS3L02DQInternalP.nc,v 1.1.2.2 2006-07-14 16:30:29 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -64,4 +64,5 @@ implementation {
 
   default async event void HplLIS3L02DQ.getRegDone[uint8_t id](error_t error, uint8_t regAddr, uint8_t val) { }
   default async event void HplLIS3L02DQ.setRegDone[uint8_t id](error_t error, uint8_t regAddr, uint8_t val) { }
+  default async event void HplLIS3L02DQ.alertThreshold[uint8_t id]() { }
 }

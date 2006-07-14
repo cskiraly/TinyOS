@@ -1,4 +1,4 @@
-/* $Id: TMP175InternalC.nc,v 1.1.2.1 2006-07-06 23:23:41 philipb Exp $ */
+/* $Id: TMP175InternalC.nc,v 1.1.2.2 2006-07-14 16:30:29 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -58,7 +58,7 @@ implementation {
   Logic.AlertInterrupt -> GeneralIOC.GpioInterrupt[GPIO_TMP175_TEMP_ALERT];
   Logic.InterruptPin -> GeneralIOC.GeneralIO[GPIO_TMP175_TEMP_ALERT];
 
-  components HalPXA27xI2CMasterC as I2CC;
+  components new HalPXA27xI2CMasterC(TRUE) as I2CC;
   Logic.I2CPacket -> I2CC;
 
   components TMP175InternalP as Internal;
