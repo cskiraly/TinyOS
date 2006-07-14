@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xI2CMasterP.nc,v 1.1.2.4 2006-07-05 19:01:46 philipb Exp $ */
+/* $Id: HalPXA27xI2CMasterP.nc,v 1.1.2.5 2006-07-14 16:27:05 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -37,7 +37,7 @@
 
 #include <I2C.h>
 
-module HalPXA27xI2CMasterP
+generic module HalPXA27xI2CMasterP(bool fast_mode)
 {
   provides interface Init;
   provides interface I2CPacket<TI2CBasicAddr>;
@@ -68,7 +68,7 @@ implementation
   uint16_t mCurTargetAddr;
   uint8_t *mCurBuf, mCurBufLen, mCurBufIndex;
   i2c_flags_t mCurFlags;
-  const uint32_t mBaseICRFlags = (ICR_FM | ICR_BEIE | ICR_IUE | ICR_SCLE);
+  uint32_t mBaseICRFlags;
 
   static void readNextByte() {
     if (mCurBufIndex >= (mCurBufLen - 1)) {
@@ -182,6 +182,8 @@ implementation
 
   command error_t Init.init() {
     atomic {
+      mBaseICRFlags = (fast_mode) ? (ICR_FM | ICR_BEIE | ICR_IUE | ICR_SCLE) : (ICR_BEIE | ICR_IUE | ICR_SCLE);
+
       call I2CSCL.setGAFRpin(I2C_SCL_ALTFN);
       call I2CSCL.setGPDRbit(TRUE);
       call I2CSDA.setGAFRpin(I2C_SDA_ALTFN);
