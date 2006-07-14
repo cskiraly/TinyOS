@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSerialP.nc,v 1.1.2.3 2006-07-12 21:57:51 kaisenl Exp $ */
+/* $Id: HalPXA27xSerialP.nc,v 1.1.2.4 2006-07-14 16:27:41 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -126,7 +126,13 @@ implementation
     atomic {
       call UARTInit.init();
     }
+    call TxDMA.setMap(call UARTTxDMAInfo.getMapIndex());
+    call RxDMA.setMap(call UARTRxDMAInfo.getMapIndex());
+    call TxDMA.setDALGNbit(TRUE);
+    call RxDMA.setDALGNbit(TRUE);
+
     error = call HalPXA27xSerialCntl.configPort(defaultRate,8,NONE,1,FALSE);
+    atomic {call UART.setFCR(FCR_TRFIFOE);}
     return error;
   }
 
@@ -161,8 +167,8 @@ implementation
       lenCurrent = len;
     }
 
-    DMAFlags = (DCMD_FLOWTRG | DCMD_BURST8 | DCMD_WIDTH1 
-		  | DCMD_LEN(len));
+    DMAFlags = (DCMD_FLOWTRG | DCMD_BURST8 | DCMD_WIDTH1 | DCMD_ENDIRQEN
+		  | DCMD_LEN(len) );
 
     txAddr = (uint32_t) buf;
     DMAFlags |= DCMD_INCSRCADDR;
@@ -172,7 +178,8 @@ implementation
     call TxDMA.setDTADR(call UARTTxDMAInfo.getAddr());
     call TxDMA.setDCMD(DMAFlags);
     
-    call UART.setIER(IER_DMAE);
+    call UART.setIER(IER_UUE | IER_DMAE);
+    call UART.setFCR(FCR_TRFIFOE | FCR_ITL(1));
     
     call TxDMA.setDCSR(DCSR_RUN | DCSR_NODESCFETCH);
     
@@ -184,16 +191,48 @@ implementation
 
   async command error_t HalPXA27xSerialPacket.receive(uint8_t *buf, uint16_t len, 
 						      uint16_t timeout) {
+    uint32_t tmp;
+    uint32_t rxAddr;
+    uint32_t DMAFlags;
+    error_t error = FAIL;
 
+    atomic {
+      rxCurrentBuf = buf;
+      lenCurrent = len;
+    }
+
+    DMAFlags = (DCMD_FLOWSRC | DCMD_BURST8 | DCMD_WIDTH1 | DCMD_ENDIRQEN
+		  | DCMD_LEN(len) );
+
+    rxAddr = (uint32_t) buf;
+    DMAFlags |= DCMD_INCTRGADDR;
+
+    call RxDMA.setDCSR(DCSR_NODESCFETCH);
+    call RxDMA.setDTADR(rxAddr);
+    call RxDMA.setDSADR(call UARTRxDMAInfo.getAddr());
+    call RxDMA.setDCMD(DMAFlags);
+    
+    call UART.setIER(IER_UUE | IER_DMAE);
+    call UART.setFCR(FCR_TRFIFOE | FCR_ITL(1));
+    
+    call RxDMA.setDCSR(DCSR_RUN | DCSR_NODESCFETCH);
+    
+    error = SUCCESS;
+    
+    return error;
 
   }
   
   async event void RxDMA.interruptDMA() {
-
+    call RxDMA.setDCMD(0);
+    call RxDMA.setDCSR(DCSR_EORINT | DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERRINTR);
+    signal HalPXA27xSerialPacket.receiveDone(rxCurrentBuf, lenCurrent, SUCCESS);
   }
 
   async event void TxDMA.interruptDMA() {
-
+    call TxDMA.setDCMD(0);
+    call TxDMA.setDCSR(DCSR_EORINT | DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERRINTR);
+    signal HalPXA27xSerialPacket.sendDone(txCurrentBuf, lenCurrent, SUCCESS);
   }
 
 
@@ -250,6 +289,7 @@ implementation
       call UART.setMCR(valMCR);
     }
  
+    return SUCCESS;
   }
     
   async command error_t HalPXA27xSerialCntl.flushPort() {
@@ -264,7 +304,8 @@ implementation
   async event void UART.interruptUART() {
     uint8_t error, intSource;
     
-    intSource = call UART.getIIR() & IIR_IID_MASK;
+    intSource = call UART.getIIR();
+    intSource &= IIR_IID_MASK;
     intSource = intSource >> 1;
     
     switch (intSource) {

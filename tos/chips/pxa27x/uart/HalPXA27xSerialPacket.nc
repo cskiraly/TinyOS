@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSerialPacket.nc,v 1.1.2.1 2006-07-12 19:09:59 philipb Exp $ */
+/* $Id: HalPXA27xSerialPacket.nc,v 1.1.2.2 2006-07-14 16:27:41 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -32,6 +32,8 @@
 /**
  * @author Phil Buonadonna
  */
+
+#include "pxa27x_serial.h"
 
 interface HalPXA27xSerialPacket
 {
