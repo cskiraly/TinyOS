@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSerialPacket.nc,v 1.1.2.2 2006-07-14 16:27:41 kaisenl Exp $ */
+/* $Id: HalPXA27xSerialPacket.nc,v 1.1.2.3 2006-07-17 18:42:01 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -56,7 +56,7 @@ interface HalPXA27xSerialPacket
    * @param status UART error status.
    *
    * @return buf A pointer to a new buffer of equal length
-   * as in the original <code>senc</code> call that is to be transmitted (chained
+   * as in the original <code>send</code> call that is to be transmitted (chained
    * send). Set to NULL to end further transmissions.
    */
   async event uint8_t *sendDone(uint8_t *buf, uint16_t len, uart_status_t status);

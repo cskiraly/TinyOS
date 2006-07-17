@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSerialP.nc,v 1.1.2.4 2006-07-14 16:27:41 kaisenl Exp $ */
+/* $Id: HalPXA27xSerialP.nc,v 1.1.2.5 2006-07-17 18:42:01 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -99,29 +99,6 @@ implementation
 
   command error_t Init.init() {
     error_t error = SUCCESS;
-#if 0
-    uint32_t uiDivisor;
-    if (defaultRate == 0) {
-      return EINVAL;
-    }
-
-    uiDivisor = 921600/defaultRate;
-    // Check for invalid baud rate divisor value.
-    // XXX - Eventually could use '0' to imply auto rate detection
-    if ((uiDivisor & 0xFFFF0000) || (uiDivisor == 0)) {
-      return EINVAL;
-    }
-
-    atomic {
-      call UARTInit.init();    
-      call UART.setDLL((uiDivisor & 0xFF));
-      call UART.setDLH(((uiDivisor >> 8) & 0xFF));
-      call UART.setLCR(LCR_WLS(3));
-      call UART.setMCR(MCR_OUT2);
-      //call UART.setIER(IER_RAVIE | IER_TIE | IER_UUE);
-      call UART.setFCR(FCR_TRFIFOE);
-    }
-#endif
 
     atomic {
       call UARTInit.init();
@@ -224,15 +201,25 @@ implementation
   }
   
   async event void RxDMA.interruptDMA() {
+    uint8_t *pBuf;
     call RxDMA.setDCMD(0);
     call RxDMA.setDCSR(DCSR_EORINT | DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERRINTR);
-    signal HalPXA27xSerialPacket.receiveDone(rxCurrentBuf, lenCurrent, SUCCESS);
+    pBuf = signal HalPXA27xSerialPacket.receiveDone(rxCurrentBuf, lenCurrent, SUCCESS);
+    if (pBuf) {
+      call HalPXA27xSerialPacket.receive(pBuf,lenCurrent,0);
+    }
+    return;
   }
 
   async event void TxDMA.interruptDMA() {
+    uint8_t *pBuf;
     call TxDMA.setDCMD(0);
     call TxDMA.setDCSR(DCSR_EORINT | DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERRINTR);
-    signal HalPXA27xSerialPacket.sendDone(txCurrentBuf, lenCurrent, SUCCESS);
+    pBuf = signal HalPXA27xSerialPacket.sendDone(txCurrentBuf, lenCurrent, SUCCESS);
+    if (pBuf) {
+      call HalPXA27xSerialPacket.send(pBuf,lenCurrent);
+    }
+    return;
   }
 
 
