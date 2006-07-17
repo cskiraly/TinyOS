@@ -56,16 +56,16 @@ implementation {
   components new HalPXA27xSpiDMAM(0, valSCR, valDSS, enableRWOT);
   components HalPXA27xSSPControlP;
 
-  Init = HalPXA27xSpiPioM;
-  SpiByte = HalPXA27xSpiPioM;
-  SpiPacket = HalPXA27xSpiPioM;
+  Init = HalPXA27xSpiDMAM;
+  SpiByte = HalPXA27xSpiDMAM;
+  SpiPacket = HalPXA27xSpiDMAM;
   HalPXA27xSSPCntl = HalPXA27xSSPControlP;
 
-  SSP = HalPXA27xSpiPioM;
+  SSP = HalPXA27xSpiDMAM;
   SSP = HalPXA27xSSPControlP;
-  RxDMA = HalPXA27xSpiDMAM;
-  TxDMA = HalPXA27xSpiDMAM;
-  SSPRxDMAInfo = HalPXA27xSpiDMAM;
-  SSPTxDMAInfo = HalPXA27xSpiDMAM;
+  RxDMA = HalPXA27xSpiDMAM.RxDMA;
+  TxDMA = HalPXA27xSpiDMAM.TxDMA;
+  SSPRxDMAInfo = HalPXA27xSpiDMAM.SSPRxDMAInfo;
+  SSPTxDMAInfo = HalPXA27xSpiDMAM.SSPTxDMAInfo;
 
 }
