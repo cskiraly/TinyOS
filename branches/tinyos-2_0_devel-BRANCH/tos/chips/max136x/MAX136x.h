@@ -33,7 +33,7 @@
  * Types and definitions for the Maxim 136x general purpose ADC chip
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-07-06 23:20:52 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-07-17 19:12:13 $
  */
 
 #ifndef _MAX136X_H
@@ -51,6 +51,7 @@
 #define MAX136X_SETUP_MONSETUP		(1 << 0)
 
 #define MAX136X_MONITOR_DELAY(_x)       (((_x) & 0x7) << 1)
+#define MAX136X_MONITOR_INTEN           (1 << 0)
 
 typedef uint16_t max136x_data_t;
 

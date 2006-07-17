@@ -33,7 +33,7 @@
  * Hpl interface for the MAXIM 136x series ADC chips.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-07-06 23:20:52 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-07-17 19:12:13 $
  */
 
 interface HplMAX136x {
@@ -43,6 +43,8 @@ interface HplMAX136x {
 
   command error_t setConfig( uint8_t *cfgbuf, uint8_t len);
   async event void setConfigDone( error_t error , uint8_t *cfgbuf, uint8_t len);
+  command error_t readStatus(uint8_t *buf, uint8_t len);
+  async event void readStatusDone(error_t error, uint8_t *buf);
 
   async event void alertThreshold();
 
