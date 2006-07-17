@@ -1,4 +1,4 @@
-/* $Id: PlatformSerialC.nc,v 1.1.2.2 2006-06-20 18:56:06 jwhui Exp $ */
+/* $Id: PlatformSerialC.nc,v 1.1.2.3 2006-07-17 18:24:41 kaisenl Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -56,4 +56,13 @@ implementation {
 
   IM2InitSerialP.TXD -> HplPXA27xGPIOC.HplPXA27xGPIOPin[STUART_TXD];
   IM2InitSerialP.RXD -> HplPXA27xGPIOC.HplPXA27xGPIOPin[STUART_RXD];
+
+  components new HplPXA27xDMAInfoC(19, (uint32_t) &STRBR) as DMAInfoRx;
+  components new HplPXA27xDMAInfoC(20, (uint32_t) &STTHR) as DMAInfoTx;
+  components HplPXA27xDMAC;
+  // how are these channels picked?
+  HalPXA27xSerialP.TxDMA -> HplPXA27xDMAC.HplPXA27xDMAChnl[2];
+  HalPXA27xSerialP.RxDMA -> HplPXA27xDMAC.HplPXA27xDMAChnl[3];
+  DMAInfoRx.HplPXA27xDMAInfo <- HalPXA27xSerialP.UARTRxDMAInfo;
+  DMAInfoTx.HplPXA27xDMAInfo <- HalPXA27xSerialP.UARTTxDMAInfo;
 }
