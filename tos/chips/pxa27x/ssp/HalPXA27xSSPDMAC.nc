@@ -34,7 +34,7 @@
  * @author Phil Buonadonna
  */
 
-generic configuration HalPXA27xSpiPioC(uint8_t valSCR,
+generic configuration HalPXA27xSpiDMAC(uint8_t valSCR,
 				       uint8_t valDSS,
 				       bool enableRWOT)
 {
@@ -43,11 +43,17 @@ generic configuration HalPXA27xSpiPioC(uint8_t valSCR,
   provides interface SpiPacket[uint8_t instance];
   provides interface HalPXA27xSSPCntl;
 
-  uses interface HplPXA27xSSP as SSP;
+  uses {
+    interface HplPXA27xSSP as SSP;
+    interface HplPXA27xDMAChnl as RxDMA;
+    interface HplPXA27xDMAChnl as TxDMA;
+    interface HplPXA27xDMAInfo as SSPRxDMAInfo;
+    interface HplPXA27xDMAInfo as SSPTxDMAInfo;
+  }
 }
 
 implementation {
-  components new HalPXA27xSpiPioM(0, valSCR, valDSS, enableRWOT);
+  components new HalPXA27xSpiDMAM(1, valSCR, valDSS, enableRWOT);
   components HalPXA27xSSPControlP;
 
   Init = HalPXA27xSpiPioM;
@@ -57,4 +63,9 @@ implementation {
 
   SSP = HalPXA27xSpiPioM;
   SSP = HalPXA27xSSPControlP;
+  RxDMA = HalPXA27xSpiDMAM;
+  TxDMA = HalPXA27xSpiDMAM;
+  SSPRxDMAInfo = HalPXA27xSpiDMAM;
+  SSPTxDMAInfo = HalPXA27xSpiDMAM;
+
 }
