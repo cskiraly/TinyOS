@@ -37,7 +37,7 @@
  * outside configuration/module according to the host platform.
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-07-06 23:20:16 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-07-17 17:10:35 $
  */
 
 #include "TMP175.h"
@@ -139,7 +139,7 @@ implementation {
   command error_t Init.init() {
     // careful! this can be changed via polarity I believe
     call InterruptPin.makeInput();
-    call AlertInterrupt.enableFallingEdge();
+    call AlertInterrupt.enableRisingEdge();
     mfPtrReset = FALSE;
     mConfigRegVal = 0;
     mState = STATE_STOPPED;
