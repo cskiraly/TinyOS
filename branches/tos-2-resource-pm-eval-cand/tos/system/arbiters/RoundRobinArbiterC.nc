@@ -51,8 +51,8 @@
 
 /*
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-06-21 16:03:59 $ 
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-07-19 15:42:14 $ 
  * ======================================================================== 
  */
  
@@ -80,6 +80,7 @@
 generic configuration RoundRobinArbiterC(char resourceName[]) {
   provides {
     interface Resource[uint8_t id];
+    interface ResourceRequested[uint8_t id];
     interface ArbiterInfo;
   }
   uses interface ResourceConfigure[uint8_t id];
@@ -92,6 +93,7 @@ implementation {
   MainC.SoftwareInit -> Queue;
 
   Resource = Arbiter;
+  ResourceRequested = Arbiter;
   ArbiterInfo = Arbiter;
   ResourceConfigure = Arbiter;
 

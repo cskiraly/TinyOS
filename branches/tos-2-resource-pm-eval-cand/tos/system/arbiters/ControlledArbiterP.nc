@@ -117,8 +117,10 @@ implementation {
       else return FAIL;
     }
     signal ResourceController.immediateRequested();
-    if(resId == id)
+    if(resId == id) {
+      call ResourceConfigure.configure[resId]();
       return SUCCESS;
+    }
     atomic state = RES_CONTROLLED;
     return FAIL;
   }
