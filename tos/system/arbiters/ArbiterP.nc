@@ -83,7 +83,7 @@ generic module ArbiterP() {
 }
 implementation {
 
-  enum {RES_IDLE, RES_GRANTING, RES_BUSY};
+  enum {RES_IDLE = 0, RES_GRANTING = 1, RES_BUSY = 2};
   enum {NO_RES = 0xFF};
 
   uint8_t state = RES_IDLE;
@@ -91,9 +91,9 @@ implementation {
   norace uint8_t reqResId;
   
   task void grantedTask();
-  s
+  
   async command error_t Resource.request[uint8_t id]() {
-    call ResourceRequested.requested[resId]();
+    signal ResourceRequested.requested[resId]();
     atomic {
       if(state == RES_IDLE) {
         state = RES_GRANTING;
@@ -106,11 +106,12 @@ implementation {
   }
 
   async command error_t Resource.immediateRequest[uint8_t id]() {
-    call ResourceRequested.immediateRequested[resId]();
+    signal ResourceRequested.immediateRequested[resId]();
     atomic {
       if(state == RES_IDLE) {
         state = RES_BUSY;
         resId = id;
+        call ResourceConfigure.configure[resId]();
         return SUCCESS;
       }
       return FAIL;
@@ -194,9 +195,9 @@ implementation {
   //Default event/command handlers
   default event void Resource.granted[uint8_t id]() {
   }
-  default event void ResourceRequested.requested[uint8_t id]() {
+  default async event void ResourceRequested.requested[uint8_t id]() {
   }
-  default event void ResourceRequested.immediateRequested[uint8_t id]() {
+  default async event void ResourceRequested.immediateRequested[uint8_t id]() {
   }
   default async command void ResourceConfigure.configure[uint8_t id]() {
   }
