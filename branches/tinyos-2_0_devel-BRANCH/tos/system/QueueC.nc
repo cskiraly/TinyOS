@@ -1,4 +1,4 @@
-/* $Id: QueueC.nc,v 1.1.2.2 2006-06-26 17:05:33 scipio Exp $ */
+/* $Id: QueueC.nc,v 1.1.2.3 2006-07-20 20:15:42 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -34,7 +34,8 @@
  *  A general FIFO queue component, whose queue has a bounded size.
  *
  *  @author Philip Levis
- *  @date   $Date: 2006-06-26 17:05:33 $
+ *  @author Geoffrey Mainland
+ *  @date   $Date: 2006-07-20 20:15:42 $
  */
 
    
