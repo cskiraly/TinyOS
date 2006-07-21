@@ -35,6 +35,24 @@
  */
 
 interface HalPXA27xWatchdog {
-  async command void enable();
-  async command void tickle(uint32_t time);
+
+  /** 
+   * Enable the watchdog resource with the given timeout interval. 
+   * This function may be called multiple times to reset the timeout
+   * interval. However, the watchdog function itself is sticky and
+   * will remain enabled until system reset.
+   *
+   * @param interva The timeout interval in untis of 3.25MHZ clock cycle
+   * ticks.
+   *
+   */
+  async command void enable(uint32_t interval);
+
+  /**
+   * Tickle/reset the watchdog counter. This function must be 
+   * called on a regular basis to prevent the watchdog from resetting the
+   * system.
+   *
+   */
+  async command void tickle();
 }
