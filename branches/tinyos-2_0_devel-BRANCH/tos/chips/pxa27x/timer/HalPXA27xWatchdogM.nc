@@ -41,18 +41,29 @@ module HalPXA27xWatchdogM {
 }
 
 implementation {
-  async command void HalPXA27xWatchdogM.enable() {
-    atomic call HplPXA27xOSTimerWatchdog.enableWatchdog();
+  uint32_t gResetInterval;
+
+  async command void HalPXA27xWatchdog.enable(uint32_t interval) {
+    uint32_t curMatch;
+    atomic {
+      gResetInterval = interval;
+      curMatch = call HplPXA27xOSTimer.getOSCR();
+      curMatch = (curMatch + gResetInterval) % 0xFFFFFFFF;
+      call HplPXA27xOSTimer.setOSMR(curMatch);
+      call HplPXA27xOSTimerWatchdog.enableWatchdog();
+    }
   }
 
-  async command void HalPXA27xWatchdogM.tickle(uint32_t time) {
+  async command void HalPXA27xWatchdog.tickle() {
     uint32_t curMatch;
-    
     atomic {
-      curMatch = call HplPXA27xOSTimer.getOSMR();
-      curMatch = (curMatch + time) % 0xFFFFFFFF;
+      curMatch = call HplPXA27xOSTimer.getOSCR();
+      curMatch = (curMatch + gResetInterval) % 0xFFFFFFFF;
       call HplPXA27xOSTimer.setOSMR(curMatch);
     }
   }
+
+  // This won't ever get called. Rather, the system will reset.
   async event void HplPXA27xOSTimer.fired() {}
+
 }
