@@ -42,7 +42,7 @@ interface HalPXA27xWatchdog {
    * interval. However, the watchdog function itself is sticky and
    * will remain enabled until system reset.
    *
-   * @param interva The timeout interval in untis of 3.25MHZ clock cycle
+   * @param interval The timeout interval in untis of 3.25MHZ clock cycle
    * ticks.
    *
    */
