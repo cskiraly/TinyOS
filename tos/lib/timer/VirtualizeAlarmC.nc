@@ -1,4 +1,4 @@
-//$Id: VirtualizeAlarmC.nc,v 1.1.2.7 2006-07-26 18:57:52 cssharp Exp $
+//$Id: VirtualizeAlarmC.nc,v 1.1.2.8 2006-07-26 21:19:34 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -57,7 +57,9 @@ implementation
   // used, or 2) use the is_signaling flag to prevent setNextAlarm from being
   // called inside signalAlarms.  The latter is generally more efficient by
   // preventing redundant calls to setNextAlarm at the expense of an extra byte
-  // of RAM, so that's what the code does now.
+  // of RAM, so that's what the code does now.  Update: option 2 is
+  // unacceptable because an Alarm.start could be called within some other
+  // Alarm.fired, which can break monotonicity in now.
 
   // A struct of member variables so only one memset is called for init.
   struct {
@@ -124,14 +126,13 @@ implementation
   }
   
   void signalAlarms() {
-    const size_type now = call AlarmFrom.getNow();
     uint8_t id;
 
     m.is_signaling = TRUE;
 
     for( id=0; id<NUM_ALARMS; id++ ) {
       if( m.isset[id] ) {
-        size_type elapsed = now - m.alarm[id].t0;
+        size_type elapsed = call AlarmFrom.getNow() - m.alarm[id].t0;
         if( m.alarm[id].dt <= elapsed ) {
           m.isset[id] = FALSE;
           signal Alarm.fired[id]();
