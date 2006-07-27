@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: pxa27x.rules,v 1.1.2.8 2006-02-07 18:03:23 idgay Exp $
+#$Id: pxa27x.rules,v 1.1.2.9 2006-07-27 00:18:38 philipb Exp $
 
 define PXA27X_HELP
 
@@ -48,6 +48,16 @@ BUILDLESS_DEPS += bytes
 # Use the 'if' function instead of the 'ifdef' construct because ifdef freaks
 # out with call in there.  I don't know why.
 $(if $(PROGRAM),,$(call TOSMake_include,pxa27x/$(DEFAULT_PROGRAM).extra))
+
+# Build storage file if volumes.xml present
+ifneq ($(wildcard $(VOLUME_FILE)), )
+exe0: $(BUILDDIR)/StorageVolumes.h
+
+$(BUILDDIR)/StorageVolumes.h: $(VOLUME_FILE)
+	$(VOLUME_ALLOCATOR) <$(VOLUME_FILE) >$@
+
+PFLAGS += -I$(BUILDDIR)
+endif
 
 ifndef BUILD_DEPS
   ifeq ($(filter $(BUILDLESS_DEPS),$(GOALS)),)
