@@ -30,36 +30,12 @@
  */
 
 /**
- * Provides an interface for USART0 on the MSP430.
- *
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-08-01 16:36:25 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-08-01 16:36:24 $
  */
 
-generic configuration Msp430Usart0C() {
+interface HplMsp430I2CInterrupts {
   
-  provides interface Resource;
-  provides interface ArbiterInfo;
-  provides interface HplMsp430Usart;
-  provides interface HplMsp430UsartInterrupts;
-  provides interface HplMsp430I2CInterrupts;
-  
-}
-
-implementation {
-  
-  enum {
-    CLIENT_ID = unique( MSP430_HPLUSART0_RESOURCE ),
-  };
-  
-  components Msp430UsartShare0P as UsartShareP;
-  
-  Resource = UsartShareP.Resource[ CLIENT_ID ];
-  ArbiterInfo = UsartShareP.ArbiterInfo;
-  HplMsp430UsartInterrupts = UsartShareP.Interrupts[ CLIENT_ID ];
-  HplMsp430I2CInterrupts = UsartShareP.I2CInterrupts[ CLIENT_ID ];
-  
-  components HplMsp430Usart0C as UsartC;
-  HplMsp430Usart = UsartC;
+  async event void fired();
   
 }

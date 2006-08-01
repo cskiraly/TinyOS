@@ -30,36 +30,32 @@
  */
 
 /**
- * Provides an interface for USART0 on the MSP430.
- *
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-08-01 16:36:25 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-08-01 16:36:24 $
  */
 
-generic configuration Msp430Usart0C() {
+#include <I2C.h>
+#include "msp430UsartResource.h"
+
+generic configuration Msp430I2CC() {
   
   provides interface Resource;
-  provides interface ArbiterInfo;
-  provides interface HplMsp430Usart;
-  provides interface HplMsp430UsartInterrupts;
-  provides interface HplMsp430I2CInterrupts;
+  provides interface I2CPacket<TI2CBasicAddr> as I2CBasicAddr;
   
 }
 
 implementation {
   
   enum {
-    CLIENT_ID = unique( MSP430_HPLUSART0_RESOURCE ),
+    CLIENT_ID = unique( MSP430_SPIO_BUS ),
   };
   
-  components Msp430UsartShare0P as UsartShareP;
+  components Msp430I2C0P as I2CP;
+  Resource = I2CP.Resource[ CLIENT_ID ];
+  I2CBasicAddr = I2CP.I2CBasicAddr;
   
-  Resource = UsartShareP.Resource[ CLIENT_ID ];
-  ArbiterInfo = UsartShareP.ArbiterInfo;
-  HplMsp430UsartInterrupts = UsartShareP.Interrupts[ CLIENT_ID ];
-  HplMsp430I2CInterrupts = UsartShareP.I2CInterrupts[ CLIENT_ID ];
-  
-  components HplMsp430Usart0C as UsartC;
-  HplMsp430Usart = UsartC;
+  components new Msp430Usart0C() as UsartC;
+  I2CP.UsartResource[ CLIENT_ID ] -> UsartC.Resource;
+  I2CP.I2CInterrupts -> UsartC.HplMsp430I2CInterrupts;
   
 }
