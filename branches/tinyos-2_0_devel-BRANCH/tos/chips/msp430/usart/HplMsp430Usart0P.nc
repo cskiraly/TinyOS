@@ -65,13 +65,14 @@
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * @author: Jonathan Hui <jhui@archrock.com>
  * @author: Joe Polastre
- * @version $Revision: 1.1.2.7 $ $Date: 2006-06-20 18:56:05 $
+ * @version $Revision: 1.1.2.8 $ $Date: 2006-08-01 16:36:24 $
  */
 
 module HplMsp430Usart0P {
   provides interface AsyncStdControl;
   provides interface HplMsp430Usart as Usart;
   provides interface HplMsp430UsartInterrupts as Interrupts;
+  provides interface HplMsp430I2CInterrupts as I2CInterrupts;
 
   uses interface HplMsp430GeneralIO as SIMO;
   uses interface HplMsp430GeneralIO as SOMI;
@@ -97,7 +98,10 @@ implementation
   }
   
   TOSH_SIGNAL(UART0TX_VECTOR) {
-    signal Interrupts.txDone();
+    if ( call Usart.isI2C() )
+      signal I2CInterrupts.fired();
+    else
+      signal Interrupts.txDone();
   }
   
   async command error_t AsyncStdControl.start() {
@@ -388,37 +392,33 @@ implementation
 
   // i2c enable bit is not set by default
   async command void Usart.setModeI2C() {
+    
     // check if we are already in I2C mode
     if (call Usart.getMode() == USART_I2C)
       return;
-
-    call Usart.disableUART();
-    call Usart.disableSPI();
-
+    
     atomic {
-      call SIMO.makeInput();
-      call UCLK.makeInput();
-      call SIMO.selectModuleFunc();
-      call UCLK.selectModuleFunc();
-
-      IE1 &= ~(UTXIE0 | URXIE0);  // interrupt disable
-
+      U0CTL &= ~(I2C | I2CEN | SYNC);
       U0CTL = SWRST;
-      U0CTL |= SYNC | I2C;  // 7-bit addr, I2C-mode, USART as master
+      U0CTL |= SYNC | I2C;
       U0CTL &= ~I2CEN;
-
+      
+      call Usart.disableUART();
+      call Usart.disableSPI();
+      call SIMO.makeInput();
+      call SIMO.selectModuleFunc();
+      call UCLK.makeInput();
+      call UCLK.selectModuleFunc();
+      
       U0CTL |= MST;
-
-      I2CTCTL = I2CSSEL_2;        // use 1MHz SMCLK as the I2C reference
-
-      I2CPSC = 0x00;              // I2C CLK runs at 1MHz/10 = 100kHz
+      I2CTCTL = I2CRM | I2CSSEL_2;
+      I2CPSC = 0x00;
       I2CSCLH = 0x03;
       I2CSCLL = 0x03;
 
-      I2CIE = 0;                 // clear all I2C interrupt enables
-      I2CIFG = 0;                // clear all I2C interrupt flags
+      U0CTL |= I2CEN;
     }
-    return;
+    
   }
 
   async command void Usart.setClockSource(uint8_t source) {
