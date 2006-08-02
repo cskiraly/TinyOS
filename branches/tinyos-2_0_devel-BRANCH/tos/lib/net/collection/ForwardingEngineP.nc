@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.47 2006-06-28 23:46:38 rfonseca76 Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.48 2006-08-02 21:13:29 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-28 23:46:38 $
+ *  @date   $Date: 2006-08-02 21:13:29 $
  */
 
 #include <ForwardingEngine.h>
@@ -696,15 +696,16 @@ implementation {
         return msg;
     }
     //... and in the queue for duplicates
-    atomic {
-    	for (i = call SendQueue.size(); --i ;) {
-        	qe = call SendQueue.element(i);
-	        if (call CollectionPacket.getPacketID(qe->msg) == msg_uid) {
-        	    duplicate = TRUE;
-	            break;
-        	}
-	    }
+    if (call SendQueue.size() > 0) {
+      for (i = call SendQueue.size(); --i;) {
+	qe = call SendQueue.element(i);
+	if (call CollectionPacket.getPacketID(qe->msg) == msg_uid) {
+	  duplicate = TRUE;
+	  break;
+	}
+      }
     }
+    
     if (duplicate) {
         call CollectionDebug.logEvent(NET_C_FE_DUPLICATE_QUEUE);
         return msg;
