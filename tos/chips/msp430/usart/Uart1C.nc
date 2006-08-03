@@ -27,7 +27,7 @@
  * @author Joe Polastre
  */
 
-#include "msp430UsartResource.h"
+#include "msp430usart.h"
 
 generic configuration Uart1C() {
   provides interface Init;
