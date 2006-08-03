@@ -58,10 +58,10 @@
  *
  * @author Jonathan Hui <jhui@archrock.com>
  * @author Joe Polastre
- * @version $Revision: 1.1.2.8 $ $Date: 2006-08-01 16:36:24 $
+ * @version $Revision: 1.1.2.9 $ $Date: 2006-08-03 18:10:41 $
  */
 
-#include "msp430UsartResource.h"
+#include "msp430usart.h"
 
 configuration HplMsp430Usart0C {
 

@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2005-2006 Arch Rock Corporation
+/**
+ * Copyright (c) 2005-2006 Arched Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arch Rock Corporation nor the names of
+ * - Neither the name of the Arched Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -32,34 +32,34 @@
 /**
  * Provides an interface for USART0 on the MSP430.
  *
- * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-08-01 16:36:25 $
+ * @author Jonathan Hui <jhui@archedrock.com>
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-08-03 18:10:41 $
  */
 
 generic configuration Msp430Usart0C() {
-  
+
   provides interface Resource;
   provides interface ArbiterInfo;
   provides interface HplMsp430Usart;
   provides interface HplMsp430UsartInterrupts;
-  provides interface HplMsp430I2CInterrupts;
-  
+
+  uses interface ResourceConfigure;
 }
 
 implementation {
-  
+
   enum {
     CLIENT_ID = unique( MSP430_HPLUSART0_RESOURCE ),
   };
-  
+
   components Msp430UsartShare0P as UsartShareP;
-  
+
   Resource = UsartShareP.Resource[ CLIENT_ID ];
+  ResourceConfigure = UsartShareP.ResourceConfigure[ CLIENT_ID ];
   ArbiterInfo = UsartShareP.ArbiterInfo;
   HplMsp430UsartInterrupts = UsartShareP.Interrupts[ CLIENT_ID ];
-  HplMsp430I2CInterrupts = UsartShareP.I2CInterrupts[ CLIENT_ID ];
-  
+
   components HplMsp430Usart0C as UsartC;
   HplMsp430Usart = UsartC;
-  
+
 }
