@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-06-21 14:45:11 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-08-03 18:17:52 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
  * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
@@ -44,15 +44,14 @@ module RssiFixedThresholdCMP {
       interface ChannelMonitorControl;
       interface ChannelMonitorData;
       interface BatteryLevel;
-
     }
-    uses {     
-        // interface ReadNow<uint16_t> as Rssi;
-        interface Read<uint16_t> as Rssi;
+    uses {
+        interface ReadNow<uint16_t> as Rssi;
         interface Read<uint16_t> as Voltage;
         interface Timer<TMilli> as Timer;
         // interface Resource as RssiAdcResource;
         // interface GeneralIO as Led3;
+        // interface GeneralIO as Led2;
     }
 }
 implementation
@@ -129,13 +128,12 @@ implementation
     
     /****************  Tasks  *******************/
     task void UpdateNoiseFloorTask();
-    task void GetChannelStateTask();
+    // task void GetChannelStateTask();
     task void SnrReadyTask();
     task void CalibrateNoiseFloorTask();
-    task void GetSnrTask();
+    // task void GetSnrTask();
     task void CalibrateTask();
     task void GetVoltageTask();
-    error_t ccaCheckValue();
 
     /***************** Helper function *************/
 #ifdef CM_DEBUG
@@ -192,32 +190,42 @@ implementation
     }
      
     /**************** RSSI *******************/
-    void rssiRead() {
-        if(call Rssi.read() != SUCCESS) signalFailure();
+
+    inline void addSample(uint16_t data)  {
+        if(rssiindex < NSAMPLES) rssisamples[rssiindex++] = data;
+        deadlockCounter = 0;
+        if(rssiindex >= NSAMPLES) post UpdateNoiseFloorTask();
+    }
+
+    error_t rssiRead() {
+        error_t res = call Rssi.read();
+        if(res != SUCCESS) signalFailure();
+        return res;
     }
     
-    event void Rssi.readDone(error_t result, uint16_t data) {
-        if(result == SUCCESS) {
-            // call Led3.clr();
-            // call RssiAdcResource.release();
-            rssi = data;
-            atomic {
-                switch(state) {
-                    case CCA:
-                        ccaCheckValue();
-                        break;
-                    case SNR:
-                        post SnrReadyTask();    
-                        break;
-                    case CALIBRATE:
-                        post CalibrateNoiseFloorTask();    
-                        break;
-                    default:
-                        break;
+    async event void Rssi.readDone(error_t result, uint16_t data) {
+        switch(state) {
+            case CCA:
+                state = IDLE;
+                if(data < noisefloor + busyDelta) {
+                    signal ChannelMonitor.channelIdle();
+                    addSample(data);
                 }
-            }
-        } else {
-            rssiRead();
+                else {
+                    signal ChannelMonitor.channelBusy();
+                    if(++deadlockCounter >= DEADLOCK) addSample(data);
+                }
+                break;
+            case SNR:
+                rssi = data;
+                post SnrReadyTask();    
+                break;
+            case CALIBRATE:
+                rssi = data;
+                post CalibrateNoiseFloorTask();    
+                break;
+            default:
+                break;
         }
     }
     
@@ -254,14 +262,11 @@ implementation
     
     /**************** ChannelMonitor *******************/  
     async command error_t ChannelMonitor.start() {
-        error_t res = SUCCESS;
+        error_t res = FAIL;
         atomic {
-            if(state != VOID) {
-                if(state == IDLE) {
-                    state = CCA;
-                    res = SUCCESS;
-                }
-                post GetChannelStateTask();
+            if(state == IDLE) {
+                res = rssiRead();
+                if(res == SUCCESS) state = CCA;
             }
         }
         return res;
@@ -275,7 +280,7 @@ implementation
         }
     }
     
-    task void GetChannelStateTask() {
+/*    task void GetChannelStateTask() {
         atomic {
             if((state != IDLE) && (state != CCA)) {
                 post GetChannelStateTask();
@@ -286,41 +291,7 @@ implementation
             }
         }
     }
-        
-    void addSample()  {
-        if(rssiindex < NSAMPLES) rssisamples[rssiindex++] = rssi;
-        deadlockCounter = 0;
-        if(rssiindex >= NSAMPLES) post UpdateNoiseFloorTask();
-    }
-               
-    
-    void channelBusy () {
-        atomic {
-            if(++deadlockCounter >= DEADLOCK) addSample();
-            state = IDLE;
-        }
-        signal ChannelMonitor.channelBusy();
-    }
-
-    void channelIdle() {
-        atomic {
-            addSample();
-            state = IDLE;
-        }
-        signal ChannelMonitor.channelIdle();
-    }
-
-    error_t ccaCheckValue() {
-        uint16_t data;
-        atomic data = rssi;
-        if(data < noisefloor + busyDelta) {
-            channelIdle();
-        } else {
-            channelBusy();
-        }
-        return SUCCESS;
-    }
-
+*/    
     task void UpdateNoiseFloorTask() {
         shellsort(rssisamples,NSAMPLES);
         atomic { 
@@ -379,8 +350,8 @@ implementation
         if(s != CALIBRATE) {
             readVoltage();
         } else {
-          rssiRead();
-          //  call RssiAdcResource.request();
+            rssiRead();
+            // call RssiAdcResource.request();
         }
     }
     
@@ -403,29 +374,30 @@ implementation
     }
 
     /** get SNR in dB **/
-
+    /* task void GetSnrTask() {
+        state_t s;
+        atomic s = state;
+        if(s == SNR) {
+            if(call RssiAdcResource.immediateRequest() == SUCCESS) {
+                rssiRead();
+            } else {
+                atomic if(state == SNR) state = IDLE;
+            }
+        }
+        }
+    */
+    
     async command error_t ChannelMonitorData.getSnr() {
-        error_t res = SUCCESS;
-        if(state != VOID) {
-             post GetSnrTask();
-        } else {
-             res = FAIL;
+        error_t res = FAIL;
+        atomic {
+            if(state == IDLE) {
+                res = rssiRead();
+                if(res == SUCCESS) state = SNR;
+            }
         }
         return res;
     }
 
-    task void GetSnrTask() {
-        atomic {
-            if(state != IDLE) {
-                post GetSnrTask();
-            } else {
-              state = SNR;
-              rssiRead();
-              // if(call RssiAdcResource.request() != SUCCESS) signalFailure();     
-            }
-        }
-    }
-    
     task void SnrReadyTask() {
         int16_t snr;
         snr = computeSNR();
@@ -443,5 +415,4 @@ implementation
         atomic l = batteryLevel;
         return (uint32_t)l*39>>5;
     }
-    
 }

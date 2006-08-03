@@ -26,14 +26,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-05-31 13:53:02 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2006-08-03 18:17:52 $
  * ========================================================================
  */
 
  /**
  * HplTda5250DataP module
  *
+ * @author Philipp Hupertz (huppertz@tkn.tu-berlin.de)
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
   */
 
@@ -41,14 +42,17 @@ module HplTda5250DataP {
   provides {
     interface Init;
     interface HplTda5250Data;
+
+//     interface ResourceRequested;
     interface Resource;
+
   }
   uses {
     interface GeneralIO as DATA;
-    // FIXME: platform dependence at HPL-level!
-    interface HplMsp430Usart as Usart;
-    interface HplMsp430UsartInterrupts as UsartInterrupts;
+    interface SerialByteComm as Uart;
+    interface Msp430UartControl as UartControl;
     interface Resource as UartResource;
+//     interface ResourceRequested as UartResourceRequested;
   }
 }
 
@@ -77,13 +81,10 @@ implementation {
     if(call UartResource.immediateRequest() == EBUSY) {
       return EBUSY;
     }
-    call Usart.setModeUART();
     return SUCCESS;
   }
 
   async command void Resource.release() {
-    call Usart.disableRxIntr();
-    call Usart.disableTxIntr();
     call UartResource.release();
   }
 
@@ -92,66 +93,44 @@ implementation {
   }
 
   event void UartResource.granted() {
-    call Usart.setModeUART();
     signal Resource.granted();
+  }
+  
+//   async event void UartResourceRequested.requested() {
+//     signal ResourceRequested.requested(); 
+//   }
+//   
+//   async event void UartResourceRequested.immediateRequested() {
+//     signal ResourceRequested.immediateRequested(); 
+//   }
+  
+  async command error_t HplTda5250Data.setToTx() {
+    if(call UartResource.isOwner() == FALSE)
+      return FAIL;
+    call UartControl.setModeTx();
+    return SUCCESS;
+  }
+
+  async command error_t HplTda5250Data.setToRx() {
+   if(call UartResource.isOwner() == FALSE)
+     return FAIL;
+   call UartControl.setModeRx();
+   return SUCCESS;
   }
 
   async command error_t HplTda5250Data.tx(uint8_t data) {
     if(call UartResource.isOwner() == FALSE)
-     return FAIL;
-    call Usart.tx(data);
-    return SUCCESS;
-  }
-
-  async command bool HplTda5250Data.isTxDone() {
-    if(call UartResource.isOwner() == FALSE)
       return FAIL;
-    return call Usart.isTxEmpty();
+    return call Uart.put(data);
   }
 
-  async command error_t HplTda5250Data.enableTx() {
-    if(call UartResource.isOwner() == FALSE)
-      return FAIL;
-    call Usart.setModeUART_TX();
-    call Usart.setClockSource(SSEL_SMCLK);
-    call Usart.setClockRate(UBR_SMCLK_38400, UMCTL_SMCLK_38400);
-    call Usart.enableTxIntr();
-    return SUCCESS;
-  }
-
-  async command error_t HplTda5250Data.disableTx() {
-    if(call UartResource.isOwner() == FALSE)
-      return FAIL;
-    call Usart.disableUARTTx();
-    call Usart.disableTxIntr();
-    return SUCCESS;
-  }
-
-  async command error_t HplTda5250Data.enableRx() {
-    if(call UartResource.isOwner() == FALSE)
-      return FAIL;
-    call Usart.setModeUART_RX();
-    call Usart.setClockSource(SSEL_SMCLK);
-    call Usart.setClockRate(UBR_SMCLK_38400, UMCTL_SMCLK_38400);
-    call Usart.enableRxIntr();
-    return SUCCESS;
-  }
-
-  async command error_t HplTda5250Data.disableRx() {
-    if(call UartResource.isOwner() == FALSE)
-      return FAIL;
-    call Usart.disableUARTRx();
-    call Usart.disableRxIntr();
-    return SUCCESS;
-  }
-
-  async event void UsartInterrupts.txDone() {
+  async event void Uart.putDone() {
     if(call UartResource.isOwner() == FALSE)
       return;
     signal HplTda5250Data.txReady();
   }
 
-  async event void UsartInterrupts.rxDone(uint8_t data) {
+  async event void Uart.get(uint8_t data) {
     if(call UartResource.isOwner() == FALSE)
       return;
     signal HplTda5250Data.rxDone(data);

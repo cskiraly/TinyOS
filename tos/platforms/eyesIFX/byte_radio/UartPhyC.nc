@@ -29,8 +29,8 @@
 * - Description ---------------------------------------------------------
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.4 $
-* $Date: 2006-06-21 14:45:11 $
+* $Revision: 1.1.2.5 $
+* $Date: 2006-08-03 18:17:52 $
 * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
 * ========================================================================
 */
@@ -61,7 +61,6 @@ implementation
     components 
         new Alarm32khzC() as RxByteTimer,
         UartPhyP,
-//         PlatformLedsC,
         MainC;
     
     MainC.SoftwareInit -> UartPhyP;
@@ -72,6 +71,4 @@ implementation
     UartPhyControl = UartPhyP;
     
     UartPhyP.RxByteTimer -> RxByteTimer;
-//     PlatformLedsC.Led0 <- UartPhyP.Led0;
-//     PlatformLedsC.Led1 <- UartPhyP.Led1;
 }

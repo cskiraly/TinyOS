@@ -26,8 +26,8 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.4 $
-* $Date: 2006-05-31 13:53:02 $
+* $Revision: 1.1.2.5 $
+* $Date: 2006-08-03 18:17:52 $
 * ========================================================================
 */
 
@@ -176,7 +176,7 @@ implementation {
   /* << tested >> */
   async command void HplTda5250Config.UseFSK(tda5250_cap_vals_t pos_shift, tda5250_cap_vals_t neg_shift) {
     currentConfig = CONFIG_ASK_NFSK_FSK(currentConfig);
-    if(currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) {
+    if(currentConfig & MASK_CONFIG_CONTROL_TXRX_REGISTER) {
       call CONFIG.set(currentConfig);
     }
     else {
@@ -188,7 +188,7 @@ implementation {
   /* << tested >> */
   async command void HplTda5250Config.UseASK(tda5250_cap_vals_t value) {
     currentConfig = CONFIG_ASK_NFSK_ASK(currentConfig);
-    if((currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER)) {
+    if(currentConfig & MASK_CONFIG_CONTROL_TXRX_REGISTER) {
       call CONFIG.set(currentConfig);
     } 
     else {
@@ -465,7 +465,7 @@ implementation {
   async command void HplTda5250Config.SetTxMode() {
     currentConfig = CONFIG_RX_NTX_TX(currentConfig);
     currentConfig = CONFIG_ALL_PD_NORMAL(currentConfig);
-    if (currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) {
+    if (currentConfig & MASK_CONFIG_CONTROL_TXRX_REGISTER) {
       call CONFIG.set(currentConfig);
     }
     else {
@@ -473,12 +473,12 @@ implementation {
       call PWDDD.clr();
     }
   }
-
+ 
   /* << tested >> */
   async command void HplTda5250Config.SetRxMode() {
     currentConfig = CONFIG_RX_NTX_RX(currentConfig);
     currentConfig = CONFIG_ALL_PD_NORMAL(currentConfig);
-    if (currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) {
+    if (currentConfig & MASK_CONFIG_CONTROL_TXRX_REGISTER) {
       call CONFIG.set(currentConfig);
     }
     else {
@@ -490,13 +490,17 @@ implementation {
   /* << tested >> */
   async command void HplTda5250Config.SetSleepMode() {
     currentConfig = CONFIG_ALL_PD_POWER_DOWN(currentConfig);
-    if (currentConfig | MASK_CONFIG_CONTROL_TXRX_REGISTER) {
+    if (currentConfig & MASK_CONFIG_CONTROL_TXRX_REGISTER) {
       call CONFIG.set(currentConfig);
     }
     else {
       call PWDDD.makeOutput();
       call PWDDD.set();
     }
+  }
+  
+  async command bool HplTda5250Config.IsTxRxPinControlled() {
+    return (currentConfig & MASK_CONFIG_CONTROL_TXRX_REGISTER);
   }
 
   /****************************************************************
