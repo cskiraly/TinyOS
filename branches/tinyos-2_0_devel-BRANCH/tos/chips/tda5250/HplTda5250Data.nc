@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-02-01 17:44:18 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-08-03 18:17:52 $
  * ========================================================================
  */
 
@@ -60,7 +60,7 @@ interface HplTda5250Data {
    * @return TRUE if all bytes are trasnmitted
    *         FALSE otherwise.
    */
-  async command bool isTxDone();
+  //async command bool isTxDone();
 
   /**
    * Signaled when a byte of data has been received from the radio.
@@ -69,35 +69,20 @@ interface HplTda5250Data {
   async event void rxDone(uint8_t data);
 
   /**
-   * Enable transmitting over the radio.
-   *
+   * Sets the radio to transmit. 
+   * 
    * @return SUCCESS on success
    *         FAIL otherwise.
    */
-  async command error_t enableTx();
+  async command error_t setToTx();
+
 
   /**
-   * Disable transmitting over the radio
-   *
-   * @return SUCCESS on success
-   *         FAIL otherwise.
-   */
-  async command error_t disableTx();
-
-  /**
-   * Enable receiving over the radio
+   * Sets the radio to receive.
    *
    * @return SUCCESS on success
    *         FAIL otherwise.
   */
-  async command error_t enableRx();
-
-  /**
-   * Disable receiving over the radio
-   *
-   * @return SUCCESS on success
-   *         FAIL otherwise.
-   */
-  async command error_t disableRx();
+  async command error_t setToRx();
 }
 

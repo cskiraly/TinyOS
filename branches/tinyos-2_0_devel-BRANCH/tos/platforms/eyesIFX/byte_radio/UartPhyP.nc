@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.7 $
- * $Date: 2006-06-21 14:45:11 $
+ * $Revision: 1.1.2.8 $
+ * $Date: 2006-08-03 18:17:52 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
  * ========================================================================
@@ -64,6 +64,7 @@ implementation
     /* Module Definitions  */
     typedef enum {
         STATE_PREAMBLE,
+        STATE_PREAMBLE_MANCHESTER,
         STATE_SYNC,
         STATE_SFD,
         STATE_HEADER_DONE,
@@ -73,11 +74,8 @@ implementation
         STATE_FOOTER_DONE
     } phyState_t;
 
-
-
-
 #define PREAMBLE_LENGTH   4
-#define BYTE_TIME         22
+#define BYTE_TIME         18
 #define PREAMBLE_BYTE     0x55
 #define SYNC_BYTE         0xFF
 #define SFD_BYTE          0x05
@@ -103,7 +101,7 @@ implementation
         return SUCCESS;
     }
     
-    command error_t UartPhyControl.setNumPreambles(uint16_t numPreambleBytes) {
+    async command error_t UartPhyControl.setNumPreambles(uint16_t numPreambleBytes) {
         atomic {
             numPreambles = numPreambleBytes;
         }
@@ -279,7 +277,18 @@ implementation
                 case STATE_PREAMBLE:
                     if(data == PREAMBLE_BYTE) {
                         phyState = STATE_SYNC;
-                    } 
+                    }
+                    else if(manchesterDecodeByte(data) != 0xff) {
+                        phyState = STATE_PREAMBLE_MANCHESTER;
+                    }
+                    break;
+                case STATE_PREAMBLE_MANCHESTER:
+                    if(data == PREAMBLE_BYTE) {
+                        phyState = STATE_SYNC;
+                    }
+                    else if(manchesterDecodeByte(data) == 0xff) {
+                        phyState = STATE_PREAMBLE; 
+                    }
                     break;
                 case STATE_DATA_HIGH:
                     decodedByte = manchesterDecodeByte(data);

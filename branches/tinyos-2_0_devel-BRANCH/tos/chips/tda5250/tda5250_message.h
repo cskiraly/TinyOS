@@ -17,7 +17,8 @@ typedef nx_struct tda5250_footer_t {
 typedef nx_struct tda5250_metadata_t {
   nx_uint16_t strength;
   nx_uint8_t ack;
-  nx_uint16_t time;
+  /* local time when message was generated */
+  nx_uint32_t time;
   nx_uint8_t sendSecurityMode;
   nx_uint8_t receiveSecurityMode;
 } tda5250_metadata_t;

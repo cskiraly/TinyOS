@@ -29,6 +29,7 @@
  */
 
 
+
 #include "radiopacketfunctions.h"
 #include "flagfunctions.h"
 
@@ -39,41 +40,48 @@
   * @author: Kevin Klues (klues@tkn.tu-berlin.de)
   * @author Philipp Huppertz (huppertz@tkn.tu-berlin.de)
 */
+
+// #define MACM_DEBUG                 // debug...
 module CsmaMacP {
     provides {
         interface Init;
         interface SplitControl;
         interface MacSend;
         interface MacReceive;
+        interface Packet;
     }
     uses {
         interface StdControl as CcaStdControl;
         interface PhySend as PacketSend;
         interface PhyReceive as PacketReceive;
+        interface RadioTimeStamping;
         
         interface Tda5250Control as RadioModes;  
+//         interface ResourceRequested as RadioResourceRequested;
 
         interface UartPhyControl;
-      
+        interface Packet as SubPacket;
+        
         interface ChannelMonitor;
         interface ChannelMonitorControl;  
         interface ChannelMonitorData;
+        interface Resource as RssiAdcResource;
 
         interface Random;
         
         interface Alarm<T32khz, uint16_t> as Timer;
-
+#ifdef MACM_DEBUG
         interface GeneralIO as Led0;
         interface GeneralIO as Led1;
         interface GeneralIO as Led2;
         interface GeneralIO as Led3;
+#endif
     }
 }
 implementation
 {
 #define CSMA_ACK 100
 #define BYTE_TIME 17
-// #define MACM_DEBUG                    // debug...
 #define MAX_LONG_RETRY 3              // Missing acks, or short retry limit hits -> increase long retry 
 #define MAX_SHORT_RETRY 5             // busy channel -> increase short retry
 #define DIFS 165                      // 5ms to get an ACK started
@@ -194,14 +202,32 @@ implementation
     
     task void SetRxModeTask();
     task void SetTxModeTask();
+
+
+    task void ReleaseAdcTask() {
+        macState_t ms;
+        atomic ms = macState;
+        if((ms >= CCA)  && (ms != INIT) && (call RssiAdcResource.isOwner())) {
+            call RssiAdcResource.release();
+        }
+    }
     
     void setRxMode();
     void setTxMode();
 
+    void requestAdc() {
+        if(!call RssiAdcResource.isOwner()) {
+            if(call RssiAdcResource.immediateRequest() != SUCCESS) {
+                call RssiAdcResource.request();
+            }
+        }
+    }
+    
     void setRxMode() {
         if(call RadioModes.RxMode() == FAIL) {
             post SetRxModeTask();
         }
+        if((macState == SW_CCA) || (macState == INIT)) requestAdc();
     }
     
     task void SetRxModeTask() {
@@ -219,6 +245,7 @@ implementation
         if(call RadioModes.TxMode() == FAIL) {
             post SetTxModeTask();
         }
+        post ReleaseAdcTask();
     }
     
     task void SetTxModeTask() {
@@ -265,7 +292,7 @@ implementation
         if((txBufPtr != NULL) && (macState == RX) && (!call Timer.isRunning())) {
             clearFlag(&flags, CHECK_RX_LIVENESS);
             clearFlag(&flags, DIFS_TIMER_FIRED);
-            /*           if(!call UartPhyControl.isBusy()) { */
+            if(!call UartPhyControl.isBusy()) {
                 if(isFlagSet(&flags, RSSI_STABLE)) {
                     macState = CCA;
                     signalMacState();
@@ -277,15 +304,14 @@ implementation
                     signalMacState();
                     storeOldState(131);
                 }
- /*           }
+            }
             else {
                 storeOldState(132);
                 updateRetryCounters();
                 setFlag(&flags, CHECK_RX_LIVENESS);
                 call Timer.start(backoff());
             }
-                */
-      }
+        }
     }
     
     bool needsAck(message_t* msg) {
@@ -348,19 +374,52 @@ implementation
         return SUCCESS;
     }
     
+    /****** Packet interface ********************/
+    command void Packet.clear(message_t* msg) {
+        call SubPacket.clear(msg);
+    }
+    
+    command uint8_t Packet.payloadLength(message_t* msg) {
+        return call SubPacket.payloadLength(msg);
+    }
+    
+    command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
+        call SubPacket.setPayloadLength(msg,len);
+    }
+    
+    command uint8_t Packet.maxPayloadLength() {
+        return call SubPacket.maxPayloadLength();
+    }
+    
+    command void* Packet.getPayload(message_t* msg, uint8_t* len) {
+        return call SubPacket.getPayload(msg, len);
+    }
+   
     /****** Radio(Mode) events *************************/
     async event void RadioModes.RssiStable() {
         atomic  {
             setFlag(&flags, RSSI_STABLE);
             if(macState == SW_CCA)  {
-                storeOldState(10);
-                macState = CCA;
-                signalMacState();
-                call Timer.start(DIFS);
-                call ChannelMonitor.start();
+                if(call UartPhyControl.isBusy()) {
+                    macState = RX;
+                    signalMacState();
+                    setFlag(&flags, CHECK_RX_LIVENESS);
+                    call Timer.start(CHECK_RX_LIVENESS_INTERVALL);
+                }
+                else {
+                    storeOldState(10);
+                    macState = CCA;
+                    signalMacState();
+                    call Timer.start(DIFS);
+                    call ChannelMonitor.start();
+                }
             } else if(macState == INIT) {
                 storeOldState(11);
-                call ChannelMonitorControl.updateNoiseFloor();
+                if(call RssiAdcResource.isOwner()) {
+                    call ChannelMonitorControl.updateNoiseFloor();
+                } else {
+                    call RssiAdcResource.request();
+                }
             } else {
                 storeOldState(13);
             }
@@ -459,8 +518,6 @@ implementation
             rssiValue = 0xFFFF;
             call Timer.stop();
             clearFlag(&flags, CHECK_RX_LIVENESS);
-            if(isFlagSet(&flags, BUSY_DETECTED_VIA_RSSI)) call ChannelMonitor.rxSuccess();
-            call  ChannelMonitorData.getSnr();
         }
         if(macState <= RX) {
             storeOldState(61);
@@ -558,13 +615,14 @@ implementation
         if(macState == RX) {
             storeOldState(90);
             if(isFlagSet(&flags, CHECK_RX_LIVENESS)) {
-                /* if(call UartPhyControl.isBusy()) {
+                if(call UartPhyControl.isBusy()) {
                     call Timer.start(CHECK_RX_LIVENESS_INTERVALL);
                 }
                 else {
-                */
-                    call ChannelMonitor.start();
-                    /*} */
+                    storeOldState(111);
+                    clearFlag(&flags, CHECK_RX_LIVENESS);
+                    call Timer.start(backoff());                    
+                }
             } else {
                 checkSend();
             }
@@ -577,9 +635,19 @@ implementation
             call Timer.start(backoff());
         }
         else if(macState == CCA) {
-            storeOldState(92);
-            setFlag(&flags, DIFS_TIMER_FIRED);
-            call ChannelMonitor.start();
+            if(call UartPhyControl.isBusy()) {
+                storeOldState(100);
+                macState = RX;
+                signalMacState();
+                updateRetryCounters();
+                call Timer.start(backoff());
+            }
+            else {
+                storeOldState(112);
+                macState = SW_TX;
+                signalMacState();
+                setTxMode();
+            }
         }
         else {
             storeOldState(93);
@@ -590,6 +658,13 @@ implementation
     /****** ChannelMonitor events *********************/
 
     async event void ChannelMonitor.channelBusy() {
+        setFlag(&flags, BUSY_DETECTED_VIA_RSSI);
+        /*
+          if(!call UartPhyControl.isBusy()) {
+            call Led3.set();
+        } else {
+            call Led3.clr();
+        }
         atomic {
             if(macState == CCA) {
                 storeOldState(100);
@@ -608,14 +683,20 @@ implementation
                 call Timer.start(CHECK_RX_LIVENESS_INTERVALL);
             }
         }
+        */
     }
 
     async event void ChannelMonitor.channelIdle() {
-        storeOldState(110);
+/*        storeOldState(110);
+        if(call UartPhyControl.isBusy()) {
+            call Led3.set();
+        } else {
+            call Led3.clr();
+        }
         if((macState == RX) && (isFlagSet(&flags, CHECK_RX_LIVENESS))) {
-                storeOldState(111);
-                clearFlag(&flags, CHECK_RX_LIVENESS);
-                call Timer.start(backoff());
+            storeOldState(111);
+            clearFlag(&flags, CHECK_RX_LIVENESS);
+            call Timer.start(backoff());
         }
         else if(macState == CCA) {
           if(isFlagSet(&flags, DIFS_TIMER_FIRED)) {    
@@ -626,6 +707,7 @@ implementation
             setTxMode();
           }
         }
+*/
     }
 
 
@@ -656,5 +738,43 @@ implementation
     async event void RadioModes.SleepModeDone() {}
     async event void RadioModes.SelfPollingModeDone() {}
     async event void RadioModes.PWDDDInterrupt() {}
+
+    /***** abused TimeStamping events **************************/
+    async event void RadioTimeStamping.receivedSFD( uint16_t time ) {
+        if(isFlagSet(&flags, BUSY_DETECTED_VIA_RSSI)) call ChannelMonitor.rxSuccess();
+        if(call RssiAdcResource.isOwner()) call ChannelMonitorData.getSnr();
+    }
+    
+    async event void RadioTimeStamping.transmittedSFD( uint16_t time, message_t* p_msg ) {}
+
+    /***** Rssi Resource events ******************/
+    event void RssiAdcResource.granted() {
+        macState_t ms;
+        atomic ms = macState;
+        if((ms == SW_CCA) || (ms == CCA)) {
+            storeOldState(144);
+        }
+        else if(ms == INIT) {
+            storeOldState(145);
+            call ChannelMonitorControl.updateNoiseFloor();            
+        }
+        else {
+            storeOldState(146);
+            call RssiAdcResource.release();
+        }
+    }
+    
+    /***** RadioData Resource events **************/
+//     async event void RadioResourceRequested.requested() {
+//       atomic {
+//         /* This gives other devices the chance to get the Resource
+//            because RxMode implies a new arbitration round.  */
+//         if (macState == RX) setRxMode();
+//       }
+//     }
+//     
+//     // we don't care about urgent Resource requestes
+//     async event void RadioResourceRequested.immediateRequested() {}
 }
+
 

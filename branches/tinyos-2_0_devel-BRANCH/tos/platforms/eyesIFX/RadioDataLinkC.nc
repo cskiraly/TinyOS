@@ -29,8 +29,8 @@
  * - Description ---------------------------------------------------------
  * provides preamble sampling csma with timestamping
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-06-07 19:54:53 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2006-08-03 18:17:52 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -52,7 +52,6 @@ implementation
         UartPhyC as UartPhy,                     //The UartPhy turns Bits into Bytes
         PacketSerializerP  as PacketSerializer,  //The PacketSerializer turns Bytes into Packets
         CsmaMacC as Mac,                         //The MAC protocol to use
-        //SyncSampleMacC as Mac,
         LinkLayerC as Llc;                       //The Link Layer Control module to use
     
     //Don't change wirings below this point, just change which components
@@ -68,17 +67,19 @@ implementation
     Send = Llc.Send;
     Receive = Llc.Receive;
     PacketAcknowledgements = Llc;
-    Packet = PacketSerializer;
+    Packet = Mac;
   
     Llc.SendDown->Mac.MacSend;
     Llc.ReceiveLower->Mac.MacReceive;
-    Llc.Packet->PacketSerializer.Packet;
+    Llc.Packet->Mac.Packet;
+    Mac.SubPacket->PacketSerializer.Packet;
     
     Mac.PacketSend->PacketSerializer.PhySend;
     Mac.PacketReceive->PacketSerializer.PhyReceive;  
     Mac.Tda5250Control->Radio;
     Mac.UartPhyControl -> UartPhy;
-    
+
+    Mac.RadioTimeStamping -> PacketSerializer.RadioTimeStamping;
     PacketSerializer.RadioByteComm -> UartPhy.SerializerRadioByteComm;
     PacketSerializer.PhyPacketTx -> UartPhy.PhyPacketTx;
     PacketSerializer.PhyPacketRx -> UartPhy.PhyPacketRx;

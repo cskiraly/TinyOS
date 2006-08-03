@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Technische Universitat Berlin
+ * Copyright (c) 2006, Technische Universitat Berlin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,35 +26,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
+ * $Revision: 1.1.4.2 $
  * $Date: 2006-08-03 18:17:52 $
  * ========================================================================
  */
 
- /**
- * tda5250RegDefaultSettings Header File
- * Defines the default values of the registers for the TDA5250 Radio
- *
- * @author Kevin Klues (klues@tkn.tu-berlin.de)
- */
+#include "msp430usart.h"
 
-#ifndef TDA5250REGDEFAULTSETTINGS_H
-#define TDA5250REGDEFAULTSETTINGS_H
+#ifndef TDA5250BUSRESOURCEID_H
+#define TDA5250BUSRESOURCEID_H
 
-// Default values of data registers
+enum {
+    TDA5250_UART_BUS_ID = unique(MSP430_UARTO_BUS)
+};
 
-#define TDA5250_REG_DEFAULT_SETTING_CONFIG           0x84F9 
-#define TDA5250_REG_DEFAULT_SETTING_FSK              0x0A0C
-#define TDA5250_REG_DEFAULT_SETTING_XTAL_TUNING      0x0012
-#define TDA5250_REG_DEFAULT_SETTING_LPF              0x6A
-#define TDA5250_REG_DEFAULT_SETTING_ON_TIME          0xFEC0
-#define TDA5250_REG_DEFAULT_SETTING_OFF_TIME         0xF380
-#define TDA5250_REG_DEFAULT_SETTING_COUNT_TH1        0x0000
-#define TDA5250_REG_DEFAULT_SETTING_COUNT_TH2        0x0001
-#define TDA5250_REG_DEFAULT_SETTING_RSSI_TH3         0xFF
-#define TDA5250_REG_DEFAULT_SETTING_CLK_DIV          0x08
-#define TDA5250_REG_DEFAULT_SETTING_XTAL_CONFIG      0x01
-#define TDA5250_REG_DEFAULT_SETTING_BLOCK_PD         0xFFFF
+msp430_uart_config_t tda5250_uart_config = {ubr: UBR_1MHZ_38400, umctl: UMCTL_1MHZ_38400, ssel: 0x02, pena: 0, pev: 0, spb: 0, clen: 1, listen: 0, mm: 0, ckpl: 0, urxse: 0, urxeie: 1, urxwie: 0};
 
-#endif //TDA5250REGDEFAULTSETTINGS_H
 
+#endif

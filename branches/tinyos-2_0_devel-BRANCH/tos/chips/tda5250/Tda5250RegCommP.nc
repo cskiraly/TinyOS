@@ -28,8 +28,8 @@
  *
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-05-31 13:53:02 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2006-08-03 18:17:52 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -83,19 +83,18 @@ implementation {
 
    async command error_t Tda5250RegComm.writeByte(uint8_t address, uint8_t data) {
      uint8_t rxbyte;
-     // FIXME: nobody seems to care in HplTda5250Config if call is not successfull, so why should we care here....
-//     if(call SpiResource.isOwner() == FALSE) {
-//       return FAIL;
-//     }
+     if(call SpiResource.isOwner() == FALSE) {
+       return FAIL;
+     }
      call SpiByte.write(address,&rxbyte);
      call SpiByte.write(data,&rxbyte);
      return SUCCESS;
    }
+   
    async command error_t Tda5250RegComm.writeWord(uint8_t address, uint16_t data) {
       uint8_t rxbyte;
-      // FIXME: nobody seems to care in HplTda5250Config if call is not successfull, so why should we care here....
-      // if(call SpiResource.isOwner() == FALSE)
-      //   return FAIL;
+      if(call SpiResource.isOwner() == FALSE)
+        return FAIL;
       call SpiByte.write(address, &rxbyte);
       call SpiByte.write(((uint8_t) (data >> 8)),&rxbyte);
       call SpiByte.write(((uint8_t) data),&rxbyte);

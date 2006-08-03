@@ -27,7 +27,7 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-08-03 18:17:52 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
@@ -44,21 +44,52 @@
  */
 
 #include <sensors.h>
-configuration RssiSensorVccC
+
+module RssiSensorVccP
 {
     provides {
         interface ReadNow<uint16_t> as ReadNow;
         interface Resource as ReadNowResource;
     }
+    uses {
+        interface Resource as SubResource;
+        interface Msp430Adc12FastSingleChannel as FastChannel;
+    }
 }
 implementation
 {
-    components SensorSettingsC as Settings;
-    components RssiSensorVccP as RssiSensor;
-    components new Msp430Adc12FastClientC() as AdcReadNowClient;
+    async command error_t ReadNow.read() {
+        return call FastChannel.getSingleData();
+    }
     
-    ReadNow = RssiSensor;
-    ReadNowResource = RssiSensor;
-    RssiSensor.SubResource -> AdcReadNowClient;
-    RssiSensor.FastChannel -> AdcReadNowClient;
+    async event error_t FastChannel.singleDataReady(uint16_t data) {
+        signal ReadNow.readDone(SUCCESS, data);
+        return SUCCESS;
+    }
+
+    async command error_t ReadNowResource.request() {
+        return call SubResource.request();
+    }
+    
+    async command error_t ReadNowResource.immediateRequest() {
+        error_t res = call SubResource.immediateRequest();
+        if(res == SUCCESS) {
+            res = call FastChannel.configure(&sensorconfigurations[RSSI_SENSOR_VCC]);
+            if(res != SUCCESS) call SubResource.release();
+        }
+        return res;
+    }
+
+    event void SubResource.granted() {
+        call FastChannel.configure(&sensorconfigurations[RSSI_SENSOR_VCC]);
+        signal ReadNowResource.granted();
+    }
+
+    async command void ReadNowResource.release() {
+        call SubResource.release();
+    }
+    
+    async command bool ReadNowResource.isOwner() {
+        return call SubResource.isOwner();
+    }
 }
