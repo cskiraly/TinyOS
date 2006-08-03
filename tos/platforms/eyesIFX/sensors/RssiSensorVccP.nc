@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-08-03 18:17:52 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-08-03 18:34:50 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -62,9 +62,8 @@ implementation
         return call FastChannel.getSingleData();
     }
     
-    async event error_t FastChannel.singleDataReady(uint16_t data) {
+    async event void FastChannel.singleDataReady(uint16_t data) {
         signal ReadNow.readDone(SUCCESS, data);
-        return SUCCESS;
     }
 
     async command error_t ReadNowResource.request() {
