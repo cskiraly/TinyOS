@@ -30,41 +30,38 @@
  */
 
 /**
+ * An implementation of the UART on USART0 for the MSP430.
+ * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-08-03 18:10:41 $
+ * @version $Revision: 1.1.4.2 $ $Date: 2006-08-03 18:10:41 $
  */
 
-configuration Msp430UsartShare0P {
+#include "msp430usart.h"
 
-  provides interface HplMsp430UsartInterrupts as Interrupts[ uint8_t id ];
-	provides interface HplMsp430I2CInterrupts as I2CInterrupts[ uint8_t id ];
-  provides interface Resource[ uint8_t id ];
-  provides interface ArbiterInfo;
+generic configuration Msp430Uart0C() {
 
-  uses interface ResourceConfigure[ uint8_t id ];
+  provides interface Resource;
+  provides interface SerialByteComm;
+  provides interface Msp430UartControl as UartControl;
+
+  uses interface Msp430UartConfigure;
 }
 
 implementation {
 
-  components new Msp430UsartShareP() as UsartShareP;
-  Interrupts = UsartShareP;
-	I2CInterrupts = UsartShareP;
-  UsartShareP.RawInterrupts -> UsartC;
+  enum {
+    CLIENT_ID = unique( MSP430_UARTO_BUS ),
+  };
 
-  components new FcfsArbiterC( MSP430_HPLUSART0_RESOURCE ) as ArbiterC;
-  Resource = ArbiterC;
-  ResourceConfigure = ArbiterC;
-  ArbiterInfo = ArbiterC;
-  UsartShareP.ArbiterInfo -> ArbiterC;
+  components Msp430Uart0P as UartP;
+  Resource = UartP.Resource[ CLIENT_ID ];
+  SerialByteComm = UartP.SerialByteComm;
+  UartControl = UartP.UartControl[ CLIENT_ID ];
+  Msp430UartConfigure = UartP.Msp430UartConfigure[ CLIENT_ID ];
 
-  components new AsyncStdControlPowerManagerC() as PowerManagerC;
-  PowerManagerC.ResourceController -> ArbiterC;
-	PowerManagerC.ArbiterInit -> ArbiterC;
+  components new Msp430Usart0C() as UsartC;
+  UartP.ResourceConfigure[ CLIENT_ID ] <- UsartC.ResourceConfigure;
+  UartP.UsartResource[ CLIENT_ID ] -> UsartC.Resource;
+  UartP.UsartInterrupts -> UsartC.HplMsp430UsartInterrupts;
 
-  components HplMsp430Usart0C as UsartC;
-  PowerManagerC.AsyncStdControl -> UsartC;
-	
-	components MainC;
-	MainC.SoftwareInit -> ArbiterC;
-	MainC.SoftwareInit -> PowerManagerC;
 }

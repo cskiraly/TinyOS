@@ -31,15 +31,17 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-08-01 16:36:24 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-08-03 18:10:41 $
  */
 
 configuration Msp430I2C0P {
   
   provides interface Resource[ uint8_t id ];
+	provides interface ResourceConfigure[uint8_t id ];
   provides interface I2CPacket<TI2CBasicAddr> as I2CBasicAddr;
   
   uses interface Resource as UsartResource[ uint8_t id ];
+	uses interface Msp430I2CConfigure[ uint8_t id ];
   uses interface HplMsp430I2CInterrupts as I2CInterrupts;
   
 }
@@ -48,6 +50,8 @@ implementation {
   
   components Msp430I2CP as I2CP;
   Resource = I2CP.Resource;
+	ResourceConfigure = I2CP.ResourceConfigure;
+	Msp430SpiConfigure = I2CP.Msp430SpiConfigure;
   I2CBasicAddr = I2CP.I2CBasicAddr;
   UsartResource = I2CP.UsartResource;
   I2CInterrupts = I2CP.I2CInterrupts;

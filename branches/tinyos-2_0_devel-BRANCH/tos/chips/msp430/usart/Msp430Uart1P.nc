@@ -31,40 +31,38 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-08-03 18:10:41 $
+ * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
+ * @version $Revision: 1.1.4.2 $ $Date: 2006-08-03 18:10:41 $
  */
 
-configuration Msp430UsartShare0P {
+configuration Msp430Uart1P {
 
-  provides interface HplMsp430UsartInterrupts as Interrupts[ uint8_t id ];
-	provides interface HplMsp430I2CInterrupts as I2CInterrupts[ uint8_t id ];
   provides interface Resource[ uint8_t id ];
-  provides interface ArbiterInfo;
+  provides interface ResourceConfigure[uint8_t id ];
+  provides interface Msp430UartControl as UartControl[ uint8_t id ];
+  provides interface SerialByteComm;
 
-  uses interface ResourceConfigure[ uint8_t id ];
+  uses interface Resource as UsartResource[ uint8_t id ];
+  uses interface Msp430UartConfigure[ uint8_t id ];
+  uses interface HplMsp430UsartInterrupts as UsartInterrupts;
+
 }
 
 implementation {
 
-  components new Msp430UsartShareP() as UsartShareP;
-  Interrupts = UsartShareP;
-	I2CInterrupts = UsartShareP;
-  UsartShareP.RawInterrupts -> UsartC;
+  components new Msp430UartP() as UartP;
+  Resource = UartP.Resource;
+  ResourceConfigure = UartP.ResourceConfigure;
+  Msp430UartConfigure = UartP.Msp430UartConfigure;
+  UartControl = UartP.UartControl;
+  SerialByteComm = UartP.SerialByteComm;
+  UsartResource = UartP.UsartResource;
+  UsartInterrupts = UartP.UsartInterrupts;
 
-  components new FcfsArbiterC( MSP430_HPLUSART0_RESOURCE ) as ArbiterC;
-  Resource = ArbiterC;
-  ResourceConfigure = ArbiterC;
-  ArbiterInfo = ArbiterC;
-  UsartShareP.ArbiterInfo -> ArbiterC;
+  components HplMsp430Usart1C as UsartC;
+  UartP.Usart -> UsartC;
 
-  components new AsyncStdControlPowerManagerC() as PowerManagerC;
-  PowerManagerC.ResourceController -> ArbiterC;
-	PowerManagerC.ArbiterInit -> ArbiterC;
+  components LedsC as Leds;
+  UartP.Leds -> Leds;
 
-  components HplMsp430Usart0C as UsartC;
-  PowerManagerC.AsyncStdControl -> UsartC;
-	
-	components MainC;
-	MainC.SoftwareInit -> ArbiterC;
-	MainC.SoftwareInit -> PowerManagerC;
 }

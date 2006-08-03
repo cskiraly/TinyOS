@@ -30,41 +30,41 @@
  */
 
 /**
+ * An implementation of the SPI on USART0 for the MSP430. The current
+ * implementation defaults not using the DMA and performing the SPI
+ * transfers in software. To utilize the DMA, use Msp430SpiDma0P in
+ * place of Msp430SpiNoDma0P.
+ *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-08-03 18:10:41 $
+ * @version $Revision: 1.1.4.2 $ $Date: 2006-08-03 18:10:41 $
  */
 
-configuration Msp430UsartShare0P {
+#include "msp430usart.h"
 
-  provides interface HplMsp430UsartInterrupts as Interrupts[ uint8_t id ];
-	provides interface HplMsp430I2CInterrupts as I2CInterrupts[ uint8_t id ];
-  provides interface Resource[ uint8_t id ];
-  provides interface ArbiterInfo;
+generic configuration Msp430Spi1C() {
 
-  uses interface ResourceConfigure[ uint8_t id ];
+  provides interface Resource;
+  provides interface SpiByte;
+  provides interface SpiPacket;
+
+  uses interface Msp430SpiConfigure;
 }
 
 implementation {
 
-  components new Msp430UsartShareP() as UsartShareP;
-  Interrupts = UsartShareP;
-	I2CInterrupts = UsartShareP;
-  UsartShareP.RawInterrupts -> UsartC;
+  enum {
+    CLIENT_ID = unique( MSP430_SPI1_BUS ),
+  };
 
-  components new FcfsArbiterC( MSP430_HPLUSART0_RESOURCE ) as ArbiterC;
-  Resource = ArbiterC;
-  ResourceConfigure = ArbiterC;
-  ArbiterInfo = ArbiterC;
-  UsartShareP.ArbiterInfo -> ArbiterC;
+  components Msp430SpiNoDma1P as SpiP;
+  Resource = SpiP.Resource[ CLIENT_ID ];
+  SpiByte = SpiP.SpiByte;
+  SpiPacket = SpiP.SpiPacket[ CLIENT_ID ];
+  Msp430SpiConfigure = SpiP.Msp430SpiConfigure[ CLIENT_ID ];
 
-  components new AsyncStdControlPowerManagerC() as PowerManagerC;
-  PowerManagerC.ResourceController -> ArbiterC;
-	PowerManagerC.ArbiterInit -> ArbiterC;
+  components new Msp430Usart1C() as UsartC;
+  SpiP.ResourceConfigure[ CLIENT_ID ] <- UsartC.ResourceConfigure;
+  SpiP.UsartResource[ CLIENT_ID ] -> UsartC.Resource;
+  SpiP.UsartInterrupts -> UsartC.HplMsp430UsartInterrupts;
 
-  components HplMsp430Usart0C as UsartC;
-  PowerManagerC.AsyncStdControl -> UsartC;
-	
-	components MainC;
-	MainC.SoftwareInit -> ArbiterC;
-	MainC.SoftwareInit -> PowerManagerC;
 }

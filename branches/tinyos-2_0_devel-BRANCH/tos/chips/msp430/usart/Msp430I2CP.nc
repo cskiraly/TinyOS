@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-08-01 16:36:24 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-08-03 18:10:41 $
  */
 
 #include <I2C.h>
@@ -39,9 +39,11 @@
 module Msp430I2CP {
   
   provides interface Resource[ uint8_t id ];
+	provides interface ResourceConfigure[ uint8_t id ];
   provides interface I2CPacket<TI2CBasicAddr> as I2CBasicAddr;
   
   uses interface Resource as UsartResource[ uint8_t id ];
+	uses interface Msp430I2CConfigure[ uint8_t id ];
   uses interface HplMsp430Usart as Usart;
   uses interface HplMsp430I2CInterrupts as I2CInterrupts;
   uses interface Leds;
@@ -89,6 +91,13 @@ implementation {
     call UsartResource.release[ id ]();
   }
   
+	async command void ResourceConfigure.configure[ uint8_t id ]() {
+		call Usart.setModeI2C(call Msp430I2CConfigure.getConfig[id]());
+	}
+
+	async command void ResourceConfigure.unconfigure[ uint8_t id ]() {
+	}
+	
   event void UsartResource.granted[ uint8_t id ]() {
     call Usart.setModeI2C();
     signal Resource.granted[ id ]();
@@ -96,8 +105,11 @@ implementation {
   
   default async command error_t UsartResource.request[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.immediateRequest[ uint8_t id ]() { return FAIL; }
-  default async command void UsartResource.release[ uint8_t id ]() {}
+	default async command void UsartResource.release[ uint8_t id ]() {}
   default event void Resource.granted[ uint8_t id ]() {}
+	default async command msp430_i2c_config_t* Msp430SpiConfigure.getConfig[uint8_t id]() {
+		return &msp430_i2c_default_config;
+	}
   
   async command error_t I2CBasicAddr.read( i2c_flags_t flags,
 					   uint16_t addr, uint8_t len, 

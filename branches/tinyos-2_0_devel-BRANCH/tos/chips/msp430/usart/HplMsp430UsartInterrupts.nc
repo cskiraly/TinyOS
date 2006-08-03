@@ -35,7 +35,7 @@
  *
  * @author Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author Joe Polastre
- * @version $Revision: 1.1.2.2 $ $Date: 2006-08-01 16:36:24 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-08-03 18:10:41 $
  */
  
 #include "msp430usart.h"
@@ -52,5 +52,6 @@ interface HplMsp430UsartInterrupts {
    * A byte of data has been received.
    */
   async event void rxDone(uint8_t data);
-  
+
 }
+
