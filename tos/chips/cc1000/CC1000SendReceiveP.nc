@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.16 2006-06-21 16:58:03 idgay Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.17 2006-08-04 00:34:18 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -524,7 +524,7 @@ implementation
 
     if (f.ack &&
 	rxFooter->crc &&
-	rxHeader->addr == call amAddress())
+	rxHeader->dest == call amAddress())
       {
 	enterAckState();
 	call CC1000Control.txMode();

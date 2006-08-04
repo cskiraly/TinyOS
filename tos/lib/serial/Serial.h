@@ -1,4 +1,4 @@
-//$Id: Serial.h,v 1.1.2.14 2006-08-03 18:21:08 phihup Exp $
+//$Id: Serial.h,v 1.1.2.15 2006-08-04 00:34:18 scipio Exp $
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
  *
@@ -110,7 +110,8 @@ typedef struct radio_stats {
 } radio_stats_t;
 
 typedef nx_struct serial_header {
-  nx_am_addr_t addr;
+  nx_am_addr_t dest;
+  nx_am_addr_t src;
   nx_uint8_t length;
   nx_am_group_t group;
   nx_am_id_t type;
