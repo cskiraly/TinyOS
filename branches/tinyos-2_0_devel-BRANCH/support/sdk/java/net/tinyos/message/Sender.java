@@ -1,4 +1,4 @@
-// $Id: Sender.java,v 1.1.2.3 2006-02-16 01:21:25 idgay Exp $
+// $Id: Sender.java,v 1.1.2.4 2006-08-04 00:35:08 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -85,7 +85,7 @@ public class Sender {
 
 	SerialPacket packet =
 	    new SerialPacket(SerialPacket.offset_data(0) + data.length);
-	packet.set_header_addr(moteId);
+	packet.set_header_dest(moteId);
 	packet.set_header_type((short)amType);
 	packet.set_header_length((short)data.length);
 	packet.dataSet(data, 0, packet.offset_data(0), data.length);
