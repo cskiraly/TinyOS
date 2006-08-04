@@ -4,7 +4,7 @@
 
 import _TOSSIM
 
-def _swig_setattr(self,class_type,name,value):
+def _swig_setattr_nondynamic(self,class_type,name,value,static=1):
     if (name == "this"):
         if isinstance(value, class_type):
             self.__dict__[name] = value.this
@@ -13,7 +13,13 @@ def _swig_setattr(self,class_type,name,value):
             return
     method = class_type.__swig_setmethods__.get(name,None)
     if method: return method(self,value)
-    self.__dict__[name] = value
+    if (not static) or hasattr(self,name) or (name == "thisown"):
+        self.__dict__[name] = value
+    else:
+        raise AttributeError("You cannot add attributes to %s" % self)
+
+def _swig_setattr(self,class_type,name,value):
+    return _swig_setattr_nondynamic(self,class_type,name,value,0)
 
 def _swig_getattr(self,class_type,name):
     method = class_type.__swig_getmethods__.get(name,None)
@@ -36,7 +42,7 @@ class MAC(_object):
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, MAC, name)
     def __repr__(self):
-        return "<C MAC instance at %s>" % (self.this,)
+        return "<%s.%s; proxy of C++ MAC instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
     def __init__(self, *args):
         _swig_setattr(self, MAC, 'this', _TOSSIM.new_MAC(*args))
         _swig_setattr(self, MAC, 'thisown', 1)
@@ -44,6 +50,7 @@ class MAC(_object):
         try:
             if self.thisown: destroy(self)
         except: pass
+
     def initHigh(*args): return _TOSSIM.MAC_initHigh(*args)
     def initLow(*args): return _TOSSIM.MAC_initLow(*args)
     def high(*args): return _TOSSIM.MAC_high(*args)
@@ -82,7 +89,7 @@ class Radio(_object):
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, Radio, name)
     def __repr__(self):
-        return "<C Radio instance at %s>" % (self.this,)
+        return "<%s.%s; proxy of C++ Radio instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
     def __init__(self, *args):
         _swig_setattr(self, Radio, 'this', _TOSSIM.new_Radio(*args))
         _swig_setattr(self, Radio, 'thisown', 1)
@@ -90,6 +97,7 @@ class Radio(_object):
         try:
             if self.thisown: destroy(self)
         except: pass
+
     def add(*args): return _TOSSIM.Radio_add(*args)
     def gain(*args): return _TOSSIM.Radio_gain(*args)
     def connected(*args): return _TOSSIM.Radio_connected(*args)
@@ -110,7 +118,7 @@ class Packet(_object):
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, Packet, name)
     def __repr__(self):
-        return "<C Packet instance at %s>" % (self.this,)
+        return "<%s.%s; proxy of C++ Packet instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
     def __init__(self, *args):
         _swig_setattr(self, Packet, 'this', _TOSSIM.new_Packet(*args))
         _swig_setattr(self, Packet, 'thisown', 1)
@@ -118,6 +126,7 @@ class Packet(_object):
         try:
             if self.thisown: destroy(self)
         except: pass
+
     def setDestination(*args): return _TOSSIM.Packet_setDestination(*args)
     def destination(*args): return _TOSSIM.Packet_destination(*args)
     def setLength(*args): return _TOSSIM.Packet_setLength(*args)
@@ -144,7 +153,7 @@ class variable_string_t(_object):
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, variable_string_t, name)
     def __repr__(self):
-        return "<C variable_string_t instance at %s>" % (self.this,)
+        return "<%s.%s; proxy of C++ variable_string_t instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
     __swig_setmethods__["type"] = _TOSSIM.variable_string_t_type_set
     __swig_getmethods__["type"] = _TOSSIM.variable_string_t_type_get
     if _newclass:type = property(_TOSSIM.variable_string_t_type_get, _TOSSIM.variable_string_t_type_set)
@@ -165,6 +174,7 @@ class variable_string_t(_object):
             if self.thisown: destroy(self)
         except: pass
 
+
 class variable_string_tPtr(variable_string_t):
     def __init__(self, this):
         _swig_setattr(self, variable_string_t, 'this', this)
@@ -178,7 +188,7 @@ class nesc_app_t(_object):
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, nesc_app_t, name)
     def __repr__(self):
-        return "<C nesc_app_t instance at %s>" % (self.this,)
+        return "<%s.%s; proxy of C++ nesc_app_t instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
     __swig_setmethods__["numVariables"] = _TOSSIM.nesc_app_t_numVariables_set
     __swig_getmethods__["numVariables"] = _TOSSIM.nesc_app_t_numVariables_get
     if _newclass:numVariables = property(_TOSSIM.nesc_app_t_numVariables_get, _TOSSIM.nesc_app_t_numVariables_set)
@@ -199,6 +209,7 @@ class nesc_app_t(_object):
             if self.thisown: destroy(self)
         except: pass
 
+
 class nesc_app_tPtr(nesc_app_t):
     def __init__(self, this):
         _swig_setattr(self, nesc_app_t, 'this', this)
@@ -212,7 +223,7 @@ class Variable(_object):
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, Variable, name)
     def __repr__(self):
-        return "<C Variable instance at %s>" % (self.this,)
+        return "<%s.%s; proxy of C++ Variable instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
     def __init__(self, *args):
         _swig_setattr(self, Variable, 'this', _TOSSIM.new_Variable(*args))
         _swig_setattr(self, Variable, 'thisown', 1)
@@ -220,6 +231,7 @@ class Variable(_object):
         try:
             if self.thisown: destroy(self)
         except: pass
+
     def getData(*args): return _TOSSIM.Variable_getData(*args)
 
 class VariablePtr(Variable):
@@ -235,7 +247,7 @@ class Mote(_object):
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, Mote, name)
     def __repr__(self):
-        return "<C Mote instance at %s>" % (self.this,)
+        return "<%s.%s; proxy of C++ Mote instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
     def __init__(self, *args):
         _swig_setattr(self, Mote, 'this', _TOSSIM.new_Mote(*args))
         _swig_setattr(self, Mote, 'thisown', 1)
@@ -243,6 +255,7 @@ class Mote(_object):
         try:
             if self.thisown: destroy(self)
         except: pass
+
     def id(*args): return _TOSSIM.Mote_id(*args)
     def euid(*args): return _TOSSIM.Mote_euid(*args)
     def setEuid(*args): return _TOSSIM.Mote_setEuid(*args)
@@ -266,7 +279,7 @@ class Tossim(_object):
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, Tossim, name)
     def __repr__(self):
-        return "<C Tossim instance at %s>" % (self.this,)
+        return "<%s.%s; proxy of C++ Tossim instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
     def __init__(self, *args):
         _swig_setattr(self, Tossim, 'this', _TOSSIM.new_Tossim(*args))
         _swig_setattr(self, Tossim, 'thisown', 1)
@@ -274,6 +287,7 @@ class Tossim(_object):
         try:
             if self.thisown: destroy(self)
         except: pass
+
     def init(*args): return _TOSSIM.Tossim_init(*args)
     def time(*args): return _TOSSIM.Tossim_time(*args)
     def ticksPerSecond(*args): return _TOSSIM.Tossim_ticksPerSecond(*args)

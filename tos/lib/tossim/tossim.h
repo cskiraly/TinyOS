@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tossim.h,v 1.1.2.8 2006-03-07 02:35:48 scipio Exp $
+// $Id: tossim.h,v 1.1.2.9 2006-08-04 01:41:15 scipio Exp $
 
 #ifndef TOSSIM_H_INCLUDED
 #define TOSSIM_H_INCLUDED
@@ -40,6 +40,7 @@
 #include <mac.h>
 #include <radio.h>
 #include <packet.h>
+#include <hashtable.h>
 
 typedef struct variable_string {
   char* type;
@@ -96,6 +97,7 @@ class Mote {
  private:
   unsigned long nodeID;
   nesc_app_t* app;
+  struct hashtable* varTable;
 };
 
 class Tossim {
