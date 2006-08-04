@@ -1,4 +1,4 @@
-// $Id: TossimActiveMessageP.nc,v 1.1.2.8 2006-05-18 00:18:26 scipio Exp $
+// $Id: TossimActiveMessageP.nc,v 1.1.2.9 2006-08-04 01:41:15 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -62,7 +62,8 @@ implementation {
 					  uint8_t len) {
     tossim_header_t* header = getHeader(amsg);
     header->type = id;
-    header->addr = addr;
+    header->dest = addr;
+    header->src = call AMPacket.address();
     header->length = len;
     return call Model.send((int)addr, amsg, len + sizeof(tossim_header_t));
   }
@@ -120,7 +121,7 @@ implementation {
 
   event bool Model.shouldAck(message_t* msg) {
     tossim_header_t* header = getHeader(msg);
-    if (header->addr == call amAddress()) {
+    if (header->dest == call amAddress()) {
       dbg("Acks", "addressed to me so ack it,");
       return TRUE;
     }
@@ -133,14 +134,24 @@ implementation {
  
   command am_addr_t AMPacket.destination(message_t* amsg) {
     tossim_header_t* header = getHeader(amsg);
-    return header->addr;
+    return header->dest;
   }
 
   command void AMPacket.setDestination(message_t* amsg, am_addr_t addr) {
     tossim_header_t* header = getHeader(amsg);
-    header->addr = addr;
+    header->dest = addr;
   }
 
+  command am_addr_t AMPacket.source(message_t* amsg) {
+    tossim_header_t* header = getHeader(amsg);
+    return header->src;
+  }
+
+  command void AMPacket.setSource(message_t* amsg, am_addr_t addr) {
+    tossim_header_t* header = getHeader(amsg);
+    header->src = addr;
+  }
+  
   command bool AMPacket.isForMe(message_t* amsg) {
     return (call AMPacket.destination(amsg) == call AMPacket.address() ||
 	    call AMPacket.destination(amsg) == AM_BROADCAST_ADDR);
