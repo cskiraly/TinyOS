@@ -4,7 +4,8 @@
 #include "AM.h"
 
 typedef nx_struct tda5250_header_t {
-  nx_am_addr_t addr;
+  nx_am_addr_t src;
+  nx_am_addr_t dest;
   nx_uint8_t length;
   nx_am_group_t group;
   nx_am_id_t type;
