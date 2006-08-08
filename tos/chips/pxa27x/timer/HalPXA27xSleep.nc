@@ -38,4 +38,5 @@ interface HalPXA27xSleep {
   async command void sleepMillis(uint16_t time);
   // sleep for 'time' minutes
   async command void sleepMinutes(uint16_t time);
+  async command void sleepHours(uint16_t time);
 }

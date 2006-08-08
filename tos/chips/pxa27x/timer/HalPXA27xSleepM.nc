@@ -70,4 +70,19 @@ implementation {
     call HplPXA27xPower.setPWRMode(PWRMODE_M_SLEEP);
     // this call never returns
   }
+
+  async command void HalPXA27xSleep.sleepHours(uint16_t time) {
+    int i;
+    call HplPXA27xPower.setPWER(PWER_WERTC);
+    // let it wrap around itself if necessary
+    call HplPXA27xRTC.setSWCR(0);
+    call HplPXA27xRTC.setSWAR1((time << 19) & 0xF80000); // hours
+    call HplPXA27xRTC.setSWAR2(0x00FFFFFF);
+    for(i = 0; i < 10; i++); // spin for a bit
+    call HplPXA27xRTC.setRTSR(RTSR_SWCE);
+    for(i = 0; i < 5000; i++); // spin for a bit
+
+    call HplPXA27xPower.setPWRMode(PWRMODE_M_SLEEP);
+    // this call never returns
+  }
 }
