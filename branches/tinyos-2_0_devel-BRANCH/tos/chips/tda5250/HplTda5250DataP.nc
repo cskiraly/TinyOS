@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.7 $
- * $Date: 2006-08-03 18:17:52 $
+ * $Revision: 1.1.2.8 $
+ * $Date: 2006-08-09 13:17:06 $
  * ========================================================================
  */
 
@@ -42,15 +42,12 @@ module HplTda5250DataP {
   provides {
     interface Init;
     interface HplTda5250Data;
-
-//     interface ResourceRequested;
     interface Resource;
-
+		//     interface ResourceRequested;
   }
   uses {
     interface GeneralIO as DATA;
     interface SerialByteComm as Uart;
-    interface Msp430UartControl as UartControl;
     interface Resource as UartResource;
 //     interface ResourceRequested as UartResourceRequested;
   }
@@ -103,20 +100,6 @@ implementation {
 //   async event void UartResourceRequested.immediateRequested() {
 //     signal ResourceRequested.immediateRequested(); 
 //   }
-  
-  async command error_t HplTda5250Data.setToTx() {
-    if(call UartResource.isOwner() == FALSE)
-      return FAIL;
-    call UartControl.setModeTx();
-    return SUCCESS;
-  }
-
-  async command error_t HplTda5250Data.setToRx() {
-   if(call UartResource.isOwner() == FALSE)
-     return FAIL;
-   call UartControl.setModeRx();
-   return SUCCESS;
-  }
 
   async command error_t HplTda5250Data.tx(uint8_t data) {
     if(call UartResource.isOwner() == FALSE)

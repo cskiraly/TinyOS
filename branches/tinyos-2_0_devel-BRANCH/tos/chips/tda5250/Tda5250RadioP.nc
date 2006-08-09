@@ -27,8 +27,8 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.8 $
-* $Date: 2006-08-03 18:17:52 $
+* $Revision: 1.1.2.9 $
+* $Date: 2006-08-09 13:17:06 $
 * @author: Kevin Klues (klues@tkn.tu-berlin.de)
 * ========================================================================
 */
@@ -55,6 +55,7 @@ module Tda5250RadioP {
   uses {
     interface HplTda5250Config;
     interface HplTda5250Data;
+		interface HplTda5250DataControl;
     interface Resource as ConfigResource;
     interface Resource as DataResource;
 //     interface ResourceRequested as DataResourceRequested;
@@ -194,12 +195,12 @@ implementation {
         atomic mode = radioMode;
         switch(mode) {
           case RADIO_MODE_TX_TRANSITION:
-            call HplTda5250Data.setToTx();
+            call HplTda5250DataControl.setToTx();
             atomic radioMode = RADIO_MODE_TX;
             signal Tda5250Control.TxModeDone();
             break;
           case RADIO_MODE_RX_TRANSITION:
-            call HplTda5250Data.setToRx();
+            call HplTda5250DataControl.setToRx();
             atomic radioMode = RADIO_MODE_RX;
             signal Tda5250Control.RxModeDone();
             break;
