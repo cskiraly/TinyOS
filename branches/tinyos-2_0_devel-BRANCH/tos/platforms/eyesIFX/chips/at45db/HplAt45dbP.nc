@@ -51,7 +51,6 @@ implementation
 		uint8_t status;
 		call FlashSpi.write( 0, &status );
 		if (!(status & 0x80)) {
-			call FlashSpi.write(0xd7, &status);
 			post idleTask();
 		} else {
 			signal HplAt45dbByte.idle();
