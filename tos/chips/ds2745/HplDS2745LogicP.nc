@@ -34,7 +34,7 @@
  * I2C packet interface and provides the HplTMP175 HPL interface.
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-08-11 18:53:24 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-08-11 19:05:03 $
  */
 
 #include "DS2745.h"
@@ -248,11 +248,11 @@ implementation {
       break;
     case STATE_SETBIAS:
       atomic mState = STATE_IDLE;
-      signal HplDS2745.setConfigRegDone(error);
+      signal HplDS2745.setOffsetBiasDone(error);
       break;
     case STATE_SETACCBIAS:
       atomic mState = STATE_IDLE;
-      signal HplDS2745.setTHighRegDone(error);
+      signal HplDS2745.setAccOffsetBiasDone(error);
       break;
     default:
       atomic mState = STATE_IDLE;
