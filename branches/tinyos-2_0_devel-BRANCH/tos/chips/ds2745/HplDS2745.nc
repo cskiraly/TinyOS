@@ -34,7 +34,7 @@
  * Monitor.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-08-11 00:06:31 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-08-11 18:53:24 $
  */
 
 interface HplDS2745 {
@@ -109,7 +109,7 @@ interface HplDS2745 {
    *
    * @return SUCCESS if the measurement will be made
    */
-  command measureAccCurrent();
+  command error_t measureAccCurrent();
 
   /**
    * Presents the result of a accumulated current measurement.

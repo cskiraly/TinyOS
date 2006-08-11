@@ -34,7 +34,7 @@
  * I2C packet interface and provides the HplTMP175 HPL interface.
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-08-11 00:06:31 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-08-11 18:53:24 $
  */
 
 #include "DS2745.h"
@@ -59,7 +59,7 @@ implementation {
     STATE_STOPPED,
     STATE_SETCONFIG,
     STATE_READTEMP,
-    STATE_READVOLTAGE
+    STATE_READVOLTAGE,
     STATE_READCURRENT,
     STATE_READACCCURRENT,
     STATE_SETBIAS,
@@ -68,9 +68,9 @@ implementation {
 
   uint8_t mI2CBuffer[4];
   uint8_t mState;
-  norace error_t mSSError;
+  norace error_t mSSError = SUCCESS;
 
-  static errot_t doReadReg(uint8_t nextSTate, uint8_t reg) {
+  static error_t doReadReg(uint8_t nextState, uint8_t reg) {
     error_t error = SUCCESS;
 	
     atomic {
@@ -122,7 +122,7 @@ implementation {
 
   task void StartDone() {
     atomic mState = STATE_IDLE;
-    signal SplitControl.startDone();
+    signal SplitControl.startDone(mSSError);
     return;
   }
 
@@ -185,11 +185,11 @@ implementation {
     return doReadReg(STATE_READTEMP,DS2745_PTR_ACCURMSB);
   }
 
-  command error_t HplDS2745.setOffsetBias(uint16_t val) { 
+  command error_t HplDS2745.setOffsetBias(int8_t val) { 
     return doSetReg(STATE_SETBIAS,DS2745_PTR_OFFSETBIAS,val); 
   }
 
-  command error_t HplDS2745.setAccOffsetBias(uint16_t val) {
+  command error_t HplDS2745.setAccOffsetBias(int8_t val) {
     return doSetReg(STATE_SETACCBIAS,DS2745_PTR_ACCBIAS,val); 
   }
 
@@ -242,7 +242,7 @@ implementation {
       break;
     case STATE_READACCCURRENT:
       if (error) 
-	signal HplDS2745.measureAccCurrentDoneDone(error,0);
+	signal HplDS2745.measureAccCurrentDone(error,0);
       else
 	error = call I2CPacket.read((I2C_START | I2C_STOP),devAddr,2,mI2CBuffer);
       break;
