@@ -32,7 +32,7 @@
 /**
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-08-11 19:05:03 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-08-11 22:44:53 $
  */
 
 module Tsl2561InternalP {
@@ -43,6 +43,10 @@ module Tsl2561InternalP {
 implementation {
   uint8_t currentId;
   
+  command error_t HplDS2745.setConfig[uint8_t id](int8_t val) {
+    currentId = id;
+    return call ToHPLC.setConfig(val);
+  }
   command error_t HplDS2745.measureTemperature[uint8_t id]() {
     currentId = id;
     return call ToHPLC.measureTemperature();
@@ -68,6 +72,9 @@ implementation {
     return call ToHPLC.setAccOffsetBias(val);
   }
   
+  async event void ToHPLC.setConfigDone(error_t error) {
+    signal HplDS2745.setConfigDone[currentId](error);
+  }
   async event void ToHPLC.measureTemperatureDone(error_t result, uint16_t val) {
     signal HplDS2745.measureTemperatureDone[currentId](result, val);
   }
@@ -87,6 +94,7 @@ implementation {
     signal HplDS2745.setAccOffsetBiasDone[currentId](error);
   }
 
+  default async event void HplDS2745.setConfigDone[uint8_t id]( error_t error ){ return; }
   default async event void HplDS2745.measureTemperatureDone[uint8_t id]( error_t error, uint16_t val ){ return; }
   default async event void HplDS2745.measureVoltageDone[uint8_t id]( error_t error, uint16_t val ){ return; }
   default async event void HplDS2745.measureCurrentDone[uint8_t id]( error_t error, uint16_t val ){ return; }
