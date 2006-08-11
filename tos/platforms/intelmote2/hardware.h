@@ -228,6 +228,7 @@ const uint8_t TOSH_IRP_TABLE[] = { 0xFF, // PPID  0 SSP_3 Service Req
 #define I2C_SDA (118)
 #define I2C_SDA_ALTFN (1)
 
+#define DS2745_SLAVE_ADDR (0x48)
 
 #if 0
 TOSH_ASSIGN_PIN(CC_VREN,A,CC_VREN_PIN); 
