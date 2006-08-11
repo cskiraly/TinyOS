@@ -32,7 +32,7 @@
 /**
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-08-11 00:59:43 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-08-11 19:05:03 $
  */
 
 module Tsl2561InternalP {
@@ -59,13 +59,13 @@ implementation {
     currentId = id;
     return call ToHPLC.measureAccCurrent();
   }
-  command error_t HplDS2745.setOffsetBias[uint8_t id](uint8_t val) {
+  command error_t HplDS2745.setOffsetBias[uint8_t id](int8_t val) {
     currentId = id;
     return call ToHPLC.setOffsetBias(val);
   }
-  command error_t HplDS2745.setAccOffsetBias[uint8_t id]() {
+  command error_t HplDS2745.setAccOffsetBias[uint8_t id](int8_t val) {
     currentId = id;
-    return call ToHPLC.setAccOffsetBias();
+    return call ToHPLC.setAccOffsetBias(val);
   }
   
   async event void ToHPLC.measureTemperatureDone(error_t result, uint16_t val) {
@@ -92,7 +92,7 @@ implementation {
   default async event void HplDS2745.measureCurrentDone[uint8_t id]( error_t error, uint16_t val ){ return; }
   default async event void HplDS2745.measureAccCurrentDone[uint8_t id]( error_t error, uint16_t val ){ return; }
   default async event void HplDS2745.setOffsetBiasDone[uint8_t id]( error_t error ){ return; }
-  default async event void HplDS2745.setAccOfsetBiasDone[uint8_t id](error_t error){ return; }
+  default async event void HplDS2745.setAccOffsetBiasDone[uint8_t id](error_t error){ return; }
 
 }
 
