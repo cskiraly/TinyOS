@@ -34,7 +34,7 @@
  * I2C packet interface and provides the HplTMP175 HPL interface.
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-08-11 19:05:03 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-08-11 22:44:53 $
  */
 
 #include "DS2745.h"
@@ -169,6 +169,10 @@ implementation {
     return error;
   }
   
+  command error_t HplDS2745.setConfig(uint8_t val) {
+    return doSetReg(STATE_SETCONFIG,DS2745_PTR_SC,val);
+  }
+
   command error_t HplDS2745.measureTemperature() { 
     return doReadReg(STATE_READTEMP,DS2745_PTR_TEMPMSB);
   }
@@ -222,6 +226,10 @@ implementation {
     error_t error = i2c_error;
 
     switch (mState) {
+    case STATE_SETCONFIG:
+      atomic mState = STATE_IDLE;
+      signal HplDS2745.setConfigDone(error);
+      break;     
     case STATE_READTEMP:
       if (error) 
 	signal HplDS2745.measureTemperatureDone(error,0);
@@ -265,6 +273,7 @@ implementation {
   
   default event void SplitControl.startDone( error_t error ) { return; }
   default event void SplitControl.stopDone( error_t error ) { return; }
+  default async event void HplDS2745.setConfigDone(error_t error) {return; }
   default async event void HplDS2745.measureTemperatureDone( error_t error, uint16_t val ){ return; }
   default async event void HplDS2745.measureVoltageDone( error_t error, uint16_t val ){ return; }
   default async event void HplDS2745.measureCurrentDone( error_t error, uint16_t val ){ return; }
