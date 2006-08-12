@@ -32,7 +32,7 @@
 /**
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-08-11 00:59:43 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-08-12 00:05:47 $
  */
 
 configuration DS2745InternalC {
@@ -42,11 +42,7 @@ configuration DS2745InternalC {
 }
 
 implementation {
-  enum { 
-    ADV_ID = unique("Tsl2561.HplAccess"),
-  };
-
-  components new FcfsArbiterC( "Tsl2561.Resource" ) as Arbiter;
+  components new FcfsArbiterC( "Ds2745.Resource" ) as Arbiter;
   components MainC;
   Resource = Arbiter;
   MainC.SoftwareInit -> Arbiter;
@@ -56,6 +52,10 @@ implementation {
 
   components new HalPXA27xI2CMasterC(TRUE) as I2CC;
   Logic.I2CPacket -> I2CC;
+
+  components HplPXA27xGPIOC;
+  I2CC.I2CSCL -> HplPXA27xGPIOC.HplPXA27xGPIOPin[I2C_SCL];
+  I2CC.I2CSDA -> HplPXA27xGPIOC.HplPXA27xGPIOPin[I2C_SDA];
 
   components DS2745InternalP as Internal;
   HplDS2745 = Internal.HplDS2745;
