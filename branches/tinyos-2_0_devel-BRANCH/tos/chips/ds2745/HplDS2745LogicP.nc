@@ -34,7 +34,7 @@
  * I2C packet interface and provides the HplTMP175 HPL interface.
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-08-11 22:44:53 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-08-15 19:57:33 $
  */
 
 #include "DS2745.h"
@@ -133,7 +133,7 @@ implementation {
   }
 
   command error_t Init.init() {
-    mState = STATE_STOPPING;
+    mState = STATE_STOPPED;
     return SUCCESS;
   }
 
