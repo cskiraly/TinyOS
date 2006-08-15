@@ -31,8 +31,8 @@
  * Management policies.
  *
  * @author Kevin Klues <klueska@cs.wustl.edu>
- * @version  $Revision: 1.1.2.4 $
- * @date $Date: 2006-02-16 16:48:11 $ 
+ * @version  $Revision: 1.1.2.5 $
+ * @date $Date: 2006-08-15 11:47:21 $ 
  */
  
 #include "Timer.h"
@@ -75,8 +75,15 @@ implementation {
   event void TimerMilli.fired() {
     if(waiting == TRUE) {
       waiting = FALSE;
-      if(whoHasIt == 0)
-        call Resource1.request();
+      if(whoHasIt == 0)  {
+        if(call Resource1.immediateRequest() == SUCCESS) {
+          whoHasIt = 1;
+          call Leds.led2On();
+          call TimerMilli.startOneShot(HOLD_PERIOD);
+          return;
+        }
+        else call Resource1.request();
+      }
       if(whoHasIt == 1)
         call Resource0.request();
     }
