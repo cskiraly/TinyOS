@@ -1,4 +1,4 @@
-/* $Id: DemoSensorNowC.nc,v 1.1.2.2 2006-03-08 02:01:48 klueska Exp $
+/* $Id: DemoSensorNowC.nc,v 1.1.2.3 2006-08-15 11:59:09 klueska Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -27,7 +27,8 @@ implementation
     return SUCCESS;
   }
 
-  async command void Resource.release() {
+  async command error_t Resource.release() {
+    return SUCCESS;
   }
 
   async command uint8_t Resource.isOwner() {

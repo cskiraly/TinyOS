@@ -1,4 +1,4 @@
-/* $Id: NestedResourceC.nc,v 1.1.2.2 2006-03-08 02:01:48 klueska Exp $
+/* $Id: NestedResourceC.nc,v 1.1.2.3 2006-08-15 11:59:09 klueska Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -51,9 +51,10 @@ implementation
     return EBUSY;
   }
 
-  async command void Resource.release() {
-    call Resource1.release();
-    call Resource2.release();
+  async command error_t Resource.release() {
+    if(call Resource1.release() == SUCCESS)
+    	return call Resource2.release();
+    return FAIL;
   }
 
   async command uint8_t Resource.isOwner() {

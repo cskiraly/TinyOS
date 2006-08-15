@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-08-03 18:34:50 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-08-15 11:59:09 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -84,8 +84,8 @@ implementation
         signal ReadNowResource.granted();
     }
 
-    async command void ReadNowResource.release() {
-        call SubResource.release();
+    async command error_t ReadNowResource.release() {
+        return call SubResource.release();
     }
     
     async command bool ReadNowResource.isOwner() {

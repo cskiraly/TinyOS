@@ -1,4 +1,4 @@
-/* $Id: MAX136xInternalC.nc,v 1.1.2.2 2006-07-14 16:30:29 kaisenl Exp $ */
+/* $Id: MAX136xInternalC.nc,v 1.1.2.3 2006-08-15 11:59:09 klueska Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -42,10 +42,9 @@ configuration MAX136xInternalC {
 }
 
 implementation {
-  components new FcfsArbiterC( "MAX136x.Resource" )as Arbiter;
+  components new SimpleFcfsArbiterC( "MAX136x.Resource" )as Arbiter;
   components MainC;
   Resource = Arbiter;
-  MainC.SoftwareInit -> Arbiter;
 
   components new HplMAX136xLogicP(MAX136_SLAVE_ADDR) as Logic;
   MainC.SoftwareInit -> Logic;

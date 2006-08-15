@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.13 $ $Date: 2006-06-20 18:56:05 $
+ * @version $Revision: 1.1.2.14 $ $Date: 2006-08-15 11:59:08 $
  */
 
 module CC2420TransmitP {
@@ -117,8 +117,8 @@ implementation {
     return error;
   }
 
-  void releaseSpiResource() {
-    call SpiResource.release();
+  error_t releaseSpiResource() {
+    return call SpiResource.release();
   }
 
   void signalDone( error_t err ) {

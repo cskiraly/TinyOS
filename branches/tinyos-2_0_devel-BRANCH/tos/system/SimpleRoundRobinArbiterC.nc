@@ -48,13 +48,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-/*
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.15 $
- * $Date: 2006-08-15 11:56:05 $ 
- * ======================================================================== 
- */
  
 /**
  * Please refer to TEP 108 for more information about this component and its
@@ -74,13 +67,13 @@
  * @param <b>resourceName</b> -- The name of the Resource being shared
  * 
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
+ * @author Philip Levis
  */
  
-generic configuration RoundRobinArbiterC(char resourceName[]) {
+generic configuration SimpleRoundRobinArbiterC(char resourceName[]) {
   provides {
     interface Resource[uint8_t id];
     interface ResourceRequested[uint8_t id];
-    interface ResourceController;
     interface ArbiterInfo;
   }
   uses interface ResourceConfigure[uint8_t id];
@@ -88,13 +81,12 @@ generic configuration RoundRobinArbiterC(char resourceName[]) {
 implementation {
   components MainC;
   components new RoundRobinResourceQueueC(uniqueCount(resourceName)) as Queue;
-  components new ArbiterP(uniqueCount(resourceName)) as Arbiter;
+  components new SimpleArbiterP() as Arbiter;
 
   MainC.SoftwareInit -> Queue;
 
   Resource = Arbiter;
   ResourceRequested = Arbiter;
-  ResourceController = Arbiter;
   ArbiterInfo = Arbiter;
   ResourceConfigure = Arbiter;
 

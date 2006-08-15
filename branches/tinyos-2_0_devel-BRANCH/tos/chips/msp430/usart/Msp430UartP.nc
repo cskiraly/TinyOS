@@ -3,7 +3,7 @@
 /**
  * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.8 $ $Date: 2006-08-03 18:10:41 $
+ * @version $Revision: 1.1.2.9 $ $Date: 2006-08-15 11:59:08 $
  */
 
 
@@ -36,8 +36,8 @@ implementation {
     return call UsartResource.isOwner[ id ]();
   }
 
-  async command void Resource.release[ uint8_t id ]() {
-    call UsartResource.release[ id ]();
+  async command error_t Resource.release[ uint8_t id ]() {
+    return call UsartResource.release[ id ]();
   }
 
   async command void ResourceConfigure.configure[ uint8_t id ]() {
@@ -86,7 +86,7 @@ implementation {
   default async command error_t UsartResource.isOwner[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.request[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.immediateRequest[ uint8_t id ]() { return FAIL; }
-  default async command void UsartResource.release[ uint8_t id ]() { }
+  default async command error_t UsartResource.release[ uint8_t id ]() { return FAIL; }
   default async command msp430_uart_config_t* Msp430UartConfigure.getConfig[uint8_t id]() {
     return &msp430_uart_default_config;
   }

@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.9 $ $Date: 2006-06-20 18:56:05 $
+ * @version $Revision: 1.1.2.10 $ $Date: 2006-08-15 11:59:08 $
  */
 
 module Stm25pBlockP {
@@ -242,7 +242,7 @@ implementation {
   default command error_t Sector.erase[ uint8_t id ]( uint8_t sector, uint8_t num_sectors ) { return FAIL; }
   default command error_t Sector.computeCrc[ uint8_t id ]( uint16_t crc, storage_addr_t addr, storage_len_t len ) { return FAIL; }
   default async command error_t ClientResource.request[ uint8_t id ]() { return FAIL; }
-  default async command void ClientResource.release[ uint8_t id ]() {}
+  default async command error_t ClientResource.release[ uint8_t id ]() { return FAIL; }
   
 }
 

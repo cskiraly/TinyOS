@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-08-03 18:10:41 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-08-15 11:59:08 $
  */
 
 #include <I2C.h>
@@ -87,8 +87,8 @@ implementation {
     return call UsartResource.isOwner[ id ]();
   }
   
-  async command void Resource.release[ uint8_t id ]() {
-    call UsartResource.release[ id ]();
+  async command error_t Resource.release[ uint8_t id ]() {
+    return call UsartResource.release[ id ]();
   }
   
 	async command void ResourceConfigure.configure[ uint8_t id ]() {
@@ -105,7 +105,7 @@ implementation {
   
   default async command error_t UsartResource.request[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.immediateRequest[ uint8_t id ]() { return FAIL; }
-	default async command void UsartResource.release[ uint8_t id ]() {}
+	default async command error_t UsartResource.release[ uint8_t id ]() {return FAIL;}
   default event void Resource.granted[ uint8_t id ]() {}
 	default async command msp430_i2c_config_t* Msp430SpiConfigure.getConfig[uint8_t id]() {
 		return &msp430_i2c_default_config;

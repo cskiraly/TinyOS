@@ -28,8 +28,8 @@
  *
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.7 $
- * $Date: 2006-08-03 18:17:52 $
+ * $Revision: 1.1.2.8 $
+ * $Date: 2006-08-15 11:59:09 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -73,8 +73,8 @@ implementation {
      return call SpiResource.isOwner();
    }
 
-   async command void Resource.release() {
-     call SpiResource.release();
+   async command error_t Resource.release() {
+     return call SpiResource.release();
    }
 
    event void SpiResource.granted() {
