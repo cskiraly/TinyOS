@@ -1,4 +1,4 @@
-/* $Id: ArbitratedReadStreamC.nc,v 1.1.2.3 2006-02-17 00:26:48 idgay Exp $
+/* $Id: ArbitratedReadStreamC.nc,v 1.1.2.4 2006-08-15 11:56:05 klueska Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -64,7 +64,7 @@ implementation {
   default async command error_t Resource.request[uint8_t client]() { 
     return SUCCESS; 
   }
-  default async command void Resource.release[uint8_t client]() { }
+  default async command error_t Resource.release[uint8_t client]() { return FAIL; }
 
   default command error_t Service.postBuffer[uint8_t client](val_t* buf, uint16_t count)
   {

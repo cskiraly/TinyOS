@@ -55,8 +55,8 @@
  * <br>
  *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
- * @version  $Revision: 1.1.2.2 $
- * @date $Date: 2006-02-16 16:48:10 $
+ * @version  $Revision: 1.1.2.3 $
+ * @date $Date: 2006-08-15 11:49:00 $
  */
 
 #include "Timer.h"
@@ -67,7 +67,7 @@ module TestArbiterC {
     interface Leds;
     interface Resource as Resource0;
     interface Resource as Resource1;
-    interface Resource as Resource2;  
+    interface Resource as Resource2;
     interface Timer<TMilli> as Timer0;
     interface Timer<TMilli> as Timer1;
     interface Timer<TMilli> as Timer2;

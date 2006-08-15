@@ -1,5 +1,5 @@
 /*
- * "Copyright (c) 2005 Washington University in St. Louis.
+ * "Copyright (c) 2006 Washington University in St. Louis.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -18,36 +18,35 @@
  * ON AN "AS IS" BASIS, AND WASHINGTON UNIVERSITY IN ST. LOUIS HAS NO 
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
- *
- */
- 
-/*
- * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-08-15 11:51:13 $ 
- * ======================================================================== 
  */
  
 /**
- * Please refer to TEP 115 for more information about this interface and its
+ * Please refer to TEP 108 for more information about this interface and its
  * intended use.<br><br>
  *
- * This interface exists to allow a Resource user to cleanup any state
- * information before a shared Resource is shutdown.  It should be provided
- * by the user of a shared Resource, and used by the
- * power managment component for that Resource.  The <code>cleanup()</code>
- * command will be called by the power manager just before powering down
- * the shared resource.
- *
+ * The ResourceRequested interface can be used in conjunction with the 
+ * Resource interface in order to receive events based on other users
+ * requests.
+ * 
  * @author Kevin Klues (klueska@cs.wustl.edu)
+ * @version $Revision: 1.1.2.5 $
+ * @date $Date: 2006-08-15 11:50:42 $
  */
 
-interface PowerDownCleanup {
+interface ResourceRequested {
   /**
-   * This command will be called by the power management component of
-   * a shared Resource.  The implementation of this command defines
-   * what must be done just before that shared Resource is shut off.
-   *
-   */
-  async command void cleanup();
-} 
+   * This event is signalled whenever the user of this interface
+   * currently has control of the resource, and another user requests
+   * it through the Resource.request() command. You may want to
+   * consider releasing a resource based on this event
+  */
+  async event void requested();
+
+  /**
+  * This event is signalled whenever the user of this interface
+  * currently has control of the resource, and another user requests
+  * it through the Resource.immediateRequest() command. You may
+  * want to consider releasing a resource based on this event
+  */
+  async event void immediateRequested();
+}
