@@ -57,7 +57,7 @@ module CsmaMacP {
         interface RadioTimeStamping;
         
         interface Tda5250Control as RadioModes;  
-//         interface ResourceRequested as RadioResourceRequested;
+        interface ResourceRequested as RadioResourceRequested;
 
         interface UartPhyControl;
         interface Packet as SubPacket;
@@ -765,16 +765,16 @@ implementation
     }
     
     /***** RadioData Resource events **************/
-//     async event void RadioResourceRequested.requested() {
-//       atomic {
-//         /* This gives other devices the chance to get the Resource
-//            because RxMode implies a new arbitration round.  */
-//         if (macState == RX) setRxMode();
-//       }
-//     }
-//     
-//     // we don't care about urgent Resource requestes
-//     async event void RadioResourceRequested.immediateRequested() {}
+    async event void RadioResourceRequested.requested() {
+      atomic {
+        /* This gives other devices the chance to get the Resource
+           because RxMode implies a new arbitration round.  */
+        if (macState == RX) setRxMode();
+      }
+    }
+    
+    // we don't care about urgent Resource requestes
+    async event void RadioResourceRequested.immediateRequested() {}
 }
 
 

@@ -54,7 +54,7 @@ configuration CsmaMacC {
 }
 implementation {
   components  MainC,
-//       Tda5250RadioC,    
+      Tda5250RadioC,    
       CsmaMacP,
       RssiFixedThresholdCMC as Cca,
       new Alarm32khzC() as Timer,
@@ -87,7 +87,7 @@ implementation {
     
     CsmaMacP.Random -> RandomLfsrC;
 
-//     CsmaMacP.RadioResourceRequested -> Tda5250RadioC.ResourceRequested;
+    CsmaMacP.RadioResourceRequested -> Tda5250RadioC.ResourceRequested;
 
     CsmaMacP.Timer -> Timer;
 #ifdef MAC_DEBUG

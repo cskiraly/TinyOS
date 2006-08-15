@@ -26,8 +26,8 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.1 $
-* $Date: 2006-08-09 13:17:07 $
+* $Revision: 1.1.2.2 $
+* $Date: 2006-08-15 13:54:07 $
 * ========================================================================
 */
 
@@ -40,7 +40,7 @@
 configuration HplTda5250DataIOC {
   provides {
 		interface Resource;
-		// interfcace ResourceRequested;
+    interface ResourceRequested;
 		interface SerialByteComm;
 		interface HplTda5250DataControl;		
   }
@@ -52,11 +52,10 @@ implementation {
 			HplTda5250DataIOP;
 
 	Resource = Msp430Uart0C.Resource;
-	// ResourceRequested = Msp430Uart0C.ResourceRequested
+  ResourceRequested = Msp430Uart0C.ResourceRequested;
 	SerialByteComm = Msp430Uart0C.SerialByteComm;
 	
 	HplTda5250DataControl = HplTda5250DataIOP;
-	HplTda5250DataIOP.UartResource -> Msp430Uart0C.Resource;
   HplTda5250DataIOP.UartControl -> Msp430Uart0C.UartControl;
 	HplTda5250DataIOP.UartResourceConfigure <- Msp430Uart0C.Msp430UartConfigure;  
 }
