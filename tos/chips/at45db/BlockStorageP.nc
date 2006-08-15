@@ -1,4 +1,4 @@
-// $Id: BlockStorageP.nc,v 1.1.2.15 2006-06-02 17:37:36 idgay Exp $
+// $Id: BlockStorageP.nc,v 1.1.2.16 2006-08-15 11:59:08 klueska Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  
@@ -489,5 +489,5 @@ implementation
   default command at45page_t At45dbVolume.remap[uint8_t id](at45page_t volumePage) { return 0; }
   default command at45page_t At45dbVolume.volumeSize[uint8_t id]() { return 0; }
   default async command error_t Resource.request[uint8_t id]() { return FAIL; }
-  default async command void Resource.release[uint8_t id]() { }
+  default async command error_t Resource.release[uint8_t id]() { return FAIL; }
 }

@@ -976,5 +976,5 @@ implementation
   default command at45page_t At45dbVolume.remap[uint8_t logId](at45page_t volumePage) {return 0;}
   default command at45page_t At45dbVolume.volumeSize[uint8_t logId]() {return 0;}
   default async command error_t Resource.request[uint8_t logId]() {return SUCCESS;}
-  default async command void Resource.release[uint8_t logId]() { }
+  default async command error_t Resource.release[uint8_t logId]() { return FAIL; }
 }

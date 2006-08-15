@@ -37,7 +37,7 @@
  * acquire the Resource before using it.
  *
  * @author Gilman Tolle <gtolle@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-06-20 18:56:07 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-08-15 11:59:09 $
  */
 
 configuration HalSensirionSht11C {
@@ -47,9 +47,6 @@ configuration HalSensirionSht11C {
 implementation {
   components new SensirionSht11LogicP();
   SensirionSht11 = SensirionSht11LogicP;
-
-  components MainC;
-  MainC.SoftwareInit -> HplSensirionSht11C;
 
   components HplSensirionSht11C;
   Resource = HplSensirionSht11C.Resource;

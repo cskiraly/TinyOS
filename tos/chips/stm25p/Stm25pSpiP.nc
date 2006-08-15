@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.11 $ $Date: 2006-06-20 18:56:05 $
+ * @version $Revision: 1.1.2.12 $ $Date: 2006-08-15 11:59:08 $
  */
 
 #include "crc.h"
@@ -113,8 +113,8 @@ implementation {
     return call SpiResource.immediateRequest();
   }
   
-  async command void ClientResource.release() {
-    call SpiResource.release();
+  async command error_t ClientResource.release() {
+    return call SpiResource.release();
   }
 
   async command uint8_t ClientResource.isOwner() {

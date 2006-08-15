@@ -1,4 +1,4 @@
-/* $Id: TMP175InternalC.nc,v 1.1.2.2 2006-07-14 16:30:29 kaisenl Exp $ */
+/* $Id: TMP175InternalC.nc,v 1.1.2.3 2006-08-15 11:59:09 klueska Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -46,10 +46,9 @@ implementation {
     ADV_ID = unique("TMP175.HplAccess"),
   };
   
-  components new FcfsArbiterC( "TMP175.Resource" ) as Arbiter;
+  components new SimpleFcfsArbiterC( "TMP175.Resource" ) as Arbiter;
   components MainC;
   Resource = Arbiter;
-  MainC.SoftwareInit -> Arbiter;
 
   components new HplTMP175LogicP(TMP175_SLAVE_ADDR) as Logic;
   MainC.SoftwareInit -> Logic;

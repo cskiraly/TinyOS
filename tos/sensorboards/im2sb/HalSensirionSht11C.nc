@@ -38,7 +38,7 @@
  *
  * @author Gilman Tolle <gtolle@archrock.com>
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-05-31 22:15:13 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-08-15 11:59:09 $
  */
 
 configuration HalSensirionSht11C {
@@ -48,9 +48,6 @@ configuration HalSensirionSht11C {
 implementation {
   components new SensirionSht11LogicP();
   SensirionSht11 = SensirionSht11LogicP;
-
-  components MainC;
-  MainC.SoftwareInit -> HplSensirionSht11C;
 
   components HplSensirionSht11C;
   Resource = HplSensirionSht11C.Resource;

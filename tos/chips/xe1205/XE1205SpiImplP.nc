@@ -64,7 +64,7 @@
 /**
  * @author Jonathan Hui <jhui@archrock.com>
  * @author Henri Dubois-Ferriere
- * @version $Revision: 1.1.2.2 $ $Date: 2006-06-20 18:56:06 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-08-15 11:59:09 $
  */
 
 module XE1205SpiImplP {
@@ -133,12 +133,12 @@ implementation {
     return error;
   }
 
-  async command void Resource.release[ uint8_t id ]() {
+  async command error_t Resource.release[ uint8_t id ]() {
     uint8_t i;
     atomic {
       if ( m_holder != id ) {
 	xe1205check(11, 1);
-	return;
+	return FAIL;
       }
 
       m_holder = NO_HOLDER;
@@ -154,10 +154,11 @@ implementation {
 	    m_holder = i;
 	    m_requests &= ~( 1 << i );
 	    call SpiResource.request();
-	    return;
+	    return SUCCESS;
 	  }
 	}
       }
+      return SUCCESS;
     }
   }
   

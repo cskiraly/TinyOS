@@ -1,4 +1,4 @@
-/// $Id: Atm128SpiP.nc,v 1.1.2.8 2006-03-08 02:01:44 klueska Exp $
+/// $Id: Atm128SpiP.nc,v 1.1.2.9 2006-08-15 11:59:08 klueska Exp $
 
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -63,7 +63,7 @@
  *
  *
  * <pre>
- *  $Id: Atm128SpiP.nc,v 1.1.2.8 2006-03-08 02:01:44 klueska Exp $
+ *  $Id: Atm128SpiP.nc,v 1.1.2.9 2006-08-15 11:59:08 klueska Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -291,13 +291,14 @@ implementation {
    return call ResourceArbiter.request[ id ]();
  }
 
- async command void Resource.release[ uint8_t id ]() {
-   call ResourceArbiter.release[ id ]();
+ async command error_t Resource.release[ uint8_t id ]() {
+   error_t error = call ResourceArbiter.release[ id ]();
    atomic {
      if (!call ArbiterInfo.inUse()) {
        stopSpi();
      }
    }
+   return error;
  }
 
  async command uint8_t Resource.isOwner[uint8_t id]() {

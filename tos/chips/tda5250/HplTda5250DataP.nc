@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.8 $
- * $Date: 2006-08-09 13:17:06 $
+ * $Revision: 1.1.2.9 $
+ * $Date: 2006-08-15 11:59:08 $
  * ========================================================================
  */
 
@@ -81,8 +81,8 @@ implementation {
     return SUCCESS;
   }
 
-  async command void Resource.release() {
-    call UartResource.release();
+  async command error_t Resource.release() {
+    return call UartResource.release();
   }
 
   async command bool Resource.isOwner() {

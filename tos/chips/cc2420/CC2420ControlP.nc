@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.20 $ $Date: 2006-06-20 18:56:04 $
+ * @version $Revision: 1.1.2.21 $ $Date: 2006-08-15 11:59:08 $
  */
 
 #include "Timer.h"
@@ -110,10 +110,10 @@ implementation {
     return call SpiResource.isOwner();
   }
 
-  async command void Resource.release() {
+  async command error_t Resource.release() {
     atomic {
       call CSN.set();
-      call SpiResource.release();
+      return call SpiResource.release();
     }
   }
 

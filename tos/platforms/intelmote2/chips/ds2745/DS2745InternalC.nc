@@ -32,7 +32,7 @@
 /**
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-08-12 00:05:47 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-08-15 11:59:09 $
  */
 
 configuration DS2745InternalC {
@@ -42,10 +42,9 @@ configuration DS2745InternalC {
 }
 
 implementation {
-  components new FcfsArbiterC( "Ds2745.Resource" ) as Arbiter;
+  components new SimpleFcfsArbiterC( "Ds2745.Resource" ) as Arbiter;
   components MainC;
   Resource = Arbiter;
-  MainC.SoftwareInit -> Arbiter;
   
   components new HplDS2745LogicP(DS2745_SLAVE_ADDR) as Logic;
   MainC.SoftwareInit -> Logic;

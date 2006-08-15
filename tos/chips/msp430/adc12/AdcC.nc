@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.15 $
- * $Date: 2006-07-07 15:13:27 $
+ * $Revision: 1.1.2.16 $
+ * $Date: 2006-08-15 11:59:08 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -269,12 +269,12 @@ implementation
 
   default async command error_t Resource.request[uint8_t client]() { return FAIL; }
   default async command error_t Resource.immediateRequest[uint8_t client]() { return FAIL; }
-  default async command void Resource.release[uint8_t client]() { }
+  default async command error_t Resource.release[uint8_t client]() { return FAIL; }
   default event void Read.readDone[uint8_t client]( error_t result, uint16_t val ){}
   default async event void ReadNow.readDone[uint8_t client]( error_t result, uint16_t val ){}
   
   default async command error_t ResourceReadStream.request[uint8_t rsClient]() { return FAIL; }
-  default async command void ResourceReadStream.release[uint8_t rsClient]() { }
+  default async command error_t ResourceReadStream.release[uint8_t rsClient]() { return FAIL; }
   default event void ReadStream.bufferDone[uint8_t rsClient]( error_t result, 
 			 uint16_t* buf, uint16_t count ){}
   default event void ReadStream.readDone[uint8_t rsClient]( error_t result, uint32_t actualPeriod ){ } 

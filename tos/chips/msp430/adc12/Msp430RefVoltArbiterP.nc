@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-06-13 13:31:12 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-08-15 11:59:08 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -108,7 +108,7 @@ module Msp430RefVoltArbiterP
     }
   }
 
-  async command void ClientResource.release[uint8_t client]()
+  async command error_t ClientResource.release[uint8_t client]()
   {
     atomic {
       if (owner == client){
@@ -116,7 +116,7 @@ module Msp430RefVoltArbiterP
         post switchOff();
       }
     }
-    call AdcResource.release[client]();
+    return call AdcResource.release[client]();
   }
 
   task void switchOff()
@@ -149,7 +149,7 @@ module Msp430RefVoltArbiterP
     return FAIL;
   }
 
-  default async command void AdcResource.release[uint8_t client](){}
+  default async command error_t AdcResource.release[uint8_t client](){return FAIL;}
   default async command msp430adc12_channel_config_t 
     Config.getChannelSettings[uint8_t client]()
   { 

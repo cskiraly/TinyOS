@@ -34,7 +34,7 @@
  * serial code flash.
  *
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.9 $ $Date: 2006-06-20 18:56:05 $
+ * @version $Revision: 1.1.2.10 $ $Date: 2006-08-15 11:59:08 $
  */
 
 configuration Stm25pSectorC {
@@ -55,13 +55,10 @@ implementation {
   Volume = SectorP;
   
   components new FcfsArbiterC( "Stm25p.Volume" ) as ArbiterC;
-  MainC.SoftwareInit -> ArbiterC;
   SectorP.Stm25pResource -> ArbiterC;
 
   components new SplitControlDeferredPowerManagerC( 1024 ) as PowerManagerC;
-  MainC.SoftwareInit -> PowerManagerC;
   PowerManagerC.SplitControl -> SectorP;
-  PowerManagerC.ArbiterInit -> ArbiterC;
   PowerManagerC.ResourceController -> ArbiterC;
   PowerManagerC.ArbiterInfo -> ArbiterC;
 
