@@ -30,14 +30,13 @@
  * of the AsyncStdControl, StdControl, and SplitControl interfaces.
  *
  * @author Kevin Klues <klueska@cs.wustl.edu>
- * @version  $Revision: 1.1.2.8 $
- * @date $Date: 2006-01-30 18:25:35 $ 
+ * @version  $Revision: 1.1.2.9 $
+ * @date $Date: 2006-08-15 11:47:21 $ 
  */
  
 #define MYCOMPONENT_RESOURCE   "MyComponent.Resource"
 configuration MyComponentC{
   provides {
-    interface Init;
     interface Resource[uint8_t];
   }
 }
@@ -46,21 +45,17 @@ implementation {
              new TimerMilliC() as StartTimer, new TimerMilliC() as StopTimer,
              new FcfsArbiterC(MYCOMPONENT_RESOURCE) as Arbiter,
 //              new AsyncStdControlPowerManagerC() as PowerManager;
-//              new AsyncStdControlDeferredPowerManagerC(750) as PowerManager;
+             new AsyncStdControlDeferredPowerManagerC(750) as PowerManager;
 //              new StdControlPowerManagerC() as PowerManager;
 //              new StdControlDeferredPowerManagerC(750) as PowerManager;
 //              new SplitControlPowerManagerC() as PowerManager;
-             new SplitControlDeferredPowerManagerC(750) as PowerManager;
+//              new SplitControlDeferredPowerManagerC(750) as PowerManager;
 
-  Init = Arbiter;
-  Init = PowerManager;
-  Init = LedsC;
   Resource = Arbiter;
 
-//   PowerManager.AsyncStdControl -> MyComponentP.AsyncStdControl;  
+  PowerManager.AsyncStdControl -> MyComponentP.AsyncStdControl;
 //   PowerManager.StdControl -> MyComponentP.StdControl;
-  PowerManager.SplitControl -> MyComponentP.SplitControl;
-  PowerManager.ArbiterInit -> Arbiter.Init;  
+//   PowerManager.SplitControl -> MyComponentP.SplitControl;
   PowerManager.ResourceController -> Arbiter.ResourceController;
   PowerManager.ArbiterInfo -> Arbiter.ArbiterInfo;
 
