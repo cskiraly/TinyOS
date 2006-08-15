@@ -27,8 +27,8 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.9 $
-* $Date: 2006-08-09 13:17:06 $
+* $Revision: 1.1.2.10 $
+* $Date: 2006-08-15 13:54:06 $
 * @author: Kevin Klues (klues@tkn.tu-berlin.de)
 * ========================================================================
 */
@@ -50,7 +50,7 @@ module Tda5250RadioP {
     interface SplitControl;
     interface Tda5250Control;
     interface RadioByteComm;
-//     interface ResourceRequested;
+    interface ResourceRequested;
   }
   uses {
     interface HplTda5250Config;
@@ -58,7 +58,7 @@ module Tda5250RadioP {
 		interface HplTda5250DataControl;
     interface Resource as ConfigResource;
     interface Resource as DataResource;
-//     interface ResourceRequested as DataResourceRequested;
+    interface ResourceRequested as DataResourceRequested;
     
     interface Alarm<T32khz, uint16_t> as DelayTimer;
   }
@@ -214,13 +214,13 @@ implementation {
       }
       
       // information for higher layers that the DataResource has been requested
-//       async event void DataResourceRequested.requested() {
-//         signal ResourceRequested.requested();
-//       }
+      async event void DataResourceRequested.requested() {
+        signal ResourceRequested.requested();
+      }
 
-//       async event void DataResourceRequested.immediateRequested() {
-//         signal ResourceRequested.immediateRequested();
-//       }
+      async event void DataResourceRequested.immediateRequested() {
+        signal ResourceRequested.immediateRequested();
+      }
 
   /**
       Set the mode of the radio
@@ -432,10 +432,10 @@ implementation {
         }
       }
 
-//       default async event void ResourceRequested.requested() {
-//       }
-//       default async event void ResourceRequested.immediateRequested() {
-//       }
+      default async event void ResourceRequested.requested() {
+      }
+      default async event void ResourceRequested.immediateRequested() {
+      }
       default async event void Tda5250Control.TimerModeDone(){
       }
       default async event void Tda5250Control.SelfPollingModeDone(){

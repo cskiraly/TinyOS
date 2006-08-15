@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-08-09 13:17:07 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-08-15 13:54:07 $
  * ========================================================================
  */
 
@@ -46,22 +46,17 @@ module HplTda5250DataIOP {
   }
   uses {
     interface Msp430UartControl as UartControl;
-    interface Resource as UartResource;
   }
 }
 
 implementation {
   
   async command error_t HplTda5250DataControl.setToTx() {
-    if(call UartResource.isOwner() == FALSE)
-      return FAIL;
     call UartControl.setModeTx();
     return SUCCESS;
   }
 
   async command error_t HplTda5250DataControl.setToRx() {
-   if(call UartResource.isOwner() == FALSE)
-     return FAIL;
    call UartControl.setModeRx();
    return SUCCESS;
   }
@@ -70,6 +65,4 @@ implementation {
 		return &tda5250_uart_config;
 	}
 
-	/* don't touch this */
-	event void UartResource.granted() {};
 }

@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.9 $
- * $Date: 2006-08-15 11:59:08 $
+ * $Revision: 1.1.2.10 $
+ * $Date: 2006-08-15 13:54:06 $
  * ========================================================================
  */
 
@@ -42,14 +42,16 @@ module HplTda5250DataP {
   provides {
     interface Init;
     interface HplTda5250Data;
+    interface HplTda5250DataControl;
     interface Resource;
-		//     interface ResourceRequested;
+		interface ResourceRequested;
   }
   uses {
     interface GeneralIO as DATA;
     interface SerialByteComm as Uart;
+    interface HplTda5250DataControl as UartControl;
     interface Resource as UartResource;
-//     interface ResourceRequested as UartResourceRequested;
+    interface ResourceRequested as UartResourceRequested;
   }
 }
 
@@ -93,13 +95,13 @@ implementation {
     signal Resource.granted();
   }
   
-//   async event void UartResourceRequested.requested() {
-//     signal ResourceRequested.requested(); 
-//   }
-//   
-//   async event void UartResourceRequested.immediateRequested() {
-//     signal ResourceRequested.immediateRequested(); 
-//   }
+  async event void UartResourceRequested.requested() {
+    signal ResourceRequested.requested(); 
+  }
+  
+  async event void UartResourceRequested.immediateRequested() {
+    signal ResourceRequested.immediateRequested(); 
+  }
 
   async command error_t HplTda5250Data.tx(uint8_t data) {
     if(call UartResource.isOwner() == FALSE)
@@ -118,6 +120,19 @@ implementation {
       return;
     signal HplTda5250Data.rxDone(data);
   }
+  
+  async command error_t HplTda5250DataControl.setToTx() {
+    if(call UartResource.isOwner() == FALSE)
+      return FAIL;
+    return call UartControl.setToTx();
+  }
+
+  async command error_t HplTda5250DataControl.setToRx() {
+    if(call UartResource.isOwner() == FALSE)
+      return FAIL;
+    return call UartControl.setToRx();
+  }
+	
 
   default event void Resource.granted() {}
   default async event void HplTda5250Data.txReady() {}
