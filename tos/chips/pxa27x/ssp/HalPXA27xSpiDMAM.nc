@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSpiDMAM.nc,v 1.1.2.5 2006-02-16 19:03:16 idgay Exp $ */
+/* $Id: HalPXA27xSpiDMAM.nc,v 1.1.2.6 2006-08-16 18:20:53 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -62,19 +62,23 @@ implementation
 {
   // The BitBuckets need to be 8 bytes. 
   norace unsigned long long txBitBucket, rxBitBucket;
+  //norace uint8_t ucBitBucket[0x10000];
+  //norace uint32_t txBitBucket, rxBitBucket;
   uint8_t *txCurrentBuf, *rxCurrentBuf;
   uint8_t instanceCurrent;
   uint32_t lenCurrent;
 
   command error_t Init.init() {
 
-    txBitBucket = 0, rxBitBucket = 0;
+    //txBitBucket = (uint32_t)((uint32_t)&ullBitBucket[1] * ~0x7);
+    //rxBitBucket = txBitBucket + 8;
+    //rxBitBucket = txBitBucket = (uint32_t)&ucBitBucket[0];
     txCurrentBuf = rxCurrentBuf = NULL;
     lenCurrent = 0 ;
     instanceCurrent = 0;
 
     call SSP.setSSCR1((SSCR1_TRAIL | SSCR1_RFT(8) | SSCR1_TFT(8)));
-    call SSP.setSSTO(96*8);
+    call SSP.setSSTO(3500);
     call SSP.setSSCR0(SSCR0_SCR(valSCR) | SSCR0_SSE | SSCR0_FRF(valFRF) | SSCR0_DSS(valDSS) );
 
     call TxDMA.setMap(call SSPTxDMAInfo.getMapIndex());
@@ -142,7 +146,7 @@ implementation
       txDMAFlags |= DCMD_INCSRCADDR;
     }
 
-    call RxDMA.setDCSR(DCSR_NODESCFETCH);
+    call RxDMA.setDCSR(DCSR_NODESCFETCH | DCSR_EORIRQEN | DCSR_EORINT);
     call RxDMA.setDSADR(call SSPRxDMAInfo.getAddr());
     call RxDMA.setDTADR(rxAddr);
     call RxDMA.setDCMD(rxDMAFlags);
@@ -155,7 +159,7 @@ implementation
     call SSP.setSSSR(SSSR_TINT);
     call SSP.setSSCR1((call SSP.getSSCR1()) | SSCR1_RSRE | SSCR1_TSRE);
 
-    call RxDMA.setDCSR(DCSR_RUN | DCSR_NODESCFETCH);
+    call RxDMA.setDCSR(DCSR_RUN | DCSR_NODESCFETCH | DCSR_EORIRQEN);
     call TxDMA.setDCSR(DCSR_RUN | DCSR_NODESCFETCH);
     
     error = SUCCESS;
