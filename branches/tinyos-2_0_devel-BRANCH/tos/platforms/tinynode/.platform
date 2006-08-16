@@ -14,7 +14,7 @@ push( @includes, qw(
   %T/chips/xe1205/mac
   %T/chips/xe1205
 
-  %T/../beta/tos/chips/mm74hc595
+  %T/chips/mm74hc595
 
   %T/chips/msp430
   %T/chips/msp430/adc12
