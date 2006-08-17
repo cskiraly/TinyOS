@@ -1,4 +1,3 @@
-// $Id: SerialP.nc,v 1.1.2.12 2006-08-03 18:21:08 phihup Exp $
 /*									
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
  *  downloading, copying, installing or using the software you agree to
@@ -35,7 +34,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.12 $
+ * Revision: $Revision: 1.1.2.13 $
  * 
  */
 
@@ -670,20 +669,22 @@ implementation {
         
       case TXSTATE_INFO:
         atomic {
-          uint8_t nextByte;
-
           txResult = call SerialFrameComm.putData(txBuf[txIndex].buf);
           txCRC = crcByte(txCRC,txBuf[txIndex].buf);
           ++txByteCnt;
           
           if (txIndex == TX_DATA_INDEX){
+            uint8_t nextByte;
             nextByte = signal SendBytePacket.nextByte();
+            if (txBuf[txIndex].state == BUFFER_COMPLETE || txByteCnt >= SERIAL_MTU){
+              txState = TXSTATE_FCS1;
+            }
+            else { /* never called on ack b/c ack is BUFFER_COMPLETE initially */
+              txBuf[txIndex].buf = nextByte;
+            }
           }
-          if (txBuf[txIndex].state == BUFFER_COMPLETE || txByteCnt >= SERIAL_MTU){
+          else { // TX_ACK_INDEX
             txState = TXSTATE_FCS1;
-          }
-          else { /* never called on ack b/c ack is BUFFER_COMPLETE initially */
-            txBuf[txIndex].buf = nextByte;
           }
         }
         break;
