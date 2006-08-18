@@ -6,7 +6,7 @@
 </head>
 <body>
 
-$Id: lesson-t.html,v 1.1.2.7 2006-04-09 17:58:03 scipio Exp $
+$Id: lesson-t.html,v 1.1.2.8 2006-08-18 05:49:58 scipio Exp $
 
 <div class="title">Lesson T: Simulation with TOSSIM</div>
 <div class="subtitle">Last Modified: Feb 9, 2006</div>
@@ -76,6 +76,28 @@ $Id: lesson-t.html,v 1.1.2.7 2006-04-09 17:58:03 scipio Exp $
         href="../../../tos/chips/atm128/timersim">tos/chips/atm128/timer/sim</a></tt>
         contains TOSSIM implementations of some of the Atmega128 timer
         abstractions.</p>
+
+        <p>Before compiling TOSSIM, you need to configure it for the
+        version of Python you have on your machine. At the command
+        line, type</p>
+
+        <pre>
+          $ python -V
+        </pre>
+
+        <p>If you have Python 2.4 (or a subversion, such as 2.4.2), then
+        TOSSIM will compile for you with no changes. TOSSIM has been tested
+        for Python 2.3 and 2.4. If you have a version other than 2.4, you need
+        to modify the TOSSIM makefile in 
+        <tt>tinyos-2.x/support/make/sim.extra</tt>. Open the file and
+        modify the line</p>
+        
+        <pre>
+          PYTHON_VERSION=2.4
+        </pre>
+
+        <p>to indicate your Python version (e.g., 
+          <tt>PYTHON_VERSION=2.3</tt>).</p>
 
         <p>To compile TOSSIM, you pass the <tt>sim</tt> option to make:</p>
 
