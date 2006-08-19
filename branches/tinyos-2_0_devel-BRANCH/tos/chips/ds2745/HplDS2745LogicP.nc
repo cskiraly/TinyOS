@@ -34,7 +34,7 @@
  * I2C packet interface and provides the HplTMP175 HPL interface.
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-08-15 19:57:33 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-08-19 00:46:24 $
  */
 
 #include "DS2745.h"
@@ -178,11 +178,11 @@ implementation {
   }
 
   command error_t HplDS2745.measureVoltage() { 
-    return doReadReg(STATE_READTEMP,DS2745_PTR_VOLTMSB);
+    return doReadReg(STATE_READVOLTAGE,DS2745_PTR_VOLTMSB);
   }
 
   command error_t HplDS2745.measureCurrent() { 
-    return doReadReg(STATE_READTEMP,DS2745_PTR_CURRMSB);
+    return doReadReg(STATE_READCURRENT,DS2745_PTR_CURRMSB);
   }
 
   command error_t HplDS2745.measureAccCurrent() { 
