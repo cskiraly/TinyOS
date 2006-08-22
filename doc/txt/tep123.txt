@@ -10,8 +10,8 @@ The Collection Tree Protocol (CTP)
 :Author: Rodrigo Fonseca, Omprakash Gnawali, Kyle Jamieson, Sukun Kim, Philip Levis, and Alec Woo
 
 :Draft-Created: 3-Aug-2006
-:Draft-Version: $Revision: 1.1.2.1 $
-:Draft-Modified: $Date: 2006-08-15 19:58:18 $
+:Draft-Version: $Revision: 1.1.2.2 $
+:Draft-Modified: $Date: 2006-08-22 22:47:36 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -160,9 +160,9 @@ The CTP routing frame format is as follows::
                            1            
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |C|P| reserved  |     address     |
+      |C|P| reserved  |      parent     |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |    address    |       ETX       |    
+      |     parent    |       ETX       |    
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       |      ETX      |          
       +-+-+-+-+-+-+-+-+
@@ -171,12 +171,17 @@ The fields are as follows:
   
   * C: Same as data frame.
   * P: Same as data frame.
-  * address: The node's active message address.
+  * parent: The node's current parent.
   * metric: The node's current routing metric value.
 
 When a node hears a routing frame, it MUST update its routing table to
 reflect the address' new metric. If a node's ETX value changes
 significantly, then CTP SHOULD transmit a broadcast frame soon thereafter
-to notify other nodes, which might change their routes.
+to notify other nodes, which might change their routes. The parent
+field acts as a surrogate for the single-hop destination field of
+a data packet: a parent can detect when a child's ETX is significantly
+below its own. When a parent hears a child advertise an ETX below its
+own, it MUST schedule a routing frame for transmission in the near
+future.
 
 
