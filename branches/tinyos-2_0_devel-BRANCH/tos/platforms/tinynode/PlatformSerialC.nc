@@ -8,4 +8,5 @@ implementation {
   StdControl = TinyNodeSerialP;
   SerialByteComm = UartC;
   TinyNodeSerialP.Resource -> UartC.Resource;
+  TinyNodeSerialP.Msp430UartConfigure <- UartC.Msp430UartConfigure;
 }
