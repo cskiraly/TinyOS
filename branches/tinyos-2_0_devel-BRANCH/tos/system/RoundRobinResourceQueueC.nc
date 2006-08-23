@@ -23,8 +23,8 @@
 /**
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.1 $
- * @date $Date: 2006-08-15 11:56:05 $
+ * @version $Revision: 1.1.2.2 $
+ * @date $Date: 2006-08-23 14:55:47 $
  */
  
 #include "Resource.h"
@@ -46,7 +46,7 @@ implementation {
   }
 
   command error_t Init.init() {
-    memset(resQ, NO_ENTRY, sizeof(resQ));
+    memset(resQ, 0, sizeof(resQ));
     return SUCCESS;
   }  
   
