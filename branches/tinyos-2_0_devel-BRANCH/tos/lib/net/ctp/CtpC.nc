@@ -87,7 +87,7 @@ configuration CtpC {
 
 implementation {
   enum {
-    CLIENT_COUNT = uniqueCount(UQ_COLLECTION_CLIENT),
+    CLIENT_COUNT = uniqueCount(UQ_CTP_CLIENT),
     FORWARD_COUNT = 5,
     TREE_ROUTING_TABLE_SIZE = 10,
     QUEUE_SIZE = CLIENT_COUNT + FORWARD_COUNT,
@@ -95,7 +95,7 @@ implementation {
   };
 
   components ActiveMessageC;
-  components new ForwardingEngineP() as Forwarder;
+  components new CtpForwardingEngineP() as Forwarder;
   components MainC, LedsC;
   
   Send = Forwarder;
@@ -106,6 +106,7 @@ implementation {
   Packet = Forwarder;
   CollectionId = Forwarder;
   CollectionPacket = Forwarder;
+  CtpPacket = Forwarder;
   
   components new PoolC(message_t, FORWARD_COUNT) as MessagePoolP;
   components new PoolC(fe_queue_entry_t, FORWARD_COUNT) as QEntryPoolP;
@@ -121,9 +122,9 @@ implementation {
   components new TimerMilliC() as RoutingBeaconTimer;
   components LinkEstimatorP as Estimator;
 
-  components new AMSenderC(AM_COLLECTION_DATA);
-  components new AMReceiverC(AM_COLLECTION_DATA);
-  components new AMSnooperC(AM_COLLECTION_DATA);
+  components new AMSenderC(AM_CTP_DATA);
+  components new AMReceiverC(AM_CTP_DATA);
+  components new AMSnooperC(AM_CTP_DATA);
   
   components new CtpRoutingEngineP(TREE_ROUTING_TABLE_SIZE) as Router;
   StdControl = Router;
@@ -139,9 +140,9 @@ implementation {
   Router.BeaconTimer -> RoutingBeaconTimer;
   Router.CollectionDebug = CollectionDebug;
   Forwarder.CollectionDebug = CollectionDebug;
-  Forwarder.TreeRoutingInspect -> Router;
-  TreeRoutingInspect = Router;
- 
+  Forwarder.CtpInfo -> Router;
+  CtpInfo = Router;
+
   components new TimerMilliC() as RetxmitTimer;
   Forwarder.RetxmitTimer -> RetxmitTimer;
 
@@ -161,8 +162,8 @@ implementation {
   Forwarder.AMPacket -> AMSenderC;
   Forwarder.Leds -> LedsC;
   
-  components new AMSenderC(AM_COLLECTION_CONTROL) as SendControl;
-  components new AMReceiverC(AM_COLLECTION_CONTROL) as ReceiveControl;
+  components new AMSenderC(AM_CTP_ROUTING) as SendControl;
+  components new AMReceiverC(AM_CTP_ROUTING) as ReceiveControl;
   components new AMSenderC(AM_LINKEST) as SendLinkEst;
   components new AMReceiverC(AM_LINKEST) as ReceiveLinkEst;
   components new TimerMilliC() as EstimatorTimer;

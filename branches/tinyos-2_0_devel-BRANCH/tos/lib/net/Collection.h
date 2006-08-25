@@ -1,4 +1,4 @@
-/* $Id: Collection.h,v 1.1.2.1 2006-08-24 20:24:17 scipio Exp $ */
+/* $Id: Collection.h,v 1.1.2.2 2006-08-25 00:41:28 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -23,11 +23,12 @@
 
 /*
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-08-24 20:24:17 $
+ *  @date   $Date: 2006-08-25 00:41:28 $
  */
 #ifndef COLLECTION_H
 #define COLLECTION_H
 
+typedef nx_uint8_t nx_collection_id_t;
 typedef uint8_t collection_id_t;
 
 #endif

@@ -1,5 +1,3 @@
-/* $Id: Ctp.h,v 1.1.2.2 2006-08-25 00:41:28 scipio Exp $ */
-
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -31,49 +29,58 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- *  Header file that declares the AM types, message formats, and
- *  constants for the TinyOS reference implementation of the
- *  Collection Tree Protocol (CTP), as documented in TEP 123.
+#include "Ctp.h"
+
+/**
+ * A data collection service that uses a tree routing protocol
+ * to deliver data to collection roots, following TEP 119.
  *
- *  @author Philip Levis
- *  @date   $Date: 2006-08-25 00:41:28 $
+ * @author Rodrigo Fonseca
+ * @author Omprakash Gnawali
+ * @author Kyle Jamieson
+ * @author Philip Levis
  */
 
-#ifndef CTP_H
-#define CTP_H
 
-#include <Collection.h>
-#include <AM.h>
+configuration CollectionC {
+  provides {
+    interface StdControl;
+    interface Send[uint8_t client];
+    interface Receive[collection_id_t id];
+    interface Receive as Snoop[collection_id_t];
+    interface Intercept[collection_id_t id];
 
-#define UQ_CTP_CLIENT "CtpSenderC.CollectId"
+    interface Packet;
+    interface CollectionPacket;
+    interface CtpPacket;
 
-enum {
-    AM_CTP_DATA    = 23,
-    AM_CTP_ROUTING = 24,
-    AM_CTP_DEBUG   = 25,
-    CTP_PULL_OPT = 0x80,
-    CTP_ECN_OPT  = 0x40,
-};
+    interface CtpInfo;
+    interface RootControl;    
+  }
 
-typedef nx_uint8_t nx_ctp_options_t;
-typedef uint8_t ctp_options_t;
+  uses {
+    interface CollectionId[uint8_t client];
+    interface CollectionDebug;
+  }
+}
 
-typedef nx_struct {
-  nx_ctp_options_t    options;
-  nx_uint8_t          thl;
-  nx_uint16_t         etx;
-  nx_am_addr_t        origin;
-  nx_uint8_t          originSeqNo;
-  nx_collection_id_t  type;
-  nx_uint8_t          data[0];
-} ctp_data_header_t;
+implementation {
+  components CtpC;
 
-typedef nx_struct {
-  nx_ctp_options_t    options;
-  nx_am_addr_t        parent;
-  nx_uint16_t         etx;
-  nx_uint8_t          data[0];
-} ctp_routing_header_t;
+  StdControl = CtpC;
+  Send = CtpC;
+  Receive = CtpC.Receive;
+  Snoop = CtpC.Snoop;
+  Intercept = CtpC;
 
-#endif
+  Packet = CtpC;
+  CollectionPacket = CtpC;
+  CtpPacket = CtpC;
+
+  CtpInfo = CtpC;
+  RootControl = CtpC;
+
+  CollectionId = CtpC;
+  CollectionDebug = CtpC;
+}
+

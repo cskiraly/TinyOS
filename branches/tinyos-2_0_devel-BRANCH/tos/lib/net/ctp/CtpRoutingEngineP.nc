@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.1 2006-08-24 20:04:23 scipio Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.2 2006-08-25 00:41:28 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -90,7 +90,7 @@
  *  @author Rodrigo Fonseca
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-08-24 20:04:23 $
+ *  @date   $Date: 2006-08-25 00:41:28 $
  *  @see Net2-WG
  */
 
@@ -98,7 +98,7 @@ generic module CtpRoutingEngineP(uint8_t routingTableSize) {
     provides {
         interface UnicastNameFreeRouting as Routing;
         interface RootControl;
-        interface TreeRoutingInspect;
+        interface CtpInfo;
         interface StdControl;
         interface Init;
     } 
@@ -440,7 +440,7 @@ implementation {
     }
    
     /* TreeRoutingInspect interface */
-    command error_t TreeRoutingInspect.getParent(am_addr_t* parent) {
+    command error_t CtpInfo.getParent(am_addr_t* parent) {
         if (parent == NULL) 
             return FAIL;
         if (routeInfo.parent == INVALID_ADDR)    
@@ -448,7 +448,7 @@ implementation {
         *parent = routeInfo.parent;
         return SUCCESS;
     }
-    command error_t TreeRoutingInspect.getHopcount(uint8_t* hopcount) {
+    command error_t CtpInfo.getHopcount(uint8_t* hopcount) {
         if (hopcount == NULL) 
             return FAIL;
         if (routeInfo.parent == INVALID_ADDR)    
@@ -456,7 +456,7 @@ implementation {
         *hopcount= routeInfo.hopcount;
         return SUCCESS;
     }
-    command error_t TreeRoutingInspect.getMetric(uint16_t* metric) {
+    command error_t CtpInfo.getMetric(uint16_t* metric) {
         if (metric == NULL) 
             return FAIL;
         if (routeInfo.parent == INVALID_ADDR)    
@@ -465,7 +465,7 @@ implementation {
         return SUCCESS;
     }
 
-    command void TreeRoutingInspect.triggerRouteUpdate() {
+    command void CtpInfo.triggerRouteUpdate() {
       // Random time in interval 64-127ms
       uint16_t time = call Random.rand16();
       time &= 0x3f; 
