@@ -1,4 +1,4 @@
-/* $Id: LinkEstimator.h,v 1.1.2.6 2006-06-21 00:18:13 gnawali Exp $ */
+/* $Id: LinkEstimator.h,v 1.1.2.7 2006-08-25 00:41:28 scipio Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -43,6 +43,7 @@ enum {
   // use last four bits to keep track of
   // how many footer entries there are
   NUM_ENTRIES_FLAG = 15,
+  AM_LINKEST = 20,
 };
 
 // The first byte of each outgoing packet is a control byte

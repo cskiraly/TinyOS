@@ -1,4 +1,4 @@
-/* $Id: Collection.h,v 1.1.2.7 2006-06-14 18:57:44 kasj78 Exp $ */
+/* $Id: Collection.h,v 1.1.2.8 2006-08-25 00:41:28 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -23,7 +23,7 @@
 
 /*
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-06-14 18:57:44 $
+ *  @date   $Date: 2006-08-25 00:41:28 $
  */
 #ifndef COLLECTION_H
 #define COLLECTION_H
@@ -32,7 +32,6 @@ enum {
     AM_COLLECTION_DATA = 20,
     AM_COLLECTION_CONTROL = 21,
     AM_COLLECTION_DEBUG = 22,
-    AM_LINKEST = 0,
 };
 
 typedef uint8_t collection_id_t;

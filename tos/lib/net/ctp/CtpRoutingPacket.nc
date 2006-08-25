@@ -1,5 +1,4 @@
-/* $Id: Ctp.h,v 1.1.2.2 2006-08-25 00:41:28 scipio Exp $ */
-
+/* $Id: CtpRoutingPacket.nc,v 1.1.2.1 2006-08-25 00:41:28 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -31,49 +30,24 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- *  Header file that declares the AM types, message formats, and
- *  constants for the TinyOS reference implementation of the
- *  Collection Tree Protocol (CTP), as documented in TEP 123.
+/**
+ *  ADT for CTP routing frames.
  *
  *  @author Philip Levis
+ *  @author Kyle Jamieson
  *  @date   $Date: 2006-08-25 00:41:28 $
  */
 
-#ifndef CTP_H
-#define CTP_H
-
-#include <Collection.h>
 #include <AM.h>
+   
+interface CtpRoutingPacket {
 
-#define UQ_CTP_CLIENT "CtpSenderC.CollectId"
+  command ctp_options_t getOptions(message_t* msg);
+  command void          setOptions(message_t* msg, ctp_options_t options);
 
-enum {
-    AM_CTP_DATA    = 23,
-    AM_CTP_ROUTING = 24,
-    AM_CTP_DEBUG   = 25,
-    CTP_PULL_OPT = 0x80,
-    CTP_ECN_OPT  = 0x40,
-};
+  command am_addr_t     getParent(message_t* msg);
+  command void          setParent(message_t* msg, am_addr_t addr);
 
-typedef nx_uint8_t nx_ctp_options_t;
-typedef uint8_t ctp_options_t;
-
-typedef nx_struct {
-  nx_ctp_options_t    options;
-  nx_uint8_t          thl;
-  nx_uint16_t         etx;
-  nx_am_addr_t        origin;
-  nx_uint8_t          originSeqNo;
-  nx_collection_id_t  type;
-  nx_uint8_t          data[0];
-} ctp_data_header_t;
-
-typedef nx_struct {
-  nx_ctp_options_t    options;
-  nx_am_addr_t        parent;
-  nx_uint16_t         etx;
-  nx_uint8_t          data[0];
-} ctp_routing_header_t;
-
-#endif
+  command uint16_t      getEtx(message_t* msg);
+  command void          setEtx(message_t* msg, uint8_t seqno);
+}

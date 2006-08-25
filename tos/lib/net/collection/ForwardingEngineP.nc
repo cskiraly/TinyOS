@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.48 2006-08-02 21:13:29 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.49 2006-08-25 00:41:28 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-08-02 21:13:29 $
+ *  @date   $Date: 2006-08-25 00:41:28 $
  */
 
 #include <ForwardingEngine.h>
@@ -156,6 +156,7 @@ generic module ForwardingEngineP() {
     interface CollectionId[uint8_t client];
     interface AMPacket;
     interface CollectionDebug;
+    interface Leds;
   }
 }
 implementation {
@@ -563,6 +564,7 @@ implementation {
         call CollectionDebug.logEvent(NET_C_FE_PUT_QEPOOL_ERR);
       sending = FALSE;
       startRetxmitTimer(SENDDONE_OK_WINDOW, SENDDONE_OK_OFFSET);
+      call Leds.led2Toggle();
     }
     else {
       dbg("Forwarder", "%s: BUG: we have a pool entry, but the pool is full, client is %hhu.\n", __FUNCTION__, qe->client);

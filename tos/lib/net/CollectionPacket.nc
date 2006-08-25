@@ -1,4 +1,4 @@
-/* $Id: CollectionPacket.nc,v 1.1.2.1 2006-08-24 20:03:41 scipio Exp $ */
+/* $Id: CollectionPacket.nc,v 1.1.2.2 2006-08-25 00:41:28 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -33,17 +33,18 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-08-24 20:03:41 $
+ *  @date   $Date: 2006-08-25 00:41:28 $
  */
 
 #include <AM.h>
-   
+#include <Collection.h>
+
 interface CollectionPacket {
   command am_addr_t getOrigin(message_t* msg);
   command void setOrigin(message_t* msg, am_addr_t addr);
   
-  command uint8_t getCollectionID(message_t* msg);
-  command void setCollectionID(message_t* msg, uint8_t id);
+  command collection_id_t getType(message_t* msg);
+  command void setType(message_t* msg, collection_id_t id);
   
   command uint8_t getSequenceNumber(message_t* msg);
   command void setSequenceNumber(message_t* msg, uint8_t seqno);

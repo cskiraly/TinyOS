@@ -1,4 +1,4 @@
-/* $Id: CtpPacket.nc,v 1.1.2.1 2006-08-24 20:04:23 scipio Exp $ */
+/* $Id: CtpPacket.nc,v 1.1.2.2 2006-08-25 00:41:28 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -30,32 +30,36 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
+/**
+ *  ADT for CTP data frames.
+ *
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-08-24 20:04:23 $
+ *  @date   $Date: 2006-08-25 00:41:28 $
  */
 
 #include <AM.h>
    
-interface CollectionPacket {
-  command am_addr_t getOrigin(message_t* msg);
-  command void setOrigin(message_t* msg, am_addr_t addr);
+interface CtpPacket {
 
-  command uint8_t getCollectionID(message_t* msg);
-  command void setCollectionID(message_t* msg, uint8_t id);
+  command ctp_options_t getOptions(message_t* msg);
+  command void          setOptions(message_t* msg, ctp_options_t options);
 
-  command uint8_t getControl(message_t* msg);
-  command void setControl(message_t* msg, uint8_t control);
+  command uint8_t       getThl(message_t* msg);
+  command void          setThl(message_t* msg, uint8_t thl);
 
-  command uint8_t getSequenceNumber(message_t* msg);
-  command void setSequenceNumber(message_t* msg, uint8_t seqno);
+  command uint16_t      getEtx(message_t* msg);
+  command void          setEtx(message_t* msg, uint16_t etx);
 
-  command uint16_t getGradient(message_t* msg);
-  command void setGradient(message_t* msg, uint16_t gradient);
+  command am_addr_t     getOrigin(message_t* msg);
+  command void          setOrigin(message_t* msg, am_addr_t addr);
 
-  /** 
-   * Returns a 32bit number which is a concatenation of
-   * the origin and the sequence number */
-  command uint32_t getPacketID(message_t* msg);
+  command uint8_t       getSequenceNumber(message_t* msg);
+  command void          setSequenceNumber(message_t* msg, uint8_t seqno);
+
+  command uint8_t       getType(message_t* msg);
+  command void          setType(message_t* msg, uint8_t id);
+
+  command uint32_t      getPacketId(message_t* msg);
+  
 }

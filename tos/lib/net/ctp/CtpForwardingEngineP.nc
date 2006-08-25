@@ -1,4 +1,4 @@
-/* $Id: CtpForwardingEngineP.nc,v 1.1.2.1 2006-08-24 20:04:23 scipio Exp $ */
+/* $Id: CtpForwardingEngineP.nc,v 1.1.2.2 2006-08-25 00:41:28 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,13 +120,13 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-08-24 20:04:23 $
+ *  @date   $Date: 2006-08-25 00:41:28 $
  */
 
-#include <ForwardingEngine.h>
-#include "CollectionDebugMsg.h"
+#include <CtpForwardingEngine.h>
+#include <CollectionDebugMsg.h>
    
-generic module ForwardingEngineP() {
+generic module CtpForwardingEngineP() {
   provides {
     interface Init;
     interface StdControl;
@@ -136,6 +136,7 @@ generic module ForwardingEngineP() {
     interface Intercept[collection_id_t id];
     interface Packet;
     interface CollectionPacket;
+    interface CtpPacket;
   }
   uses {
     interface AMSend as SubSend;
@@ -149,7 +150,7 @@ generic module ForwardingEngineP() {
     interface Pool<message_t> as MessagePool;
     interface Timer<TMilli> as RetxmitTimer;
     interface Cache<uint32_t> as SentCache;
-    interface TreeRoutingInspect;
+    interface CtpInfo;
     interface PacketAcknowledgements;
     interface Random;
     interface RootControl;
@@ -192,7 +193,7 @@ implementation {
   uint8_t seqno;
 
   enum {
-    CLIENT_COUNT = uniqueCount(UQ_COLLECTION_CLIENT)
+    CLIENT_COUNT = uniqueCount(UQ_CTP_CLIENT)
   };
 
   /* Each sending client has its own reserved queue entry.
@@ -271,8 +272,8 @@ implementation {
     }
   }
 
-  network_header_t* getHeader(message_t* m) {
-    return (network_header_t*)call SubPacket.getPayload(m, NULL);
+  ctp_data_header_t* getHeader(message_t* m) {
+    return (ctp_data_header_t*)call SubPacket.getPayload(m, NULL);
   }
  
   /*
@@ -285,7 +286,7 @@ implementation {
    * not matter.
    */ 
   command error_t Send.send[uint8_t client](message_t* msg, uint8_t len) {
-    network_header_t* hdr;
+    ctp_data_header_t* hdr;
     fe_queue_entry_t *qe;
     dbg("Forwarder", "%s: sending packet from client %hhu: %x, len %hhu\n", __FUNCTION__, client, msg, len);
     if (!running) {return EOFF;}
@@ -294,8 +295,8 @@ implementation {
     call Packet.setPayloadLength(msg, len);
     hdr = getHeader(msg);
     hdr->origin = TOS_NODE_ID;
-    hdr->seqno  = seqno++;
-    hdr->collectid = call CollectionId.fetch[client]();
+    hdr->originSeqNo  = seqno++;
+    hdr->type = call CollectionId.fetch[client]();
 
     if (clientPtrs[client] == NULL) {
       dbg("Forwarder", "%s: send failed as client is busy.\n", __FUNCTION__);
@@ -385,7 +386,7 @@ implementation {
       fe_queue_entry_t* qe = call SendQueue.head();
       uint8_t payloadLen = call SubPacket.payloadLength(qe->msg);
       am_addr_t dest = call UnicastNameFreeRouting.nextHop();
-      uint32_t msg_uid = call CollectionPacket.getPacketID(qe->msg);
+      uint32_t msg_uid = call CtpPacket.getPacketId(qe->msg);
       uint16_t gradient;
 
       if (call SentCache.lookup(msg_uid)) {
@@ -404,7 +405,7 @@ implementation {
  
       dbg("Forwarder", "Sending queue entry %p\n", qe);
       if (call RootControl.isRoot()) {
-        collection_id_t collectid = getHeader(qe->msg)->collectid;
+        collection_id_t collectid = getHeader(qe->msg)->type;
         memcpy(loopbackMsgPtr, qe->msg, sizeof(message_t));
         ackPending = FALSE;
 	
@@ -417,12 +418,12 @@ implementation {
       }
       
       // Loop-detection functionality:
-      if (call TreeRoutingInspect.getMetric(&gradient) != SUCCESS) {
+      if (call CtpInfo.getMetric(&gradient) != SUCCESS) {
         // If we have no metric, set our gradient conservatively so
         // that other nodes don't automatically drop our packets.
         gradient = 0;
       }
-      call CollectionPacket.setGradient(qe->msg, gradient);
+      call CtpPacket.setEtx(qe->msg, gradient);
       
       ackPending = (call PacketAcknowledgements.requestAck(qe->msg) == SUCCESS);
       
@@ -534,7 +535,7 @@ implementation {
       }
     }
     else if (qe->client < CLIENT_COUNT) {
-      network_header_t* hdr;
+      ctp_data_header_t* hdr;
       uint8_t client = qe->client;
       dbg("Forwarder", "%s: our packet for client %hhu, remove %p from queue\n", 
           __FUNCTION__, client, qe);
@@ -556,7 +557,7 @@ implementation {
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
-      call SentCache.insert(call CollectionPacket.getPacketID(qe->msg));
+      call SentCache.insert(call CtpPacket.getPacketId(qe->msg));
       call SendQueue.dequeue();
       if (call MessagePool.put(qe->msg) != SUCCESS)
         call CollectionDebug.logEvent(NET_C_FE_PUT_MSGPOOL_ERR);
@@ -620,12 +621,12 @@ implementation {
       if (call SendQueue.enqueue(qe) == SUCCESS) {
         dbg("Forwarder,Route", "%s forwarding packet %p with queue size %hhu\n", __FUNCTION__, m, call SendQueue.size());
         // Loop-detection code:
-        if (call TreeRoutingInspect.getMetric(&gradient) == SUCCESS) {
+        if (call CtpInfo.getMetric(&gradient) == SUCCESS) {
           // We only check for loops if we know our own metric
-          if (call CollectionPacket.getGradient(m) < gradient) {
+          if (call CtpPacket.getEtx(m) < gradient) {
             // The incoming packet's metric (gradient) is less than our
             // own gradient.  Trigger a route update and backoff.
-            call TreeRoutingInspect.triggerRouteUpdate();
+            call CtpInfo.triggerRouteUpdate();
             startRetxmitTimer(LOOPY_WINDOW, LOOPY_OFFSET);
             call CollectionDebug.logEventMsg(NET_C_FE_LOOP_DETECTED,
 					 call CollectionPacket.getSequenceNumber(m), 
@@ -670,7 +671,6 @@ implementation {
    */ 
   event message_t* 
   SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
-    network_header_t* hdr = getHeader(msg);
     uint8_t netlen;
     collection_id_t collectid;
 
@@ -680,8 +680,8 @@ implementation {
     uint8_t i;
 
 
-    msg_uid = call CollectionPacket.getPacketID(msg);
-    collectid = hdr->collectid;
+    msg_uid = call CtpPacket.getPacketId(msg);
+    collectid = call CtpPacket.getType(msg);
 
     call CollectionDebug.logEventMsg(NET_C_FE_RCV_MSG,
 					 call CollectionPacket.getSequenceNumber(msg), 
@@ -701,7 +701,7 @@ implementation {
     if (call SendQueue.size() > 0) {
       for (i = call SendQueue.size(); --i;) {
 	qe = call SendQueue.element(i);
-	if (call CollectionPacket.getPacketID(qe->msg) == msg_uid) {
+	if (call CtpPacket.getPacketId(qe->msg) == msg_uid) {
 	  duplicate = TRUE;
 	  break;
 	}
@@ -751,9 +751,8 @@ implementation {
 
   event message_t* 
   SubSnoop.receive(message_t* msg, void *payload, uint8_t len) {
-    network_header_t* hdr = getHeader(msg);
-    return signal Snoop.receive[hdr->collectid] (msg, (void *)(hdr + 1), 
-                                          len - sizeof(network_header_t));
+    return signal Snoop.receive[call CtpPacket.getType(msg)] (msg, payload + sizeof(ctp_data_header_t), 
+							      len - sizeof(ctp_data_header_t));
   }
   
   event void RetxmitTimer.fired() {
@@ -766,69 +765,56 @@ implementation {
   }
   
   command uint8_t Packet.payloadLength(message_t* msg) {
-    return call SubPacket.payloadLength(msg) - sizeof(network_header_t);
+    return call SubPacket.payloadLength(msg) - sizeof(ctp_data_header_t);
   }
 
   command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
-    call SubPacket.setPayloadLength(msg, len + sizeof(network_header_t));
+    call SubPacket.setPayloadLength(msg, len + sizeof(ctp_data_header_t));
   }
   
   command uint8_t Packet.maxPayloadLength() {
-    return call SubPacket.maxPayloadLength() - sizeof(network_header_t);
+    return call SubPacket.maxPayloadLength() - sizeof(ctp_data_header_t);
   }
 
   command void* Packet.getPayload(message_t* msg, uint8_t* len) {
     uint8_t* payload = call SubPacket.getPayload(msg, len);
     if (len != NULL) {
-      *len -= sizeof(network_header_t);
+      *len -= sizeof(ctp_data_header_t);
     }
-    return payload + sizeof(network_header_t);
+    return payload + sizeof(ctp_data_header_t);
   }
 
-  command am_addr_t CollectionPacket.getOrigin(message_t* msg) {
-    return getHeader(msg)->origin;
-  }
-
-  command void CollectionPacket.setOrigin(message_t* msg, am_addr_t addr) {
-    getHeader(msg)->origin = addr;
-  }
-
-  command uint8_t CollectionPacket.getCollectionID(message_t* msg) {
-    return getHeader(msg)->collectid;
-  }
+  command am_addr_t       CollectionPacket.getOrigin(message_t* msg) {return getHeader(msg)->origin;}
+  command collection_id_t CollectionPacket.getType(message_t* msg) {return getHeader(msg)->type;}
+  command uint8_t         CollectionPacket.getSequenceNumber(message_t* msg) {return getHeader(msg)->originSeqNo;}
+  command void CollectionPacket.setOrigin(message_t* msg, am_addr_t addr) {getHeader(msg)->origin = addr;}
+  command void CollectionPacket.setType(message_t* msg, collection_id_t id) {getHeader(msg)->type = id;}
+  command void CollectionPacket.setSequenceNumber(message_t* msg, uint8_t _seqno) {getHeader(msg)->originSeqNo = _seqno;}
   
-  command void CollectionPacket.setCollectionID(message_t* msg, uint8_t id) {
-    getHeader(msg)->collectid = id;
-  }
-
-  command uint8_t CollectionPacket.getControl(message_t* msg) {
-    return getHeader(msg)->control;
-  }
+  command ctp_options_t CtpPacket.getOptions(message_t* msg) {return getHeader(msg)->options;}
+  command uint8_t       CtpPacket.getType(message_t* msg) {return getHeader(msg)->type;}
+  command am_addr_t     CtpPacket.getOrigin(message_t* msg) {return getHeader(msg)->origin;}
+  command uint16_t      CtpPacket.getEtx(message_t* msg) {return getHeader(msg)->etx;}
+  command uint8_t       CtpPacket.getSequenceNumber(message_t* msg) {return getHeader(msg)->originSeqNo;}
+  command uint8_t       CtpPacket.getThl(message_t* msg) {return getHeader(msg)->thl;}
   
-  command void CollectionPacket.setControl(message_t* msg, uint8_t control) {
-    getHeader(msg)->control = control;
-  }
+  command void CtpPacket.setThl(message_t* msg, uint8_t thl) {getHeader(msg)->thl = thl;}
+  command void CtpPacket.setOrigin(message_t* msg, am_addr_t addr) {getHeader(msg)->origin = addr;}
+  command void CtpPacket.setType(message_t* msg, uint8_t id) {getHeader(msg)->type = id;}
+  command void CtpPacket.setOptions(message_t* msg, ctp_options_t opt) {getHeader(msg)->options = opt;}
+  command void CtpPacket.setEtx(message_t* msg, uint16_t e) {getHeader(msg)->etx = e;}
+  command void CtpPacket.setSequenceNumber(message_t* msg, uint8_t _seqno) {getHeader(msg)->originSeqNo = _seqno;}
 
-  command uint16_t CollectionPacket.getGradient(message_t* msg) {
-    return getHeader(msg)->gradient;
-  }
 
-  command void CollectionPacket.setGradient(message_t* msg, uint16_t gradient) {
-    getHeader(msg)->gradient = gradient;
+  
+  command uint32_t CtpPacket.getPacketId(message_t* msg) {
+    uint32_t id = call CtpPacket.getOrigin(msg);
+    id = id << 8;
+    id |= call CtpPacket.getType(msg);
+    id = id << 8;
+    id |= call CtpPacket.getSequenceNumber(msg);
+    return id;
   }
-
-  command uint8_t CollectionPacket.getSequenceNumber(message_t* msg) {
-    return getHeader(msg)->seqno;
-  }
-
-  command void CollectionPacket.setSequenceNumber(message_t* msg, uint8_t _seqno) {
-    getHeader(msg)->seqno = _seqno;
-  }
-
-  command uint32_t CollectionPacket.getPacketID(message_t* msg) {
-    return ((uint32_t)(getHeader(msg)->origin) << 16) | (uint32_t)(getHeader(msg)->seqno);  
-  }
-
   
   default event void
   Send.sendDone[uint8_t client](message_t *msg, error_t error) {
