@@ -1,4 +1,4 @@
-//$Id: SerialDispatcherC.nc,v 1.1.2.10 2006-08-03 18:21:08 phihup Exp $
+//$Id: SerialDispatcherC.nc,v 1.1.2.11 2006-08-25 00:20:02 scipio Exp $
 
 /* "Copyright (c) 2005 The Regents of the University of California.
  * All rights reserved.
@@ -55,6 +55,7 @@ implementation {
   SerialPacketInfo = SerialDispatcherP.PacketInfo;
   SplitControl = SerialP;
 
+  Init = PlatformSerialC;
   Init = SerialP;
   Leds = SerialP;
   Leds = SerialDispatcherP;
