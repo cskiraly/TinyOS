@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-08-15 11:59:08 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-08-29 15:04:47 $
  */
 
 #include <Stm25p.h>
@@ -88,7 +88,6 @@ implementation {
   stm25p_log_info_t m_log_info[ NUM_LOGS ];
   stm25p_addr_t m_addr;
   uint8_t m_header;
-  uint8_t m_remaining;
   uint8_t m_len;
 
   typedef enum {
@@ -162,7 +161,7 @@ implementation {
     // don't allow appends larger than maximum record size
     if ( len > MAX_RECORD_SIZE )
       return ESIZE;
-
+    
     // move to next block if current block doesn't have enough space
     if ( sizeof( m_header ) + len > bytes_left )
       m_log_info[ id ].write_addr += bytes_left;
@@ -172,7 +171,7 @@ implementation {
 	 ( (uint8_t)(m_log_info[ id ].write_addr >> STM25P_SECTOR_SIZE_LOG2) >=
 	   call Sector.getNumSectors[ id ]() ) )
       return ESIZE;
-
+    
     m_req.req = S_APPEND;
     m_req.buf = buf;
     m_req.len = len;
@@ -279,7 +278,7 @@ implementation {
     }
     
     buf = &m_header;
-    len = sizeof( len );
+    len = sizeof( m_header );
 
     if ( m_rw_state == S_DATA ) {
       // if header is invalid, move to next block
@@ -291,15 +290,16 @@ implementation {
       else {
 	buf = m_log_state[ client ].buf;
 	// truncate if record is shorter than requested length
-	if ( m_remaining < m_len )
-	  m_log_state[ client ].len = m_remaining;
-	len = m_len;
+	if ( m_log_info[ client ].remaining < m_len )
+	  len = m_log_info[ client ].remaining;
+	else
+	  len = m_len;
       }
     }
     
     // if on block boundary
     if ( !((uint16_t)read_addr & BLOCK_MASK ) )
-      read_addr += sizeof( storage_addr_t );
+      read_addr += sizeof( m_addr );
     
     m_log_info[ client ].read_addr = read_addr;
     call Sector.read[ client ]( calcAddr( client, read_addr ), buf, len );
@@ -415,14 +415,18 @@ implementation {
   void continueAppendOp( uint8_t client ) {
     
     stm25p_addr_t write_addr = m_log_info[ client ].write_addr;
-    uint8_t* buf;
+    void* buf;
     uint8_t len;
     
     if ( !(uint16_t)write_addr ) {
       call Sector.erase[ client ]( calcSector( client, write_addr ), 1 );
     }
     else {
-      if ( m_rw_state == S_HEADER ) {
+      if ( !((uint16_t)write_addr & BLOCK_MASK) ) {
+	buf = &m_log_info[ client ].write_addr;
+	len = sizeof( m_addr );
+      }
+      else if ( m_rw_state == S_HEADER ) {
 	buf = &m_log_state[ client ].len;
 	len = sizeof( m_log_state[ client ].len );
       }
