@@ -1,4 +1,4 @@
-/* $Id: CtpForwardingEngineP.nc,v 1.1.2.2 2006-08-25 00:41:28 scipio Exp $ */
+/* $Id: CtpForwardingEngineP.nc,v 1.1.2.3 2006-08-29 14:05:37 kasj78 Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-08-25 00:41:28 $
+ *  @date   $Date: 2006-08-29 14:05:37 $
  */
 
 #include <CtpForwardingEngine.h>
@@ -297,6 +297,7 @@ implementation {
     hdr->origin = TOS_NODE_ID;
     hdr->originSeqNo  = seqno++;
     hdr->type = call CollectionId.fetch[client]();
+    hdr->thl = 0;
 
     if (clientPtrs[client] == NULL) {
       dbg("Forwarder", "%s: send failed as client is busy.\n", __FUNCTION__);
@@ -677,11 +678,17 @@ implementation {
     uint32_t msg_uid;
     bool duplicate = FALSE;
     fe_queue_entry_t* qe;
-    uint8_t i;
+    uint8_t i, thl;
 
 
     msg_uid = call CtpPacket.getPacketId(msg);
     collectid = call CtpPacket.getType(msg);
+
+    // Update the THL here, since it has lived another hop, and so
+    // that the root sees the correct THL.
+    thl = call CtpPacket.getThl(msg);
+    thl++;
+    call CtpPacket.setThl(msg, thl);
 
     call CollectionDebug.logEventMsg(NET_C_FE_RCV_MSG,
 					 call CollectionPacket.getSequenceNumber(msg), 
