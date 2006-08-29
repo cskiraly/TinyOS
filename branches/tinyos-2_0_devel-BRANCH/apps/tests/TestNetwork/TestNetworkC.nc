@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.13 $ $Date: 2006-06-19 21:21:38 $
+ * @version $Revision: 1.1.2.14 $ $Date: 2006-08-29 17:24:08 $
  */
 
 #include <Timer.h>
@@ -27,7 +27,7 @@ module TestNetworkC {
   uses interface Receive;
   uses interface AMSend as UARTSend;
   uses interface CollectionPacket;
-  uses interface TreeRoutingInspect;
+  uses interface CtpInfo;
   uses interface Random;
 }
 implementation {
@@ -87,9 +87,9 @@ implementation {
     uint16_t metric;
     am_addr_t parent;
 
-    call TreeRoutingInspect.getParent(&parent);
-    call TreeRoutingInspect.getHopcount(&hopcount);
-    call TreeRoutingInspect.getMetric(&metric);
+    call CtpInfo.getParent(&parent);
+    call CtpInfo.getHopcount(&hopcount);
+    call CtpInfo.getMetric(&metric);
 
     msg->source = TOS_NODE_ID;
     msg->seqno = seqno;
