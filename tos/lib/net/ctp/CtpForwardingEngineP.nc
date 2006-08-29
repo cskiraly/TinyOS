@@ -1,4 +1,4 @@
-/* $Id: CtpForwardingEngineP.nc,v 1.1.2.3 2006-08-29 14:05:37 kasj78 Exp $ */
+/* $Id: CtpForwardingEngineP.nc,v 1.1.2.4 2006-08-29 16:43:10 kasj78 Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-08-29 14:05:37 $
+ *  @date   $Date: 2006-08-29 16:43:10 $
  */
 
 #include <CtpForwardingEngine.h>
@@ -812,14 +812,15 @@ implementation {
   command void CtpPacket.setEtx(message_t* msg, uint16_t e) {getHeader(msg)->etx = e;}
   command void CtpPacket.setSequenceNumber(message_t* msg, uint8_t _seqno) {getHeader(msg)->originSeqNo = _seqno;}
 
+  // A CTP packet ID is based on the origin and the THL field, to
+  // implement duplicate suppression as described in TEP 123.
 
-  
   command uint32_t CtpPacket.getPacketId(message_t* msg) {
     uint32_t id = call CtpPacket.getOrigin(msg);
     id = id << 8;
     id |= call CtpPacket.getType(msg);
     id = id << 8;
-    id |= call CtpPacket.getSequenceNumber(msg);
+    id |= call CtpPacket.getThl(msg);
     return id;
   }
   
