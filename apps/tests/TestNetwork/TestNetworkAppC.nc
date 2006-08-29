@@ -4,20 +4,21 @@
  * and sends packets up a collection tree. The rate is configurable
  * through dissemination.
  *
- * See TEP118: Dissemination and TEP 119: Collection for details.
+ * See TEP118: Dissemination, TEP 119: Collection, and TEP 123: The
+ * Collection Tree Protocol for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.11 $ $Date: 2006-06-16 12:55:23 $
+ * @version $Revision: 1.1.2.12 $ $Date: 2006-08-29 17:24:08 $
  */
 #include "TestNetwork.h"
-#include "Collection.h"
+#include "Ctp.h"
 
 configuration TestNetworkAppC {}
 implementation {
   components TestNetworkC, MainC, LedsC, ActiveMessageC;
   components new DisseminatorC(uint16_t, SAMPLE_RATE_KEY) as Object16C;
-  components new CollectionSenderC(CL_TEST);
-  components TreeCollectionC as Collector;
+  components new CtpSenderC(CL_TEST);
+  components CollectionC as Collector;
   components new TimerMilliC();
   components new DemoSensorC();
   components new SerialAMSenderC(CL_TEST);
@@ -33,13 +34,13 @@ implementation {
   TestNetworkC.Leds -> LedsC;
   TestNetworkC.Timer -> TimerMilliC;
   TestNetworkC.DisseminationPeriod -> Object16C;
-  TestNetworkC.Send -> CollectionSenderC;
+  TestNetworkC.Send -> CtpSenderC;
   TestNetworkC.ReadSensor -> DemoSensorC;
   TestNetworkC.RootControl -> Collector;
   TestNetworkC.Receive -> Collector.Receive[CL_TEST];
   TestNetworkC.UARTSend -> SerialAMSenderC.AMSend;
   TestNetworkC.CollectionPacket -> Collector;
-  TestNetworkC.TreeRoutingInspect -> Collector;
+  TestNetworkC.CtpInfo -> Collector;
   TestNetworkC.Random -> RandomC;
 
   components new PoolC(message_t, 10) as DebugMessagePool;
