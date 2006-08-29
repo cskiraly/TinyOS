@@ -1,4 +1,4 @@
-/* $Id: Collection.h,v 1.1.2.1 2006-08-24 20:04:23 scipio Exp $ */
+/* $Id: Collection.h,v 1.1.2.2 2006-08-29 17:24:40 kasj78 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -23,11 +23,20 @@
 
 /*
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-08-24 20:04:23 $
+ *  @date   $Date: 2006-08-29 17:24:40 $
  */
 #ifndef COLLECTION_H
 #define COLLECTION_H
 
+enum {
+    AM_COLLECTION_DATA = 20,
+    AM_COLLECTION_CONTROL = 21,
+    AM_COLLECTION_DEBUG = 22,
+};
+
 typedef uint8_t collection_id_t;
+typedef nx_uint8_t nx_collection_id_t;
+
+#define UQ_COLLECTION_ID "CollectionSenderC.CollectId"
 
 #endif

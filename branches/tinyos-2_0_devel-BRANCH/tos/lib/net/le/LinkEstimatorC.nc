@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorC.nc,v 1.1.2.1 2006-04-20 15:47:04 rfonseca76 Exp $ */
+/* $Id: LinkEstimatorC.nc,v 1.1.2.1 2006-08-29 17:24:41 kasj78 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -25,7 +25,7 @@
  * quality to and from a neighbor 
  * 
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-04-20 15:47:04 $
+ *  @date   $Date: 2006-08-29 17:24:41 $
  */
 configuration LinkEstimatorC {
     provides {

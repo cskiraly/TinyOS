@@ -1,4 +1,4 @@
-/* $Id: CollectionSenderP.nc,v 1.1.2.2 2006-08-25 00:41:28 scipio Exp $ */
+/* $Id: CtpSenderP.nc,v 1.1.2.1 2006-08-29 17:24:41 kasj78 Exp $ */
 /*
  * Copyright (c) 2006 Massachusetts Institute of Technology (MIT).
  * All rights reserved.
@@ -34,7 +34,7 @@
 
 #include "Collection.h"
 
-generic configuration CollectionSenderP(collection_id_t collectid, uint8_t clientid) {
+generic configuration CtpSenderP(collection_id_t collectid, uint8_t clientid) {
   provides {
     interface Send;
     interface Packet;
