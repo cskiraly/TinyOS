@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-08-15 11:59:08 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-08-30 17:15:55 $
  */
 
 #include <I2C.h>
@@ -39,12 +39,12 @@
 module Msp430I2CP {
   
   provides interface Resource[ uint8_t id ];
-	provides interface ResourceConfigure[ uint8_t id ];
+  provides interface ResourceConfigure[ uint8_t id ];
   provides interface I2CPacket<TI2CBasicAddr> as I2CBasicAddr;
   
   uses interface Resource as UsartResource[ uint8_t id ];
-	uses interface Msp430I2CConfigure[ uint8_t id ];
-  uses interface HplMsp430Usart as Usart;
+  uses interface Msp430I2CConfigure[ uint8_t id ];
+  uses interface HplMsp430I2C as HplI2C;
   uses interface HplMsp430I2CInterrupts as I2CInterrupts;
   uses interface Leds;
   
@@ -73,16 +73,13 @@ implementation {
   void signalDone( error_t error );
   
   async command error_t Resource.immediateRequest[ uint8_t id ]() {
-    error_t error = call UsartResource.immediateRequest[ id ]();
-    if ( error == SUCCESS )
-      call Usart.setModeI2C();
-    return error;
+    return call UsartResource.immediateRequest[ id ]();
   }
   
   async command error_t Resource.request[ uint8_t id ]() {
     return call UsartResource.request[ id ]();
   }
-
+  
   async command uint8_t Resource.isOwner[ uint8_t id ]() {
     return call UsartResource.isOwner[ id ]();
   }
@@ -91,25 +88,24 @@ implementation {
     return call UsartResource.release[ id ]();
   }
   
-	async command void ResourceConfigure.configure[ uint8_t id ]() {
-		call Usart.setModeI2C(call Msp430I2CConfigure.getConfig[id]());
-	}
-
-	async command void ResourceConfigure.unconfigure[ uint8_t id ]() {
-	}
-	
+  async command void ResourceConfigure.configure[ uint8_t id ]() {
+    call HplI2C.setModeI2C(call Msp430I2CConfigure.getConfig[id]());
+  }
+  
+  async command void ResourceConfigure.unconfigure[ uint8_t id ]() {
+  }
+  
   event void UsartResource.granted[ uint8_t id ]() {
-    call Usart.setModeI2C();
     signal Resource.granted[ id ]();
   }
   
   default async command error_t UsartResource.request[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.immediateRequest[ uint8_t id ]() { return FAIL; }
-	default async command error_t UsartResource.release[ uint8_t id ]() {return FAIL;}
+  default async command error_t UsartResource.release[ uint8_t id ]() {return FAIL;}
   default event void Resource.granted[ uint8_t id ]() {}
-	default async command msp430_i2c_config_t* Msp430SpiConfigure.getConfig[uint8_t id]() {
-		return &msp430_i2c_default_config;
-	}
+  default async command msp430_i2c_config_t* Msp430I2CConfigure.getConfig[uint8_t id]() {
+    return &msp430_i2c_default_config;
+  }
   
   async command error_t I2CBasicAddr.read( i2c_flags_t flags,
 					   uint16_t addr, uint8_t len, 
@@ -119,14 +115,16 @@ implementation {
     m_len = len;
     m_flags = flags;
     m_pos = 0;
+
+    call HplI2C.setMasterMode();//U0CTL |= MST;
+    call HplI2C.setReceiveMode();//I2CTCTL &= ~I2CTRX;
     
-    U0CTL |= MST;
-    I2CTCTL &= ~I2CTRX;
-    
-    I2CSA = addr;
-    I2CIE = RXRDYIE | ARDYIE | NACKIE;
+    call HplI2C.setSlaveAddress( addr );//I2CSA = addr;
+    call HplI2C.enableReceiveReady();//I2CIE = RXRDYIE | ARDYIE | NACKIE;
+    call HplI2C.enableAccessReady();
+    call HplI2C.enableNoAck();
     if ( flags & I2C_START )
-      I2CTCTL |= I2CSTT;
+      call HplI2C.setStartBit();//I2CTCTL |= I2CSTT;
     else
       nextRead();
     
@@ -143,13 +141,16 @@ implementation {
     m_flags = flags;
     m_pos = 0;
     
-    U0CTL |= MST;
-    I2CTCTL |= I2CTRX;
+    call HplI2C.setMasterMode();//U0CTL |= MST;
+    call HplI2C.setTransmitMode();//I2CTCTL |= I2CTRX;
     
-    I2CSA = addr;
-    I2CIE = TXRDYIE | ARDYIE | NACKIE;
+    call HplI2C.setSlaveAddress( addr );//I2CSA = addr;
+    call HplI2C.enableTransmitReady();//I2CIE = TXRDYIE | ARDYIE | NACKIE;
+    call HplI2C.enableAccessReady();
+    call HplI2C.enableNoAck();
+    
     if ( flags & I2C_START )
-      I2CTCTL |= I2CSTT;
+      call HplI2C.setStartBit();//I2CTCTL |= I2CSTT;
     else
       nextWrite();
     
@@ -161,11 +162,12 @@ implementation {
     
     int i = 0;
     
+    TOSH_CLR_GREEN_LED_PIN();
     switch( I2CIV ) {
       
     case 0x04:
       if ( I2CDCTL & I2CBB )
-	I2CTCTL |= I2CSTP;
+	call HplI2C.setStopBit();//I2CTCTL |= I2CSTP;
       while( I2CDCTL & I2CBUSY );
       signalDone( FAIL );
       break;
@@ -199,7 +201,7 @@ implementation {
     m_buf[ m_pos++ ] = I2CDR;
     if ( m_pos == m_len ) {
       if ( m_flags & I2C_STOP )
-	I2CTCTL |= I2CSTP;
+	call HplI2C.setStopBit();//I2CTCTL |= I2CSTP;
       else
 	signalDone( SUCCESS );
     }
@@ -207,13 +209,13 @@ implementation {
   
   void nextWrite() {
     if ( ( m_pos == m_len - 1 ) && ( m_flags & I2C_STOP ) ) {
-      I2CTCTL |= I2CSTP;
+      call HplI2C.setStopBit();//I2CTCTL |= I2CSTP;
     }
     else if ( m_pos == m_len ) {
       signalDone( SUCCESS );
       return;
     }
-    I2CDR = m_buf[ m_pos++ ];
+    call HplI2C.setData( m_buf[ m_pos++ ] );//I2CDR = m_buf[ m_pos++ ];
   }
   
   void signalDone( error_t error ) {
