@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-08-30 17:15:55 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-08-30 17:28:41 $
  */
 
 #include <I2C.h>
@@ -55,13 +55,6 @@ implementation {
   enum {
     TIMEOUT = 64,
   };
-  
-  MSP430REG_NORACE(I2CTCTL);
-  MSP430REG_NORACE(I2CIE);
-  MSP430REG_NORACE(I2CIFG);
-  MSP430REG_NORACE(I2CDR);
-  MSP430REG_NORACE(I2CSA);
-  MSP430REG_NORACE(U0CTL);
   
   norace uint8_t* m_buf;
   norace uint8_t m_len;
@@ -116,15 +109,15 @@ implementation {
     m_flags = flags;
     m_pos = 0;
 
-    call HplI2C.setMasterMode();//U0CTL |= MST;
-    call HplI2C.setReceiveMode();//I2CTCTL &= ~I2CTRX;
+    call HplI2C.setMasterMode();
+    call HplI2C.setReceiveMode();
     
-    call HplI2C.setSlaveAddress( addr );//I2CSA = addr;
-    call HplI2C.enableReceiveReady();//I2CIE = RXRDYIE | ARDYIE | NACKIE;
+    call HplI2C.setSlaveAddress( addr );
+    call HplI2C.enableReceiveReady();
     call HplI2C.enableAccessReady();
     call HplI2C.enableNoAck();
     if ( flags & I2C_START )
-      call HplI2C.setStartBit();//I2CTCTL |= I2CSTT;
+      call HplI2C.setStartBit();
     else
       nextRead();
     
@@ -141,16 +134,16 @@ implementation {
     m_flags = flags;
     m_pos = 0;
     
-    call HplI2C.setMasterMode();//U0CTL |= MST;
-    call HplI2C.setTransmitMode();//I2CTCTL |= I2CTRX;
+    call HplI2C.setMasterMode();
+    call HplI2C.setTransmitMode();
     
-    call HplI2C.setSlaveAddress( addr );//I2CSA = addr;
-    call HplI2C.enableTransmitReady();//I2CIE = TXRDYIE | ARDYIE | NACKIE;
+    call HplI2C.setSlaveAddress( addr );
+    call HplI2C.enableTransmitReady();
     call HplI2C.enableAccessReady();
     call HplI2C.enableNoAck();
     
     if ( flags & I2C_START )
-      call HplI2C.setStartBit();//I2CTCTL |= I2CSTT;
+      call HplI2C.setStartBit();
     else
       nextWrite();
     
@@ -162,12 +155,11 @@ implementation {
     
     int i = 0;
     
-    TOSH_CLR_GREEN_LED_PIN();
-    switch( I2CIV ) {
+    switch( call HplI2C.getIV() ) {
       
     case 0x04:
       if ( I2CDCTL & I2CBB )
-	call HplI2C.setStopBit();//I2CTCTL |= I2CSTP;
+	call HplI2C.setStopBit();
       while( I2CDCTL & I2CBUSY );
       signalDone( FAIL );
       break;
@@ -198,10 +190,10 @@ implementation {
   }
   
   void nextRead() {
-    m_buf[ m_pos++ ] = I2CDR;
+    m_buf[ m_pos++ ] = call HplI2C.getData();
     if ( m_pos == m_len ) {
       if ( m_flags & I2C_STOP )
-	call HplI2C.setStopBit();//I2CTCTL |= I2CSTP;
+	call HplI2C.setStopBit();
       else
 	signalDone( SUCCESS );
     }
@@ -209,18 +201,18 @@ implementation {
   
   void nextWrite() {
     if ( ( m_pos == m_len - 1 ) && ( m_flags & I2C_STOP ) ) {
-      call HplI2C.setStopBit();//I2CTCTL |= I2CSTP;
+      call HplI2C.setStopBit();
     }
     else if ( m_pos == m_len ) {
       signalDone( SUCCESS );
       return;
     }
-    call HplI2C.setData( m_buf[ m_pos++ ] );//I2CDR = m_buf[ m_pos++ ];
+    call HplI2C.setData( m_buf[ m_pos++ ] );
   }
   
   void signalDone( error_t error ) {
     I2CIE = 0;
-    if ( I2CTCTL & I2CTRX )
+    if ( call HplI2C.getTransmitReceiveMode() )
       signal I2CBasicAddr.writeDone( error, I2CSA, m_len, m_buf );
     else
       signal I2CBasicAddr.readDone( error, I2CSA, m_len, m_buf );
