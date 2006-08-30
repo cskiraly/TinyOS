@@ -129,6 +129,30 @@ response to a call to one of the top-level SID interfaces, and stopped
 some time after that call completes. One of the power-management
 components described in [TEP115]_ may be useful for this purpose.
 
+Generally, simple types are made up of octets. However, sensor values
+often have levels of precision besides a multiple of 8. A device MAY
+specify the precision of one of its interfaces with the DeviceMetadata
+interface::
+
+  interface DeviceMetadata {
+    command uint8_t getSignificantBits();
+  }
+
+The name of the instance of DeviceMetadata SHOULD clearly indicate
+which interface it corresponds to.
+
+A value contained returned from the device through a SID interface
+MAY be left shifted so that it covers as much of the type's range as
+possible. For example, if a 12-bit ADC reading is presented as a
+16-bit Read interface::
+
+  component DemoSensorC {
+    provides interface Read<uint16_t>;
+  }
+
+then the driver MAY shift the 12-bit value left so that its range is
+0x0000 - 0xfff0, rather than 0x0000 - 0x0fff. 
+
 Sensor driver components SHOULD be named according to the make and
 model of the sensing device being presented. Using specific names
 gives the developer the option to bind to a particular sensor, which
