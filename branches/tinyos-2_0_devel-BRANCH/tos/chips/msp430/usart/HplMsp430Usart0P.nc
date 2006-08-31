@@ -67,7 +67,7 @@
  * @author: Jonathan Hui <jhui@archedrock.com>
  * @author: Vlado Handziski <handzisk@tkn.tu-berlin.de>
  * @author: Joe Polastre
- * @version $Revision: 1.1.2.10 $ $Date: 2006-08-30 17:15:55 $
+ * @version $Revision: 1.1.2.11 $ $Date: 2006-08-31 14:59:54 $
  */
 
 module HplMsp430Usart0P {
@@ -464,5 +464,7 @@ implementation
   }
 
   default async event void I2CInterrupts.fired() {}
+  default async command bool HplI2C.isI2C() { return FALSE; }
+  default async command void HplI2C.clearModeI2C() {}
   
 }

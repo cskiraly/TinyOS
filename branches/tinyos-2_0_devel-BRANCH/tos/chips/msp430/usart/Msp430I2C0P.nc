@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-08-30 17:15:55 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-08-31 14:59:54 $
  */
 
 configuration Msp430I2C0P {
@@ -56,8 +56,8 @@ implementation {
   UsartResource = I2CP.UsartResource;
   I2CInterrupts = I2CP.I2CInterrupts;
   
-  components HplMsp430Usart0C as UsartC;
-  I2CP.HplI2C -> UsartC;
+  components HplMsp430I2C0C as HplI2CC;
+  I2CP.HplI2C -> HplI2CC;
   
   components LedsC as Leds;
   I2CP.Leds -> Leds;

@@ -67,7 +67,7 @@
  * @author: Jonathan Hui <jhui@archedrock.com>
  * @author: Vlado Handziski <handzisk@tkn.tu-berlin.de>
  * @author: Joe Polastre
- * @version $Revision: 1.1.2.6 $ $Date: 2006-08-03 18:10:41 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-08-31 14:59:54 $
  */
 
 module HplMsp430Usart1P {
@@ -108,7 +108,6 @@ implementation
 
   async command error_t AsyncStdControl.stop() {
     call Usart.disableSpi();
-    call Usart.disableI2C();
     call Usart.disableUart();
     return SUCCESS;
   }
@@ -188,10 +187,6 @@ implementation
     }
   }
 
-  async command bool Usart.isI2C() {
-      return FALSE;
-  }
-
   async command msp430_usartmode_t Usart.getMode() {
     if (call Usart.isUart())
       return USART_UART;
@@ -201,8 +196,6 @@ implementation
       return USART_UART_TX;
     else if (call Usart.isSpi())
       return USART_SPI;
-    else if (call Usart.isI2C())
-      return USART_I2C;
     else
       return USART_NONE;
   }
@@ -264,15 +257,6 @@ implementation
     }
   }
 
-  async command void Usart.enableI2C() {
-    return;
-  }
-
-  async command void Usart.disableI2C() {
-    return;
- }
-
-
   void configSpi(msp430_spi_config_t* config) {
     msp430_uctl_t uctl = call Usart.getUctl();
     msp430_utctl_t utctl = call Usart.getUtctl();
@@ -296,7 +280,6 @@ implementation
 
   async command void Usart.setModeSpi(msp430_spi_config_t* config) {
     call Usart.disableUart();
-    call Usart.disableI2C();
     atomic {
       call Usart.resetUsart(TRUE);
       configSpi(config);
@@ -339,7 +322,6 @@ implementation
   async command void Usart.setModeUartTx(msp430_uart_config_t* config) {
 
     call Usart.disableSpi();
-    call Usart.disableI2C();
     call Usart.disableUart();
 
     atomic {
@@ -358,7 +340,6 @@ implementation
   async command void Usart.setModeUartRx(msp430_uart_config_t* config) {
 
     call Usart.disableSpi();
-    call Usart.disableI2C();
     call Usart.disableUart();
     
     atomic {
@@ -377,7 +358,6 @@ implementation
   async command void Usart.setModeUart(msp430_uart_config_t* config) {
 
     call Usart.disableSpi();
-    call Usart.disableI2C();
     call Usart.disableUart();
 
     atomic {
@@ -392,13 +372,6 @@ implementation
     }
     return;
   }
-
-
-    // i2c enable bit is not set by default
-  async command void Usart.setModeI2C(msp430_i2c_config_t* config) {
-    return;
-  }
-
 
   async command bool Usart.isTxIntrPending(){
     if (IFG2 & UTXIFG1){

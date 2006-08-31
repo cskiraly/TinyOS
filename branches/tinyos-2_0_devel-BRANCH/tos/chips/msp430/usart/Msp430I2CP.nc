@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-08-30 17:28:41 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-08-31 14:59:55 $
  */
 
 #include <I2C.h>
@@ -51,6 +51,8 @@ module Msp430I2CP {
 }
 
 implementation {
+  
+  MSP430REG_NORACE(I2CIE);
   
   enum {
     TIMEOUT = 64,
