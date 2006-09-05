@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xI2CMasterP.nc,v 1.1.2.5 2006-07-14 16:27:05 kaisenl Exp $ */
+/* $Id: HalPXA27xI2CMasterP.nc,v 1.1.2.6 2006-09-05 18:29:57 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -161,8 +161,8 @@ implementation
     call I2C.setICR(mBaseICRFlags | ICR_MA);
     call I2C.setICR(ICR_UR);
     call I2C.setICR(mBaseICRFlags);
-    mI2CState = I2C_STATE_IDLE;
     atomic {
+      mI2CState = I2C_STATE_IDLE;
       signal I2CPacket.readDone(FAIL,mCurTargetAddr,mCurBufLen,mCurBuf);
     }
     return;
@@ -173,9 +173,9 @@ implementation
     call I2C.setICR(mBaseICRFlags | ICR_MA);
     call I2C.setICR(ICR_UR);
     call I2C.setICR(mBaseICRFlags);
-    mI2CState = I2C_STATE_IDLE;
     atomic {
-      signal I2CPacket.readDone(FAIL,mCurTargetAddr,mCurBufLen,mCurBuf);
+      mI2CState = I2C_STATE_IDLE;
+      signal I2CPacket.writeDone(FAIL,mCurTargetAddr,mCurBufLen,mCurBuf);
     }
     return;
   }
@@ -198,7 +198,6 @@ implementation
 
   async command error_t I2CPacket.read(i2c_flags_t flags, uint16_t addr, uint8_t length, uint8_t* data) {
     error_t error = SUCCESS;
-    uint8_t tmpAddr;
 
     if ((flags & I2C_ACK_END) && (flags & I2C_STOP)) {
       error = EINVAL;
@@ -217,7 +216,6 @@ implementation
 
   async command error_t I2CPacket.write(i2c_flags_t flags, uint16_t addr, uint8_t length, uint8_t* data) {
     error_t error = SUCCESS;
-    uint8_t tmpAddr;
 
     error = startI2CTransact(I2C_STATE_WRITE,addr,length,data,flags,FALSE);
 
