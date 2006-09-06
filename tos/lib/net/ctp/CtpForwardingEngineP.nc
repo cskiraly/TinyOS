@@ -1,4 +1,4 @@
-/* $Id: CtpForwardingEngineP.nc,v 1.1.2.4 2006-08-29 16:43:10 kasj78 Exp $ */
+/* $Id: CtpForwardingEngineP.nc,v 1.1.2.5 2006-09-06 20:14:30 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-08-29 16:43:10 $
+ *  @date   $Date: 2006-09-06 20:14:30 $
  */
 
 #include <CtpForwardingEngine.h>
@@ -149,7 +149,7 @@ generic module CtpForwardingEngineP() {
     interface Pool<fe_queue_entry_t> as QEntryPool;
     interface Pool<message_t> as MessagePool;
     interface Timer<TMilli> as RetxmitTimer;
-    interface Cache<uint32_t> as SentCache;
+    interface Cache<message_t*> as SentCache;
     interface CtpInfo;
     interface PacketAcknowledgements;
     interface Random;
@@ -387,10 +387,9 @@ implementation {
       fe_queue_entry_t* qe = call SendQueue.head();
       uint8_t payloadLen = call SubPacket.payloadLength(qe->msg);
       am_addr_t dest = call UnicastNameFreeRouting.nextHop();
-      uint32_t msg_uid = call CtpPacket.getPacketId(qe->msg);
       uint16_t gradient;
 
-      if (call SentCache.lookup(msg_uid)) {
+      if (call SentCache.lookup(qe->msg)) {
         call CollectionDebug.logEvent(NET_C_FE_DUPLICATE_CACHE_AT_SEND);
         call SendQueue.dequeue();
 	post sendTask();
@@ -558,7 +557,7 @@ implementation {
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
-      call SentCache.insert(call CtpPacket.getPacketId(qe->msg));
+      call SentCache.insert(qe->msg);
       call SendQueue.dequeue();
       if (call MessagePool.put(qe->msg) != SUCCESS)
         call CollectionDebug.logEvent(NET_C_FE_PUT_MSGPOOL_ERR);
@@ -674,14 +673,11 @@ implementation {
   SubReceive.receive(message_t* msg, void* payload, uint8_t len) {
     uint8_t netlen;
     collection_id_t collectid;
-
-    uint32_t msg_uid;
     bool duplicate = FALSE;
     fe_queue_entry_t* qe;
     uint8_t i, thl;
 
 
-    msg_uid = call CtpPacket.getPacketId(msg);
     collectid = call CtpPacket.getType(msg);
 
     // Update the THL here, since it has lived another hop, and so
@@ -700,7 +696,7 @@ implementation {
 
     //See if we remember having seen this packet
     //We look in the sent cache ...
-    if (call SentCache.lookup(msg_uid)) {
+    if (call SentCache.lookup(msg)) {
         call CollectionDebug.logEvent(NET_C_FE_DUPLICATE_CACHE);
         return msg;
     }
@@ -708,7 +704,7 @@ implementation {
     if (call SendQueue.size() > 0) {
       for (i = call SendQueue.size(); --i;) {
 	qe = call SendQueue.element(i);
-	if (call CtpPacket.getPacketId(qe->msg) == msg_uid) {
+	if (call CtpPacket.matchInstance(qe->msg, msg)) {
 	  duplicate = TRUE;
 	  break;
 	}
@@ -815,15 +811,19 @@ implementation {
   // A CTP packet ID is based on the origin and the THL field, to
   // implement duplicate suppression as described in TEP 123.
 
-  command uint32_t CtpPacket.getPacketId(message_t* msg) {
-    uint32_t id = call CtpPacket.getOrigin(msg);
-    id = id << 8;
-    id |= call CtpPacket.getType(msg);
-    id = id << 8;
-    id |= call CtpPacket.getThl(msg);
-    return id;
+  command bool CtpPacket.matchInstance(message_t* m1, message_t* m2) {
+    return (call CtpPacket.getOrigin(m1) == call CtpPacket.getOrigin(m2) &&
+	    call CtpPacket.getSequenceNumber(m1) == call CtpPacket.getSequenceNumber(m2) &&
+	    call CtpPacket.getThl(m1) == call CtpPacket.getThl(m2) &&
+	    call CtpPacket.getType(m1) == call CtpPacket.getType(m2));
   }
-  
+
+  command bool CtpPacket.matchPacket(message_t* m1, message_t* m2) {
+    return (call CtpPacket.getOrigin(m1) == call CtpPacket.getOrigin(m2) &&
+	    call CtpPacket.getSequenceNumber(m1) == call CtpPacket.getSequenceNumber(m2) &&
+	    call CtpPacket.getType(m1) == call CtpPacket.getType(m2));
+  }
+
   default event void
   Send.sendDone[uint8_t client](message_t *msg, error_t error) {
   }
