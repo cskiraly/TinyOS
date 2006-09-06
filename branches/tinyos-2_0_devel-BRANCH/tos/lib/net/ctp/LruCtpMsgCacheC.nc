@@ -1,4 +1,3 @@
-/* $Id: CtpPacket.nc,v 1.1.2.3 2006-09-06 20:14:30 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -31,35 +30,18 @@
  */
 
 /**
- *  ADT for CTP data frames.
- *
- *  @author Philip Levis
- *  @author Kyle Jamieson
- *  @date   $Date: 2006-09-06 20:14:30 $
- */
+  * An LRU cache CTP packet instances, where insertion represents use.
+  *
+  * @author Philip Levis
+  */
 
-#include <AM.h>
-   
-interface CtpPacket {
-
-  command ctp_options_t getOptions(message_t* msg);
-  command void          setOptions(message_t* msg, ctp_options_t options);
-
-  command uint8_t       getThl(message_t* msg);
-  command void          setThl(message_t* msg, uint8_t thl);
-
-  command uint16_t      getEtx(message_t* msg);
-  command void          setEtx(message_t* msg, uint16_t etx);
-
-  command am_addr_t     getOrigin(message_t* msg);
-  command void          setOrigin(message_t* msg, am_addr_t addr);
-
-  command uint8_t       getSequenceNumber(message_t* msg);
-  command void          setSequenceNumber(message_t* msg, uint8_t seqno);
-
-  command uint8_t       getType(message_t* msg);
-  command void          setType(message_t* msg, uint8_t id);
-
-  command bool          matchInstance(message_t* m1, message_t* m2);
-  command bool          matchPacket(message_t* m1, message_t* m2);
+generic configuration LruCtpMsgCacheC(uint8_t CACHE_SIZE) {
+    provides interface Cache<message_t*>;
+}
+implementation {
+    components MainC, new LruCtpMsgCacheP(CACHE_SIZE) as CacheP;
+    components CtpP;
+    Cache = CacheP;
+    CacheP.CtpPacket -> CtpP;
+    MainC.SoftwareInit -> CacheP;
 }
