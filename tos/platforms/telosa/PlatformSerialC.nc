@@ -1,3 +1,4 @@
+
 configuration PlatformSerialC {
   provides interface StdControl;
   provides interface SerialByteComm;
