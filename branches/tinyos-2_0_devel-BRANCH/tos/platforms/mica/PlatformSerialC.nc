@@ -1,4 +1,4 @@
-/// $Id: PlatformSerialC.nc,v 1.1.2.5 2006-06-20 17:16:14 idgay Exp $
+/// $Id: PlatformSerialC.nc,v 1.1.2.6 2006-09-06 17:04:39 scipio Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -32,15 +32,14 @@
  */
 
 configuration PlatformSerialC {
-  provides interface Init;
   provides interface StdControl;
   provides interface SerialByteComm;
 }
 implementation {
-  components HplAtm128UartC as UART, PlatformC;
+  components HplAtm128UartC as UART, PlatformC, MainC;
 
   SerialByteComm = UART.Uart0;
-  Init = UART.Uart0Init;
+  MainC.SoftwareInit -> UART.Uart0Init;
   StdControl = UART.Uart0RxControl;
   StdControl = UART.Uart0TxControl;
 }
