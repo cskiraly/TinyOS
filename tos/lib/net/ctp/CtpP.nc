@@ -63,7 +63,7 @@
  */
 
 
-configuration CtpC {
+configuration CtpP {
   provides {
     interface StdControl;
     interface Send[uint8_t client];
