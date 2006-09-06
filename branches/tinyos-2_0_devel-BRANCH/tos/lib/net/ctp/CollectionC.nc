@@ -65,22 +65,22 @@ configuration CollectionC {
 }
 
 implementation {
-  components CtpC;
+  components CtpP;
 
-  StdControl = CtpC;
-  Send = CtpC;
-  Receive = CtpC.Receive;
-  Snoop = CtpC.Snoop;
-  Intercept = CtpC;
+  StdControl = CtpP;
+  Send = CtpP;
+  Receive = CtpP.Receive;
+  Snoop = CtpP.Snoop;
+  Intercept = CtpP;
 
-  Packet = CtpC;
-  CollectionPacket = CtpC;
-  CtpPacket = CtpC;
+  Packet = CtpP;
+  CollectionPacket = CtpP;
+  CtpPacket = CtpP;
 
-  CtpInfo = CtpC;
-  RootControl = CtpC;
+  CtpInfo = CtpP;
+  RootControl = CtpP;
 
-  CollectionId = CtpC;
-  CollectionDebug = CtpC;
+  CollectionId = CtpP;
+  CollectionDebug = CtpP;
 }
 
