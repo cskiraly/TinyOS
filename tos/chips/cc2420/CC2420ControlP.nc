@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.21 $ $Date: 2006-08-15 11:59:08 $
+ * @version $Revision: 1.1.2.22 $ $Date: 2006-09-07 17:53:12 $
  */
 
 #include "Timer.h"
@@ -270,6 +270,7 @@ implementation {
 		       ( ( (channel - 11)*5+357 ) << CC2420_FSCTRL_FREQ ) );
     call PANID.write( 0, (uint8_t*)id, sizeof( id ) );
     call CSN.set();
+    call SyncResource.release();
     
     post syncDone_task();
     
