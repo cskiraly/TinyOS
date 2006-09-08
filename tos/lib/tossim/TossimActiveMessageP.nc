@@ -1,4 +1,4 @@
-// $Id: TossimActiveMessageP.nc,v 1.1.2.9 2006-08-04 01:41:15 scipio Exp $
+// $Id: TossimActiveMessageP.nc,v 1.1.2.10 2006-09-08 17:48:06 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -60,12 +60,14 @@ implementation {
   command error_t AMSend.send[am_id_t id](am_addr_t addr,
 					  message_t* amsg,
 					  uint8_t len) {
+    error_t err;
     tossim_header_t* header = getHeader(amsg);
     header->type = id;
     header->dest = addr;
     header->src = call AMPacket.address();
     header->length = len;
-    return call Model.send((int)addr, amsg, len + sizeof(tossim_header_t));
+    err = call Model.send((int)addr, amsg, len + sizeof(tossim_header_t));
+    return err;
   }
 
   command error_t AMSend.cancel[am_id_t id](message_t* msg) {
@@ -105,7 +107,7 @@ implementation {
   event void Model.receive(message_t* msg) {
     uint8_t len;
     void* payload;
-    
+
     memcpy(bufferPointer, msg, sizeof(message_t));
     payload = call Packet.getPayload(bufferPointer, &len);
 
