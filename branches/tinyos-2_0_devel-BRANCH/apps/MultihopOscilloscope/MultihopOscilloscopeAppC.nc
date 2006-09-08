@@ -21,6 +21,8 @@ implementation {
   components MainC, MultihopOscilloscopeC, LedsC, new TimerMilliC(), 
     new DemoSensorC() as Sensor;
 
+  MainC.SoftwareInit -> Sensor;
+  
   MultihopOscilloscopeC.Boot -> MainC;
   MultihopOscilloscopeC.Timer -> TimerMilliC;
   MultihopOscilloscopeC.Read -> Sensor;
@@ -30,7 +32,7 @@ implementation {
   // Communication components.  These are documented in TEP 113:
   // Serial Communication, and TEP 119: Collection.
   //
-  components TreeCollectionC as Collector,  // Collection layer
+  components CollectionC as Collector,  // Collection layer
     ActiveMessageC,                         // AM layer
     new CollectionSenderC(AM_OSCILLOSCOPE), // Sends multihop RF
     SerialActiveMessageC,                   // Serial messaging
@@ -51,7 +53,7 @@ implementation {
   //
   components new PoolC(message_t, 10) as DebugMessagePool,
     new QueueC(message_t*, 10) as DebugSendQueue,
-    new SerialAMSenderC(AM_COLLECTION_DEBUG) as DebugSerialSender,
+    new SerialAMSenderC(AM_CTP_DEBUG) as DebugSerialSender,
     UARTDebugSenderP as DebugSender;
 
   DebugSender.Boot -> MainC;
