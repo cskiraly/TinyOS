@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: tossim.c,v 1.1.2.10 2006-08-04 01:41:15 scipio Exp $
+// $Id: tossim.c,v 1.1.2.11 2006-09-08 12:20:14 janhauer Exp $
 
 
 #include <stdint.h>
@@ -255,6 +255,10 @@ void Tossim::addChannel(char* channel, FILE* file) {
 
 bool Tossim::removeChannel(char* channel, FILE* file) {
   return sim_remove_channel(channel, file);
+}
+
+void Tossim::randomSeed(int seed) {
+  return sim_random_seed(seed);
 }
 
 bool Tossim::runNextEvent() {
