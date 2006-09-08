@@ -1,4 +1,4 @@
-/* $Id: CtpForwardingEngineP.nc,v 1.1.2.5 2006-09-06 20:14:30 scipio Exp $ */
+/* $Id: CtpForwardingEngineP.nc,v 1.1.2.6 2006-09-08 21:51:55 kasj78 Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-09-06 20:14:30 $
+ *  @date   $Date: 2006-09-08 21:51:55 $
  */
 
 #include <CtpForwardingEngine.h>
@@ -149,6 +149,11 @@ generic module CtpForwardingEngineP() {
     interface Pool<fe_queue_entry_t> as QEntryPool;
     interface Pool<message_t> as MessagePool;
     interface Timer<TMilli> as RetxmitTimer;
+
+    // Counts down from the last time we heard from our parent; used
+    // to expire local state about parent congestion.
+    interface Timer<TMilli> as CongestionTimer;
+
     interface Cache<message_t*> as SentCache;
     interface CtpInfo;
     interface PacketAcknowledgements;
@@ -161,10 +166,19 @@ generic module CtpForwardingEngineP() {
   }
 }
 implementation {
-  /* Starts the retxmit timer with a random number masked by the given
-   * mask and added to the given offset.
+  /* Helper functions to start the given timer with a random number
+   * masked by the given mask and added to the given offset.
    */
   static void startRetxmitTimer(uint16_t mask, uint16_t offset);
+  static void startCongestionTimer(uint16_t mask, uint16_t offset);
+
+  /*
+   * Predicate to indicate our *local* congestion state (see TEP 123).
+   */
+  static bool congested();
+
+  /* Tracks our parent's congestion state. */
+  bool parentCongested = FALSE;
 
   /* Keeps track of whether the routing layer is running; if not,
    * it will not send packets. */
@@ -426,6 +440,12 @@ implementation {
       call CtpPacket.setEtx(qe->msg, gradient);
       
       ackPending = (call PacketAcknowledgements.requestAck(qe->msg) == SUCCESS);
+
+      // Set or clear the congestion bit on *outgoing* packets.
+      if (congested)
+        call CtpPacket.setOption(qe->msg, CTP_OPTION_ECN);
+      else
+        call CtpPacket.clearOption(qe->msg, CTP_OPTION_ECN);
       
       subsendResult = call SubSend.send(dest, qe->msg, payloadLen);
       if (subsendResult == SUCCESS) {
@@ -754,12 +774,36 @@ implementation {
 
   event message_t* 
   SubSnoop.receive(message_t* msg, void *payload, uint8_t len) {
-    return signal Snoop.receive[call CtpPacket.getType(msg)] (msg, payload + sizeof(ctp_data_header_t), 
-							      len - sizeof(ctp_data_header_t));
+    am_addr_t parent = call UnicastNameFreeRouting.nextHop();
+    am_addr_t proximalSrc = call AMPacket.address(msg);
+
+    // Check for the pull bit (P) [TEP123] and act accordingly.  This
+    // check is made for all packets, not just ones addressed to us.
+    if (call CtpPacket.option(msg, CTP_OPT_PULL))
+      call CtpInfo.triggerRouteUpdate();
+
+    if (call CtpPacket.option(msg, CTP_OPT_ECN) && proximalSrc == parent)
+      // We've overheard our parent's ECN bit set.
+      startCongestionTimer(CONGESTED_WAIT_WINDOW, CONGESTED_WAIT_OFFSET);
+    } else if (proximalSrc == parent) {
+      // We've overheard out parent's ECN bit cleared.
+      call CongestionTimer.stop();
+      parentCongested = FALSE;
+      post sendTask();
+    }
+
+    return signal Snoop.receive[call CtpPacket.getType(msg)] 
+      (msg, payload + sizeof(ctp_data_header_t), 
+       len - sizeof(ctp_data_header_t));
   }
   
   event void RetxmitTimer.fired() {
     sending = FALSE;
+    post sendTask();
+  }
+
+  event void CongestionTimer.fired() {
+    parentCongested = FALSE;
     post sendTask();
   }
   
@@ -788,13 +832,15 @@ implementation {
   }
 
   command am_addr_t       CollectionPacket.getOrigin(message_t* msg) {return getHeader(msg)->origin;}
+
   command collection_id_t CollectionPacket.getType(message_t* msg) {return getHeader(msg)->type;}
   command uint8_t         CollectionPacket.getSequenceNumber(message_t* msg) {return getHeader(msg)->originSeqNo;}
   command void CollectionPacket.setOrigin(message_t* msg, am_addr_t addr) {getHeader(msg)->origin = addr;}
   command void CollectionPacket.setType(message_t* msg, collection_id_t id) {getHeader(msg)->type = id;}
   command void CollectionPacket.setSequenceNumber(message_t* msg, uint8_t _seqno) {getHeader(msg)->originSeqNo = _seqno;}
   
-  command ctp_options_t CtpPacket.getOptions(message_t* msg) {return getHeader(msg)->options;}
+  //command ctp_options_t CtpPacket.getOptions(message_t* msg) {return getHeader(msg)->options;}
+
   command uint8_t       CtpPacket.getType(message_t* msg) {return getHeader(msg)->type;}
   command am_addr_t     CtpPacket.getOrigin(message_t* msg) {return getHeader(msg)->origin;}
   command uint16_t      CtpPacket.getEtx(message_t* msg) {return getHeader(msg)->etx;}
@@ -804,7 +850,19 @@ implementation {
   command void CtpPacket.setThl(message_t* msg, uint8_t thl) {getHeader(msg)->thl = thl;}
   command void CtpPacket.setOrigin(message_t* msg, am_addr_t addr) {getHeader(msg)->origin = addr;}
   command void CtpPacket.setType(message_t* msg, uint8_t id) {getHeader(msg)->type = id;}
-  command void CtpPacket.setOptions(message_t* msg, ctp_options_t opt) {getHeader(msg)->options = opt;}
+
+  command bool CollectionPacket.option(message_t* msg, ctp_options_t opt) {
+    return (getHeader(msg)->options & opt == opt) ? TRUE : FALSE;
+  }
+
+  command void CtpPacket.setOption(message_t* msg, ctp_options_t opt) {
+    getHeader(msg)->options |= opt;
+  }
+
+  command void CtpPacket.clearOption(message_t* msg, ctp_options_t opt) {
+    getHeader(msg)->options &= ~opt;
+  }
+
   command void CtpPacket.setEtx(message_t* msg, uint16_t e) {getHeader(msg)->etx = e;}
   command void CtpPacket.setSequenceNumber(message_t* msg, uint8_t _seqno) {getHeader(msg)->originSeqNo = _seqno;}
 
@@ -855,7 +913,22 @@ implementation {
     r &= mask;
     r += offset;
     call RetxmitTimer.startOneShot(r);
-    dbg("Forwarder", "started rexmit timer in %hu ms\n", r);
+    dbg("Forwarder", "Rexmit timer will fire in %hu ms\n", r);
+  }
+
+  static void startCongestionTimer(uint16_t mask, uint16_t offset) {
+    uint16_t r = call Random.rand16();
+    r &= mask;
+    r += offset;
+    call CongestionTimer.startOneShot(r);
+    dbg("Forwarder", "Congestion timer will fire in %hu ms\n", r);
+  }
+
+  static inline bool congested() {
+    // A simple predicate for now to determine congestion state of
+    // this node.
+    return (call SendQueue.size() + 2 >= SendQueue.maxSize()) ? 
+      TRUE : FALSE;
   }
 
   /* Default implementations for CollectionDebug calls.
