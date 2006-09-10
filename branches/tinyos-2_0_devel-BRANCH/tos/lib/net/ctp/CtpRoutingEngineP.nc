@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.3 2006-09-10 23:01:15 scipio Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.4 2006-09-10 23:06:43 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-09-10 23:01:15 $
+ *  @date   $Date: 2006-09-10 23:06:43 $
  *  @see Net2-WG
  */
 
@@ -157,8 +157,8 @@ implementation {
     bool tHasPassed;
 
     void chooseAdvertiseTime() {
-       uint16_t t = call Random.random16() % (currentInterval / 2);
-       t += currentInterval;
+       uint32_t t = currentInterval * 512; // * 1024 / 2
+       t += call Random.random32() % t;
        tHasPassed = FALSE;
        call BeaconTimer.stop();
        call BeaconTimer.start(t);
@@ -178,8 +178,7 @@ implementation {
     }
 
     void remainingInterval() {
-       uint16_t t = call BeaconTimer.getdt();
-       t = currentInterval - t;
+       uint32_t t = (currentInterval * 1024) - call BeaconTimer.getdt();
        tHasPassed = TRUE;
        call BeaconTimer.start(t);
     }
