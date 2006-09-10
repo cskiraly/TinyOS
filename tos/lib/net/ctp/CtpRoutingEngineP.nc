@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.2 2006-08-25 00:41:28 scipio Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.3 2006-09-10 23:01:15 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -88,13 +88,14 @@
 
  /* 
  *  @author Rodrigo Fonseca
+ *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-08-25 00:41:28 $
+ *  @date   $Date: 2006-09-10 23:01:15 $
  *  @see Net2-WG
  */
 
-generic module CtpRoutingEngineP(uint8_t routingTableSize) {
+generic module CtpRoutingEngineP(uint8_t routingTableSize, uint16_t minInterval, uint16_t maxInterval) {
     provides {
         interface UnicastNameFreeRouting as Routing;
         interface RootControl;
@@ -152,6 +153,36 @@ implementation {
     error_t routingTableUpdateEntry(am_addr_t, am_addr_t , uint8_t, uint16_t);
     error_t routingTableEvict(am_addr_t neighbor);
 
+    uint16_t currentInterval = minInterval;
+    bool tHasPassed;
+
+    void chooseAdvertiseTime() {
+       uint16_t t = call Random.random16() % (currentInterval / 2);
+       t += currentInterval;
+       tHasPassed = FALSE;
+       call BeaconTimer.stop();
+       call BeaconTimer.start(t);
+    }
+
+    void resetInterval() {
+      currentInterval = minInterval;
+      chooseAdvertiseTime();
+    }
+
+    void decayInterval() {
+      currentInterval *= 2;
+      if (currentInterval > maxInterval) {
+        currentInterval = maxInterval;
+      }
+      chooseAdvertiseTime();
+    }
+
+    void remainingInterval() {
+       uint16_t t = call BeaconTimer.getdt();
+       t = currentInterval - t;
+       tHasPassed = TRUE;
+       call BeaconTimer.start(t);
+    }
 
     command error_t Init.init() {
         uint8_t maxLength;
@@ -291,6 +322,7 @@ implementation {
                 // we need it: i. when choosing a parent (here); 
                 //            ii. when choosing a next hop
                 parentChanges++;
+                resetInterval();
                 dbg("TreeRouting","Changed parent. from %d to %d\n", routeInfo.parent, best->neighbor);
                 call CollectionDebug.logEventRoute(NET_C_TREE_NEW_PARENT, best->neighbor, best->info.hopcount + 1, best->info.metric); 
                 call LinkEstimator.unpinNeighbor(routeInfo.parent);
@@ -366,16 +398,17 @@ implementation {
 
 
     event void BeaconTimer.fired() {
-        if (radioOn && running) {
-            // determine next interval
-            uint16_t nextInt;
-            nextInt = call Random.rand16() % BEACON_INTERVAL;
-            nextInt += BEACON_INTERVAL >> 1;
-            call BeaconTimer.startOneShot(nextInt);
-            post updateRouteTask();
-            post sendBeaconTask();
-        } 
-    } 
+      if (radioOn && running) {
+        if (!t.hasPassed()) {
+          post updateRouteTask();
+          post sendBeaconTask();
+          remainingInterval();
+        }
+        else {
+          decayInterval();
+        }
+    }
+
 
     /* Handle the receiving of beacon messages from the neighbors. We update the
      * table, but wait for the next route update to choose a new parent */
