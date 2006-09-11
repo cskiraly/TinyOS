@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.4 2006-09-10 23:06:43 scipio Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.5 2006-09-11 12:17:07 kasj78 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-09-10 23:06:43 $
+ *  @date   $Date: 2006-09-11 12:17:07 $
  *  @see Net2-WG
  */
 
@@ -158,10 +158,10 @@ implementation {
 
     void chooseAdvertiseTime() {
        uint32_t t = currentInterval * 512; // * 1024 / 2
-       t += call Random.random32() % t;
+       t += call Random.rand32() % t;
        tHasPassed = FALSE;
        call BeaconTimer.stop();
-       call BeaconTimer.start(t);
+       call BeaconTimer.startPeriodic(t);
     }
 
     void resetInterval() {
@@ -180,7 +180,7 @@ implementation {
     void remainingInterval() {
        uint32_t t = (currentInterval * 1024) - call BeaconTimer.getdt();
        tHasPassed = TRUE;
-       call BeaconTimer.start(t);
+       call BeaconTimer.startPeriodic(t);
     }
 
     command error_t Init.init() {
@@ -398,7 +398,7 @@ implementation {
 
     event void BeaconTimer.fired() {
       if (radioOn && running) {
-        if (!t.hasPassed()) {
+        if (!tHasPassed) {
           post updateRouteTask();
           post sendBeaconTask();
           remainingInterval();
@@ -406,6 +406,7 @@ implementation {
         else {
           decayInterval();
         }
+      }
     }
 
 
