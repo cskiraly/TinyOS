@@ -21,7 +21,7 @@ implementation {
   components MainC, MultihopOscilloscopeC, LedsC, new TimerMilliC(), 
     new DemoSensorC() as Sensor;
 
-  MainC.SoftwareInit -> Sensor;
+  //MainC.SoftwareInit -> Sensor;
   
   MultihopOscilloscopeC.Boot -> MainC;
   MultihopOscilloscopeC.Timer -> TimerMilliC;
