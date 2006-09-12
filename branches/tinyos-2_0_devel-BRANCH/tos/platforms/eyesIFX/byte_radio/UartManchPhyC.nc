@@ -29,22 +29,24 @@
 * - Description ---------------------------------------------------------
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.6 $
+* $Revision: 1.1.2.1 $
 * $Date: 2006-09-12 12:16:31 $
 * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
 * ========================================================================
 */
 
 /**
- * UartPhyC
+ * Configuration for the byte radio physical layer. Together with the
+ * PacketSerializerP the UartPhyP module turns byte streams into packets.
+ *
+ * @see PacketSerializerP
  *
  * @author Philipp Huppertz <huppertz@tkn.tu-berlin.de>
  */
  
-configuration UartPhyC
+configuration UartManchPhyC
 {
   provides{
-    interface Init;
     interface PhyPacketTx;
     interface RadioByteComm as SerializerRadioByteComm;
     interface PhyPacketRx;
@@ -58,14 +60,18 @@ implementation
 {
     components 
         new Alarm32khzC() as RxByteTimer,
-        UartPhyP;
+        UartManchPhyP,
+//         PlatformLedsC,
+        MainC;
     
-    Init = UartPhyP;
-    PhyPacketRx = UartPhyP;
-    SerializerRadioByteComm = UartPhyP;
-    RadioByteComm = UartPhyP;
-    PhyPacketTx = UartPhyP;
-    UartPhyControl = UartPhyP;
+    MainC.SoftwareInit -> UartManchPhyP;
+    PhyPacketRx = UartManchPhyP;
+    SerializerRadioByteComm = UartManchPhyP;
+    RadioByteComm = UartManchPhyP;
+    PhyPacketTx = UartManchPhyP;
+    UartPhyControl = UartManchPhyP;
     
-    UartPhyP.RxByteTimer -> RxByteTimer;
+    UartManchPhyP.RxByteTimer -> RxByteTimer;
+//     PlatformLedsC.Led0 <- UartManchPhyP.Led0;
+//     PlatformLedsC.Led1 <- UartManchPhyP.Led1;
 }

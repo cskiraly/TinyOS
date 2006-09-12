@@ -84,7 +84,10 @@ implementation {
     CsmaMacP.ChannelMonitorData -> Cca.ChannelMonitorData;
     CsmaMacP.ChannelMonitorControl -> Cca.ChannelMonitorControl;
     CsmaMacP.RssiAdcResource -> Cca.RssiAdcResource;
-    
+
+    components ActiveMessageAddressC;
+    CsmaMacP.amAddress -> ActiveMessageAddressC;
+
     CsmaMacP.Random -> RandomLfsrC;
 
     CsmaMacP.RadioResourceRequested -> Tda5250RadioC.ResourceRequested;
