@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-01-31 12:25:32 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-09-12 12:16:32 $
  * ========================================================================
  */
 
@@ -39,6 +39,7 @@
  */
 configuration Tda5250RadioIOC
 {
+  provides interface GeneralIO as Tda5250RadioPASKNFSK;
   provides interface GeneralIO as Tda5250RadioBUSM;
   provides interface GeneralIO as Tda5250RadioENTDA;
   provides interface GeneralIO as Tda5250RadioTXRX;
@@ -48,6 +49,7 @@ configuration Tda5250RadioIOC
 implementation {
   components
       HplMsp430GeneralIOC as MspGeneralIO
+    , Tda5250ASKNFSKFakePinP      
     , new Msp430GpioC() as rBUSM
     , new Msp430GpioC() as rENTDA
     , new Msp430GpioC() as rTXRX
@@ -61,6 +63,7 @@ implementation {
   Tda5250RadioDATA = rDATA;
   Tda5250RadioPWDDD = rPWDD;
 
+  Tda5250RadioPASKNFSK = Tda5250ASKNFSKFakePinP;
   rBUSM -> MspGeneralIO.Port15;
   rENTDA -> MspGeneralIO.Port16;
   rTXRX -> MspGeneralIO.Port14;

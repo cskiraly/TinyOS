@@ -1,4 +1,4 @@
-// $Id: Tda5250ActiveMessageP.nc,v 1.1.2.4 2006-08-04 11:20:37 janhauer Exp $
+// $Id: Tda5250ActiveMessageP.nc,v 1.1.2.5 2006-09-12 12:16:31 phihup Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: Tda5250ActiveMessageP.nc,v 1.1.2.4 2006-08-04 11:20:37 janhauer Exp $
+ * Date last modified:  $Id: Tda5250ActiveMessageP.nc,v 1.1.2.5 2006-09-12 12:16:31 phihup Exp $
  *
  */
 
@@ -68,7 +68,6 @@ implementation {
     header->type = id;
     header->dest = addr;
     header->src = call amAddress();
-    header->group = TOS_AM_GROUP;
     return call SubSend.send(msg, len);
   }
 

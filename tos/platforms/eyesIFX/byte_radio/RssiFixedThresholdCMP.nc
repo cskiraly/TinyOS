@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5 $
- * $Date: 2006-08-03 18:17:52 $
+ * $Revision: 1.1.2.6 $
+ * $Date: 2006-09-12 12:16:31 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
  * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)
@@ -57,8 +57,8 @@ module RssiFixedThresholdCMP {
 implementation
 {    
 //#define CM_DEBUG                    // debug...
-    /* Measure internal voltage every 5s */
-#define VOLTAGE_SAMPLE_INTERVALL 5000
+    /* Measure internal voltage every 20s */
+#define VOLTAGE_SAMPLE_INTERVALL 20000
 
     /* 
      * Number of samples for noisefloor estimation
@@ -84,8 +84,8 @@ implementation
     // mu + 3*sigma -> rare event, outlier? 
 #define THREE_SIGMA          145
 
-    // 93 mV measured against 3V Vcc 
-#define INITIAL_BUSY_DELTA   127
+    // 92 mV measured against 3V Vcc 
+#define INITIAL_BUSY_DELTA   120
     
     // 3000/2 mV measured against 2.5V Ref
 #define INITIAL_BATTERY_LEVEL 2457 
@@ -149,11 +149,9 @@ implementation
     };
 #endif
 
-    int16_t computeSNR() {
+    int16_t computeSNR(uint16_t r) {
         uint32_t delta;
         uint16_t snr;
-        uint16_t r;
-        atomic r = rssi;
         if(r > noisefloor) {
              delta = r - noisefloor;
              // speedily cacluate
@@ -245,7 +243,7 @@ implementation
         uint16_t nbD;
         uint16_t bD;
         if(result == SUCCESS) {
-            nbl = data;
+            nbl = (data + batteryLevel)>>1;
             atomic bD = busyDelta;
             d = batteryLevel - nbl;
             if(d > 75 || d < -75) {
@@ -267,6 +265,9 @@ implementation
             if(state == IDLE) {
                 res = rssiRead();
                 if(res == SUCCESS) state = CCA;
+            }
+            else if(state == CCA) {
+                res = SUCCESS;
             }
         }
         return res;
@@ -394,17 +395,38 @@ implementation
                 res = rssiRead();
                 if(res == SUCCESS) state = SNR;
             }
+            else if(state == SNR) {
+                res = SUCCESS;
+            }
         }
         return res;
     }
 
     task void SnrReadyTask() {
         int16_t snr;
-        snr = computeSNR();
-        atomic state = IDLE;
-        signal ChannelMonitorData.getSnrDone(snr);
+        state_t s;
+        uint16_t r;
+        atomic {
+            r = rssi;
+            s = state;
+            if(state == SNR) state = IDLE;
+        }
+        if(s == SNR) {
+            snr = computeSNR(r);
+            signal ChannelMonitorData.getSnrDone(snr);
+        }
     }
 
+    async command uint16_t ChannelMonitorData.readSnr() {
+        uint16_t rval;
+        if(rssi > noisefloor) {
+            rval = (rssi-noisefloor)>>4;
+        } else {
+            rval = 3;
+        }
+        return rval;
+    }
+    
     default async event void ChannelMonitorData.getSnrDone(int16_t snr) {
     }
 

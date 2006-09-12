@@ -2,13 +2,14 @@
 #define TDA5250_MESSAGE_H
 
 #include "AM.h"
+#include "PacketAck.h"
 
 typedef nx_struct tda5250_header_t {
+  nx_uint8_t   length;
   nx_am_addr_t src;
   nx_am_addr_t dest;
-  nx_uint8_t length;
-  nx_am_group_t group;
-  nx_am_id_t type;
+  nx_am_id_t   type;
+  nx_uint8_t   token;
 } tda5250_header_t;
 
 typedef nx_struct tda5250_footer_t {
