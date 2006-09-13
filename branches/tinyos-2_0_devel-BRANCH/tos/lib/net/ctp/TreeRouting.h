@@ -13,8 +13,7 @@ enum {
 
 typedef struct {
     am_addr_t parent;
-    uint8_t hopcount;
-    uint16_t metric;
+    uint16_t etx;
 } route_info_t;
 
 typedef struct {
@@ -24,14 +23,7 @@ typedef struct {
 
 inline void routeInfoInit(route_info_t *ri) {
     ri->parent = INVALID_ADDR;
-    ri->hopcount = 0;
-    ri->metric = 0;
+    ri->etx = 0;
 }
-
-typedef nx_struct beacon_msg_t {
-    nx_am_addr_t parent;
-    nx_uint8_t hopcount;
-    nx_uint16_t metric;
-} beacon_msg_t;
 
 #endif

@@ -1,4 +1,4 @@
-/* $Id: CtpForwardingEngineP.nc,v 1.1.2.7 2006-09-11 12:11:59 kasj78 Exp $ */
+/* $Id: CtpForwardingEngineP.nc,v 1.1.2.8 2006-09-13 01:41:57 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-09-11 12:11:59 $
+ *  @date   $Date: 2006-09-13 01:41:57 $
  */
 
 #include <CtpForwardingEngine.h>
@@ -432,7 +432,7 @@ implementation {
       }
       
       // Loop-detection functionality:
-      if (call CtpInfo.getMetric(&gradient) != SUCCESS) {
+      if (call CtpInfo.getEtx(&gradient) != SUCCESS) {
         // If we have no metric, set our gradient conservatively so
         // that other nodes don't automatically drop our packets.
         gradient = 0;
@@ -442,7 +442,7 @@ implementation {
       ackPending = (call PacketAcknowledgements.requestAck(qe->msg) == SUCCESS);
 
       // Set or clear the congestion bit on *outgoing* packets.
-      if (congested)
+      if (congested())
         call CtpPacket.setOption(qe->msg, CTP_OPT_ECN);
       else
         call CtpPacket.clearOption(qe->msg, CTP_OPT_ECN);
@@ -641,7 +641,7 @@ implementation {
       if (call SendQueue.enqueue(qe) == SUCCESS) {
         dbg("Forwarder,Route", "%s forwarding packet %p with queue size %hhu\n", __FUNCTION__, m, call SendQueue.size());
         // Loop-detection code:
-        if (call CtpInfo.getMetric(&gradient) == SUCCESS) {
+        if (call CtpInfo.getEtx(&gradient) == SUCCESS) {
           // We only check for loops if we know our own metric
           if (call CtpPacket.getEtx(m) < gradient) {
             // The incoming packet's metric (gradient) is less than our

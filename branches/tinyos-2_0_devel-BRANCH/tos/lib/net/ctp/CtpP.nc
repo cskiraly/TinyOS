@@ -120,13 +120,14 @@ implementation {
   Forwarder.SentCache -> SentCacheP;
 
   components new TimerMilliC() as RoutingBeaconTimer;
+  components new TimerMilliC() as RouteUpdateTimer;
   components LinkEstimatorP as Estimator;
 
   components new AMSenderC(AM_CTP_DATA);
   components new AMReceiverC(AM_CTP_DATA);
   components new AMSnooperC(AM_CTP_DATA);
   
-  components new CtpRoutingEngineP(TREE_ROUTING_TABLE_SIZE, 2, 60) as Router;
+  components new CtpRoutingEngineP(TREE_ROUTING_TABLE_SIZE, 8, 8) as Router;
   StdControl = Router;
   StdControl = Estimator;
   RootControl = Router;
@@ -138,6 +139,7 @@ implementation {
   Router.AMPacket -> ActiveMessageC;
   Router.RadioControl -> ActiveMessageC;
   Router.BeaconTimer -> RoutingBeaconTimer;
+  Router.RouteTimer -> RouteUpdateTimer;
   Router.CollectionDebug = CollectionDebug;
   Forwarder.CollectionDebug = CollectionDebug;
   Forwarder.CtpInfo -> Router;
