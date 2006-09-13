@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.5 2006-09-11 12:17:07 kasj78 Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.6 2006-09-13 01:41:57 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-09-11 12:17:07 $
+ *  @date   $Date: 2006-09-13 01:41:57 $
  *  @see Net2-WG
  */
 
@@ -101,6 +101,7 @@ generic module CtpRoutingEngineP(uint8_t routingTableSize, uint16_t minInterval,
         interface RootControl;
         interface CtpInfo;
         interface StdControl;
+	interface CtpRoutingPacket;
         interface Init;
     } 
     uses {
@@ -111,6 +112,7 @@ generic module CtpRoutingEngineP(uint8_t routingTableSize, uint16_t minInterval,
         interface LinkSrcPacket;
         interface SplitControl as RadioControl;
         interface Timer<TMilli> as BeaconTimer;
+	interface Timer<TMilli> as RouteTimer;
         interface Random;
         interface CollectionDebug;
     }
@@ -137,7 +139,7 @@ implementation {
     am_addr_t my_ll_addr;
 
     message_t beaconMsgBuffer;
-    beacon_msg_t* beaconMsg;
+    ctp_routing_header_t* beaconMsg;
 
     /* routing table -- routing info about neighbors */
     routing_table_entry routingTable[routingTableSize];
@@ -150,7 +152,7 @@ implementation {
     // forward declarations
     void routingTableInit();
     uint8_t routingTableFind(am_addr_t);
-    error_t routingTableUpdateEntry(am_addr_t, am_addr_t , uint8_t, uint16_t);
+    error_t routingTableUpdateEntry(am_addr_t, am_addr_t , uint16_t);
     error_t routingTableEvict(am_addr_t neighbor);
 
     uint16_t currentInterval = minInterval;
@@ -170,9 +172,11 @@ implementation {
     }
 
     void decayInterval() {
-      currentInterval *= 2;
-      if (currentInterval > maxInterval) {
-        currentInterval = maxInterval;
+      if (!state_is_root) {
+	currentInterval *= 2;
+	if (currentInterval > maxInterval) {
+	  currentInterval = maxInterval;
+	}
       }
       chooseAdvertiseTime();
     }
@@ -204,9 +208,8 @@ implementation {
         uint16_t nextInt;
         if (!running) {
             running = TRUE;
-            nextInt = call Random.rand16() % BEACON_INTERVAL;
-            nextInt += BEACON_INTERVAL >> 1;
-            call BeaconTimer.startOneShot(nextInt);
+	    resetInterval();
+	    call RouteTimer.startPeriodic(BEACON_INTERVAL);
             dbg("TreeRoutingCtl","%s running: %d radioOn: %d\n", __FUNCTION__, running, radioOn);
         }     
         return SUCCESS;
@@ -236,13 +239,13 @@ implementation {
 
     /* Is this quality measure better than the minimum threshold? */
     // Implemented assuming quality is EETX
-    bool passLinkMetricThreshold(uint16_t metric) {
-        return (metric < ETX_THRESHOLD);
+    bool passLinkEtxThreshold(uint16_t etx) {
+        return (etx < ETX_THRESHOLD);
     }
 
     /* Converts the output of the link estimator to path metric
      * units, that can be *added* to form path metric measures */
-    uint16_t evaluateMetric(uint8_t quality) {
+    uint16_t evaluateEtx(uint8_t quality) {
         //dbg("TreeRouting","%s %d -> %d\n",__FUNCTION__,quality, quality+10);
         return (quality + 10);
     }
@@ -254,18 +257,18 @@ implementation {
         uint8_t i;
         routing_table_entry* entry;
         routing_table_entry* best;
-        uint16_t minMetric;
-        uint16_t currentMetric;
-        uint16_t linkMetric, pathMetric;
+        uint16_t minEtx;
+        uint16_t currentEtx;
+        uint16_t linkEtx, pathEtx;
 
         if (state_is_root)
             return;
         
         best = NULL;
-        /* Minimum metric found among neighbors, initially infinity */
-        minMetric = MAX_METRIC;
+        /* Minimum etx found among neighbors, initially infinity */
+        minEtx = MAX_METRIC;
         /* Metric through current parent, initially infinity */
-        currentMetric = MAX_METRIC;
+        currentEtx = MAX_METRIC;
 
         dbg("TreeRouting","%s\n",__FUNCTION__);
 
@@ -276,46 +279,42 @@ implementation {
             // Avoid bad entries and 1-hop loops
             if (entry->info.parent == INVALID_ADDR || entry->info.parent == my_ll_addr) {
               dbg("TreeRouting", 
-                  "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: NO ROUTE]\n",  
-                  i, entry->neighbor, entry->info.parent, entry->info.hopcount);
+                  "routingTable[%d]: neighbor: [id: %d parent: %d  etx: NO ROUTE]\n",  
+                  i, entry->neighbor, entry->info.parent);
               continue;
             }
-	    if (TOS_NODE_ID > 10 && entry->neighbor == 0) {
-	      continue;
-	    }
             /* Compute this neighbor's path metric */
-            linkMetric = evaluateMetric(call LinkEstimator.getLinkQuality(entry->neighbor));
+            linkEtx = evaluateEtx(call LinkEstimator.getLinkQuality(entry->neighbor));
             dbg("TreeRouting", 
-                "routingTable[%d]: neighbor: [id: %d parent: %d hopcount: %d metric: %d]\n",  
-                i, entry->neighbor, entry->info.parent, entry->info.hopcount, linkMetric);
-            pathMetric = linkMetric + entry->info.metric;
+                "routingTable[%d]: neighbor: [id: %d parent: %d etx: %d]\n",  
+                i, entry->neighbor, entry->info.parent, linkEtx);
+            pathEtx = linkEtx + entry->info.etx;
             /* Operations specific to the current parent */
             if (entry->neighbor == routeInfo.parent) {
                 dbg("TreeRouting", "   already parent.\n");
-                currentMetric = pathMetric;
+                currentEtx = pathEtx;
                 /* update routeInfo with parent's current info */
                 atomic {
-                    routeInfo.metric = entry->info.metric;
-                    routeInfo.hopcount = entry->info.hopcount + 1;
+                    routeInfo.etx = entry->info.etx;
                 }
                 continue;
             }
             /* Ignore links that are bad */
-            if (!passLinkMetricThreshold(linkMetric)) {
+            if (!passLinkEtxThreshold(linkEtx)) {
               dbg("TreeRouting", "   did not pass threshold.\n");
               continue;
             }
             
-            if (pathMetric < minMetric) {
-                minMetric = pathMetric;
+            if (pathEtx < minEtx) {
+                minEtx = pathEtx;
                 best = entry;
             }  
         }
 
         /* Now choose between the current parent and the best neighbor */
-        if (minMetric != MAX_METRIC) {
-            if (currentMetric == MAX_METRIC ||
-                minMetric + PARENT_SWITCH_THRESHOLD < currentMetric) {
+        if (minEtx != MAX_METRIC) {
+            if (currentEtx == MAX_METRIC ||
+                minEtx + PARENT_SWITCH_THRESHOLD < currentEtx) {
                 // routeInfo.metric will not store the composed metric.
                 // since the linkMetric may change, we will compose whenever
                 // we need it: i. when choosing a parent (here); 
@@ -323,13 +322,12 @@ implementation {
                 parentChanges++;
                 resetInterval();
                 dbg("TreeRouting","Changed parent. from %d to %d\n", routeInfo.parent, best->neighbor);
-                call CollectionDebug.logEventRoute(NET_C_TREE_NEW_PARENT, best->neighbor, best->info.hopcount + 1, best->info.metric); 
+                call CollectionDebug.logEventRoute(NET_C_TREE_NEW_PARENT, best->neighbor, 0, best->info.etx); 
                 call LinkEstimator.unpinNeighbor(routeInfo.parent);
                 call LinkEstimator.pinNeighbor(best->neighbor);
                 atomic {
                     routeInfo.parent = best->neighbor;
-                    routeInfo.metric = best->info.metric;
-                    routeInfo.hopcount = best->info.hopcount + 1; 
+                    routeInfo.etx = best->info.etx;
                 }
             }
         }    
@@ -339,13 +337,13 @@ implementation {
          * been just evicted then we already did not have a route */
         if (justEvicted && routeInfo.parent == INVALID_ADDR) 
             signal Routing.noRoute();
-        /* On the other hand, if we didn't have a parent (no currentMetric) and now we
+        /* On the other hand, if we didn't have a parent (no currentEtx) and now we
          * do, then we signal route found. The exception is if we just evicted the 
          * parent and immediately found a replacement route: we don't signal in this 
          * case */
         else if (!justEvicted && 
-                  currentMetric == MAX_METRIC &&
-                  minMetric != MAX_METRIC)
+                  currentEtx == MAX_METRIC &&
+                  minEtx != MAX_METRIC)
             signal Routing.routeFound();
         justEvicted = FALSE; 
     }
@@ -360,25 +358,28 @@ implementation {
             return;
         }
         beaconMsg->parent = routeInfo.parent;
-        beaconMsg->hopcount = routeInfo.hopcount;
-
-        if (state_is_root || routeInfo.parent == INVALID_ADDR) {
-            beaconMsg->metric = routeInfo.metric;
+        if (state_is_root) {
+            beaconMsg->etx = routeInfo.etx;
+	    beaconMsg->options = 0;
+	}
+	else if (routeInfo.parent == INVALID_ADDR) {
+            beaconMsg->etx = routeInfo.etx;
+	    beaconMsg->options = CTP_OPT_PULL;
         } else {
-            beaconMsg->metric = routeInfo.metric +
-                                evaluateMetric(call LinkEstimator.getLinkQuality(routeInfo.parent)); 
+	  beaconMsg->etx = routeInfo.etx +
+                                evaluateEtx(call LinkEstimator.getLinkQuality(routeInfo.parent));
+	    beaconMsg->options = 0;
         }
 
-        dbg("TreeRouting", "%s parent: %d hopcount: %d metric: %d\n",
+        dbg("TreeRouting", "%s parent: %d etx: %d\n",
                   __FUNCTION__,
                   beaconMsg->parent, 
-                  beaconMsg->hopcount, 
-                  beaconMsg->metric);
-        call CollectionDebug.logEventRoute(NET_C_TREE_SENT_BEACON, beaconMsg->parent, beaconMsg->hopcount, beaconMsg->metric);
+	    beaconMsg->etx);
+        call CollectionDebug.logEventRoute(NET_C_TREE_SENT_BEACON, beaconMsg->parent, 0, beaconMsg->etx);
 
         eval = call BeaconSend.send(AM_BROADCAST_ADDR, 
                                     &beaconMsgBuffer, 
-                                    sizeof(beacon_msg_t));
+                                    sizeof(ctp_routing_header_t));
         if (eval == SUCCESS) {
             sending = TRUE;
         } else if (eval == EOFF) {
@@ -395,11 +396,14 @@ implementation {
         sending = FALSE;
     }
 
-
+    event void RouteTimer.fired() {
+      if (radioOn && running) 
+	post updateRouteTask();
+    }
+    
     event void BeaconTimer.fired() {
       if (radioOn && running) {
         if (!tHasPassed) {
-          post updateRouteTask();
           post sendBeaconTask();
           remainingInterval();
         }
@@ -410,43 +414,51 @@ implementation {
     }
 
 
+    ctp_routing_header_t* getHeader(message_t* m) {
+      return (ctp_routing_header_t*)call BeaconReceive.getPayload(m, NULL);
+    }
+    
+    
     /* Handle the receiving of beacon messages from the neighbors. We update the
      * table, but wait for the next route update to choose a new parent */
     event message_t* BeaconReceive.receive(message_t* msg, void* payload, uint8_t len) {
         am_addr_t from;
-        beacon_msg_t* rcvBeacon;
+        ctp_routing_header_t* rcvBeacon;
 
         // Received a beacon, but it's not from us.
-        if (len != sizeof(beacon_msg_t)) {
-          dbg("LITest", "%s, received beacon of size %hhu, expected %i\n", __FUNCTION__, len, (int)sizeof(beacon_msg_t));
+        if (len != sizeof(ctp_routing_header_t)) {
+          dbg("LITest", "%s, received beacon of size %hhu, expected %i\n", __FUNCTION__, len, (int)sizeof(ctp_routing_header_t));
               
           return msg;
         }
         
         //need to get the am_addr_t of the source
         from = call LinkSrcPacket.getSrc(msg);
-        rcvBeacon = (beacon_msg_t*)payload;
+        rcvBeacon = (ctp_routing_header_t*)payload;
 
-        dbg("TreeRouting","%s from: %d  [ parent: %d hopcount: %d metric: %d]\n",
+        dbg("TreeRouting","%s from: %d  [ parent: %d etx: %d]\n",
             __FUNCTION__, from, 
-            rcvBeacon->parent, rcvBeacon->hopcount, rcvBeacon->metric);
-        //call CollectionDebug.logEventRoute(NET_C_TREE_RCV_BEACON, rcvBeacon->parent, rcvBeacon->hopcount, rcvBeacon->metric);
+            rcvBeacon->parent, rcvBeacon->etx);
+        //call CollectionDebug.logEventRoute(NET_C_TREE_RCV_BEACON, rcvBeacon->parent, rcvBeacon->hopcount, rcvBeacon->etx);
 
         //update neighbor table
         if (rcvBeacon->parent != INVALID_ADDR) {
 
             /* If this node is a root, request a forced insert in the link
              * estimator table and pin the node. */
-            if (rcvBeacon->hopcount == 0) {
+            if (rcvBeacon->etx == 0) {
                 dbg("TreeRouting","from a root, inserting if not in table\n");
                 call LinkEstimator.insertNeighbor(from);
                 call LinkEstimator.pinNeighbor(from);
             }
-            //TODO: also, if better than my current parent's path metric, insert
+            //TODO: also, if better than my current parent's path etx, insert
 
-            routingTableUpdateEntry(from, rcvBeacon->parent, rcvBeacon->hopcount, rcvBeacon->metric);
+            routingTableUpdateEntry(from, rcvBeacon->parent, rcvBeacon->etx);
         }
-        
+
+	if (call CtpRoutingPacket.getOptions(msg) & CTP_OPT_PULL) {
+	  resetInterval();
+	}
         //post updateRouteTask();
         return msg;
     }
@@ -481,20 +493,13 @@ implementation {
         *parent = routeInfo.parent;
         return SUCCESS;
     }
-    command error_t CtpInfo.getHopcount(uint8_t* hopcount) {
-        if (hopcount == NULL) 
+
+    command error_t CtpInfo.getEtx(uint16_t* etx) {
+        if (etx == NULL) 
             return FAIL;
         if (routeInfo.parent == INVALID_ADDR)    
             return FAIL;
-        *hopcount= routeInfo.hopcount;
-        return SUCCESS;
-    }
-    command error_t CtpInfo.getMetric(uint16_t* metric) {
-        if (metric == NULL) 
-            return FAIL;
-        if (routeInfo.parent == INVALID_ADDR)    
-            return FAIL;
-        *metric = routeInfo.metric;
+        *etx = routeInfo.etx;
         return SUCCESS;
     }
 
@@ -519,13 +524,12 @@ implementation {
         atomic {
             state_is_root = 1;
             routeInfo.parent = my_ll_addr; //myself
-            routeInfo.hopcount = 0;
-            routeInfo.metric = 0;
+            routeInfo.etx = 0;
         }
         if (route_found) 
             signal Routing.routeFound();
         dbg("TreeRouting","%s I'm a root now!\n",__FUNCTION__);
-        call CollectionDebug.logEventRoute(NET_C_TREE_NEW_PARENT, routeInfo.parent, routeInfo.hopcount, routeInfo.metric);
+        call CollectionDebug.logEventRoute(NET_C_TREE_NEW_PARENT, routeInfo.parent, 0, routeInfo.etx);
         return SUCCESS;
     }
 
@@ -579,17 +583,15 @@ implementation {
     }
 
 
-    error_t routingTableUpdateEntry(am_addr_t from, am_addr_t parent, 
-                            uint8_t hopcount, uint16_t metric)
-    {
+    error_t routingTableUpdateEntry(am_addr_t from, am_addr_t parent, uint16_t etx)    {
         uint8_t idx;
-        uint16_t  linkMetric;
-        linkMetric = evaluateMetric(call LinkEstimator.getLinkQuality(from));
+        uint16_t  linkEtx;
+        linkEtx = evaluateEtx(call LinkEstimator.getLinkQuality(from));
 
         idx = routingTableFind(from);
         if (idx == routingTableSize) {
             //not found and table is full
-            //if (passLinkMetricThreshold(linkMetric))
+            //if (passLinkEtxThreshold(linkEtx))
                 //TODO: add replacement here, replace the worst
             //}
             dbg("TreeRouting", "%s FAIL, table full\n", __FUNCTION__);
@@ -597,25 +599,23 @@ implementation {
         }
         else if (idx == routingTableActive) {
             //not found and there is space
-            if (passLinkMetricThreshold(linkMetric)) {
+            if (passLinkEtxThreshold(linkEtx)) {
                 atomic {
                     routingTable[idx].neighbor = from;
                     routingTable[idx].info.parent = parent;
-                    routingTable[idx].info.hopcount = hopcount;
-                    routingTable[idx].info.metric = metric;
+                    routingTable[idx].info.etx = etx;
                     routingTableActive++;
                 }
                 dbg("TreeRouting", "%s OK, new entry\n", __FUNCTION__);
             } else {
-                dbg("TreeRouting", "%s Fail, link quality (%hu) below threshold\n", __FUNCTION__, linkMetric);
+                dbg("TreeRouting", "%s Fail, link quality (%hu) below threshold\n", __FUNCTION__, linkEtx);
             }
         } else {
             //found, just update
             atomic {
                 routingTable[idx].neighbor = from;
                 routingTable[idx].info.parent = parent;
-                routingTable[idx].info.hopcount = hopcount;
-                routingTable[idx].info.metric = metric;
+                routingTable[idx].info.etx = etx;
             }
             dbg("TreeRouting", "%s OK, updated entry\n", __FUNCTION__);
         }
@@ -652,8 +652,28 @@ implementation {
     default command error_t CollectionDebug.logEventMsg(uint8_t type, uint16_t msg, am_addr_t origin, am_addr_t node) {
         return SUCCESS;
     }
-    default command error_t CollectionDebug.logEventRoute(uint8_t type, am_addr_t parent, uint8_t hopcount, uint16_t metric) {
+    default command error_t CollectionDebug.logEventRoute(uint8_t type, am_addr_t parent, uint8_t hopcount, uint16_t etx) {
         return SUCCESS;
     }
- 
+
+    command ctp_options_t CtpRoutingPacket.getOptions(message_t* msg) {
+      return getHeader(msg)->options;
+    }
+    command void          CtpRoutingPacket.setOptions(message_t* msg, ctp_options_t options) {
+      getHeader(msg)->options = options;
+    }
+    
+    command am_addr_t     CtpRoutingPacket.getParent(message_t* msg) {
+      return getHeader(msg)->parent;
+    }
+    command void          CtpRoutingPacket.setParent(message_t* msg, am_addr_t addr) {
+      getHeader(msg)->parent = addr;
+    }
+    
+    command uint16_t      CtpRoutingPacket.getEtx(message_t* msg) {
+      return getHeader(msg)->etx;
+    }
+    command void          CtpRoutingPacket.setEtx(message_t* msg, uint8_t etx) {
+      getHeader(msg)->etx = etx;
+    }
 } 
