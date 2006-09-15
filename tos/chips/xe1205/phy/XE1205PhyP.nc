@@ -306,7 +306,6 @@ implementation {
     }
   }
 
-  bool reading=FALSE;
 
 
   /**
@@ -318,7 +317,6 @@ implementation {
     switch (state) {
 
     case RADIO_RX_PACKET:
-      reading = TRUE;
       xe1205check(9, call XE1205Fifo.read(&rxFrame[rxFrameIndex], nextRxLen));
       call Interrupt1.disable(); // in case it briefly goes back to full just after we read first byte
       rxFrameIndex += nextRxLen;
@@ -396,7 +394,6 @@ implementation {
       return;
 
     case RADIO_RX_PACKET:
-      reading = FALSE;
       call Interrupt1.enableRisingEdge();
       return;
 
@@ -432,6 +429,7 @@ implementation {
       return;
 
     case RADIO_RX_HEADER:
+    case RADIO_RX_PACKET:
       stats_rxOverruns++;
       signal XE1205PhyRxTx.rxFrameEnd(NULL, 0, FAIL);
       armPatternDetect(); 
