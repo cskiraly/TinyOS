@@ -10,8 +10,8 @@ Timers
 :Author: Cory Sharp, Martin Turon, David Gay
 
 :Draft-Created: 22-Sep-2004
-:Draft-Version: $Revision: 1.1.2.4 $
-:Draft-Modified: $Date: 2006-06-16 00:25:58 $
+:Draft-Version: $Revision: 1.1.2.5 $
+:Draft-Modified: $Date: 2006-09-21 01:38:09 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -341,7 +341,7 @@ frequences in the same program SHOULD produce compile-time
 errors.
 
 
-A hardware timer with precision *P* and width *W* SHOULD be exposed as a
+A hardware timer with precision *P* and width *W* SHOULD be exposed as
 several components::
 
   configuration CounterPWC {
@@ -407,7 +407,7 @@ BusyWaitMicroC
   }
 
 BusyWaitMicroC allows applications to busy-wait for a number of
-microseconds. It's use should be restricted to situations where the
+microseconds. Its use should be restricted to situations where the
 delay is small and setting a timer or alarm would be impractical,
 inefficient or insufficiently precise.
 
@@ -542,6 +542,33 @@ timers.  ::
     provides interface Timer<precision_tag> as Timer[ uint8_t num ];
     uses interface Timer<precision_tag> as TimerFrom;
   }
+
+6. Author's Address
+====================================================================
+| Cory Sharp
+| Moteiv Corporation
+| 55 Hawthorne St, Suite 550
+| San Francisco, CA 94105
+|
+| email - cory@moteiv.com
+|
+|
+| Martin Turon
+| P.O. Box 8525
+| Berkeley, CA 94707
+|
+| phone - +1 408 965 3355
+| email - mturon@xbow.com
+|
+|
+| David Gay
+| 2150 Shattuck Ave, Suite 1300
+| Intel Research
+| Berkeley, CA 94704
+|
+| phone - +1 510 495 3055
+| email - david.e.gay@intel.com
+
 
 Appendix A: Timer hardware on various microcontrollers
 ====================================================================
