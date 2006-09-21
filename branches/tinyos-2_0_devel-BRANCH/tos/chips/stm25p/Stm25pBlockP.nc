@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.10 $ $Date: 2006-08-15 11:59:08 $
+ * @version $Revision: 1.1.2.11 $ $Date: 2006-09-21 23:21:09 $
  */
 
 module Stm25pBlockP {
@@ -55,10 +55,9 @@ implementation {
   typedef enum {
     S_IDLE,
     S_READ,
-    S_VERIFY,
     S_CRC,
     S_WRITE,
-    S_COMMIT,
+    S_SYNC,
     S_ERASE,
   } stm25p_block_req_t;
   
@@ -93,11 +92,6 @@ implementation {
     return newRequest( id );
   }
   
-  command error_t Read.verify[ uint8_t id ]() {
-    m_req.req = S_VERIFY;
-    return newRequest( id );
-  }
-  
   command error_t Read.computeCrc[ uint8_t id ]( storage_addr_t addr,
 						 storage_len_t len,
 						 uint16_t crc ) {
@@ -117,8 +111,8 @@ implementation {
     return newRequest( id );
   }
   
-  command error_t Write.commit[ uint8_t id ]() {
-    m_req.req = S_COMMIT;
+  command error_t Write.sync[ uint8_t id ]() {
+    m_req.req = S_SYNC;
     return newRequest( id );
   }
   
@@ -160,7 +154,7 @@ implementation {
     case S_ERASE:
       call Sector.erase[ id ]( 0, call Sector.getNumSectors[ id ]() );
       break;
-    case S_COMMIT: case S_VERIFY:
+    case S_SYNC:
       signalDone( id, 0, SUCCESS );
       break;
     case S_IDLE:
@@ -204,9 +198,6 @@ implementation {
 				  m_block_state[ id ].buf,
 				  m_block_state[ id ].len, error );  
       break;
-    case S_VERIFY:
-      signal Read.verifyDone[ id ]( error );
-      break;
     case S_CRC:
       signal Read.computeCrcDone[ id ]( m_block_state[ id ].addr, 
 					m_block_state[ id ].len, crc, error );
@@ -216,8 +207,8 @@ implementation {
 				    m_block_state[ id ].buf,
 				    m_block_state[ id ].len, error );
       break;
-    case S_COMMIT:
-      signal Write.commitDone[ id ]( error );
+    case S_SYNC:
+      signal Write.syncDone[ id ]( error );
       break;
     case S_ERASE:
       signal Write.eraseDone[ id ]( error );
@@ -230,10 +221,9 @@ implementation {
   
   default event void Read.readDone[ uint8_t id ]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {}
   default event void Read.computeCrcDone[ uint8_t id ]( storage_addr_t addr, storage_len_t len, uint16_t crc, error_t error ) {}
-  default event void Read.verifyDone[ uint8_t id ]( error_t error ) {}
   default event void Write.writeDone[ uint8_t id ]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {}
   default event void Write.eraseDone[ uint8_t id ]( error_t error ) {}
-  default event void Write.commitDone[ uint8_t id ]( error_t error ) {}
+  default event void Write.syncDone[ uint8_t id ]( error_t error ) {}
   
   default command storage_addr_t Sector.getPhysicalAddress[ uint8_t id ]( storage_addr_t addr ) { return 0xffffffff; }
   default command uint8_t Sector.getNumSectors[ uint8_t id ]() { return 0; }
