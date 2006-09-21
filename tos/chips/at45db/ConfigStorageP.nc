@@ -1,4 +1,4 @@
-// $Id: ConfigStorageP.nc,v 1.1.2.8 2006-09-21 22:51:39 idgay Exp $
+// $Id: ConfigStorageP.nc,v 1.1.2.9 2006-09-21 23:03:10 idgay Exp $
 
 /*									tab:4
  * Copyright (c) 2002-2006 Intel Corporation
@@ -266,10 +266,9 @@ implementation
   /* Commit								*/
   /* ------------------------------------------------------------------ */
 
-  void commitDone(uint8_t id, error_t error);
+  void commitSyncDone(uint8_t id, error_t error);
 
   command error_t ConfigStorage.commit[uint8_t id]() {
-    /* Call BlockWrite.commit */
     error_t ok;
     uint16_t crc;
     uint8_t i;
@@ -304,7 +303,7 @@ implementation
     if (s[id].state == S_CLEAN)
       signal ConfigStorage.commitDone[id](error);
     else if (error != SUCCESS)
-      commitDone(id, error);
+      commitSyncDone(id, error);
     else
       {
 	low[id].crc = crc;
@@ -314,12 +313,12 @@ implementation
 
   void commitWriteDone(uint8_t id, error_t error) {
     if (error != SUCCESS)
-      commitDone(id, error);
+      commitSyncDone(id, error);
     else
-      call BlockWrite.commit[id]();
+      call BlockWrite.sync[id]();
   }
 
-  void commitDone(uint8_t id, error_t error) {
+  void commitSyncDone(uint8_t id, error_t error) {
     s[id].committing = FALSE;
     if (error == SUCCESS)
       s[id].state = S_CLEAN;
@@ -375,9 +374,9 @@ implementation
 	writeWriteDone(id, addr, buf, len, error);
   }
 
-  event void BlockWrite.commitDone[uint8_t id]( error_t error ) {
+  event void BlockWrite.syncDone[uint8_t id]( error_t error ) {
     if (id < N)
-      commitDone(id, error);
+      commitSyncDone(id, error);
   }
 
   event void BlockRead.computeCrcDone[uint8_t id]( storage_addr_t addr, storage_len_t len, uint16_t crc, error_t error ) {
@@ -393,7 +392,6 @@ implementation
       copyCopyPageDone(error);
   }
 
-  event void BlockRead.verifyDone[uint8_t id](error_t error) {}
   event void BlockWrite.eraseDone[uint8_t id](error_t error) {}
   event void At45db.eraseDone(error_t error) {}
   event void At45db.syncDone(error_t error) {}
