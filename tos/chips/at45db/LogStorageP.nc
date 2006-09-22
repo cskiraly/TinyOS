@@ -198,6 +198,7 @@ implementation
 
   uint8_t client = NO_CLIENT;
   uint8_t metaState;
+  bool recordsLost;
   at45page_t firstPage, lastPage;
   storage_len_t len;
   nx_struct pageinfo metadata;
@@ -313,7 +314,7 @@ implementation
     switch (request)
       {
       case R_ERASE: signal LogWrite.eraseDone[c](ok); break;
-      case R_APPEND: signal LogWrite.appendDone[c](ptr, actualLen, ok); break;
+      case R_APPEND: signal LogWrite.appendDone[c](ptr, actualLen, recordsLost, ok); break;
       case R_SYNC: signal LogWrite.syncDone[c](ok); break;
       case R_READ: signal LogRead.readDone[c](ptr, actualLen, ok); break;
       case R_SEEK: signal LogRead.seekDone[c](ok); break;
@@ -593,6 +594,10 @@ implementation
     s[client].woffset += count;
     len -= count;
 
+    /* We lose data at the point we make the first write to a page */
+    if (offset == 0)
+      recordsLost = TRUE;
+
     call At45db.write(s[client].wpage, offset, buf, count);
   }
   
@@ -616,6 +621,8 @@ implementation
 
   void appendStart() {
     storage_len_t vlen = (storage_len_t)npages() * PAGE_SIZE;
+
+    recordsLost = FALSE;
 
     /* If request would span the end of the flash, sync, to maintain the
        invariant that the last flash page is synced and that either
@@ -726,7 +733,7 @@ implementation
 	  s[client].rpage = s[client].wpage;
 	else
 	  {
-	    /* resume writing at the beginning of the first page */
+	    /* resume reading at the beginning of the first page */
 	    s[client].rvalid = TRUE;
 	    s[client].rpage = lastVolumePage() - 1;
 	  }
@@ -967,7 +974,7 @@ implementation
 
   event void At45db.copyPageDone(error_t error) { }
 
-  default event void LogWrite.appendDone[uint8_t logId](void* buf, storage_len_t l, error_t error) { }
+  default event void LogWrite.appendDone[uint8_t logId](void* buf, storage_len_t l, bool rLost, error_t error) { }
   default event void LogWrite.eraseDone[uint8_t logId](error_t error) { }
   default event void LogWrite.syncDone[uint8_t logId](error_t error) { }
   default event void LogRead.readDone[uint8_t logId](void* buf, storage_len_t l, error_t error) { }
