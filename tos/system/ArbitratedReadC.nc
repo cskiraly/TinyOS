@@ -1,4 +1,4 @@
-/* $Id: ArbitratedReadC.nc,v 1.1.2.6 2006-08-15 11:56:05 klueska Exp $
+/* $Id: ArbitratedReadC.nc,v 1.1.2.7 2006-09-22 19:28:56 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -29,12 +29,7 @@ generic module ArbitratedReadC(typedef width_t) {
 }
 implementation {
   command error_t Read.read[uint8_t client]() {
-#if 1
     return call Resource.request[client]();
-#else
-    signal Resource.granted[client]();
-    return SUCCESS;
-#endif
   }
 
   event void Resource.granted[uint8_t client]() {
