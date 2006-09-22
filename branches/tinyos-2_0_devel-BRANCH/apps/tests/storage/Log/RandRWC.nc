@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.7 2006-06-16 22:53:10 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.8 2006-09-22 22:00:10 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -143,7 +143,7 @@ implementation {
       }
   }
 
-  event void LogWrite.appendDone(void *buf, storage_len_t y, error_t result) {
+  event void LogWrite.appendDone(void *buf, storage_len_t y, bool recordsLost, error_t result) {
     if (scheck(result))
       nextWrite();
   }
