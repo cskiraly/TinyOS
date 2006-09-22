@@ -1,4 +1,4 @@
-//$Id: VirtualizeTimerC.nc,v 1.1.2.9 2006-07-26 18:57:52 cssharp Exp $
+//$Id: VirtualizeTimerC.nc,v 1.1.2.10 2006-09-22 19:27:41 idgay Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -40,10 +40,10 @@ generic module VirtualizeTimerC(typedef precision_tag, int max_timers)
 implementation
 {
   enum
-  {
-    NUM_TIMERS = max_timers,
-    END_OF_LIST = 255,
-  };
+    {
+      NUM_TIMERS = max_timers,
+      END_OF_LIST = 255,
+    };
 
   typedef struct
   {
@@ -55,88 +55,78 @@ implementation
   } Timer_t;
 
   Timer_t m_timers[NUM_TIMERS];
+  bool m_timers_changed;
 
-  task void executeTimersNow();
+  task void updateFromTimer();
 
-  void executeTimers(uint32_t then)
+  void fireTimers(uint32_t now)
   {
-    int32_t min_remaining = (1UL<<31)-1; //max signed int32_t
-    bool min_remaining_isset = FALSE;
-    int num;
+    uint8_t num;
 
-    for(num=0; num<NUM_TIMERS; num++)
-    {
-      Timer_t* timer = &m_timers[num];
-
-      if (timer->isrunning)
+    for (num=0; num<NUM_TIMERS; num++)
       {
-	// Calculate "remaining" before the timer is fired.  If a timer
-	// restarts itself in a fired event, then we 1) need a consistent
-	// "remaining" value to work with, and no worries because 2) all
-	// start commands post executeTimersNow, so the timer will be
-	// recomputed later, anyway.
+	Timer_t* timer = &m_timers[num];
 
-	int32_t elapsed = then - timer->t0;
-	int32_t remaining = timer->dt - elapsed;
-	bool compute_min_remaining = TRUE;
-
-	// If the elapsed time is negative, then t0 is in the future, so
-	// don't process it.  This implies:
-	//   1) t0 in the future is okay
-	//   2) dt can be at most maxval(uint32_t)/2
-
-	if ((elapsed >= 0) && (timer->dt <= (uint32_t)elapsed))
-	{
-	  if (timer->isoneshot)
+	if (timer->isrunning)
 	  {
-	    timer->isrunning = FALSE;
-	    compute_min_remaining = FALSE;
+	    uint32_t elapsed = now - timer->t0;
+
+	    if (elapsed >= timer->dt)
+	      {
+		if (timer->isoneshot)
+		  timer->isrunning = FALSE;
+		else // Update timer for next event
+		  timer->t0 += timer->dt;
+
+		signal Timer.fired[num]();
+	      }
 	  }
-	  else
-	  {
-	    // The remaining time is non-positive (the timer had fired).
-	    // So add dt to convert it to remaining for the next event.
-	    timer->t0 += timer->dt;
-	    remaining += timer->dt; 
-	  }
-
-	  signal Timer.fired[num]();
-	}
-
-	// check isrunning in case the timer was stopped in the fired event
-
-	if (compute_min_remaining && timer->isrunning)
-	{
-          if (remaining < 0)
-            min_remaining = 0;
-	  else if (remaining < min_remaining)
-	    min_remaining = remaining;
-	  min_remaining_isset = TRUE;
-	}
       }
-    }
-
-    if (min_remaining_isset)
-    {
-      uint32_t now = call TimerFrom.getNow();
-      uint32_t elapsed = now - then;
-      if (min_remaining <= elapsed)
-	post executeTimersNow();
-      else
-	call TimerFrom.startOneShotAt(now, min_remaining - elapsed);
-    }
+    post updateFromTimer();
   }
   
+  task void updateFromTimer()
+  {
+    /* This code supports a maximum dt of MAXINT. If min_remaining and
+       remaining were switched to uint32_t, and the logic changed a
+       little, dt's up to 2^32-1 should work (but at a slightly higher
+       runtime cost). */
+    uint32_t now = call TimerFrom.getNow();
+    int32_t min_remaining = (1UL << 31) - 1; /* max int32_t */
+    bool min_remaining_isset = FALSE;
+    uint8_t num;
 
+    call TimerFrom.stop();
+
+    for (num=0; num<NUM_TIMERS; num++)
+      {
+	Timer_t* timer = &m_timers[num];
+
+	if (timer->isrunning)
+	  {
+	    uint32_t elapsed = now - timer->t0;
+	    int32_t remaining = timer->dt - elapsed;
+
+	    if (remaining < min_remaining)
+	      {
+		min_remaining = remaining;
+		min_remaining_isset = TRUE;
+	      }
+	  }
+      }
+
+    if (min_remaining_isset)
+      {
+	if (min_remaining <= 0)
+	  fireTimers(now);
+	else
+	  call TimerFrom.startOneShotAt(now, min_remaining);
+      }
+  }
+  
   event void TimerFrom.fired()
   {
-    executeTimers(call TimerFrom.gett0() + call TimerFrom.getdt());
-  }
-
-  task void executeTimersNow()
-  {
-    call TimerFrom.stop();
-    executeTimers(call TimerFrom.getNow());
+    fireTimers(call TimerFrom.getNow());
   }
 
   void startTimer(uint8_t num, uint32_t t0, uint32_t dt, bool isoneshot)
@@ -146,7 +136,7 @@ implementation
     timer->dt = dt;
     timer->isoneshot = isoneshot;
     timer->isrunning = TRUE;
-    post executeTimersNow();
+    post updateFromTimer();
   }
 
   command void Timer.startPeriodic[uint8_t num](uint32_t dt)

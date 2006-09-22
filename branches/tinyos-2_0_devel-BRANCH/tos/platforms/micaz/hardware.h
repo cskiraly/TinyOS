@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.10 2006-05-01 19:20:52 idgay Exp $
+ *  $Id: hardware.h,v 1.1.2.11 2006-09-22 19:23:59 idgay Exp $
  */
 
 #ifndef HARDWARE_H
@@ -49,6 +49,7 @@
 
 #include <atm128hardware.h>
 #include <Atm128Adc.h>
+#include <MicaTimer.h>
 
 // A/D channels
 enum {
