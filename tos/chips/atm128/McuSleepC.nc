@@ -1,4 +1,4 @@
-/// $Id: McuSleepC.nc,v 1.1.2.5 2006-04-25 23:49:14 idgay Exp $
+/// $Id: McuSleepC.nc,v 1.1.2.6 2006-09-22 19:12:14 idgay Exp $
 
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -29,7 +29,7 @@
  * Szewczyk's 1.x code in HPLPowerManagementM.nc.
  *
  * <pre>
- *  $Id: McuSleepC.nc,v 1.1.2.5 2006-04-25 23:49:14 idgay Exp $
+ *  $Id: McuSleepC.nc,v 1.1.2.6 2006-09-22 19:12:14 idgay Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -48,20 +48,21 @@ module McuSleepC {
 }
 implementation {
   /* There is no dirty bit management because the sleep mode depends on
-     the amount of time remaining in timer0. */
+     the amount of time remaining in timer0. Note also that the
+     sleep cost depends typically depends on waiting for ASSR to clear. */
 
   /* Note that the power values are maintained in an order
    * based on their active components, NOT on their values.
    * Look at atm128hardware.h and page 42 of the ATmeg128
-   * manual (figure 17).*/
+   * manual (table 17).*/
   const_uint8_t atm128PowerBits[ATM128_POWER_DOWN + 1] = {
-    0,
-    (1 << SM0),
-    (1 << SM2) | (1 << SM1) | (1 << SM0),
-    (1 << SM1) | (1 << SM0),
-    (1 << SM2) | (1 << SM1),
-    (1 << SM1)};
-    
+    0,				/* idle */
+    (1 << SM0),			/* adc */
+    (1 << SM2) | (1 << SM1) | (1 << SM0), /* ext standby */
+    (1 << SM1) | (1 << SM0),	/* power save */
+    (1 << SM2) | (1 << SM1),	/* standby */
+    (1 << SM1)};		/* power down */
+
   mcu_power_t getPowerState() {
     uint8_t diff;
     // Note: we go to sleep even if timer 1, 2, or 3's overflow interrupt
@@ -90,12 +91,15 @@ implementation {
     }
     // How soon for the timer to go off?
     else if (TIMSK & (1 << OCIE0 | 1 << TOIE0)) {
-      // force waiting for timer0 update (overflow glitches otherwise)
-      TCCR0 = TCCR0;
+      // need to wait for timer 0 updates propagate before sleeping
+      // (we don't need to worry about reentering sleep mode too early,
+      // as the wake ups from timer0 wait at least one TOSC1 cycle
+      // anyway - see the stabiliseTimer0 function in HplAtm128Timer0AsyncC)
       while (ASSR & (1 << TCN0UB | 1 << OCR0UB | 1 << TCR0UB))
 	;
       diff = OCR0 - TCNT0;
-      if (diff < 16 || TCNT0 > 240) 
+      if (diff < EXT_STANDBY_T0_THRESHOLD ||
+	  TCNT0 > 256 - EXT_STANDBY_T0_THRESHOLD) 
 	return ATM128_POWER_EXT_STANDBY;
       return ATM128_POWER_SAVE;
     }
