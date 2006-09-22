@@ -1,4 +1,4 @@
-// $Id: HplCC1000C.nc,v 1.1.2.3 2006-01-27 22:04:28 idgay Exp $
+// $Id: HplCC1000C.nc,v 1.1.2.4 2006-09-22 19:22:20 idgay Exp $
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -34,18 +34,20 @@
  */
 configuration HplCC1000C {
   provides {
-    interface Read<uint16_t> as RssiAdc;
+    interface ReadNow<uint16_t> as RssiAdc;
+    interface Resource as RssiResource;
     interface HplCC1000Spi;
     interface HplCC1000;
   }
 }
 implementation {
   components HplCC1000P, HplCC1000SpiP;
-  components new AdcReadClientC() as RssiChannel;
+  components new AdcReadNowClientC() as RssiChannel;
 
   HplCC1000 = HplCC1000P;
   HplCC1000Spi = HplCC1000SpiP;
   RssiAdc = RssiChannel;
+  RssiResource = RssiChannel;
 
   RssiChannel.Atm128AdcConfig -> HplCC1000P;
 

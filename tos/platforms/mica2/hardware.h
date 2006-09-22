@@ -35,14 +35,21 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1.2.12 2006-06-20 17:14:29 idgay Exp $
+ *  $Id: hardware.h,v 1.1.2.13 2006-09-22 19:22:19 idgay Exp $
  */
 
 #ifndef HARDWARE_H
 #define HARDWARE_H
 
+#ifndef MHZ
+/* Clock rate is ~8MHz except if specified by user 
+   (this value must be a power of 2, see MicaTimer.h and MeasureClockC.nc) */
+#define MHZ 8
+#endif
+
 #include <atm128hardware.h>
 #include <Atm128Adc.h>
+#include <MicaTimer.h>
 
 // A/D channels
 enum {
@@ -50,12 +57,6 @@ enum {
   CHANNEL_THERMISTOR = ATM128_ADC_SNGL_ADC1,    // normally unpopulated
   CHANNEL_BATTERY    = ATM128_ADC_SNGL_ADC7,
 };
-
-#ifndef MHZ
-/* Clock rate is ~8MHz except if specified by user 
-   (this value must be a power of 2, see MicaTimer.h and MeasureClockC.nc) */
-#define MHZ 8
-#endif
 
 enum {
   PLATFORM_BAUDRATE = 57600L
