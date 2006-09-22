@@ -1,4 +1,4 @@
-/* $Id: ByteRadio.nc,v 1.1.2.6 2006-06-21 16:58:03 idgay Exp $
+/* $Id: ByteRadio.nc,v 1.1.2.7 2006-09-22 18:54:29 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *

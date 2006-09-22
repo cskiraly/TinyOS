@@ -1,4 +1,4 @@
-/* $Id: CC1000Squelch.nc,v 1.1.2.2 2006-01-26 21:11:40 idgay Exp $
+/* $Id: CC1000Squelch.nc,v 1.1.2.3 2006-09-22 18:54:30 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *

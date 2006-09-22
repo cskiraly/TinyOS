@@ -1,4 +1,4 @@
-/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.19 2006-05-27 21:18:09 henridf Exp $
+/* $Id: CC1000CsmaRadioC.nc,v 1.1.2.20 2006-09-22 18:54:30 idgay Exp $
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -108,6 +108,7 @@ implementation {
   Csma.BusyWait -> BusyWaitMicroC;
 
   Rssi.ActualRssi -> Hpl;
+  Rssi.Resource -> Hpl;
   Control.CC -> Hpl;
   Control.BusyWait -> BusyWaitMicroC;
 }
