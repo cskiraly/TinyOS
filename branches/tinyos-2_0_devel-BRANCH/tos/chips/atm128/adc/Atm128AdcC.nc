@@ -1,4 +1,4 @@
-/// $Id: Atm128AdcC.nc,v 1.1.2.12 2006-08-15 11:59:08 klueska Exp $
+/// $Id: Atm128AdcC.nc,v 1.1.2.13 2006-09-22 19:12:14 idgay Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -52,7 +52,7 @@ implementation
 {
   components Atm128AdcP, HplAtm128AdcC, PlatformC, MainC,
     new RoundRobinArbiterC(UQ_ATM128ADC_RESOURCE) as AdcArbiter,
-    new StdControlPowerManagerC() as PM;
+    new AsyncStdControlPowerManagerC() as PM;
 
   Resource = AdcArbiter;
   ResourceConfigure = AdcArbiter;
@@ -64,6 +64,6 @@ implementation
   Atm128AdcP.HplAtm128Adc -> HplAtm128AdcC;
   Atm128AdcP.Atm128Calibrate -> PlatformC;
 
-  PM.StdControl -> Atm128AdcP;
+  PM.AsyncStdControl -> Atm128AdcP;
   PM.ResourceController -> AdcArbiter;
 }
