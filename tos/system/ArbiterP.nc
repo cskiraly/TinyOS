@@ -198,6 +198,7 @@ implementation {
     call ResourceController.release();
   }
   default async event void ResourceController.immediateRequested() {
+  	call ResourceController.release();
   }
   default async command void ResourceConfigure.configure[uint8_t id]() {
   }
