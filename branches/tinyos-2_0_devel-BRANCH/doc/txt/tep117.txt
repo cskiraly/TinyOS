@@ -10,8 +10,8 @@ Pins and Buses
 :Author: Phil Buonadonna
 
 :Draft-Created: 23-Jan-2006
-:Draft-Version: $Revision: 1.1.2.4 $
-:Draft-Modified: $Date: 2006-01-25 18:13:43 $
+:Draft-Version: $Revision: 1.1.2.5 $
+:Draft-Modified: $Date: 2006-09-26 21:46:16 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -177,7 +177,7 @@ asynchronous packet level interface. The byte level interface is
 intended for short transactions (3-4 bytes) on the SPI bus. ::
 
  interface SPIByte {
-   async command error_t write( uint8_t tx, uint8_t* rx );
+   async command void write( uint8_t tx, uint8_t* rx );
  }
 
 The packet level interface is for larger bus transactions. The
@@ -197,18 +197,36 @@ The Inter-Integrated Circuit (I2C) interface is another type of
 digital bus that is often used for chip-to-chip communication. It is
 also known as a two-wire interface. 
 
-The I2CPacket interface provides for asynchronous Master mode communication on an
-I2C with application framed packets.  It supports only single
-transfers with a start-stop condition around each transfer.
+The I2CPacket interface provides for asynchronous Master mode
+communication on an I2C with application framed packets. Individual
+I2C START-STOP events are controllable which allows the using
+component to do multiple calls within a single I2C transaction and
+permits multiple START sequences
 
 Platforms providing I2C capability MUST provide this interface. ::
 
- interface I2CPacket {
-   async command result_t readPacket(uint16_t _addr, uint8_t _length, uint8_t* _data);
-   async command result_t writePacket(uint16_t _addr, uint8_t _length, uint8_t* _data);
-   async event void readPacketDone(uint16_t addr, uint8_t length, uint8_t* data, result_t success);
-   async event void writePacketDone(uint16_t addr, uint8_t length, uint8_t* data, result_t success);
+ interface I2CPacket<addr_size> {
+   async command error_t read(i2c_flags_t flags, uint16_t _addr, uint8_t _length, uint8_t* _data);
+   async command error_t write(i2c_flags_t flags, uint16_t _addr, uint8_t _length, uint8_t* _data);
+   async event void readDone(error_t error, uint16_t addr, uint8_t length, uint8_t* data);
+   async event void writeDone(error_t error, uint8_t length, uint8_t* data);
  }
+
+The interface is typed according to the addressing space the underlying implementation supports. 
+Valid type values are below. ::
+
+  TI2CExtdAddr - Interfaces uses the extended (10-bit) addressing mode. 
+  TI2CBasicAddr - Interfaces uses the basic (7-bit) addressing mode.
+
+The i2c_flags_t values are defined below. The flags define the behavior of the operation for 
+the call being made. These values may be ORed together. ::
+
+   I2C_START    - Transmit an I2C STOP at the beginning of the operation.
+   I2C_STOP     - Transmit an I2C STOP at the end of the operation. Cannot be used
+                  with the I2C_ACK_END flag.
+   I2C_ACK_END  - ACK the last byte sent from the buffer. This flags is only valid 
+                  a write operation. Cannot be used with the I2C_STOP flag.
+
 
 
 
@@ -216,7 +234,7 @@ Platforms providing I2C capability MUST provide this interface. ::
 ====================================================================
 
 | Phil Buonadonna
-| Arched Rock Corporation
+| Arch Rock Corporation
 | 657 Mission St. Ste 600
 | San Francisco, CA 94105-4120
 |
