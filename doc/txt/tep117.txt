@@ -10,8 +10,8 @@ Low-Level I/O
 :Author: Phil Buonadonna, Jonathan Hui
 
 :Draft-Created: 23-Jan-2006
-:Draft-Version: $Revision: 1.1.2.6 $
-:Draft-Modified: $Date: 2006-09-27 05:32:06 $
+:Draft-Version: $Revision: 1.1.2.7 $
+:Draft-Modified: $Date: 2006-09-27 05:36:43 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -266,12 +266,14 @@ intended to support use cases with short transactions. Because UART is
 asynchronous, the receive command takes a timeout which represents
 units in byte-times, after which the command returns with an
 error. Note that use of this interface is discouraged if the UART baud
-rate is low.
+rate is low. ::
  
  interface UartByte {
    async command error_t send( uint8_t byte );
    async command error_t receive( uint8_t* byte, uint8_t timeout );
  }
+
+
 
 4. Author's Address
 ====================================================================
