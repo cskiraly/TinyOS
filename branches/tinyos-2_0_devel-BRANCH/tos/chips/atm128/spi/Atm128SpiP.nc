@@ -1,4 +1,4 @@
-/// $Id: Atm128SpiP.nc,v 1.1.2.9 2006-08-15 11:59:08 klueska Exp $
+/// $Id: Atm128SpiP.nc,v 1.1.2.10 2006-09-28 19:26:21 jwhui Exp $
 
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -63,7 +63,7 @@
  *
  *
  * <pre>
- *  $Id: Atm128SpiP.nc,v 1.1.2.9 2006-08-15 11:59:08 klueska Exp $
+ *  $Id: Atm128SpiP.nc,v 1.1.2.10 2006-09-28 19:26:21 jwhui Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -126,10 +126,10 @@ implementation {
     call McuPowerState.update();
   }
   
-  async command void SpiByte.write( uint8_t tx, uint8_t* rx ) {
+  async command uint8_t SpiByte.write( uint8_t tx ) {
     call Spi.write( tx );
     while ( !( SPSR & 0x80 ) );
-    *rx = call Spi.read();
+    return call Spi.read();
   }
 
 
@@ -176,9 +176,9 @@ implementation {
     for (;tmpPos < (end - 1) ; tmpPos++) {
       uint8_t val;
       if (tx != NULL) 
-	call SpiByte.write( tx[tmpPos], &val );
+	val = call SpiByte.write( tx[tmpPos] );
       else
-	call SpiByte.write( 0, &val );
+	val = call SpiByte.write( 0 );
     
       if (rx != NULL) {
 	rx[tmpPos] = val;

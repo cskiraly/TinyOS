@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-08-15 11:59:08 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-09-28 19:26:21 $
  */
 
 
@@ -92,12 +92,14 @@ implementation {
     signal Resource.granted[ id ]();
   }
 
-  async command void SpiByte.write( uint8_t tx, uint8_t* rx ) {
+  async command uint8_t SpiByte.write( uint8_t tx ) {
+    uint8_t byte;
     call Usart.disableRxIntr();
     call Usart.tx( tx );
     while( !call Usart.isRxIntrPending() );
-    *rx = call Usart.rx();
+    byte = call Usart.rx();
     call Usart.enableRxIntr();
+    return byte;
   }
 
   default async command error_t UsartResource.isOwner[ uint8_t id ]() { return FAIL; }
