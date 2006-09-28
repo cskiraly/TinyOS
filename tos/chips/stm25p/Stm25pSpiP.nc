@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.12 $ $Date: 2006-08-15 11:59:08 $
+ * @version $Revision: 1.1.2.13 $ $Date: 2006-09-28 19:26:22 $
  */
 
 #include "crc.h"
@@ -85,12 +85,12 @@ implementation {
 
   uint8_t sendCmd( uint8_t cmd, uint8_t len ) {
 
-    uint8_t tmp;
+    uint8_t tmp = 0;
     int i;
 
     call CSN.clr();
     for ( i = 0; i < len; i++ )
-      call SpiByte.write( cmd, &tmp );
+      tmp = call SpiByte.write( cmd );
     call CSN.set();
 
     return tmp;

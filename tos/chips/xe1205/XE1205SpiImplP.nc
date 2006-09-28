@@ -64,7 +64,7 @@
 /**
  * @author Jonathan Hui <jhui@archrock.com>
  * @author Henri Dubois-Ferriere
- * @version $Revision: 1.1.2.3 $ $Date: 2006-08-15 11:59:09 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-09-28 19:26:22 $
  */
 
 module XE1205SpiImplP {
@@ -233,8 +233,6 @@ implementation {
 
   async command void Reg.read[uint8_t addr](uint8_t* data) 
   {
-    error_t status;
-
 #if 1
     if (call NssDataPin.get() != TRUE || call NssConfigPin.get() != TRUE)
       xe1205check(6, 1);
@@ -242,15 +240,13 @@ implementation {
 
     call NssDataPin.set();
     call NssConfigPin.clr();
-    call SpiByte.write(XE1205_READ(addr), &status);
-    call SpiByte.write(0, data);
+    call SpiByte.write(XE1205_READ(addr));
+    *data = call SpiByte.write(0);
     call NssConfigPin.set();
   }
 
   async command void Reg.write[uint8_t addr](uint8_t data) 
   {
-    error_t status;
-
 #if 1
     if (call NssDataPin.get() != TRUE || call NssConfigPin.get() != TRUE)
       xe1205check(7, 1);
@@ -258,8 +254,8 @@ implementation {
 
     call NssDataPin.set();
     call NssConfigPin.clr();
-    call SpiByte.write(XE1205_WRITE(addr), &status);
-    call SpiByte.write(data, &status);
+    call SpiByte.write(XE1205_WRITE(addr));
+    call SpiByte.write(data);
     call NssConfigPin.set();
   }
 
