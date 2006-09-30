@@ -10,8 +10,8 @@ Low-Level I/O
 :Author: Phil Buonadonna, Jonathan Hui
 
 :Draft-Created: 23-Jan-2006
-:Draft-Version: $Revision: 1.1.2.7 $
-:Draft-Modified: $Date: 2006-09-27 05:36:43 $
+:Draft-Version: $Revision: 1.1.2.8 $
+:Draft-Modified: $Date: 2006-09-30 18:28:14 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -273,9 +273,23 @@ rate is low. ::
    async command error_t receive( uint8_t* byte, uint8_t timeout );
  }
 
+4. Implementation
+====================================================================
+
+Example implementations of the pin interfaces can be found in tos/chips/msp430/pins,
+tos/chips/atm128/pins, and tos/chips/pxa27x/gpio.
+
+Example implementations of the SPI interfaces can be found in tos/chips/msp430/usart,
+tos/chips/atm128/spi, and tos/chips/pxa27x/ssp.
+
+Example implementations of the I2C interfaces can be found in tos/chips/msp430/usart,
+tos/chips/atm128/i2c, and tos/chips/pxa27x/i2c.
+
+Example implementations of the UART interfaces can be found in tos/chips/msp430/usart,
+tos/chips/atm128/uart/ and tos/chips/pxa27x/uart.
 
 
-4. Author's Address
+5. Author's Address
 ====================================================================
 
 | Phil Buonadonna
@@ -293,7 +307,7 @@ rate is low. ::
 |
 | phone - +1 415 692-0828 x2835
 
-5. Citations
+6. Citations
 ====================================================================
 
 .. [tep113] TEP 113: Serial Communication.
