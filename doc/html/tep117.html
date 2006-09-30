@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-09-30 18:28:14 $
-:version: $Revision: 1.1.2.4 $
+:date: $Date: 2006-09-30 18:59:07 $
+:version: $Revision: 1.1.2.5 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -303,9 +303,9 @@ ul.auto-toc {
 <td>Phil Buonadonna, Jonathan Hui</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">23-Jan-2006</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.7</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.9</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-09-27</td>
+<tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-09-30</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Discuss:</th><td class="field-body">TinyOS Developer List &lt;tinyos-devel at mail.millennium.berkeley.edu&gt;</td>
 </tr>
@@ -397,8 +397,9 @@ interface GeneralIO
   async command void toggle();
   async command bool get();
   async command void makeInput();
-  async command void makeOutput();
   async command bool isInput();
+  async command void makeOutput();
+  async command bool isOutput();
 }
 </pre>
 </div>
@@ -414,7 +415,9 @@ through a platform specific HAL interface.</p>
 interface GpioInterrupt {
 
   async command error_t enableRisingEdge();
+  async command bool isRisingEdgeEnabled();
   async command error_t enableFallingEdge();
+  async command bool isFallingEdgeEnabled();
   async command error_t disable();
   async event void fired();
 
@@ -434,7 +437,9 @@ event.</p>
 interface GpioCapture {
 
   async command error_t captureRisingEdge();
+  async command bool isRisingEdgeEnabled();
   async command error_t captureFallingEdge();
+  async command bool isFallingEdgeEnabled();
   async event void captured(uint16_t time);
   async command void disable();
 
