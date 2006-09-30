@@ -10,8 +10,8 @@ Low-Level I/O
 :Author: Phil Buonadonna, Jonathan Hui
 
 :Draft-Created: 23-Jan-2006
-:Draft-Version: $Revision: 1.1.2.8 $
-:Draft-Modified: $Date: 2006-09-30 18:28:14 $
+:Draft-Version: $Revision: 1.1.2.9 $
+:Draft-Modified: $Date: 2006-09-30 18:48:05 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -100,8 +100,9 @@ provided in other components as needed. ::
    async command void toggle();
    async command bool get();
    async command void makeInput();
-   async command void makeOutput();
    async command bool isInput();
+   async command void makeOutput();
+   async command bool isOutput();
  }
 
 
@@ -119,7 +120,9 @@ through a platform specific HAL interface. ::
  interface GpioInterrupt {
  
    async command error_t enableRisingEdge();
+   async command bool isRisingEdgeEnabled();
    async command error_t enableFallingEdge();
+   async command bool isFallingEdgeEnabled();
    async command error_t disable();
    async event void fired();
  
@@ -141,7 +144,9 @@ event. ::
  interface GpioCapture {
  
    async command error_t captureRisingEdge();
+   async command bool isRisingEdgeEnabled();
    async command error_t captureFallingEdge();
+   async command bool isFallingEdgeEnabled();
    async event void captured(uint16_t time);
    async command void disable();
  
