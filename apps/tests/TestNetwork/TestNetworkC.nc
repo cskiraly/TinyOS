@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.14 $ $Date: 2006-08-29 17:24:08 $
+ * @version $Revision: 1.1.2.15 $ $Date: 2006-10-03 00:18:43 $
  */
 
 #include <Timer.h>
@@ -88,8 +88,8 @@ implementation {
     am_addr_t parent;
 
     call CtpInfo.getParent(&parent);
-    call CtpInfo.getHopcount(&hopcount);
-    call CtpInfo.getMetric(&metric);
+    //    call CtpInfo.getHopcount(&hopcount);
+    call CtpInfo.getEtx(&metric);
 
     msg->source = TOS_NODE_ID;
     msg->seqno = seqno;
