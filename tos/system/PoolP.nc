@@ -1,4 +1,4 @@
-/* $Id: PoolP.nc,v 1.1.2.3 2006-07-20 20:15:42 scipio Exp $ */
+/* $Id: PoolP.nc,v 1.1.2.4 2006-10-03 08:54:20 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -47,7 +47,7 @@
  *  @author Philip Levis
  *  @author Kyle Jamieson
  *  @author Geoffrey Mainland
- *  @date   $Date: 2006-07-20 20:15:42 $
+ *  @date   $Date: 2006-10-03 08:54:20 $
  */
 
 generic module PoolP(typedef pool_t, uint8_t size) {
@@ -88,7 +88,10 @@ implementation {
       pool_t* rval = queue[index];
       queue[index] = NULL;
       free--;
-      index = (index + 1) % size;
+      index++;
+      if (index == size) {
+        index = 0;
+      }
       return rval;
     }
     return NULL;
@@ -99,7 +102,10 @@ implementation {
       return FAIL;
     }
     else {
-      uint8_t emptyIndex = (index + free) % size;
+      uint8_t emptyIndex = (index + free);
+      if (emptyIndex >= size) {
+        emptyIndex -= size;
+      }
       queue[emptyIndex] = newVal;
       free++;
       return SUCCESS;
