@@ -10,8 +10,8 @@ message_t
 :Author: Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.13 $
-:Draft-Modified: $Date: 2006-10-04 16:27:53 $
+:Draft-Version: $Revision: 1.1.2.14 $
+:Draft-Modified: $Date: 2006-10-04 19:57:57 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -125,6 +125,11 @@ Depending on the underlying link layer, the header fields
 preceding it might have different lengths, and packet-level radios
 often require packets to be contiguous memory regions. Overall, these 
 complexities make specifying the format of ``TOS_Msg`` very difficult.
+
+TinyOS has traditionally used statically sized packet buffers,
+rather than more dynamic approaches, such as scatter-gather I/O
+in UNIX sockets (see the man page for ``recv(2)`` for details). 
+TinyOS 2.x continues this approach.
 
 2. message_t
 ====================================================================
@@ -259,10 +264,11 @@ for other components.
 
 The message_t header field is an array of bytes whose size is 
 the size of a platform's union of data-link headers.
-Because packets are stored contiguously, the layout of a packet
-in memory is not the same as the layout of its nesC structure.
+Because radio stacks often prefer packets to be stored contiguously, 
+the layout of a packet in memory does not necessarily reflect the 
+layout of its nesC structure.
 
-A packet header does not necessarily start at the beginning of
+A packet header MAY start somewhere besides the beginning of
 the message_t. For example, consider the Telos platform::
 
   typedef union message_header {
@@ -377,7 +383,39 @@ the CC2420 metadata structure::
     nx_uint16_t time;
   } cc2420_metadata_t;
 
-5. Implementation
+3.5 Variable Sized Structures
+----------------------------------------------------------------
+
+The message_t structure is optimized for packets with fixed-size
+headers and footers. Variable-sized footers are generally easy
+to implement. Variable-sized headers are a bit more difficult.
+There are three general approaches that can be used.
+
+If the underlying link hardware is byte-based, the header can
+just be stored at the beginning of the message_t, giving it
+a known offset. There may be padding between the header and
+the data region, but assuming a byte-based send path this merely
+requires adjusting the index.
+
+If the underlying link hardware is packet-based, then the
+protocol stack can either include metadata (e.g., in the 
+metadata structure) stating where the header begins or it
+can place the header at a fixed position and use ``memmove(3)``
+on reception and transmit. In this latter case, on
+reception the packet is continguously read into the message_t
+beginning at the offset of the header structure. Once the
+packet is completely received, the header can be decoded,
+its length calculated, and the data region of the packet 
+can be moved to the ``data`` field. On transmission,
+the opposite occurs: the data region (and footer if need
+be) are moved to be contiguous with the header. Note that
+on completion of transmission, they need to be moved back.
+Alternatively, the radio stack can institute a single
+copy at the botttom layer.
+
+
+
+4. Implementation
 ====================================================================
 
 The definition of message_t can be found in 
@@ -398,7 +436,7 @@ the telos family packet format can be found in
 ``tinyos-2.x/tos/platform/telosa/platform_message.h`` and the micaz format can be found in
 ``tinyos-2.x/tos/platforms/micaz/platform_message.h``.
 
-6. Author's Address
+5. Author's Address
 ====================================================================
 
 | Philip Levis
