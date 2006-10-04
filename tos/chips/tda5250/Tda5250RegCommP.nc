@@ -28,8 +28,8 @@
  *
  * - Description ---------------------------------------------------------
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.9 $
- * $Date: 2006-09-28 19:26:22 $
+ * $Revision: 1.1.2.10 $
+ * $Date: 2006-10-04 13:11:19 $
  * @author Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -105,8 +105,7 @@ implementation {
       call SpiByte.write(address);
 
       // FIXME: Put SIMO/SOMI in input
-      call SpiByte.write(0x00);
-      return rxbyte;
+      return call SpiByte.write(0x00);
    }
 
 }
