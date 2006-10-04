@@ -49,7 +49,7 @@ implementation
   
 	task void idleTask() {
 		uint8_t status;
-		call FlashSpi.write( 0, &status );
+		status = call FlashSpi.write(0);
 		if (!(status & 0x80)) {
 			post idleTask();
 		} else {
@@ -63,7 +63,7 @@ implementation
   
   command bool HplAt45dbByte.getCompareStatus() {
 		uint8_t status;
-		call FlashSpi.write( 0, &status );
+		status = call FlashSpi.write(0);
     return (!(status & 0x40));
   }
 }

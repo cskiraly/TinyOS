@@ -182,7 +182,7 @@ implementation {
     }
   }
   
-  event void LogWrite.appendDone(void* buf, storage_len_t len, error_t error) {
+  event void LogWrite.appendDone(void* buf, storage_len_t len, bool recordsLost, error_t error) {
     ++logCounter;
     if (error != SUCCESS) {
       failure();
