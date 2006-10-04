@@ -10,8 +10,8 @@ message_t
 :Author: Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.14 $
-:Draft-Modified: $Date: 2006-10-04 19:57:57 $
+:Draft-Version: $Revision: 1.1.2.15 $
+:Draft-Modified: $Date: 2006-10-04 20:01:45 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -148,7 +148,11 @@ This format keeps data at a fixed offset, which is important when
 passing a message buffer between two different link layers. If the
 data payload were at different offsets for different link layers, then
 passing a packet between two link layers would require a ``memmove(3)``
-operation (essentially, a copy).
+operation (essentially, a copy). Unlike in TinyOS 1.x, where TOS_Msg
+as explicitly an active messaging packet, message_t is a more general
+data-link buffer. In practice, most data-link layers in TinyOS 2.x 
+provide active messaging, but it is possible for a non-AM stack to 
+share message_t with AM stacks.
 
 The header, footer, and metadata formats are all opaque. Source code
 cannot access fields directly. Instead, data-link layers provide access
