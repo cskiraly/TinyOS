@@ -26,13 +26,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6.4.1 $
- * $Date: 2006-07-13 20:38:21 $
+ * $Revision: 1.1.2.6.4.2 $
+ * $Date: 2006-10-05 08:37:46 $
  * ========================================================================
  */
-
-#include <msp430usart.h>
-#include <tda5250BusResourceSettings.h>
 
  /**
  * HplTda5250DataP module
@@ -45,17 +42,16 @@ module HplTda5250DataP {
   provides {
     interface Init;
     interface HplTda5250Data;
-    interface Msp430UartConfigure as UartResourceConfigure;
-    //interface ResourceRequested;
+    interface HplTda5250DataControl;
     interface Resource;
-
+		interface ResourceRequested;
   }
   uses {
     interface GeneralIO as DATA;
     interface SerialByteComm as Uart;
-    interface Msp430UartControl as UartControl;
-    //interface ResourceRequested;
+    interface HplTda5250DataControl as UartControl;
     interface Resource as UartResource;
+    interface ResourceRequested as UartResourceRequested;
   }
 }
 
@@ -87,8 +83,8 @@ implementation {
     return SUCCESS;
   }
 
-  async command void Resource.release() {
-    call UartResource.release();
+  async command error_t Resource.release() {
+    return call UartResource.release();
   }
 
   async command bool Resource.isOwner() {
@@ -99,27 +95,12 @@ implementation {
     signal Resource.granted();
   }
   
-//   async event void ResourceRequested.requested() {
-//     signal Resource.requested(); 
-//   }
-  
-  
-  async command msp430_uart_config_t UartResourceConfigure.getConfig() {
-    return tda5250_uart_config;
+  async event void UartResourceRequested.requested() {
+    signal ResourceRequested.requested(); 
   }
   
-  async command error_t HplTda5250Data.setToTx() {
-    if(call UartResource.isOwner() == FALSE)
-      return FAIL;
-    call UartControl.setModeTx();
-    return SUCCESS;
-  }
-
-  async command error_t HplTda5250Data.setToRx() {
-   if(call UartResource.isOwner() == FALSE)
-     return FAIL;
-   call UartControl.setModeRx();
-   return SUCCESS;
+  async event void UartResourceRequested.immediateRequested() {
+    signal ResourceRequested.immediateRequested(); 
   }
 
   async command error_t HplTda5250Data.tx(uint8_t data) {
@@ -139,6 +120,19 @@ implementation {
       return;
     signal HplTda5250Data.rxDone(data);
   }
+  
+  async command error_t HplTda5250DataControl.setToTx() {
+    if(call UartResource.isOwner() == FALSE)
+      return FAIL;
+    return call UartControl.setToTx();
+  }
+
+  async command error_t HplTda5250DataControl.setToRx() {
+    if(call UartResource.isOwner() == FALSE)
+      return FAIL;
+    return call UartControl.setToRx();
+  }
+	
 
   default event void Resource.granted() {}
   default async event void HplTda5250Data.txReady() {}

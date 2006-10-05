@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-05-31 13:53:03 $
+ * $Revision: 1.1.2.3.2.1 $
+ * $Date: 2006-10-05 08:37:46 $
  * ========================================================================
  */
 
@@ -42,7 +42,8 @@
 #define TDA5250REGDEFAULTSETTINGS_H
 
 // Default values of data registers
-#define TDA5250_REG_DEFAULT_SETTING_CONFIG           0x94F9
+
+#define TDA5250_REG_DEFAULT_SETTING_CONFIG           0x84F9 
 #define TDA5250_REG_DEFAULT_SETTING_FSK              0x0A0C
 #define TDA5250_REG_DEFAULT_SETTING_XTAL_TUNING      0x0012
 #define TDA5250_REG_DEFAULT_SETTING_LPF              0x6A
