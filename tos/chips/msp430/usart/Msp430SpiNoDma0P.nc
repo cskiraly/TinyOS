@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.2.4.1 $ $Date: 2006-06-15 19:27:51 $
+ * @version $Revision: 1.1.2.2.4.2 $ $Date: 2006-10-05 08:25:43 $
  */
 
 configuration Msp430SpiNoDma0P {
@@ -61,7 +61,9 @@ implementation {
   components HplMsp430Usart0C as UsartC;
   SpiP.Usart -> UsartC;
 
-  components LedsC as Leds;
-  SpiP.Leds -> Leds;
+   components LedsC as Leds, HplMsp430GeneralIOC as MspGeneralIO;
+   SpiP.Leds -> Leds;
+   // SpiP.MeasureSpiPin -> MspGeneralIO.Port53;
+
 
 }

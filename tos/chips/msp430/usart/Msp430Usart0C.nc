@@ -33,7 +33,7 @@
  * Provides an interface for USART0 on the MSP430.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.2.4.1 $ $Date: 2006-06-15 19:27:51 $
+ * @version $Revision: 1.1.2.2.4.2 $ $Date: 2006-10-05 08:25:43 $
  */
 
 generic configuration Msp430Usart0C() {
@@ -42,8 +42,13 @@ generic configuration Msp430Usart0C() {
   provides interface ArbiterInfo;
   provides interface HplMsp430Usart;
   provides interface HplMsp430UsartInterrupts;
+  provides interface HplMsp430I2CInterrupts;
+#ifdef __msp430_have_usart0_with_i2c
+  provides interface HplMsp430I2C;
+#endif  
 
   uses interface ResourceConfigure;
+  
 }
 
 implementation {
@@ -58,8 +63,14 @@ implementation {
   ResourceConfigure = UsartShareP.ResourceConfigure[ CLIENT_ID ];
   ArbiterInfo = UsartShareP.ArbiterInfo;
   HplMsp430UsartInterrupts = UsartShareP.Interrupts[ CLIENT_ID ];
-
-  components HplMsp430Usart0C as UsartC;
-  HplMsp430Usart = UsartC;
-
+  HplMsp430I2CInterrupts = UsartShareP.I2CInterrupts[ CLIENT_ID ];
+  
+  components HplMsp430Usart0C as HplUsartC;
+  HplMsp430Usart = HplUsartC;
+  
+#ifdef __msp430_have_usart0_with_i2c
+  components HplMsp430I2C0C as HplI2CC;
+  HplMsp430I2C = HplI2CC;
+#endif
+  
 }

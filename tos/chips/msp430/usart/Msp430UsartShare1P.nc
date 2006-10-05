@@ -32,7 +32,7 @@
 /**
  * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-06-15 19:27:52 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-10-05 08:25:44 $
  */
 
 configuration Msp430UsartShare1P {
@@ -42,7 +42,6 @@ configuration Msp430UsartShare1P {
   provides interface ArbiterInfo;
 
   uses interface ResourceConfigure[ uint8_t id ];
-
 }
 
 implementation {
@@ -58,14 +57,8 @@ implementation {
   UsartShareP.ArbiterInfo -> ArbiterC;
 
   components new AsyncStdControlPowerManagerC() as PowerManagerC;
-  PowerManagerC.ArbiterInit -> ArbiterC;
   PowerManagerC.ResourceController -> ArbiterC;
-
+	
   components HplMsp430Usart1C as UsartC;
   PowerManagerC.AsyncStdControl -> UsartC;
-
-  components MainC;
-  MainC.SoftwareInit -> ArbiterC;
-  MainC.SoftwareInit -> PowerManagerC;
-
 }

@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.1.4.2 $ $Date: 2006-07-13 20:38:18 $
+ * @version $Revision: 1.1.2.1.4.3 $ $Date: 2006-10-05 08:25:43 $
  */
 
 
@@ -72,8 +72,8 @@ implementation {
     return call UsartResource.request[ id ]();
   }
 
-  async command void Resource.release[ uint8_t id ]() {
-    call UsartResource.release[ id ]();
+  async command error_t Resource.release[ uint8_t id ]() {
+    return call UsartResource.release[ id ]();
   }
 
   async command void ResourceConfigure.configure[ uint8_t id ]() {
@@ -94,18 +94,18 @@ implementation {
   default async command error_t UsartResource.isOwner[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.request[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.immediateRequest[ uint8_t id ]() { return FAIL; }
-  default async command void UsartResource.release[ uint8_t id ]() {}
-  default async command msp430_spi_config_t Msp430SpiConfigure.getConfig[uint8_t id]() {
-    return msp430_spi_default_config;
+  default async command error_t UsartResource.release[ uint8_t id ]() { return FAIL; }
+  default async command msp430_spi_union_config_t* Msp430SpiConfigure.getConfig[uint8_t id]() {
+    return &msp430_spi_default_config;
   }
 
   default event void Resource.granted[ uint8_t id ]() {}
 
-  async command void SpiByte.write( uint8_t tx, uint8_t* rx ) {
+  async command uint8_t SpiByte.write( uint8_t tx ) {
 
     call Usart.tx( tx );
     while( !call Usart.isRxIntrPending() );
-    *rx = call Usart.rx();
+    return call Usart.rx();
 
   }
 

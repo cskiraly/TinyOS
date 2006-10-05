@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2005-2006 Arched Rock Corporation
+/*
+ * Copyright (c) 2005-2006 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -30,14 +30,16 @@
  */
 
 /**
- * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-15 16:40:32 $
+ * @author Jonathan Hui <jhui@archrock.com>
+ * @version $Revision: 1.1.2.1.4.1 $ $Date: 2006-10-05 08:25:44 $
  */
 
 generic module Msp430UsartShareP() {
   
   provides interface HplMsp430UsartInterrupts as Interrupts[ uint8_t id ];
+  provides interface HplMsp430I2CInterrupts as I2CInterrupts[ uint8_t id ];
   uses interface HplMsp430UsartInterrupts as RawInterrupts;
+  uses interface HplMsp430I2CInterrupts as RawI2CInterrupts;
   uses interface ArbiterInfo;
   
 }
@@ -53,8 +55,14 @@ implementation {
     if ( call ArbiterInfo.inUse() )
       signal Interrupts.rxDone[ call ArbiterInfo.userId() ]( data );
   }
-
+  
+  async event void RawI2CInterrupts.fired() {
+    if ( call ArbiterInfo.inUse() )
+      signal I2CInterrupts.fired[ call ArbiterInfo.userId() ]();
+  }
+  
   default async event void Interrupts.txDone[ uint8_t id ]() {}
   default async event void Interrupts.rxDone[ uint8_t id ]( uint8_t data ) {}
-  
+  default async event void I2CInterrupts.fired[ uint8_t id ]() {}
+
 }

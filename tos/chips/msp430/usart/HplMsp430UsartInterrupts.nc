@@ -35,7 +35,7 @@
  *
  * @author Jan Hauer (hauer@tkn.tu-berlin.de)
  * @author Joe Polastre
- * @version $Revision: 1.1.2.1.4.2 $ $Date: 2006-07-13 20:38:18 $
+ * @version $Revision: 1.1.2.1.4.3 $ $Date: 2006-10-05 08:25:43 $
  */
  
 #include "msp430usart.h"

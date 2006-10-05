@@ -27,8 +27,8 @@
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.7.4.1 $
-* $Date: 2006-07-14 21:38:51 $
+* $Revision: 1.1.2.7.4.2 $
+* $Date: 2006-10-05 08:25:44 $
 * @author: Kevin Klues (klues@tkn.tu-berlin.de)
 * ========================================================================
 */
@@ -50,14 +50,15 @@ module Tda5250RadioP {
     interface SplitControl;
     interface Tda5250Control;
     interface RadioByteComm;
-    // ResourceRequest;
+    interface ResourceRequested;
   }
   uses {
     interface HplTda5250Config;
     interface HplTda5250Data;
+		interface HplTda5250DataControl;
     interface Resource as ConfigResource;
     interface Resource as DataResource;
-    //interface ResourceRequested as DataResourceRequest;
+    interface ResourceRequested as DataResourceRequested;
     
     interface Alarm<T32khz, uint16_t> as DelayTimer;
   }
@@ -147,21 +148,24 @@ implementation {
           case RADIO_MODE_SLEEP_TRANSITION:
             call HplTda5250Config.SetSlaveMode();
             call HplTda5250Config.SetSleepMode();
-            call ConfigResource.release();
+            if (!(call HplTda5250Config.IsTxRxPinControlled()))
+              call ConfigResource.release();
             atomic radioMode = RADIO_MODE_SLEEP;
             signal Tda5250Control.SleepModeDone();
             break;
           case RADIO_MODE_TX_TRANSITION:
             call HplTda5250Config.SetSlaveMode();
             call HplTda5250Config.SetTxMode();
-            call ConfigResource.release();
+            if (!(call HplTda5250Config.IsTxRxPinControlled()))
+              call ConfigResource.release();
             atomic delayTimer = TRANSMITTER_DELAY;
             call DelayTimer.start(TDA5250_TRANSMITTER_SETUP_TIME);
             break;
           case RADIO_MODE_RX_TRANSITION:
             call HplTda5250Config.SetSlaveMode();
             call HplTda5250Config.SetRxMode();
-            call ConfigResource.release();
+            if (!(call HplTda5250Config.IsTxRxPinControlled()))
+              call ConfigResource.release();
             atomic delayTimer = RECEIVER_DELAY;
             call DelayTimer.start(TDA5250_RECEIVER_SETUP_TIME);
             break;
@@ -191,12 +195,12 @@ implementation {
         atomic mode = radioMode;
         switch(mode) {
           case RADIO_MODE_TX_TRANSITION:
-            call HplTda5250Data.setToTx();
+            //call HplTda5250DataControl.setToTx();
             atomic radioMode = RADIO_MODE_TX;
             signal Tda5250Control.TxModeDone();
             break;
           case RADIO_MODE_RX_TRANSITION:
-            call HplTda5250Data.setToRx();
+            //call HplTda5250DataControl.setToRx();
             atomic radioMode = RADIO_MODE_RX;
             signal Tda5250Control.RxModeDone();
             break;
@@ -209,22 +213,28 @@ implementation {
         switchDataResource();
       }
       
-//       async event void DataResourceRequest.requested() {
-//         signal ResourceRequested.requested();
-//       }
+      // information for higher layers that the DataResource has been requested
+      async event void DataResourceRequested.requested() {
+        signal ResourceRequested.requested();
+      }
 
+      async event void DataResourceRequested.immediateRequested() {
+        signal ResourceRequested.immediateRequested();
+      }
 
   /**
       Set the mode of the radio
       The choices are TIMER_MODE, SELF_POLLING_MODE
   */
       async command error_t Tda5250Control.TimerMode(float on_time, float off_time) {
+        radioMode_t mode;
         atomic {
           if(radioBusy() == FALSE) {
             radioMode = RADIO_MODE_TIMER_TRANSITION;
             onTime = on_time;
             offTime = off_time;
           }
+          mode = radioMode;
         }
         if(radioMode == RADIO_MODE_TIMER_TRANSITION) {
           call DataResource.release();
@@ -239,10 +249,12 @@ implementation {
       }
 
       async command error_t Tda5250Control.ResetTimerMode() {
+        radioMode_t mode;
         atomic {
           if(radioBusy() == FALSE) {
             radioMode = RADIO_MODE_TIMER_TRANSITION;
           }
+          mode = radioMode;
         }
         if(radioMode == RADIO_MODE_TIMER_TRANSITION) {
           call DataResource.release();
@@ -257,12 +269,14 @@ implementation {
       }
 
       async command error_t Tda5250Control.SelfPollingMode(float on_time, float off_time) {
+        radioMode_t mode;
         atomic {
           if(radioBusy() == FALSE) {
             radioMode = RADIO_MODE_SELF_POLLING_TRANSITION;
             onTime = on_time;
             offTime = off_time;
           }
+          mode = radioMode;
         }
         if(radioMode == RADIO_MODE_SELF_POLLING_TRANSITION) {
           call DataResource.release();
@@ -277,10 +291,12 @@ implementation {
       }
 
       async command error_t Tda5250Control.ResetSelfPollingMode() {
+        radioMode_t mode;
         atomic {
           if(radioBusy() == FALSE) {
             radioMode = RADIO_MODE_SELF_POLLING_TRANSITION;
           }
+          mode = radioMode;
         }
         if(radioMode == RADIO_MODE_SELF_POLLING_TRANSITION) {
           call DataResource.release();
@@ -297,17 +313,21 @@ implementation {
       async command error_t Tda5250Control.SleepMode() {
         radioMode_t mode;
         atomic{
-          mode = radioMode;
           if(radioBusy() == FALSE) {
-            mode = radioMode = RADIO_MODE_SLEEP_TRANSITION;
+            radioMode = RADIO_MODE_SLEEP_TRANSITION;
           }
+          mode = radioMode;
         }
         if(mode == RADIO_MODE_SLEEP_TRANSITION) {
           call DataResource.release();
-          if (call ConfigResource.immediateRequest() == SUCCESS) {
+          if (call HplTda5250Config.IsTxRxPinControlled()) {
             switchConfigResource();
           } else {
-            call ConfigResource.request();
+            if (call ConfigResource.immediateRequest() == SUCCESS) {
+              switchConfigResource();
+            } else {
+              call ConfigResource.request();
+            }
           }
           return SUCCESS;
         }
@@ -317,16 +337,22 @@ implementation {
       async command error_t Tda5250Control.TxMode() {
         radioMode_t mode;
         atomic {
-          if(radioBusy() == FALSE)
+          if(radioBusy() == FALSE) {
             radioMode = RADIO_MODE_TX_TRANSITION;
+          }
+          mode = radioMode;
         }
-        atomic mode = radioMode;
         if(mode == RADIO_MODE_TX_TRANSITION) {
           call DataResource.release();
-          if (call ConfigResource.immediateRequest() == SUCCESS) {
+          call HplTda5250DataControl.setToTx();
+          if (call HplTda5250Config.IsTxRxPinControlled()) {
             switchConfigResource();
           } else {
-            call ConfigResource.request();
+            if (call ConfigResource.immediateRequest() == SUCCESS) {
+              switchConfigResource();
+            } else {
+              call ConfigResource.request();
+            }
           }
           return SUCCESS;
         }
@@ -339,14 +365,19 @@ implementation {
           if(radioBusy() == FALSE) {
             radioMode = RADIO_MODE_RX_TRANSITION;
           }
+          mode = radioMode;
         }
-        atomic mode = radioMode;
         if(mode == RADIO_MODE_RX_TRANSITION) {
           call DataResource.release();
-          if (call ConfigResource.immediateRequest() == SUCCESS) {
+          call HplTda5250DataControl.setToRx();
+          if (call HplTda5250Config.IsTxRxPinControlled()) {
             switchConfigResource();
           } else {
-            call ConfigResource.request();
+            if (call ConfigResource.immediateRequest() == SUCCESS) {
+              switchConfigResource();
+            } else {
+              call ConfigResource.request();
+            }
           }
           return SUCCESS;
         }
@@ -403,6 +434,10 @@ implementation {
         }
       }
 
+      default async event void ResourceRequested.requested() {
+      }
+      default async event void ResourceRequested.immediateRequested() {
+      }
       default async event void Tda5250Control.TimerModeDone(){
       }
       default async event void Tda5250Control.SelfPollingModeDone(){

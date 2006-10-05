@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-06-15 19:27:51 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-10-05 08:25:43 $
  */
 
 configuration Msp430SpiDma1P {

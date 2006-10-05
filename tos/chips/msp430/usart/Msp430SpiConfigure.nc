@@ -30,11 +30,11 @@
 /**
  * Interface used by Msp430Spi clients to reconfigure the SPI before use
  * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-07-13 20:38:18 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-10-05 08:25:43 $
  */
 
 #include "msp430usart.h"
 
 interface Msp430SpiConfigure {
-  async command msp430_spi_config_t getConfig();
+  async command msp430_spi_union_config_t* getConfig();
 }

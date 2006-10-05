@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2005-2006 Arched Rock Corporation
+/*
+ * Copyright (c) 2005-2006 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -30,38 +30,36 @@
  */
 
 /**
- * An implementation of the UART on USART0 for the MSP430.
- * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
- * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-10-05 08:25:43 $
+ * @author Jonathan Hui <jhui@archrock.com>
+ * @version $Revision: 1.1.4.2 $ $Date: 2006-10-05 08:25:43 $
  */
 
-#include "msp430usart.h"
-
-generic configuration Msp430Uart0C() {
-
-  provides interface Resource;
-  provides interface SerialByteComm;
-//   provides interface Msp430UartControl as UartControl;
-
-  uses interface Msp430UartConfigure;
+configuration Msp430I2C0P {
+  
+  provides interface Resource[ uint8_t id ];
+  provides interface ResourceConfigure[uint8_t id ];
+  provides interface I2CPacket<TI2CBasicAddr> as I2CBasicAddr;
+  
+  uses interface Resource as UsartResource[ uint8_t id ];
+  uses interface Msp430I2CConfigure[ uint8_t id ];
+  uses interface HplMsp430I2CInterrupts as I2CInterrupts;
+  
 }
 
 implementation {
-
-  enum {
-    CLIENT_ID = unique( MSP430_UARTO_BUS ),
-  };
-
-  components Msp430Uart0P as UartP;
-  Resource = UartP.Resource[ CLIENT_ID ];
-  SerialByteComm = UartP.SerialByteComm;
-//   UartControl = UartP.UartControl[ CLIENT_ID ];
-  Msp430UartConfigure = UartP.Msp430UartConfigure[ CLIENT_ID ];
-
-  components new Msp430Usart0C() as UsartC;
-  UartP.ResourceConfigure[ CLIENT_ID ] <- UsartC.ResourceConfigure;
-  UartP.UsartResource[ CLIENT_ID ] -> UsartC.Resource;
-  UartP.UsartInterrupts -> UsartC.HplMsp430UsartInterrupts;
-
+  
+  components Msp430I2CP as I2CP;
+  Resource = I2CP.Resource;
+  ResourceConfigure = I2CP.ResourceConfigure;
+  Msp430I2CConfigure = I2CP.Msp430I2CConfigure;
+  I2CBasicAddr = I2CP.I2CBasicAddr;
+  UsartResource = I2CP.UsartResource;
+  I2CInterrupts = I2CP.I2CInterrupts;
+  
+  components HplMsp430I2C0C as HplI2CC;
+  I2CP.HplI2C -> HplI2CC;
+  
+  components LedsC as Leds;
+  I2CP.Leds -> Leds;
+  
 }

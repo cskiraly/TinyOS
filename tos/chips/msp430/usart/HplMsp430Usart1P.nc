@@ -67,7 +67,7 @@
  * @author: Jonathan Hui <jhui@archedrock.com>
  * @author: Vlado Handziski <handzisk@tkn.tu-berlin.de>
  * @author: Joe Polastre
- * @version $Revision: 1.1.2.4.4.2 $ $Date: 2006-07-13 20:38:18 $
+ * @version $Revision: 1.1.2.4.4.3 $ $Date: 2006-10-05 08:25:43 $
  */
 
 module HplMsp430Usart1P {
@@ -108,7 +108,6 @@ implementation
 
   async command error_t AsyncStdControl.stop() {
     call Usart.disableSpi();
-    call Usart.disableI2C();
     call Usart.disableUart();
     return SUCCESS;
   }
@@ -188,10 +187,6 @@ implementation
     }
   }
 
-  async command bool Usart.isI2C() {
-      return FALSE;
-  }
-
   async command msp430_usartmode_t Usart.getMode() {
     if (call Usart.isUart())
       return USART_UART;
@@ -201,8 +196,6 @@ implementation
       return USART_UART_TX;
     else if (call Usart.isSpi())
       return USART_SPI;
-    else if (call Usart.isI2C())
-      return USART_I2C;
     else
       return USART_NONE;
   }
@@ -264,39 +257,17 @@ implementation
     }
   }
 
-  async command void Usart.enableI2C() {
-    return;
-  }
+  void configSpi(msp430_spi_union_config_t* config) {
+    U1CTL = config->spiRegisters.uctl | SYNC | SWRST; 
+    U1TCTL = config->spiRegisters.utctl;
 
-  async command void Usart.disableI2C() {
-    return;
- }
-
-
-  void configSpi(msp430_spi_config_t config) {
-    msp430_uctl_t uctl = call Usart.getUctl();
-    msp430_utctl_t utctl = call Usart.getUtctl();
-
-    uctl.clen = config.clen;
-    uctl.listen = config.listen;
-    uctl.mm = config.mm;
-    uctl.sync = 1;
-
-    utctl.ckph = config.ckph;
-    utctl.ckpl = config.ckpl;
-    utctl.ssel = config.ssel;
-    utctl.stc = config.stc;
-
-    call Usart.setUctl(uctl);
-    call Usart.setUtctl(utctl);
-    call Usart.setUbr(config.ubr);
+    call Usart.setUbr(config->spiRegisters.ubr);
     call Usart.setUmctl(0x00);
   }
 
-
-  async command void Usart.setModeSpi(msp430_spi_config_t config) {
+  async command void Usart.setModeSpi(msp430_spi_union_config_t* config) {
+        
     call Usart.disableUart();
-    call Usart.disableI2C();
     atomic {
       call Usart.resetUsart(TRUE);
       configSpi(config);
@@ -304,81 +275,61 @@ implementation
       call Usart.resetUsart(FALSE);
       call Usart.clrIntr();
       call Usart.disableIntr();
-    }
+    }    
     return;
   }
 
+  void configUart(msp430_uart_union_config_t* config) {
 
-  void configUart(msp430_uart_config_t config) {
-    msp430_uctl_t uctl = call Usart.getUctl();
-    msp430_utctl_t utctl = call Usart.getUtctl();
-    msp430_urctl_t urctl = call Usart.getUrctl();
-
-    uctl.pena = config.pena;
-    uctl.pev = config.pev;
-    uctl.spb = config.spb;
-    uctl.clen = config.clen;
-    uctl.listen = config.listen;
-    uctl.sync = 0;
-    uctl.mm = config.mm;
-
-    utctl.ckpl = config.ckpl;
-    utctl.ssel = config.ssel;
-    utctl.urxse = config.urxse;
-
-    urctl.urxeie = config.urxeie;
-    urctl.urxwie = config.urxwie;
-
-    call Usart.setUctl(uctl);
-    call Usart.setUtctl(utctl);
-    call Usart.setUrctl(urctl);
-    call Usart.setUbr(config.ubr);
-    call Usart.setUmctl(config.umctl);
+    U1CTL = (config->uartRegisters.uctl & ~SYNC) | SWRST;
+    U1TCTL = config->uartRegisters.utctl;
+    U1RCTL = config->uartRegisters.urctl;        
+    
+    call Usart.setUbr(config->uartRegisters.ubr);
+    call Usart.setUmctl(config->uartRegisters.umctl);
   }
 
-  async command void Usart.setModeUartTx(msp430_uart_config_t config) {
+  async command void Usart.setModeUartTx(msp430_uart_union_config_t* config) {
 
     call Usart.disableSpi();
-    call Usart.disableI2C();
-    call Usart.disableUart();
 
     atomic {
       call UTXD.selectModuleFunc();
       call URXD.selectIOFunc();
       call Usart.resetUsart(TRUE);
       configUart(config);
+      call Usart.disableUartRx();
       call Usart.enableUartTx();
       call Usart.resetUsart(FALSE);
       call Usart.clrIntr();
       call Usart.disableIntr();
     }
+
     return;
   }
 
-  async command void Usart.setModeUartRx(msp430_uart_config_t config) {
+  async command void Usart.setModeUartRx(msp430_uart_union_config_t* config) {
 
     call Usart.disableSpi();
-    call Usart.disableI2C();
-    call Usart.disableUart();
     
     atomic {
       call UTXD.selectIOFunc();
       call URXD.selectModuleFunc();
       call Usart.resetUsart(TRUE);
       configUart(config);
+      call Usart.disableUartTx();
       call Usart.enableUartRx();
       call Usart.resetUsart(FALSE);
       call Usart.clrIntr();
       call Usart.disableIntr();
     }
+    
     return;
   }
 
-  async command void Usart.setModeUart(msp430_uart_config_t config) {
+  async command void Usart.setModeUart(msp430_uart_union_config_t* config) {
 
     call Usart.disableSpi();
-    call Usart.disableI2C();
-    call Usart.disableUart();
 
     atomic {
       call UTXD.selectModuleFunc();
@@ -390,15 +341,9 @@ implementation
       call Usart.clrIntr();
       call Usart.disableIntr();
     }
+    
     return;
   }
-
-
-    // i2c enable bit is not set by default
-  async command void Usart.setModeI2C(msp430_i2c_config_t config) {
-    return;
-  }
-
 
   async command bool Usart.isTxIntrPending(){
     if (IFG2 & UTXIFG1){
