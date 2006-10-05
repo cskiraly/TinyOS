@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.50 2006-10-05 08:08:18 gnawali Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.51 2006-10-05 21:44:49 gnawali Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-10-05 08:08:18 $
+ *  @date   $Date: 2006-10-05 21:44:49 $
  */
 
 #include <ForwardingEngine.h>
@@ -546,6 +546,7 @@ implementation {
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
+      call LinkEstimator.txAck(AMPacket.destination(msg));
       clientPtrs[client] = qe;
       hdr = getHeader(qe->msg);
       call SendQueue.dequeue();
@@ -869,6 +870,9 @@ implementation {
     r += offset;
     call RetxmitTimer.startOneShot(r);
     dbg("Forwarder", "started rexmit timer in %hu ms\n", r);
+  }
+
+  event void LinkEstimator.evicted(am_addr_t neighbor) {
   }
 
   /* Default implementations for CollectionDebug calls.

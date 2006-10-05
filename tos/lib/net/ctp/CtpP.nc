@@ -122,6 +122,7 @@ implementation {
   components new TimerMilliC() as RoutingBeaconTimer;
   components new TimerMilliC() as RouteUpdateTimer;
   components LinkEstimatorP as Estimator;
+  Forwarder.LinkEstimator -> Estimator;
 
   components new AMSenderC(AM_CTP_DATA);
   components new AMReceiverC(AM_CTP_DATA);
