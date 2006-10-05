@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2005-2006 Arched Rock Corporation
+/*
+ * Copyright (c) 2005-2006 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -29,7 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
 
-/**
+/*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
  *
@@ -56,34 +56,35 @@
 /**
  * An HPL abstraction of USART0 on the MSP430.
  *
- * @author Jonathan Hui <jhui@archedrock.com>
+ * @author Jonathan Hui <jhui@archrock.com>
  * @author Joe Polastre
- * @version $Revision: 1.1.2.5.4.2 $ $Date: 2006-07-13 20:38:18 $
+ * @version $Revision: 1.1.2.5.4.3 $ $Date: 2006-10-05 08:25:43 $
  */
 
 #include "msp430usart.h"
 
 configuration HplMsp430Usart0C {
-
+  
   provides interface AsyncStdControl;
   provides interface HplMsp430Usart;
   provides interface HplMsp430UsartInterrupts;
-
+  provides interface HplMsp430I2CInterrupts;
+  
 }
 
 implementation {
-
+  
   components HplMsp430Usart0P as HplUsartP;
-  components HplMsp430GeneralIOC as GIO;
-
   AsyncStdControl = HplUsartP;
   HplMsp430Usart = HplUsartP;
   HplMsp430UsartInterrupts = HplUsartP;
-
+  HplMsp430I2CInterrupts = HplUsartP;
+  
+  components HplMsp430GeneralIOC as GIO;
   HplUsartP.SIMO -> GIO.SIMO0;
   HplUsartP.SOMI -> GIO.SOMI0;
   HplUsartP.UCLK -> GIO.UCLK0;
   HplUsartP.URXD -> GIO.URXD0;
   HplUsartP.UTXD -> GIO.UTXD0;
-
+  
 }

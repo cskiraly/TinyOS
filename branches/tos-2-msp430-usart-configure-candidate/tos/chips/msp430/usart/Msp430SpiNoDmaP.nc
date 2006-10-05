@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.1.4.2 $ $Date: 2006-07-13 20:38:19 $
+ * @version $Revision: 1.1.2.1.4.3 $ $Date: 2006-10-05 08:25:43 $
  */
 
 
@@ -48,6 +48,7 @@ generic module Msp430SpiNoDmaP() {
   uses interface HplMsp430UsartInterrupts as UsartInterrupts;
   uses interface Leds;
 
+  // uses interface HplMsp430GeneralIO as MeasureSpiPin;
 }
 
 implementation {
@@ -77,12 +78,17 @@ implementation {
     return call UsartResource.isOwner[ id ]();
   }
 
-  async command void Resource.release[ uint8_t id ]() {
-    call UsartResource.release[ id ]();
+  async command error_t Resource.release[ uint8_t id ]() {
+    return call UsartResource.release[ id ]();
   }
 
   async command void ResourceConfigure.configure[ uint8_t id ]() {
+    
+    // call MeasureSpiPin.set();
+    
     call Usart.setModeSpi(call Msp430SpiConfigure.getConfig[id]());
+    
+    // call MeasureSpiPin.clr();
   }
 
   async command void ResourceConfigure.unconfigure[ uint8_t id ]() {
@@ -92,20 +98,22 @@ implementation {
     signal Resource.granted[ id ]();
   }
 
-  async command void SpiByte.write( uint8_t tx, uint8_t* rx ) {
+  async command uint8_t SpiByte.write( uint8_t tx ) {
+    uint8_t byte;
     call Usart.disableRxIntr();
     call Usart.tx( tx );
     while( !call Usart.isRxIntrPending() );
-    *rx = call Usart.rx();
+    byte = call Usart.rx();
     call Usart.enableRxIntr();
+    return byte;
   }
 
   default async command error_t UsartResource.isOwner[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.request[ uint8_t id ]() { return FAIL; }
   default async command error_t UsartResource.immediateRequest[ uint8_t id ]() { return FAIL; }
-  default async command void UsartResource.release[ uint8_t id ]() {}
-  default async command msp430_spi_config_t Msp430SpiConfigure.getConfig[uint8_t id]() {
-    return msp430_spi_default_config;
+  default async command error_t UsartResource.release[ uint8_t id ]() { return FAIL; }
+  default async command msp430_spi_union_config_t* Msp430SpiConfigure.getConfig[uint8_t id]() {
+    return &msp430_spi_default_config;
   }
 
   default event void Resource.granted[ uint8_t id ]() {}

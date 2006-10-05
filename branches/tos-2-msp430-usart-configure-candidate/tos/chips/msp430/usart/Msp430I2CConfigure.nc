@@ -28,25 +28,13 @@
  */
 
 /**
- * Interface used by Msp430Uart clients to control/configure the Uart.
- *
- * @author Philipp Huppertz (huppertz@tkn.tu-berlin.de)
+ * Interface used by Msp430I2C clients to reconfigure the I2C before use
+ * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
+ * @version $Revision: 1.1.4.2 $ $Date: 2006-10-05 08:25:43 $
  */
-interface Msp430UartControl {
 
-  /**
-  * Sets the Uart to Rx mode.
-  */
-  async command void setModeRx();
-  
-  /**
-  * Sets the Uart to Tx mode.
-  */
-  async command void setModeTx();
-  
-  /**
-  * Sets the Uart to duplex mode.
-  */
-  async command void setModeDuplex();
-  
+#include "msp430usart.h"
+
+interface Msp430I2CConfigure {
+  async command msp430_i2c_union_config_t* getConfig();
 }
