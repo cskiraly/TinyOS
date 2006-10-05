@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2006, Technische Universitaet Berlin
+* Copyright (c) 2004, Technische Universitat Berlin
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
 * - Redistributions in binary form must reproduce the above copyright
 *   notice, this list of conditions and the following disclaimer in the
 *   documentation and/or other materials provided with the distribution.
-* - Neither the name of the Technische Universitaet Berlin nor the names
+* - Neither the name of the Technische Universitat Berlin nor the names
 *   of its contributors may be used to endorse or promote products derived
 *   from this software without specific prior written permission.
 *
@@ -25,47 +25,37 @@
 * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-* - Description ---------------------------------------------------------
-*
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.3.2.1 $
+* $Revision: 1.1.4.2 $
 * $Date: 2006-10-05 08:37:46 $
-* @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
 * ========================================================================
 */
 
+
 /**
- * UartPhyC
- *
- * @author Philipp Huppertz <huppertz@tkn.tu-berlin.de>
+ * Wiring the TDA5250 with the Msp430 Uart abstraction.
+ * 
+ * @author Philipp Hupertz (huppertz@tkn.tu-berlin.de)
  */
- 
-configuration UartPhyC
-{
-  provides{
-    interface Init;
-    interface PhyPacketTx;
-    interface RadioByteComm as SerializerRadioByteComm;
-    interface PhyPacketRx;
-    interface UartPhyControl;
-  }
-  uses {
-    interface RadioByteComm;
+configuration HplTda5250DataIOC {
+  provides {
+		interface Resource;
+    interface ResourceRequested;
+		interface SerialByteComm;
+		interface HplTda5250DataControl;		
   }
 }
-implementation
-{
-    components 
-        new Alarm32khzC() as RxByteTimer,
-        UartPhyP;
-    
-    Init = UartPhyP;
-    PhyPacketRx = UartPhyP;
-    SerializerRadioByteComm = UartPhyP;
-    RadioByteComm = UartPhyP;
-    PhyPacketTx = UartPhyP;
-    UartPhyControl = UartPhyP;
-    
-    UartPhyP.RxByteTimer -> RxByteTimer;
+implementation {
+
+  components 
+      new Msp430Uart0C(),
+			HplTda5250DataIOP;
+
+	Resource = Msp430Uart0C.Resource;
+  ResourceRequested = Msp430Uart0C.ResourceRequested;
+	SerialByteComm = Msp430Uart0C.SerialByteComm;
+	
+	HplTda5250DataControl = HplTda5250DataIOP;
+//   HplTda5250DataIOP.UartControl -> Msp430Uart0C.UartControl;
+	HplTda5250DataIOP.UartResourceConfigure <- Msp430Uart0C.Msp430UartConfigure;  
 }

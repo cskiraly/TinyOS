@@ -26,52 +26,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.5.4.1 $
+ * $Revision: 1.1.4.2 $
  * $Date: 2006-10-05 08:37:46 $
  * ========================================================================
  */
 
+#include "msp430usart.h"
+#include "tda5250BusResourceSettings.h"
+
  /**
- * Controlling the Tda5250 at the Hpl layer.
+ * Wrapper module for the Msp430 Uart abstraction.
  *
- * @author Kevin Klues (klues@tkn.tu-berlin.de)
- */
-
-#include "tda5250Const.h"
-#include "tda5250RegDefaultSettings.h"
-#include "tda5250RegTypes.h"
-configuration Tda5250RadioC {
+ * @author Philipp Hupertz (huppertz@tkn.tu-berlin.de)
+  */
+module HplTda5250DataIOP {
   provides {
-    interface SplitControl;
-    interface Tda5250Control;
-    interface ResourceRequested;
-    interface RadioByteComm;
+    interface HplTda5250DataControl;
+		interface Msp430UartConfigure as UartResourceConfigure;
   }
+//   uses {
+//      interface Msp430UartControl as UartControl;
+//   }
 }
+
 implementation {
-  components Tda5250RadioP
-           , HplTda5250ConfigC
-           , HplTda5250DataC
-           , new Alarm32khzC() as DelayTimer
-           , MainC;
-
-  MainC.SoftwareInit -> HplTda5250ConfigC;
-  MainC.SoftwareInit -> HplTda5250DataC;
-  MainC.SoftwareInit -> Tda5250RadioP;
-           
-  Tda5250Control = Tda5250RadioP;
-  ResourceRequested = Tda5250RadioP;
-  RadioByteComm = Tda5250RadioP;
-  SplitControl = Tda5250RadioP;
-
-  Tda5250RadioP.DelayTimer -> DelayTimer.Alarm32khz16;
   
-  Tda5250RadioP.ConfigResource -> HplTda5250ConfigC;
-  Tda5250RadioP.DataResource -> HplTda5250DataC;
-  Tda5250RadioP.DataResourceRequested -> HplTda5250DataC;
-  
-  Tda5250RadioP.HplTda5250Config -> HplTda5250ConfigC;
-  Tda5250RadioP.HplTda5250Data -> HplTda5250DataC;
-	Tda5250RadioP.HplTda5250DataControl -> HplTda5250DataC;
+  async command error_t HplTda5250DataControl.setToTx() {
+    //call UartControl.setModeTx();
+    tda5250_uart_config.uartConfig.urxe = 0;
+    tda5250_uart_config.uartConfig.utxe = 1;
+    return SUCCESS;
+  }
+
+  async command error_t HplTda5250DataControl.setToRx() {
+   // call UartControl.setModeRx();
+   tda5250_uart_config.uartConfig.urxe = 1;
+   tda5250_uart_config.uartConfig.utxe = 0;
+   return SUCCESS;
+  }
+	
+	async command msp430_uart_union_config_t* UartResourceConfigure.getConfig() {
+		return &tda5250_uart_config;
+	}
 
 }
