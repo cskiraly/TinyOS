@@ -1,4 +1,4 @@
-/* $Id: LinkEstimator.h,v 1.1.2.1 2006-08-29 17:24:41 kasj78 Exp $ */
+/* $Id: LinkEstimator.h,v 1.1.2.2 2006-10-05 08:08:18 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -99,6 +99,9 @@ typedef struct neighbor_table_entry {
   uint8_t outage;
   uint8_t inquality;
   uint8_t outquality;
+  uint16_t etx;
+  uint8_t data_success;
+  uint8_t data_total;
 } neighbor_table_entry_t;
 
 

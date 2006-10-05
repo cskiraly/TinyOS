@@ -1,4 +1,4 @@
-/* $Id: ForwardingEngineP.nc,v 1.1.2.49 2006-08-25 00:41:28 scipio Exp $ */
+/* $Id: ForwardingEngineP.nc,v 1.1.2.50 2006-10-05 08:08:18 gnawali Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-08-25 00:41:28 $
+ *  @date   $Date: 2006-10-05 08:08:18 $
  */
 
 #include <ForwardingEngine.h>
@@ -156,6 +156,7 @@ generic module ForwardingEngineP() {
     interface CollectionId[uint8_t client];
     interface AMPacket;
     interface CollectionDebug;
+    interface LinkEstimator;
     interface Leds;
   }
 }
@@ -501,6 +502,9 @@ implementation {
       startRetxmitTimer(SENDDONE_FAIL_WINDOW, SENDDONE_FAIL_OFFSET);
     }
     else if (ackPending && !call PacketAcknowledgements.wasAcked(msg)) {
+
+      call LinkEstimator.txNoAck(AMPacket.destination(msg));
+
       // AckPending is for case when DL cannot support acks.
       if (--qe->retries) { 
         dbg("Forwarder", "%s: not acked\n", __FUNCTION__);
@@ -552,6 +556,9 @@ implementation {
     else if (call MessagePool.size() < call MessagePool.maxSize()) {
       // A successfully forwarded packet.
       dbg("Forwarder,Route", "%s: successfully forwarded packet (client: %hhu), message pool is %hhu/%hhu.\n", __FUNCTION__, qe->client, call MessagePool.size(), call MessagePool.maxSize());
+
+      call LinkEstimator.txAck(AMPacket.destination(msg));
+
       call CollectionDebug.logEventMsg(NET_C_FE_FWD_MSG, 
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
