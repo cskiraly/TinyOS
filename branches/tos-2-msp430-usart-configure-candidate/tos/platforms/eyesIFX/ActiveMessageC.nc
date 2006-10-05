@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.6.2.1 2006-10-05 08:25:44 phihup Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.6.2.2 2006-10-05 09:18:07 phihup Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.
@@ -27,12 +27,6 @@
  * file. If you do not find these files, copies can be found by writing to
  * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
- */
-/*
- *
- * Authors:             Philip Levis
- * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.6.2.1 2006-10-05 08:25:44 phihup Exp $
- *
  */
 
 /**
