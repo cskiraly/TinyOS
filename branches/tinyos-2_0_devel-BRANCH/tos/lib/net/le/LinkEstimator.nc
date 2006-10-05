@@ -1,4 +1,4 @@
-/* $Id: LinkEstimator.nc,v 1.1.2.1 2006-08-29 17:24:41 kasj78 Exp $ */
+/* $Id: LinkEstimator.nc,v 1.1.2.2 2006-10-05 08:08:18 gnawali Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -25,7 +25,7 @@
  * provided quality increases when the true link quality increases.
  *  @author Rodrigo Fonseca
  *  @author Omprakash Gnawali
- *  @date   $Date: 2006-08-29 17:24:41 $
+ *  @date   $Date: 2006-10-05 08:08:18 $
  */
 
 /* Quality of a link is defined by the implementor of this interface.
@@ -51,6 +51,17 @@ interface LinkEstimator {
 
   /* pin a neighbor so that it does not get evicted */
   command error_t unpinNeighbor(am_addr_t neighbor);
+
+  /* called when an acknowledgement is received; sign of a successful
+     data transmission; to update forward link quality */
+  command error_t txAck(am_addr_t neighbor);
+
+  /* called when an acknowledgement is not received; could be due to
+     data pkt or acknowledgement loss; to update forward link quality */
+  command error_t txNoAck(am_addr_t neighbor);
+
+  /* called when the parent changes; clear state about data-driven link quality  */
+  command error_t clearDLQ(am_addr_t neighbor);
 
   /* signal when this neighbor is evicted from the neighbor table */
   event void evicted(am_addr_t neighbor);

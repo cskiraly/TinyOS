@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.6 2006-09-13 01:41:57 scipio Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.7 2006-10-05 08:08:18 gnawali Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-09-13 01:41:57 $
+ *  @date   $Date: 2006-10-05 08:08:18 $
  *  @see Net2-WG
  */
 
@@ -325,6 +325,7 @@ implementation {
                 call CollectionDebug.logEventRoute(NET_C_TREE_NEW_PARENT, best->neighbor, 0, best->info.etx); 
                 call LinkEstimator.unpinNeighbor(routeInfo.parent);
                 call LinkEstimator.pinNeighbor(best->neighbor);
+		call LinkEstimator.clearDLQ(best->neighbor);
                 atomic {
                     routeInfo.parent = best->neighbor;
                     routeInfo.etx = best->info.etx;

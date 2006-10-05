@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.1 2006-08-29 17:24:41 kasj78 Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.2 2006-10-05 08:08:18 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -78,7 +78,10 @@ implementation {
     BEACON_INTERVAL = 2,
     // decay the link estimate using this alpha
     // we use a denominator of 10, so this corresponds to 0.2
-    ALPHA = 2 
+    ALPHA = 2,
+    // number of packets to wait before computing a new
+    // DLQ (Data-driven Link Quality)
+    DLQ_PKT_WINDOW = 5
   };
 
   // keep information about links from the neighbors
@@ -280,6 +283,55 @@ implementation {
     }
   }
 
+  // update the ETX estimator
+  // called when new beacon estimate is done
+  // also called when new DETX estimate is done
+  void updateETX(neighbor_table_entry_t *ne, uint16_t newEst) {
+    ne->etx = (ALPHA * ne->etx + (10 - ALPHA) * newEst)/10;
+  }
+
+
+  // update data driven ETX
+  void updateDETX(neighbor_table_entry_t *ne) {
+    uint16_t estETX= (10 * ne->data_success) / ne->data_total - 10;
+    updateETX(ne, estETX);
+    ne->data_success = 0;
+    ne->data_total = 0;
+  }
+
+
+  // EETX (Extra Expected number of Transmission)
+  // EETX = ETX - 1
+  // computeEETX returns EETX*10
+  uint8_t computeEETX(uint8_t q1) {
+    uint16_t q;
+    if (q1 > 0) {
+      q =  2550 / q1 - 10;
+      if (q > 255) {
+	q = INFINITY;
+      }
+      return (uint8_t)q;
+    } else {
+      return INFINITY;
+    }
+  }
+
+  // BidirETX = 1 / (q1*q2)
+  // BidirEETX = BidirETX - 1
+  // computeBidirEETX return BidirEETX*10
+  uint8_t computeBidirEETX(uint8_t q1, uint8_t q2) {
+    uint16_t q;
+    if ((q1 > 0) && (q2 > 0)) {
+      q =  65025u / q1;
+      q = (10*q) / q2 - 10;
+      if (q > 255) {
+	q = INFINITY;
+      }
+      return (uint8_t)q;
+    } else {
+      return INFINITY;
+    }
+  }
 
   // update the inbound link quality by
   // munging receive, fail count since last update
@@ -301,6 +353,7 @@ implementation {
 
 	if ((ne->inage == 0) && (ne->outage == 0)) {
 	  ne->flags ^= VALID_ENTRY;
+	  ne->inquality = ne->outquality = 0;
 	} else {
 	  dbg("LI", "Making link: %d mature\n", i);
 	  ne->flags |= MATURE_ENTRY;
@@ -319,6 +372,7 @@ implementation {
 	  ne->rcvcnt = 0;
 	  ne->failcnt = 0;
 	}
+	updateETX(ne, computeBidirEETX(ne->inquality, ne->outquality));
       }
       else {
 	dbg("LI", " - entry %i is invalid.\n", (int)i);
@@ -422,39 +476,6 @@ implementation {
     }
   }
 
-  // EETX (Extra Expected number of Transmission)
-  // EETX = ETX - 1
-  // computeEETX returns EETX*10
-  uint8_t computeEETX(uint8_t q1) {
-    uint16_t q;
-    if (q1 > 0) {
-      q =  2550 / q1 - 10;
-      if (q > 255) {
-	q = INFINITY;
-      }
-      return (uint8_t)q;
-    } else {
-      return INFINITY;
-    }
-  }
-
-  // BidirETX = 1 / (q1*q2)
-  // BidirEETX = BidirETX - 1
-  // computeBidirEETX return BidirEETX*10
-  uint8_t computeBidirEETX(uint8_t q1, uint8_t q2) {
-    uint16_t q;
-    if ((q1 > 0) && (q2 > 0)) {
-      q =  65025u / q1;
-      q = (10*q) / q2 - 10;
-      if (q > 255) {
-	q = INFINITY;
-      }
-      return (uint8_t)q;
-    } else {
-      return INFINITY;
-    }
-  }
-
   // return bi-directional link quality to the neighbor
   command uint8_t LinkEstimator.getLinkQuality(am_addr_t neighbor) {
     uint8_t idx;
@@ -462,8 +483,11 @@ implementation {
     if (idx == INVALID_RVAL) {
       return INFINITY;
     } else {
+      /*
       return computeBidirEETX(NeighborTable[idx].inquality,
 			      NeighborTable[idx].outquality);
+      */
+      return NeighborTable[idx].etx - 10;
     };
   }
 
@@ -536,6 +560,53 @@ implementation {
     }
     NeighborTable[nidx].flags &= ~PINNED_ENTRY;
     return SUCCESS;
+  }
+
+
+  // called when an acknowledgement is received; sign of a successful
+  // data transmission; to update forward link quality
+  command error_t LinkEstimator.txAck(am_addr_t neighbor) {
+    neighbor_table_entry_t *ne;
+    uint8_t nidx = findIdx(neighbor);
+    if (nidx == INVALID_RVAL) {
+      return FAIL;
+    }
+    ne = &NeighborTable[nidx];
+    ne->data_success++;
+    ne->data_total++;
+    if (ne->data_total >= DLQ_PKT_WINDOW) {
+      updateDETX(ne);
+    }
+    return SUCCESS;
+  }
+
+  // called when an acknowledgement is not received; could be due to
+  // data pkt or acknowledgement loss; to update forward link quality
+  command error_t LinkEstimator.txNoAck(am_addr_t neighbor) {
+    neighbor_table_entry_t *ne;
+    uint8_t nidx = findIdx(neighbor);
+    if (nidx == INVALID_RVAL) {
+      return FAIL;
+    }
+
+    ne = &NeighborTable[nidx];
+    ne->data_total++;
+    if (ne->data_total >= DLQ_PKT_WINDOW) {
+      updateDETX(ne);
+    }
+    return SUCCESS;
+  }
+
+  /* called when the parent changes; clear state about data-driven link quality  */
+  command error_t LinkEstimator.clearDLQ(am_addr_t neighbor) {
+    neighbor_table_entry_t *ne;
+    uint8_t nidx = findIdx(neighbor);
+    if (nidx == INVALID_RVAL) {
+      return FAIL;
+    }
+    ne = &NeighborTable[nidx];
+    ne->data_total = 0;
+    ne->data_success = 0;
   }
 
 

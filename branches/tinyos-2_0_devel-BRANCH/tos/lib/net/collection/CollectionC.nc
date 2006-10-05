@@ -1,4 +1,4 @@
-/* $Id: CollectionC.nc,v 1.1.2.2 2006-05-26 00:25:55 scipio Exp $ */
+/* $Id: CollectionC.nc,v 1.1.2.3 2006-10-05 08:08:18 gnawali Exp $ */
 #include "Collection.h"
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
@@ -24,7 +24,7 @@
 
 /*
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-05-26 00:25:55 $
+ *  @date   $Date: 2006-10-05 08:08:18 $
  */
 configuration CollectionC {
     provides {
@@ -50,6 +50,7 @@ implementation {
   
   ForwardingEngineP.BasicRouting -> TreeRoutingEngineP;
   TreeRoutingEngineP.LinkEstimator -> LinkEstimatorC;
+  ForwardingEngineP.LinkEstimator -> LinkEstimatorC;
   
   components new LinkEstimatorAMSenderC(AM_COLLECTION_DATA) 
     as DataAMSender; 
