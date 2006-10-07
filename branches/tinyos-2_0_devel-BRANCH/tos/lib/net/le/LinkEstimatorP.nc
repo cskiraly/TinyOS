@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.2 2006-10-05 08:08:18 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.3 2006-10-07 03:13:18 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -283,18 +283,18 @@ implementation {
     }
   }
 
-  // update the ETX estimator
+  // update the EETX estimator
   // called when new beacon estimate is done
-  // also called when new DETX estimate is done
-  void updateETX(neighbor_table_entry_t *ne, uint16_t newEst) {
+  // also called when new DEETX estimate is done
+  void updateEETX(neighbor_table_entry_t *ne, uint16_t newEst) {
     ne->etx = (ALPHA * ne->etx + (10 - ALPHA) * newEst)/10;
   }
 
 
-  // update data driven ETX
-  void updateDETX(neighbor_table_entry_t *ne) {
-    uint16_t estETX= (10 * ne->data_success) / ne->data_total - 10;
-    updateETX(ne, estETX);
+  // update data driven EETX
+  void updateDEETX(neighbor_table_entry_t *ne) {
+    uint16_t estETX= (10 * ne->data_total) / ne->data_success - 10;
+    updateEETX(ne, estETX);
     ne->data_success = 0;
     ne->data_total = 0;
   }
@@ -372,7 +372,7 @@ implementation {
 	  ne->rcvcnt = 0;
 	  ne->failcnt = 0;
 	}
-	updateETX(ne, computeBidirEETX(ne->inquality, ne->outquality));
+	updateEETX(ne, computeBidirEETX(ne->inquality, ne->outquality));
       }
       else {
 	dbg("LI", " - entry %i is invalid.\n", (int)i);
@@ -487,7 +487,7 @@ implementation {
       return computeBidirEETX(NeighborTable[idx].inquality,
 			      NeighborTable[idx].outquality);
       */
-      return NeighborTable[idx].etx - 10;
+      return NeighborTable[idx].etx;
     };
   }
 
@@ -575,7 +575,7 @@ implementation {
     ne->data_success++;
     ne->data_total++;
     if (ne->data_total >= DLQ_PKT_WINDOW) {
-      updateDETX(ne);
+      updateDEETX(ne);
     }
     return SUCCESS;
   }
@@ -592,7 +592,7 @@ implementation {
     ne = &NeighborTable[nidx];
     ne->data_total++;
     if (ne->data_total >= DLQ_PKT_WINDOW) {
-      updateDETX(ne);
+      updateDEETX(ne);
     }
     return SUCCESS;
   }
