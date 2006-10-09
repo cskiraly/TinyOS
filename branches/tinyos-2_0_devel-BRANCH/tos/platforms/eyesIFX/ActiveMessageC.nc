@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.7 2006-08-11 11:31:06 janhauer Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.8 2006-10-09 13:33:29 janhauer Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.7 2006-08-11 11:31:06 janhauer Exp $
+ * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.8 2006-10-09 13:33:29 janhauer Exp $
  *
  */
 
@@ -70,6 +70,7 @@ implementation {
   Filter.SubAMSend -> AM;
   Filter.SubReceive -> AM.Receive;
   Filter.SubSnoop  -> AM.Snoop;
+  Filter.AMPacket  -> AM;
 
   SplitControl = AM;
   Packet       = AM;
