@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-07-07 15:55:26 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-10-09 13:34:42 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -63,5 +63,5 @@ implementation
   ReadNow = ReadNowShift;
   ReadNowShift.ReadNowRaw -> AdcReadNowClient;
   Resource = AdcReadNowClient;
-  AdcReadNowClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];  
+  AdcReadNowClient.AdcConfigure -> Settings.AdcConfigure[PHOTO_SENSOR_DEFAULT];  
 }
