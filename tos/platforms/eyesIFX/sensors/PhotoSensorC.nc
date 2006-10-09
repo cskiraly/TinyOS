@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-01-31 18:53:36 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-10-09 13:34:42 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -58,11 +58,11 @@ implementation
              
   components new AdcReadClientC() as AdcReadClient;
   Read = AdcReadClient;
-  AdcReadClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];
+  AdcReadClient.AdcConfigure -> Settings.AdcConfigure[PHOTO_SENSOR_DEFAULT];
   
   components new AdcReadNowClientC() as AdcReadNowClient;
   ReadNow = AdcReadNowClient;
   ReadNowResource = AdcReadNowClient;
-  AdcReadNowClient.Msp430Adc12Config -> Settings.Msp430Adc12Config[PHOTO_SENSOR_DEFAULT];
+  AdcReadNowClient.AdcConfigure -> Settings.AdcConfigure[PHOTO_SENSOR_DEFAULT];
 }
 
