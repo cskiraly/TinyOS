@@ -38,7 +38,7 @@
  * 0.986 from voltage and divide by 0.00355 to get degrees C.
  *
  * @author Gilman Tolle <gtolle@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-06-20 18:56:05 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-10-09 13:26:36 $
  */
 
 generic configuration Msp430InternalTemperatureC() {
@@ -53,6 +53,6 @@ implementation {
   ReadStream = AdcReadStreamClientC;
 
   components Msp430InternalTemperatureP;
-  AdcReadClientC.Msp430Adc12Config -> Msp430InternalTemperatureP;
-  AdcReadStreamClientC.Msp430Adc12Config -> Msp430InternalTemperatureP;
+  AdcReadClientC.AdcConfigure -> Msp430InternalTemperatureP;
+  AdcReadStreamClientC.AdcConfigure -> Msp430InternalTemperatureP;
 }

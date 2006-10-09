@@ -37,7 +37,7 @@
  * multiply by 3.
  *
  * @author Gilman Tolle <gtolle@archrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-06-20 18:56:05 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-10-09 13:26:37 $
  */
 
 generic configuration Msp430InternalVoltageC() {
@@ -55,12 +55,12 @@ implementation {
   ReadStream = AdcReadStreamClientC;
 
   components Msp430InternalVoltageP;
-  AdcReadClientC.Msp430Adc12Config -> Msp430InternalVoltageP;
-  AdcReadStreamClientC.Msp430Adc12Config -> Msp430InternalVoltageP;
+  AdcReadClientC.AdcConfigure -> Msp430InternalVoltageP;
+  AdcReadStreamClientC.AdcConfigure -> Msp430InternalVoltageP;
 
   components new AdcReadNowClientC();
   Resource = AdcReadNowClientC;
   ReadNow = AdcReadNowClientC;
   
-  AdcReadNowClientC.Msp430Adc12Config -> Msp430InternalVoltageP;
+  AdcReadNowClientC.AdcConfigure -> Msp430InternalVoltageP;
 }
