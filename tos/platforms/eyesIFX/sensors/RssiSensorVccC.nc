@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.2 $
- * $Date: 2006-08-03 18:17:52 $
+ * $Revision: 1.1.2.3 $
+ * $Date: 2006-10-09 15:21:11 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -44,7 +44,7 @@
  */
 
 #include <sensors.h>
-configuration RssiSensorVccC
+generic configuration RssiSensorVccC()
 {
     provides {
         interface ReadNow<uint16_t> as ReadNow;
@@ -55,10 +55,10 @@ implementation
 {
     components SensorSettingsC as Settings;
     components RssiSensorVccP as RssiSensor;
-    components new Msp430Adc12FastClientC() as AdcReadNowClient;
+    components new Msp430Adc12ClientC() as AdcClient;
     
     ReadNow = RssiSensor;
     ReadNowResource = RssiSensor;
-    RssiSensor.SubResource -> AdcReadNowClient;
-    RssiSensor.FastChannel -> AdcReadNowClient;
+    RssiSensor.SubResource -> AdcClient;
+    RssiSensor.SingleChannel -> AdcClient;
 }

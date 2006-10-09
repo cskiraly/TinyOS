@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-08-15 11:59:09 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-10-09 15:21:11 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -53,19 +53,24 @@ module RssiSensorVccP
     }
     uses {
         interface Resource as SubResource;
-        interface Msp430Adc12FastSingleChannel as FastChannel;
+        interface Msp430Adc12SingleChannel as SingleChannel;
     }
 }
 implementation
 {
     async command error_t ReadNow.read() {
-        return call FastChannel.getSingleData();
+        return call SingleChannel.getData();
     }
     
-    async event void FastChannel.singleDataReady(uint16_t data) {
-        signal ReadNow.readDone(SUCCESS, data);
+    async event error_t SingleChannel.singleDataReady(uint16_t data) {
+      signal ReadNow.readDone(SUCCESS, data);
+      return FAIL;  
     }
 
+    async event uint16_t* SingleChannel.multipleDataReady(uint16_t buffer[], uint16_t numSamples){
+      return 0;
+    }
+    
     async command error_t ReadNowResource.request() {
         return call SubResource.request();
     }
@@ -73,14 +78,14 @@ implementation
     async command error_t ReadNowResource.immediateRequest() {
         error_t res = call SubResource.immediateRequest();
         if(res == SUCCESS) {
-            res = call FastChannel.configure(&sensorconfigurations[RSSI_SENSOR_VCC]);
+            res = call SingleChannel.configureSingle(&sensorconfigurations[RSSI_SENSOR_VCC]);
             if(res != SUCCESS) call SubResource.release();
         }
         return res;
     }
 
     event void SubResource.granted() {
-        call FastChannel.configure(&sensorconfigurations[RSSI_SENSOR_VCC]);
+        call SingleChannel.configureSingle(&sensorconfigurations[RSSI_SENSOR_VCC]);
         signal ReadNowResource.granted();
     }
 
