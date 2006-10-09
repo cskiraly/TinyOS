@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2004, Technische Universitaet Berlin
+ * Copyright (c) 2006, Technische Universitaet Berlin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,39 @@
  *
  * - Revision -------------------------------------------------------------
  * $Revision: 1.1.2.1 $
- * $Date: 2006-07-07 15:17:54 $
+ * $Date: 2006-10-09 13:24:42 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
 /** 
- * This component realizes a HAL1 representation and allows an
- * MSP430-specific client to access the MSP430 ADC12 (12-bit analog-to-digital
- * converter) via the <code>Msp430Adc12FastSingleChannel</code> and
- * <code>Resource</code> interface. 
+ * This component virtualizes access to the HAL of the MSP430 ADC12.  ADC
+ * conversion results are copied using DMA.
  * 
- * @author Jan Hauer
- * @see  Please refer to TEP 101 for more information about this component and its
- *          intended use.
+ * @author Jan Hauer 
+ *
+ * @see  Please refer to the README.txt and TEP 101 for more information about
+ * this component and its intended use.
  */
 
-generic configuration Msp430Adc12FastClientC()
+generic configuration Msp430Adc12ClientAutoDMAC()
 {
-  provides interface Resource;
-  provides interface Msp430Adc12FastSingleChannel;
+  provides {
+    interface Resource;
+    interface Msp430Adc12SingleChannel;
+  }
 } implementation {
-  components Msp430Adc12C;
+  components Msp430DmaC, Msp430Adc12DMAP, Msp430Adc12P;
    
   enum {
     ID = unique(MSP430ADC12_RESOURCE),
   };
-  Resource = Msp430Adc12C.Resource[ID];
-  Msp430Adc12FastSingleChannel = Msp430Adc12C.FastSingleChannel[ID];
+  Resource = Msp430Adc12P.Resource[ID];
+  Msp430Adc12SingleChannel = Msp430Adc12DMAP.SingleChannel[ID];
+  
+  Msp430Adc12DMAP.SubSingleChannel[ID] -> Msp430Adc12P.SingleChannel[ID];
+  Msp430Adc12DMAP.AsyncAdcControl[ID] -> Msp430Adc12P.DMAExtension[ID];
+
+  Msp430Adc12DMAP.DMAControl -> Msp430DmaC.Control;
+  Msp430Adc12DMAP.DMAChannel -> Msp430DmaC.Channel0;
 }
