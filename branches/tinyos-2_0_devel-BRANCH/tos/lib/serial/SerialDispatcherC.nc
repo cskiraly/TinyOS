@@ -1,4 +1,4 @@
-//$Id: SerialDispatcherC.nc,v 1.1.2.12 2006-09-06 17:05:15 scipio Exp $
+//$Id: SerialDispatcherC.nc,v 1.1.2.13 2006-10-10 19:18:42 jwhui Exp $
 
 /* "Copyright (c) 2005 The Regents of the University of California.
  * All rights reserved.
@@ -66,6 +66,6 @@ implementation {
   SerialP.SerialFrameComm -> HdlcTranslateC;
   SerialP.SerialControl -> PlatformSerialC;
 
-  HdlcTranslateC.SerialByteComm -> PlatformSerialC;
+  HdlcTranslateC.UartStream -> PlatformSerialC;
 
 }

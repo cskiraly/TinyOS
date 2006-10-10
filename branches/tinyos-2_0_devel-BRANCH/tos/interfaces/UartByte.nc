@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2005-2006 Arched Rock Corporation
+/*
+ * Copyright (c) 2006 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -31,43 +31,28 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
- * @version $Revision: 1.1.4.3 $ $Date: 2006-10-10 19:18:42 $
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-10-10 19:18:42 $
  */
 
-configuration Msp430Uart1P {
+interface UartByte {
 
-  provides interface Resource[ uint8_t id ];
-  provides interface ResourceConfigure[uint8_t id ];
-  provides interface Msp430UartControl as UartControl[ uint8_t id ];
-  provides interface UartStream;
-  provides interface UartByte;
-  
-  uses interface Resource as UsartResource[ uint8_t id ];
-  uses interface Msp430UartConfigure[ uint8_t id ];
-  uses interface HplMsp430UsartInterrupts as UsartInterrupts;
+  /**
+   * Send a single uart byte. The call blocks until it is ready to
+   * accept another byte for sending.
+   *
+   * @param byte The byte to send.
+   * @return SUCCESS if byte was sent, FAIL otherwise.
+   */
+  async command error_t send( uint8_t byte );
 
-}
-
-implementation {
-
-  components new Msp430UartP() as UartP;
-  Resource = UartP.Resource;
-  ResourceConfigure = UartP.ResourceConfigure;
-  Msp430UartConfigure = UartP.Msp430UartConfigure;
-  UartControl = UartP.UartControl;
-  UartStream = UartP.UartStream;
-  UartByte = UartP.UartByte;
-  UsartResource = UartP.UsartResource;
-  UsartInterrupts = UartP.UsartInterrupts;
-
-  components HplMsp430Usart1C as UsartC;
-  UartP.Usart -> UsartC;
-  
-  components Counter32khzC as CounterC;
-  UartP.Counter -> CounterC;
-  
-  components LedsC as Leds;
-  UartP.Leds -> Leds;
+  /**
+   * Receive a single uart byte. The call blocks until a byte is
+   * received.
+   *
+   * @param byte Where to place received byte.
+   * @param timeout How long in byte times to wait.
+   * @return SUCCESS if a byte was received, FAIL if timed out.
+   */
+  async command error_t receive( uint8_t* byte, uint8_t timeout );
 
 }
