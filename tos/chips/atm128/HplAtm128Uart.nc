@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2005-2006 Arched Rock Corporation
+/*
+ * Copyright (c) 2006 Arch Rock Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Arched Rock Corporation nor the names of
+ * - Neither the name of the Arch Rock Corporation nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -19,7 +19,7 @@
  * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
  * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
- * ARCHED ROCK OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * ARCH ROCK OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
@@ -30,44 +30,22 @@
  */
 
 /**
- * @author Jonathan Hui <jhui@archedrock.com>
- * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
- * @version $Revision: 1.1.4.3 $ $Date: 2006-10-10 19:18:42 $
+ * @author Alec Woo <awoo@archrock.com>
+ * @author Jonathan Hui <jhui@archrock.com>
+ * @version $Revision: 1.1.2.1 $ $Date: 2006-10-10 19:18:42 $
  */
 
-configuration Msp430Uart1P {
-
-  provides interface Resource[ uint8_t id ];
-  provides interface ResourceConfigure[uint8_t id ];
-  provides interface Msp430UartControl as UartControl[ uint8_t id ];
-  provides interface UartStream;
-  provides interface UartByte;
+interface HplAtm128Uart {
   
-  uses interface Resource as UsartResource[ uint8_t id ];
-  uses interface Msp430UartConfigure[ uint8_t id ];
-  uses interface HplMsp430UsartInterrupts as UsartInterrupts;
-
-}
-
-implementation {
-
-  components new Msp430UartP() as UartP;
-  Resource = UartP.Resource;
-  ResourceConfigure = UartP.ResourceConfigure;
-  Msp430UartConfigure = UartP.Msp430UartConfigure;
-  UartControl = UartP.UartControl;
-  UartStream = UartP.UartStream;
-  UartByte = UartP.UartByte;
-  UsartResource = UartP.UsartResource;
-  UsartInterrupts = UartP.UsartInterrupts;
-
-  components HplMsp430Usart1C as UsartC;
-  UartP.Usart -> UsartC;
-  
-  components Counter32khzC as CounterC;
-  UartP.Counter -> CounterC;
-  
-  components LedsC as Leds;
-  UartP.Leds -> Leds;
+  async command error_t enableTxIntr();
+  async command error_t disableTxIntr();
+  async command error_t enableRxIntr();
+  async command error_t disableRxIntr();
+  async command bool isTxEmpty();
+  async command bool isRxEmpty();
+  async command void tx( uint8_t data );
+  async event void txDone();
+  async command uint8_t rx();
+  async event void rxDone( uint8_t data );
 
 }
