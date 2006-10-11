@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-10-09 13:24:42 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-10-11 11:54:28 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -324,6 +324,7 @@ implementation
 
   default async command error_t SubResourceReadNow.release[uint8_t nowClient](){ return FAIL;}
   default async command error_t SubResourceReadNow.request[uint8_t nowClient](){ return FAIL; }
+  default async command bool SubResourceReadNow.isOwner[uint8_t client]() { return FALSE; }
   default event void ResourceReadNow.granted[uint8_t nowClient](){}
   default async event void ReadNow.readDone[uint8_t client]( error_t result, uint16_t val ){}
   default async command error_t SubResourceReadNow.immediateRequest[uint8_t nowClient]()
