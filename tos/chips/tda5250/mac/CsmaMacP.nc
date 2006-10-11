@@ -42,7 +42,7 @@
   * @author Philipp Huppertz (huppertz@tkn.tu-berlin.de)
 */
 
-#define MACM_DEBUG                 // debug...
+// #define MACM_DEBUG                 // debug...
 module CsmaMacP {
     provides {
         interface Init;
@@ -264,7 +264,7 @@ implementation
 
     void requestAdc() {
         if(macState != INIT) {
-            call RssiAdcResource.immediateRequest();
+          call RssiAdcResource.immediateRequest();
         }
         else {
             call RssiAdcResource.request();
@@ -641,8 +641,8 @@ implementation
     async command error_t MacSend.send(message_t* msg, uint8_t len) {
         error_t err = SUCCESS;
         atomic {
-            if((shortRetryCounter == 0) && (txBufPtr == NULL) && (macState != INIT)) {
-                storeOldState(40);
+            if((shortRetryCounter == 0) && (txBufPtr == NULL) && (macState != INIT)) { 
+              storeOldState(40);
                 shortRetryCounter = 1;
                 longRetryCounter = 1;
                 txBufPtr = msg;
@@ -680,7 +680,7 @@ implementation
     
     /****** PacketSerializer events **********************/
     async event void PacketReceive.receiveDetected() {
-        if(macState <= RX_ACK) {
+      if(macState <= RX_ACK) {
             storeOldState(60);
             interruptBackoffTimer();
             if(macState == CCA) computeBackoff();
