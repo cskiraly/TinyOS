@@ -35,7 +35,7 @@
  * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
  */
 
-// #define MAC_DEBUG
+ #define MAC_DEBUG
 configuration CsmaMacC {
   provides {
     interface SplitControl;

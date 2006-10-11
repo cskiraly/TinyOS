@@ -42,7 +42,7 @@
   * @author Philipp Huppertz (huppertz@tkn.tu-berlin.de)
 */
 
-// #define MACM_DEBUG                 // debug...
+#define MACM_DEBUG                 // debug...
 module CsmaMacP {
     provides {
         interface Init;
@@ -112,7 +112,6 @@ implementation
     
     /* state vars & defs */
     typedef enum {
-        SW_CCA,          // switch to CCA
         CCA,             // clear channel assessment
         CCA_ACK,
         SW_RX,           // switch to receive
@@ -132,7 +131,8 @@ implementation
     typedef enum {
         RSSI_STABLE = 1,
         RESUME_BACKOFF = 2,
-        CANCEL_SEND = 4
+        CANCEL_SEND = 4,
+        CCA_PENDING = 8
     } flags_t;
 
     /* Packet vars */
@@ -150,7 +150,6 @@ implementation
     uint8_t seqNo;
     
     uint16_t slotMask;
-    int16_t rssiValue;
     uint16_t restLaufzeit;
 
     /* duplicate suppression */
@@ -250,8 +249,13 @@ implementation
     task void ReleaseAdcTask() {
         macState_t ms;
         atomic ms = macState;
-        if((ms > CCA)  && (ms != INIT) && call RssiAdcResource.isOwner()) {
-            call RssiAdcResource.release();
+        if(isFlagSet(&flags, CCA_PENDING)) {
+          post ReleaseAdcTask(); 
+        }
+        else {
+        	if((ms > CCA)  && (ms != INIT) && call RssiAdcResource.isOwner()) {
+          	  call RssiAdcResource.release();
+        	}	
         }
     }
     
@@ -271,14 +275,17 @@ implementation
         if(call RadioModes.RxMode() == FAIL) {
             post SetRxModeTask();
         }
-        if((macState == SW_CCA) || (macState == INIT)) requestAdc();
+        if(macState == INIT) {
+          requestAdc();
+        } else {
+          post ReleaseAdcTask();
+        }
     }
     
     task void SetRxModeTask() {
         atomic {
             if((macState == SW_RX) ||
                (macState == SW_RX_ACK) ||
-               (macState == SW_CCA) ||
                (macState == INIT)) setRxMode();
         }
     }
@@ -497,6 +504,7 @@ implementation
             signalMacState();
             call UartPhyControl.setNumPreambles(MIN_PREAMBLE_BYTES);
         }
+        post ReleaseAdcTask();
         signal SplitControl.startDone(SUCCESS);
     }
 
@@ -557,12 +565,7 @@ implementation
     async event void RadioModes.RssiStable() {
         atomic  {
             setFlag(&flags, RSSI_STABLE);
-            if(macState == SW_CCA)  {
-                macState = CCA;
-                signalMacState();
-                call Timer.start(DATA_DETECT_TIME);
-            }
-            else if(macState == INIT) {
+            if(macState == INIT) {
                 storeOldState(11);
                 if(call RssiAdcResource.isOwner()) {
                     call ChannelMonitorControl.updateNoiseFloor();
@@ -591,9 +594,6 @@ implementation
                 storeOldState(22);
                 macState = RX_ACK;
                 signalMacState();
-            }
-            else if(macState == SW_CCA) {
-                storeOldState(23);
             }
             else if(macState == INIT) {
                 storeOldState(24);
@@ -682,16 +682,17 @@ implementation
     async event void PacketReceive.receiveDetected() {
         if(macState <= RX_ACK) {
             storeOldState(60);
-            rssiValue = 0xFFFF;
             interruptBackoffTimer();
             if(macState == CCA) computeBackoff();
         }
         if(macState <= RX) {
-            storeOldState(61);
+          post ReleaseAdcTask();  
+          storeOldState(61);
             macState = RX_P;
             signalMacState();
         }
         else if(macState <= RX_ACK) {
+            post ReleaseAdcTask();
             storeOldState(62);
             macState = RX_ACK_P;
             signalMacState();
@@ -700,8 +701,9 @@ implementation
             storeOldState(63);
         }
         else {
-            storeOldState(64);
-            signalFailure(4);
+          post ReleaseAdcTask();  
+          storeOldState(64);
+          signalFailure(4);	
         } 
     }
     
@@ -716,7 +718,7 @@ implementation
                 isCnt = isControl(msg);
                 if(msgIsForMe(msg)) {
                     if(!isCnt) {
-                        if(rssiValue != INVALID_SNR) (getMetadata(m))->strength = rssiValue;
+                        (getMetadata(m))->strength = 10;
                         if(isNewMsg(m)) {
                             m = signal MacReceive.receiveDone(msg);
                             rememberMsg(m);   
@@ -744,9 +746,7 @@ implementation
             if(error == SUCCESS) {
                 if(ackIsForMe(msg)) {
                     storeOldState(92);
-                    if(rssiValue != INVALID_SNR) {
-                        (getMetadata(txBufPtr))->strength = rssiValue;
-                    }
+                    (getMetadata(txBufPtr))->strength = 10;
                     (getMetadata(txBufPtr))->ack = WAS_ACKED;
                     signalSendDone(SUCCESS);
                 }
@@ -781,12 +781,10 @@ implementation
             call Timer.start(RX_SETUP_TIME - TX_SETUP_TIME + ADDED_DELAY);
         }
         else if(action == RX_ACK) {
-            post ReleaseAdcTask();
             macState = RX_ACK;
             signalMacState();
         }
         else if(action == RX) {
-            post ReleaseAdcTask();
             macState = RX;
             signalMacState();
             if(isFlagSet(&flags, RESUME_BACKOFF)) {
@@ -886,6 +884,8 @@ implementation
                     storeOldState(102);
                     checkOnIdle();
                 }
+            } else {
+              setFlag(&flags, CCA_PENDING);
             }
         }
         else if(macState == RX_ACK) {
@@ -922,12 +922,14 @@ implementation
     /****** ChannelMonitor events *********************/
 
     async event void ChannelMonitor.channelBusy() {
-        storeOldState(120);
+      clearFlag(&flags, CCA_PENDING);  
+      storeOldState(120);
         checkOnBusy();
     }
 
     async event void ChannelMonitor.channelIdle() {
-        storeOldState(121);
+      clearFlag(&flags, CCA_PENDING);  
+      storeOldState(121);
         checkOnIdle();
     }
 
@@ -947,7 +949,6 @@ implementation
     /***** ChannelMonitorData events ******************/
     
     async event void ChannelMonitorData.getSnrDone(int16_t data) {
-        atomic if(macState == RX_P) rssiValue = data;
     }
 
     
@@ -960,7 +961,6 @@ implementation
 
     /***** abused TimeStamping events **************************/
     async event void RadioTimeStamping.receivedSFD( uint16_t time ) {
-        if(call RssiAdcResource.isOwner()) call ChannelMonitorData.getSnr();
         if(macState == RX_P) call ChannelMonitor.rxSuccess();
     }
     
