@@ -47,6 +47,7 @@ module Uart4b6bPhyP {
     uses {
         interface RadioByteComm;
         interface Alarm<T32khz, uint16_t> as RxByteTimer;
+        // interface GeneralIO as Led3;
     }
 }
 implementation
@@ -58,6 +59,7 @@ implementation
         STATE_SYNC,
         STATE_SFD1,
         STATE_SFD2,
+        STATE_SFD3,
         STATE_HEADER_DONE,
         STATE_DATA_HIGH_OR_SFD,
         STATE_DATA_HIGH,
@@ -120,19 +122,15 @@ implementation
     void resetState() {
         call RxByteTimer.stop();
         switch(phyState) {
-            case STATE_PREAMBLE:
+		        case STATE_PREAMBLE:
             case STATE_PREAMBLE_CODE:
+    	      case STATE_SFD2:
                 break;
             default:
                 signal PhyPacketRx.recvFooterDone(FAIL);
                 break;
         }
         phyState = STATE_PREAMBLE; 
-    }
-
-    inline void signalHeader() {
-        signal PhyPacketRx.recvHeaderDone(SUCCESS);
-        phyState = STATE_DATA_HIGH_OR_SFD;
     }
     
     async event void RxByteTimer.fired() {
@@ -221,7 +219,11 @@ implementation
                 phyState = STATE_SFD2;
                 call RadioByteComm.txByte(SFD_BYTE);
                 break;
-            case STATE_SFD2:
+          	case STATE_SFD2:
+            	phyState = STATE_SFD3;
+            	call RadioByteComm.txByte(SFD_BYTE);
+            	break;
+            case STATE_SFD3:
                 phyState = STATE_HEADER_DONE;
                 call RadioByteComm.txByte(SFD_BYTE);
                 break;
@@ -265,7 +267,7 @@ implementation
 
     /* Rx Done */
     async event void RadioByteComm.rxByteReady(uint8_t data) {
-        call RxByteTimer.start(byteTime);
+      call RxByteTimer.start(byteTime);
         ReceiveNextByte(data);
     }
 
@@ -274,9 +276,9 @@ implementation
         uint8_t decodedByte;
         uint8_t low;
         uint8_t high;
-        if((data == SFD_BYTE) && (phyState != STATE_DATA_HIGH_OR_SFD)) {
+        if((data == SFD_BYTE) && (phyState != STATE_SFD2) && (phyState != STATE_DATA_HIGH_OR_SFD)) {
             resetState();
-            signalHeader();
+            phyState = STATE_SFD1;
             call RxByteTimer.start(byteTime<<1);
         }
         switch(phyState) {
@@ -292,6 +294,19 @@ implementation
                 if((low == 0) || (low == 0xf) || (high == 0) || (high == 0xf))
                     phyState = STATE_PREAMBLE;
                 break;
+          	case STATE_SFD1:
+            	phyState = STATE_SFD2;
+            break;
+            case STATE_SFD2:
+              if(data == SFD_BYTE) {
+                	call RxByteTimer.start(byteTime<<1);
+                	signal PhyPacketRx.recvHeaderDone(SUCCESS);
+                  phyState = STATE_DATA_HIGH_OR_SFD;
+              }
+              else {
+                resetState();
+              }
+            break;
             case STATE_DATA_HIGH_OR_SFD:
                 if(data != SFD_BYTE) {
                     decodedByte = sixBitToNibble[data >> 2];
