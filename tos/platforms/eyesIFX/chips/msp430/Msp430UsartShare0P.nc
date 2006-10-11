@@ -31,12 +31,13 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-08-15 13:54:07 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-10-11 11:50:49 $
  */
 
 configuration Msp430UsartShare0P {
 
   provides interface HplMsp430UsartInterrupts as Interrupts[ uint8_t id ];
+  provides interface HplMsp430I2CInterrupts as I2CInterrupts[ uint8_t id ];
   provides interface Resource[ uint8_t id ];
   provides interface ResourceRequested[ uint8_t id ];
   provides interface ArbiterInfo;
@@ -48,7 +49,9 @@ implementation {
 
   components new Msp430UsartShareP() as UsartShareP;
   Interrupts = UsartShareP;
+  I2CInterrupts = UsartShareP;
   UsartShareP.RawInterrupts -> UsartC;
+  UsartShareP.RawI2CInterrupts -> UsartC;
 
   components new FcfsArbiterC( MSP430_HPLUSART0_RESOURCE ) as ArbiterC;
   Resource = ArbiterC;
