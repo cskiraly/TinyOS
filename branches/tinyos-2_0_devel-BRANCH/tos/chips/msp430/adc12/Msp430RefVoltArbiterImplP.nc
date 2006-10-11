@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-10-09 13:24:43 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-10-11 11:54:29 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -148,7 +148,7 @@ module Msp430RefVoltArbiterImplP
   {
     return FAIL;
   }
-
+  default async command bool AdcResource.isOwner[uint8_t client]() { return FALSE; }
   default async command error_t AdcResource.release[uint8_t client](){return FAIL;}
   const msp430adc12_channel_config_t defaultConfig = {INPUT_CHANNEL_NONE,0,0,0,0,0,0,0}; 
   default async command const msp430adc12_channel_config_t*
