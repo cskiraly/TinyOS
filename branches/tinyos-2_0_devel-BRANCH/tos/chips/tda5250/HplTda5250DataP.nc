@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.10 $
- * $Date: 2006-08-15 13:54:06 $
+ * $Revision: 1.1.2.11 $
+ * $Date: 2006-10-11 11:50:49 $
  * ========================================================================
  */
 
@@ -48,8 +48,8 @@ module HplTda5250DataP {
   }
   uses {
     interface GeneralIO as DATA;
-    interface SerialByteComm as Uart;
-    interface HplTda5250DataControl as UartControl;
+    interface UartStream as Uart;
+    interface HplTda5250DataControl as UartDataControl;
     interface Resource as UartResource;
     interface ResourceRequested as UartResourceRequested;
   }
@@ -106,34 +106,38 @@ implementation {
   async command error_t HplTda5250Data.tx(uint8_t data) {
     if(call UartResource.isOwner() == FALSE)
       return FAIL;
-    return call Uart.put(data);
+    return call Uart.send(&data, 1);
   }
 
-  async event void Uart.putDone() {
+  async event void Uart.sendDone( uint8_t* buf, uint16_t len, error_t error ) {
     if(call UartResource.isOwner() == FALSE)
       return;
     signal HplTda5250Data.txReady();
   }
-
-  async event void Uart.get(uint8_t data) {
-    if(call UartResource.isOwner() == FALSE)
-      return;
-    signal HplTda5250Data.rxDone(data);
-  }
+  
+  async event void Uart.receivedByte( uint8_t data ) {
+  	if(call UartResource.isOwner() == FALSE)
+   	 return;
+  	signal HplTda5250Data.rxDone(data);
+	}
+  async event void Uart.receiveDone( uint8_t* buf, uint16_t len, error_t error ) {}
   
   async command error_t HplTda5250DataControl.setToTx() {
     if(call UartResource.isOwner() == FALSE)
       return FAIL;
-    return call UartControl.setToTx();
+    call UartDataControl.setToTx();
+    call Uart.disableReceiveInterrupt();
+    return SUCCESS;
   }
 
   async command error_t HplTda5250DataControl.setToRx() {
     if(call UartResource.isOwner() == FALSE)
       return FAIL;
-    return call UartControl.setToRx();
+    call UartDataControl.setToRx();
+    call Uart.enableReceiveInterrupt();
+    return SUCCESS;
   }
 	
-
   default event void Resource.granted() {}
   default async event void HplTda5250Data.txReady() {}
   default async event void HplTda5250Data.rxDone(uint8_t data) {}

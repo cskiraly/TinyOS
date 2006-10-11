@@ -26,8 +26,8 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.2 $
-* $Date: 2006-08-15 13:54:06 $
+* $Revision: 1.1.2.3 $
+* $Date: 2006-10-11 11:50:49 $
 * ========================================================================
 */
 
@@ -56,10 +56,11 @@ implementation {
   Resource = HplTda5250DataP.Resource;
   ResourceRequested = HplTda5250DataP.ResourceRequested;
   HplTda5250Data = HplTda5250DataP;
-	HplTda5250DataControl = HplTda5250DataIOC;
+  HplTda5250DataControl = HplTda5250DataP;
 
   HplTda5250DataP.DATA -> Tda5250RadioIOC.Tda5250RadioDATA;
-	HplTda5250DataP.Uart -> HplTda5250DataIOC.SerialByteComm;
+	HplTda5250DataP.Uart -> HplTda5250DataIOC.UartStream;
+  HplTda5250DataP.UartDataControl -> HplTda5250DataIOC.UartDataControl;
 	HplTda5250DataP.UartResource -> HplTda5250DataIOC.Resource;
 	HplTda5250DataP.UartResourceRequested -> HplTda5250DataIOC.ResourceRequested;
 
