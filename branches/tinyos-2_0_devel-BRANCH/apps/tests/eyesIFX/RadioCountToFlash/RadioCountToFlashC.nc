@@ -86,7 +86,7 @@ implementation {
   }
   
   event void Boot.booted() {
-    call LogRead.seek(SEEK_BEGINNING);
+    call LogWrite.erase();
     call AMControl.start();
   }
 
