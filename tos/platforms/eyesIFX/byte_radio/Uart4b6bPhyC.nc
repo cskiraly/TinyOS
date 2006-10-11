@@ -54,7 +54,7 @@ implementation
     components 
         new Alarm32khzC() as RxByteTimer,
         Uart4b6bPhyP,
-        //      PlatformLedsC,
+        // PlatformLedsC,
         MainC;
     
     MainC.SoftwareInit -> Uart4b6bPhyP;
