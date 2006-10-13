@@ -31,13 +31,14 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-09-28 19:26:21 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-10-13 17:29:29 $
  */
 
 
 generic module Msp430SpiDmaP() {
 
   provides interface Resource[ uint8_t id ];
+  provides interface ResourceConfigure[ uint8_t id ];
   provides interface SpiByte;
   provides interface SpiPacket[ uint8_t id ];
 

@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.7 $ $Date: 2006-10-13 17:26:04 $
+ * @version $Revision: 1.1.2.8 $ $Date: 2006-10-13 17:29:29 $
  */
 
 
@@ -97,9 +97,7 @@ implementation {
     uint8_t byte;
     call Usart.disableRxIntr();
     call Usart.tx( tx );
-    TOSH_CLR_GREEN_LED_PIN();
     while( !call Usart.isRxIntrPending() );
-    TOSH_SET_GREEN_LED_PIN();
     byte = call Usart.rx();
     call Usart.enableRxIntr();
     return byte;
