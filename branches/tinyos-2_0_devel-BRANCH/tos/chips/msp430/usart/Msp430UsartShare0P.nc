@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.8 $ $Date: 2006-08-30 17:15:55 $
+ * @version $Revision: 1.1.2.9 $ $Date: 2006-10-13 17:26:04 $
  */
 
 configuration Msp430UsartShare0P {
@@ -49,18 +49,15 @@ implementation {
   components new Msp430UsartShareP() as UsartShareP;
   Interrupts = UsartShareP;
   I2CInterrupts = UsartShareP;
-  UsartShareP.RawInterrupts -> UsartC;
-  UsartShareP.RawI2CInterrupts -> UsartC;
-
+  
   components new FcfsArbiterC( MSP430_HPLUSART0_RESOURCE ) as ArbiterC;
   Resource = ArbiterC;
   ResourceConfigure = ArbiterC;
   ArbiterInfo = ArbiterC;
   UsartShareP.ArbiterInfo -> ArbiterC;
 
-  components new AsyncStdControlPowerManagerC() as PowerManagerC;
-  PowerManagerC.ResourceController -> ArbiterC;
+  components HplMsp430Usart0C as HplUsartC;
+  UsartShareP.RawInterrupts -> HplUsartC;
+  UsartShareP.RawI2CInterrupts -> HplUsartC;
 
-  components HplMsp430Usart0C as UsartC;
-  PowerManagerC.AsyncStdControl -> UsartC;
 }

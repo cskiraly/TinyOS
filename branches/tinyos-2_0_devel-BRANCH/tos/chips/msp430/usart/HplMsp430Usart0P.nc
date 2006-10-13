@@ -67,11 +67,10 @@
  * @author: Jonathan Hui <jhui@archedrock.com>
  * @author: Vlado Handziski <handzisk@tkn.tu-berlin.de>
  * @author: Joe Polastre
- * @version $Revision: 1.1.2.11 $ $Date: 2006-08-31 14:59:54 $
+ * @version $Revision: 1.1.2.12 $ $Date: 2006-10-13 17:26:04 $
  */
 
 module HplMsp430Usart0P {
-  provides interface AsyncStdControl;
   provides interface HplMsp430Usart as Usart;
   provides interface HplMsp430UsartInterrupts as Interrupts;
   provides interface HplMsp430I2CInterrupts as I2CInterrupts;
@@ -105,18 +104,6 @@ implementation
       signal Interrupts.txDone();
   }
   
-  async command error_t AsyncStdControl.start() {
-    return SUCCESS;
-  }
-
-  async command error_t AsyncStdControl.stop() {
-    call Usart.disableSpi();
-    call HplI2C.clearModeI2C();
-    call Usart.disableUart();
-    return SUCCESS;
-  }
-
-
   async command void Usart.setUctl(msp430_uctl_t control) {
     U0CTL=uctl2int(control);
   }
@@ -161,10 +148,12 @@ implementation
   }
 
   async command void Usart.resetUsart(bool reset) {
-    if (reset)
-      SET_FLAG(U0CTL, SWRST);
-    else
+    if (reset) {
+      U0CTL = SWRST;
+    }
+    else {
       CLR_FLAG(U0CTL, SWRST);
+    }
   }
 
   async command bool Usart.isSpi() {
@@ -215,8 +204,9 @@ implementation
   }
 
   async command void Usart.disableUart() {
-    ME1 &= ~(UTXE0 | URXE0);   // USART0 UART module enable
     atomic {
+      ME1 &= ~(UTXE0 | URXE0);   // USART0 UART module enable
+      call Usart.resetUsart(TRUE);
       call UTXD.selectIOFunc();
       call URXD.selectIOFunc();
     }
@@ -255,8 +245,9 @@ implementation
   }
 
   async command void Usart.disableSpi() {
-    ME1 &= ~USPIE0;   // USART0 SPI module disable
     atomic {
+      ME1 &= ~USPIE0;   // USART0 SPI module disable
+      call Usart.resetUsart(TRUE);
       call SIMO.selectIOFunc();
       call SOMI.selectIOFunc();
       call UCLK.selectIOFunc();
@@ -276,7 +267,7 @@ implementation
     utctl.ckpl = config->ckpl;
     utctl.ssel = config->ssel;
     utctl.stc = config->stc;
-
+    
     call Usart.setUctl(uctl);
     call Usart.setUtctl(utctl);
     call Usart.setUbr(config->ubr);
@@ -285,10 +276,7 @@ implementation
 
 
   async command void Usart.setModeSpi(msp430_spi_config_t* config) {
-    call Usart.disableUart();
-    call HplI2C.clearModeI2C();
     atomic {
-      call Usart.resetUsart(TRUE);
       configSpi(config);
       call Usart.enableSpi();
       call Usart.resetUsart(FALSE);
@@ -328,10 +316,6 @@ implementation
 
   async command void Usart.setModeUartTx(msp430_uart_config_t* config) {
 
-    call Usart.disableSpi();
-    call HplI2C.clearModeI2C();
-    call Usart.disableUart();
-
     atomic {
       call UTXD.selectModuleFunc();
       call URXD.selectIOFunc();
@@ -348,10 +332,6 @@ implementation
 
   async command void Usart.setModeUartRx(msp430_uart_config_t* config) {
 
-    call Usart.disableSpi();
-    call HplI2C.clearModeI2C();
-    call Usart.disableUart();
-    
     atomic {
       call UTXD.selectIOFunc();
       call URXD.selectModuleFunc();
@@ -367,10 +347,6 @@ implementation
   }
 
   async command void Usart.setModeUart(msp430_uart_config_t* config) {
-
-    call Usart.disableSpi();
-    call HplI2C.clearModeI2C();
-    call Usart.disableUart();
 
     atomic {
       call UTXD.selectModuleFunc();
@@ -465,6 +441,5 @@ implementation
 
   default async event void I2CInterrupts.fired() {}
   default async command bool HplI2C.isI2C() { return FALSE; }
-  default async command void HplI2C.clearModeI2C() {}
   
 }

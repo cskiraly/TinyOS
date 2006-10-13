@@ -58,14 +58,13 @@
  *
  * @author Jonathan Hui <jhui@archrock.com>
  * @author Joe Polastre
- * @version $Revision: 1.1.2.11 $ $Date: 2006-08-31 14:59:54 $
+ * @version $Revision: 1.1.2.12 $ $Date: 2006-10-13 17:26:03 $
  */
 
 #include "msp430usart.h"
 
 configuration HplMsp430Usart0C {
   
-  provides interface AsyncStdControl;
   provides interface HplMsp430Usart;
   provides interface HplMsp430UsartInterrupts;
   provides interface HplMsp430I2CInterrupts;
@@ -75,7 +74,6 @@ configuration HplMsp430Usart0C {
 implementation {
   
   components HplMsp430Usart0P as HplUsartP;
-  AsyncStdControl = HplUsartP;
   HplMsp430Usart = HplUsartP;
   HplMsp430UsartInterrupts = HplUsartP;
   HplMsp430I2CInterrupts = HplUsartP;
