@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-10-11 11:50:49 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-10-13 20:11:53 $
  */
 
 configuration Msp430UsartShare0P {
@@ -59,10 +59,10 @@ implementation {
   ResourceConfigure = ArbiterC;
   ArbiterInfo = ArbiterC;
   UsartShareP.ArbiterInfo -> ArbiterC;
-  
-  components new AsyncStdControlDeferredPowerManagerC(1) as PowerManagerC;
-  PowerManagerC.ResourceController -> ArbiterC;
+
+//  components new AsyncStdControlDeferredPowerManagerC(1) as PowerManagerC;
+//  PowerManagerC.ResourceController -> ArbiterC;
 
   components HplMsp430Usart0C as UsartC;
-  PowerManagerC.AsyncStdControl -> UsartC;
+  //PowerManagerC.AsyncStdControl -> UsartC;
 }
