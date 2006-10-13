@@ -32,7 +32,7 @@
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
  * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
- * @version $Revision: 1.1.4.2 $ $Date: 2006-08-03 18:10:41 $
+ * @version $Revision: 1.1.4.3 $ $Date: 2006-10-13 20:05:43 $
  */
 
 configuration Msp430Uart0P {
@@ -40,7 +40,8 @@ configuration Msp430Uart0P {
   provides interface Resource[ uint8_t id ];
   provides interface ResourceConfigure[uint8_t id ];
   provides interface Msp430UartControl as UartControl[ uint8_t id ];
-  provides interface SerialByteComm;
+  provides interface UartStream;
+  provides interface UartByte;
 
   uses interface Resource as UsartResource[ uint8_t id ];
   uses interface Msp430UartConfigure[ uint8_t id ];
@@ -55,12 +56,16 @@ implementation {
   ResourceConfigure = UartP.ResourceConfigure;
   Msp430UartConfigure = UartP.Msp430UartConfigure;
   UartControl = UartP.UartControl;
-  SerialByteComm = UartP.SerialByteComm;
+  UartStream = UartP.UartStream;
+  UartByte = UartP.UartByte;
   UsartResource = UartP.UsartResource;
   UsartInterrupts = UartP.UsartInterrupts;
 
   components HplMsp430Usart0C as UsartC;
   UartP.Usart -> UsartC;
+
+  components Counter32khzC as CounterC;
+  UartP.Counter -> CounterC;
 
   components LedsC as Leds;
   UartP.Leds -> Leds;

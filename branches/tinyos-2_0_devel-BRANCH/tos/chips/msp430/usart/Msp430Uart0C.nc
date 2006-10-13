@@ -33,7 +33,7 @@
  * An implementation of the UART on USART0 for the MSP430.
  * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.4.2 $ $Date: 2006-08-03 18:10:41 $
+ * @version $Revision: 1.1.4.3 $ $Date: 2006-10-13 20:05:43 $
  */
 
 #include "msp430usart.h"
@@ -41,7 +41,8 @@
 generic configuration Msp430Uart0C() {
 
   provides interface Resource;
-  provides interface SerialByteComm;
+  provides interface UartStream;
+  provides interface UartByte;
   provides interface Msp430UartControl as UartControl;
 
   uses interface Msp430UartConfigure;
@@ -55,7 +56,8 @@ implementation {
 
   components Msp430Uart0P as UartP;
   Resource = UartP.Resource[ CLIENT_ID ];
-  SerialByteComm = UartP.SerialByteComm;
+  UartStream = UartP.UartStream;
+  UartByte = UartP.UartByte;
   UartControl = UartP.UartControl[ CLIENT_ID ];
   Msp430UartConfigure = UartP.Msp430UartConfigure[ CLIENT_ID ];
 
