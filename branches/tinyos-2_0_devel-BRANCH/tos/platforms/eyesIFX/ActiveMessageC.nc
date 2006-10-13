@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.8 2006-10-09 13:33:29 janhauer Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.9 2006-10-13 20:12:44 vlahan Exp $
 
 /*                                                                      tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:             Philip Levis
- * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.8 2006-10-09 13:33:29 janhauer Exp $
+ * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.9 2006-10-13 20:12:44 vlahan Exp $
  *
  */
 
@@ -62,7 +62,7 @@ configuration ActiveMessageC {
 implementation {
   components ActiveMessageFilterC as Filter;
   components Tda5250ActiveMessageC as AM;
-  
+
   AMSend       = Filter;
   Receive      = Filter.Receive;
   Snoop        = Filter.Snoop;
@@ -70,7 +70,7 @@ implementation {
   Filter.SubAMSend -> AM;
   Filter.SubReceive -> AM.Receive;
   Filter.SubSnoop  -> AM.Snoop;
-  Filter.AMPacket  -> AM;
+  //Filter.AMPacket  -> AM;
 
   SplitControl = AM;
   Packet       = AM;
