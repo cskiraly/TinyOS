@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-08-31 14:59:55 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-10-13 17:23:29 $
  */
 
 #include <I2C.h>
@@ -88,6 +88,7 @@ implementation {
   }
   
   async command void ResourceConfigure.unconfigure[ uint8_t id ]() {
+    call HplI2C.clearModeI2C();
   }
   
   event void UsartResource.granted[ uint8_t id ]() {
@@ -220,4 +221,6 @@ implementation {
       signal I2CBasicAddr.readDone( error, I2CSA, m_len, m_buf );
   }
   
+  default async command error_t UsartResource.isOwner[ uint8_t id ]() { return FAIL; }
+
 }
