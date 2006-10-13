@@ -31,13 +31,13 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-08-03 18:10:41 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-10-13 17:29:29 $
  */
 
 configuration Msp430SpiDma0P {
 
   provides interface Resource[ uint8_t id ];
-  provides interface ResourceControl [uint8_t id];
+  provides interface ResourceConfigure[ uint8_t id ];
   provides interface SpiByte;
   provides interface SpiPacket[ uint8_t id ];
 
@@ -51,7 +51,7 @@ implementation {
 
   components new Msp430SpiDmaP() as SpiP;
   Resource = SpiP.Resource;
-  ResourceControl = SpiP.ResourceControl;
+  ResourceConfigure = SpiP.ResourceConfigure;
   Msp430SpiConfigure = SpiP.Msp430SpiConfigure;
   SpiByte = SpiP.SpiByte;
   SpiPacket = SpiP.SpiPacket;
