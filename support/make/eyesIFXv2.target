@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: eyesIFXv2.target,v 1.1.2.6 2006-08-09 17:28:36 phihup Exp $
+#$Id: eyesIFXv2.target,v 1.1.2.7 2006-10-13 20:16:47 vlahan Exp $
 
 PLATFORM = eyesIFXv2
 
@@ -26,6 +26,9 @@ ifeq (,$(findstring /dev/ttyUSB,$(BSL)))
 endif
 
 NESC_FLAGS:=-Wnesc-all -mdisable-hwmul
+
+VOLUME_FILE = volumes-at45db.xml
+VOLUME_ALLOCATOR = tos-storage-at45db
 
 $(call TOSMake_include_platform,msp)
 
