@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-08-30 17:15:55 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-10-13 17:26:03 $
  */
 
 module HplMsp430I2C0P {
@@ -57,10 +57,20 @@ implementation {
   }
   
   async command void HplI2C.clearModeI2C() {
-    atomic U0CTL &= ~(I2C | I2CEN | SYNC);
+    atomic {
+      U0CTL &= ~(I2C | SYNC | I2CEN);
+      call HplUsart.resetUsart(TRUE);
+    }
   }
   
   async command void HplI2C.setModeI2C( msp430_i2c_config_t* config ) {
+    
+    call HplUsart.disableUart();
+    call HplUsart.disableSpi();
+    call SIMO.makeInput();
+    call SIMO.selectModuleFunc();
+    call UCLK.makeInput();
+    call UCLK.selectModuleFunc();
     
     atomic {
       
@@ -69,17 +79,11 @@ implementation {
       U0CTL |= SYNC | I2C;
       U0CTL &= ~I2CEN;
       
-      call HplUsart.disableUart();
-      call HplUsart.disableSpi();
-      call SIMO.makeInput();
-      call SIMO.selectModuleFunc();
-      call UCLK.makeInput();
-      call UCLK.selectModuleFunc();
-      
       U0CTL |= ( ( config->rxdmaen << 7 ) |
                  ( config->txdmaen << 6 ) |
                  ( config->xa << 4 ) |
                  ( config->listen << 3 ) );
+      I2CTCTL = TXEPT;
       I2CTCTL = ( ( config->i2cword << 7 ) |
 		  ( config->i2crm << 6 ) |
 		  ( config->i2cssel << 4 ) );

@@ -32,7 +32,7 @@
 /**
  * @author Jonathan Hui <jhui@archrock.com>
  * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
- * @version $Revision: 1.1.2.10 $ $Date: 2006-10-10 19:18:42 $
+ * @version $Revision: 1.1.2.11 $ $Date: 2006-10-13 17:26:04 $
  */
 
 
@@ -84,6 +84,7 @@ implementation {
 
   async command void ResourceConfigure.unconfigure[ uint8_t id ]() {
     call Usart.disableIntr();
+    call Usart.disableUart();
   }
 
   event void UsartResource.granted[ uint8_t id ]() {
