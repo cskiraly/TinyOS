@@ -86,7 +86,7 @@ enum {
  * not support acknowledgments it sends the packet once.
  */
 enum {
-  MAX_RETRIES = 4
+  MAX_RETRIES = 30
 };
 
 /*

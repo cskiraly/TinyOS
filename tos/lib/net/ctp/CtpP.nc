@@ -128,7 +128,7 @@ implementation {
   components new AMReceiverC(AM_CTP_DATA);
   components new AMSnooperC(AM_CTP_DATA);
   
-  components new CtpRoutingEngineP(TREE_ROUTING_TABLE_SIZE, 8, 8) as Router;
+  components new CtpRoutingEngineP(TREE_ROUTING_TABLE_SIZE, 1, 1024) as Router;
   StdControl = Router;
   StdControl = Estimator;
   RootControl = Router;
