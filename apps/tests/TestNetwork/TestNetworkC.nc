@@ -7,11 +7,12 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.15 $ $Date: 2006-10-03 00:18:43 $
+ * @version $Revision: 1.1.2.16 $ $Date: 2006-10-16 02:25:29 $
  */
 
 #include <Timer.h>
 #include "TestNetwork.h"
+#include "CtpDebugMsg.h"
 
 module TestNetworkC {
   uses interface Boot;
@@ -29,6 +30,8 @@ module TestNetworkC {
   uses interface CollectionPacket;
   uses interface CtpInfo;
   uses interface Random;
+  uses interface CollectionDebug;
+  uses interface AMPacket;
 }
 implementation {
   task void uartEchoTask();
@@ -68,7 +71,7 @@ implementation {
     dbg("TestNetworkC", "TestNetworkC: Timer fired.\n");
     if (firstTimer) {
       firstTimer = FALSE;
-      call Timer.startPeriodic(1024);
+      call Timer.startPeriodic(10240);
     }
     if (busy || call ReadSensor.read() != SUCCESS) {
       signal ReadSensor.readDone(SUCCESS, 0);
@@ -79,6 +82,7 @@ implementation {
 
   void failedSend() {
     dbg("App", "%s: Send failed.\n", __FUNCTION__);
+      call CollectionDebug.logEvent(NET_C_DBG_1);
   }
   
   event void ReadSensor.readDone(error_t err, uint16_t val) {
@@ -149,6 +153,10 @@ implementation {
   task void uartEchoTask() {
     dbg("Traffic", "Sending packet to UART.\n");
     if (call UARTSend.send(0xffff, recvPtr, msglen) != SUCCESS) {
+      call CollectionDebug.logEventMsg(NET_C_DBG_2,
+				       call CollectionPacket.getSequenceNumber(recvPtr),
+				       call CollectionPacket.getOrigin(recvPtr),
+				       call AMPacket.destination(recvPtr));
       uartbusy = FALSE;
     }
   }

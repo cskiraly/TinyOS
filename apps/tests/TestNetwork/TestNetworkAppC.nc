@@ -8,7 +8,7 @@
  * Collection Tree Protocol for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.13 $ $Date: 2006-10-03 00:18:43 $
+ * @version $Revision: 1.1.2.14 $ $Date: 2006-10-16 02:25:29 $
  */
 #include "TestNetwork.h"
 #include "Ctp.h"
@@ -50,4 +50,6 @@ implementation {
   DebugSender.MessagePool -> DebugMessagePool;
   DebugSender.SendQueue -> DebugSendQueue;
   Collector.CollectionDebug -> DebugSender;
+  TestNetworkC.CollectionDebug -> DebugSender;
+  TestNetworkC.AMPacket -> ActiveMessageC;
 }
