@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.3 2006-10-07 03:13:18 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.4 2006-10-16 02:28:22 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -71,17 +71,24 @@ implementation {
     INVALID_NEIGHBOR_ADDR = 0xff,
     INFINITY = 0xff,
     // update the link estimate this often
-    TABLEUPDATE_INTERVAL = 6,
+    TABLEUPDATE_INTERVAL = 48,
     // send a beacon this often unless user of
     // this component is sending a beacon atleast
     // at this rate
-    BEACON_INTERVAL = 2,
+    BEACON_INTERVAL = 16,
     // decay the link estimate using this alpha
     // we use a denominator of 10, so this corresponds to 0.2
     ALPHA = 2,
     // number of packets to wait before computing a new
     // DLQ (Data-driven Link Quality)
-    DLQ_PKT_WINDOW = 5
+    DLQ_PKT_WINDOW = 5,
+    // number of beacons to wait before computing a new
+    // BLQ (Beacon-driven Link Quality)
+    BLQ_PKT_WINDOW = 3,
+    // largest EETX value that we feed into the link quality EWMA
+    // a value of 60 corresponds to having to make six transmissions
+    // to successfully receive one acknowledgement
+    LARGE_EETX_VALUE = 60
   };
 
   // keep information about links from the neighbors
@@ -293,7 +300,15 @@ implementation {
 
   // update data driven EETX
   void updateDEETX(neighbor_table_entry_t *ne) {
-    uint16_t estETX= (10 * ne->data_total) / ne->data_success - 10;
+    uint16_t estETX;
+
+    if (ne->data_success == 0) {
+      // if there were no successful packet transmission in the
+      // last window, assign a large eetx estimate
+      estETX = LARGE_EETX_VALUE;
+    } else {
+      estETX = (10 * ne->data_total) / ne->data_success - 10;
+    }
     updateEETX(ne, estETX);
     ne->data_success = 0;
     ne->data_total = 0;
@@ -325,11 +340,11 @@ implementation {
       q =  65025u / q1;
       q = (10*q) / q2 - 10;
       if (q > 255) {
-	q = INFINITY;
+	q = LARGE_EETX_VALUE;
       }
       return (uint8_t)q;
     } else {
-      return INFINITY;
+      return LARGE_EETX_VALUE;
     }
   }
 
@@ -341,7 +356,8 @@ implementation {
     uint8_t newEst;
     uint8_t minPkt;
 
-    minPkt = TABLEUPDATE_INTERVAL / BEACON_INTERVAL;
+    //    minPkt = TABLEUPDATE_INTERVAL / BEACON_INTERVAL;
+    minPkt = BLQ_PKT_WINDOW;
     dbg("LI", "%s\n", __FUNCTION__);
     for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
       ne = &NeighborTable[i];
@@ -416,7 +432,7 @@ implementation {
 
   command error_t StdControl.start() {
     dbg("LI", "Link estimator start\n");
-    call Timer.startPeriodic(LINKEST_TIMER_RATE);
+    //    call Timer.startPeriodic(LINKEST_TIMER_RATE);
     return SUCCESS;
   }
 
@@ -665,6 +681,13 @@ implementation {
 
     dbg("LI", "LI receiving packet, buf addr: %x\n", payload);
     print_packet(msg, len);
+
+    // update the beacon-driven link quality estimators if we have
+    // received BLQ_PKT_WINDOW number of beacons
+    curEstInterval = (curEstInterval + 1) % BLQ_PKT_WINDOW;
+    if (curEstInterval == 0) {
+      updateNeighborTableEst();
+    }
 
     if (call SubAMPacket.destination(msg) == AM_BROADCAST_ADDR) {
       linkest_header_t* hdr = getHeader(msg);
