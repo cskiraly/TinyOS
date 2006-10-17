@@ -32,7 +32,7 @@
 /**
  * @author Alec Woo <awoo@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-10-10 19:18:42 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-10-17 19:04:45 $
  */
 
 #include <Timer.h>
@@ -68,11 +68,13 @@ implementation{
   
   command error_t StdControl.start(){
     call HplUartTxControl.start();
+    call HplUartRxControl.start();
     return SUCCESS;
   }
 
   command error_t StdControl.stop(){
     call HplUartTxControl.stop();
+    call HplUartRxControl.stop();
     return SUCCESS;
   }
 

@@ -32,7 +32,7 @@
 /**
  * @author Alec Woo <awoo@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-10-10 19:18:42 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-10-17 19:04:45 $
  */
 
 /*
@@ -80,7 +80,6 @@ module HplAtm128UartP {
   
   uses interface Atm128Calibrate;
   uses interface McuPowerState;
-  
 }
 implementation {
   
@@ -106,74 +105,50 @@ implementation {
   }
 
   command error_t Uart0TxControl.start() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR0B;
-    ctrl.bits.txcie = 1;
-    ctrl.bits.txen  = 1;
-    UCSR0B = ctrl.flat;
+    SET_BIT(UCSR0B, TXCIE);
+    SET_BIT(UCSR0B, TXEN);
     call McuPowerState.update();
     return SUCCESS;
   }
 
   command error_t Uart0TxControl.stop() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR0B;
-    ctrl.bits.txcie = 0;
-    ctrl.bits.txen  = 0;
-    UCSR0B = ctrl.flat;
+    CLR_BIT(UCSR0B, TXCIE);
+    CLR_BIT(UCSR0B, TXEN);
     call McuPowerState.update();
     return SUCCESS;
   }
 
   command error_t Uart0RxControl.start() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR0B;
-    ctrl.bits.rxcie = 1;
-    ctrl.bits.rxen  = 1;
-    UCSR0B = ctrl.flat;
+    SET_BIT(UCSR0B, RXCIE);
+    SET_BIT(UCSR0B, RXEN);
     call McuPowerState.update();
     return SUCCESS;
   }
 
   command error_t Uart0RxControl.stop() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR0B;
-    ctrl.bits.rxcie = 0;
-    ctrl.bits.rxen  = 0;
-    UCSR0B = ctrl.flat;
+    CLR_BIT(UCSR0B, RXCIE);
+    CLR_BIT(UCSR0B, RXEN);
     call McuPowerState.update();
     return SUCCESS;
   }
   
   async command error_t HplUart0.enableTxIntr() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR0B;
-    ctrl.bits.txen  = 1;
-    UCSR0B = ctrl.flat;
+    SET_BIT(UCSR0B, TXEN);
     return SUCCESS;
   }
   
   async command error_t HplUart0.disableTxIntr(){
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR0B;
-    ctrl.bits.txen  = 0;
-    UCSR0B = ctrl.flat;
+    CLR_BIT(UCSR0B, TXEN);
     return SUCCESS;
   }
   
   async command error_t HplUart0.enableRxIntr(){
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR0B;
-    ctrl.bits.rxen  = 1;
-    UCSR0B = ctrl.flat;
+    SET_BIT(UCSR0B, RXEN);
     return SUCCESS;
   }
 
   async command error_t HplUart0.disableRxIntr(){
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR0B;
-    ctrl.bits.rxen  = 0;
-    UCSR0B = ctrl.flat;
+    CLR_BIT(UCSR0B, RXEN);
     return SUCCESS;
   }
   
@@ -197,8 +172,9 @@ implementation {
   }
   
   AVR_ATOMIC_HANDLER(SIG_UART0_RECV) {
-    if (READ_BIT(UCSR0A, RXC))
+    if (READ_BIT(UCSR0A, RXC)) {
       signal HplUart0.rxDone(UDR0);
+    }
   }
   
   AVR_NONATOMIC_HANDLER(SIG_UART0_TRANS) {
@@ -210,7 +186,7 @@ implementation {
     Atm128UartStatus_t  stts;
     Atm128UartControl_t ctrl;
     uint16_t ubrr1;
-
+    
     ctrl.bits = (struct Atm128_UCSRB_t) {rxcie:0, txcie:0, rxen:0, txen:0};
     stts.bits = (struct Atm128_UCSRA_t) {u2x:1};
     mode.bits = (struct Atm128_UCSRC_t) {ucsz:ATM128_UART_DATA_SIZE_8_BITS};
@@ -226,77 +202,53 @@ implementation {
   }
 
   command error_t Uart1TxControl.start() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR1B;
-    ctrl.bits.txcie = 1;
-    ctrl.bits.txen  = 1;
-    UCSR1B = ctrl.flat;
+    SET_BIT(UCSR1B, TXCIE);
+    SET_BIT(UCSR1B, TXEN);
     call McuPowerState.update();
     return SUCCESS;
   }
 
   command error_t Uart1TxControl.stop() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR1B;
-    ctrl.bits.txcie = 0;
-    ctrl.bits.txen  = 0;
-    UCSR1B = ctrl.flat;
+    CLR_BIT(UCSR1B, TXCIE);
+    CLR_BIT(UCSR1B, TXEN);
     call McuPowerState.update();
     return SUCCESS;
   }
 
   command error_t Uart1RxControl.start() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR1B;
-    ctrl.bits.rxcie = 1;
-    ctrl.bits.rxen  = 1;
-    UCSR1B = ctrl.flat;
+    SET_BIT(UCSR1B, RXCIE);
+    SET_BIT(UCSR1B, RXEN);
     call McuPowerState.update();
     return SUCCESS;
   }
 
   command error_t Uart1RxControl.stop() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR1B;
-    ctrl.bits.rxcie = 0;
-    ctrl.bits.rxen  = 0;
-    UCSR1B = ctrl.flat;
+    CLR_BIT(UCSR1B, RXCIE);
+    CLR_BIT(UCSR1B, RXEN);
     call McuPowerState.update();
     return SUCCESS;
   }
   
   async command error_t HplUart1.enableTxIntr() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR1B;
-    ctrl.bits.txen  = 1;
-    UCSR1B = ctrl.flat;
+    SET_BIT(UCSR1B, TXEN);
+    return SUCCESS;
+  }
+  
+  async command error_t HplUart1.disableTxIntr(){
+    CLR_BIT(UCSR1B, TXEN);
+    return SUCCESS;
+  }
+  
+  async command error_t HplUart1.enableRxIntr(){
+    SET_BIT(UCSR1B, RXEN);
     return SUCCESS;
   }
 
-  async command error_t HplUart1.disableTxIntr() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR1B;
-    ctrl.bits.txen  = 0;
-    UCSR1B = ctrl.flat;
+  async command error_t HplUart1.disableRxIntr(){
+    CLR_BIT(UCSR1B, RXEN);
     return SUCCESS;
   }
-
-  async command error_t HplUart1.enableRxIntr() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR1B;
-    ctrl.bits.rxen  = 1;
-    UCSR1B = ctrl.flat;
-    return SUCCESS;
-  }
-
-  async command error_t HplUart1.disableRxIntr() {
-    Atm128UartControl_t ctrl;
-    ctrl.flat = UCSR1B;
-    ctrl.bits.rxen  = 0;
-    UCSR1B = ctrl.flat;
-    return SUCCESS;
-  }
-
+  
   async command bool HplUart1.isTxEmpty() {
     return READ_BIT(UCSR1A, TXC);
   }
