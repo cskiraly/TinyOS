@@ -32,7 +32,7 @@
 /**
  * @author Alec Woo <awoo@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-10-10 19:18:42 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-10-17 06:58:52 $
  */
 
 configuration Atm128Uart0C {
@@ -52,16 +52,10 @@ implementation{
   UartStream = UartP;
   UartP.Counter = Counter;
   
-  components HplAtm128UartP as HplUartP;
-  UartP.HplUartTxControl -> HplUartP.Uart0TxControl;
-  UartP.HplUartRxControl -> HplUartP.Uart0RxControl;
-  UartP.HplUart -> HplUartP.HplUart0;
-  
-  components PlatformC;
-  HplUartP.Atm128Calibrate -> PlatformC;
-  
-  components McuSleepC;
-  HplUartP.McuPowerState -> McuSleepC;
+  components HplAtm128UartC as HplUartC;
+  UartP.HplUartTxControl -> HplUartC.Uart0TxControl;
+  UartP.HplUartRxControl -> HplUartC.Uart0RxControl;
+  UartP.HplUart -> HplUartC.HplUart0;
   
   components MainC;
   MainC.SoftwareInit -> UartP;
