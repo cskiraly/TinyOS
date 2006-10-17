@@ -1,4 +1,4 @@
-//$Id: SerialActiveMessageP.nc,v 1.1.2.11 2006-08-04 00:34:18 scipio Exp $
+//$Id: SerialActiveMessageP.nc,v 1.1.2.12 2006-10-17 18:17:20 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
@@ -145,7 +145,7 @@ implementation {
     serial_header_t* header = getHeader(amsg);
     header->dest = addr;
   }
-  
+
   command void AMPacket.setSource(message_t* amsg, am_addr_t addr) {
     serial_header_t* header = getHeader(amsg);
     header->src = addr;

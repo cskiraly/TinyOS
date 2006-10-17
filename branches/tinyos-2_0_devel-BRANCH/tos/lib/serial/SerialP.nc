@@ -33,8 +33,7 @@
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * Author: Phil Buonadonna
- * Revision: $Revision: 1.1.2.13 $
+ * Revision: $Revision: 1.1.2.14 $
  * 
  */
 
@@ -162,9 +161,6 @@ implementation {
   /* Ack Queue */
   ack_queue_t ackQ;
 
-  /* stats */
-  radio_stats_t stats;
-
   bool offPending = FALSE;
 
   // Prototypes
@@ -172,7 +168,6 @@ implementation {
   inline void txInit();
   inline void rxInit();
   inline void ackInit();
-  inline void statsInit();
 
   inline bool ack_queue_is_full(); 
   inline bool ack_queue_is_empty(); 
@@ -219,19 +214,11 @@ implementation {
     ackQ.writePtr = ackQ.readPtr = 0;
   }
 
-  inline void statsInit(){
-    memset(&stats, 0, sizeof(stats));
-    stats.platform = 0; // TODO: set platform
-    stats.MTU = SERIAL_MTU;
-    stats.version = SERIAL_VERSION;
-  }
-  
   command error_t Init.init() {
 
     txInit();
     rxInit();
     ackInit();
-    statsInit();
 
     return SUCCESS;
   }
@@ -429,7 +416,6 @@ implementation {
       
     case RXSTATE_TOKEN:
       if (isDelimeter) {
-        stats.serial_short_packets++;
         goto nosync;
       }
       else {
@@ -449,12 +435,10 @@ implementation {
               goto nosync;
             }
             else {
-              stats.serial_crc_fail++;
               goto nosync;
             }
           }
           else {
-            stats.serial_short_packets++;
             goto nosync;
           }
 	}
@@ -470,7 +454,6 @@ implementation {
       
       /* no valid message.. */
       else {
-        stats.serial_proto_drops++;
         goto nosync;
        }
       break;
@@ -570,7 +553,6 @@ implementation {
     
     /* if done, call the send done */
     if (done || fail) {
-      if (fail) atomic stats.serial_tx_fail++;
       txSeqno++;
       if (txProto == SERIAL_PROTO_ACK){
         ack_queue_pop();
