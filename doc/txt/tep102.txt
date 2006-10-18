@@ -10,8 +10,8 @@ Timers
 :Author: Cory Sharp, Martin Turon, David Gay
 
 :Draft-Created: 22-Sep-2004
-:Draft-Version: $Revision: 1.1.2.7 $
-:Draft-Modified: $Date: 2006-10-18 17:27:17 $
+:Draft-Version: $Revision: 1.1.2.8 $
+:Draft-Modified: $Date: 2006-10-18 17:51:30 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -78,11 +78,11 @@ Three fundamental properties of timers are *precision*, *width* and
 *accuracy*.
 
 Examples of precision are millisecond, a cycle of a 32kHz clock, and
-microseconds.  All precisions are in "binary" units with respect to
-one second.  That is, one second contains 1024 binary milliseconds,
-32768 32kHz ticks, or 1048576 microseconds.  This TEP emphasizes
-millisecond and 32kHz tick precisions while reasonably accommodating
-other precisions.
+microseconds.  All precisions presented in this TEP are in "binary"
+units with respect to one second.  That is, one second contains 1024
+binary milliseconds, 32768 32kHz ticks, or 1048576 microseconds.
+This TEP emphasizes millisecond and 32kHz tick precisions while
+reasonably accommodating other precisions.
 
 Examples of widths are 8-bit, 16-bit, 32-bit, and 64-bit.  The width
 for timer interfaces and components SHOULD be 32-bits.  That is, for
@@ -112,9 +112,9 @@ reflected in the interface type.
 Precision is expressed as an empty type -- TMilli, T32khz, and
 TMicro -- written in the standard Timer.h header like this::
 
-  typedef struct { } TMilli;
-  typedef struct { } T32khz;
-  typedef struct { } TMicro;
+  typedef struct { } TMilli; // 1024 ticks per second
+  typedef struct { } T32khz; // 32768 ticks per second
+  typedef struct { } TMicro; // 1048576 ticks per second
 
 Note that the precision names are expressed as either frequency or
 period, whichever is convenient.
@@ -159,12 +159,11 @@ get()
   return the current time.
 
 isOverflowPending() 
-
   return TRUE if the overflow flag is set for this counter, i.e., if and
   only if an overflow interrupt will occur after the outermost atomic
   block exits.  Return FALSE otherwise.  This command only returns the
   state of the overflow flag and causes no side effect.  It is expected
-  that the underlying hardware platforms sets the overflow flag when
+  that the underlying hardware platform sets the overflow flag when
   appropriate.
 
 clearOverflow() 
