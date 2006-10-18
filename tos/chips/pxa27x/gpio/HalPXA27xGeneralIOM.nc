@@ -1,4 +1,4 @@
-// $Id: HalPXA27xGeneralIOM.nc,v 1.1.2.4 2006-09-28 19:57:08 jwhui Exp $
+// $Id: HalPXA27xGeneralIOM.nc,v 1.1.2.5 2006-10-18 19:30:51 philipb Exp $
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By
@@ -85,10 +85,10 @@ implementation {
     return;
   }
   
-  async command void GeneralIO.isInput[uint8_t pin]() {
+  async command bool GeneralIO.isInput[uint8_t pin]() {
     bool result;
     result = !call HplPXA27xGPIOPin.getGPLRbit[pin]();
-    return;
+    return result;
   }
   
   async command void GeneralIO.makeOutput[uint8_t pin]() {
@@ -96,7 +96,7 @@ implementation {
     return;
   }
 
-  async command void GeneralIO.isOutput[uint8_t pin]() {
+  async command bool GeneralIO.isOutput[uint8_t pin]() {
     bool result;
     result = call HplPXA27xGPIOPin.getGPDRbit[pin]();
     return result;
