@@ -10,8 +10,8 @@ Timers
 :Author: Cory Sharp, Martin Turon, David Gay
 
 :Draft-Created: 22-Sep-2004
-:Draft-Version: $Revision: 1.1.2.6 $
-:Draft-Modified: $Date: 2006-10-17 20:00:40 $
+:Draft-Version: $Revision: 1.1.2.7 $
+:Draft-Modified: $Date: 2006-10-18 17:27:17 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -160,12 +160,12 @@ get()
 
 isOverflowPending() 
 
-  return TRUE if the overflow flag is set for this counter.  That
-  is, if an overflow interrupt will occur after the outermost atomic
-  block is exits.  Return FALSE otherwise.  This command only
-  returns the state of the overflow flag and causes no side effect.
-  It is expected that the underlying hardware platforms sets
-  overflow flag when appropriate.
+  return TRUE if the overflow flag is set for this counter, i.e., if and
+  only if an overflow interrupt will occur after the outermost atomic
+  block exits.  Return FALSE otherwise.  This command only returns the
+  state of the overflow flag and causes no side effect.  It is expected
+  that the underlying hardware platforms sets the overflow flag when
+  appropriate.
 
 clearOverflow() 
   cancel the pending overflow interrupt clearing the overflow flag.
@@ -217,11 +217,10 @@ isRunning()
 startAt(t0,dt) 
 
   cancel any previously running alarm and set to fire at time t1 =
-  t0+dt.  This form allows a delay to be anchored to some time t0
-  taken before the invocation of startAt.  This is also the form
-  used internally in the timer subsystem to allow the use of the
-  full width of an alarm while being detecting if the alarm time for
-  a short alarm prematurely elapsed.
+  t0+dt.  This form allows a delay to be anchored to some time t0 taken
+  before the invocation of startAt.  The timer subsystem uses this form
+  internally, to be able to use of the full width of an alarm while also
+  detecting when a short alarm elapses prematurely.
 
 getNow() 
   return the current time in the precision and width of the alarm.
