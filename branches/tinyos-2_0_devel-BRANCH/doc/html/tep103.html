@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-09-22 22:35:08 $
-:version: $Revision: 1.1.2.7 $
+:date: $Date: 2006-10-18 20:17:54 $
+:version: $Revision: 1.1.2.8 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -303,7 +303,7 @@ ul.auto-toc {
 <td>David Gay, Jonathan Hui</td></tr>
 <tr class="field"><th class="docinfo-name">Draft-Created:</th><td class="field-body">27-Sep-2004</td>
 </tr>
-<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.13</td>
+<tr class="field"><th class="docinfo-name">Draft-Version:</th><td class="field-body">1.1.2.14</td>
 </tr>
 <tr class="field"><th class="docinfo-name">Draft-Modified:</th><td class="field-body">2006-09-22</td>
 </tr>
@@ -505,7 +505,7 @@ through their log. Thus the abstractions can mostly ignore the need for
 &quot;wear levelling&quot; (ensuring that each block of the flash is erased
 the same number of time, to maximise flash chip lifetime).</li>
 </ul>
-<p>New abstractions (including a filing system...) can easily be added to
+<p>New abstractions (including a filing system) can easily be added to
 this framework.</p>
 <p>The rest of this TEP covers some principles for the organisation of
 flash chips (Section 3), then describes the flash volumes and
@@ -652,7 +652,7 @@ volume.</li>
 the interface definitions.</p>
 <p>Note that these interfaces contain no direct support for verifying the
 integrity of the BlockStorage data, but such support can easily be built
-bu using the <tt class="docutils literal"><span class="pre">computeCrc</span></tt> command and storing the result in a
+by using the <tt class="docutils literal"><span class="pre">computeCrc</span></tt> command and storing the result in a
 well-defined location, and checking this CRC when desired.</p>
 </div>
 <div class="section" id="logging">
