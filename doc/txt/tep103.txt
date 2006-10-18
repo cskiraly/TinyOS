@@ -10,8 +10,8 @@ Permanent Data Storage (Flash)
 :Author: David Gay, Jonathan Hui
 
 :Draft-Created: 27-Sep-2004
-:Draft-Version: $Revision: 1.1.2.14 $
-:Draft-Modified: $Date: 2006-09-22 22:35:08 $
+:Draft-Version: $Revision: 1.1.2.15 $
+:Draft-Modified: $Date: 2006-10-18 20:17:54 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 
@@ -154,7 +154,7 @@ reasons:
   "wear levelling" (ensuring that each block of the flash is erased
   the same number of time, to maximise flash chip lifetime).
 
-New abstractions (including a filing system...) can easily be added to
+New abstractions (including a filing system) can easily be added to
 this framework.
 
 The rest of this TEP covers some principles for the organisation of
@@ -327,7 +327,7 @@ the interface definitions.
 
 Note that these interfaces contain no direct support for verifying the
 integrity of the BlockStorage data, but such support can easily be built
-bu using the ``computeCrc`` command and storing the result in a
+by using the ``computeCrc`` command and storing the result in a
 well-defined location, and checking this CRC when desired.
 
 
