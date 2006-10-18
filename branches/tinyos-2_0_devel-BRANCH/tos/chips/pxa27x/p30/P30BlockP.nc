@@ -50,8 +50,8 @@ implementation {
     S_WRITE,
     S_ERASE,
     S_CRC,
-    S_COMMIT,
-    S_VERIFY,
+    S_SYNC,
+
   } p30_block_state_t;
   norace p30_block_state_t m_state = S_IDLE;
   storage_volume_t clientId = 0xff;
@@ -75,9 +75,9 @@ implementation {
       m_state = S_IDLE;
       signal Write.writeDone[clientId](clientAddr, clientBuf, clientLen, clientResult);
       break;
-   case S_COMMIT:
+   case S_SYNC:
       m_state = S_IDLE;
-      signal Write.commitDone[clientId](SUCCESS);
+      signal Write.syncDone[clientId](SUCCESS);
       break;
     case S_ERASE:
       m_state = S_IDLE;
@@ -86,10 +86,6 @@ implementation {
    case S_READ:
       m_state = S_IDLE;
       signal Read.readDone[clientId](clientAddr, clientBuf, clientLen, clientResult);
-      break;
-   case S_VERIFY:
-      m_state = S_IDLE;
-      signal Read.verifyDone[clientId](SUCCESS);
       break;
     default:
       break;
@@ -128,12 +124,12 @@ implementation {
   }
   
   /*
-   * Commit doesn't really do anything because Intel PXA is
+   * Sync doesn't really do anything because Intel PXA is
    * write-through.
    */
-  command error_t Write.commit[ storage_volume_t b ]() {
+  command error_t Write.sync[ storage_volume_t b ]() {
 
-    m_state = S_COMMIT;
+    m_state = S_SYNC;
     clientId = b;
 
     post signalDoneTask();
@@ -194,14 +190,6 @@ implementation {
     return SUCCESS;
   }
   
-  command error_t Read.verify[ storage_volume_t b ]() {
-
-    m_state = S_VERIFY;
-    clientId = b;
-
-    post signalDoneTask();
-    return SUCCESS;
-  }
   
   command error_t Read.computeCrc[ storage_volume_t b ]( storage_addr_t addr,
 							storage_len_t len,
@@ -219,9 +207,9 @@ implementation {
 
   default event void Write.writeDone[ storage_volume_t b ]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {}
   default event void Write.eraseDone[ storage_volume_t b ]( error_t error ) {}
-  default event void Write.commitDone[ storage_volume_t b ]( error_t error ) {}
+  default event void Write.syncDone[ storage_volume_t b ]( error_t error ) {}
 
   default event void Read.readDone[ storage_volume_t b ]( storage_addr_t addr, void* buf, storage_len_t len, error_t error ) {}
   default event void Read.computeCrcDone[ storage_volume_t b ]( storage_addr_t addr, storage_len_t len, uint16_t crc, error_t error ) {}
-  default event void Read.verifyDone[ storage_volume_t b ]( error_t error ) {}
+
 }
