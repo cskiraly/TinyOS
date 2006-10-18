@@ -42,7 +42,23 @@ module HalPXA27xSleepM {
 }
 
 implementation {
-  
+
+  void doSleep(uint32_t swRegVal) {
+    int i;
+    call HplPXA27xPower.setPWER(PWER_WERTC);
+    // let it wrap around itself if necessary
+    call HplPXA27xRTC.setSWCR(0);
+    call HplPXA27xRTC.setSWAR1(swRegVal); // minutes
+    call HplPXA27xRTC.setSWAR2(0x00FFFFFF);
+    for(i = 0; i < 10; i++); // spin for a bit
+    call HplPXA27xRTC.setRTSR(RTSR_SWCE);
+    for(i = 0; i < 5000; i++); // spin for a bit
+
+    call HplPXA27xPower.setPWRMode(PWRMODE_M_SLEEP);
+    // this call never returns
+  }
+
+   
   async command void HalPXA27xSleep.sleepMillis(uint16_t time) {
     int i;
     call HplPXA27xPower.setPWER(PWER_WERTC);
@@ -56,33 +72,48 @@ implementation {
     // this call never returns
   }
 
-  async command void HalPXA27xSleep.sleepMinutes(uint16_t time) {
-    int i;
-    call HplPXA27xPower.setPWER(PWER_WERTC);
-    // let it wrap around itself if necessary
-    call HplPXA27xRTC.setSWCR(0);
-    call HplPXA27xRTC.setSWAR1((time << 13) & 0x7E000); // minutes
-    call HplPXA27xRTC.setSWAR2(0x00FFFFFF);
-    for(i = 0; i < 10; i++); // spin for a bit
-    call HplPXA27xRTC.setRTSR(RTSR_SWCE);
-    for(i = 0; i < 5000; i++); // spin for a bit
+  async command void HalPXA27xSleep.sleepSeconds(uint32_t time) {
+    uint32_t hrs = time / 3600;
+    uint32_t mins = (time / 60) % 60;
+    uint32_t secs = time % 60;
+    uint32_t swReg;
 
-    call HplPXA27xPower.setPWRMode(PWRMODE_M_SLEEP);
-    // this call never returns
+      if (hrs > 23) {
+	hrs = 23;
+	mins = 59;
+	secs = 59;
+      }
+
+    swReg = ((hrs << 19) | (mins << 13) | (secs << 7));
+    doSleep(swReg);
+    return;
+  }
+
+  async command void HalPXA27xSleep.sleepMinutes(uint32_t time) {
+    uint32_t hrs = time / 60;
+    uint32_t mins = time % 60;
+    uint32_t swReg;
+
+    if (hrs > 23) {
+      hrs = 23;
+      mins = 59;
+    }
+    swReg = ((hrs << 19) | (mins << 13));
+
+    doSleep(swReg);
+    return;
   }
 
   async command void HalPXA27xSleep.sleepHours(uint16_t time) {
-    int i;
-    call HplPXA27xPower.setPWER(PWER_WERTC);
-    // let it wrap around itself if necessary
-    call HplPXA27xRTC.setSWCR(0);
-    call HplPXA27xRTC.setSWAR1((time << 19) & 0xF80000); // hours
-    call HplPXA27xRTC.setSWAR2(0x00FFFFFF);
-    for(i = 0; i < 10; i++); // spin for a bit
-    call HplPXA27xRTC.setRTSR(RTSR_SWCE);
-    for(i = 0; i < 5000; i++); // spin for a bit
+    uint32_t hrs = time;
+    uint32_t swReg;
 
-    call HplPXA27xPower.setPWRMode(PWRMODE_M_SLEEP);
-    // this call never returns
+    if (hrs > 23) {
+      hrs = 23;
+    }
+    swReg = (hrs << 19);
+
+    doSleep(swReg);
+    return;
   }
 }

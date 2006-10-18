@@ -28,15 +28,50 @@
  * DAMAGE.
  */
 /**
+ *
+ * This interfaces provides HAL level sleep functionality for the PXA27x. 
+ *
  * @author Kaisen Lin
  * @author Phil Buonadonna
  *
  */
 
 interface HalPXA27xSleep {
-  // sleep for 'time' milliseconds
+  /**
+   * Sleep for a given number of milliseconds. This function supports
+   * sleep times up to 65534ms.  Larger sleep durations must
+   * use one of the other methods.
+   *
+   * @param time Sleep duration in milliseconds up to 65534.
+   * 
+   */
   async command void sleepMillis(uint16_t time);
-  // sleep for 'time' minutes
-  async command void sleepMinutes(uint16_t time);
+
+  /**
+   * Sleep for a given number of seconds up to 62859 sec.
+   * If the function is passed a value greater than 62859, it
+   * will default to the maximum.
+   *
+   * @param time Sleep duration in seconds.
+   *
+   */
+  async command void sleepSeconds(uint32_t time);
+
+  /**
+   * Sleep for a given number of minutes up to 1439 min.
+   * If the function is passed a value greater than 1439, it
+   * will default to the maximum.
+   *
+   * @param time Sleep duration in minutes.
+   */
+  async command void sleepMinutes(uint32_t time);
+
+  /**
+   * Sleep for a given number of hours up to 23 hours
+   * If the function is passed a value greater than 23, it
+   * will default to the maximum.
+   *
+   * @param time Sleep duration in hours
+   */
   async command void sleepHours(uint16_t time);
 }
