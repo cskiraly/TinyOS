@@ -52,7 +52,7 @@ configuration Uart4b6bPhyC
 implementation
 {
     components 
-        new Alarm32khzC() as RxByteTimer,
+        new Alarm32khz16C() as RxByteTimer,
         Uart4b6bPhyP,
         // PlatformLedsC,
         MainC;

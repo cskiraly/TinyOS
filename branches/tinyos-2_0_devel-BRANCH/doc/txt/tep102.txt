@@ -10,8 +10,8 @@ Timers
 :Author: Cory Sharp, Martin Turon, David Gay
 
 :Draft-Created: 22-Sep-2004
-:Draft-Version: $Revision: 1.1.2.8 $
-:Draft-Modified: $Date: 2006-10-18 17:51:30 $
+:Draft-Version: $Revision: 1.1.2.9 $
+:Draft-Modified: $Date: 2006-10-18 22:02:25 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -360,12 +360,12 @@ components::
     provides interface Counter< T${P}, uint${W}_t >;
   }
 
-  generic configuration Alarm${P}${W}C
+  generic configuration Alarm${P}${W}C()
   {
     provides interface Alarm< T${P}, uint${W}_t >;
   }
 
-Instantiating a Alarm${P}${W}C component provides a new and
+Instantiating an Alarm${P}${W}C component provides a new and
 independent Alarm.  If the platform presents a limited number of
 Alarm resources, then allocating more Alarms in an application than
 are available for the platform SHOULD produce a compile-time error.
@@ -381,7 +381,7 @@ ${P}=32khz and ${W}=16 are::
     provides interface Counter< T32khz, uint8_t >;
   }
 
-  generic configuration Alarm32khz8C
+  generic configuration Alarm32khz8C()
   {
     provides interface Alarm< T32khz, uint8_t >;
   }
@@ -391,29 +391,30 @@ are mutually incompatible in single application.  Incompatible
 components SHOULD produce compile-time errors when compiled
 together.
 
+
 4. HIL requirements
 ====================================================================
 
 The following component MUST be provided on all platforms::
-  TimerMilliC
+  HilTimerMilliC
   BusyWaitMicroC
 
-TimerMilliC
+HilTimerMilliC
 --------------------------------------------------------------------
 
 ::
 
-  configuration TimerMilliC
+  configuration HilTimerMilliC
   {
     provides interface Init;
-    provides interface Timer<TMilli>[uint8_t num];
-    provides interface LocalTime<TMilli>;
+    provides interface Timer<TMilli> as TimerMilli[ uint8_t num ];
   }
 
 A new timer is allocated using unique(UQ_TIMER_MILLI) to obtain a
 new unique timer number.  This timer number is used to index the
 TimerMilli parameterised interface.  UQ_TIMER_MILLI is defined in
-Timer.h.
+Timer.h.  HilTimerMilliC is used by the generic component
+TimerMilliC found in ``tos/system/``.
 
 BusyWaitMicroC
 --------------------------------------------------------------------
@@ -594,14 +595,16 @@ The implementation of the utility components are also found in
 The implementation of Timers for the MSP430 is in
 ``tinyos-2.x/tos/chips/msp430/timer``:
 
-  * ``Alarm32khzC.nc`` is generic and provides a new ``Alarm<T32khz,uint16_t>``
-    and ``Alarm<T32khz,uint32_t>``
-  * ``AlarmMilliC.nc`` is generic and provides a new ``Alarm<TMilli,uint32_t>``
+  * ``Alarm32khz16C.nc`` is generic and provides a new ``Alarm<T32khz,uint16_t>``
+  * ``Alarm32khz32C.nc`` is generic and provides a new ``Alarm<T32khz,uint32_t>``
+  * ``AlarmMilli16C.nc`` is generic and provides a new ``Alarm<TMilli,uint16_t>``
+  * ``AlarmMilli32C.nc`` is generic and provides a new ``Alarm<TMilli,uint32_t>``
   * ``BusyWait32khzC.nc`` provides ``BusyWait<T32khz,uint16_t>``
   * ``BusyWaitMicroC.nc`` provides ``BusyWait<TMicro,uint16_t>``
-  * ``Counter32khzC.nc`` provides ``Counter<T32khz,uint16_t>``,
-    ``Counter<T32khz,uint32_t>``, and ``LocalTime<T32khz>``
-  * ``CounterMilliC.nc`` provides ``Counter<TMilli,uint32_t>`` and ``LocalTime<TMilli>``
+  * ``Counter32khz16C.nc`` provides ``Counter<T32khz,uint16_t>``
+  * ``Counter32khz32C.nc`` provides ``Counter<T32khz,uint32_t>``
+  * ``CounterMilli16C.nc`` provides ``Counter<TMilli,uint16_t>``
+  * ``CounterMilli32C.nc`` provides ``Counter<TMilli,uint32_t>``
   * ``GpioCaptureC.nc``
   * ``HilTimerMilliC.nc`` provides ``Timer<TMilli> as TimerMilli[uint8_t num]``
   * ``Msp430AlarmC.nc`` is generic and converts an MSP430 timer to a 16-bit Alarm

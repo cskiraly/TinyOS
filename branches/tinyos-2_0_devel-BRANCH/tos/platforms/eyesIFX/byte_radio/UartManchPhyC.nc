@@ -29,8 +29,8 @@
 * - Description ---------------------------------------------------------
 *
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.1 $
-* $Date: 2006-09-12 12:16:31 $
+* $Revision: 1.1.2.2 $
+* $Date: 2006-10-18 22:02:25 $
 * @author: Philipp Huppertz <huppertz@tkn.tu-berlin.de>
 * ========================================================================
 */
@@ -59,7 +59,7 @@ configuration UartManchPhyC
 implementation
 {
     components 
-        new Alarm32khzC() as RxByteTimer,
+        new Alarm32khz16C() as RxByteTimer,
         UartManchPhyP,
 //         PlatformLedsC,
         MainC;
