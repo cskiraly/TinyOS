@@ -32,7 +32,7 @@
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
  * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
- * @version $Revision: 1.1.4.3 $ $Date: 2006-10-13 20:05:43 $
+ * @version $Revision: 1.1.4.4 $ $Date: 2006-10-18 22:02:25 $
  */
 
 configuration Msp430Uart0P {
@@ -64,7 +64,7 @@ implementation {
   components HplMsp430Usart0C as UsartC;
   UartP.Usart -> UsartC;
 
-  components Counter32khzC as CounterC;
+  components Counter32khz16C as CounterC;
   UartP.Counter -> CounterC;
 
   components LedsC as Leds;

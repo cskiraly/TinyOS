@@ -34,7 +34,7 @@
  * CC2420 radio connected to a TI MSP430 processor.
  *
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-06-20 18:56:06 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-10-18 22:02:25 $
  */
 
 configuration HplCC2420InterruptsC {
@@ -47,7 +47,6 @@ configuration HplCC2420InterruptsC {
 
 implementation {
 
-  components Counter32khzC;
   components HplMsp430GeneralIOC as GeneralIOC;
   components Msp430TimerC;
   components new GpioCaptureC() as CaptureSFDC;

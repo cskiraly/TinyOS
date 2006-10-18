@@ -1,4 +1,4 @@
-//$Id: Msp430Timer32khzMapC.nc,v 1.1.2.2 2006-06-20 18:56:06 jwhui Exp $
+//$Id: Msp430Timer32khzMapC.nc,v 1.1.2.3 2006-10-18 22:02:25 cssharp Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -23,15 +23,15 @@
 /**
  * MSP430Timer32khzMapC presents as paramaterized interfaces all of
  * the 32khz hardware timers on the MSP430 that are available for
- * compile time allocation by "new Alarm32khzC()", "new
- * AlarmMilliC()", and so on.  
+ * compile time allocation by "new Alarm32khz16C()", "new
+ * AlarmMilli32C()", and so on.  
  *
  * Platforms based on the MSP430 are * encouraged to copy in and
  * override this file, presenting only the * hardware timers that are
  * available for allocation on that platform.
  *
  * @author Cory Sharp <cssharp@eecs.berkeley.edu>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-06-20 18:56:06 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-10-18 22:02:25 $
  */
 
 configuration Msp430Timer32khzMapC
