@@ -10,8 +10,8 @@ TEP Structure and Keywords
 :Author: Philip Levis
 
 :Draft-Created: 18-Oct-2004
-:Draft-Version: $Revision: 1.1.2.3 $
-:Draft-Modified: $Date: 2006-06-13 08:27:16 $
+:Draft-Version: $Revision: 1.1.2.4 $
+:Draft-Modified: $Date: 2006-10-18 05:28:11 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::
@@ -165,15 +165,24 @@ progress, "Final," which means it is complete and will not change, or
 "Obsolete" because it has been replaced by another TEP, then the new
 TEP number should follow "Obsolete," such as "Obsolete by TEP 1231."
 
+Once a TEP has the status "Final," no part of it may change except
+for the Status field. The Status field may only change to Obsolete.
+
 If a TEP is Best Current Practices or Documentary, then it MUST
 include an additional field, "TinyOS-Version:," which states what
 version(s) of TinyOS the document pertains to. This document pertains
 to all versions of TinyOS, until made obsolete by a future TEP. This
 field MUST appear after the Status field and before the Author field.
 
-The final required field is Author, which states the names of the
+The final required field is "Author," which states the names of the
 authors of the document. Full contact information should not be listed
 here (see Section 3.2).
+
+There is an optional field, "Extends." The "Extends" field refers to
+another TEP. The purpose of this field is to denote when a TEP represents
+an addition to an existing TEP. Meeting the requirements of a TEP with an
+Extends field requires also meeting the requirements of all TEPs listed 
+in the Extends field.
 
 If a TEP is a Draft, then four additional fields MUST be included:
 Draft-Created, Draft-Modified, Draft-Version, and Draft-Discuss.
