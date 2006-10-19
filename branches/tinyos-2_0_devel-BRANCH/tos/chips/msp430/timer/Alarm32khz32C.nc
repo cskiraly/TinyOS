@@ -20,30 +20,28 @@
  */
 
 /**
- * Counter3MilliC is the counter to be used for all Millis
+ * Alarm32khzC is the alarm for async 32khz alarms
  *
  * @author Cory Sharp <cssharp@eecs.berkeley.edu>
  * @see  Please refer to TEP 102 for more information about this component and its
  *          intended use.
  */
-    
-configuration CounterMilliC
+
+generic configuration Alarm32khz32C()
 {
-  provides interface Counter<TMilli,uint32_t> as CounterMilli32;
-  provides interface LocalTime<TMilli> as LocalTimeMilli;
+  provides interface Init;
+  provides interface Alarm<T32khz,uint32_t>;
 }
 implementation
 {
-  components Msp430TimerC
-           , Msp430Counter32khzC
-           , new TransformCounterC(TMilli,uint32_t,T32khz,uint16_t,5,uint32_t) as Transform
-           , new CounterToLocalTimeC(TMilli)
-           ;
+  components new Alarm32khz16C() as AlarmC;
+  components Counter32khz32C as Counter;
+  components new TransformAlarmC(T32khz,uint32_t,T32khz,uint16_t,0) as Transform;
 
-  CounterMilli32 = Transform.Counter;
-  LocalTimeMilli = CounterToLocalTimeC;
+  Init = AlarmC;
+  Alarm = Transform;
 
-  CounterToLocalTimeC.Counter -> Transform;
-  Transform.CounterFrom -> Msp430Counter32khzC;
+  Transform.AlarmFrom -> AlarmC;
+  Transform.Counter -> Counter;
 }
 

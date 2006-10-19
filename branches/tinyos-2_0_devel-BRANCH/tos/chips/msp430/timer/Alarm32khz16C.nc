@@ -27,27 +27,18 @@
  *          intended use.
  */
 
-generic configuration Alarm32khzC()
+generic configuration Alarm32khz16C()
 {
   provides interface Init;
-  provides interface Alarm<T32khz,uint16_t> as Alarm32khz16;
-  provides interface Alarm<T32khz,uint32_t> as Alarm32khz32;
+  provides interface Alarm<T32khz,uint16_t>;
 }
 implementation
 {
-  components new Msp430Timer32khzC() as Msp430Timer
-           , new Msp430AlarmC(T32khz) as Msp430Alarm
-           , new TransformAlarmC(T32khz,uint32_t,T32khz,uint16_t,0) as Transform
-           , Counter32khzC as Counter
-           ;
+  components new Msp430Timer32khzC() as Msp430Timer;
+  components new Msp430AlarmC(T32khz) as Msp430Alarm;
 
   Init = Msp430Alarm;
-
-  Alarm32khz16 = Msp430Alarm;
-  Alarm32khz32 = Transform;
-
-  Transform.AlarmFrom -> Msp430Alarm;
-  Transform.Counter -> Counter;
+  Alarm = Msp430Alarm;
 
   Msp430Alarm.Msp430Timer -> Msp430Timer;
   Msp430Alarm.Msp430TimerControl -> Msp430Timer;

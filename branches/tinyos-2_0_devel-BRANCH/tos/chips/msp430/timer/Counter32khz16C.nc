@@ -20,35 +20,21 @@
  */
 
 /**
- * AlarmMilliC is the alarm for async millisecond alarms
+ * Counter32khz16C provides at 16-bit counter at 32768 ticks per second.
  *
  * @author Cory Sharp <cssharp@eecs.berkeley.edu>
  * @see  Please refer to TEP 102 for more information about this component and its
  *          intended use.
  */
- 
-generic configuration AlarmMilliC()
+
+configuration Counter32khz16C
 {
-  provides interface Init;
-  provides interface Alarm<TMilli,uint32_t> as AlarmMilli32;
+  provides interface Counter<T32khz,uint16_t>;
 }
 implementation
 {
-  components new Msp430Timer32khzC() as Msp430Timer
-           , new Msp430AlarmC(T32khz) as Msp430Alarm
-           , new TransformAlarmC(TMilli,uint32_t,T32khz,uint16_t,5) as Transform
-           , CounterMilliC as Counter
-           ;
+  components Msp430Counter32khzC as CounterFrom;
 
-  Init = Msp430Alarm;
-
-  AlarmMilli32 = Transform;
-
-  Transform.AlarmFrom -> Msp430Alarm;
-  Transform.Counter -> Counter;
-
-  Msp430Alarm.Msp430Timer -> Msp430Timer;
-  Msp430Alarm.Msp430TimerControl -> Msp430Timer;
-  Msp430Alarm.Msp430Compare -> Msp430Timer;
+  Counter = CounterFrom;
 }
 
