@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSerialP.nc,v 1.1.2.5 2006-07-17 18:42:01 philipb Exp $ */
+/* $Id: HalPXA27xSerialP.nc,v 1.1.2.6 2006-10-19 00:47:07 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -61,8 +61,9 @@
  *
  */
 /**
- * Implements the SerialByteComm interface over an 8,N,1 configuration
- * of a PXA27x UART usingin PIO. 
+ * Implements the UartByte, UartStream and HalPXA27xSerialPacket interface 
+ * for a PXA27x UART. 
+ * 
  *
  * @param defaultRate Default baud rate for the serial port. 
  *
@@ -77,7 +78,8 @@ generic module HalPXA27xSerialP(uint32_t defaultRate)
   provides {
     interface Init;
     interface StdControl;
-    interface SerialByteComm;
+    interface UartByte;
+    interface UartStream;
     interface HalPXA27xSerialPacket;
     interface HalPXA27xSerialCntl;
   }
@@ -96,12 +98,19 @@ implementation
 
   uint8_t *txCurrentBuf, *rxCurrentBuf;
   uint32_t lenCurrent;
+  bool gbUsingUartStreamSendIF = FALSE;
+  bool gbUsingUartStreamRcvIF = FALSE;
+  bool gbRcvIntEnabled = FALSE;
 
   command error_t Init.init() {
     error_t error = SUCCESS;
 
     atomic {
       call UARTInit.init();
+      txCurrentBuf = rxCurrentBuf = NULL;
+      gbUsingUartStreamSendIF = FALSE;
+      gbUsingUartStreamRcvIF = FALSE;
+      gbRcvIntEnabled = FALSE;
     }
     call TxDMA.setMap(call UARTTxDMAInfo.getMapIndex());
     call RxDMA.setMap(call UARTRxDMAInfo.getMapIndex());
@@ -127,23 +136,73 @@ implementation
     return SUCCESS;
   }
 
-  async command error_t SerialByteComm.put(uint8_t data) {
+  async command error_t UartByte.send(uint8_t data) {
     atomic call UART.setTHR(data);
     return SUCCESS;
   }
 
-  async command error_t HalPXA27xSerialPacket.send(uint8_t *buf, uint16_t len) {
+  async command error_t UartByte.receive( uint8_t *data, uint8_t timeout) {
+    error_t error = FAIL;
+    uint8_t t;
+    for (t = 0; t < timeout; t++) {
+      if (call UART.getLSR() & LSR_DR) {
+	*data = call UART.getRBR();
+	error = SUCCESS;
+	break;
+      }
+    }
+    return error;
+  }
 
-    uint32_t tmp;
+  async command error_t UartStream.send( uint8_t* buf, uint16_t len ) {
+    error_t error;
+    atomic gbUsingUartStreamSendIF = TRUE;
+    error = call HalPXA27xSerialPacket.send(buf,len);
+    if (!error) {
+      atomic gbUsingUartStreamSendIF = FALSE;
+    }
+    return error;
+  }
+
+
+  async command error_t UartStream.enableReceiveInterrupt() {
+    atomic gbRcvIntEnabled = TRUE;
+    return SUCCESS;
+  }
+
+  async command error_t UartStream.disableReceiveInterrupt() {
+    atomic gbRcvIntEnabled = FALSE;
+    return SUCCESS;
+  }
+
+  async command error_t UartStream.receive( uint8_t* buf, uint16_t len ) {
+    error_t error;
+    atomic gbUsingUartStreamRcvIF = TRUE;
+    error = call HalPXA27xSerialPacket.send(buf,len);
+    if (!error) {
+      atomic gbUsingUartStreamRcvIF = FALSE;
+    }
+    return error;
+  }
+  
+  async command error_t HalPXA27xSerialPacket.send(uint8_t *buf, uint16_t len) {
     uint32_t txAddr;
     uint32_t DMAFlags;
-    error_t error = FAIL;
+    error_t error = SUCCESS;
 
     atomic {
-      txCurrentBuf = buf;
-      lenCurrent = len;
+      if (txCurrentBuf == NULL) {
+	txCurrentBuf = buf;
+	lenCurrent = len;
+      }
+      else {
+	error = FAIL;
+      }
     }
 
+    if (error) 
+      return error;
+    
     DMAFlags = (DCMD_FLOWTRG | DCMD_BURST8 | DCMD_WIDTH1 | DCMD_ENDIRQEN
 		  | DCMD_LEN(len) );
 
@@ -160,23 +219,28 @@ implementation
     
     call TxDMA.setDCSR(DCSR_RUN | DCSR_NODESCFETCH);
     
-    error = SUCCESS;
-    
     return error;
   }
 
 
   async command error_t HalPXA27xSerialPacket.receive(uint8_t *buf, uint16_t len, 
 						      uint16_t timeout) {
-    uint32_t tmp;
     uint32_t rxAddr;
     uint32_t DMAFlags;
-    error_t error = FAIL;
+    error_t error = SUCCESS;
 
     atomic {
-      rxCurrentBuf = buf;
-      lenCurrent = len;
+      if (rxCurrentBuf == NULL) {
+	rxCurrentBuf = buf;
+	lenCurrent = len;
+      }
+      else {
+	error = FAIL;
+      }
     }
+
+    if (error) 
+      return error;
 
     DMAFlags = (DCMD_FLOWSRC | DCMD_BURST8 | DCMD_WIDTH1 | DCMD_ENDIRQEN
 		  | DCMD_LEN(len) );
@@ -194,30 +258,44 @@ implementation
     
     call RxDMA.setDCSR(DCSR_RUN | DCSR_NODESCFETCH);
     
-    error = SUCCESS;
-    
     return error;
 
   }
   
   async event void RxDMA.interruptDMA() {
-    uint8_t *pBuf;
+    uint8_t *pBuf = rxCurrentBuf;
+    uint16_t len = lenCurrent;
     call RxDMA.setDCMD(0);
     call RxDMA.setDCSR(DCSR_EORINT | DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERRINTR);
-    pBuf = signal HalPXA27xSerialPacket.receiveDone(rxCurrentBuf, lenCurrent, SUCCESS);
-    if (pBuf) {
-      call HalPXA27xSerialPacket.receive(pBuf,lenCurrent,0);
+    rxCurrentBuf = NULL;
+    if (gbUsingUartStreamRcvIF) {
+      gbUsingUartStreamRcvIF = FALSE;
+      signal UartStream.receiveDone(pBuf, len, SUCCESS);
+    }
+    else {
+      pBuf = signal HalPXA27xSerialPacket.receiveDone(pBuf, len, SUCCESS);
+      if (pBuf) {
+	call HalPXA27xSerialPacket.receive(pBuf,lenCurrent,0);
+      }
     }
     return;
   }
 
   async event void TxDMA.interruptDMA() {
-    uint8_t *pBuf;
+    uint8_t *pBuf = txCurrentBuf;
+    uint16_t len = lenCurrent;
     call TxDMA.setDCMD(0);
     call TxDMA.setDCSR(DCSR_EORINT | DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERRINTR);
-    pBuf = signal HalPXA27xSerialPacket.sendDone(txCurrentBuf, lenCurrent, SUCCESS);
-    if (pBuf) {
-      call HalPXA27xSerialPacket.send(pBuf,lenCurrent);
+    txCurrentBuf = NULL;
+    if (gbUsingUartStreamSendIF) {
+      gbUsingUartStreamSendIF = FALSE;
+      signal UartStream.sendDone(pBuf, len, SUCCESS);
+    }
+    else {
+      pBuf = signal HalPXA27xSerialPacket.sendDone(pBuf, len, SUCCESS);
+      if (pBuf) {
+	call HalPXA27xSerialPacket.send(pBuf,lenCurrent);
+      }
     }
     return;
   }
@@ -299,11 +377,10 @@ implementation
     case 0: // MODEM STATUS
       break;
     case 1: // TRANSMIT FIFO
-      signal SerialByteComm.putDone();
       break;
     case 2: // RECEIVE FIFO data available
-      while (call UART.getLSR() & LSR_DR) {
-	signal SerialByteComm.get(call UART.getRBR());
+      while (gbRcvIntEnabled && (call UART.getLSR() & LSR_DR)) {
+	signal UartStream.receivedByte(call UART.getRBR());
       }
       break;
     case 3: // ERROR
@@ -315,9 +392,17 @@ implementation
     return;
   }
 
-  default async event void SerialByteComm.get(uint8_t data) { return; }
+  default async event void UartStream.sendDone( uint8_t* buf, uint16_t len, error_t error ) {
+    return; 
+  }
 
-  default async event void SerialByteComm.putDone() { return; }
+  default async event void UartStream.receivedByte(uint8_t data) {
+    return;
+  }
+
+  default async event void UartStream.receiveDone( uint8_t* buf, uint16_t len, error_t error ) {
+    return;
+  }
 
   default async event uint8_t* HalPXA27xSerialPacket.sendDone(uint8_t *buf, 
 							      uint16_t len, 
