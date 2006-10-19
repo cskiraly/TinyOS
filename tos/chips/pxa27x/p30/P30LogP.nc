@@ -101,6 +101,7 @@ implementation {
   uint32_t lastBlock[NUM_VOLS]; // 0-15 for 2 MB
   uint32_t nextFreeRecord[NUM_VOLS]; // 0-X depending on data size
   storage_cookie_t readCookieOffset[NUM_VOLS]; // this is a raw offset
+  bool gbOverwriteOccured = FALSE;
 
   /* This shuffles all the blocks when we run out of space. We have to
    * do it in a special order so crash recovery is possible. We also
@@ -134,6 +135,7 @@ implementation {
       nextFreeRecord[block] = 1;
       lastBlock[block] = firstBlock[block];
       firstBlock[block] = pageCounter;
+      gbOverwriteOccured = TRUE;
     }
   }
 
@@ -267,7 +269,8 @@ implementation {
     switch(m_state) {
     case S_APPEND:
       m_state = S_IDLE;
-      signal Write.appendDone[clientId](clientBuf, clientLen, clientResult);
+      signal Write.appendDone[clientId](clientBuf, clientLen, gbOverwriteOccured, clientResult);
+      gbOverwriteOccured = FALSE;
       break;
     case S_SYNC:
       m_state = S_IDLE;
@@ -572,7 +575,7 @@ implementation {
 
   default event void Read.readDone[ storage_volume_t block ](void* buf, storage_len_t len, error_t error) {}
   default event void Read.seekDone[ storage_volume_t block ](error_t error) {}
-  default event void Write.appendDone[ storage_volume_t block ](void* buf, storage_len_t len, error_t error) {}
+  default event void Write.appendDone[ storage_volume_t block ](void* buf, storage_len_t len, bool recordsLost, error_t error) {}
 
   default event void Write.eraseDone[ storage_volume_t block ](error_t error) {}
   default event void Write.syncDone[ storage_volume_t block ](error_t error) {}
