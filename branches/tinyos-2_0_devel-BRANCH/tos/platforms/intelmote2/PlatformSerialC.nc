@@ -1,4 +1,4 @@
-/* $Id: PlatformSerialC.nc,v 1.1.2.3 2006-07-17 18:24:41 kaisenl Exp $ */
+/* $Id: PlatformSerialC.nc,v 1.1.2.4 2006-10-19 00:49:05 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -37,7 +37,8 @@
 configuration PlatformSerialC {
   provides interface Init;
   provides interface StdControl;
-  provides interface SerialByteComm;
+  provides interface UartByte;
+  provides interface UartStream;
 }
 implementation {
 
@@ -49,7 +50,8 @@ implementation {
   Init = HalPXA27xSerialP;
   Init = IM2InitSerialP;
   StdControl = HalPXA27xSerialP;
-  SerialByteComm = HalPXA27xSerialP;
+  UartByte = HalPXA27xSerialP;
+  UartStream = HalPXA27xSerialP;
   
   HalPXA27xSerialP.UARTInit -> HplPXA27xSTUARTC.Init;
   HalPXA27xSerialP.UART -> HplPXA27xSTUARTC.STUART;
