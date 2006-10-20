@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSerialP.nc,v 1.1.2.6 2006-10-19 00:47:07 philipb Exp $ */
+/* $Id: HalPXA27xSerialP.nc,v 1.1.2.7 2006-10-20 23:19:54 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 
@@ -97,10 +97,11 @@ implementation
 {
 
   uint8_t *txCurrentBuf, *rxCurrentBuf;
-  uint32_t lenCurrent;
+  uint32_t txCurrentLen, rxCurrentLen, rxCurrentIdx;
+  uint32_t gulFCRShadow;
   bool gbUsingUartStreamSendIF = FALSE;
   bool gbUsingUartStreamRcvIF = FALSE;
-  bool gbRcvIntEnabled = FALSE;
+  bool gbRcvByteEvtEnabled = TRUE;
 
   command error_t Init.init() {
     error_t error = SUCCESS;
@@ -110,7 +111,8 @@ implementation
       txCurrentBuf = rxCurrentBuf = NULL;
       gbUsingUartStreamSendIF = FALSE;
       gbUsingUartStreamRcvIF = FALSE;
-      gbRcvIntEnabled = FALSE;
+      gbRcvByteEvtEnabled = TRUE;
+      gulFCRShadow = (FCR_TRFIFOE | FCR_ITL(0)); // FIFO Mode, 1 byte Rx threshold
     }
     call TxDMA.setMap(call UARTTxDMAInfo.getMapIndex());
     call RxDMA.setMap(call UARTRxDMAInfo.getMapIndex());
@@ -118,13 +120,14 @@ implementation
     call RxDMA.setDALGNbit(TRUE);
 
     error = call HalPXA27xSerialCntl.configPort(defaultRate,8,NONE,1,FALSE);
-    atomic {call UART.setFCR(FCR_TRFIFOE);}
+    
+    atomic {call UART.setFCR(gulFCRShadow);}
     return error;
   }
 
   command error_t StdControl.start() {
     atomic {
-      call UART.setIER(IER_RAVIE | IER_TIE | IER_UUE);
+      call UART.setIER(IER_UUE | IER_RAVIE);
     }
     return SUCCESS;
   }
@@ -138,6 +141,7 @@ implementation
 
   async command error_t UartByte.send(uint8_t data) {
     atomic call UART.setTHR(data);
+    while ((call UART.getLSR() & LSR_TEMT) == 0);
     return SUCCESS;
   }
 
@@ -158,7 +162,7 @@ implementation
     error_t error;
     atomic gbUsingUartStreamSendIF = TRUE;
     error = call HalPXA27xSerialPacket.send(buf,len);
-    if (!error) {
+    if (error) {
       atomic gbUsingUartStreamSendIF = FALSE;
     }
     return error;
@@ -166,20 +170,32 @@ implementation
 
 
   async command error_t UartStream.enableReceiveInterrupt() {
-    atomic gbRcvIntEnabled = TRUE;
+    error_t error = SUCCESS;
+    atomic {
+      if (rxCurrentBuf == NULL) {
+	call UART.setIER(call UART.getIER() | IER_RAVIE);
+      }
+      gbRcvByteEvtEnabled = TRUE;
+    }
     return SUCCESS;
   }
 
   async command error_t UartStream.disableReceiveInterrupt() {
-    atomic gbRcvIntEnabled = FALSE;
+    atomic {
+      // Check to make sure a short stream/packet call isn't in progress
+      if ((rxCurrentBuf == NULL) || (rxCurrentLen >= 8)) {
+	call UART.setIER(call UART.getIER() & ~IER_RAVIE);
+      }
+      gbRcvByteEvtEnabled = FALSE;
+    }
     return SUCCESS;
   }
 
   async command error_t UartStream.receive( uint8_t* buf, uint16_t len ) {
     error_t error;
     atomic gbUsingUartStreamRcvIF = TRUE;
-    error = call HalPXA27xSerialPacket.send(buf,len);
-    if (!error) {
+    error = call HalPXA27xSerialPacket.receive(buf,len,0);
+    if (error) {
       atomic gbUsingUartStreamRcvIF = FALSE;
     }
     return error;
@@ -193,7 +209,7 @@ implementation
     atomic {
       if (txCurrentBuf == NULL) {
 	txCurrentBuf = buf;
-	lenCurrent = len;
+	txCurrentLen = len;
       }
       else {
 	error = FAIL;
@@ -203,22 +219,37 @@ implementation
     if (error) 
       return error;
     
-    DMAFlags = (DCMD_FLOWTRG | DCMD_BURST8 | DCMD_WIDTH1 | DCMD_ENDIRQEN
+    if (len < 8) {
+      uint16_t i;
+      // Use PIO. Invariant: FIFO is empty
+      atomic {
+	gulFCRShadow |= FCR_TIL;
+	call UART.setFCR(gulFCRShadow); 
+      }
+      for (i = 0;i < len;i++) {
+	call UART.setTHR(buf[i]);
+      }
+      atomic call UART.setIER(call UART.getIER() | IER_TIE);
+    }
+    else {
+      // Use DMA
+      DMAFlags = (DCMD_FLOWTRG | DCMD_BURST8 | DCMD_WIDTH1 | DCMD_ENDIRQEN
 		  | DCMD_LEN(len) );
+      
+      txAddr = (uint32_t) buf;
+      DMAFlags |= DCMD_INCSRCADDR;
+      
+      call TxDMA.setDCSR(DCSR_NODESCFETCH);
+      call TxDMA.setDSADR(txAddr);
+      call TxDMA.setDTADR(call UARTTxDMAInfo.getAddr());
+      call TxDMA.setDCMD(DMAFlags);
+      
+      atomic {
+	call UART.setIER(call UART.getIER() | IER_DMAE);
+      }
 
-    txAddr = (uint32_t) buf;
-    DMAFlags |= DCMD_INCSRCADDR;
-
-    call TxDMA.setDCSR(DCSR_NODESCFETCH);
-    call TxDMA.setDSADR(txAddr);
-    call TxDMA.setDTADR(call UARTTxDMAInfo.getAddr());
-    call TxDMA.setDCMD(DMAFlags);
-    
-    call UART.setIER(IER_UUE | IER_DMAE);
-    call UART.setFCR(FCR_TRFIFOE | FCR_ITL(1));
-    
-    call TxDMA.setDCSR(DCSR_RUN | DCSR_NODESCFETCH);
-    
+      call TxDMA.setDCSR(DCSR_RUN | DCSR_NODESCFETCH);
+    }
     return error;
   }
 
@@ -232,7 +263,8 @@ implementation
     atomic {
       if (rxCurrentBuf == NULL) {
 	rxCurrentBuf = buf;
-	lenCurrent = len;
+	rxCurrentLen = len;
+	rxCurrentIdx = 0;
       }
       else {
 	error = FAIL;
@@ -242,31 +274,41 @@ implementation
     if (error) 
       return error;
 
-    DMAFlags = (DCMD_FLOWSRC | DCMD_BURST8 | DCMD_WIDTH1 | DCMD_ENDIRQEN
+    if (len < 8) {
+      // Use PIO. Invariant: FIFO is empty
+      atomic {
+	gulFCRShadow = ((gulFCRShadow & ~(FCR_ITL(3))) | FCR_ITL(0));
+	call UART.setFCR(gulFCRShadow); 
+	call UART.setIER(call UART.getIER() | IER_RAVIE);
+      }
+    }
+    else {
+      // Use DMA
+      DMAFlags = (DCMD_FLOWSRC | DCMD_BURST8 | DCMD_WIDTH1 | DCMD_ENDIRQEN
 		  | DCMD_LEN(len) );
+      
+      rxAddr = (uint32_t) buf;
+      DMAFlags |= DCMD_INCTRGADDR;
+      
+      call RxDMA.setDCSR(DCSR_NODESCFETCH);
+      call RxDMA.setDTADR(rxAddr);
+      call RxDMA.setDSADR(call UARTRxDMAInfo.getAddr());
+      call RxDMA.setDCMD(DMAFlags);
 
-    rxAddr = (uint32_t) buf;
-    DMAFlags |= DCMD_INCTRGADDR;
+      atomic {
+	gulFCRShadow = ((gulFCRShadow & ~(FCR_ITL(3))) | FCR_ITL(1));
+	call UART.setFCR(gulFCRShadow); 
+	call UART.setIER((call UART.getIER() & ~IER_RAVIE) | IER_DMAE);
+      }
 
-    call RxDMA.setDCSR(DCSR_NODESCFETCH);
-    call RxDMA.setDTADR(rxAddr);
-    call RxDMA.setDSADR(call UARTRxDMAInfo.getAddr());
-    call RxDMA.setDCMD(DMAFlags);
-    
-    call UART.setIER(IER_UUE | IER_DMAE);
-    call UART.setFCR(FCR_TRFIFOE | FCR_ITL(1));
-    
-    call RxDMA.setDCSR(DCSR_RUN | DCSR_NODESCFETCH);
-    
+      call RxDMA.setDCSR(DCSR_RUN | DCSR_NODESCFETCH);
+    }
     return error;
-
   }
   
-  async event void RxDMA.interruptDMA() {
+  void DispatchStreamRcvSignal() {
     uint8_t *pBuf = rxCurrentBuf;
-    uint16_t len = lenCurrent;
-    call RxDMA.setDCMD(0);
-    call RxDMA.setDCSR(DCSR_EORINT | DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERRINTR);
+    uint16_t len = rxCurrentLen;
     rxCurrentBuf = NULL;
     if (gbUsingUartStreamRcvIF) {
       gbUsingUartStreamRcvIF = FALSE;
@@ -275,17 +317,15 @@ implementation
     else {
       pBuf = signal HalPXA27xSerialPacket.receiveDone(pBuf, len, SUCCESS);
       if (pBuf) {
-	call HalPXA27xSerialPacket.receive(pBuf,lenCurrent,0);
+	call HalPXA27xSerialPacket.receive(pBuf,len,0);
       }
     }
     return;
   }
 
-  async event void TxDMA.interruptDMA() {
+  void DispatchStreamSendSignal() {
     uint8_t *pBuf = txCurrentBuf;
-    uint16_t len = lenCurrent;
-    call TxDMA.setDCMD(0);
-    call TxDMA.setDCSR(DCSR_EORINT | DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERRINTR);
+    uint16_t len = txCurrentLen;
     txCurrentBuf = NULL;
     if (gbUsingUartStreamSendIF) {
       gbUsingUartStreamSendIF = FALSE;
@@ -294,9 +334,25 @@ implementation
     else {
       pBuf = signal HalPXA27xSerialPacket.sendDone(pBuf, len, SUCCESS);
       if (pBuf) {
-	call HalPXA27xSerialPacket.send(pBuf,lenCurrent);
+	call HalPXA27xSerialPacket.send(pBuf,len);
       }
     }
+    return;
+  }
+
+  async event void RxDMA.interruptDMA() {
+    call RxDMA.setDCMD(0);
+    call RxDMA.setDCSR(DCSR_EORINT | DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERRINTR);
+    DispatchStreamRcvSignal();
+    if (gbRcvByteEvtEnabled) 
+      call UART.setIER(call UART.getIER() | IER_RAVIE);
+    return;
+  }
+
+  async event void TxDMA.interruptDMA() {
+    call TxDMA.setDCMD(0);
+    call TxDMA.setDCSR(DCSR_EORINT | DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERRINTR);
+    DispatchStreamSendSignal();
     return;
   }
 
@@ -360,7 +416,7 @@ implementation
   async command error_t HalPXA27xSerialCntl.flushPort() {
 
     atomic {
-      call UART.setFCR(FCR_RESETTF | FCR_RESETRF);
+      call UART.setFCR(gulFCRShadow | FCR_RESETTF | FCR_RESETRF);
     }
 
     return SUCCESS;
@@ -368,7 +424,8 @@ implementation
   
   async event void UART.interruptUART() {
     uint8_t error, intSource;
-    
+    uint8_t ucByte;
+
     intSource = call UART.getIIR();
     intSource &= IIR_IID_MASK;
     intSource = intSource >> 1;
@@ -377,10 +434,22 @@ implementation
     case 0: // MODEM STATUS
       break;
     case 1: // TRANSMIT FIFO
+      call UART.setIER(call UART.getIER() & ~IER_TIE);
+      DispatchStreamSendSignal();
       break;
     case 2: // RECEIVE FIFO data available
-      while (gbRcvIntEnabled && (call UART.getLSR() & LSR_DR)) {
-	signal UartStream.receivedByte(call UART.getRBR());
+      while (call UART.getLSR() & LSR_DR) {
+	ucByte = call UART.getRBR();
+
+	if (rxCurrentBuf != NULL) {
+	  rxCurrentBuf[rxCurrentIdx] = ucByte;
+	  rxCurrentIdx++;
+	  if (rxCurrentIdx >= rxCurrentLen) 
+	    DispatchStreamRcvSignal();
+	}
+	else if (gbRcvByteEvtEnabled) {
+	  signal UartStream.receivedByte(ucByte);
+	}
       }
       break;
     case 3: // ERROR
