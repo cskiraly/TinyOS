@@ -5,15 +5,9 @@ Permanent Data Storage (Flash)
 :TEP: 103
 :Group: Core Working Group
 :Type: Documentary
-:Status: Draft
+:Status: Final
 :TinyOS-Version: 2.x
 :Author: David Gay, Jonathan Hui
-
-:Draft-Created: 27-Sep-2004
-:Draft-Version: $Revision: 1.1.2.15 $
-:Draft-Modified: $Date: 2006-10-18 20:17:54 $
-:Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
-
 
 .. Note::
 
@@ -32,7 +26,7 @@ HAL layers of various flash chips.
 1. Introduction
 ====================================================================
 
-Flash chips are a form of EEPROM (electrically-eraseable, programmable
+Flash chips are a form of EEPROM (electrically-erasable, programmable
 read-only memory), distinguished by a fast erase capability. However,
 erases can only be done in large units (from 256B to 128kB depending on the
 flash chip). Erases are the only way to switch bits from 0 to 1, and
