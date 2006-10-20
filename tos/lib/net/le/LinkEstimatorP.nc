@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.4 2006-10-16 02:28:22 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.5 2006-10-20 03:02:13 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -260,36 +260,6 @@ implementation {
     }
   }
 
-  // we received seq from the neighbor in idx
-  // update the last seen seq, receive and fail count
-  // refresh the age
-  void updateNeighborEntryIdx(uint8_t idx, uint8_t seq) {
-    uint8_t packetGap;
-
-    if (NeighborTable[idx].flags & INIT_ENTRY) {
-      dbg("LI", "Init entry update\n");
-      NeighborTable[idx].lastseq = seq;
-      NeighborTable[idx].flags &= ~INIT_ENTRY;
-    }
-    
-    packetGap = seq - NeighborTable[idx].lastseq;
-    dbg("LI", "updateNeighborEntryIdx: prevseq %d, curseq %d, gap %d\n",
-	NeighborTable[idx].lastseq, seq, packetGap);
-    NeighborTable[idx].lastseq = seq;
-    NeighborTable[idx].rcvcnt++;
-    NeighborTable[idx].inage = MAX_AGE;
-    if (packetGap > 0) {
-      NeighborTable[idx].failcnt += packetGap - 1;
-    }
-    if (packetGap > MAX_PKT_GAP) {
-      NeighborTable[idx].failcnt = 0;
-      NeighborTable[idx].rcvcnt = 1;
-      NeighborTable[idx].outage = 0;
-      NeighborTable[idx].outquality = 0;
-      NeighborTable[idx].inquality = 0;
-    }
-  }
-
   // update the EETX estimator
   // called when new beacon estimate is done
   // also called when new DEETX estimate is done
@@ -350,7 +320,7 @@ implementation {
 
   // update the inbound link quality by
   // munging receive, fail count since last update
-  void updateNeighborTableEst() {
+  void updateNeighborTableEst(am_addr_t n) {
     uint8_t i, totalPkt;
     neighbor_table_entry_t *ne;
     uint8_t newEst;
@@ -361,40 +331,80 @@ implementation {
     dbg("LI", "%s\n", __FUNCTION__);
     for (i = 0; i < NEIGHBOR_TABLE_SIZE; i++) {
       ne = &NeighborTable[i];
-      if (ne->flags & VALID_ENTRY) {
-	if (ne->inage > 0)
-	  ne->inage--;
-	if (ne->outage > 0)
-	  ne->outage--;
-
-	if ((ne->inage == 0) && (ne->outage == 0)) {
-	  ne->flags ^= VALID_ENTRY;
-	  ne->inquality = ne->outquality = 0;
-	} else {
-	  dbg("LI", "Making link: %d mature\n", i);
-	  ne->flags |= MATURE_ENTRY;
-	  totalPkt = ne->rcvcnt + ne->failcnt;
-	  dbg("LI", "MinPkt: %d, totalPkt: %d\n", minPkt, totalPkt);
-	  if (totalPkt < minPkt) {
-	    totalPkt = minPkt;
-	  }
-	  if (totalPkt == 0) {
-	    ne->inquality = (ALPHA * ne->inquality) / 10;
+      if (ne->ll_addr == n) {
+	if (ne->flags & VALID_ENTRY) {
+	  if (ne->inage > 0)
+	    ne->inage--;
+	  if (ne->outage > 0)
+	    ne->outage--;
+	  
+	  if ((ne->inage == 0) && (ne->outage == 0)) {
+	    ne->flags ^= VALID_ENTRY;
+	    ne->inquality = ne->outquality = 0;
 	  } else {
-	    newEst = (255 * ne->rcvcnt) / totalPkt;
-	    dbg("LI,LITest", "  %hu: %hhu -> %hhu", ne->ll_addr, ne->inquality, (ALPHA * ne->inquality + (10-ALPHA) * newEst)/10);
-	    ne->inquality = (ALPHA * ne->inquality + (10-ALPHA) * newEst)/10;
+	    dbg("LI", "Making link: %d mature\n", i);
+	    ne->flags |= MATURE_ENTRY;
+	    totalPkt = ne->rcvcnt + ne->failcnt;
+	    dbg("LI", "MinPkt: %d, totalPkt: %d\n", minPkt, totalPkt);
+	    if (totalPkt < minPkt) {
+	      totalPkt = minPkt;
+	    }
+	    if (totalPkt == 0) {
+	      ne->inquality = (ALPHA * ne->inquality) / 10;
+	    } else {
+	      newEst = (255 * ne->rcvcnt) / totalPkt;
+	      dbg("LI,LITest", "  %hu: %hhu -> %hhu", ne->ll_addr, ne->inquality, (ALPHA * ne->inquality + (10-ALPHA) * newEst)/10);
+	      ne->inquality = (ALPHA * ne->inquality + (10-ALPHA) * newEst)/10;
+	    }
+	    ne->rcvcnt = 0;
+	    ne->failcnt = 0;
 	  }
-	  ne->rcvcnt = 0;
-	  ne->failcnt = 0;
+	  updateEETX(ne, computeBidirEETX(ne->inquality, ne->outquality));
 	}
-	updateEETX(ne, computeBidirEETX(ne->inquality, ne->outquality));
-      }
-      else {
-	dbg("LI", " - entry %i is invalid.\n", (int)i);
+	else {
+	  dbg("LI", " - entry %i is invalid.\n", (int)i);
+	}
       }
     }
   }
+
+
+  // we received seq from the neighbor in idx
+  // update the last seen seq, receive and fail count
+  // refresh the age
+  void updateNeighborEntryIdx(uint8_t idx, uint8_t seq) {
+    uint8_t packetGap;
+
+    if (NeighborTable[idx].flags & INIT_ENTRY) {
+      dbg("LI", "Init entry update\n");
+      NeighborTable[idx].lastseq = seq;
+      NeighborTable[idx].flags &= ~INIT_ENTRY;
+    }
+    
+    packetGap = seq - NeighborTable[idx].lastseq;
+    dbg("LI", "updateNeighborEntryIdx: prevseq %d, curseq %d, gap %d\n",
+	NeighborTable[idx].lastseq, seq, packetGap);
+    NeighborTable[idx].lastseq = seq;
+    NeighborTable[idx].rcvcnt++;
+    NeighborTable[idx].inage = MAX_AGE;
+    if (packetGap > 0) {
+      NeighborTable[idx].failcnt += packetGap - 1;
+    }
+    if (packetGap > MAX_PKT_GAP) {
+      NeighborTable[idx].failcnt = 0;
+      NeighborTable[idx].rcvcnt = 1;
+      NeighborTable[idx].outage = 0;
+      NeighborTable[idx].outquality = 0;
+      NeighborTable[idx].inquality = 0;
+    }
+
+    if (NeighborTable[idx].rcvcnt >= BLQ_PKT_WINDOW) {
+      updateNeighborTableEst(NeighborTable[idx].ll_addr);
+    }
+
+  }
+
+
 
   // print the neighbor table. for debugging.
   void print_neighbor_table() {
@@ -480,7 +490,7 @@ implementation {
     if (curEstInterval == 0) {
       dbg("LI", "updating neighbor table\n");
       print_neighbor_table();
-      updateNeighborTableEst();
+      updateNeighborTableEst(0);
       print_neighbor_table();
     }
 
@@ -684,10 +694,10 @@ implementation {
 
     // update the beacon-driven link quality estimators if we have
     // received BLQ_PKT_WINDOW number of beacons
-    curEstInterval = (curEstInterval + 1) % BLQ_PKT_WINDOW;
-    if (curEstInterval == 0) {
-      updateNeighborTableEst();
-    }
+    //    curEstInterval = (curEstInterval + 1) % BLQ_PKT_WINDOW;
+    //    if (curEstInterval == 0) {
+    //      updateNeighborTableEst();
+    //    }
 
     if (call SubAMPacket.destination(msg) == AM_BROADCAST_ADDR) {
       linkest_header_t* hdr = getHeader(msg);
