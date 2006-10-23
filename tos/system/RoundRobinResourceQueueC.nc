@@ -23,8 +23,8 @@
 /**
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.2 $
- * @date $Date: 2006-08-23 14:55:47 $
+ * @version $Revision: 1.1.2.3 $
+ * @date $Date: 2006-10-23 05:45:49 $
  */
  
 #include "Resource.h"
@@ -69,13 +69,13 @@ implementation {
       for (i = last+1; ; i++) {
         if(i == size)
           i = 0;
-        if (i == last)
-          break;
         if (call RoundRobinQueue.isEnqueued(i)) {
           clearEntry(i);
           last = i;
           return i;
         }
+        if (i == last)
+          break;
       }
       return NO_ENTRY;
     }
