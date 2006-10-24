@@ -26,7 +26,6 @@ push( @includes, qw(
   %T/lib/serial
   %T/lib/adc
   %T/lib/power
-  %T/lib/printf
 ) );
 
 @opts = qw(
