@@ -2,27 +2,49 @@
 <!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-  <title>TinyOS Tutorial Lesson 8: Concurrency in TinyOS</title>
+  <title>TinyOS Tutorial Lesson 8: Resource Arbitration an Power Management</title>
   <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 
-<div class="title">Lesson 2: </div>
-<div class="subtitle">Last updated 29 January 2006</div>
+<div class="title">Lesson 8: Resource Management </div>
+<div class="subtitle">Last updated 25 October 2006</div>
 
-<p>Commands and events that are executed as part
-of a hardware event handler must be declared with the <b>async</b>
-keyword (more about the async keyword in Lesson 8). </p>
+<h1>Introduction</h1>
+<p>What is a resource?  How can access to these resources be shared? How can the power states of these resources be managed? Most TinyOS device drivers include a power manager that is capable of automatically powering them on and off whenever needed.  Application developers need to know how to use resources that provide the Resource interface, powering them on and off as appropriate through the AsyncStd/Std/SplitControl interfaces in the absence of a default power manaager.  Device driver developers need to know how to properly use the arbiter and default power manager components to modularize their designs and provide the proper interfaces correctly, i.e. Separate Configure components that provide the ResourceConfigure interface, cross component configuration, wiring of default power managers</p>
 
-<p>Because tasks and hardware event handlers may be preempted by other
-asynchronous code, nesC programs are susceptible to certain race
-conditions. Races are avoided either by accessing shared data
-exclusively  within tasks, or by having all accesses within <b>atomic</b>
-statements. The nesC compiler reports potential <b>data races</b> to the
-programmer at compile-time. It is possible the compiler may report a
-false positive. In this case a variable can be declared with the <b>norace</b>
-keyword. The norace keyword should be used with extreme caution. </p>
+<h2>Arbiters</h2>
+<h2>Power Managers</h2>
 
-<p>Please see the <a href="../../doc/nesc/ref.pdf">nesC Language
-Reference Manual</a> for more information on programming in nesC. <br>
-&nbsp;
+<h1>Using a Resource</h1>
+<h1>Powering a Resource</h1>
+<h1>Providing Resource Sharing Capabilities</h1>
+<h1>Enabling Automatic Power Management of Peripheral Devices</h1>
+
+<h1>Conclusion</h1>
+
+<!-- Related Docs -->
+<p>
+<a name=#related_docs>
+<h1>Related Documentation</h1>
+</a>
+<ul>
+<li> <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">TinyOS Programming Guide 			<i>Sections 6.2 and 7.4</i></a>
+<li> <a href="../tep108.html">TEP 108: Resource Arbitration</a>
+<li> <a href="../tep112.html">TEP 112: Microcontroller Power Management</a>
+<li> <a href="../tep115.html">TEP 115: Power Management of Non-Virtualized Devices</a>
+</ul>
+
+<p>
+<hr>
+
+<!-- Begin footer -->
+<br>
+<hr>
+<center>
+<p>&lt;&nbsp;<b><a href="lesson7.html">Previous Lesson</a></b> |&nbsp; <b><a
+ href="index.html">Top</a></b> &nbsp;|&nbsp; <b><a href="lesson9.html">Next Lesson </a>&nbsp;&gt;</b>
+</center>
+
+</body>
+</html>
