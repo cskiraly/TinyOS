@@ -1,4 +1,5 @@
 COMPONENT=TestPrintfAppC
+CFLAGS += -I$(TOSDIR)/lib/printf
 
 BUILD_EXTRA_DEPS += PrintfMsg.class PrintfClient.class
 
