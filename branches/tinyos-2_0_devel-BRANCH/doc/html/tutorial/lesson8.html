@@ -2,12 +2,12 @@
 <!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-  <title>TinyOS Tutorial Lesson 8: Resource Arbitration an Power Management</title>
+  <title>TinyOS Tutorial Lesson 8: Resource Arbitration and Power Management </title>
   <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 
-<div class="title">Lesson 8: Resource Management </div>
+<div class="title">Lesson 8: Resource Arbitration and Power Management </div>
 <div class="subtitle">Last updated 25 October 2006</div>
 
 <h1>Introduction</h1>
@@ -16,10 +16,188 @@
 <h2>Arbiters</h2>
 <h2>Power Managers</h2>
 
-<h1>Using a Resource</h1>
-<h1>Powering a Resource</h1>
-<h1>Providing Resource Sharing Capabilities</h1>
-<h1>Enabling Automatic Power Management of Peripheral Devices</h1>
+<center>
+<img src="img/arbiter_pm_graph.png",
+     alt="This is a picture of how an arbiter and power manager work together", 
+     height=350,
+     center
+></img>
+</center>
+
+<h1>Using a Shared Resource</h1>
+<p>This section shows you how to gain access to and use shared resources in TinyOS.  It walks through the process of making a request through the <code>Resource</code> interface and handling the granted event that gets returned.  We will connect multiple clients to each of two different types of shared resources and see how access to each of them is arbitrated differently.  We will also demonstrate how power management of these resources can be handled automatically, so that explicitly powering them on and off is not required by the user.</p>
+
+<p>Let's first go ahead and install a basic application that uses a shared resource and observe what it is doing.  Go to the <tt>apps/tests/TestSharedResource</tt> directory and install this application on your mote.  After installing the application you should see three leds flashing in sequence.</p> 
+
+<p>Now take a look at the top level application component: <code>TestSharedResourceAppC</code>.</p>
+
+<pre>
+configuration TestSharedResourceAppC{
+}
+implementation {
+  components MainC,LedsC, TestSharedResourceC as App,
+  new TimerMilliC() as Timer0,
+  new TimerMilliC() as Timer1,
+  new TimerMilliC() as Timer2;
+  App -> MainC.Boot;
+  App.Leds -> LedsC;
+  App.Timer0 -> Timer0;
+  App.Timer1 -> Timer1;
+  App.Timer2 -> Timer2;
+  
+  components
+  new SharedResourceC() as Resource0,
+  new SharedResourceC() as Resource1, 
+  new SharedResourceC() as Resource2;
+  App.Resource0 -> Resource0;
+  App.Resource1 -> Resource1;
+  App.Resource2 -> Resource2;
+  App.ResourceOperations0 -> Resource0;
+  App.ResourceOperations1 -> Resource1;
+  App.ResourceOperations2 -> Resource2;
+}
+</pre>
+
+<p>Other than the instantiation and wiring of the interfaces provided by the <code>SharedResourceC</code> component, this configuration is identical to the one presented in Lesson 1 for <code>BlinkAppC</code>.</p>  
+
+<p>All shared resources in TinyOS are provided through a generic component similar to the <code>SharedResourceC</code> component used in this applicaiton.  Each resource client simply instantiates a new instance of it and wires to the interfaces it provides.  In this application, three instances of the <code>SharedResourceC</code> component are instantiated for each of the three cleints present in the <code>TestSharedResourceC</code> component.  The <code>SharedResourceC</code> component implements shared access to a hypothetical resource providing both the standard <code>Resource</code> interface for gaining acces to it and the <code>ResourceOperations</code> interface for performing resource specific operations on it.</p>
+
+<p>Examining <code>TestSharedResourceC</code> we see each of the interfaces that it uses and why three different instances of <code>SharedResourceC</code> were required in the <code>TestSharedResourceAppC</code> configuration.</p>
+
+<pre>
+module TestSharedResourceC {
+  uses {
+    interface Boot;  
+    interface Leds;
+    interface Timer<TMilli> as Timer0;
+    interface Timer<TMilli> as Timer1;
+    interface Timer<TMilli> as Timer2;
+    
+    interface Resource as Resource0;
+    interface ResourceOperations as ResourceOperations0;
+    
+    interface Resource as Resource1;
+    interface ResourceOperations as ResourceOperations1;
+    
+    interface Resource as Resource2;
+    interface ResourceOperations as ResourceOperations2;
+  }
+}
+</pre>
+
+<p>Each pair of <code>Resource/ResourceOperations</code> interfaces reperesents a different client of the shared resource used by this application.  At boot time, we put in a request for the shared resource through each of these clients in the order (0,2,1).</p>
+
+<pre>
+event void Boot.booted() {
+  call Resource0.request();
+  call Resource2.request();
+  call Resource1.request();
+}
+</pre>
+
+<p>Each of these requests is serviced in the order of the arbitration policy used by the shared resource.  In the case of <code>SharedResourceC</code>, a Round-Robin policy is used, so these requests are serviced in the order (0,1,2).  If a first-come-first-serve policy were in use, they we be serviced in the order the were put in, i.e. (0,2,1).</p>
+
+<p>Whenever a request for a resource has been granted, the <code>Resource.granted()</code> event is signaled to the resource cleint.  In this application, the body of the granted event for each client simply performs an operation on the resource as provided through the <code>ResourceOperations</code> interface.</p>
+
+<pre>
+event void Resource0.granted() {
+  call ResourceOperations0.operation();   
+}  
+event void Resource1.granted() {
+  call ResourceOperations1.operation();
+}  
+event void Resource2.granted() {
+  call ResourceOperations2.operation();
+} 
+</pre>
+
+<p>Whenever one of these operations completes a <code>ResourceOperations.operationDone()</code> event is signaled.  Once this event is received by each client, a timer is started to hold onto the resource for 250 ms and an LED corresponding to that client is toggled.</p>
+
+<pre>
+#define HOLD_PERIOD 250
+
+event void ResourceOperations0.operationDone(error_t error) {
+  call Timer0.startOneShot(HOLD_PERIOD);  
+  call Leds.led0Toggle();
+}
+event void ResourceOperations1.operationDone(error_t error) {
+  call Timer1.startOneShot(HOLD_PERIOD);  
+  call Leds.led1Toggle();
+}
+event void ResourceOperations2.operationDone(error_t error) {
+  call Timer2.startOneShot(HOLD_PERIOD);  
+  call Leds.led2Toggle();
+}
+</pre> 
+
+<p>Whenever one of these timers goes off, the client that started it releases the shared resource and immediately puts in a request for it again.</p>
+
+<pre>
+event void Timer0.fired() {
+  call Resource0.release();
+  call Resource0.request();
+}
+event void Timer1.fired() {
+  call Resource1.release();
+  call Resource1.request();
+}
+event void Timer2.fired() {
+  call Resource2.release();
+  call Resource2.request();
+}
+</pre>
+
+<p>In this way, requests are continuously put in by each client, allowing the application to continuously flash the LEDs in the order the requests are being serviced.  As stated before, the <code>SharedResourceC</code> component services these requests in a round-robin fashion.  If you would like to see the requests serviced in the order they are received (and see the LEDs flash accordingly), you can open up the <code>SharedResourceP</code> component in the <tt>apps/tests/TestSharedResource</tt> directory (wired to by <code>SharedResourceC</code>) and replace the <code>RoundRobinArbiter</code> component with the <code>FcfsArbiter</code> component.</p>
+
+<table>
+ <tr><td><b>RoundRobinArbiter</b></td><td width=10></td><td><b>FcfsArbiter</b></td></tr>
+ <tr><td>
+<pre>
+configuration SharedResourceP {
+	provides interface Resource[uint8_t id];
+	provides interface ResourceRequested[uint8_t id];
+	provides interface ResourceOperations[uint8_t id];
+	uses interface ResourceConfigure[uint8_t id];
+}
+implementation {
+  components new RoundRobinArbiterC(TEST_SHARED_RESOURCE) as Arbiter;
+  ...
+  ...
+}
+</pre>
+</td>
+<td></td>
+<td>
+<pre>
+configuration SharedResourceP {
+	provides interface Resource[uint8_t id];
+	provides interface ResourceRequested[uint8_t id];
+	provides interface ResourceOperations[uint8_t id];
+	uses interface ResourceConfigure[uint8_t id];
+}
+implementation {
+  components new FcfsArbiterC(TEST_SHARED_RESOURCE) as Arbiter;
+  ...
+  ...
+}
+</pre>
+</td>
+</tr>
+</table>
+</center>
+</table>
+
+<p>Looking through the rest of this component, you can see </p>
+
+<h1>Creating a Shared Resource</h1>
+
+<center>
+<img src="img/shared_resource_graph.png",
+     alt="This is a picture of how an shared resource works with an arbiter and a power manager", 
+     width=800,
+     center
+></img>
+</center>
 
 <h1>Conclusion</h1>
 
@@ -29,7 +207,8 @@
 <h1>Related Documentation</h1>
 </a>
 <ul>
-<li> <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">TinyOS Programming Guide 			<i>Sections 6.2 and 7.4</i></a>
+<li> <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">TinyOS Programming Guide 			
+	<i>Sections 6.2 and 7.4</i></a>
 <li> <a href="../tep108.html">TEP 108: Resource Arbitration</a>
 <li> <a href="../tep112.html">TEP 112: Microcontroller Power Management</a>
 <li> <a href="../tep115.html">TEP 115: Power Management of Non-Virtualized Devices</a>
