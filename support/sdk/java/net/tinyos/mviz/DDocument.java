@@ -321,11 +321,11 @@ public class DDocument
     }
 
     public void setMoteValue(int moteID, String name, int value) {
-		
+	System.out.println("Set " + moteID + ":" + name + " to " + value);
     }
 	
     public void setLinkValue(int startMote, int endMote, String name, int value) {
-		
+	System.out.println("Set " + startMote + "->" + endMote + ":" + name + " to " + value);
     }
 
     // Assumes links are defined by a structure with two fields:

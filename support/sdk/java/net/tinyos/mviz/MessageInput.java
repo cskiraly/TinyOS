@@ -92,8 +92,8 @@ public class MessageInput implements net.tinyos.message.MessageListener {
    
     public void messageReceived(int to, Message message) {
 	Hashtable<String,Integer> table = new Hashtable<String,Integer>();
-	System.out.println("Received message:");
-	System.out.println(message);
+	//System.out.println("Received message:");
+	//System.out.println(message);
 
 	Class pktClass = message.getClass();
 	Method[] methods = pktClass.getMethods();
