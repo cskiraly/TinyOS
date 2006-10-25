@@ -34,7 +34,7 @@
  * radiation sensor available on the telosb platform. 
  *
  * @author Gilman Tolle <gtolle@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-06-20 18:56:07 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-10-25 16:09:39 $
  */
 
 generic configuration HamamatsuS1087ParC() {
@@ -49,6 +49,6 @@ implementation {
   ReadStream = AdcReadStreamClientC;
 
   components HamamatsuS1087ParP;
-  AdcReadClientC.Msp430Adc12Config -> HamamatsuS1087ParP;
-  AdcReadStreamClientC.Msp430Adc12Config -> HamamatsuS1087ParP;
+  AdcReadClientC.AdcConfigure -> HamamatsuS1087ParP;
+  AdcReadStreamClientC.AdcConfigure -> HamamatsuS1087ParP;
 }
