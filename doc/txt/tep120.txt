@@ -9,8 +9,8 @@ TinyOS Alliance Structure
 :TinyOS-Version: All
 :Authors: Philippe Bonnet, David Culler, Deborah Estrin, Ramesh Govindan, Mike Horton, Jeonghoon Kang, Philip Levis, Lama Nachman, Jack Stankovic, Rob Szewczyk, Matt Welsh, Adam Wolisz 
 :Draft-Created: 17-April-2006
-:Draft-Version: $Revision: 1.1.2.4 $
-:Draft-Modified: $Date: 2006-09-15 23:42:56 $
+:Draft-Version: $Revision: 1.1.2.5 $
+:Draft-Modified: $Date: 2006-10-25 00:42:43 $
 :Draft-Discuss: TinyOS Alliance <tinyos-alliance at mail.millennium.berkeley.edu>
 
 
@@ -598,20 +598,6 @@ it depends on broad collaboration and participation, placing a minimalist
 set of expectations that will encourage the exchange of ideas and
 technology.
 
-Beyond the Berkeley + Others
-It is a balancing act
-Stability vs Innovation
-Broad Participation vs Strong Requirements
-Uniform Licensing vs Institutional Differences
-Goal is to help to community to work together
-Not a forum for maneuvering and intrigue
-Focus on consensus building and technical soundness
-Minimal mechanism to resolve rare differences
-Focus on working groups and individual contributions
-with architectural and organization oversight
-Be pragmatic on participation
-Dont have to make deep commitments to participate
-Cant expect broad guarantees in return
 
 12. Author's Address
 ====================================================================
