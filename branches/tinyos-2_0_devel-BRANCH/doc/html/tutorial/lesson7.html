@@ -1,0 +1,221 @@
+<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+  <title>Lesson 7: Permanent Data Storage</title>
+  <link href="../../stylesheets/tutorial.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<div class="title">Lesson 7: Permanent Data Storage</div>
+<div class="subtitle">Last Modified: October 24 2006</div>
+
+<p>This lesson introduces permanent (non-volatile) data storage in
+TinyOS.  Permanent storage allows a node to persist data even if power
+is disconnected or the node is reprogrammed with a new image.  You
+will become familar with different kinds of data storage including
+small objects, logs, and large objects.  You will be exposed to the
+TinyOS interfaces and components that support permanent data storage
+on motes and you will learn how to:
+
+<p>
+
+<ul>
+
+<li>Divide the flash chip into volumes, which allows multiple and/or
+different type of data to be stored.
+
+<li>Store configuration data that survives a power cycle.
+
+<li>Log sensor readings and radio data packets to flash.
+
+<li>Store large objects in non-volatile flash.
+
+</ul>
+
+
+<h1>Introduction</h1>
+
+TinyOS 2.x provides three basic storage abstractions: small objects,
+circular logs, and large objects.  TinyOS 2.x also provides
+<i>interfaces</i> to abstract the underlying storage services and
+<i>components</i> that <i>provide</i> (implement) these interfaces.
+
+<h2>Interfaces</h2>
+
+Let's take a look at some of the interfaces that are in the
+<code>tos/interfaces</code> directory to familiarize ourselves with
+the general functionality of the storage system:
+
+
+<p>
+<ul>
+
+<li><code>
+<a href="../../../tos/interfaces/BlockRead.nc">BlockRead</a></code> 
+
+<li><code>
+<a href="../../../tos/interfaces/BlockWrite.nc">BlockWrite</a></code>
+
+<li><code>
+<a href="../../../tos/interfaces/Mount.nc">Mount</a></code>
+
+<li><code>
+<a href="../../../tos/interfaces/ConfigStorage.nc">ConfigStorage</a></code>
+
+<li><code>
+<a href="../../../tos/interfaces/LogRead.nc">LogRead</a></code>
+
+<li><code>
+<a href="../../../tos/interfaces/LogWrite.nc">LogWrite</a></code>
+
+
+</ul>
+
+<h2>Components</h2>
+
+<p>Components provide concrete implementations of the interfaces.  You
+should be familiar with these components because your code needs to
+specify both the <i>interfaces</i> your application
+<i>uses</i> as well as the <i>components</i> which <i>provide</i>
+(implement) these interfaces:
+
+<p>
+<ul>
+
+<li><code><a href="../../../tos/chips/stm25p/ConfigStorageC.nc">ConfigStorageC</a></code>
+
+<li><code><a href="../../../tos/chips/stm25p/LogStorageC.nc">LogStorageC</a></code>
+
+<li><code><a href="../../../tos/chips/stm25p/BlockStorageC.nc">BlockStorageC</a></code>
+
+</ul>
+
+<p>
+
+<h2>Naming Wrappers</h2>
+
+<p>The preceding components are actually <em>naming wrappers</em>.
+Since TinyOS supports multiple platforms, each of which might have its
+own implementation of the storage drivers, platform-specific naming
+wrappers are used to bridge the general storage interfaces to their
+underlying, platform-specific implementations.
+
+<p>For example, the preceding links are all specific to the ST
+Microelectronics M25Pxx family of flash memories used in the Telos and
+Tmote Sky motes.  You <em>do not</em> need to worry about the details
+of where these files reside because TinyOS's make system includes the
+correct drivers automatically.  However, you <em>do</em> need to know
+what these components are called because your code must list them in a
+<code>components</code> declaration.
+
+<p>If you are curious, the following links will let you browse the
+naming wrappers for the Atmel AT45DB family of flash memories used in
+the Mica2/MicaZ motes:
+
+<p>
+<ul>
+
+<li><code><a href="../../../tos/chips/at45db/ConfigStorageC.nc">ConfigStorageC</a></code>
+
+<li><code><a href="../../../tos/chips/at45db/LogStorageC.nc">LogStorageC</a></code>
+
+<li><code><a href="../../../tos/chips/at45db/BlockStorageC.nc">BlockStorageC</a></code>
+
+</ul>
+
+<p>Finally, the following links will let you browse the naming
+wrappers for the Intel imote2 flash memory:
+
+<p>
+<ul>
+
+<li><code><a href="../../../tos/platforms/intelmote2/ConfigStorageC.nc">ConfigStorageC</a></code>
+
+<li><code><a href="../../../tos/platforms/intelmote2/LogStorageC.nc">LogStorageC</a></code>
+
+<li><code><a href="../../../tos/platforms/intelmote2/BlockStorageC.nc">BlockStorageC</a></code>
+
+</ul>
+
+
+<h1>Volumes</h1>
+
+<p>TinyOS 2.x divides a flash chip into one or more fixed-sized
+<em>volume</em>s that are specified at compile-time using an XML file.
+This file, called the volume table, allows the application developer
+to specify the name, size, and (optionally) the base address of each
+volume in the flash.  Each volume provides a single type of storage
+abstraction (e.g. configuration, log, or block storage).  The
+abstraction type defines the physical layout of data on the flash
+memory.  A volume table might look like:
+
+<pre>
+&lt;volume_table&gt;
+  &lt;volume name="CONFIGLOG" size="65536"/&gt;
+  &lt;volume name="PACKETLOG" size="65536"/&gt;
+  &lt;volume name="SENSORLOG" size="131072"/&gt;
+  &lt;volume name="CAMERALOG" size="524288"/&gt;
+&lt;/volume_table&gt;
+</pre>
+
+
+<p>RESTRICTIONS ON SIZE PARAMETER???</p>
+
+<p>The volume table for a particular application must be placed in the
+application's directory (where one types 'make') and must be named
+<code>volumes-CHIPNAME.xml</code> where CHIPNAME is replaced with the
+platform-specific flash chip's name.  For example, the Telos mote uses
+the ST Microelectronics M25P family of flash memories.  The drivers
+for these chips can be found in the <code>tos/chips/stm25p</code>
+directory.  Therefore, a Telos-based application that uses the storage
+abstractions needs a file named <code>volumes-stm25p.xml</code>.
+
+<p>See Section 4.1 in <a href="#fn1">TEP 103</a> for more details.
+
+<h1>Storing Configuration Data</h1>
+
+<p>Recall that in Lesson 3, we implemented a simple application that
+incremented a counter, displayed the counter's three least significant
+bits on the three LEDs, and sent a message with the counter value over
+the radio.  In that application, if the node was power-cycled, the
+counter would be reset and the node would begin counting from zero.
+To illustrate how permanent data storage can be used to persist
+configuration data across power cycles, we will <em>store</em> the
+value of counter every time it is incremented and read its value on
+system initialization.  This will allow the node to keep track of its
+counter across a power cycle and begin counting exactly where it left
+off.
+
+<h1>Logging Sensor Readings and Radio Packets</h1>
+
+
+<h1>Storing Large Objects</h1>
+
+
+<h1>Conclusions</h1>
+
+This lesson introduced the basic storage abstractions in Tiny 2.x.
+
+<a name=#related_docs>
+<h1>Related Documentation</h1>
+
+<ul>
+<li> (1) <a name="fn1"><a href="../tep103.html">TEP 103: Permanent Data Storage</a></a>
+</ul>
+
+<p><a name="hint15">(3)</a><b>Programming Hint 15:</b>Always use platform
+independent types when defining message formats. 
+From Phil Levis' <a href="http://csl.stanford.edu/~pal/pubs/tinyos-programming-1-0.pdf">
+<i>TinyOS Programming</i></a>
+
+
+<!-- Begin footer -->
+<br>
+<hr>
+<center>
+<p>&lt;&nbsp;<b><a href="lesson6.html">Previous Lesson</a></b> |&nbsp; <b><a
+ href="index.html">Top</a></b> &nbsp;|&nbsp; <b><a href="lesson8.html">Next Lesson </a>&nbsp;&gt;</b>
+</center>
+
+</body>
+</html>
