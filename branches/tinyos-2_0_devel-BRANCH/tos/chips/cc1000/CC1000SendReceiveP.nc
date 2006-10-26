@@ -1,4 +1,4 @@
-// $Id: CC1000SendReceiveP.nc,v 1.1.2.18 2006-09-22 18:54:30 idgay Exp $
+// $Id: CC1000SendReceiveP.nc,v 1.1.2.19 2006-10-26 17:41:55 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -262,7 +262,7 @@ implementation
 	  txBufPtr = msg;
 	}
       }
-    signal ByteRadio.rts();
+    signal ByteRadio.rts(msg);
 
     return SUCCESS;
   }
@@ -476,9 +476,9 @@ implementation
     cc1000_metadata_t *rxMetadata = getMetadata(rxBufPtr);
 
     if (result != SUCCESS)
-      rxMetadata->strength = 0;
+      rxMetadata->strength_or_preamble = 0;
     else
-      rxMetadata->strength = data;
+      rxMetadata->strength_or_preamble = data;
   }
 
   void rxData(uint8_t in) {
