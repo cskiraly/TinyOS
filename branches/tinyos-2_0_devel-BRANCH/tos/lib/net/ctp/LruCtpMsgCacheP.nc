@@ -83,13 +83,13 @@ implementation {
     /* if key is in cache returns the index (offset by first), otherwise returns count */
   uint8_t lookup(message_t* m) {
     uint8_t i;
-    uint8_t index;
+    uint8_t idx;
     for (i = 0; i < count; i++) {
-      index = (i + first) % size;
-      if (call CtpPacket.getOrigin(m)         == cache[index].origin &&
-	  call CtpPacket.getSequenceNumber(m) == cache[index].seqno &&
-	  call CtpPacket.getThl(m)            == cache[index].thl &&
-	  call CtpPacket.getType(m)           == cache[index].type) {
+      idx = (i + first) % size;
+      if (call CtpPacket.getOrigin(m)         == cache[idx].origin &&
+	  call CtpPacket.getSequenceNumber(m) == cache[idx].seqno &&
+	  call CtpPacket.getThl(m)            == cache[idx].thl &&
+	  call CtpPacket.getType(m)           == cache[idx].type) {
 	break;
       }
     }

@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.7 2006-10-05 08:08:18 gnawali Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.8 2006-10-26 19:45:12 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -68,7 +68,7 @@
  *  
  *  <p>The second use is to actually choose a next hop towards any root at
  *  message forwarding time.  This need not be the current parent, even though
- *  it is currently implemented as such.
+3 *  it is currently implemented as such.
  *
  *  <p>The operation of the routing engine has two main tasks and one main
  *  event: updateRouteTask is called periodically and chooses a new parent;
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-10-05 08:08:18 $
+ *  @date   $Date: 2006-10-26 19:45:12 $
  *  @see Net2-WG
  */
 
@@ -204,15 +204,14 @@ implementation {
     }
 
     command error_t StdControl.start() {
-        //start will (re)start the sending of messages
-        uint16_t nextInt;
-        if (!running) {
-            running = TRUE;
-	    resetInterval();
-	    call RouteTimer.startPeriodic(BEACON_INTERVAL);
-            dbg("TreeRoutingCtl","%s running: %d radioOn: %d\n", __FUNCTION__, running, radioOn);
-        }     
-        return SUCCESS;
+      //start will (re)start the sending of messages
+      if (!running) {
+	running = TRUE;
+	resetInterval();
+	call RouteTimer.startPeriodic(BEACON_INTERVAL);
+	dbg("TreeRoutingCtl","%s running: %d radioOn: %d\n", __FUNCTION__, running, radioOn);
+      }     
+      return SUCCESS;
     }
 
     command error_t StdControl.stop() {
@@ -516,6 +515,16 @@ implementation {
         }
      }
 
+
+    command void CtpInfo.triggerImmediateRouteUpdate() {
+      // Random time in interval 64-127ms
+      uint16_t time = call Random.rand16();
+      time &= 0x7; 
+      time += 4;
+      call BeaconTimer.stop();
+      call BeaconTimer.startOneShot(time);
+    }
+    
     /* RootControl interface */
     /** sets the current node as a root, if not already a root */
     /*  returns FAIL if it's not possible for some reason      */
