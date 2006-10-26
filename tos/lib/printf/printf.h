@@ -23,14 +23,17 @@
 /**
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.1 $
- * @date $Date: 2006-10-23 23:11:50 $
+ * @version $Revision: 1.1.2.2 $
+ * @date $Date: 2006-10-26 00:06:58 $
  */
 
 #ifndef PRINTF_H
 #define PRINTF_H
 
+#include <stdio.h>
 #include "message.h"
+
+#define PRINTF_BUFFER_SIZE 250
 
 typedef nx_struct PrintfMsg {
   nx_uint8_t buffer[TOSH_DATA_LENGTH];

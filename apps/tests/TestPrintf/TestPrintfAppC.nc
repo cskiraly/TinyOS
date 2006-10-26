@@ -23,19 +23,21 @@
 /**
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.1 $
- * @date $Date: 2006-10-23 23:10:45 $
+ * @version $Revision: 1.1.2.2 $
+ * @date $Date: 2006-10-26 00:05:28 $
  */
+ 
+#include "printf.h"
 
 configuration TestPrintfAppC{
 }
 implementation {
   components MainC, TestPrintfC, LedsC;
-  components new PrintfC(500);
+  components PrintfC;
 
   TestPrintfC.Boot -> MainC;
   TestPrintfC.Leds -> LedsC;
   TestPrintfC.PrintfControl -> PrintfC;
-  TestPrintfC.Printf -> PrintfC;
+  TestPrintfC.PrintfFlush -> PrintfC;
 }
 

@@ -24,15 +24,13 @@
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
  * @version $Revision: 1.1.2.1 $
- * @date $Date: 2006-10-23 23:11:50 $
+ * @date $Date: 2006-10-26 00:06:57 $
  */
  
-interface Printf
+#include "printf.h"
+ 
+interface PrintfFlush
 {
-  async command error_t printString(const char var[]);
-  async command error_t printUint8(uint8_t var);
-  async command error_t printUint16(uint16_t var);
-  async command error_t printUint32(uint32_t var);
   command error_t flush();
   event void flushDone(error_t error);
 }
