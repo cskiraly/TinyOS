@@ -16,7 +16,7 @@ typedef nx_struct CC1KFooter {
 } cc1000_footer_t;
 
 typedef nx_struct CC1KMetadata {
-  nx_uint16_t strength;
+  nx_int16_t strength_or_preamble; /* negative when used for preamble length */
   nx_uint8_t ack;
   nx_uint16_t time;
   nx_uint8_t sendSecurityMode;
