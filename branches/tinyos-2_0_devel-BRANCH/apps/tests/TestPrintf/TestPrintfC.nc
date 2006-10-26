@@ -23,8 +23,8 @@
 /**
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.1 $
- * @date $Date: 2006-10-23 23:10:45 $
+ * @version $Revision: 1.1.2.2 $
+ * @date $Date: 2006-10-26 00:05:28 $
  */
 
 module TestPrintfC {
@@ -32,12 +32,12 @@ module TestPrintfC {
     interface Boot;  
     interface Leds;
     interface SplitControl as PrintfControl;
-    interface Printf;
+    interface PrintfFlush;
   }
 }
 implementation {
 	
-  #define NUM_TIMES_TO_PRINT	5
+  #define NUM_TIMES_TO_PRINT	100
   uint16_t counter=0;
   uint32_t dummyVar = 345678;
 
@@ -46,38 +46,29 @@ implementation {
   }
   
   event void PrintfControl.startDone(error_t error) {
-  	call Printf.printString("Hi my name is Kevin Klues and I am writing to you from my telos mote\n");
-  	call Printf.printString("Here is a uint8: ");
-  	call Printf.printUint8(123);
-  	call Printf.printString("\n");
-  	call Printf.printString("Here is a uint16: ");
-  	call Printf.printUint16(12345);
-  	call Printf.printString("\n");
-  	call Printf.printString("Here is a uint32: ");
-  	call Printf.printUint32(1234567890);
-  	call Printf.printString("\n");
-  	call Printf.flush();
+  	printf("Hi my name is Kevin Klues and I am writing to you from my telos mote\n");
+  	printf("Here is a uint8: %hd\n", 123);
+  	printf("Here is a uint16: %d\n", 12345);
+  	printf("Here is a uint32: %ld\n", 1234567890);
+  	call PrintfFlush.flush();
   }
 
   event void PrintfControl.stopDone(error_t error) {
   	counter = 0;
-  	call Printf.printString("This should not be printed...");
-  	call Printf.flush();
+  	printf("This should not be printed...");
+  	call PrintfFlush.flush();
   }
   
-  event void Printf.flushDone(error_t error) {
+  event void PrintfFlush.flushDone(error_t error) {
   	if(counter < NUM_TIMES_TO_PRINT) {
-      call Printf.printString("I am now iterating: ");
-      call Printf.printUint16(counter);
-  	  call Printf.printString("\n");
-  	  call Printf.flush();
+      printf("I am now iterating: %d\n", counter);
+  	  call PrintfFlush.flush();
     }
     else if(counter == NUM_TIMES_TO_PRINT) {
-      call Leds.led0Toggle();
-      call Printf.printString("This is a really short string...\n");
-      call Printf.printString("I am generating this string to have just less than 500 characters since that is the limit of the size I put on my maximum buffer when I instantiated the PrintfC component.\n");
-      //call Printf.printString("Only the line above should get printed because by writing this sentence, I go over my character limit that the internal Printf buffer can hold.  If I were to flush before trying to write this, or increase my buffer size when I instantiate my PrintfC component to 2000, we would see this line too\n");
-      call Printf.flush();
+      printf("This is a really short string...\n");
+      printf("I am generating this string to have just less than 250 characters since that is the limit of the size I put on my maximum buffer when I instantiated the PrintfC component.\n");
+      printf("Only part of this line should get printed because by writing this sentence, I go over my character limit that the internal Printf buffer can hold.  If I were to flush before trying to write this, or increase my buffer size when I instantiate my PrintfC component to 1000, we would see this line too\n");
+      call PrintfFlush.flush();
     }
     else call PrintfControl.stop();
     counter++;
