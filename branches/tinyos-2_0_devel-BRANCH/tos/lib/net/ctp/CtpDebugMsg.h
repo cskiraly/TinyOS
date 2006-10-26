@@ -35,8 +35,12 @@ enum {
     NET_C_FE_DUPLICATE_CACHE = 0x28,  //dropped duplicate packet seen in cache
     NET_C_FE_DUPLICATE_QUEUE = 0x29,  //dropped duplicate packet seen in queue
     NET_C_FE_DUPLICATE_CACHE_AT_SEND = 0x2A,  //dropped duplicate packet seen in cache
-
-
+    NET_C_FE_CONGESTION_SENDWAIT = 0x2B, // sendTask deferring for congested parent
+    NET_C_FE_CONGESTION_BEGIN = 0x2C, // 
+    NET_C_FE_CONGESTION_END = 0x2D, // congestion over: reason is arg;
+                                    //  arg=1 => overheard parent's
+                                    //           ECN cleared.
+                                    //  arg=0 => timeout.
     NET_C_TREE_NO_ROUTE   = 0x30,   //:        :no args
     NET_C_TREE_NEW_PARENT = 0x31,   //:        :parent_id, hopcount, metric
     NET_C_TREE_ROUTE_INFO = 0x32,   //:periodic:parent_id, hopcount, metric
