@@ -1,4 +1,4 @@
-// $Id: HplAt45dbIOP.nc,v 1.1.2.6 2006-06-21 16:59:18 idgay Exp $
+// $Id: HplAt45dbIOP.nc,v 1.1.2.7 2006-10-26 15:36:10 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -99,7 +99,7 @@ implementation
 	 "\tori %0,1<<" #n "\n" \
 	 : "=d" (spiIn) : "0" (spiIn), "r" (spiOut))
 
-  async command void FlashSpi.write(uint8_t spiOut, uint8_t *pspiIn) {
+  async command uint8_t FlashSpi.write(uint8_t spiOut) {
     uint8_t spiIn = 0;
 
     // This atomic ensures integrity at the hardware level...
@@ -117,7 +117,7 @@ implementation
 	BIT(0);
       }
 
-    *pspiIn = spiIn;
+    return spiIn;
   }
 
   task void avail() {
