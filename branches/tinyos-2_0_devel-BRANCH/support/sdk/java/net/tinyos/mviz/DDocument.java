@@ -42,6 +42,7 @@ import java.util.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.*;
 import javax.swing.table.*;
 
 import net.tinyos.message.*;
@@ -50,8 +51,9 @@ public class DDocument
     extends JPanel 
     implements ActionListener{    
     
-    protected JLayeredPane layers;
-	
+    protected JPanel drawPanel;
+    protected Vector<DLayer> layers;
+    
     private Color currentColor;
     
     public float[] maxValues;
@@ -106,7 +108,7 @@ public class DDocument
 	
 	selectedFieldIndex = 0;
 	selectedLinkIndex = 0;
-
+	
 	// toArray() should work, but for some reason it is returning [Ljava.lang.Object
 	// instead of [Ljava.lang.String
 	sensed_motes = fieldVector;
@@ -128,12 +130,13 @@ public class DDocument
         
 	    
 	// Make drawing canvas
-	layers = new JLayeredPane();
-	layers.setLayout(null);
-	layers.setPreferredSize(new Dimension(width, height));
-	layers.setOpaque(false);		
-	add(layers, BorderLayout.CENTER);
-		
+	drawPanel = new JPanel();
+	drawPanel.setLayout(null);
+	drawPanel.setPreferredSize(new Dimension(width, height));
+	drawPanel.setOpaque(false);
+	drawPanel.setBorder(new SoftBevelBorder(SoftBevelBorder.LOWERED));
+	add(drawPanel, BorderLayout.CENTER);
+	layers = new Vector<DLayer>();
 	//----------------------------------------
 
 	// Make control area
@@ -150,7 +153,7 @@ public class DDocument
 		
 		
 		
-	String[] labelStrings = {
+	/*String[] labelStrings = {
 	    "Nodes",
 	    "Links"
 	};
@@ -167,7 +170,7 @@ public class DDocument
 	    labels[i].setLabelFor(fields[i]);
 	    west.add(labels[i]);
 	    west.add(fields[i]);
-        }
+	    }*/
         JButton button = new JButton("fetch nodes");
         button.addActionListener(this);
         west.add(button);
@@ -178,28 +181,28 @@ public class DDocument
         
        
         
-        selectMotes = new JComboBox(toStringArray(sensed_motes));
-        selectMotes.setMaximumSize(new Dimension(350,150));
-        west.add(selectMotes);
-        selectMotes.addActionListener(this);
+        //selectMotes = new JComboBox(toStringArray(sensed_motes));
+	// selectMotes.setMaximumSize(new Dimension(350,150));
+        //west.add(selectMotes);
+        //selectMotes.addActionListener(this);
         
-        selectLinks = new JComboBox(toStringArray(sensed_links));
-        selectLinks.setMaximumSize(new Dimension(350,150));
-        west.add(selectLinks);
-        selectLinks.addActionListener(this);
+        //selectLinks = new JComboBox(toStringArray(sensed_links));
+        //selectLinks.setMaximumSize(new Dimension(350,150));
+        //west.add(selectLinks);
+        //selectLinks.addActionListener(this);
         
 	//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	jMotes = new JCheckBox("Motes");
-	west.add(jMotes);
-	jMotes.addActionListener(this);
+	//jMotes = new JCheckBox("Motes");
+	//west.add(jMotes);
+	//jMotes.addActionListener(this);
 	//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	jLinks = new JCheckBox("Links");
-	west.add(jLinks);
-	jLinks.addActionListener(this);
+	//jLinks = new JCheckBox("Links");
+	//west.add(jLinks);
+	//jLinks.addActionListener(this);
 	//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	jFields = new JCheckBox("Fields");
-	west.add(jFields);
-	jFields.addActionListener(this);
+	//jFields = new JCheckBox("Fields");
+	//west.add(jFields);
+	//jFields.addActionListener(this);
 	//      <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
             
             
@@ -218,7 +221,9 @@ public class DDocument
 	jTable = new JTable(tableModel);
 	jTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 	JScrollPane scroller = new JScrollPane(jTable);
-	scroller.setPreferredSize(new Dimension(200, 100));
+	scroller.setPreferredSize(new Dimension(350, 200));
+	scroller.setMinimumSize(new Dimension(350, 200));
+	scroller.setSize(new Dimension(350, 200));
 	west.add(scroller);
 		
 		
@@ -227,11 +232,25 @@ public class DDocument
 	//		a.setBounds(5,5,100,100);
 	//		canvas.add(a);
     }
+
+    public void repaint() {
+	super.repaint();
+	System.out.println("Repainting navigator?");
+	if (navigator != null &&
+	    jTable != null &&
+	    drawPanel != null) {
+	    navigator.repaint();
+	    jTable.repaint();
+	    drawPanel.repaint();
+	    System.out.println("Repainting all three.");
+	}
+    }
+    
     //=========================================================================//
     public void actionPerformed(ActionEvent e) {
 	// e.getSource() is the originator of the action --
 	// if-logic to check which one it was
-	    
+	
 	if (e.getSource() == jMotes) {
 	    if (jFields.isSelected()){
 		repaintAllMotes();
@@ -253,8 +272,8 @@ public class DDocument
 	    //System.out.println(selectLinks.getSelectedItem());
 		    
 	}
-		
-		
+	navigator.repaint();
+	drawPanel.repaint();
     }
     //=========================================================================//
     private void zMove(int direction){
@@ -321,11 +340,11 @@ public class DDocument
     }
 
     public void setMoteValue(int moteID, String name, int value) {
-	System.out.println("Set " + moteID + ":" + name + " to " + value);
+	//System.out.println("Set " + moteID + ":" + name + " to " + value);
     }
 	
     public void setLinkValue(int startMote, int endMote, String name, int value) {
-	System.out.println("Set " + startMote + "->" + endMote + ":" + name + " to " + value);
+	//System.out.println("Set " + startMote + "->" + endMote + ":" + name + " to " + value);
     }
 
     // Assumes links are defined by a structure with two fields:
