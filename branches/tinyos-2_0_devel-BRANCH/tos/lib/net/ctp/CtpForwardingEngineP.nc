@@ -1,4 +1,4 @@
-/* $Id: CtpForwardingEngineP.nc,v 1.1.2.11 2006-10-26 19:45:12 scipio Exp $ */
+/* $Id: CtpForwardingEngineP.nc,v 1.1.2.12 2006-10-26 21:25:19 kasj78 Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-10-26 19:45:12 $
+ *  @date   $Date: 2006-10-26 21:25:19 $
  */
 
 #include <CtpForwardingEngine.h>
@@ -685,12 +685,11 @@ implementation {
       }
     }
 
-    // Resource acquisition problem.  Send a debug message to the
-    // uart.
+    // NB: at this point, we have a resource acquistion problem.
+    // Trigger an immediate route update, log the event, and drop the
+    // packet on the floor.
+    call CtpInfo.triggerImmediateRouteUpdate();
     call CollectionDebug.logEvent(NET_C_FE_SEND_QUEUE_FULL);
-
-    // We'll have to drop the packet on the floor: not enough
-    // resources available to forward.
     return m;
   }
  
