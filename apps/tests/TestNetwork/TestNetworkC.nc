@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.16 $ $Date: 2006-10-16 02:25:29 $
+ * @version $Revision: 1.1.2.17 $ $Date: 2006-10-26 17:04:30 $
  */
 
 #include <Timer.h>
@@ -39,10 +39,16 @@ implementation {
   message_t uartpacket;
   message_t* recvPtr = &uartpacket;
   uint8_t msglen;
-  bool busy = FALSE, uartbusy = FALSE;
+  bool sendBusy = FALSE;
+  bool uartbusy = FALSE;
   bool firstTimer = TRUE;
   uint16_t seqno;
-  
+  enum {
+    SEND_INTERVAL = 8192
+  };
+
+  event void ReadSensor.readDone(error_t err, uint16_t val) { }  
+
   event void Boot.booted() {
     call SerialControl.start();
   }
@@ -59,72 +65,64 @@ implementation {
 	call RootControl.setRoot();
       }
       seqno = 0;
-      call Timer.startOneShot(call Random.rand16() & 0x1ff);
+        call Timer.startOneShot(call Random.rand16() & 0x1ff);
     }
   }
 
   event void RadioControl.stopDone(error_t err) {}
   event void SerialControl.stopDone(error_t err) {}	
-  
-  event void Timer.fired() {
-    call Leds.led0Toggle();
-    dbg("TestNetworkC", "TestNetworkC: Timer fired.\n");
-    if (firstTimer) {
-      firstTimer = FALSE;
-      call Timer.startPeriodic(10240);
-    }
-    if (busy || call ReadSensor.read() != SUCCESS) {
-      signal ReadSensor.readDone(SUCCESS, 0);
-      return;
-    }
-    busy = TRUE;
-  }
 
   void failedSend() {
     dbg("App", "%s: Send failed.\n", __FUNCTION__);
-      call CollectionDebug.logEvent(NET_C_DBG_1);
+    call CollectionDebug.logEvent(NET_C_DBG_1);
   }
-  
-  event void ReadSensor.readDone(error_t err, uint16_t val) {
+
+   
+  void sendMessage() {
     TestNetworkMsg* msg = (TestNetworkMsg*)call Send.getPayload(&packet);
-    uint8_t hopcount;
     uint16_t metric;
     am_addr_t parent;
 
     call CtpInfo.getParent(&parent);
-    //    call CtpInfo.getHopcount(&hopcount);
     call CtpInfo.getEtx(&metric);
 
     msg->source = TOS_NODE_ID;
     msg->seqno = seqno;
-    msg->data = val;
+    msg->data = 0xCAFE;
     msg->parent = parent;
-    msg->hopcount = hopcount;
+    msg->hopcount = 0;
     msg->metric = metric;
 
-    if (err != SUCCESS) {
-      dbg("App", "%s: read done failed.\n", __FUNCTION__);
-      busy = FALSE;
-    }
     if (call Send.send(&packet, sizeof(TestNetworkMsg)) != SUCCESS) {
       failedSend();
       call Leds.led0On();
       dbg("TestNetworkC", "%s: Transmission failed.\n", __FUNCTION__);
     }
     else {
+      sendBusy = TRUE;
       seqno++; 
       dbg("TestNetworkC", "%s: Transmission succeeded.\n", __FUNCTION__);
 
     }
   }
 
+ 
+  event void Timer.fired() {
+    uint16_t nextInt;
+    call Leds.led0Toggle();
+    dbg("TestNetworkC", "TestNetworkC: Timer fired.\n");
+    nextInt = call Random.rand16() % SEND_INTERVAL;
+    nextInt += SEND_INTERVAL >> 1;
+    call Timer.startOneShot(nextInt);
+    if (!sendBusy)
+	sendMessage();
+  }
+
   event void Send.sendDone(message_t* m, error_t err) {
     if (err != SUCCESS) {
 	//      call Leds.led0On();
     }
-    else {
-      busy = FALSE;
-    }
+    sendBusy = FALSE;
     dbg("TestNetworkC", "Send completed.\n");
   }
   
