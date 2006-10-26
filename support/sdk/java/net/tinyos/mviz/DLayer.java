@@ -42,6 +42,7 @@ import java.util.*;
 import java.awt.event.*;
 import java.io.*;
 
+import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.table.*;
@@ -77,8 +78,6 @@ public class DLayer extends JPanel implements ActionListener{
     private JComboBox displays;
 	
     private ArrayList models;
-    protected APanel canvas;
-	
     private JButton up;
     private JButton down;
 	
@@ -89,7 +88,7 @@ public class DLayer extends JPanel implements ActionListener{
 	
     private int default_width = 600;
     private int default_height = 600;
-	
+    private String name;
     private DDocument parent;
 	
     public DLayer(int zIndex, int index, String label, int type, DDocument parent, ArrayList models){
@@ -98,46 +97,95 @@ public class DLayer extends JPanel implements ActionListener{
 	this.models = models;
 	this.zIndex = zIndex;
 	this.index = index;
+	this.name = label;
 		
-		
-	canvas = new APanel();
+	/*canvas = new APanel();
 	canvas.setLayout(null);
 	canvas.setPreferredSize(new Dimension(default_width, default_height));
 	canvas.setSize(default_width, default_height);
 	canvas.setOpaque(false);
-	parent.layers.addComponentListener(canvas);
-	parent.layers.add(canvas);
+	parent.drawPanel.addComponentListener(canvas);
+	parent.drawPanel.add(canvas);*/
 		
 		
-	GridLayout layout = new GridLayout(0, 5);
+	SpringLayout layout = new SpringLayout();
 	setLayout(layout);
 	setMaximumSize(new Dimension(350, 25));
+	setPreferredSize(new Dimension(350, 25));
+	setSize(new Dimension(350, 25));
 	setDoubleBuffered(true);
 	setBackground(COLORS[type]);
 	setBorder(new LineBorder(new Color(155, 155, 155)));
 		
 	check = new JCheckBox();
-	up = new JButton("up");		
-	down = new JButton("down");		
-	this.label = new JLabel(label, JLabel.LEFT);
+	check.setSize(35, 25);
+	check.setMaximumSize(new Dimension(35, 25));
+	check.setMinimumSize(new Dimension(35, 25));
+	check.setPreferredSize(new Dimension(35, 25));
+	
+	up = new JButton("^");
+	up.setFont(new Font("Times", Font.PLAIN, 9));
+	up.setSize(25, 25);
+	up.setMaximumSize(new Dimension(25, 25));
+	up.setMinimumSize(new Dimension(25, 25));
+	up.setPreferredSize(new Dimension(25, 25));
+	up.setMargin(new Insets(2, 2, 2, 2));
+
+	down = new JButton("v");
+	down.setFont(new Font("Times", Font.PLAIN, 8));
+	down.setSize(25, 25);
+	down.setMaximumSize(new Dimension(25, 25));
+	down.setMinimumSize(new Dimension(25, 25));
+	down.setPreferredSize(new Dimension(25, 25));
+	down.setMargin(new Insets(2, 2, 2, 2));
+
+	this.label = new JLabel(" " + label, JLabel.LEFT);
+	this.label.setSize(125, 25);
+	this.label.setMaximumSize(new Dimension(125, 25));
+	this.label.setMinimumSize(new Dimension(125, 25));
+	this.label.setPreferredSize(new Dimension(125, 25));
+	switch (type) {
+	case MOTE:
+	    this.label.setBackground(new Color(255, 200, 200));
+	    break;
+	case FIELD:
+	    this.label.setBackground(new Color(200, 255, 200));
+	    break;
+	case LINK:
+	    this.label.setBackground(new Color(200, 200, 255));
+	    break;
+	default:
+	    // do nothing
+	}
+	
 	displays = new JComboBox(DISPLAYS[type]);
-		
-	up.setMaximumSize(new Dimension(20, 15));
-	down.setMaximumSize(new Dimension(20, 15));
-		
+	displays.setSize(100, 25);
+	//displays.setMaximumSize(new Dimension(125, 25));
+	displays.setMinimumSize(new Dimension(125, 25));
+	displays.setPreferredSize(new Dimension(125, 25));
+	
+	
 	check.addActionListener(this);
 	up.addActionListener(this);
 	down.addActionListener(this);
 	displays.addActionListener(this);
-		
+
+	layout.putConstraint(SpringLayout.WEST, this, 0, SpringLayout.WEST, down);
+	layout.putConstraint(SpringLayout.EAST, check, 0, SpringLayout.WEST, down);
+	layout.putConstraint(SpringLayout.EAST, down, 0, SpringLayout.WEST, up);
+	layout.putConstraint(SpringLayout.EAST, up, 0, SpringLayout.WEST, this.label);
+	layout.putConstraint(SpringLayout.EAST, this.label, 0, SpringLayout.WEST, displays);
+	layout.putConstraint(SpringLayout.EAST, displays, 0, SpringLayout.EAST, this);
+
+	
 	add(check);
-	add(up);
 	add(down);
+	add(up);
 	add(this.label);
 	add(displays);
-		
 
-	canvas.addMouseListener( new MouseAdapter() {
+	
+	/*canvas.addMouseListener( new MouseAdapter() {
 		public void mousePressed(MouseEvent e) {
 		    //			    if (selected != null){ // Deselect current shape, if any.
 		    //			        DShape oldSelected = selected;
@@ -145,7 +193,7 @@ public class DLayer extends JPanel implements ActionListener{
 		    //			        oldSelected.repaint();
 		    //			    }
 		}
-	    });
+		});*/
 		
     }
 	
@@ -153,8 +201,7 @@ public class DLayer extends JPanel implements ActionListener{
 	if (e.getSource() == check) {
 	    if (check.isSelected()){
 		parent.selectedFieldIndex = index;
-		redrawLayer();
-		System.out.println("redraw index " +zIndex +"on layer" + parent.layers.getLayer(canvas));
+		//System.out.println("redraw index " +zIndex +"on layer" + parent.drawPanel.getLayer(canvas));
 	    }
 	} else if (e.getSource() == up){
 	    System.out.println("up " + this.label.getText());
@@ -172,8 +219,9 @@ public class DLayer extends JPanel implements ActionListener{
 		paintMode = TXT_MOTE;        		
 	    }
 	    System.out.println(selected);
-	    redrawLayer();
 	}
+	System.out.println("Repainting parent?");
+	parent.repaint();
     }
 
     public void init(){
@@ -183,12 +231,16 @@ public class DLayer extends JPanel implements ActionListener{
 	    addMotes(true);
 	}
     }
-	
+
+    public String toString() {
+	return "Layer " +  name + " " + type;
+    }
+    
     private void addLinks(boolean paint){
 	Iterator it = models.iterator();
 	while(it.hasNext()){
 	    DLink mm = (DLink) it.next();
-	    canvas.add(mm);
+	    //canvas.add(mm);
 	    if (paint) mm.repaint();
 	}    	
     }
@@ -196,17 +248,17 @@ public class DLayer extends JPanel implements ActionListener{
 	Iterator it = models.iterator();
         while(it.hasNext()){
 	    DShape m = new DMote((DMoteModel) it.next(), this.parent, this);
-            canvas.add(m/*, 0*/);
+            //canvas.add(m/*, 0*/);
             //setSelected(m);
             if (paint) m.repaint();
 	} 	    
     }
 	
 	
-    public void PaintScreenBefore() 
+    public void paintScreenBefore(JPanel canvas) 
     {
-        Graphics g = this.canvas.getGraphics();
-        Dimension d = this.canvas.getSize();
+        Graphics g = canvas.getGraphics();
+        Dimension d = canvas.getSize();
       
 	//        g.setColor(new Color(50, 50, 150));
 	//        g.fillRect(0,0,d.width,d.height);
@@ -247,10 +299,11 @@ public class DLayer extends JPanel implements ActionListener{
     }
 	
     protected void redrawLayer(){
+	JPanel canvas = parent.drawPanel;
 	if (check.isSelected()){
 	    canvas.setVisible(true);
 	    if 	(type==FIELD){
-		DLayer.this.PaintScreenBefore();
+		paintScreenBefore(canvas);
 	    } else {
 		canvas.repaint();
 	    }
@@ -259,21 +312,5 @@ public class DLayer extends JPanel implements ActionListener{
 	    canvas.repaint();
 	}
 	
-    }
-    
-    private class APanel
-	extends JPanel
-	implements ComponentListener {
-	public void componentResized(ComponentEvent e) {
-	    JLayeredPane src = (JLayeredPane)e.getSource();
-	    setSize(src.getWidth(), src.getHeight());
-	    redrawLayer();
-	}
-	public void componentHidden(ComponentEvent arg0) {
-	}
-	public void componentMoved(ComponentEvent arg0) {
-	}
-	public void componentShown(ComponentEvent arg0) {
-	}
     }
 }

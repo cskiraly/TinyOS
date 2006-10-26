@@ -91,24 +91,28 @@ public class DNavigate extends JPanel implements ActionListener{
 		Iterator it = layers.iterator();
 		int i = 0;
 		while (it.hasNext()){
-			DLayer d = (DLayer) it.next();
-			d.zIndex = i;
-			parent.layers.setLayer(d.canvas, length - i);
-			++i;
+		    DLayer d = (DLayer) it.next();
+		    d.zIndex = i;
+		    //parent.layers.setLayer(d.canvas, length - i);
+		    ++i;
         }
 	}
 	
 	public void redrawNavigator(){
-		Iterator it = layers.iterator();
-		while (it.hasNext()){
-			remove((DLayer) it.next());
-        }
-		it = layers.iterator();
-		while (it.hasNext()){
-			add((DLayer) it.next());
-        }
-		revalidate();
-		
+	    System.out.println("Redrawing navigator.");
+	    Iterator it = layers.iterator();
+	    while (it.hasNext()){
+		remove((DLayer) it.next());
+	    }
+	    it = layers.iterator();
+	    while (it.hasNext()){
+		add((DLayer) it.next());
+	    }
+	    revalidate();
+	    repaint();
+	    parent.repaint();
+	    parent.drawPanel.repaint();
+
 	}
 	
 	public void moveLayerUp(int zIndex){
@@ -131,11 +135,22 @@ public class DNavigate extends JPanel implements ActionListener{
 		Iterator it = layers.iterator();
 		while (it.hasNext()){
 			((DLayer) it.next()).init();
-        }
+		}
 	}
+
+    public void paint() {
+	System.out.println("Painting navigator");
+	redrawNavigator();
+	Iterator it = layers.iterator();
+	while (it.hasNext()) {
+	    DLayer layer = (DLayer)it.next();
+	    System.out.println("Painting layer " + layer);
+	    layer.redrawLayer();
+	}
+    }
 	
-	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
+    public void actionPerformed(ActionEvent e) {
+	// TODO Auto-generated method stub
+	
+    }
 }
