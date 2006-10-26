@@ -1,4 +1,4 @@
-// $Id: TestAMAppC.nc,v 1.1.2.1 2006-10-26 17:41:36 idgay Exp $
+// $Id: TestAMAppC.nc,v 1.1.2.2 2006-10-26 20:31:56 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -46,7 +46,7 @@ implementation {
 #if defined(PLATFORM_MICA2) || defined(PLATFORM_MICA2DOT)
   components CC1000CsmaRadioC as LplRadio;
 #elif defined(PLATFORM_MICAZ) || defined(PLATFORM_TELOSB)
-  components CC2420CsmaC as LplRadio;
+  components CC2420ActiveMessageC as LplRadio;
 #else
 #error "LPL testing not supported on this platform"
 #endif
