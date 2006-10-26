@@ -20,15 +20,15 @@
 enum {
   /* Default sampling period. */
   DEFAULT_INTERVAL = 256,
-  AM_MVIZ = 0x93
+  AM_MVIZ_MSG = 0x93
 };
 
-typedef nx_struct oscilloscope {
+typedef nx_struct mviz_msg{
   nx_uint16_t version; /* Version of the interval. */
   nx_uint16_t interval; /* Samping period. */
   nx_uint16_t origin; /* Mote id of sending mote. */
   nx_uint16_t count; /* The readings are samples count * NREADINGS onwards */
   nx_uint16_t reading;
-} oscilloscope_t;
+} mviz_msg_t;
 
 #endif

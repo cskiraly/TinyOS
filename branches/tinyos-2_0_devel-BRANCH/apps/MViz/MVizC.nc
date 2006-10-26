@@ -56,7 +56,7 @@ implementation {
   bool sendbusy=FALSE, uartbusy=FALSE;
 
   /* Current local state - interval, version and accumulated readings */
-  oscilloscope_t local;
+  mviz_msg_t local;
 
   uint8_t reading; /* 0 to NREADINGS */
 
@@ -99,7 +99,7 @@ implementation {
       fatal_problem();
 
     // This is how to set yourself as a root to the collection layer:
-    if (local.id % 500 == 0)
+    if (local.origin % 500 == 0)
       call RootControl.setRoot();
 
     startTimer();
@@ -121,16 +121,16 @@ implementation {
   event message_t*
   Receive.receive(message_t* msg, void *payload, uint8_t len) {
     if (uartbusy == FALSE) {
-      oscilloscope_t* in = (oscilloscope_t*)payload;
-      oscilloscope_t* out = (oscilloscope_t*)call SerialSend.getPayload(&uartbuf);
-      if (len != sizeof(oscilloscope_t)) {
+      mviz_msg_t* in = (mviz_msg_t*)payload;
+      mviz_msg_t* out = (mviz_msg_t*)call SerialSend.getPayload(&uartbuf);
+      if (len != sizeof(mviz_msg_t)) {
 	return msg;
       }
       else {
-	memcpy(out, in, sizeof(oscilloscope_t));
+	memcpy(out, in, sizeof(mviz_msg_t));
       }
       uartbusy = TRUE;
-      uartlen = sizeof(oscilloscope_t);
+      uartlen = sizeof(mviz_msg_t);
       post uartSendTask();
     }
 
@@ -147,7 +147,7 @@ implementation {
   //
   event message_t* 
   Snoop.receive(message_t* msg, void* payload, uint8_t len) {
-    oscilloscope_t *omsg = payload;
+    mviz_msg_t *omsg = payload;
 
     report_received();
 
@@ -174,7 +174,7 @@ implementation {
   */
   event void Timer.fired() {
     if (!sendbusy) {
-      oscilloscope_t *o = (oscilloscope_t *)call Send.getPayload(&sendbuf);
+      mviz_msg_t *o = (mviz_msg_t *)call Send.getPayload(&sendbuf);
       memcpy(o, &local, sizeof(local));
       if (call Send.send(&sendbuf, sizeof(local)) == SUCCESS)
 	sendbusy = TRUE;

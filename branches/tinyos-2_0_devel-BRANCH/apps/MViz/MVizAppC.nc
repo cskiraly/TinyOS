@@ -17,7 +17,9 @@
  * @author Philip Levis
  */
 
-configuration MVizC { }
+#include <MViz.h>
+
+configuration MVizAppC { }
 implementation {
   components MainC, MVizC, LedsC, new TimerMilliC(), 
     new DemoSensorC() as Sensor;
@@ -35,9 +37,9 @@ implementation {
   //
   components CollectionC as Collector,  // Collection layer
     ActiveMessageC,                         // AM layer
-    new CollectionSenderC(AM_MVIZ), // Sends multihop RF
+    new CollectionSenderC(AM_MVIZ_MSG), // Sends multihop RF
     SerialActiveMessageC,                   // Serial messaging
-    new SerialAMSenderC(AM_MVIZ);   // Sends to the serial port
+    new SerialAMSenderC(AM_MVIZ_MSG);   // Sends to the serial port
 
   MVizC.RadioControl -> ActiveMessageC;
   MVizC.SerialControl -> SerialActiveMessageC;
@@ -45,8 +47,8 @@ implementation {
 
   MVizC.Send -> CollectionSenderC;
   MVizC.SerialSend -> SerialAMSenderC.AMSend;
-  MVizC.Snoop -> Collector.Snoop[AM_MVIZ];
-  MVizC.Receive -> Collector.Receive[AM_MVIZ];
+  MVizC.Snoop -> Collector.Snoop[AM_MVIZ_MSG];
+  MVizC.Receive -> Collector.Receive[AM_MVIZ_MSG];
   MVizC.RootControl -> Collector;
 
   //
