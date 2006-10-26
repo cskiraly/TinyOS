@@ -1,4 +1,4 @@
-/* $Id: CtpInfo.nc,v 1.1.2.3 2006-09-13 01:41:57 scipio Exp $ */
+/* $Id: CtpInfo.nc,v 1.1.2.4 2006-10-26 19:45:12 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -23,7 +23,7 @@
 
 /*
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-09-13 01:41:57 $
+ *  @date   $Date: 2006-10-26 19:45:12 $
  *  @see Net2-WG
  */
 
@@ -50,9 +50,16 @@ interface CtpInfo {
   command error_t getEtx(uint16_t* etx);
 
   /**
-   * This informs the routing engine to update its routing
-   * information, possibly by sending a beacon.
+   * This informs the routing engine that sending a beacon soon is
+   * advisable, e.g., in response to a pull bit.
    */
   
   command void triggerRouteUpdate();
+
+  /**
+   * This informs the routing engine that sending a beacon as soon
+   * as possible is advisable, e.g., due to queue overflow or
+   * a detected loop.
+   */
+  command void triggerImmediateRouteUpdate();
 }

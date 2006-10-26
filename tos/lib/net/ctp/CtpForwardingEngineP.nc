@@ -1,4 +1,4 @@
-/* $Id: CtpForwardingEngineP.nc,v 1.1.2.10 2006-10-26 17:38:48 kasj78 Exp $ */
+/* $Id: CtpForwardingEngineP.nc,v 1.1.2.11 2006-10-26 19:45:12 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-10-26 17:38:48 $
+ *  @date   $Date: 2006-10-26 19:45:12 $
  */
 
 #include <CtpForwardingEngine.h>
@@ -659,7 +659,7 @@ implementation {
           if (call CtpPacket.getEtx(m) < gradient) {
             // The incoming packet's metric (gradient) is less than our
             // own gradient.  Trigger a route update and backoff.
-            call CtpInfo.triggerRouteUpdate();
+            call CtpInfo.triggerImmediateRouteUpdate();
             startRetxmitTimer(LOOPY_WINDOW, LOOPY_OFFSET);
             call CollectionDebug.logEventMsg(NET_C_FE_LOOP_DETECTED,
 					 call CollectionPacket.getSequenceNumber(m), 
