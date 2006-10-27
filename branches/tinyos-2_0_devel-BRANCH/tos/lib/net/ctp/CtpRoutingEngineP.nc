@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.11 2006-10-27 21:51:00 rfonseca76 Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.12 2006-10-27 22:35:46 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-10-27 21:51:00 $
+ *  @date   $Date: 2006-10-27 22:35:46 $
  *  @see Net2-WG
  */
 
@@ -427,7 +427,7 @@ implementation {
             routing_table_entry* entry = &routingTable[i];
 	    if (entry->info.haveHeard == 0 &&
 		entry->info.congested) {
-	      routingTableEvict(entry->neighbor);
+	      //routingTableEvict(entry->neighbor);
 	    }
 	    else {
 	      entry->info.haveHeard = 0;
