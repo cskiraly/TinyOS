@@ -1,4 +1,4 @@
-/* $Id: CtpInfo.nc,v 1.1.2.5 2006-10-27 18:05:03 rfonseca76 Exp $ */
+/* $Id: CtpInfo.nc,v 1.1.2.6 2006-10-27 22:41:02 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -23,7 +23,8 @@
 
 /*
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-10-27 18:05:03 $
+ *  @author Philip Levis
+ *  @date   $Date: 2006-10-27 22:41:02 $
  *  @see Net2-WG
  */
 
@@ -62,6 +63,11 @@ interface CtpInfo {
    * a detected loop.
    */
   command void triggerImmediateRouteUpdate();
+
+  /** 
+   * Tell the routing engine it might want to recompute its routes.
+   */
+  command void recomputeRoutes();
 
   /**
    * Informs the routing engine that a neighbor is congested

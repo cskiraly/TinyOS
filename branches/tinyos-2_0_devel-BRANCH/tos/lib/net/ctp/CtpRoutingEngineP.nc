@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.12 2006-10-27 22:35:46 scipio Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.13 2006-10-27 22:41:02 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -68,7 +68,7 @@
  *  
  *  <p>The second use is to actually choose a next hop towards any root at
  *  message forwarding time.  This need not be the current parent, even though
-3 *  it is currently implemented as such.
+ *  it is currently implemented as such.
  *
  *  <p>The operation of the routing engine has two main tasks and one main
  *  event: updateRouteTask is called periodically and chooses a new parent;
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-10-27 22:35:46 $
+ *  @date   $Date: 2006-10-27 22:41:02 $
  *  @see Net2-WG
  */
 
@@ -418,25 +418,6 @@ implementation {
 
     event void RouteTimer.fired() {
       if (radioOn && running) {
-
-	// Test to see if we should mark nodes that we cannot probe dead
-	routeUpdateTimerCount++;
-	if (routeUpdateTimerCount >= DEATH_TEST_INTERVAL) {
-	  int i;
-	  for (i = 0; i < routingTableActive; i++) {
-            routing_table_entry* entry = &routingTable[i];
-	    if (entry->info.haveHeard == 0 &&
-		entry->info.congested) {
-	      //routingTableEvict(entry->neighbor);
-	    }
-	    else {
-	      entry->info.haveHeard = 0;
-	    }
-	  }
-	  routeUpdateTimerCount = 0;
-	}
-
-	// Then update our routes
 	post updateRouteTask();
       }
     }
@@ -548,6 +529,10 @@ implementation {
             return FAIL;
         *etx = routeInfo.etx;
         return SUCCESS;
+    }
+
+    command void CtpInfo.recomputeRoute() {
+      post routeUpdateTask();
     }
 
     command void CtpInfo.triggerRouteUpdate() {
