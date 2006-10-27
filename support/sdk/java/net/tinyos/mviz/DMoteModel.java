@@ -86,6 +86,12 @@ implements Serializable {
         
         listeners = null;
     }
+
+	
+    public DMoteModel(DDocument root, int id, String name){
+    	
+    }
+	
     public DMoteModel(int id, Random rand, DDocument root){
         this.root = root;
 
@@ -200,6 +206,15 @@ implements Serializable {
         this.y = y;
 	    fireChanges();	    
 	}
-	
+
+    public boolean equals(Object o) {
+	if (o instanceof DMoteModel) {
+	    DMoteModel dm = (DMoteModel)o;
+	    if (dm.getId() == getId()) {
+		return true;
+	    }
+	}
+	return false;
+    }
 }
 

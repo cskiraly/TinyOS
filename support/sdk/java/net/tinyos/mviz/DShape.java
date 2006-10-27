@@ -125,11 +125,11 @@ implements DMoteModelListener
         
         g.setColor(model.getColor(layer.index));
 	    paintShape(g);
-	    if (document.getSelected() == this){
-	        // Paints the knobs.
-	        Color old = g.getColor();
-	        g.setColor(old);
-	    }
+// 	    if (document.getSelected() == this){
+// 	        // Paints the knobs.
+// 	        Color old = g.getColor();
+// 	        g.setColor(old);
+// 	    }
 	}
 	//=========================================================================//
 	private void DetermineAction(int x, int y){

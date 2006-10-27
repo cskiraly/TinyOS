@@ -64,14 +64,17 @@ public class DLayer extends JPanel implements ActionListener{
     public static final int LINK = 1;
     public static final int FIELD = 2;
     private static final Color[] COLORS = {
-	new Color(231, 220, 206),
-	new Color(250, 210, 99),
-	new Color(209, 230, 179)
+		new Color(231, 220, 206),
+		new Color(250, 210, 99),
+		new Color(209, 230, 179)
     };
 	
     private int type;
     protected int index;
     protected int zIndex;
+    protected int z_index = 0;
+    private ArrayList<DShape> layer = new ArrayList<DShape>();
+	
     private JLabel label;
     private JCheckBox check;
     private String[][] DISPLAYS = { {"circle", "img", "txt"}, {"line", "line+label", "label"}, {"color"}};
@@ -86,182 +89,199 @@ public class DLayer extends JPanel implements ActionListener{
     static public final int IMG = 1;
     static public final int TXT_MOTE = 2;
 	
-    private int default_width = 600;
-    private int default_height = 600;
+	protected DNavigate navigator;
+	
     private String name;
     private DDocument parent;
 	
-    public DLayer(int zIndex, int index, String label, int type, DDocument parent, ArrayList models){
-	this.parent = parent;
-	this.type = type;
-	this.models = models;
-	this.zIndex = zIndex;
-	this.index = index;
-	this.name = label;
+    public DLayer(int zIndex, int index, String label, int type, DDocument parent, ArrayList models, DNavigate navigator){
+		this.parent = parent;
+		this.type = type;
+		this.models = models;
+		this.zIndex = zIndex;
+		this.index = index;
+		this.navigator = navigator;
+		this.name = label;
+
+
+	
+		SpringLayout layout = new SpringLayout();
+		setLayout(layout);
+		setMaximumSize(new Dimension(350, 25));
+		setPreferredSize(new Dimension(350, 25));
+		setSize(new Dimension(350, 25));
+		setDoubleBuffered(true);
+		setBackground(COLORS[type]);
+		setBorder(new LineBorder(new Color(155, 155, 155)));
 		
-	/*canvas = new APanel();
-	canvas.setLayout(null);
-	canvas.setPreferredSize(new Dimension(default_width, default_height));
-	canvas.setSize(default_width, default_height);
-	canvas.setOpaque(false);
-	parent.drawPanel.addComponentListener(canvas);
-	parent.drawPanel.add(canvas);*/
-		
-		
-	SpringLayout layout = new SpringLayout();
-	setLayout(layout);
-	setMaximumSize(new Dimension(350, 25));
-	setPreferredSize(new Dimension(350, 25));
-	setSize(new Dimension(350, 25));
-	setDoubleBuffered(true);
-	setBackground(COLORS[type]);
-	setBorder(new LineBorder(new Color(155, 155, 155)));
-		
-	check = new JCheckBox();
-	check.setSize(35, 25);
-	check.setMaximumSize(new Dimension(35, 25));
-	check.setMinimumSize(new Dimension(35, 25));
-	check.setPreferredSize(new Dimension(35, 25));
+		check = new JCheckBox();
+		check.setSize(35, 25);
+		check.setMaximumSize(new Dimension(35, 25));
+		check.setMinimumSize(new Dimension(35, 25));
+		check.setPreferredSize(new Dimension(35, 25));
 	
-	up = new JButton("^");
-	up.setFont(new Font("Times", Font.PLAIN, 9));
-	up.setSize(25, 25);
-	up.setMaximumSize(new Dimension(25, 25));
-	up.setMinimumSize(new Dimension(25, 25));
-	up.setPreferredSize(new Dimension(25, 25));
-	up.setMargin(new Insets(2, 2, 2, 2));
+		up = new JButton("^");
+		up.setFont(new Font("Times", Font.PLAIN, 9));
+		up.setSize(25, 25);
+		up.setMaximumSize(new Dimension(25, 25));
+		up.setMinimumSize(new Dimension(25, 25));
+		up.setPreferredSize(new Dimension(25, 25));
+		up.setMargin(new Insets(2, 2, 2, 2));
 
-	down = new JButton("v");
-	down.setFont(new Font("Times", Font.PLAIN, 8));
-	down.setSize(25, 25);
-	down.setMaximumSize(new Dimension(25, 25));
-	down.setMinimumSize(new Dimension(25, 25));
-	down.setPreferredSize(new Dimension(25, 25));
-	down.setMargin(new Insets(2, 2, 2, 2));
+		down = new JButton("v");
+		down.setFont(new Font("Times", Font.PLAIN, 8));
+		down.setSize(25, 25);
+		down.setMaximumSize(new Dimension(25, 25));
+		down.setMinimumSize(new Dimension(25, 25));
+		down.setPreferredSize(new Dimension(25, 25));
+		down.setMargin(new Insets(2, 2, 2, 2));
 
-	this.label = new JLabel(" " + label, JLabel.LEFT);
-	this.label.setSize(125, 25);
-	this.label.setMaximumSize(new Dimension(125, 25));
-	this.label.setMinimumSize(new Dimension(125, 25));
-	this.label.setPreferredSize(new Dimension(125, 25));
-	switch (type) {
-	case MOTE:
-	    this.label.setBackground(new Color(255, 200, 200));
-	    break;
-	case FIELD:
-	    this.label.setBackground(new Color(200, 255, 200));
-	    break;
-	case LINK:
-	    this.label.setBackground(new Color(200, 200, 255));
-	    break;
-	default:
-	    // do nothing
-	}
-	
-	displays = new JComboBox(DISPLAYS[type]);
-	displays.setSize(100, 25);
-	//displays.setMaximumSize(new Dimension(125, 25));
-	displays.setMinimumSize(new Dimension(125, 25));
-	displays.setPreferredSize(new Dimension(125, 25));
-	
-	
-	check.addActionListener(this);
-	up.addActionListener(this);
-	down.addActionListener(this);
-	displays.addActionListener(this);
-
-	layout.putConstraint(SpringLayout.WEST, this, 0, SpringLayout.WEST, down);
-	layout.putConstraint(SpringLayout.EAST, check, 0, SpringLayout.WEST, down);
-	layout.putConstraint(SpringLayout.EAST, down, 0, SpringLayout.WEST, up);
-	layout.putConstraint(SpringLayout.EAST, up, 0, SpringLayout.WEST, this.label);
-	layout.putConstraint(SpringLayout.EAST, this.label, 0, SpringLayout.WEST, displays);
-	layout.putConstraint(SpringLayout.EAST, displays, 0, SpringLayout.EAST, this);
-
-	
-	add(check);
-	add(down);
-	add(up);
-	add(this.label);
-	add(displays);
-
-	
-	/*canvas.addMouseListener( new MouseAdapter() {
-		public void mousePressed(MouseEvent e) {
-		    //			    if (selected != null){ // Deselect current shape, if any.
-		    //			        DShape oldSelected = selected;
-		    //			        selected = null;
-		    //			        oldSelected.repaint();
-		    //			    }
+		this.label = new JLabel(" " + label, JLabel.LEFT);
+		this.label.setSize(125, 25);
+		this.label.setMaximumSize(new Dimension(125, 25));
+		this.label.setMinimumSize(new Dimension(125, 25));
+		this.label.setPreferredSize(new Dimension(125, 25));
+		switch (type) {
+		case MOTE:
+			this.label.setBackground(new Color(255, 200, 200));
+			break;
+		case FIELD:
+			this.label.setBackground(new Color(200, 255, 200));
+			break;
+		case LINK:
+			this.label.setBackground(new Color(200, 200, 255));
+			break;
+		default:
+			// do nothing
 		}
-		});*/
+	
+		displays = new JComboBox(DISPLAYS[type]);
+		displays.setSize(100, 25);
+		//displays.setMaximumSize(new Dimension(125, 25));
+		displays.setMinimumSize(new Dimension(125, 25));
+		displays.setPreferredSize(new Dimension(125, 25));
+	
+	
+		check.addActionListener(this);
+		up.addActionListener(this);
+		down.addActionListener(this);
+		displays.addActionListener(this);
+
+		layout.putConstraint(SpringLayout.WEST, this, 0, SpringLayout.WEST, down);
+		layout.putConstraint(SpringLayout.EAST, check, 0, SpringLayout.WEST, down);
+		layout.putConstraint(SpringLayout.EAST, down, 0, SpringLayout.WEST, up);
+		layout.putConstraint(SpringLayout.EAST, up, 0, SpringLayout.WEST, this.label);
+		layout.putConstraint(SpringLayout.EAST, this.label, 0, SpringLayout.WEST, displays);
+		layout.putConstraint(SpringLayout.EAST, displays, 0, SpringLayout.EAST, this);
+
+	
+		add(check);
+		add(down);
+		add(up);
+		add(this.label);
+		add(displays);
+
+	
 		
     }
 	
-    public void actionPerformed(ActionEvent e) {
-	if (e.getSource() == check) {
-	    if (check.isSelected()){
-		parent.selectedFieldIndex = index;
-		//System.out.println("redraw index " +zIndex +"on layer" + parent.drawPanel.getLayer(canvas));
-	    }
-	} else if (e.getSource() == up){
-	    System.out.println("up " + this.label.getText());
-	    parent.navigator.moveLayerUp(this.zIndex);
-	} else if (e.getSource() == down){
-	    System.out.println("down " + this.label.getText());
-	    parent.navigator.moveLayerDown(this.zIndex);
-	} else if (e.getSource() == displays){
-	    String selected = (String)displays.getSelectedItem();
-	    if (selected=="circle"){
-		paintMode = OVAL;
-	    } else if (selected=="img"){
-		paintMode = IMG;        		
-	    } else if (selected=="txt"){
-		paintMode = TXT_MOTE;        		
-	    }
-	    System.out.println(selected);
+	public boolean isFieldSelected(){
+		return (type==FIELD && check.isSelected());
 	}
-	System.out.println("Repainting parent?");
-	parent.repaint();
+	
+    public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == check) {
+			if (check.isSelected()){
+				parent.selectedFieldIndex = index;
+	        	redrawLayer();
+	        	System.out.println("redraw index " +zIndex +" on layer");
+	        } else if(type==FIELD){
+				System.out.println("clear");
+		        //parent.canvas.repaint();
+		        redrawLayer();
+	        } else {
+	        	redrawLayer();
+			}
+		} else if (e.getSource() == up){
+			System.out.println("up " + this.label.getText());
+			parent.navigator.moveLayerUp(this.zIndex);
+		} else if (e.getSource() == down){
+			System.out.println("down " + this.label.getText());
+			parent.navigator.moveLayerDown(this.zIndex);
+		} else if (e.getSource() == displays){
+			String selected = (String)displays.getSelectedItem();
+			if (selected=="circle"){
+				paintMode = OVAL;
+			} else if (selected=="img"){
+				paintMode = IMG;        		
+			} else if (selected=="txt"){
+				paintMode = TXT_MOTE;        		
+			}
+			System.out.println(selected);
+			//redrawLayer();
+		}
+		//System.out.println("Repainting parent?");
+		//parent.repaint();
     }
 
     public void init(){
-	if (type==LINK){
-	    addLinks(true);
-	} else {
-	    addMotes(true);
-	}
+		if (type==LINK){
+			//addLinks(true);
+		} else {
+			addMotes(true);
+		}
     }
 
     public String toString() {
-	return "Layer " +  name + " " + type;
+		return "Layer " +  name + " " + type;
     }
     
-    private void addLinks(boolean paint){
-	Iterator it = models.iterator();
-	while(it.hasNext()){
-	    DLink mm = (DLink) it.next();
-	    //canvas.add(mm);
-	    if (paint) mm.repaint();
-	}    	
-    }
+	public void setMoteValue(int moteID, int value){
+		
+	}
+	
+    // private void addLinks(boolean paint){
+// 		Iterator it = models.iterator();
+// 		while(it.hasNext()){
+// 			DLink mm = (DLink) it.next();
+// 			//canvas.add(mm);
+// 			if (paint) mm.repaint();
+// 		}    	
+//     }
+	
+	private void addMote(DShape mote, boolean paint){
+		layer.add(mote);
+		parent.canvas.add(mote/*, 0*/);
+		mote.setOpaque(false);
+		mote.setVisible(false);
+		//setSelected(m);
+		if (paint) mote.repaint();
+	}
+	
     private void addMotes(boolean paint){
-	Iterator it = models.iterator();
+		Iterator it = models.iterator();
         while(it.hasNext()){
-	    DShape m = new DMote((DMoteModel) it.next(), this.parent, this);
-            //canvas.add(m/*, 0*/);
-            //setSelected(m);
+			DShape m = new DMote((DMoteModel) it.next(), this.parent, this);
+			addMote(m ,paint);
             if (paint) m.repaint();
-	} 	    
+		} 	    
     }
 	
 	
-    public void paintScreenBefore(JPanel canvas) 
+	public void updateIndex(int index, boolean repaint){
+		zIndex = index;
+		z_index = (navigator.totalLayers - zIndex)*100;
+		//if (repaint) redrawLayer();
+		//parent.canvas.setLayer(d.canvas, length - i);
+	}
+	
+    public void paintScreenBefore() 
     {
-        Graphics g = canvas.getGraphics();
-        Dimension d = canvas.getSize();
+        Graphics g = parent.canvas.getGraphics();
+        Dimension d = parent.canvas.getSize();
       
-	//        g.setColor(new Color(50, 50, 150));
-	//        g.fillRect(0,0,d.width,d.height);
+		//        g.setColor(new Color(50, 50, 150));
+		//        g.fillRect(0,0,d.width,d.height);
   
 
         int x = 0;
@@ -297,20 +317,48 @@ public class DLayer extends JPanel implements ActionListener{
     public double distance(int x, int y, int x1, int y1){
         return Math.sqrt( (x-x1)*(x-x1)+(y-y1)*(y-y1));
     }
+
+    protected void repaintLayer(){
+    	Iterator it = layer.iterator();
+    	
+    	if (check.isSelected()){			
+    		if 	(type==FIELD){
+    			paintScreenBefore();
+    		} else {
+    			while (it.hasNext()){
+    				DShape m = (DShape) it.next();
+    				m.setVisible(true);
+    				m.setOpaque(false);
+    				m.repaint();
+    			}
+    		}
+    	} else {
+    		while (it.hasNext()){
+    			DShape m = (DShape) it.next();
+    			m.setVisible(false);
+    			m.setOpaque(false);
+    			m.repaint();
+    		}
+    	}    	
+    }
 	
     protected void redrawLayer(){
-	JPanel canvas = parent.drawPanel;
-	if (check.isSelected()){
-	    canvas.setVisible(true);
-	    if 	(type==FIELD){
-		paintScreenBefore(canvas);
-	    } else {
-		canvas.repaint();
-	    }
-	} else {
-	    canvas.setVisible(false);
-	    canvas.repaint();
-	}
+
+		parent.navigator.redrawAllLayers();
+		
+		
+	// 	JPanel canvas = parent.drawPanel;
+// 		if (check.isSelected()){
+// 			canvas.setVisible(true);
+// 			if 	(type==FIELD){
+// 				paintScreenBefore(canvas);
+// 			} else {
+// 				canvas.repaint();
+// 			}
+// 		} else {
+// 			canvas.setVisible(false);
+// 			canvas.repaint();
+// 		}
 	
     }
 }
