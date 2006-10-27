@@ -1,4 +1,4 @@
-/* $Id: CtpForwardingEngineP.nc,v 1.1.2.12 2006-10-26 21:25:19 kasj78 Exp $ */
+/* $Id: CtpForwardingEngineP.nc,v 1.1.2.13 2006-10-27 18:05:03 rfonseca76 Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-10-26 21:25:19 $
+ *  @date   $Date: 2006-10-27 18:05:03 $
  */
 
 #include <CtpForwardingEngine.h>
@@ -137,6 +137,7 @@ generic module CtpForwardingEngineP() {
     interface Packet;
     interface CollectionPacket;
     interface CtpPacket;
+    interface CtpCongestion;
   }
   uses {
     interface AMSend as SubSend;
@@ -174,13 +175,11 @@ implementation {
   static void startRetxmitTimer(uint16_t mask, uint16_t offset);
   static void startCongestionTimer(uint16_t mask, uint16_t offset);
 
-  /*
-   * Predicate to indicate our *local* congestion state (see TEP 123).
-   */
-  static bool congested();
+  /* Indicates whether our client is congested */
+  bool clientCongested = FALSE;
 
   /* Tracks our parent's congestion state. */
-  bool parentCongested = FALSE;
+  //bool parentCongested = FALSE;
 
   /* Keeps track of whether the routing layer is running; if not,
    * it will not send packets. */
@@ -398,6 +397,7 @@ implementation {
 
       return;
     }
+    /*
     else if (parentCongested) {
       // Do nothing; the congestion timer is necessarily set which
       // will clear parentCongested and repost sendTask().
@@ -405,26 +405,39 @@ implementation {
           __FUNCTION__);
       call CollectionDebug.logEvent(NET_C_FE_CONGESTION_SENDWAIT);
     }
+    */
     else {
-      // Once we are here, we have decided to send the packet.
       error_t subsendResult;
       fe_queue_entry_t* qe = call SendQueue.head();
       uint8_t payloadLen = call SubPacket.payloadLength(qe->msg);
       am_addr_t dest = call UnicastNameFreeRouting.nextHop();
       uint16_t gradient;
 
+      if (call CtpInfo.isNeighborCongested(dest)) {
+        // Our parent is congested. We should wait.
+        // Don't repost the task, CongestionTimer will do the job
+        if (! call CongestionTimer.isRunning()) {
+          startCongestionTimer(CONGESTED_WAIT_WINDOW, CONGESTED_WAIT_OFFSET);
+          call CollectionDebug.logEvent(NET_C_FE_CONGESTION_BEGIN);
+        } 
+        dbg("Forwarder", "%s: sendTask deferring for congested parent\n",
+            __FUNCTION__);
+        call CollectionDebug.logEvent(NET_C_FE_CONGESTION_SENDWAIT);
+        return;
+      }
+      // Once we are here, we have decided to send the packet.
       if (call SentCache.lookup(qe->msg)) {
         call CollectionDebug.logEvent(NET_C_FE_DUPLICATE_CACHE_AT_SEND);
         call SendQueue.dequeue();
-	post sendTask();
+        post sendTask();
         return;
       }
       /* If our current parent is not the same as the last parent
-	 we sent do, then reset the count of unacked packets: don't
-	 penalize a new parent for the failures of a prior one.*/
+         we sent do, then reset the count of unacked packets: don't
+         penalize a new parent for the failures of a prior one.*/
       if (dest != lastParent) {
-	qe->retries = MAX_RETRIES;
-	lastParent = dest;
+        qe->retries = MAX_RETRIES;
+        lastParent = dest;
       }
  
       dbg("Forwarder", "Sending queue entry %p\n", qe);
@@ -452,7 +465,7 @@ implementation {
       ackPending = (call PacketAcknowledgements.requestAck(qe->msg) == SUCCESS);
 
       // Set or clear the congestion bit on *outgoing* packets.
-      if (congested())
+      if (call CtpCongestion.isCongested())
         call CtpPacket.setOption(qe->msg, CTP_OPT_ECN);
       else
         call CtpPacket.clearOption(qe->msg, CTP_OPT_ECN);
@@ -786,7 +799,7 @@ implementation {
 
   event message_t* 
   SubSnoop.receive(message_t* msg, void *payload, uint8_t len) {
-    am_addr_t parent = call UnicastNameFreeRouting.nextHop();
+    //am_addr_t parent = call UnicastNameFreeRouting.nextHop();
     am_addr_t proximalSrc = call AMPacket.source(msg);
 
     // Check for the pull bit (P) [TEP123] and act accordingly.  This
@@ -794,19 +807,7 @@ implementation {
     if (call CtpPacket.option(msg, CTP_OPT_PULL))
       call CtpInfo.triggerRouteUpdate();
 
-    if (call CtpPacket.option(msg, CTP_OPT_ECN) && proximalSrc == parent) {
-      // We've overheard our parent's ECN bit set.
-      startCongestionTimer(CONGESTED_WAIT_WINDOW, CONGESTED_WAIT_OFFSET);
-      parentCongested = TRUE;
-      call CollectionDebug.logEvent(NET_C_FE_CONGESTION_BEGIN);
-    } else if (proximalSrc == parent) {
-      // We've overheard out parent's ECN bit cleared.
-      call CongestionTimer.stop();
-      parentCongested = FALSE;
-      call CollectionDebug.logEventSimple(NET_C_FE_CONGESTION_END, 1);
-      post sendTask();
-    }
-
+    call CtpInfo.setNeighborCongested(proximalSrc, call CtpPacket.option(msg, CTP_OPT_ECN));
     return signal Snoop.receive[call CtpPacket.getType(msg)] 
       (msg, payload + sizeof(ctp_data_header_t), 
        len - sizeof(ctp_data_header_t));
@@ -818,11 +819,30 @@ implementation {
   }
 
   event void CongestionTimer.fired() {
-    parentCongested = FALSE;
+    //parentCongested = FALSE;
     call CollectionDebug.logEventSimple(NET_C_FE_CONGESTION_END, 0);
     post sendTask();
   }
   
+
+  command bool CtpCongestion.isCongested() {
+    // A simple predicate for now to determine congestion state of
+    // this node.
+    bool congested = (call SendQueue.size() + 2 >= call SendQueue.maxSize()) ? 
+      TRUE : FALSE;
+    return ((congested || clientCongested)?TRUE:FALSE);
+  }
+
+  command void CtpCongestion.setClientCongested(bool congested) {
+    bool wasCongested = call CtpCongestion.isCongested();
+    clientCongested = congested;
+    if (!wasCongested && congested) {
+      call CtpInfo.triggerImmediateRouteUpdate();
+    } else if (wasCongested && ! (call CtpCongestion.isCongested())) {
+      call CtpInfo.triggerRouteUpdate();
+    }
+  }
+
   command void Packet.clear(message_t* msg) {
     call SubPacket.clear(msg);
   }
@@ -940,13 +960,6 @@ implementation {
     dbg("Forwarder", "Congestion timer will fire in %hu ms\n", r);
   }
 
-  static inline bool congested() {
-    // A simple predicate for now to determine congestion state of
-    // this node.
-    return (call SendQueue.size() + 2 >= call SendQueue.maxSize()) ? 
-      TRUE : FALSE;
-  }
-
   /* signalled when this neighbor is evicted from the neighbor table */
   event void LinkEstimator.evicted(am_addr_t neighbor) {
   }
@@ -973,3 +986,21 @@ implementation {
     }
    
 }
+
+/* Rodrigo. This is an alternative
+  event void CtpInfo.ParentCongested(bool congested) {
+    if (congested) {
+      // We've overheard our parent's ECN bit set.
+      startCongestionTimer(CONGESTED_WAIT_WINDOW, CONGESTED_WAIT_OFFSET);
+      parentCongested = TRUE;
+      call CollectionDebug.logEvent(NET_C_FE_CONGESTION_BEGIN);
+    } else {
+      // We've overheard our parent's ECN bit cleared.
+      call CongestionTimer.stop();
+      parentCongested = FALSE;
+      call CollectionDebug.logEventSimple(NET_C_FE_CONGESTION_END, 1);
+      post sendTask();
+    }
+  }
+*/
+

@@ -55,6 +55,7 @@ configuration CollectionC {
     interface CtpPacket;
 
     interface CtpInfo;
+    interface CtpCongestion;
     interface RootControl;    
   }
 
@@ -78,6 +79,7 @@ implementation {
   CtpPacket = CtpP;
 
   CtpInfo = CtpP;
+  CtpCongestion = CtpP;
   RootControl = CtpP;
 
   CollectionId = CtpP;

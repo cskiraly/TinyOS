@@ -14,6 +14,7 @@ enum {
 typedef struct {
     am_addr_t parent;
     uint16_t etx;
+    bool congested;
 } route_info_t;
 
 typedef struct {
@@ -24,6 +25,7 @@ typedef struct {
 inline void routeInfoInit(route_info_t *ri) {
     ri->parent = INVALID_ADDR;
     ri->etx = 0;
+    ri->congested = FALSE;
 }
 
 #endif
