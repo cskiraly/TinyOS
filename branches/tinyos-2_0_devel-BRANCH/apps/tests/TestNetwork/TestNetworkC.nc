@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.20 $ $Date: 2006-10-27 18:06:56 $
+ * @version $Revision: 1.1.2.21 $ $Date: 2006-10-27 19:35:40 $
  */
 
 #include <Timer.h>
@@ -175,6 +175,7 @@ implementation {
   event void UARTSend.sendDone(message_t *msg, error_t error) {
     dbg("Traffic", "UART send done.\n");
     uartbusy = FALSE;
+    call Pool.put(msg);
     if (!call Queue.empty()) {
       post uartEchoTask();
     } 
