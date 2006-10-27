@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.10 2006-10-27 20:00:56 scipio Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.11 2006-10-27 21:51:00 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-10-27 20:00:56 $
+ *  @date   $Date: 2006-10-27 21:51:00 $
  *  @see Net2-WG
  */
 
@@ -122,6 +122,7 @@ generic module CtpRoutingEngineP(uint8_t routingTableSize, uint16_t minInterval,
 
 implementation {
 
+    bool ECNOff = TRUE;
 
     /* Keeps track of whether the radio is on. No sense updating or sending
      * beacons if radio is off */
@@ -588,6 +589,10 @@ implementation {
 
     command bool CtpInfo.isNeighborCongested(am_addr_t n) {
         uint8_t idx;    
+
+        if (ECNOff) 
+            return FALSE;
+
         idx = routingTableFind(n);
         if (idx < routingTableActive) {
             return routingTable[idx].info.congested;
