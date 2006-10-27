@@ -8,7 +8,7 @@
  * Collection Tree Protocol for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.16 $ $Date: 2006-10-27 01:47:38 $
+ * @version $Revision: 1.1.2.17 $ $Date: 2006-10-27 18:06:56 $
  */
 #include "TestNetwork.h"
 #include "Ctp.h"
@@ -43,6 +43,7 @@ implementation {
   TestNetworkC.UARTSend -> SerialAMSenderC.AMSend;
   TestNetworkC.CollectionPacket -> Collector;
   TestNetworkC.CtpInfo -> Collector;
+  TestNetworkC.CtpCongestion -> Collector;
   TestNetworkC.Random -> RandomC;
   TestNetworkC.Pool -> PoolC;
   TestNetworkC.Queue -> QueueC;
