@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.14 2006-10-27 22:46:41 scipio Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.15 2006-10-27 22:50:20 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-10-27 22:46:41 $
+ *  @date   $Date: 2006-10-27 22:50:20 $
  *  @see Net2-WG
  */
 
@@ -532,7 +532,7 @@ implementation {
     }
 
     command void CtpInfo.recomputeRoutes() {
-      post routeUpdateTask();
+      post updateRouteTask();
     }
 
     command void CtpInfo.triggerRouteUpdate() {

@@ -1,4 +1,4 @@
-/* $Id: CtpForwardingEngineP.nc,v 1.1.2.15 2006-10-27 22:41:02 scipio Exp $ */
+/* $Id: CtpForwardingEngineP.nc,v 1.1.2.16 2006-10-27 22:50:20 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-10-27 22:41:02 $
+ *  @date   $Date: 2006-10-27 22:50:20 $
  */
 
 #include <CtpForwardingEngine.h>
@@ -554,7 +554,7 @@ implementation {
     else if (ackPending && !call PacketAcknowledgements.wasAcked(msg)) {
       // AckPending is for case when DL cannot support acks.
       call LinkEstimator.txNoAck(call AMPacket.destination(msg));
-      call CtpInfo.recomputeRoute();
+      call CtpInfo.recomputeRoutes();
       if (--qe->retries) { 
         dbg("Forwarder", "%s: not acked\n", __FUNCTION__);
         call CollectionDebug.logEventMsg(NET_C_FE_SENDDONE_WAITACK, 
