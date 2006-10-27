@@ -1,4 +1,4 @@
-/* $Id: CtpForwardingEngineP.nc,v 1.1.2.13 2006-10-27 18:05:03 rfonseca76 Exp $ */
+/* $Id: CtpForwardingEngineP.nc,v 1.1.2.14 2006-10-27 19:36:04 rfonseca76 Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-10-27 18:05:03 $
+ *  @date   $Date: 2006-10-27 19:36:04 $
  */
 
 #include <CtpForwardingEngine.h>
@@ -179,7 +179,7 @@ implementation {
   bool clientCongested = FALSE;
 
   /* Tracks our parent's congestion state. */
-  //bool parentCongested = FALSE;
+  bool parentCongested = FALSE;
 
   /* Keeps track of whether the routing layer is running; if not,
    * it will not send packets. */
@@ -416,15 +416,22 @@ implementation {
       if (call CtpInfo.isNeighborCongested(dest)) {
         // Our parent is congested. We should wait.
         // Don't repost the task, CongestionTimer will do the job
+        if (! parentCongested ) {
+          parentCongested = TRUE;
+          call CollectionDebug.logEvent(NET_C_FE_CONGESTION_BEGIN);
+        }
         if (! call CongestionTimer.isRunning()) {
           startCongestionTimer(CONGESTED_WAIT_WINDOW, CONGESTED_WAIT_OFFSET);
-          call CollectionDebug.logEvent(NET_C_FE_CONGESTION_BEGIN);
         } 
         dbg("Forwarder", "%s: sendTask deferring for congested parent\n",
             __FUNCTION__);
-        call CollectionDebug.logEvent(NET_C_FE_CONGESTION_SENDWAIT);
+        //call CollectionDebug.logEvent(NET_C_FE_CONGESTION_SENDWAIT);
         return;
-      }
+      } 
+      if (parentCongested) {
+        parentCongested = FALSE;
+        call CollectionDebug.logEvent(NET_C_FE_CONGESTION_END);
+      } 
       // Once we are here, we have decided to send the packet.
       if (call SentCache.lookup(qe->msg)) {
         call CollectionDebug.logEvent(NET_C_FE_DUPLICATE_CACHE_AT_SEND);
@@ -820,7 +827,7 @@ implementation {
 
   event void CongestionTimer.fired() {
     //parentCongested = FALSE;
-    call CollectionDebug.logEventSimple(NET_C_FE_CONGESTION_END, 0);
+    //call CollectionDebug.logEventSimple(NET_C_FE_CONGESTION_END, 0);
     post sendTask();
   }
   
