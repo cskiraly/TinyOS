@@ -57,7 +57,7 @@ implementation {
       Tda5250RadioC,    
       CsmaMacP,
       RssiFixedThresholdCMC as Cca,
-      new Alarm32khzC() as Timer,
+      new Alarm32khz16C() as Timer,
       RandomLfsrC
 #ifdef MAC_DEBUG
       ,PlatformLedsC

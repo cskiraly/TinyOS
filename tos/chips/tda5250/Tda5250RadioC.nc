@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.8 $
- * $Date: 2006-08-15 13:54:06 $
+ * $Revision: 1.1.2.9 $
+ * $Date: 2006-10-27 12:24:52 $
  * ========================================================================
  */
 
@@ -52,7 +52,7 @@ implementation {
   components Tda5250RadioP
            , HplTda5250ConfigC
            , HplTda5250DataC
-           , new Alarm32khzC() as DelayTimer
+           , new Alarm32khz16C() as DelayTimer
            , MainC;
 
   MainC.SoftwareInit -> HplTda5250ConfigC;
@@ -64,7 +64,7 @@ implementation {
   RadioByteComm = Tda5250RadioP;
   SplitControl = Tda5250RadioP;
 
-  Tda5250RadioP.DelayTimer -> DelayTimer.Alarm32khz16;
+  Tda5250RadioP.DelayTimer -> DelayTimer;
   
   Tda5250RadioP.ConfigResource -> HplTda5250ConfigC;
   Tda5250RadioP.DataResource -> HplTda5250DataC;
