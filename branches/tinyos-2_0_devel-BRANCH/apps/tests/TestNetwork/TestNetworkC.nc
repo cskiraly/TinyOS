@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.19 $ $Date: 2006-10-27 01:47:38 $
+ * @version $Revision: 1.1.2.20 $ $Date: 2006-10-27 18:06:56 $
  */
 
 #include <Timer.h>
@@ -29,6 +29,7 @@ module TestNetworkC {
   uses interface AMSend as UARTSend;
   uses interface CollectionPacket;
   uses interface CtpInfo;
+  uses interface CtpCongestion;
   uses interface Random;
   uses interface Queue<message_t*>;
   uses interface Pool<message_t>;
@@ -137,10 +138,8 @@ implementation {
   Receive.receive(message_t* msg, void* payload, uint8_t len) {
     dbg("TestNetworkC", "Received packet at %s from node %hhu.\n", sim_time_string(), call CollectionPacket.getOrigin(msg));
     call Leds.led1Toggle();    
-    if (!call Pool.size() <= (TEST_NETWORK_QUEUE_SIZE < 4)? 1:3 &&
-        !call CtpCongestion.isCongested()) {
-      call CtpCongestion.setCongested(TRUE);
-      call CtpCongestion.triggerImmediateRouteUpdate();
+    if (!call Pool.size() <= (TEST_NETWORK_QUEUE_SIZE < 4)? 1:3)  {
+      call CtpCongestion.setClientCongested(TRUE);
     }
     if (!call Pool.empty() && call Queue.size() < call Queue.maxSize()) {
       message_t* tmp = call Pool.get();
@@ -180,10 +179,7 @@ implementation {
       post uartEchoTask();
     } 
     else {
-      if (call CtpCongestion.isCongested()) {
-        call CtpCongestion.setCongested(FALSE);
-        call CtpInfo.triggerRouteUpdate();
-      }
+        call CtpCongestion.setClientCongested(FALSE);
     }
   }
 }
