@@ -76,6 +76,7 @@ configuration CtpP {
     interface CtpPacket;
 
     interface CtpInfo;
+    interface CtpCongestion;
     interface RootControl;    
   }
 
@@ -107,6 +108,7 @@ implementation {
   CollectionId = Forwarder;
   CollectionPacket = Forwarder;
   CtpPacket = Forwarder;
+  CtpCongestion = Forwarder;
   
   components new PoolC(message_t, FORWARD_COUNT) as MessagePoolP;
   components new PoolC(fe_queue_entry_t, FORWARD_COUNT) as QEntryPoolP;
@@ -144,6 +146,7 @@ implementation {
   Router.CollectionDebug = CollectionDebug;
   Forwarder.CollectionDebug = CollectionDebug;
   Forwarder.CtpInfo -> Router;
+  Router.CtpCongestion -> Forwarder;
   CtpInfo = Router;
 
   components new TimerMilliC() as RetxmitTimer;

@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.8 2006-10-26 19:45:12 scipio Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.9 2006-10-27 18:05:03 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-10-26 19:45:12 $
+ *  @date   $Date: 2006-10-27 18:05:03 $
  *  @see Net2-WG
  */
 
@@ -101,7 +101,7 @@ generic module CtpRoutingEngineP(uint8_t routingTableSize, uint16_t minInterval,
         interface RootControl;
         interface CtpInfo;
         interface StdControl;
-	interface CtpRoutingPacket;
+        interface CtpRoutingPacket;
         interface Init;
     } 
     uses {
@@ -112,9 +112,10 @@ generic module CtpRoutingEngineP(uint8_t routingTableSize, uint16_t minInterval,
         interface LinkSrcPacket;
         interface SplitControl as RadioControl;
         interface Timer<TMilli> as BeaconTimer;
-	interface Timer<TMilli> as RouteTimer;
+        interface Timer<TMilli> as RouteTimer;
         interface Random;
         interface CollectionDebug;
+        interface CtpCongestion;
     }
 }
 
@@ -173,10 +174,10 @@ implementation {
 
     void decayInterval() {
       if (!state_is_root) {
-	currentInterval *= 2;
-	if (currentInterval > maxInterval) {
-	  currentInterval = maxInterval;
-	}
+        currentInterval *= 2;
+        if (currentInterval > maxInterval) {
+          currentInterval = maxInterval;
+        }
       }
       chooseAdvertiseTime();
     }
@@ -206,10 +207,10 @@ implementation {
     command error_t StdControl.start() {
       //start will (re)start the sending of messages
       if (!running) {
-	running = TRUE;
-	resetInterval();
-	call RouteTimer.startPeriodic(BEACON_INTERVAL);
-	dbg("TreeRoutingCtl","%s running: %d radioOn: %d\n", __FUNCTION__, running, radioOn);
+        running = TRUE;
+        resetInterval();
+        call RouteTimer.startPeriodic(BEACON_INTERVAL);
+        dbg("TreeRoutingCtl","%s running: %d radioOn: %d\n", __FUNCTION__, running, radioOn);
       }     
       return SUCCESS;
     }
@@ -252,6 +253,7 @@ implementation {
     /* updates the routing information, using the info that has been received
      * from neighbor beacons. Two things can cause this info to change: 
      * neighbor beacons, changes in link estimates, including neighbor eviction */
+    /* TODO: take into account congested state to select parents */ 
     task void updateRouteTask() {
         uint8_t i;
         routing_table_entry* entry;
@@ -262,7 +264,7 @@ implementation {
 
         if (state_is_root)
             return;
-        
+       
         best = NULL;
         /* Minimum etx found among neighbors, initially infinity */
         minEtx = MAX_METRIC;
@@ -295,6 +297,7 @@ implementation {
                 /* update routeInfo with parent's current info */
                 atomic {
                     routeInfo.etx = entry->info.etx;
+                    routeInfo.congested = entry->info.congested;
                 }
                 continue;
             }
@@ -310,6 +313,7 @@ implementation {
             }  
         }
 
+
         /* Now choose between the current parent and the best neighbor */
         if (minEtx != MAX_METRIC) {
             if (currentEtx == MAX_METRIC ||
@@ -324,10 +328,11 @@ implementation {
                 call CollectionDebug.logEventRoute(NET_C_TREE_NEW_PARENT, best->neighbor, 0, best->info.etx); 
                 call LinkEstimator.unpinNeighbor(routeInfo.parent);
                 call LinkEstimator.pinNeighbor(best->neighbor);
-		call LinkEstimator.clearDLQ(best->neighbor);
+                call LinkEstimator.clearDLQ(best->neighbor);
                 atomic {
                     routeInfo.parent = best->neighbor;
                     routeInfo.etx = best->info.etx;
+                    routeInfo.congested = best->info.congested;
                 }
             }
         }    
@@ -357,24 +362,30 @@ implementation {
         if (sending) {
             return;
         }
+
+        beaconMsg->options = 0;
+
+        /* Congestion notification: am I congested? */
+        if (call CtpCongestion.isCongested()) {
+            beaconMsg->options |= CTP_OPT_ECN;
+        }
+
         beaconMsg->parent = routeInfo.parent;
         if (state_is_root) {
             beaconMsg->etx = routeInfo.etx;
-	    beaconMsg->options = 0;
-	}
-	else if (routeInfo.parent == INVALID_ADDR) {
+        }
+        else if (routeInfo.parent == INVALID_ADDR) {
             beaconMsg->etx = routeInfo.etx;
-	    beaconMsg->options = CTP_OPT_PULL;
+            beaconMsg->options |= CTP_OPT_PULL;
         } else {
-	  beaconMsg->etx = routeInfo.etx +
+            beaconMsg->etx = routeInfo.etx +
                                 evaluateEtx(call LinkEstimator.getLinkQuality(routeInfo.parent));
-	    beaconMsg->options = 0;
         }
 
         dbg("TreeRouting", "%s parent: %d etx: %d\n",
                   __FUNCTION__,
                   beaconMsg->parent, 
-	    beaconMsg->etx);
+                  beaconMsg->etx);
         call CollectionDebug.logEventRoute(NET_C_TREE_SENT_BEACON, beaconMsg->parent, 0, beaconMsg->etx);
 
         eval = call BeaconSend.send(AM_BROADCAST_ADDR, 
@@ -398,12 +409,13 @@ implementation {
 
     event void RouteTimer.fired() {
       if (radioOn && running) 
-	post updateRouteTask();
+        post updateRouteTask();
     }
     
     event void BeaconTimer.fired() {
       if (radioOn && running) {
         if (!tHasPassed) {
+          post updateRouteTask(); //always send the most up to date info
           post sendBeaconTask();
           remainingInterval();
         }
@@ -424,10 +436,14 @@ implementation {
     event message_t* BeaconReceive.receive(message_t* msg, void* payload, uint8_t len) {
         am_addr_t from;
         ctp_routing_header_t* rcvBeacon;
+        bool congested;
 
         // Received a beacon, but it's not from us.
         if (len != sizeof(ctp_routing_header_t)) {
-          dbg("LITest", "%s, received beacon of size %hhu, expected %i\n", __FUNCTION__, len, (int)sizeof(ctp_routing_header_t));
+          dbg("LITest", "%s, received beacon of size %hhu, expected %i\n",
+                     __FUNCTION__, 
+                     len,
+                     (int)sizeof(ctp_routing_header_t));
               
           return msg;
         }
@@ -435,11 +451,12 @@ implementation {
         //need to get the am_addr_t of the source
         from = call LinkSrcPacket.getSrc(msg);
         rcvBeacon = (ctp_routing_header_t*)payload;
+        congested = call CtpRoutingPacket.getOption(msg, CTP_OPT_ECN);
 
         dbg("TreeRouting","%s from: %d  [ parent: %d etx: %d]\n",
             __FUNCTION__, from, 
             rcvBeacon->parent, rcvBeacon->etx);
-        //call CollectionDebug.logEventRoute(NET_C_TREE_RCV_BEACON, rcvBeacon->parent, rcvBeacon->hopcount, rcvBeacon->etx);
+        //call CollectionDebug.logEventRoute(NET_C_TREE_RCV_BEACON, rcvBeacon->parent, 0, rcvBeacon->etx);
 
         //update neighbor table
         if (rcvBeacon->parent != INVALID_ADDR) {
@@ -454,11 +471,12 @@ implementation {
             //TODO: also, if better than my current parent's path etx, insert
 
             routingTableUpdateEntry(from, rcvBeacon->parent, rcvBeacon->etx);
+            call CtpInfo.setNeighborCongested(from, congested);
         }
 
-	if (call CtpRoutingPacket.getOptions(msg) & CTP_OPT_PULL) {
-	  resetInterval();
-	}
+        if (call CtpRoutingPacket.getOption(msg, CTP_OPT_PULL)) {
+              resetInterval();
+        }
         //post updateRouteTask();
         return msg;
     }
@@ -484,7 +502,7 @@ implementation {
         return (routeInfo.parent != INVALID_ADDR);
     }
    
-    /* TreeRoutingInspect interface */
+    /* CtpInfo interface */
     command error_t CtpInfo.getParent(am_addr_t* parent) {
         if (parent == NULL) 
             return FAIL;
@@ -515,14 +533,38 @@ implementation {
         }
      }
 
-
     command void CtpInfo.triggerImmediateRouteUpdate() {
-      // Random time in interval 64-127ms
+      // Random time in interval 4-11ms
       uint16_t time = call Random.rand16();
       time &= 0x7; 
       time += 4;
       call BeaconTimer.stop();
       call BeaconTimer.startOneShot(time);
+    }
+
+    command void CtpInfo.setNeighborCongested(am_addr_t n, bool congested) {
+        uint8_t idx;    
+        idx = routingTableFind(n);
+        if (idx < routingTableActive) {
+            routingTable[idx].info.congested = congested;
+        }
+        /* TODO:  (this only makes sense if routeUpdateTask takes congestion into
+         *         account for selecting routes.)
+         *   if (routeInfo.congested && !congested) 
+         *       post routeUpdateTask() 
+         *   else if (routeInfo.parent == n && congested) {
+         *       post routeUpdateTask()
+         *
+         */
+    }
+
+    command bool CtpInfo.isNeighborCongested(am_addr_t n) {
+        uint8_t idx;    
+        idx = routingTableFind(n);
+        if (idx < routingTableActive) {
+            return routingTable[idx].info.congested;
+        }
+        return FALSE;
     }
     
     /* RootControl interface */
@@ -597,6 +639,7 @@ implementation {
         uint8_t idx;
         uint16_t  linkEtx;
         linkEtx = evaluateEtx(call LinkEstimator.getLinkQuality(from));
+        //call CollectionDebug.logEventDbg(NET_C_DBG_3, from, parent, call LinkEstimator.getLinkQuality(from));  
 
         idx = routingTableFind(from);
         if (idx == routingTableSize) {
@@ -666,12 +709,22 @@ implementation {
         return SUCCESS;
     }
 
-    command ctp_options_t CtpRoutingPacket.getOptions(message_t* msg) {
-      return getHeader(msg)->options;
+    command bool CtpRoutingPacket.getOption(message_t* msg, ctp_options_t opt) {
+      return ((getHeader(msg)->options & opt) == opt) ? TRUE : FALSE;
     }
-    command void          CtpRoutingPacket.setOptions(message_t* msg, ctp_options_t options) {
-      getHeader(msg)->options = options;
+
+    command void CtpRoutingPacket.setOption(message_t* msg, ctp_options_t opt) {
+      getHeader(msg)->options |= opt;
     }
+
+    command void CtpRoutingPacket.clearOption(message_t* msg, ctp_options_t opt) {
+      getHeader(msg)->options &= ~opt;
+    }
+
+    command void CtpRoutingPacket.clearOptions(message_t* msg) {
+      getHeader(msg)->options = 0;
+    }
+
     
     command am_addr_t     CtpRoutingPacket.getParent(message_t* msg) {
       return getHeader(msg)->parent;
