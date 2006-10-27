@@ -56,62 +56,81 @@ import org.w3c.dom.*;
 public class DNavigate extends JPanel implements ActionListener{
     private DDocument parent;
     protected ArrayList<DLayer> layers = new ArrayList<DLayer>();
-    private int zIndex;
     private int _tmp_i = 0;
+	protected int totalLayers = 0;
+	
+	protected HashMap fieldIndex;
+	
+	private int default_width = 600;
+	private int default_height = 600;
     
     public DNavigate(Vector<String>label_motes, Vector<String> label_links, DDocument parent){
 		this.parent = parent;
 		BoxLayout layout = new BoxLayout(this,BoxLayout.PAGE_AXIS);
 		this.setLayout(layout);
-		this.setBackground(new Color(10,100,200));
+		//this.setBackground(new Color(10,100,200));
 		
-		int total = 2 * label_motes.size() + label_links.size();
-		zIndex = (total + 1) * 100;
+		totalLayers = 2 * label_motes.size() + label_links.size();
+		fieldIndex = new HashMap(label_motes.size());
+		
+		
 		
 		this._tmp_i = 0;
 		addLayer(label_motes, DLayer.MOTE, parent.motes);
 		addLayer(label_links, DLayer.LINK, parent.links);
 		addLayer(label_motes, DLayer.FIELD, parent.motes);      
-		updateLayerIndex();
+		updateLayerIndex(false);
+
+
+		// debug prints
+		Iterator<DLayer> it = layers.iterator();
+		while (it.hasNext()){
+			DLayer m = it.next();
+			System.out.println("setting layer: zIndex=" + m.z_index + ", index=" + m.zIndex);
+        }
         
+	}
+	
+	public void setMoteValue(int moteID, String name, int value) {
+		DLayer d = (DLayer) fieldIndex.get(name);
+		d.setMoteValue(moteID, value);
 	}
 	
 	private void addLayer(Vector<String> labels, int type, ArrayList models){
 	    for (int i=0; i<labels.size(); i++, _tmp_i++){
-		DLayer d = new DLayer(_tmp_i, i, labels.elementAt(i), type, parent, models);
+			DLayer d = new DLayer(_tmp_i, i, labels.elementAt(i), type, parent, models, this);
 		this.add(d);
+		if (type == DLayer.MOTE) fieldIndex.put(labels.elementAt(i), d);
 		//this.add(d, new Integer(zIndex));
-		zIndex = zIndex - 100;
 		layers.add(d);
 	    }
 	}
 	
-	private void updateLayerIndex(){
+	private void updateLayerIndex(boolean repaint){
 		int length = layers.size();
-		Iterator it = layers.iterator();
+		Iterator<DLayer> it = layers.iterator();
 		int i = 0;
 		while (it.hasNext()){
-		    DLayer d = (DLayer) it.next();
-		    d.zIndex = i;
-		    //parent.layers.setLayer(d.canvas, length - i);
+		    DLayer d = it.next();
+			d.updateIndex(i, repaint);
 		    ++i;
         }
 	}
 	
 	public void redrawNavigator(){
 	    System.out.println("Redrawing navigator.");
-	    Iterator it = layers.iterator();
+	    Iterator<DLayer> it = layers.iterator();
 	    while (it.hasNext()){
-		remove((DLayer) it.next());
+		remove(it.next());
 	    }
 	    it = layers.iterator();
 	    while (it.hasNext()){
-		add((DLayer) it.next());
+		add(it.next());
 	    }
 	    revalidate();
-	    repaint();
-	    parent.repaint();
-	    parent.drawPanel.repaint();
+	    //repaint();
+	    //parent.repaint();
+	    //parent.canvas.repaint();
 
 	}
 	
@@ -119,31 +138,35 @@ public class DNavigate extends JPanel implements ActionListener{
 		if (zIndex == 0){ return; }
 		DLayer d = (DLayer) layers.remove(zIndex);
 		layers.add(zIndex-1, d);
-		updateLayerIndex();
+		updateLayerIndex(true);
 		redrawNavigator();
+		redrawAllLayers();
 	}
 	
 	public void moveLayerDown(int zIndex){
 		if (zIndex == layers.size()-1){ return; }
 		DLayer d = (DLayer) layers.remove(zIndex);
 		layers.add(zIndex+1, d);
-		updateLayerIndex();
+		updateLayerIndex(true);
 		redrawNavigator();
+		redrawAllLayers();
 	}
 	
 	public void init(){
-		Iterator it = layers.iterator();
+		Iterator<DLayer> it = layers.iterator();
 		while (it.hasNext()){
-			((DLayer) it.next()).init();
+			(it.next()).init();
 		}
 	}
+
+	
 
     public void paint() {
 	System.out.println("Painting navigator");
 	redrawNavigator();
-	Iterator it = layers.iterator();
+	Iterator<DLayer> it = layers.iterator();
 	while (it.hasNext()) {
-	    DLayer layer = (DLayer)it.next();
+	    DLayer layer = it.next();
 	    System.out.println("Painting layer " + layer);
 	    layer.redrawLayer();
 	}
@@ -153,4 +176,28 @@ public class DNavigate extends JPanel implements ActionListener{
 	// TODO Auto-generated method stub
 	
     }
+
+	
+	protected void redrawAllLayers(){
+		int start = totalLayers-1;
+		for (int i=0; i<totalLayers; i++){
+			DLayer a = layers.get(i);
+			if (a.isFieldSelected()){
+				start = a.zIndex;
+				break;
+			}
+        }
+			DLayer bg = layers.get(start);
+			if (! bg.isFieldSelected()){
+				parent.canvas.repaint();
+			}
+		
+		System.out.println("start redrawing layers from #" + start);
+		for (int i=start; i>=0; i--){
+			DLayer a = layers.get(i);
+			System.out.println("redrawing layer #" + a.zIndex);
+			a.repaintLayer();
+        }
+	
+	}
 }

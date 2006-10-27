@@ -50,47 +50,41 @@ import net.tinyos.message.*;
 public class DDocument
     extends JPanel 
     implements ActionListener{    
-    
-    protected JPanel drawPanel;
+	
+    protected JLayeredPane canvas;
     protected Vector<DLayer> layers;
-    
+	
     private Color currentColor;
-    
+	
     public float[] maxValues;
     public int selectedFieldIndex;
     public int selectedLinkIndex;
     public Image icon;
-    
-    
+	
+	
     public DNavigate navigator;
-    
-    
-    
+	
+	
+	
     public Color getColor(){ return currentColor; }
-    
-    
+	
+	
     //=========================================================================//
     public Vector<String> sensed_motes;
     public Vector<String> sensed_links;
-    
+	
     public ArrayList moteModels;
     public ArrayList linkModels;
-    
-    
-    private JComboBox selectMotes;
-    private JComboBox selectLinks;
-    
-    
-    private JCheckBox jMotes;
-    private JCheckBox jLinks;
-    private JCheckBox jFields;
-    
-    private JButton jAddRect;
-
+	
+	
+    //	private JComboBox selectMotes;
+    //	private JComboBox selectLinks;
+	
+	
     private JTextField jText;
     private DrawTableModel tableModel;
     private JTable jTable;
-
+	
     private String[] toStringArray(Vector<String> v) {
 	String[] array = new String[v.size()];
 	for (int i = 0; i < v.size(); i++) {
@@ -105,40 +99,64 @@ public class DDocument
 	setLayout(new BorderLayout(6,6));
 	try{ UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 	} catch (Exception ignore){}
-	
+		
 	selectedFieldIndex = 0;
 	selectedLinkIndex = 0;
-	
+		
 	// toArray() should work, but for some reason it is returning [Ljava.lang.Object
 	// instead of [Ljava.lang.String
 	sensed_motes = fieldVector;
 	sensed_links = linkVector;
+		
 	//sensed_motes = toStringArray(fieldVector);
 	//sensed_links = toStringArray(linkVector);
-        //new String[] {"Temperature", "Humidity", "Motion", "Light"};
-
+        //sensed_motes = new String[] {"Temperature", "Humidity", "Motion", "Light"};
         //sensed_links =  new String[] {"Link1", "Link2"};
         
         maxValues = new float[sensed_motes.size()];
-        
-        try {
-	    icon = ImageIO.read(new File("tmote_sky.gif"));
+		
+	try {
+	    icon = ImageIO.read(new File("images/tmote_sky.gif"));
 	} catch (IOException e1) {
 	    // TODO Auto-generated catch block
 	    e1.printStackTrace();
 	}
-        
-	    
+		
+		
 	// Make drawing canvas
-	drawPanel = new JPanel();
-	drawPanel.setLayout(null);
-	drawPanel.setPreferredSize(new Dimension(width, height));
-	drawPanel.setOpaque(false);
-	drawPanel.setBorder(new SoftBevelBorder(SoftBevelBorder.LOWERED));
-	add(drawPanel, BorderLayout.CENTER);
+	canvas = new JLayeredPane();
+	canvas.setLayout(null);
+	canvas.setPreferredSize(new Dimension(width, height));
+	canvas.setOpaque(false);
+	canvas.setBorder(new SoftBevelBorder(SoftBevelBorder.LOWERED));
+	add(canvas, BorderLayout.CENTER);
 	layers = new Vector<DLayer>();
 	//----------------------------------------
+		
+	//	canvas.addMouseListener( new MouseAdapter() {
+	//		public void mousePressed(MouseEvent e) {
+	//			    if (selected != null){ // Deselect current shape, if any.
+	//			        DShape oldSelected = selected;
+	//			        selected = null;
+	//			        oldSelected.repaint();
+	//			    }
+	//	    }
+	//	});
+		
+	canvas.addComponentListener(new ComponentListener(){
+		public void componentResized(ComponentEvent e) {
+		    navigator.redrawAllLayers();
+		}
+		public void componentHidden(ComponentEvent arg0) {
+		}
+		public void componentMoved(ComponentEvent arg0) {
+		}
+		public void componentShown(ComponentEvent arg0) {
+		}			
+	    });
 
+		
+		
 	// Make control area
 	JPanel west = new JPanel();
 	west.setLayout(new BoxLayout(west, BoxLayout.Y_AXIS));
@@ -149,71 +167,37 @@ public class DDocument
 	//------------------------------------
 	// BUTTONS and Other Controls: 
 	//------------------------------------
-        
+		
 		
 		
 		
 	/*String[] labelStrings = {
-	    "Nodes",
-	    "Links"
-	};
-	JLabel[] labels = new JLabel[labelStrings.length];
-	JComponent[] fields = new JComponent[labelStrings.length];
+	  "Nodes",
+	  "Links"
+	  };
+	  JLabel[] labels = new JLabel[labelStrings.length];
+	  JComponent[] fields = new JComponent[labelStrings.length];
+		
+	  for (int i = 0; i < labelStrings.length; i++) {
+	  JTextField jt = new JTextField();
+	  jt.setMaximumSize(new Dimension(350,150));
+	  jt.addActionListener(this);
+			
+	  fields[i] = jt;
+	  labels[i] = new JLabel(labelStrings[i], JLabel.TRAILING);
+	  labels[i].setLabelFor(fields[i]);
+	  west.add(labels[i]);
+	  west.add(fields[i]);
+	  }*/
+	JButton button = new JButton("fetch nodes");
+	button.addActionListener(this);
+	west.add(button);
+		
+		
+	navigator = new DNavigate(sensed_motes, sensed_links, this);
+	west.add(navigator);
 
-        for (int i = 0; i < labelStrings.length; i++) {
-	    JTextField jt = new JTextField();
-	    jt.setMaximumSize(new Dimension(350,150));
-	    jt.addActionListener(this);
-        	
-	    fields[i] = jt;
-	    labels[i] = new JLabel(labelStrings[i], JLabel.TRAILING);
-	    labels[i].setLabelFor(fields[i]);
-	    west.add(labels[i]);
-	    west.add(fields[i]);
-	    }*/
-        JButton button = new JButton("fetch nodes");
-        button.addActionListener(this);
-        west.add(button);
-        
-        
-        navigator = new DNavigate(sensed_motes, sensed_links, this);
-        west.add(navigator);
-        
-       
-        
-        //selectMotes = new JComboBox(toStringArray(sensed_motes));
-	// selectMotes.setMaximumSize(new Dimension(350,150));
-        //west.add(selectMotes);
-        //selectMotes.addActionListener(this);
-        
-        //selectLinks = new JComboBox(toStringArray(sensed_links));
-        //selectLinks.setMaximumSize(new Dimension(350,150));
-        //west.add(selectLinks);
-        //selectLinks.addActionListener(this);
-        
-	//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	//jMotes = new JCheckBox("Motes");
-	//west.add(jMotes);
-	//jMotes.addActionListener(this);
-	//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	//jLinks = new JCheckBox("Links");
-	//west.add(jLinks);
-	//jLinks.addActionListener(this);
-	//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	//jFields = new JCheckBox("Fields");
-	//west.add(jFields);
-	//jFields.addActionListener(this);
-	//      <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            
-            
-	jAddRect = new JButton("Add Rect");
-	//west.add(jAddRect);
-	jAddRect.addActionListener(this);
-	//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	jText = new JTextField();
-	jText.setMaximumSize(new Dimension(180,50));
-	//west.add(jText);
-	jText.addActionListener(this);
+		
 	//------------------------------------
 	// Table.
 	west.add(Box.createVerticalStrut(10));
@@ -233,47 +217,27 @@ public class DDocument
 	//		canvas.add(a);
     }
 
-    public void repaint() {
-	super.repaint();
-	System.out.println("Repainting navigator?");
-	if (navigator != null &&
-	    jTable != null &&
-	    drawPanel != null) {
-	    navigator.repaint();
-	    jTable.repaint();
-	    drawPanel.repaint();
-	    System.out.println("Repainting all three.");
-	}
-    }
+    /*public void repaint() {
+      super.repaint();
+      System.out.println("Repainting navigator?");
+      if (navigator != null &&
+      jTable != null &&
+      canvas != null) {
+      navigator.repaint();
+      jTable.repaint();
+      canvas.repaint();
+      System.out.println("Repainting all three.");
+      }
+      }*/
     
     //=========================================================================//
     public void actionPerformed(ActionEvent e) {
 	// e.getSource() is the originator of the action --
 	// if-logic to check which one it was
-	
-	if (e.getSource() == jMotes) {
-	    if (jFields.isSelected()){
-		repaintAllMotes();
-	    }
-	} else if (e.getSource() == jLinks) {
-            if (jLinks.isSelected()){
-            	repaintAllLinks();
-            }
-		    
-	}  else if (e.getSource() == selectMotes) {
-	    //System.out.println(selectMotes.getSelectedItem());
-	    selectedFieldIndex = selectMotes.getSelectedIndex();
-	    tableModel.updateTable();
-			
-	    if (jFields.isSelected()){
-	    }
-		    
-	}  else if (e.getSource() == selectLinks) {
-	    //System.out.println(selectLinks.getSelectedItem());
-		    
-	}
-	navigator.repaint();
-	drawPanel.repaint();
+		
+		
+	//navigator.repaint();
+	//canvas.repaint();
     }
     //=========================================================================//
     private void zMove(int direction){
@@ -286,96 +250,105 @@ public class DDocument
     //=========================================================================//
     public int width_canvas = 600;
     public int height_canvas = 600;
-    
+	
     protected ArrayList<DMoteModel> motes = new ArrayList<DMoteModel>();
     protected ArrayList<DLink> links = new ArrayList<DLink>();
-    
+	
     private void createRandomMotes(){
-        Random rand = new Random();
-        int total = rand.nextInt(26)+10;
-        for (int i=0; i<total; i++){
+	Random rand = new Random();
+	int total = rand.nextInt(26)+10;
+	for (int i=0; i<total; i++){
             DMoteModel m = new DMoteModel(i, rand, this);
-            motes.add(m);
-            tableModel.add(m);
-            //addShape(m, true); 
-        }
-      
+	    motes.add(m);
+	    tableModel.add(m);
+	    //addShape(m, true); 
+	}
+		
     }
-    
+	
     private void createRandomLinks(){
-    	Random rand = new Random();
-    	int size = motes.size();
-    	int total = rand.nextInt(size)*3;
-    	
-    	for (int i=0; i<total; i++){
+	Random rand = new Random();
+	int size = motes.size();
+	int total = rand.nextInt(size)*3;
+		
+	for (int i=0; i<total; i++){
 	    int m1 = rand.nextInt(size);
 	    int m2 = rand.nextInt(size);
 	    if (m1==m2) continue;
-    		
+			
 	    DLink m = new DLink(new DLinkModel((DMoteModel)motes.get(m1),
 					       (DMoteModel)motes.get(m2), rand, this),
-    				DDocument.this);
+				DDocument.this);
 	    links.add(m);
 	    //addLink(m, true); 
-    	}
-    	
+	}
+		
     }
-
+	
     //=========================================================================//
     // Provided default ctor that calls the regular ctor
     public DDocument(Vector<String> fieldVector, Vector<String> linkVector) {
 	this(300, 300, fieldVector, linkVector);	 // this syntax calls one ctor from another
     }
-
-	 
+	
+	
     public DShape getSelected() {
 	return null;
 	//		return(selected);
     }
-	 
+	
     public void setSelected(DShape selected) {
 	//	    if (this.selected!=null) this.selected.repaint();
 	//	 	this.selected = selected;
 	//	 	selected.repaint();
     }
 
+    Random rand = new Random();
+    
     public void setMoteValue(int moteID, String name, int value) {
-	//System.out.println("Set " + moteID + ":" + name + " to " + value);
+	DMoteModel m = new DMoteModel(moteID, rand, this);
+	if (!motes.contains(m)) {
+	    System.out.println("Adding mote " + moteID);
+	    motes.add(m);
+	    tableModel.add(m);
+	}
+	System.out.println("Set " + moteID + ":" + name + " to " + value);
+	navigator.setMoteValue(moteID, name, value);
     }
 	
     public void setLinkValue(int startMote, int endMote, String name, int value) {
-	//System.out.println("Set " + startMote + "->" + endMote + ":" + name + " to " + value);
+	System.out.println("Set " + startMote + "->" + endMote + ":" + name + " to " + value);
     }
-
+	
     // Assumes links are defined by a structure with two fields:
     /* nx_struct xxx {
-         am_addr_t node;
-	 nx_xxx_t value;
+       am_addr_t node;
+       nx_xxx_t value;
        }
-
+	 
        A link field must have the name link_XXXX, where X is its name.
        For example:
-
+	 
        typedef nx_struct prr_t {
-         am_addr_t node;
-	 nx_uint8_t prr;
+       am_addr_t node;
+       nx_uint8_t prr;
        } prr_t;
-
+	 
        typedef nx_struct routing_msg {
-         prr_t link_prr;
+       prr_t link_prr;
        } routing_msg;
-
+	 
        This will create a link field with name "prr".
     */       
-
-    
+	
+	
     public static void usage() {
 	System.err.println("usage: tos-soleil [-comm source] message_type [message_type ...]");
     }
-    
+	
     // Just a test main -- put a little DDocument on screen
     public static void main(String[] args)	{
-	JFrame frame = new JFrame("Draw");
+	JFrame frame = new JFrame("MViz");
 	Vector<String> packetVector = new Vector<String>();
 	String source = null;
 	
@@ -399,23 +372,35 @@ public class DDocument
 	    System.exit(1);
 	}
 	
-	DataModel model = new DataModel(packetVector);	
-        DDocument doc = new DDocument(600, 600, model.fields(), model.links());
-	frame.setContentPane(doc);
-
-	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	frame.pack();
-	frame.setVisible(true);
+	DataModel model = new DataModel(packetVector);
+	/*Vector<String>  sm = new Vector<String>();
+	    sm.add("Temperature");
+	    sm.add("Humidity");
+	    sm.add("Motion");
+	    sm.add("Light");
+	    Vector<String>  sn = new Vector<String>();
+	    sn.add("Link1");
+	    sn.add("Link2");
+	    DDocument doc = new DDocument(600, 600, sm, sn);
+	    **/
+	
+	DDocument doc = new DDocument(600, 600, model.fields(), model.links());
         
-        // set mote value
-        doc.createRandomMotes();
-        doc.createRandomLinks();
-        doc.navigator.init();
-        //doc.createFields();
-	MessageInput input = new MessageInput(packetVector, source, doc);
-	input.start();
+		frame.setContentPane(doc);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.pack();
+		frame.setVisible(true);
+		
+		// set mote value
+		//doc.createRandomMotes();
+		//doc.createRandomLinks();
+		doc.navigator.init();
+		//doc.createFields();
+		
+		MessageInput input = new MessageInput(packetVector, source, doc);
+		input.start();
     }
-
+	
     private void repaintAllMotes(){    	
 	Iterator it = motes.iterator();
 	while(it.hasNext()){
@@ -437,7 +422,7 @@ public class DDocument
 	implements DMoteModelListener {
 	private final String[] COLS = {"ID", "X", "Y"};
 	private final int SIZE = 3;
-	
+		
 	//-----------------------------o
 	public String getColumnName(int col){
 	    if (col==2 && selectedFieldIndex < sensed_motes.size()){
@@ -489,7 +474,7 @@ public class DDocument
 		    return i;
 	    }
 	    return -1;	            
-          
+			
 	}
     }
 }
