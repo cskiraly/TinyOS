@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.9 2006-10-27 18:05:03 rfonseca76 Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.10 2006-10-27 20:00:56 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-10-27 18:05:03 $
+ *  @date   $Date: 2006-10-27 20:00:56 $
  *  @see Net2-WG
  */
 
@@ -150,6 +150,13 @@ implementation {
     uint32_t parentChanges;
     /* end statistics */
 
+    uint32_t routeUpdateTimerCount;
+
+    // Maximimum it takes to hear four beacons
+    enum {
+      DEATH_TEST_INTERVAL = (maxInterval * 4) / (BEACON_INTERVAL / 1024),
+    };
+    
     // forward declarations
     void routingTableInit();
     uint8_t routingTableFind(am_addr_t);
@@ -190,6 +197,7 @@ implementation {
 
     command error_t Init.init() {
         uint8_t maxLength;
+	routeUpdateTimerCount = 0;
         radioOn = FALSE;
         running = FALSE;
         parentChanges = 0;
@@ -207,10 +215,10 @@ implementation {
     command error_t StdControl.start() {
       //start will (re)start the sending of messages
       if (!running) {
-        running = TRUE;
-        resetInterval();
-        call RouteTimer.startPeriodic(BEACON_INTERVAL);
-        dbg("TreeRoutingCtl","%s running: %d radioOn: %d\n", __FUNCTION__, running, radioOn);
+	running = TRUE;
+	resetInterval();
+	call RouteTimer.startPeriodic(BEACON_INTERVAL);
+	dbg("TreeRoutingCtl","%s running: %d radioOn: %d\n", __FUNCTION__, running, radioOn);
       }     
       return SUCCESS;
     }
@@ -408,10 +416,30 @@ implementation {
     }
 
     event void RouteTimer.fired() {
-      if (radioOn && running) 
-        post updateRouteTask();
+      if (radioOn && running) {
+
+	// Test to see if we should mark nodes that we cannot probe dead
+	routeUpdateTimerCount++;
+	if (routeUpdateTimerCount >= DEATH_TEST_INTERVAL) {
+	  int i;
+	  for (i = 0; i < routingTableActive; i++) {
+            routing_table_entry* entry = &routingTable[i];
+	    if (entry->info.haveHeard == 0 &&
+		entry->info.congested) {
+	      routingTableEvict(entry->neighbor);
+	    }
+	    else {
+	      entry->info.haveHeard = 0;
+	    }
+	  }
+	  routeUpdateTimerCount = 0;
+	}
+
+	// Then update our routes
+	post updateRouteTask();
+      }
     }
-    
+      
     event void BeaconTimer.fired() {
       if (radioOn && running) {
         if (!tHasPassed) {
@@ -657,6 +685,7 @@ implementation {
                     routingTable[idx].neighbor = from;
                     routingTable[idx].info.parent = parent;
                     routingTable[idx].info.etx = etx;
+		    routingTable[idx].info.haveHeard = 1;
                     routingTableActive++;
                 }
                 dbg("TreeRouting", "%s OK, new entry\n", __FUNCTION__);
@@ -669,6 +698,7 @@ implementation {
                 routingTable[idx].neighbor = from;
                 routingTable[idx].info.parent = parent;
                 routingTable[idx].info.etx = etx;
+		routingTable[idx].info.haveHeard = 1;
             }
             dbg("TreeRouting", "%s OK, updated entry\n", __FUNCTION__);
         }
