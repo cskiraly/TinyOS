@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.17 $ $Date: 2006-10-26 17:04:30 $
+ * @version $Revision: 1.1.2.18 $ $Date: 2006-10-27 01:37:02 $
  */
 
 #include <Timer.h>
@@ -30,6 +30,8 @@ module TestNetworkC {
   uses interface CollectionPacket;
   uses interface CtpInfo;
   uses interface Random;
+  uses interface Queue<message_t*>;
+  uses interface Pool<message_t>;
   uses interface CollectionDebug;
   uses interface AMPacket;
 }
@@ -102,7 +104,6 @@ implementation {
       sendBusy = TRUE;
       seqno++; 
       dbg("TestNetworkC", "%s: Transmission succeeded.\n", __FUNCTION__);
-
     }
   }
 
@@ -136,31 +137,47 @@ implementation {
   Receive.receive(message_t* msg, void* payload, uint8_t len) {
     dbg("TestNetworkC", "Received packet at %s from node %hhu.\n", sim_time_string(), call CollectionPacket.getOrigin(msg));
     call Leds.led1Toggle();    
-    if (!uartbusy) {
-      message_t* tmp = recvPtr;
-      recvPtr = msg;
-      uartbusy = TRUE;
-      msglen = len + 4;
-      post uartEchoTask();
-      call Leds.led2Toggle();
+    if (!Pool.size() <= (TEST_NETWORK_POOL_SIZE < 4)? 1:3 &&
+        !call CtpCongested.isCongested()) {
+      call CtpCongestion.setCongested(TRUE);
+      call CtpCongestion.triggerImmediateRouteUpdate();
+    }
+    if (!Pool.isEmpty() && Queue.size() < Queue.maxSize()) {
+      message_t* tmp = call Pool.get();
+      call Queue.enqueue(msg);
+      if (!uartbusy) {
+        post uartEchoTask();
+      }
       return tmp;
     }
     return msg;
-  }
+ }
 
-  task void uartEchoTask() {
+ task void uartEchoTask() {
     dbg("Traffic", "Sending packet to UART.\n");
-    if (call UARTSend.send(0xffff, recvPtr, msglen) != SUCCESS) {
+   if (call Queue.isEmpty()) {
+     return;
+   }
+   else if (!uartbusy) {
+     message_t msg = call Queue.dequeue();
+     dbg("Traffic", "Sending packet to UART.\n");
+     if (call UARTSend.send(0xffff, recvPtr, call Send.payloadLength(msg) + 4) == SUCCESS) {
+       uartbusy = TRUE;
+     }
+     else {
       call CollectionDebug.logEventMsg(NET_C_DBG_2,
 				       call CollectionPacket.getSequenceNumber(recvPtr),
 				       call CollectionPacket.getOrigin(recvPtr),
 				       call AMPacket.destination(recvPtr));
-      uartbusy = FALSE;
-    }
-  }
+     }
+   }
+ }
 
   event void UARTSend.sendDone(message_t *msg, error_t error) {
     dbg("Traffic", "UART send done.\n");
     uartbusy = FALSE;
+    if (!Queue.isEmpty()) {
+      post uartEchoTask();
+    } 
   }
 }
