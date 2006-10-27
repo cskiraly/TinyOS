@@ -8,7 +8,7 @@
  * Collection Tree Protocol for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.15 $ $Date: 2006-10-27 01:37:02 $
+ * @version $Revision: 1.1.2.16 $ $Date: 2006-10-27 01:47:38 $
  */
 #include "TestNetwork.h"
 #include "Ctp.h"
@@ -26,8 +26,8 @@ implementation {
   components new SerialAMSenderC(AM_COLLECTION_DEBUG) as UARTSender;
   components UARTDebugSenderP as DebugSender;
   components RandomC;
-  components new QueueC<message_t*>(8);
-  components new PoolC<message_t>(8);
+  components new QueueC(message_t*, 8);
+  components new PoolC(message_t, 8);
 
   TestNetworkC.Boot -> MainC;
   TestNetworkC.RadioControl -> ActiveMessageC;

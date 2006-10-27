@@ -7,7 +7,7 @@
  * See TEP118: Dissemination and TEP 119: Collection for details.
  * 
  * @author Philip Levis
- * @version $Revision: 1.1.2.18 $ $Date: 2006-10-27 01:37:02 $
+ * @version $Revision: 1.1.2.19 $ $Date: 2006-10-27 01:47:38 $
  */
 
 #include <Timer.h>
@@ -137,12 +137,12 @@ implementation {
   Receive.receive(message_t* msg, void* payload, uint8_t len) {
     dbg("TestNetworkC", "Received packet at %s from node %hhu.\n", sim_time_string(), call CollectionPacket.getOrigin(msg));
     call Leds.led1Toggle();    
-    if (!Pool.size() <= (TEST_NETWORK_POOL_SIZE < 4)? 1:3 &&
-        !call CtpCongested.isCongested()) {
+    if (!call Pool.size() <= (TEST_NETWORK_QUEUE_SIZE < 4)? 1:3 &&
+        !call CtpCongestion.isCongested()) {
       call CtpCongestion.setCongested(TRUE);
       call CtpCongestion.triggerImmediateRouteUpdate();
     }
-    if (!Pool.isEmpty() && Queue.size() < Queue.maxSize()) {
+    if (!call Pool.empty() && call Queue.size() < call Queue.maxSize()) {
       message_t* tmp = call Pool.get();
       call Queue.enqueue(msg);
       if (!uartbusy) {
@@ -155,13 +155,13 @@ implementation {
 
  task void uartEchoTask() {
     dbg("Traffic", "Sending packet to UART.\n");
-   if (call Queue.isEmpty()) {
+   if (call Queue.empty()) {
      return;
    }
    else if (!uartbusy) {
-     message_t msg = call Queue.dequeue();
+     message_t* msg = call Queue.dequeue();
      dbg("Traffic", "Sending packet to UART.\n");
-     if (call UARTSend.send(0xffff, recvPtr, call Send.payloadLength(msg) + 4) == SUCCESS) {
+     if (call UARTSend.send(0xffff, recvPtr, call Receive.payloadLength(msg) + 4) == SUCCESS) {
        uartbusy = TRUE;
      }
      else {
@@ -176,8 +176,14 @@ implementation {
   event void UARTSend.sendDone(message_t *msg, error_t error) {
     dbg("Traffic", "UART send done.\n");
     uartbusy = FALSE;
-    if (!Queue.isEmpty()) {
+    if (!call Queue.empty()) {
       post uartEchoTask();
     } 
+    else {
+      if (call CtpCongestion.isCongested()) {
+        call CtpCongestion.setCongested(FALSE);
+        call CtpInfo.triggerRouteUpdate();
+      }
+    }
   }
 }
