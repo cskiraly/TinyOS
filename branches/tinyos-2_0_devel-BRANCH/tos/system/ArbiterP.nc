@@ -58,6 +58,7 @@ generic module ArbiterP(uint8_t controller_id) {
   uses {
     interface ResourceConfigure[uint8_t id];
     interface ResourceQueue as Queue;
+    interface Leds;
   }
 }
 implementation {
@@ -103,7 +104,6 @@ implementation {
   }
   
   async command error_t Resource.release[uint8_t id]() {
-    bool released = FALSE;
     atomic {
       if(state == RES_BUSY && resId == id) {
         if(call Queue.isEmpty() == FALSE) {
@@ -114,15 +114,10 @@ implementation {
         else {
           resId = CONTROLLER_ID;
           state = RES_CONTROLLED;
+          signal ResourceController.granted();
         }
-        released = TRUE;
+        call ResourceConfigure.unconfigure[id]();
       }
-    }
-    if(released == TRUE) {
-      call ResourceConfigure.unconfigure[id]();
-      if(resId == CONTROLLER_ID)
-        signal ResourceController.granted();
-      return SUCCESS;
     }
     return FAIL;
   }
