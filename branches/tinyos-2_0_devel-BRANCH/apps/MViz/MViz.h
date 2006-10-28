@@ -19,7 +19,7 @@
 
 enum {
   /* Default sampling period. */
-  DEFAULT_INTERVAL = 256,
+  DEFAULT_INTERVAL = 128,
   AM_MVIZ_MSG = 0x93
 };
 
