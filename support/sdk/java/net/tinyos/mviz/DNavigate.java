@@ -124,11 +124,12 @@ public class DNavigate extends JPanel implements ActionListener{
 	    while (it.hasNext()){
 		add(it.next());
 	    }
+	   
 	    revalidate();
 	    //repaint();
 	    //parent.repaint();
 	    //parent.canvas.repaint();
-
+	    redrawAllLayers();
 	}
 	
 	public void moveLayerUp(int zIndex){
@@ -137,7 +138,7 @@ public class DNavigate extends JPanel implements ActionListener{
 		layers.add(zIndex-1, d);
 		updateLayerIndex(true);
 		redrawNavigator();
-		redrawAllLayers();
+		redrawAllLayers(); 
 	}
 	
 	public void moveLayerDown(int zIndex){
@@ -162,11 +163,6 @@ public class DNavigate extends JPanel implements ActionListener{
 	System.out.println("Painting navigator");
 	redrawNavigator();
 	Iterator<DLayer> it = layers.iterator();
-	while (it.hasNext()) {
-	    DLayer layer = it.next();
-	    System.out.println("Painting layer " + layer);
-	    layer.redrawLayer();
-	}
     }
 	
     public void actionPerformed(ActionEvent e) {
@@ -174,27 +170,37 @@ public class DNavigate extends JPanel implements ActionListener{
 	
     }
 
-	
-	protected void redrawAllLayers(){
-		int start = totalLayers-1;
-		for (int i=0; i<totalLayers; i++){
-			DLayer a = layers.get(i);
-			if (a.isFieldSelected()){
-				start = a.zIndex;
-				break;
-			}
-        }
-			DLayer bg = layers.get(start);
-			if (! bg.isFieldSelected()){
-				parent.canvas.repaint();
-			}
-		
-			//System.out.println("start redrawing layers from #" + start);
-		for (int i=start; i>=0; i--){
-			DLayer a = layers.get(i);
-			//System.out.println("redrawing layer #" + a.zIndex);
-			a.repaintLayer();
-        }
-	
+    
+    private long currentSecond = -1;
+    private long PERIOD = 1000;
+    
+    protected void redrawAllLayers(){
+	Date date = new Date();
+	if (date.getTime() - currentSecond < PERIOD){
+	    //System.out.println("time: " + (date.getTime() - currentSecond));
+	    return;
+	} else {
+	    currentSecond = date.getTime();
 	}
+	    
+	int start = totalLayers-1;
+	for (int i=0; i<totalLayers; i++){
+	    DLayer a = layers.get(i);
+	    if (a.isFieldSelected()){
+		start = a.zIndex;
+		break;
+	    }
+	}
+	DLayer bg = layers.get(start);
+	Color c = Color.WHITE;
+	Graphics2D g2d = (Graphics2D)parent.canvas.getGraphics();
+	g2d.setColor(c);
+	g2d.clearRect(0, 0, parent.canvas.getWidth(), parent.canvas.getHeight());
+	g2d.fillRect(0, 0, parent.canvas.getWidth(), parent.canvas.getHeight());
+	for (int i=start; i>=0; i--){
+	    DLayer a = layers.get(i);
+	    //System.out.println("redrawing layer #" + a.zIndex);
+	    a.repaintLayer();
+	}
+    }
 }

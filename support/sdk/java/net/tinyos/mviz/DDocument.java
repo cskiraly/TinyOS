@@ -51,7 +51,7 @@ public class DDocument
     extends JPanel 
     implements ActionListener{    
 	
-    protected JLayeredPane canvas;
+    protected JPanel canvas;
     protected Vector<DLayer> layers;
 	
     private Color currentColor;
@@ -96,6 +96,9 @@ public class DDocument
     
     public DDocument(int width, int height, Vector<String> fieldVector, Vector<String> linkVector) {
 	super();
+	layers = new Vector<DLayer>();
+
+	
 	setOpaque(false);
 	setLayout(new BorderLayout(6,6));
 	try{ UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -103,7 +106,17 @@ public class DDocument
 		
 	selectedFieldIndex = 0;
 	selectedLinkIndex = 0;
-		
+	canvas = new JPanel();
+	canvas.setLayout(null);
+	canvas.setDoubleBuffered(true);
+	canvas.setPreferredSize(new Dimension(width, height));
+	canvas.setMinimumSize(new Dimension(width, height));
+	canvas.setSize(new Dimension(width, height));
+	canvas.setOpaque(false);
+	canvas.setBorder(new SoftBevelBorder(SoftBevelBorder.LOWERED));
+	add(canvas, BorderLayout.CENTER);
+
+	
 	// toArray() should work, but for some reason it is returning [Ljava.lang.Object
 	// instead of [Ljava.lang.String
 	sensed_motes = fieldVector;
@@ -126,13 +139,6 @@ public class DDocument
 		
 		
 	// Make drawing canvas
-	canvas = new JLayeredPane();
-	canvas.setLayout(null);
-	canvas.setPreferredSize(new Dimension(width, height));
-	canvas.setOpaque(false);
-	canvas.setBorder(new SoftBevelBorder(SoftBevelBorder.LOWERED));
-	add(canvas, BorderLayout.CENTER);
-	layers = new Vector<DLayer>();
 	//----------------------------------------
 		
 	//	canvas.addMouseListener( new MouseAdapter() {
@@ -192,9 +198,6 @@ public class DDocument
 	  west.add(labels[i]);
 	  west.add(fields[i]);
 	  }*/
-	JButton button = new JButton("fetch nodes");
-	button.addActionListener(this);
-	west.add(button);
 		
 		
 	navigator = new DNavigate(sensed_motes, sensed_links, this);
@@ -204,7 +207,7 @@ public class DDocument
 	//------------------------------------
 	// Table.
 	west.add(Box.createVerticalStrut(10));
-	tableModel = new DrawTableModel();
+	tableModel = new DrawTableModel(sensed_motes);
 	jTable = new JTable(tableModel);
 	jTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 	JScrollPane scroller = new JScrollPane(jTable);
@@ -327,7 +330,7 @@ public class DDocument
 	if (m == null) {
 	    m = createNewMote(moteID);
 	}
-	System.out.println("Set " + moteID + ":" + name + " to " + value);
+	//System.out.println("Set " + moteID + ":" + name + " to " + value);
 	m.setMoteValue(name, value);
 	navigator.redrawAllLayers();
     }
@@ -436,18 +439,26 @@ public class DDocument
     private class DrawTableModel
 	extends AbstractTableModel
 	implements DMoteModelListener {
-	private final String[] COLS = {"ID", "X", "Y"};
-	private final int SIZE = 3;
-		
-	//-----------------------------o
-	public String getColumnName(int col){
-	    if (col==2 && selectedFieldIndex < sensed_motes.size()){
-		return sensed_motes.elementAt(selectedFieldIndex);
-	    }
-	    return COLS[col]; 	    	
+	private Vector<String> fields;
+	
+	public DrawTableModel(Vector<String> fields) {
+	    this.fields = fields;
 	}
 	//-----------------------------o
-	public int getColumnCount() { return SIZE; }
+	public String getColumnName(int col){
+	    switch(col) {
+	    case 0:
+		return "Node ID";
+	    case 1:
+		return "X";
+	    case 2:
+		return "Y";
+	    default:
+		return fields.elementAt(col - 3);
+	    }
+	}
+	//-----------------------------o
+	public int getColumnCount() { return fields.size() + 3; }
 	//-----------------------------o
 	public int getRowCount() {
 	    return DDocument.this.motes.size();
@@ -455,12 +466,15 @@ public class DDocument
 	//-----------------------------o
 	public Object getValueAt(int row, int col) {
 	    DMoteModel model = (DMoteModel) DDocument.this.motes.get(row);
-	    switch(col){
-	    case 0: return(""+model.getId());
-	    case 1: return(""+model.getLocX());
-	    case 2: return(""+model.getLocY());
-	    case 3: return(""+model.getValue(selectedFieldIndex));
-	    default: return null;
+	    switch(col) {
+	    case 0:
+		return "" + (int)model.getId();
+	    case 1:
+		return "" + (int)model.getLocX();
+	    case 2:
+		return "" + (int)model.getLocY();
+	    default:
+		return("" + (int)model.getValue(col - 3));
 	    }
 	}
 	//-----------------------------o
@@ -491,6 +505,21 @@ public class DDocument
 	    }
 	    return -1;	            
 			
+	}
+    }
+    
+    private class DPanel extends JPanel {
+	private DNavigate nav;
+
+	public DPanel(DNavigate n) {
+	    super();
+	    nav = n;
+	}
+
+	public void paint(Graphics g) {
+	    super.paint(g);
+	    System.out.println("Painting panel!");
+	    nav.redrawAllLayers();
 	}
     }
 }

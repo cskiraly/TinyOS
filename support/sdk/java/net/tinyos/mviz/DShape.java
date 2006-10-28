@@ -71,6 +71,7 @@ implements DMoteModelListener
 		        new MouseAdapter() 
 		        {
 		            public void mousePressed(MouseEvent e) {
+				System.out.println("press");
 		                selected();
 		                lastX = e.getX()+getX();
 		                lastY = e.getY()+getY();
@@ -117,24 +118,9 @@ implements DMoteModelListener
 	    repaint();
 	}
 	//=========================================================================//
-	public abstract void paintShape(Graphics g);
+	public abstract void paintShape();
 	//=========================================================================//
     public void paintComponent(Graphics g) {
-	try {
-	    Graphics2D g2D = (Graphics2D)document.canvas.getGraphics();
-	    g2D.setBackground(new Color(0, 0, 0, 1));
-        }
-	catch (Exception e) {
-	    e.printStackTrace();
-	}
-	document.canvas.getGraphics().setColor(model.getColor(layer.index));
-	paintShape(g);
-
-// 	    if (document.getSelected() == this){
-// 	        // Paints the knobs.
-// 	        Color old = g.getColor();
-// 	        g.setColor(old);
-// 	    }
     }
 	//=========================================================================//
 	private void DetermineAction(int x, int y){
