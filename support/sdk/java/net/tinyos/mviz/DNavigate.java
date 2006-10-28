@@ -57,23 +57,18 @@ public class DNavigate extends JPanel implements ActionListener{
     private DDocument parent;
     protected ArrayList<DLayer> layers = new ArrayList<DLayer>();
     private int _tmp_i = 0;
-	protected int totalLayers = 0;
+    protected int totalLayers = 0;
 	
-	protected HashMap fieldIndex;
-	
-	private int default_width = 600;
-	private int default_height = 600;
+    private int default_width = 600;
+    private int default_height = 600;
     
     public DNavigate(Vector<String>label_motes, Vector<String> label_links, DDocument parent){
 		this.parent = parent;
 		BoxLayout layout = new BoxLayout(this,BoxLayout.PAGE_AXIS);
 		this.setLayout(layout);
 		//this.setBackground(new Color(10,100,200));
-		
+
 		totalLayers = 2 * label_motes.size() + label_links.size();
-		fieldIndex = new HashMap(label_motes.size());
-		
-		
 		
 		this._tmp_i = 0;
 		addLayer(label_motes, DLayer.MOTE, parent.motes);
@@ -90,17 +85,19 @@ public class DNavigate extends JPanel implements ActionListener{
         }
         
 	}
-	
-	public void setMoteValue(int moteID, String name, int value) {
-		DLayer d = (DLayer) fieldIndex.get(name);
-		d.setMoteValue(moteID, value);
+
+    protected void addMote(DMoteModel model){
+	Iterator<DLayer> it = layers.iterator();
+	while(it.hasNext()){
+	    it.next().addMote(model, true);
 	}
+    }
 	
 	private void addLayer(Vector<String> labels, int type, ArrayList models){
 	    for (int i=0; i<labels.size(); i++, _tmp_i++){
-			DLayer d = new DLayer(_tmp_i, i, labels.elementAt(i), type, parent, models, this);
+		DLayer d = new DLayer(_tmp_i, i, labels.elementAt(i), type, parent, models, this);
 		this.add(d);
-		if (type == DLayer.MOTE) fieldIndex.put(labels.elementAt(i), d);
+		//if (type == DLayer.MOTE) fieldIndex.put(labels.elementAt(i), d);
 		//this.add(d, new Integer(zIndex));
 		layers.add(d);
 	    }
@@ -192,10 +189,10 @@ public class DNavigate extends JPanel implements ActionListener{
 				parent.canvas.repaint();
 			}
 		
-		System.out.println("start redrawing layers from #" + start);
+			//System.out.println("start redrawing layers from #" + start);
 		for (int i=start; i>=0; i--){
 			DLayer a = layers.get(i);
-			System.out.println("redrawing layer #" + a.zIndex);
+			//System.out.println("redrawing layer #" + a.zIndex);
 			a.repaintLayer();
         }
 	

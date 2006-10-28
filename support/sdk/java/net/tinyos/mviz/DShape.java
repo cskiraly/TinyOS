@@ -120,17 +120,22 @@ implements DMoteModelListener
 	public abstract void paintShape(Graphics g);
 	//=========================================================================//
     public void paintComponent(Graphics g) {
-	    super.paintComponent(g);
-    
-        
-        g.setColor(model.getColor(layer.index));
-	    paintShape(g);
+	try {
+	    Graphics2D g2D = (Graphics2D)document.canvas.getGraphics();
+	    g2D.setBackground(new Color(0, 0, 0, 1));
+        }
+	catch (Exception e) {
+	    e.printStackTrace();
+	}
+	document.canvas.getGraphics().setColor(model.getColor(layer.index));
+	paintShape(g);
+
 // 	    if (document.getSelected() == this){
 // 	        // Paints the knobs.
 // 	        Color old = g.getColor();
 // 	        g.setColor(old);
 // 	    }
-	}
+    }
 	//=========================================================================//
 	private void DetermineAction(int x, int y){
         action = MOVE;	        
@@ -164,7 +169,8 @@ implements DMoteModelListener
 	    	h = 250;
 			break;
 		}
-	    setBounds(x, y, w, h);
+		//setLocation(x, y);
+		setBounds(0, 0, 0, 0);
 	}
 	//=========================================================================//
 	private void selected(){
