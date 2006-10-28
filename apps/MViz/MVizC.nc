@@ -175,6 +175,10 @@ implementation {
   event void Timer.fired() {
     if (!sendbusy) {
       mviz_msg_t *o = (mviz_msg_t *)call Send.getPayload(&sendbuf);
+      local.origin ^= 1;
+      if (local.origin == 1) {
+        local.reading = 13000 - local.reading;
+      }
       memcpy(o, &local, sizeof(local));
       if (call Send.send(&sendbuf, sizeof(local)) == SUCCESS)
 	sendbusy = TRUE;

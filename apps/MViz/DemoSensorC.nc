@@ -1,4 +1,4 @@
-/* $Id: DemoSensorC.nc,v 1.1.2.1 2006-10-25 01:54:44 scipio Exp $
+/* $Id: DemoSensorC.nc,v 1.1.2.2 2006-10-28 07:27:03 scipio Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -32,7 +32,7 @@ implementation {
   
   task void readTask() {
     float val = (float)counter;
-    val = val / 100.0;
+    val = val / 20.0;
     val = sin(val) * 4096.0;
     val += 8192.0;
     counter++;
