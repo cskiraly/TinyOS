@@ -1,4 +1,4 @@
-/* $Id: LinkEstimator.h,v 1.1.2.2 2006-10-05 08:08:18 gnawali Exp $ */
+/* $Id: LinkEstimator.h,v 1.1.2.3 2006-10-28 20:13:46 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -55,7 +55,6 @@ enum {
 // every message passing thru' the link estimator
 typedef nx_struct linkest_header {
   nx_uint8_t flags;
-  nx_am_addr_t ll_addr;
   nx_uint8_t seq;
 } linkest_header_t;
 
@@ -88,19 +87,38 @@ enum {
 };
 
 
-// neighbor table
+// neighbor table entry
 typedef struct neighbor_table_entry {
+  // link layer address of the neighbor
   am_addr_t ll_addr;
+  // last beacon sequence number received from this neighbor
   uint8_t lastseq;
+  // number of beacons received after last beacon estimator update
+  // the update happens every BLQ_PKT_WINDOW beacon packets
   uint8_t rcvcnt;
+  // number of beacon packets missed after last beacon estimator update
   uint8_t failcnt;
+  // flags to describe the state of this entry
   uint8_t flags;
+  // MAXAGE-inage gives the number of update rounds we haven't been able
+  // update the inbound beacon estimator
   uint8_t inage;
+  // MAXAGE-outage gives the number of update rounds we haven't received
+  // the outbound link quality
   uint8_t outage;
+  // inbound and outbound link qualities in the range [1..255]
+  // 1 bad, 255 good
   uint8_t inquality;
   uint8_t outquality;
-  uint16_t etx;
+  // EETX for the link to this neighbor. This is the quality returned to
+  // the users of the link estimator
+  uint16_t eetx;
+  // Number of data packets successfully sent (ack'd) to this neighbor
+  // since the last data estimator update round. This update happens
+  // every DLQ_PKT_WINDOW data packets
   uint8_t data_success;
+  // The total number of data packets transmission attempt to this neighbor
+  // since the last data estimator update round.
   uint8_t data_total;
 } neighbor_table_entry_t;
 
