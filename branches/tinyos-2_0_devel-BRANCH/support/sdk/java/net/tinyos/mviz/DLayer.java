@@ -64,9 +64,9 @@ public class DLayer extends JPanel implements ActionListener{
     public static final int LINK = 1;
     public static final int FIELD = 2;
     private static final Color[] COLORS = {
-		new Color(231, 220, 206),
-		new Color(250, 210, 99),
-		new Color(209, 230, 179)
+	new Color(231, 220, 206),
+	new Color(250, 210, 99),
+	new Color(209, 230, 179)
     };
 	
     private int type;
@@ -77,7 +77,7 @@ public class DLayer extends JPanel implements ActionListener{
 	
     private JLabel label;
     private JCheckBox check;
-    private String[][] DISPLAYS = { {"circle", "img", "txt"}, {"line", "line+label", "label"}, {"color"}};
+    private String[][] DISPLAYS = { {"circle", "img", "txt"}, {"line", "line+label", "label"}, {"color 256", "color 1024", "color 4096", "color 16384"}};
     private JComboBox displays;
 	
     private ArrayList models;
@@ -85,9 +85,15 @@ public class DLayer extends JPanel implements ActionListener{
     private JButton down;
 	
     protected int paintMode = 0;
-    static public final int OVAL = 0;
-    static public final int IMG = 1;
-    static public final int TXT_MOTE = 2;
+    // Values chosen for COLOR so that readings can be right shifted
+    // that many bits to be in range 0-255
+    static public final int COLOR_256 = 0;
+    static public final int OVAL = 1;
+    static public final int COLOR_1024 = 2;
+    static public final int IMG = 3;
+    static public final int COLOR_4096 = 4;
+    static public final int TXT_MOTE = 5;
+    static public final int COLOR_16384 = 6;
 	
     protected DNavigate navigator;
 	
@@ -95,165 +101,168 @@ public class DLayer extends JPanel implements ActionListener{
     private DDocument parent;
 	
     public DLayer(int zIndex, int index, String label, int type, DDocument parent, ArrayList models, DNavigate navigator){
-		this.parent = parent;
-		this.type = type;
-		this.models = models;
-		this.zIndex = zIndex;
-		this.index = index;
-		this.navigator = navigator;
-		this.name = label;
-
+	this.parent = parent;
+	this.type = type;
+	this.models = models;
+	this.zIndex = zIndex;
+	this.index = index;
+	this.navigator = navigator;
+	this.name = label;
+	if (type == MOTE) {
+	    this.paintMode = OVAL;
+	}
 
 	
-		SpringLayout layout = new SpringLayout();
-		setLayout(layout);
-		setMaximumSize(new Dimension(350, 25));
-		setPreferredSize(new Dimension(350, 25));
-		setSize(new Dimension(350, 25));
-		setDoubleBuffered(true);
-		setBackground(COLORS[type]);
-		setBorder(new LineBorder(new Color(155, 155, 155)));
+	SpringLayout layout = new SpringLayout();
+	setLayout(layout);
+	setMaximumSize(new Dimension(350, 25));
+	setPreferredSize(new Dimension(350, 25));
+	setSize(new Dimension(350, 25));
+	setDoubleBuffered(true);
+	setBackground(COLORS[type]);
+	setBorder(new LineBorder(new Color(155, 155, 155)));
 		
-		check = new JCheckBox();
-		check.setSize(35, 25);
-		check.setMaximumSize(new Dimension(35, 25));
-		check.setMinimumSize(new Dimension(35, 25));
-		check.setPreferredSize(new Dimension(35, 25));
+	check = new JCheckBox();
+	check.setSize(35, 25);
+	check.setMaximumSize(new Dimension(35, 25));
+	check.setMinimumSize(new Dimension(35, 25));
+	check.setPreferredSize(new Dimension(35, 25));
 	
-		up = new JButton("^");
-		up.setFont(new Font("Times", Font.PLAIN, 9));
-		up.setSize(25, 25);
-		up.setMaximumSize(new Dimension(25, 25));
-		up.setMinimumSize(new Dimension(25, 25));
-		up.setPreferredSize(new Dimension(25, 25));
-		up.setMargin(new Insets(2, 2, 2, 2));
+	up = new JButton("^");
+	up.setFont(new Font("Times", Font.PLAIN, 9));
+	up.setSize(25, 25);
+	up.setMaximumSize(new Dimension(25, 25));
+	up.setMinimumSize(new Dimension(25, 25));
+	up.setPreferredSize(new Dimension(25, 25));
+	up.setMargin(new Insets(2, 2, 2, 2));
 
-		down = new JButton("v");
-		down.setFont(new Font("Times", Font.PLAIN, 8));
-		down.setSize(25, 25);
-		down.setMaximumSize(new Dimension(25, 25));
-		down.setMinimumSize(new Dimension(25, 25));
-		down.setPreferredSize(new Dimension(25, 25));
-		down.setMargin(new Insets(2, 2, 2, 2));
+	down = new JButton("v");
+	down.setFont(new Font("Times", Font.PLAIN, 8));
+	down.setSize(25, 25);
+	down.setMaximumSize(new Dimension(25, 25));
+	down.setMinimumSize(new Dimension(25, 25));
+	down.setPreferredSize(new Dimension(25, 25));
+	down.setMargin(new Insets(2, 2, 2, 2));
 
-		this.label = new JLabel(" " + label, JLabel.LEFT);
-		this.label.setSize(125, 25);
-		this.label.setMaximumSize(new Dimension(125, 25));
-		this.label.setMinimumSize(new Dimension(125, 25));
-		this.label.setPreferredSize(new Dimension(125, 25));
-		switch (type) {
-		case MOTE:
-			this.label.setBackground(new Color(255, 200, 200));
-			break;
-		case FIELD:
-			this.label.setBackground(new Color(200, 255, 200));
-			break;
-		case LINK:
-			this.label.setBackground(new Color(200, 200, 255));
-			break;
-		default:
-			// do nothing
-		}
+	this.label = new JLabel(" " + label, JLabel.LEFT);
+	this.label.setSize(125, 25);
+	this.label.setMaximumSize(new Dimension(125, 25));
+	this.label.setMinimumSize(new Dimension(125, 25));
+	this.label.setPreferredSize(new Dimension(125, 25));
+	switch (type) {
+	case MOTE:
+	    this.label.setBackground(new Color(255, 200, 200));
+	    break;
+	case FIELD:
+	    this.label.setBackground(new Color(200, 255, 200));
+	    break;
+	case LINK:
+	    this.label.setBackground(new Color(200, 200, 255));
+	    break;
+	default:
+	    // do nothing
+	}
 	
-		displays = new JComboBox(DISPLAYS[type]);
-		displays.setSize(100, 25);
-		//displays.setMaximumSize(new Dimension(125, 25));
-		displays.setMinimumSize(new Dimension(125, 25));
-		displays.setPreferredSize(new Dimension(125, 25));
+	displays = new JComboBox(DISPLAYS[type]);
+	displays.setSize(100, 25);
+	//displays.setMaximumSize(new Dimension(125, 25));
+	displays.setMinimumSize(new Dimension(125, 25));
+	displays.setPreferredSize(new Dimension(125, 25));
 	
 	
-		check.addActionListener(this);
-		up.addActionListener(this);
-		down.addActionListener(this);
-		displays.addActionListener(this);
+	check.addActionListener(this);
+	up.addActionListener(this);
+	down.addActionListener(this);
+	displays.addActionListener(this);
 
-		layout.putConstraint(SpringLayout.WEST, this, 0, SpringLayout.WEST, down);
-		layout.putConstraint(SpringLayout.EAST, check, 0, SpringLayout.WEST, down);
-		layout.putConstraint(SpringLayout.EAST, down, 0, SpringLayout.WEST, up);
-		layout.putConstraint(SpringLayout.EAST, up, 0, SpringLayout.WEST, this.label);
-		layout.putConstraint(SpringLayout.EAST, this.label, 0, SpringLayout.WEST, displays);
-		layout.putConstraint(SpringLayout.EAST, displays, 0, SpringLayout.EAST, this);
+	layout.putConstraint(SpringLayout.WEST, this, 0, SpringLayout.WEST, down);
+	layout.putConstraint(SpringLayout.EAST, check, 0, SpringLayout.WEST, down);
+	layout.putConstraint(SpringLayout.EAST, down, 0, SpringLayout.WEST, up);
+	layout.putConstraint(SpringLayout.EAST, up, 0, SpringLayout.WEST, this.label);
+	layout.putConstraint(SpringLayout.EAST, this.label, 0, SpringLayout.WEST, displays);
+	layout.putConstraint(SpringLayout.EAST, displays, 0, SpringLayout.EAST, this);
 
 	
-		add(check);
-		add(down);
-		add(up);
-		add(this.label);
-		add(displays);
+	add(check);
+	add(down);
+	add(up);
+	add(this.label);
+	add(displays);
 
 	
 		
     }
 	
-	public boolean isFieldSelected(){
-		return (type==FIELD && check.isSelected());
-	}
+    public boolean isFieldSelected(){
+	return (type==FIELD && check.isSelected());
+    }
 	
     public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == check) {
-			if (check.isSelected()){
-				parent.selectedFieldIndex = index;
-	        	redrawLayer();
-	        	System.out.println("redraw index " +zIndex +" on layer");
-	        } else if(type==FIELD){
-				System.out.println("clear");
-		        //parent.canvas.repaint();
-		        redrawLayer();
-	        } else {
-	        	redrawLayer();
-			}
-		} else if (e.getSource() == up){
-			System.out.println("up " + this.label.getText());
-			parent.navigator.moveLayerUp(this.zIndex);
-		} else if (e.getSource() == down){
-			System.out.println("down " + this.label.getText());
-			parent.navigator.moveLayerDown(this.zIndex);
-		} else if (e.getSource() == displays){
-			String selected = (String)displays.getSelectedItem();
-			if (selected=="circle"){
-				paintMode = OVAL;
-			} else if (selected=="img"){
-				paintMode = IMG;        		
-			} else if (selected=="txt"){
-				paintMode = TXT_MOTE;        		
-			}
-			System.out.println(selected);
-			//redrawLayer();
-		}
-		//System.out.println("Repainting parent?");
-		//parent.repaint();
+	if (e.getSource() == check) {
+	    if (check.isSelected()){
+		parent.selectedFieldIndex = index;
+		repaintLayer();
+		System.out.println("redraw index " +zIndex +" on layer");
+	    } else if(type==FIELD){
+		System.out.println("clear");
+		//parent.canvas.repaint();
+		repaintLayer();
+	    } else {
+		repaintLayer();
+	    }
+	} else if (e.getSource() == up){
+	    System.out.println("up " + this.label.getText());
+	    parent.navigator.moveLayerUp(this.zIndex);
+	} else if (e.getSource() == down){
+	    System.out.println("down " + this.label.getText());
+	    parent.navigator.moveLayerDown(this.zIndex);
+	} else if (e.getSource() == displays){
+	    String selected = (String)displays.getSelectedItem();
+	    if (selected.equals("circle")){
+		paintMode = OVAL;
+	    } else if (selected.equals("img")){
+		paintMode = IMG;        		
+	    } else if (selected.equals("txt")){
+		paintMode = TXT_MOTE;        		
+	    } else if (selected.equals("color 256")) {
+		paintMode = COLOR_256;
+	    } else if (selected.equals("color 1024")) {
+		paintMode = COLOR_1024;
+	    } else if (selected.equals("color 4096")) {
+		paintMode = COLOR_4096;
+	    } else if (selected.equals("color 16384")) {
+		paintMode = COLOR_16384;
+	    }
+	}
+	//System.out.println("Repainting parent?");
+	//parent.repaint();
     }
 
     public void init(){
-		if (type==LINK){
-			//addLinks(true);
-		} else {
-			addMotes(true);
-		}
+	if (type==LINK){
+	    //addLinks(true);
+	} else {
+	    addMotes(true);
+	}
     }
 
     public String toString() {
-		return "Layer " +  name + " " + type;
+	return "Layer " +  name + " " + type;
     }
     
 	
     // private void addLinks(boolean paint){
-// 		Iterator it = models.iterator();
-// 		while(it.hasNext()){
-// 			DLink mm = (DLink) it.next();
-// 			//canvas.add(mm);
-// 			if (paint) mm.repaint();
-// 		}    	
-//     }
+    // 		Iterator it = models.iterator();
+    // 		while(it.hasNext()){
+    // 			DLink mm = (DLink) it.next();
+    // 			//canvas.add(mm);
+    // 			if (paint) mm.repaint();
+    // 		}    	
+    //     }
 	
     protected void addMote(DMoteModel model, boolean paint){
 	DShape mote = new DMote(model, this.parent, this);
 	layer.add(mote);
-	parent.canvas.add(mote/*, 0*/);
-	mote.setOpaque(false);
-	mote.setVisible(false);
-	//setSelected(m);
-	if (paint) mote.repaint();
     }
 	
     private void addMotes(boolean paint){
@@ -264,26 +273,17 @@ public class DLayer extends JPanel implements ActionListener{
     }
 	
 	
-	public void updateIndex(int index, boolean repaint){
-		zIndex = index;
-		z_index = (navigator.totalLayers - zIndex)*100;
-		//if (repaint) redrawLayer();
-		//parent.canvas.setLayer(d.canvas, length - i);
-	}
+    public void updateIndex(int index, boolean repaint){
+	zIndex = index;
+	z_index = (navigator.totalLayers - zIndex)*100;
+	//if (repaint) redrawLayer();
+	//parent.canvas.setLayer(d.canvas, length - i);
+    }
 
-    private long currentSecond = -1;
-    private long PERIOD = 1000;
     public void paintScreenBefore() 
     {
 
 	//System.out.println("print screen before " + name + "----------------------------");
-	Date date = new Date();
-	if (date.getTime() - currentSecond < PERIOD){
-	    //System.out.println("time: " + (date.getTime() - currentSecond));
-			return;
-	    } else {
-	    currentSecond = date.getTime();
-	    }
 	
 	//System.out.println("************************print screen before");
         Graphics g = parent.canvas.getGraphics();
@@ -309,7 +309,7 @@ public class DLayer extends JPanel implements ActionListener{
                     double dist = distance(x, y, m.x, m.y);   
                     if(true){ //121
                         if(dist < min) min = dist;
-                        val += ((double)(m.getValue(index) / 32))  / dist /dist;
+                        val += ((double)(((int)m.getValue(index)) >> paintMode ))  / dist /dist;
                         sum += (1/dist/dist);
                     }
                 }
@@ -331,46 +331,20 @@ public class DLayer extends JPanel implements ActionListener{
     }
 
     protected void repaintLayer(){
-    	Iterator it = layer.iterator();
-    	
-    	if (check.isSelected()){			
+	Iterator<DMoteModel> it = models.iterator();
+    	if (check.isSelected()){
+	    System.out.println("Repaint layer " + name);
 	    if 	(type==FIELD){
 		paintScreenBefore();
 	    } else {
+		Graphics g = parent.canvas.getGraphics();
 		while (it.hasNext()){
-		    DShape m = (DShape) it.next();
-		    m.setVisible(true);
-		    m.setOpaque(false);
-		    m.repaint();
+		    DMoteModel model = it.next();
+		    DShape m = new DMote(model, parent, this);
+		    System.out.println("Draw");
+		    m.paintShape();
 		}
 	    }
-    	} else {
-	    while (it.hasNext()){
-		DShape m = (DShape) it.next();
-		m.setVisible(false);
-		m.setOpaque(false);
-		m.repaint();
-	    }
-    	}    	
-    }
-	
-    protected void redrawLayer(){
-
-		navigator.redrawAllLayers();
-		
-		
-	// 	JPanel canvas = parent.drawPanel;
-// 		if (check.isSelected()){
-// 			canvas.setVisible(true);
-// 			if 	(type==FIELD){
-// 				paintScreenBefore(canvas);
-// 			} else {
-// 				canvas.repaint();
-// 			}
-// 		} else {
-// 			canvas.setVisible(false);
-// 			canvas.repaint();
-// 		}
-	
+    	}	
     }
 }
