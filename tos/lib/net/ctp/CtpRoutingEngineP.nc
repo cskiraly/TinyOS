@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.15 2006-10-27 22:50:20 scipio Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.16 2006-10-28 20:23:27 rfonseca76 Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-10-27 22:50:20 $
+ *  @date   $Date: 2006-10-28 20:23:27 $
  *  @see Net2-WG
  */
 
@@ -249,6 +249,7 @@ implementation {
     /* Is this quality measure better than the minimum threshold? */
     // Implemented assuming quality is EETX
     bool passLinkEtxThreshold(uint16_t etx) {
+	return TRUE;
         return (etx < ETX_THRESHOLD);
     }
 
@@ -322,6 +323,7 @@ implementation {
             }  
         }
 
+        //call CollectionDebug.logEventDbg(NET_C_DBG_3, routeInfo.parent, currentEtx, minEtx);  
 
         /* Now choose between the current parent and the best neighbor */
         if (minEtx != MAX_METRIC) {
@@ -657,7 +659,6 @@ implementation {
         uint8_t idx;
         uint16_t  linkEtx;
         linkEtx = evaluateEtx(call LinkEstimator.getLinkQuality(from));
-        //call CollectionDebug.logEventDbg(NET_C_DBG_3, from, parent, call LinkEstimator.getLinkQuality(from));  
 
         idx = routingTableFind(from);
         if (idx == routingTableSize) {
