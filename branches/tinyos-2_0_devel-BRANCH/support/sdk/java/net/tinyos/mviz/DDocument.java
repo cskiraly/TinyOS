@@ -75,6 +75,7 @@ public class DDocument
 	
     public ArrayList moteModels;
     public ArrayList linkModels;
+    
 	
 	
     //	private JComboBox selectMotes;
@@ -107,6 +108,7 @@ public class DDocument
 	// instead of [Ljava.lang.String
 	sensed_motes = fieldVector;
 	sensed_links = linkVector;
+	moteIndex = new HashMap<Integer, DMoteModel>();
 		
 	//sensed_motes = toStringArray(fieldVector);
 	//sensed_links = toStringArray(linkVector);
@@ -159,6 +161,7 @@ public class DDocument
 		
 	// Make control area
 	JPanel west = new JPanel();
+	west.setDoubleBuffered(true);
 	west.setLayout(new BoxLayout(west, BoxLayout.Y_AXIS));
 	add(west, BorderLayout.WEST);
 		
@@ -253,6 +256,7 @@ public class DDocument
 	
     protected ArrayList<DMoteModel> motes = new ArrayList<DMoteModel>();
     protected ArrayList<DLink> links = new ArrayList<DLink>();
+    protected HashMap<Integer, DMoteModel> moteIndex;
 	
     private void createRandomMotes(){
 	Random rand = new Random();
@@ -260,6 +264,7 @@ public class DDocument
 	for (int i=0; i<total; i++){
             DMoteModel m = new DMoteModel(i, rand, this);
 	    motes.add(m);
+	    moteIndex.put( new Integer(i), m);
 	    tableModel.add(m);
 	    //addShape(m, true); 
 	}
@@ -304,20 +309,31 @@ public class DDocument
     }
 
     Random rand = new Random();
+
+
+    private DMoteModel createNewMote(int moteID){
+	DMoteModel m = new DMoteModel(moteID, rand, this);
+	System.out.println("Adding mote " + moteID);
+	motes.add(m);
+	moteIndex.put(new Integer(moteID), m);
+	tableModel.add(m);
+
+	navigator.addMote(m);
+	return m;
+    }
     
     public void setMoteValue(int moteID, String name, int value) {
-	DMoteModel m = new DMoteModel(moteID, rand, this);
-	if (!motes.contains(m)) {
-	    System.out.println("Adding mote " + moteID);
-	    motes.add(m);
-	    tableModel.add(m);
+	DMoteModel m = moteIndex.get(new Integer(moteID));
+	if (m == null) {
+	    m = createNewMote(moteID);
 	}
 	System.out.println("Set " + moteID + ":" + name + " to " + value);
-	navigator.setMoteValue(moteID, name, value);
+	m.setMoteValue(name, value);
+	navigator.redrawAllLayers();
     }
 	
     public void setLinkValue(int startMote, int endMote, String name, int value) {
-	System.out.println("Set " + startMote + "->" + endMote + ":" + name + " to " + value);
+	//System.out.println("Set " + startMote + "->" + endMote + ":" + name + " to " + value);
     }
 	
     // Assumes links are defined by a structure with two fields:
@@ -382,8 +398,8 @@ public class DDocument
 	    sn.add("Link1");
 	    sn.add("Link2");
 	    DDocument doc = new DDocument(600, 600, sm, sn);
-	    **/
-	
+	    
+	*/
 	DDocument doc = new DDocument(600, 600, model.fields(), model.links());
         
 		frame.setContentPane(doc);
@@ -392,9 +408,9 @@ public class DDocument
 		frame.setVisible(true);
 		
 		// set mote value
-		//doc.createRandomMotes();
-		//doc.createRandomLinks();
-		doc.navigator.init();
+		/*doc.createRandomMotes();
+		doc.createRandomLinks();
+		doc.navigator.init();*/
 		//doc.createFields();
 		
 		MessageInput input = new MessageInput(packetVector, source, doc);

@@ -89,7 +89,7 @@ public class DLayer extends JPanel implements ActionListener{
     static public final int IMG = 1;
     static public final int TXT_MOTE = 2;
 	
-	protected DNavigate navigator;
+    protected DNavigate navigator;
 	
     private String name;
     private DDocument parent;
@@ -236,9 +236,6 @@ public class DLayer extends JPanel implements ActionListener{
 		return "Layer " +  name + " " + type;
     }
     
-	public void setMoteValue(int moteID, int value){
-		
-	}
 	
     // private void addLinks(boolean paint){
 // 		Iterator it = models.iterator();
@@ -249,22 +246,21 @@ public class DLayer extends JPanel implements ActionListener{
 // 		}    	
 //     }
 	
-	private void addMote(DShape mote, boolean paint){
-		layer.add(mote);
-		parent.canvas.add(mote/*, 0*/);
-		mote.setOpaque(false);
-		mote.setVisible(false);
-		//setSelected(m);
-		if (paint) mote.repaint();
-	}
+    protected void addMote(DMoteModel model, boolean paint){
+	DShape mote = new DMote(model, this.parent, this);
+	layer.add(mote);
+	parent.canvas.add(mote/*, 0*/);
+	mote.setOpaque(false);
+	mote.setVisible(false);
+	//setSelected(m);
+	if (paint) mote.repaint();
+    }
 	
     private void addMotes(boolean paint){
-		Iterator it = models.iterator();
+	Iterator it = models.iterator();
         while(it.hasNext()){
-			DShape m = new DMote((DMoteModel) it.next(), this.parent, this);
-			addMote(m ,paint);
-            if (paint) m.repaint();
-		} 	    
+	    addMote((DMoteModel) it.next(), paint);
+	} 	    
     }
 	
 	
@@ -274,14 +270,27 @@ public class DLayer extends JPanel implements ActionListener{
 		//if (repaint) redrawLayer();
 		//parent.canvas.setLayer(d.canvas, length - i);
 	}
-	
+
+    private long currentSecond = -1;
+    private long PERIOD = 1000;
     public void paintScreenBefore() 
     {
+
+	//System.out.println("print screen before " + name + "----------------------------");
+	Date date = new Date();
+	if (date.getTime() - currentSecond < PERIOD){
+	    //System.out.println("time: " + (date.getTime() - currentSecond));
+			return;
+	    } else {
+	    currentSecond = date.getTime();
+	    }
+	
+	//System.out.println("************************print screen before");
         Graphics g = parent.canvas.getGraphics();
         Dimension d = parent.canvas.getSize();
       
-		//        g.setColor(new Color(50, 50, 150));
-		//        g.fillRect(0,0,d.width,d.height);
+	//g.setColor(new Color(50, 50, 150));
+	//g.fillRect(0,0,d.width,d.height);
   
 
         int x = 0;
@@ -300,18 +309,21 @@ public class DLayer extends JPanel implements ActionListener{
                     double dist = distance(x, y, m.x, m.y);   
                     if(true){ //121
                         if(dist < min) min = dist;
-                        val += ((double)m.getValue(index))  / dist /dist;
+                        val += ((double)(m.getValue(index) / 32))  / dist /dist;
                         sum += (1/dist/dist);
                     }
                 }
                 int reading = (int)(val / sum);
-                reading = reading >> 2;
+		//System.out.println("Reading: " + reading);
                 if (reading > 255)
                     reading = 255;
                 g.setColor(new Color(reading, reading, reading));
+		//System.out.println("Filling "  + x + "+" + step + " " + y + "+" + step + " with " + g.getColor());
                 g.fillRect(x, y, step, step);
             }
         }
+
+	
     }
 
     public double distance(int x, int y, int x1, int y1){
@@ -322,29 +334,29 @@ public class DLayer extends JPanel implements ActionListener{
     	Iterator it = layer.iterator();
     	
     	if (check.isSelected()){			
-    		if 	(type==FIELD){
-    			paintScreenBefore();
-    		} else {
-    			while (it.hasNext()){
-    				DShape m = (DShape) it.next();
-    				m.setVisible(true);
-    				m.setOpaque(false);
-    				m.repaint();
-    			}
-    		}
+	    if 	(type==FIELD){
+		paintScreenBefore();
+	    } else {
+		while (it.hasNext()){
+		    DShape m = (DShape) it.next();
+		    m.setVisible(true);
+		    m.setOpaque(false);
+		    m.repaint();
+		}
+	    }
     	} else {
-    		while (it.hasNext()){
-    			DShape m = (DShape) it.next();
-    			m.setVisible(false);
-    			m.setOpaque(false);
-    			m.repaint();
-    		}
+	    while (it.hasNext()){
+		DShape m = (DShape) it.next();
+		m.setVisible(false);
+		m.setOpaque(false);
+		m.repaint();
+	    }
     	}    	
     }
 	
     protected void redrawLayer(){
 
-		parent.navigator.redrawAllLayers();
+		navigator.redrawAllLayers();
 		
 		
 	// 	JPanel canvas = parent.drawPanel;

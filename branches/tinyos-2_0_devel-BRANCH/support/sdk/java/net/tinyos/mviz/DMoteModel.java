@@ -33,9 +33,9 @@ package net.tinyos.mviz;
 
 // DShapeModel.java
 /*
- Store the data state for a single shape:
+  Store the data state for a single shape:
   type, two points, color
- Supports DShapeModelListeners.
+  Supports DShapeModelListeners.
 */
 import java.awt.*;
 
@@ -46,12 +46,12 @@ import java.io.*;
 
 
 class DMoteModel 
-extends Object 
-implements Serializable {
+    extends Object 
+    implements Serializable {
 
-	public static final int VALUE = 0;
-	public static final int MOTION = 1;
-	public static final int ANY = 1;
+    public static final int VALUE = 0;
+    public static final int MOTION = 1;
+    public static final int ANY = 1;
 	
 	
     public DDocument root;
@@ -100,6 +100,7 @@ implements Serializable {
         y = rand.nextInt(root.height_canvas);
         
         values = new float[root.sensed_motes.size()];
+	
         colors = new Color[root.sensed_motes.size()];
         sizes = new int[root.sensed_motes.size()];
         
@@ -133,79 +134,88 @@ implements Serializable {
 	    return(values[index]);
 	}
     }
-    
-	public int getX() { return(x); }
-	public int getY() { return(y); }
-	public Image getIcon(){ return root.icon; }
-	
-	public void setValue(int index, float value){
-	    values[index] = value;
-	    fireChanges();
-	}    
-	public void applyDeltas(int dx, int dy) {        
-	    x += dx;
-	    y += dy;
-	    fireChanges();
-	}	
-	public int getWidth(int index) {
-		return this.root.icon.getWidth(this.root);
-	    //return sizes[index];
-	}	
-	public int getHeight(int index) {
-		return this.root.icon.getHeight(this.root);
-	    //return sizes[index];
-	}	
-	public int getLeft(){
-		return getLocX() - getWidth(0)/2;
-	}
-	public int getTop(){
-		return getLocY() - getHeight(0)/2;
-	} 
-	public int getLocX() {
-	    return x;
-	}	
-	public int getLocY() {
-	    return y;
-	}		
-	public Color getColor(int index) { 
-	    return colors[index]; 
-	}
-	
-	
-	public void addListener(DMoteModelListener listener) {
-	    if (listeners == null) listeners = new ArrayList<DMoteModelListener>();
-	    Iterator it = listeners.iterator();
-		while (it.hasNext()) { if (it.next() == listener) return; };		
-		listeners.add(listener);	    
-	}
 
-	public void removeListener(DMoteModelListener listener) {
-	    if (listeners == null) return;	    
-	    Iterator it = listeners.iterator();
-		while (it.hasNext()) {
-		    if (it.next() == listener){
-		        it.remove();
-		        return;
-		    }		
-		}	        	
-	}
-	//=========================================================================/
-	protected void fireChanges(){
-	    if (listeners==null) return;
-	    Iterator it = listeners.iterator();
-		while (it.hasNext()) 
-		   ((DMoteModelListener)(it.next())).shapeChanged(this, ANY);
-	}
-	public void requestRepaint(){
-		fireChanges();
-	}
+    public boolean setMoteValue(String field, int value){
+	int index = root.sensed_motes.indexOf(field);
+	if (index < 0) return false;
+	colors[index] = setColor((float)value);
+	setValue(index, (float) value);
+	return true;
+    }
+    
+    
+    public int getX() { return(x); }
+    public int getY() { return(y); }
+    public Image getIcon(){ return root.icon; }
 	
-	//=========================================================================/
-	public void move(int x, int y){
+    public void setValue(int index, float value){
+	values[index] = value;
+	fireChanges();
+    }    
+    public void applyDeltas(int dx, int dy) {        
+	x += dx;
+	y += dy;
+	fireChanges();
+    }	
+    public int getWidth(int index) {
+	return this.root.icon.getWidth(this.root);
+	//return sizes[index];
+    }	
+    public int getHeight(int index) {
+	return this.root.icon.getHeight(this.root);
+	//return sizes[index];
+    }	
+    public int getLeft(){
+	return getLocX() - getWidth(0)/2;
+    }
+    public int getTop(){
+	return getLocY() - getHeight(0)/2;
+    } 
+    public int getLocX() {
+	return x;
+    }	
+    public int getLocY() {
+	return y;
+    }		
+    public Color getColor(int index) { 
+	return colors[index]; 
+    }
+	
+	
+    public void addListener(DMoteModelListener listener) {
+	if (listeners == null) listeners = new ArrayList<DMoteModelListener>();
+	Iterator it = listeners.iterator();
+	while (it.hasNext()) { if (it.next() == listener) return; };		
+	listeners.add(listener);	    
+    }
+
+    public void removeListener(DMoteModelListener listener) {
+	if (listeners == null) return;	    
+	Iterator it = listeners.iterator();
+	while (it.hasNext()) {
+	    if (it.next() == listener){
+		it.remove();
+		return;
+	    }		
+	}	        	
+    }
+    //=========================================================================/
+    protected void fireChanges(){
+	if (listeners==null) return;
+	Iterator it = listeners.iterator();
+	while (it.hasNext()) 
+	    ((DMoteModelListener)(it.next())).shapeChanged(this, ANY);
+    }
+    public void requestRepaint(){
+	fireChanges();
+    }
+	
+    //=========================================================================/
+    public void move(int x, int y){
         this.x = x;
         this.y = y;
-	    fireChanges();	    
-	}
+	fireChanges();	    
+    }
 
     public boolean equals(Object o) {
 	if (o instanceof DMoteModel) {
