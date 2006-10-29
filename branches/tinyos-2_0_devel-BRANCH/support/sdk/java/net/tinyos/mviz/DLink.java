@@ -125,9 +125,17 @@ implements DLinkModelListener
 	    if (diffY == 0) {diffY = 1;}
 	    int midX = (model.m1.getLocX() + model.m2.getLocX()) / 2;
 	    int midY = (model.m1.getLocY() + model.m2.getLocY()) / 2;
-	    midX += ((double)diffY / ((double)diffY + (double)diffX)) * 10;
-	    midY += ((double)diffX / ((double)diffY + (double)diffX)) * -10;
-	    
+	    midY += 8;
+	    midX += 10;
+	    //midX += Math.abs(((double)diffX / ((double)Math.abs(diffY) + (double)Math.abs(diffX))) * 60);
+	    if (diffX * diffY < 0) {
+		midY += Math.abs(((double)diffX / ((double)Math.abs(diffY) + (double)Math.abs(diffX))) * 10);
+		midX += Math.abs(((double)diffX / ((double)Math.abs(diffY) + (double)Math.abs(diffX))) * 10);
+	    }
+	    else {
+		midY -= Math.abs(((double)diffX / ((double)Math.abs(diffY) + (double)Math.abs(diffX))) * 10);
+		midX += Math.abs((double)diffX / ((double)Math.abs(diffY) + (double)Math.abs(diffX)) * 10);
+	    }
 	    switch(layer.paintMode) {
 	    case DLayer.LINE_LABEL:
 		g.setColor(Color.BLACK);

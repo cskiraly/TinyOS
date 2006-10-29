@@ -299,10 +299,11 @@ public class DLayer extends JPanel implements ActionListener{
         Dimension d = parent.canvas.getSize();
         int x = 0;
         int y = 0;
-        int step = 5;  
+        int xstep = (int)(d.width / 40);
+	int ystep = (int)(d.height / 40);  
 
-        for(;x < d.width; x += step){
-            for(y = 0;y < d.height; y += step){
+        for(;x < d.width; x += xstep){
+            for(y = 0;y < d.height; y += ystep){
                 double val = 0;
                 double sum = 0;
                 double total = 0;
@@ -323,7 +324,7 @@ public class DLayer extends JPanel implements ActionListener{
                     reading = 255;
                 g.setColor(new Color(reading, reading, reading));
 		//System.out.println("Filling "  + x + "+" + step + " " + y + "+" + step + " with " + g.getColor());
-                g.fillRect(x, y, step, step);
+                g.fillRect(x, y, xstep, ystep);
             }
         }
 

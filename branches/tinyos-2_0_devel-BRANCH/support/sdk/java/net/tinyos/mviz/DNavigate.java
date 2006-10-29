@@ -170,7 +170,7 @@ public class DNavigate extends JPanel implements ActionListener{
 
     
     private long currentSecond = -1;
-    private long PERIOD = 1000;
+    private long PERIOD = 100;
     
     protected void redrawAllLayers(){
 	Date date = new Date();
@@ -194,7 +194,7 @@ public class DNavigate extends JPanel implements ActionListener{
 	Graphics g = offscreen.getGraphics();
 	Graphics2D g2d = (Graphics2D)g;
 	g2d.clearRect(0, 0, parent.canvas.getWidth(), parent.canvas.getHeight());
-	g2d.fillRect(0, 0, parent.canvas.getWidth(), parent.canvas.getHeight());
+	//g2d.fillRect(0, 0, parent.canvas.getWidth(), parent.canvas.getHeight());
 
 	for (int i=start; i>=0; i--){
 	    DLayer a = layers.get(i);
