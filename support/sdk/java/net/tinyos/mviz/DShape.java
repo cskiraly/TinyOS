@@ -118,7 +118,7 @@ implements DMoteModelListener
 	    repaint();
 	}
 	//=========================================================================//
-	public abstract void paintShape();
+	public abstract void paintShape(Graphics g);
 	//=========================================================================//
     public void paintComponent(Graphics g) {
     }

@@ -190,15 +190,21 @@ public class DNavigate extends JPanel implements ActionListener{
 	    }
 	}
 	DLayer bg = layers.get(start);
-	Color c = Color.WHITE;
-	Graphics2D g2d = (Graphics2D)parent.canvas.getGraphics();
-	g2d.setColor(c);
+	Image offscreen = new BufferedImage(parent.canvas.getWidth(), parent.canvas.getHeight(), BufferedImage.TYPE_INT_ARGB);
+	Graphics g = offscreen.getGraphics();
+	Graphics2D g2d = (Graphics2D)g;
 	g2d.clearRect(0, 0, parent.canvas.getWidth(), parent.canvas.getHeight());
 	g2d.fillRect(0, 0, parent.canvas.getWidth(), parent.canvas.getHeight());
+
 	for (int i=start; i>=0; i--){
 	    DLayer a = layers.get(i);
-	    //System.out.println("redrawing layer #" + a.zIndex);
-	    a.repaintLayer();
+	    a.repaintLayer(g);
 	}
+	parent.canvas.getGraphics().drawImage(offscreen, 0, 0, this);
     }
+
+    public void update(Graphics g) {
+	paint(g);
+    }
+	    
 }
