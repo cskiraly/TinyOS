@@ -64,25 +64,6 @@ implements DMoteModelListener
 		this.document = document;
 		this.layer = layer;
 		model.addListener(this);
-		
-		
-		// Mouse listeners.
-		addMouseListener( 
-		        new MouseAdapter() 
-		        {
-		            public void mousePressed(MouseEvent e) {
-				System.out.println("press");
-		                selected();
-		                lastX = e.getX()+getX();
-		                lastY = e.getY()+getY();
-		                
-		                if (e.isControlDown()){ 
-		                }else if(e.isAltDown()){ 
-		                }else if(e.isShiftDown()){
-		                }else{ DetermineAction(lastX, lastY); }			    
-		            }
-		        }
-		);
 
 		addMouseMotionListener( 
 		        new MouseMotionAdapter() 

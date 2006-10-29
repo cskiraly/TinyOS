@@ -95,7 +95,7 @@ public class DDocument
 		
 	selectedFieldIndex = 0;
 	selectedLinkIndex = 0;
-	canvas = new JPanel();
+	canvas = new DPanel(this);
 	canvas.setLayout(null);
 	canvas.setDoubleBuffered(true);
 	canvas.setPreferredSize(new Dimension(width, height));
@@ -170,6 +170,8 @@ public class DDocument
 	
     protected ArrayList<DMoteModel> motes = new ArrayList<DMoteModel>();
     protected ArrayList<DLinkModel> links = new ArrayList<DLinkModel>();
+    protected DMoteModel selected = null;
+    
     protected HashMap<Integer, DMoteModel> moteIndex;
     protected HashMap<String, DLinkModel> linkIndex;
 	
@@ -392,30 +394,76 @@ public class DDocument
     }
     
     private class DPanel extends JPanel {
-	private DNavigate nav;
-
-	public DPanel(DNavigate n) {
+	private DDocument doc;
+	private int lastX = -1;
+	private int lastY = -1;
+	
+	public DPanel(DDocument d) {
 	    super();
-	    nav = n;
+	    doc = d;
+	    addMouseListener( new MouseAdapter() {
+		    private boolean withinRange(int val, int low, int high) {
+			return (val >= low && val <= high);
+		    }
+		    public void mousePressed(MouseEvent e) {
+			lastX = e.getX();
+			lastY = e.getY();
+			Iterator<DMoteModel> it = doc.motes.iterator();
+			while (it.hasNext()) {
+			    DMoteModel model = it.next();
+			    if (withinRange(e.getX(),
+					    model.getLocX(),
+					    model.getLocX() + 10) &&
+				withinRange(e.getY(),
+					    model.getLocY(),
+					    model.getLocY() + 10)) {
+				selected = model;
+				return;
+			    }
+			}
+		    }
+		    public void mouseReleased(MouseEvent e) {
+			if (doc.selected != null) {
+			    doc.selected = null;
+			    lastX = -1;
+			    lastY = -1;
+			}
+		    }
+		});
+	    addMouseMotionListener(new MouseMotionAdapter() {
+		    public void mouseDragged(MouseEvent e) {
+			if (doc.selected != null) {
+			    if (lastY == -1) {
+				lastY = e.getY();
+			    }
+			    if (lastX == -1) {
+				lastX = e.getX();
+			    }
+			    int x = e.getX();
+			    int y = e.getY();	
+			    int dx = x-lastX;
+			    int dy = y-lastY;
+			    lastX = x;
+			    lastY = y;
+			    
+			    selected.move(selected.getLocX() + dx, selected.getLocY() + dy);
+			}
+			doc.navigator.redrawAllLayers();
+		    }
+		});
 	}
-	//canvas.addMouseListener( new MouseAdapter() {
-		//public void mousePressed(MouseEvent e) {
-		    //			    if (selected != null){ // Deselect current shape, if any.
-		    //			        DShape oldSelected = selected;
-	//			        selected = null;
-	//			        oldSelected.repaint();
-	//			    }
-	//	    }
-	//	});
 
 	public void paintComponent(Graphics g) {
 	    super.paintComponent(g);
 	    setOpaque(false);
 	    System.out.println("Painting panel!");
-	    nav.redrawAllLayers();
+	    doc.navigator.redrawAllLayers();
 	}
     }
 
+    private class CanvasMouse extends MouseAdapter {
+
+    }
     protected class ValueSetEvent extends AWTEvent {
 	public static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 1;
 	private String name;
