@@ -80,9 +80,9 @@ public class DNavigate extends JPanel implements ActionListener{
 		// debug prints
 		Iterator<DLayer> it = layers.iterator();
 		while (it.hasNext()){
-			DLayer m = it.next();
-			System.out.println("setting layer: zIndex=" + m.z_index + ", index=" + m.zIndex);
-        }
+		    DLayer m = it.next();
+		    System.out.println("setting layer: zIndex=" + m.z_index + ", index=" + m.zIndex);
+		}
         
 	}
 
@@ -97,8 +97,6 @@ public class DNavigate extends JPanel implements ActionListener{
 	    for (int i=0; i<labels.size(); i++, _tmp_i++){
 		DLayer d = new DLayer(_tmp_i, i, labels.elementAt(i), type, parent, models, this);
 		this.add(d);
-		//if (type == DLayer.MOTE) fieldIndex.put(labels.elementAt(i), d);
-		//this.add(d, new Integer(zIndex));
 		layers.add(d);
 	    }
 	}

@@ -81,6 +81,7 @@ public class DLayer extends JPanel implements ActionListener{
     private JComboBox displays;
 	
     private ArrayList models;
+    private ArrayList linkModels;
     private JButton up;
     private JButton down;
 	
@@ -94,7 +95,10 @@ public class DLayer extends JPanel implements ActionListener{
     static public final int COLOR_4096 = 4;
     static public final int TXT_MOTE = 5;
     static public final int COLOR_16384 = 6;
-	
+    static public final int LINE = 7;
+    static public final int LABEL = 8;
+    static public final int LINE_LABEL = 9;
+    
     protected DNavigate navigator;
 	
     private String name;
@@ -110,6 +114,9 @@ public class DLayer extends JPanel implements ActionListener{
 	this.name = label;
 	if (type == MOTE) {
 	    this.paintMode = OVAL;
+	}
+	else if (type == LINK) {
+	    this.paintMode = LINE;
 	}
 
 	
@@ -232,6 +239,12 @@ public class DLayer extends JPanel implements ActionListener{
 		paintMode = COLOR_4096;
 	    } else if (selected.equals("color 16384")) {
 		paintMode = COLOR_16384;
+	    } else if (selected.equals("line")) {
+		paintMode = LINE;
+	    } else if (selected.equals("label")) {
+		paintMode = LABEL;
+	    } else if (selected.equals("line+label")) {
+		paintMode = LINE_LABEL;
 	    }
 	}
 	//System.out.println("Repainting parent?");
@@ -271,7 +284,7 @@ public class DLayer extends JPanel implements ActionListener{
 	    addMote((DMoteModel) it.next(), paint);
 	} 	    
     }
-	
+    
 	
     public void updateIndex(int index, boolean repaint){
 	zIndex = index;
@@ -331,13 +344,22 @@ public class DLayer extends JPanel implements ActionListener{
     }
 
     protected void repaintLayer(){
-	Iterator<DMoteModel> it = models.iterator();
     	if (check.isSelected()){
 	    System.out.println("Repaint layer " + name);
 	    if 	(type==FIELD){
 		paintScreenBefore();
-	    } else {
+	    } else if (type == LINK) {
+		Iterator<DLinkModel> it = models.iterator();
+		while (it.hasNext()) {
+		    DLinkModel model = it.next();
+		    DLink lnk = new DLink(model, parent, this);
+		    System.out.println("Draw link");
+		    lnk.paintShape();
+		}
+	    }
+	    else if (type == MOTE) {
 		Graphics g = parent.canvas.getGraphics();
+		Iterator<DMoteModel> it = models.iterator();
 		while (it.hasNext()){
 		    DMoteModel model = it.next();
 		    DShape m = new DMote(model, parent, this);

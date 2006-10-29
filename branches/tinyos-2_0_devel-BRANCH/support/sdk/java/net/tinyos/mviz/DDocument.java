@@ -36,8 +36,9 @@ package net.tinyos.mviz;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
-import java.lang.reflect.*;
 import java.io.*;
+import java.lang.reflect.*;
+import java.net.*;
 import java.util.*;
 
 import javax.imageio.ImageIO;
@@ -50,7 +51,8 @@ import net.tinyos.message.*;
 public class DDocument
     extends JPanel 
     implements ActionListener{    
-	
+
+    protected String directory;
     protected JPanel canvas;
     protected Vector<DLayer> layers;
 	
@@ -59,7 +61,8 @@ public class DDocument
     public float[] maxValues;
     public int selectedFieldIndex;
     public int selectedLinkIndex;
-    public Image icon;
+    public ImageIcon icon;
+    public Image image;
 	
 	
     public DNavigate navigator;
@@ -94,10 +97,10 @@ public class DDocument
 	return array;
     }
     
-    public DDocument(int width, int height, Vector<String> fieldVector, Vector<String> linkVector) {
+    public DDocument(int width, int height, Vector<String> fieldVector, Vector<String> linkVector, String dir) {
 	super();
 	layers = new Vector<DLayer>();
-
+	directory = dir;
 	
 	setOpaque(false);
 	setLayout(new BorderLayout(6,6));
@@ -122,21 +125,21 @@ public class DDocument
 	sensed_motes = fieldVector;
 	sensed_links = linkVector;
 	moteIndex = new HashMap<Integer, DMoteModel>();
+	linkIndex = new HashMap<String, DLinkModel>();
 		
-	//sensed_motes = toStringArray(fieldVector);
-	//sensed_links = toStringArray(linkVector);
-        //sensed_motes = new String[] {"Temperature", "Humidity", "Motion", "Light"};
-        //sensed_links =  new String[] {"Link1", "Link2"};
-        
-        maxValues = new float[sensed_motes.size()];
-		
+	String name = directory + "/images/tmote_sky.jpg";
+	name = "tmote_sky.jpg";
+	System.out.println(name);
+	URL imgURL = getClass().getResource(name);
+	icon = new ImageIcon(directory + "/images/tmote_sky.jpg", "mote");
 	try {
-	    icon = ImageIO.read(new File("images/tmote_sky.gif"));
-	} catch (IOException e1) {
-	    // TODO Auto-generated catch block
-	    e1.printStackTrace();
+	    System.out.println(name + " " + imgURL);
+	    image = Toolkit.getDefaultToolkit().getImage(imgURL);
 	}
-		
+	catch (Exception e) {
+	    System.out.println(e);
+	}
+	System.out.println(name);
 		
 	// Make drawing canvas
 	//----------------------------------------
@@ -258,8 +261,9 @@ public class DDocument
     public int height_canvas = 600;
 	
     protected ArrayList<DMoteModel> motes = new ArrayList<DMoteModel>();
-    protected ArrayList<DLink> links = new ArrayList<DLink>();
+    protected ArrayList<DLinkModel> links = new ArrayList<DLinkModel>();
     protected HashMap<Integer, DMoteModel> moteIndex;
+    protected HashMap<String, DLinkModel> linkIndex;
 	
     private void createRandomMotes(){
 	Random rand = new Random();
@@ -284,9 +288,7 @@ public class DDocument
 	    int m2 = rand.nextInt(size);
 	    if (m1==m2) continue;
 			
-	    DLink m = new DLink(new DLinkModel((DMoteModel)motes.get(m1),
-					       (DMoteModel)motes.get(m2), rand, this),
-				DDocument.this);
+	    DLinkModel m = new DLinkModel((DMoteModel)motes.get(m1), (DMoteModel)motes.get(m2), rand, this);
 	    links.add(m);
 	    //addLink(m, true); 
 	}
@@ -296,7 +298,7 @@ public class DDocument
     //=========================================================================//
     // Provided default ctor that calls the regular ctor
     public DDocument(Vector<String> fieldVector, Vector<String> linkVector) {
-	this(300, 300, fieldVector, linkVector);	 // this syntax calls one ctor from another
+	this(300, 300, fieldVector, linkVector, ".");	 // this syntax calls one ctor from another
     }
 	
 	
@@ -330,13 +332,34 @@ public class DDocument
 	if (m == null) {
 	    m = createNewMote(moteID);
 	}
-	//System.out.println("Set " + moteID + ":" + name + " to " + value);
+	System.out.println("Set " + moteID + ":" + name + " to " + value);
 	m.setMoteValue(name, value);
 	navigator.redrawAllLayers();
     }
-	
+
+    private DLinkModel createNewLink(DMoteModel start, DMoteModel end) {
+	DLinkModel dl = new DLinkModel(start, end, rand, this);
+	links.add(dl);
+	linkIndex.put(start.getId() + " " + end.getId(), dl);
+	return dl;
+    }
+    
     public void setLinkValue(int startMote, int endMote, String name, int value) {
-	//System.out.println("Set " + startMote + "->" + endMote + ":" + name + " to " + value);
+	DMoteModel m = moteIndex.get(new Integer(startMote));
+	if (m == null) {
+	    m = createNewMote(startMote);
+	}
+	DMoteModel m2 = moteIndex.get(new Integer(endMote));
+	if (m2 == null) {
+	    m2 = createNewMote(endMote);
+	}
+	DLinkModel dl = linkIndex.get(startMote + " " + endMote);
+	if (dl == null) {
+	    dl = createNewLink(m, m2);
+	}
+	System.out.println("Setting " + name + " " + startMote + " -> " + endMote + " to " + value);
+	dl.setLinkValue(name, value);
+	navigator.redrawAllLayers();
     }
 	
     // Assumes links are defined by a structure with two fields:
@@ -370,11 +393,14 @@ public class DDocument
 	JFrame frame = new JFrame("MViz");
 	Vector<String> packetVector = new Vector<String>();
 	String source = null;
-	
+	String dir = ".";
 	if (args.length > 0) {
 	    for (int i = 0; i < args.length; i++) {
 		if (args[i].equals("-comm")) {
 		    source = args[++i];
+		}
+		else if (args[i].equals("-dir")) {
+		    dir = args[++i];
 		}
 		else {
 		    String className = args[i];
@@ -403,7 +429,7 @@ public class DDocument
 	    DDocument doc = new DDocument(600, 600, sm, sn);
 	    
 	*/
-	DDocument doc = new DDocument(600, 600, model.fields(), model.links());
+	DDocument doc = new DDocument(600, 600, model.fields(), model.links(), dir);
         
 		frame.setContentPane(doc);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -448,17 +474,15 @@ public class DDocument
 	public String getColumnName(int col){
 	    switch(col) {
 	    case 0:
-		return "Node ID";
-	    case 1:
 		return "X";
-	    case 2:
+	    case 1:
 		return "Y";
 	    default:
-		return fields.elementAt(col - 3);
+		return fields.elementAt(col - 2);
 	    }
 	}
 	//-----------------------------o
-	public int getColumnCount() { return fields.size() + 3; }
+	public int getColumnCount() { return fields.size() + 2; }
 	//-----------------------------o
 	public int getRowCount() {
 	    return DDocument.this.motes.size();
@@ -468,13 +492,11 @@ public class DDocument
 	    DMoteModel model = (DMoteModel) DDocument.this.motes.get(row);
 	    switch(col) {
 	    case 0:
-		return "" + (int)model.getId();
-	    case 1:
 		return "" + (int)model.getLocX();
-	    case 2:
+	    case 1:
 		return "" + (int)model.getLocY();
 	    default:
-		return("" + (int)model.getValue(col - 3));
+		return("" + (int)model.getValue(col - 2));
 	    }
 	}
 	//-----------------------------o
@@ -516,8 +538,9 @@ public class DDocument
 	    nav = n;
 	}
 
-	public void paint(Graphics g) {
-	    super.paint(g);
+	public void paintComponent(Graphics g) {
+	    super.paintComponent(g);
+	    setOpaque(false);
 	    System.out.println("Painting panel!");
 	    nav.redrawAllLayers();
 	}

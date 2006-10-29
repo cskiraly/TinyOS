@@ -46,7 +46,7 @@ implements DLinkModelListener
 	protected DLinkModel model;
 	protected DDocument document;
 	public Image img;
-	
+    private DLayer layer;
     // remember the last point for mouse tracking
 	private int lastX, lastY;
 	
@@ -54,10 +54,11 @@ implements DLinkModelListener
 	private int action;
     private static final int MOVE = 0;
 	//=========================================================================//
-	public DLink(DLinkModel model, DDocument document) {
+    public DLink(DLinkModel model, DDocument document, DLayer layer) {
 		super();
 		this.model = model;
-		this.img = model.root.icon;
+		this.img = model.root.icon.getImage();
+		this.layer = layer;
 		this.document = document;
 		model.addListener(this);
 		
@@ -112,25 +113,38 @@ implements DLinkModelListener
 	    repaint();
 	}
 	//=========================================================================//
-	public void paintShape(Graphics g){
-        System.out.println("printing link-");
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setStroke(new BasicStroke(3));
-    	
-        g2.draw( 
-        		new Line2D.Double(
-                model.m1.getLocX()-getX(), 
-                model.m1.getLocY() - getY(),
-                model.m2.getLocX()-getX(),
-                model.m2.getLocY() - getY()
-        		));
+	public void paintShape(){
+	    System.out.println("printing link-");
+	    Graphics g = document.canvas.getGraphics();
+	    Graphics2D g2 = (Graphics2D) g;
+	    int diffX = (model.m1.getLocX() - model.m2.getLocX());
+	    int diffY = (model.m1.getLocY() - model.m2.getLocY());
+	    if (diffX == 0) {diffX = 1;}
+	    if (diffY == 0) {diffY = 1;}
+	    int midX = (model.m1.getLocX() + model.m2.getLocX()) / 2;
+	    int midY = (model.m1.getLocY() + model.m2.getLocY()) / 2;
+	    midX += ((double)diffY / ((double)diffY + (double)diffX)) * 10;
+	    midY += ((double)diffX / ((double)diffY + (double)diffX)) * -10;
+	    
+	    switch(layer.paintMode) {
+	    case DLayer.LINE_LABEL:
+		g2.drawString(document.sensed_links.elementAt(layer.index) + ": " + (int)model.getValue(layer.index), midX, midY);
+		System.out.println("Draw string at " + midX + " " + midY);
+	    case DLayer.LINE:
+		g2.setStroke(new BasicStroke(3));
+		g2.setColor(Color.RED);
+		g2.setColor(model.getColor());
+		g2.draw(new Line2D.Double(model.m1.getLocX() + 5,  model.m1.getLocY() + 5, model.m2.getLocX() + 5, model.m2.getLocY() + 5));
+		break;
+	    case DLayer.LABEL:
+		System.out.println("Draw string2 at " + midX + " " + midY);
+		g2.drawString(document.sensed_links.elementAt(layer.index) + ": " + (int)model.getValue(layer.index), midX, midY);
+		break;
+	    }
 	}
-	//=========================================================================//
+    //=========================================================================//
     public void paintComponent(Graphics g) {
-	    super.paintComponent(g);        
-        g.setColor(model.getColor());
-	    paintShape(g);
-	}
+    }
 	//=========================================================================//
 	private void DetermineAction(int x, int y){
         action = MOVE;	        

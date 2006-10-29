@@ -142,11 +142,11 @@ class DMoteModel
 	setValue(index, (float) value);
 	return true;
     }
-    
+
     
     public int getX() { return(x); }
     public int getY() { return(y); }
-    public Image getIcon(){ return root.icon; }
+    public ImageIcon getIcon(){ return root.icon; }
 	
     public void setValue(int index, float value){
 	values[index] = value;
@@ -156,13 +156,16 @@ class DMoteModel
 	x += dx;
 	y += dy;
 	fireChanges();
-    }	
+    }
+    public Image getImage() {
+	return root.image;
+    }
     public int getWidth(int index) {
-	return this.root.icon.getWidth(this.root);
+	return getIcon().getImage().getWidth(this.root);
 	//return sizes[index];
     }	
     public int getHeight(int index) {
-	return this.root.icon.getHeight(this.root);
+	return getIcon().getImage().getHeight(this.root);
 	//return sizes[index];
     }	
     public int getLeft(){
