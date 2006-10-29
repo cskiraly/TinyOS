@@ -58,8 +58,7 @@ implements Serializable {
     transient private ArrayList<DLinkModelListener> listeners;
     
     protected int x12, y12;
-    protected float[] values;
-    protected Color[] colors;
+    protected int[] values;
     
     DMoteModel m1;
     DMoteModel m2;
@@ -74,17 +73,21 @@ implements Serializable {
         x12 = getMiddle(m1.x, m2.x);
         y12 = getMiddle(m1.y, m2.y);
         
-        values = new float[root.sensed_links.size()];
-        colors = new Color[root.sensed_links.size()];
+        values = new int[root.sensed_links.size()];
         
         for (int i=0; i<root.sensed_links.size(); i++){
-            values[i] = rand.nextFloat()*1000;     
-            colors[i] = setColor(values[i]);
+            values[i] = 0;
         }   
         
-        listeners = null;
+
+        //.listeners = null;
     }
-    
+
+    protected void setLinkValue(String name, int value) {
+	int index = root.sensed_links.indexOf(name);
+	if (index < 0) return;
+	values[index] = value;
+    }
     private int getMiddle(int x1, int x2){
     	return (x1 + x2)/2;
     }
@@ -94,7 +97,8 @@ implements Serializable {
         return new Color(color+15, color, color+25);
     } 
 	
-	public float getValue() { return(values[root.selectedLinkIndex]); }	
+	public int getValue() { return(values[root.selectedLinkIndex]); }
+    	public int getValue(int index) { return(values[index]); } 
 	public int getTop() { return(Math.min(m1.y, m2.y)); }		
 	public int getBottom() { return(Math.max(m1.y, m2.y)); }		
 	public int getLeft() { return(Math.min(m1.x, m2.x)); }		
@@ -102,8 +106,11 @@ implements Serializable {
 	
 	public int getWidth() { return(Math.abs(m1.x - m2.x)); }
 	public int getHeight() { return(Math.abs(m1.y - m2.y)); }
-	
-	public void setValue(float value){
+
+    protected Color getColor() {
+	return Color.RED;
+    }
+	public void setValue(int value){
 	    values[root.selectedLinkIndex] = value;
 	    fireChanges();
 	}
@@ -113,9 +120,6 @@ implements Serializable {
 	public int getLocY() {
 	    return y12;
 	}		
-	public Color getColor() { 
-	    return colors[root.selectedLinkIndex]; 
-	}
 	
 	
 	public void addListener(DLinkModelListener listener) {

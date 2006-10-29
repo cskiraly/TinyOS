@@ -92,6 +92,7 @@ public class MessageInput implements net.tinyos.message.MessageListener {
    
     public void messageReceived(int to, Message message) {
 	Hashtable<String,Integer> table = new Hashtable<String,Integer>();
+	Hashtable<String,Integer> linkTable = new Hashtable<String,Integer>();
 	//System.out.println("Received message:");
 	//System.out.println(message);
 
@@ -100,42 +101,65 @@ public class MessageInput implements net.tinyos.message.MessageListener {
 	for (int i = 0; i < methods.length; i++) {
 	    Method method = methods[i];
 	    String name = method.getName();
+	    Class[] params = method.getParameterTypes();
+	    Class returnType = method.getReturnType();
+	    if (params.length != 0 || returnType.isArray()) {
+		continue;
+	    }
 	    if (name.startsWith("get_") && !name.startsWith("get_link")) {
 		name = name.substring(4); // Chop off "get_"
-		Class[] params = method.getParameterTypes();
-		Class returnType = method.getReturnType();
-		if (params.length == 0 && !returnType.isArray()) {
-		    try {
-			Object res = method.invoke(message);
-			//System.out.println(name + " returns " + res);
-			Integer result = (Integer)method.invoke(message);
-			table.put(name, result);
-		    }
-		    catch (java.lang.IllegalAccessException exc) {
-			System.err.println("Unable to access field " + name);
-		    }
-		    catch (java.lang.reflect.InvocationTargetException exc) {
-			System.err.println("Unable to access target " + name);
-		    }
+		try {
+		    Object res = method.invoke(message);
+		    //System.out.println(name + " returns " + res);
+		    Integer result = (Integer)method.invoke(message);
+		    table.put(name, result);
+		}
+		catch (java.lang.IllegalAccessException exc) {
+		    System.err.println("Unable to access field " + name);
+		}
+		catch (java.lang.reflect.InvocationTargetException exc) {
+		    System.err.println("Unable to access target " + name);
 		}
 	    }
-	    else if (name.startsWith("get_link_") && name.endsWith("_value")) {
+	    else if (name.startsWith("get_link_")) {
 		name = name.substring(9); // chop off "get_link_"
-		name = name.substring(0, name.length() - 6); // chop off "_value"
-		Class[] params = method.getParameterTypes();
-		if (params.length == 1) {
-		    //loadLink(name, method, params[0]);
+		try {
+		    Object res = method.invoke(message);
+		    //System.out.println(name + " returns " + res);
+		    Integer result = (Integer)method.invoke(message);
+		    linkTable.put(name, result);
+		}
+		catch (java.lang.IllegalAccessException exc) {
+		    System.err.println("Unable to access field " + name);
+		}
+		catch (java.lang.reflect.InvocationTargetException exc) {
+		    System.err.println("Unable to access target " + name);
 		}
 	    }
 	}
 	if (table.containsKey("origin")) {
 	    Integer origin = (Integer)table.get("origin");
-	    table.remove("origin");
+	    //table.remove("origin");
 	    Enumeration<String> elements = table.keys();
 	    while (elements.hasMoreElements()) {
 		String key = elements.nextElement();
 		Integer value = table.get(key);
 		document.setMoteValue(origin.intValue(), key, value.intValue());
+	    }
+	    elements = linkTable.keys();
+	    while (elements.hasMoreElements()) {
+		String key = elements.nextElement();
+		if (!key.endsWith("_value")) {
+		    continue;
+		}
+		Integer value = linkTable.get(key);
+		key = key.substring(0, key.length() - 6); // chop off "_value"
+		key = key + "_addr";
+		if (!linkTable.containsKey(key)) {
+		    continue;
+		}
+		Integer addr = linkTable.get(key);
+		document.setLinkValue(origin.intValue(), addr.intValue(), key, value.intValue());
 	    }
 	}
 	else {
