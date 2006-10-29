@@ -94,7 +94,7 @@ class DMoteModel
 	
     public DMoteModel(int id, Random rand, DDocument root){
         this.root = root;
-
+	this.id = id;
 		
         x = rand.nextInt(root.width_canvas);
         y = rand.nextInt(root.height_canvas);

@@ -113,12 +113,14 @@ implements DLinkModelListener
 	    repaint();
 	}
 	//=========================================================================//
-	public void paintShape(){
-	    System.out.println("printing link-");
-	    Graphics g = document.canvas.getGraphics();
+    public void paintShape(Graphics g){
 	    Graphics2D g2 = (Graphics2D) g;
+	    g.setColor(Color.BLACK);
 	    int diffX = (model.m1.getLocX() - model.m2.getLocX());
 	    int diffY = (model.m1.getLocY() - model.m2.getLocY());
+	    if (diffX == 0 && diffY == 0) {
+		return;
+	    }
 	    if (diffX == 0) {diffX = 1;}
 	    if (diffY == 0) {diffY = 1;}
 	    int midX = (model.m1.getLocX() + model.m2.getLocX()) / 2;
@@ -128,16 +130,15 @@ implements DLinkModelListener
 	    
 	    switch(layer.paintMode) {
 	    case DLayer.LINE_LABEL:
+		g.setColor(Color.BLACK);
 		g2.drawString(document.sensed_links.elementAt(layer.index) + ": " + (int)model.getValue(layer.index), midX, midY);
-		System.out.println("Draw string at " + midX + " " + midY);
 	    case DLayer.LINE:
 		g2.setStroke(new BasicStroke(3));
 		g2.setColor(Color.RED);
-		g2.setColor(model.getColor());
 		g2.draw(new Line2D.Double(model.m1.getLocX() + 5,  model.m1.getLocY() + 5, model.m2.getLocX() + 5, model.m2.getLocY() + 5));
 		break;
 	    case DLayer.LABEL:
-		System.out.println("Draw string2 at " + midX + " " + midY);
+		g.setColor(Color.BLACK);
 		g2.drawString(document.sensed_links.elementAt(layer.index) + ": " + (int)model.getValue(layer.index), midX, midY);
 		break;
 	    }

@@ -154,11 +154,11 @@ public class MessageInput implements net.tinyos.message.MessageListener {
 		}
 		Integer value = linkTable.get(key);
 		key = key.substring(0, key.length() - 6); // chop off "_value"
-		key = key + "_addr";
-		if (!linkTable.containsKey(key)) {
+		String addrkey = key + "_addr";
+		if (!linkTable.containsKey(addrkey)) {
 		    continue;
 		}
-		Integer addr = linkTable.get(key);
+		Integer addr = linkTable.get(addrkey);
 		document.setLinkValue(origin.intValue(), addr.intValue(), key, value.intValue());
 	    }
 	}
@@ -167,5 +167,5 @@ public class MessageInput implements net.tinyos.message.MessageListener {
 	}
 	
     }
- 
+
 }

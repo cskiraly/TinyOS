@@ -115,6 +115,7 @@ public class DataModel {
 	fields.add(name);
     }
     private void loadLink(String name, Method method, Class param) {
+	System.out.println("Loading link <" + name + ">");
 	links.add(name);
     }
 }

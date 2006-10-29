@@ -66,25 +66,11 @@ public class DDocument
 	
 	
     public DNavigate navigator;
-	
-	
-	
     public Color getColor(){ return currentColor; }
-	
-	
-    //=========================================================================//
     public Vector<String> sensed_motes;
     public Vector<String> sensed_links;
-	
     public ArrayList moteModels;
     public ArrayList linkModels;
-    
-	
-	
-    //	private JComboBox selectMotes;
-    //	private JComboBox selectLinks;
-	
-	
     private JTextField jText;
     private DrawTableModel tableModel;
     private JTable jTable;
@@ -118,10 +104,6 @@ public class DDocument
 	canvas.setOpaque(false);
 	canvas.setBorder(new SoftBevelBorder(SoftBevelBorder.LOWERED));
 	add(canvas, BorderLayout.CENTER);
-
-	
-	// toArray() should work, but for some reason it is returning [Ljava.lang.Object
-	// instead of [Ljava.lang.String
 	sensed_motes = fieldVector;
 	sensed_links = linkVector;
 	moteIndex = new HashMap<Integer, DMoteModel>();
@@ -141,18 +123,6 @@ public class DDocument
 	}
 	System.out.println(name);
 		
-	// Make drawing canvas
-	//----------------------------------------
-		
-	//	canvas.addMouseListener( new MouseAdapter() {
-	//		public void mousePressed(MouseEvent e) {
-	//			    if (selected != null){ // Deselect current shape, if any.
-	//			        DShape oldSelected = selected;
-	//			        selected = null;
-	//			        oldSelected.repaint();
-	//			    }
-	//	    }
-	//	});
 		
 	canvas.addComponentListener(new ComponentListener(){
 		public void componentResized(ComponentEvent e) {
@@ -173,42 +143,9 @@ public class DDocument
 	west.setDoubleBuffered(true);
 	west.setLayout(new BoxLayout(west, BoxLayout.Y_AXIS));
 	add(west, BorderLayout.WEST);
-		
-	//------------------------------------
 	currentColor = Color.GRAY;
-	//------------------------------------
-	// BUTTONS and Other Controls: 
-	//------------------------------------
-		
-		
-		
-		
-	/*String[] labelStrings = {
-	  "Nodes",
-	  "Links"
-	  };
-	  JLabel[] labels = new JLabel[labelStrings.length];
-	  JComponent[] fields = new JComponent[labelStrings.length];
-		
-	  for (int i = 0; i < labelStrings.length; i++) {
-	  JTextField jt = new JTextField();
-	  jt.setMaximumSize(new Dimension(350,150));
-	  jt.addActionListener(this);
-			
-	  fields[i] = jt;
-	  labels[i] = new JLabel(labelStrings[i], JLabel.TRAILING);
-	  labels[i].setLabelFor(fields[i]);
-	  west.add(labels[i]);
-	  west.add(fields[i]);
-	  }*/
-		
-		
 	navigator = new DNavigate(sensed_motes, sensed_links, this);
 	west.add(navigator);
-
-		
-	//------------------------------------
-	// Table.
 	west.add(Box.createVerticalStrut(10));
 	tableModel = new DrawTableModel(sensed_motes);
 	jTable = new JTable(tableModel);
@@ -219,44 +156,15 @@ public class DDocument
 	scroller.setSize(new Dimension(350, 200));
 	west.add(scroller);
 		
-		
-	//		
-	//		JLabel a = new JLabel(new ImageIcon(icon));
-	//		a.setBounds(5,5,100,100);
-	//		canvas.add(a);
+	enableEvents(LinkSetEvent.EVENT_ID);
+	enableEvents(ValueSetEvent.EVENT_ID);
+    }
+    public void actionPerformed(ActionEvent e) {
     }
 
-    /*public void repaint() {
-      super.repaint();
-      System.out.println("Repainting navigator?");
-      if (navigator != null &&
-      jTable != null &&
-      canvas != null) {
-      navigator.repaint();
-      jTable.repaint();
-      canvas.repaint();
-      System.out.println("Repainting all three.");
-      }
-      }*/
-    
-    //=========================================================================//
-    public void actionPerformed(ActionEvent e) {
-	// e.getSource() is the originator of the action --
-	// if-logic to check which one it was
-		
-		
-	//navigator.repaint();
-	//canvas.repaint();
-    }
-    //=========================================================================//
     private void zMove(int direction){
-	//if (selected == null) return;
-	//canvas.remove(selected);
-	//canvas.add(selected, direction);
-	//selected.repaint();
 	tableModel.updateTable();
     }
-    //=========================================================================//
     public int width_canvas = 600;
     public int height_canvas = 600;
 	
@@ -265,37 +173,6 @@ public class DDocument
     protected HashMap<Integer, DMoteModel> moteIndex;
     protected HashMap<String, DLinkModel> linkIndex;
 	
-    private void createRandomMotes(){
-	Random rand = new Random();
-	int total = rand.nextInt(26)+10;
-	for (int i=0; i<total; i++){
-            DMoteModel m = new DMoteModel(i, rand, this);
-	    motes.add(m);
-	    moteIndex.put( new Integer(i), m);
-	    tableModel.add(m);
-	    //addShape(m, true); 
-	}
-		
-    }
-	
-    private void createRandomLinks(){
-	Random rand = new Random();
-	int size = motes.size();
-	int total = rand.nextInt(size)*3;
-		
-	for (int i=0; i<total; i++){
-	    int m1 = rand.nextInt(size);
-	    int m2 = rand.nextInt(size);
-	    if (m1==m2) continue;
-			
-	    DLinkModel m = new DLinkModel((DMoteModel)motes.get(m1), (DMoteModel)motes.get(m2), rand, this);
-	    links.add(m);
-	    //addLink(m, true); 
-	}
-		
-    }
-	
-    //=========================================================================//
     // Provided default ctor that calls the regular ctor
     public DDocument(Vector<String> fieldVector, Vector<String> linkVector) {
 	this(300, 300, fieldVector, linkVector, ".");	 // this syntax calls one ctor from another
@@ -304,13 +181,9 @@ public class DDocument
 	
     public DShape getSelected() {
 	return null;
-	//		return(selected);
     }
 	
     public void setSelected(DShape selected) {
-	//	    if (this.selected!=null) this.selected.repaint();
-	//	 	this.selected = selected;
-	//	 	selected.repaint();
     }
 
     Random rand = new Random();
@@ -328,61 +201,66 @@ public class DDocument
     }
     
     public void setMoteValue(int moteID, String name, int value) {
-	DMoteModel m = moteIndex.get(new Integer(moteID));
-	if (m == null) {
-	    m = createNewMote(moteID);
-	}
-	System.out.println("Set " + moteID + ":" + name + " to " + value);
-	m.setMoteValue(name, value);
-	navigator.redrawAllLayers();
+	ValueSetEvent vsv = new ValueSetEvent(this, moteID, name, value);
+	EventQueue eq = Toolkit.getDefaultToolkit().getSystemEventQueue();
+	eq.postEvent(vsv);
     }
 
     private DLinkModel createNewLink(DMoteModel start, DMoteModel end) {
 	DLinkModel dl = new DLinkModel(start, end, rand, this);
 	links.add(dl);
 	linkIndex.put(start.getId() + " " + end.getId(), dl);
+	System.out.println("Put with key <" + start.getId() + " " + end.getId() + ">");
 	return dl;
     }
     
     public void setLinkValue(int startMote, int endMote, String name, int value) {
-	DMoteModel m = moteIndex.get(new Integer(startMote));
-	if (m == null) {
-	    m = createNewMote(startMote);
-	}
-	DMoteModel m2 = moteIndex.get(new Integer(endMote));
-	if (m2 == null) {
-	    m2 = createNewMote(endMote);
-	}
-	DLinkModel dl = linkIndex.get(startMote + " " + endMote);
-	if (dl == null) {
-	    dl = createNewLink(m, m2);
-	}
-	System.out.println("Setting " + name + " " + startMote + " -> " + endMote + " to " + value);
-	dl.setLinkValue(name, value);
-	navigator.redrawAllLayers();
+	LinkSetEvent lsv = new LinkSetEvent(this, name, value, startMote, endMote);
+	EventQueue eq = Toolkit.getDefaultToolkit().getSystemEventQueue();
+	eq.postEvent(lsv);
     }
-	
-    // Assumes links are defined by a structure with two fields:
-    /* nx_struct xxx {
-       am_addr_t node;
-       nx_xxx_t value;
-       }
-	 
-       A link field must have the name link_XXXX, where X is its name.
-       For example:
-	 
-       typedef nx_struct prr_t {
-       am_addr_t node;
-       nx_uint8_t prr;
-       } prr_t;
-	 
-       typedef nx_struct routing_msg {
-       prr_t link_prr;
-       } routing_msg;
-	 
-       This will create a link field with name "prr".
-    */       
-	
+
+    protected void processEvent(AWTEvent event) {
+	if (event instanceof ValueSetEvent) {
+	    ValueSetEvent vsv = (ValueSetEvent)event;
+	    String name = vsv.name();
+	    int moteID = vsv.moteId();
+	    int value = vsv.value();
+	    DMoteModel m = moteIndex.get(new Integer(moteID));
+	    if (m == null) {
+		m = createNewMote(moteID);
+	    }
+	    //System.out.println("Set " + moteID + ":" + name + " to " + value);
+	    m.setMoteValue(name, value);
+	    navigator.redrawAllLayers();
+	}
+	else if (event instanceof LinkSetEvent) {
+	    LinkSetEvent lsv = (LinkSetEvent)event;
+	    String name = lsv.name();
+	    int startMote = lsv.start();
+	    int endMote = lsv.end();
+	    int value = lsv.value();
+	    DMoteModel m = moteIndex.get(new Integer(startMote));
+	    if (m == null) {
+		m = createNewMote(startMote);
+	    }
+	    DMoteModel m2 = moteIndex.get(new Integer(endMote));
+	    if (m2 == null) {
+		m2 = createNewMote(endMote);
+	    }
+	    DLinkModel dl = linkIndex.get(startMote + " " + endMote);
+	    if (dl == null) {
+		System.out.println("Does not contain key <" + startMote + " " + endMote + ">");
+		dl = createNewLink(m, m2);
+	    }
+	    System.out.println("Setting " + name + " " + startMote + " -> " + endMote + " to " + value);
+	    dl.setLinkValue(name, value);
+	    navigator.redrawAllLayers();
+	}
+	else {
+	    super.processEvent(event);
+	}
+    }
 	
     public static void usage() {
 	System.err.println("usage: tos-soleil [-comm source] message_type [message_type ...]");
@@ -418,32 +296,15 @@ public class DDocument
 	}
 	
 	DataModel model = new DataModel(packetVector);
-	/*Vector<String>  sm = new Vector<String>();
-	    sm.add("Temperature");
-	    sm.add("Humidity");
-	    sm.add("Motion");
-	    sm.add("Light");
-	    Vector<String>  sn = new Vector<String>();
-	    sn.add("Link1");
-	    sn.add("Link2");
-	    DDocument doc = new DDocument(600, 600, sm, sn);
-	    
-	*/
 	DDocument doc = new DDocument(600, 600, model.fields(), model.links(), dir);
         
-		frame.setContentPane(doc);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.pack();
-		frame.setVisible(true);
-		
-		// set mote value
-		/*doc.createRandomMotes();
-		doc.createRandomLinks();
-		doc.navigator.init();*/
-		//doc.createFields();
-		
-		MessageInput input = new MessageInput(packetVector, source, doc);
-		input.start();
+	frame.setContentPane(doc);
+	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	frame.pack();
+	frame.setVisible(true);
+	
+	MessageInput input = new MessageInput(packetVector, source, doc);
+	input.start();
     }
 	
     private void repaintAllMotes(){    	
@@ -537,12 +398,80 @@ public class DDocument
 	    super();
 	    nav = n;
 	}
+	//canvas.addMouseListener( new MouseAdapter() {
+		//public void mousePressed(MouseEvent e) {
+		    //			    if (selected != null){ // Deselect current shape, if any.
+		    //			        DShape oldSelected = selected;
+	//			        selected = null;
+	//			        oldSelected.repaint();
+	//			    }
+	//	    }
+	//	});
 
 	public void paintComponent(Graphics g) {
 	    super.paintComponent(g);
 	    setOpaque(false);
 	    System.out.println("Painting panel!");
 	    nav.redrawAllLayers();
+	}
+    }
+
+    protected class ValueSetEvent extends AWTEvent {
+	public static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 1;
+	private String name;
+	private int value;
+	private int mote;
+	
+	public ValueSetEvent(Object target, int mote, String name, int value) {
+	    super(target, EVENT_ID);
+	    this.value = value;
+	    this.name = name;
+	    this.mote = mote;
+	}
+	
+	public String name() {
+	    return name;
+	}
+
+	public int value() {
+	    return value;
+	}
+
+	public int moteId() {
+	    return mote;
+	}
+    }
+
+
+    protected class LinkSetEvent extends AWTEvent {
+	public static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 2;
+	private String name;
+	private int value;
+	private int start;
+	private int end;
+	
+	public LinkSetEvent(Object target, String name, int value, int start, int end) {
+	    super(target, EVENT_ID);
+	    this.value = value;
+	    this.name = name;
+	    this.start = start;
+	    this.end = end;
+	}
+	
+	public String name() {
+	    return name;
+	}
+
+	public int value() {
+	    return value;
+	}
+
+	public int start() {
+	    return start;
+	}
+
+	public int end() {
+	    return end;
 	}
     }
 }

@@ -208,14 +208,14 @@ public class DLayer extends JPanel implements ActionListener{
 	if (e.getSource() == check) {
 	    if (check.isSelected()){
 		parent.selectedFieldIndex = index;
-		repaintLayer();
+		//repaintLayer(g);
 		System.out.println("redraw index " +zIndex +" on layer");
 	    } else if(type==FIELD){
 		System.out.println("clear");
 		//parent.canvas.repaint();
-		repaintLayer();
+		//repaintLayer(g);
 	    } else {
-		repaintLayer();
+		//repaintLayer(g);
 	    }
 	} else if (e.getSource() == up){
 	    System.out.println("up " + this.label.getText());
@@ -293,19 +293,10 @@ public class DLayer extends JPanel implements ActionListener{
 	//parent.canvas.setLayer(d.canvas, length - i);
     }
 
-    public void paintScreenBefore() 
+    public void paintScreenBefore(Graphics g) 
     {
 
-	//System.out.println("print screen before " + name + "----------------------------");
-	
-	//System.out.println("************************print screen before");
-        Graphics g = parent.canvas.getGraphics();
         Dimension d = parent.canvas.getSize();
-      
-	//g.setColor(new Color(50, 50, 150));
-	//g.fillRect(0,0,d.width,d.height);
-  
-
         int x = 0;
         int y = 0;
         int step = 5;  
@@ -343,29 +334,32 @@ public class DLayer extends JPanel implements ActionListener{
         return Math.sqrt( (x-x1)*(x-x1)+(y-y1)*(y-y1));
     }
 
-    protected void repaintLayer(){
+    protected void repaintLayer(Graphics g){
     	if (check.isSelected()){
 	    System.out.println("Repaint layer " + name);
 	    if 	(type==FIELD){
-		paintScreenBefore();
+		paintScreenBefore(g);
 	    } else if (type == LINK) {
 		Iterator<DLinkModel> it = models.iterator();
+		System.out.print("Draw links: ");
 		while (it.hasNext()) {
 		    DLinkModel model = it.next();
 		    DLink lnk = new DLink(model, parent, this);
-		    System.out.println("Draw link");
-		    lnk.paintShape();
+		    lnk.paintShape(g);
+		    System.out.print("+");
 		}
+		System.out.println();
 	    }
 	    else if (type == MOTE) {
-		Graphics g = parent.canvas.getGraphics();
 		Iterator<DMoteModel> it = models.iterator();
+		System.out.print("Draw motes: ");
 		while (it.hasNext()){
 		    DMoteModel model = it.next();
 		    DShape m = new DMote(model, parent, this);
-		    System.out.println("Draw");
-		    m.paintShape();
+		    m.paintShape(g);
+		    System.out.print("+");
 		}
+		System.out.println();
 	    }
     	}	
     }

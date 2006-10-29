@@ -87,6 +87,7 @@ implements Serializable {
 	int index = root.sensed_links.indexOf(name);
 	if (index < 0) return;
 	values[index] = value;
+	System.out.println("Setting link value " + index + " to " + value);
     }
     private int getMiddle(int x1, int x2){
     	return (x1 + x2)/2;
@@ -98,7 +99,15 @@ implements Serializable {
     } 
 	
 	public int getValue() { return(values[root.selectedLinkIndex]); }
-    	public int getValue(int index) { return(values[index]); } 
+    	public int getValue(int index) {
+	    System.out.println("Gettting link value " + index);
+	    return(values[index]);
+	}
+    public int getValue(String name) {
+	int index = root.sensed_links.indexOf(name);
+	if (index < 0) return 0 ;
+	return values[index];
+    }
 	public int getTop() { return(Math.min(m1.y, m2.y)); }		
 	public int getBottom() { return(Math.max(m1.y, m2.y)); }		
 	public int getLeft() { return(Math.min(m1.x, m2.x)); }		
@@ -114,6 +123,8 @@ implements Serializable {
 	    values[root.selectedLinkIndex] = value;
 	    fireChanges();
 	}
+
+    
 	public int getLocX() {
 	    return x12;
 	}	
