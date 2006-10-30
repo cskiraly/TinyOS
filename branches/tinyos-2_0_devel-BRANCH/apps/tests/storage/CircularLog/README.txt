@@ -25,7 +25,9 @@ then 217 to check that the log is valid. Or just run it with id = 17
 to perform a full test.
 
 A successful test will turn on the green led. A failed test will turn on
-the red led. The yellow led is turned on after erase is complete.
+the red led. The yellow led is turned on after erase is complete. A
+serial message whose last byte is 0x80 for success and all other values
+indicate failure is also sent at the end of the test.
 
 Tools:
 
@@ -33,4 +35,4 @@ Known bugs/limitations:
 
 None.
 
-$Id: README.txt,v 1.1.2.2 2006-06-16 22:53:10 idgay Exp $
+$Id: README.txt,v 1.1.2.3 2006-10-30 19:13:55 idgay Exp $

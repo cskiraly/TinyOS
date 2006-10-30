@@ -15,7 +15,9 @@ T != 0: check if the contents of the volume are consistent with
         a previous run with T = 0 and the same random seed
 
 A successful test will turn on the green led. A failed test will turn on
-the red led. The yellow led blinks to indicate test progress
+the red led. The yellow led blinks to indicate test progress. A serial
+message whose last byte is 0x80 for success and all other values
+indicate failure is also sent at the end of the test.
 
 Tools:
 
@@ -23,4 +25,4 @@ Known bugs/limitations:
 
 None.
 
-$Id: README.txt,v 1.1.2.2 2006-06-16 22:53:10 idgay Exp $
+$Id: README.txt,v 1.1.2.3 2006-10-30 19:13:55 idgay Exp $
