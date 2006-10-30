@@ -1,4 +1,4 @@
-/* $Id: NoPinC.nc,v 1.1.2.1 2006-05-01 17:19:08 idgay Exp $
+/* $Id: NoPinC.nc,v 1.1.2.2 2006-10-30 18:26:04 idgay Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
@@ -25,5 +25,7 @@ implementation
   async command void GeneralIO.toggle() { }
   async command void GeneralIO.makeInput() { }
   async command void GeneralIO.makeOutput() { }
+  async command bool GeneralIO.isInput() { }
+  async command bool GeneralIO.isOutput() { }
 }
 
