@@ -109,19 +109,20 @@ public class DDocument
 	moteIndex = new HashMap<Integer, DMoteModel>();
 	linkIndex = new HashMap<String, DLinkModel>();
 		
-	String name = directory + "/images/tmote_sky.jpg";
-	name = "tmote_sky.jpg";
-	System.out.println(name);
-	URL imgURL = getClass().getResource(name);
-	icon = new ImageIcon(directory + "/images/tmote_sky.jpg", "mote");
+	//String name = directory + "/images/tmote_sky.gif";
+	String imgName = directory + "/mote.gif";
+	//System.out.println(name);
+	//URL imgURL = getClass().getResource(name);
+	//icon = new ImageIcon(directory + "/images/tmote_sky.jpg", "mote");
 	try {
-	    System.out.println(name + " " + imgURL);
-	    image = Toolkit.getDefaultToolkit().getImage(imgURL);
+	    //System.out.println(name + " " + imgURL);
+	    image = Toolkit.getDefaultToolkit().getImage(imgName);
+	    //System.out.println(image);
 	}
 	catch (Exception e) {
 	    System.out.println(e);
 	}
-	System.out.println(name);
+	System.out.println(imgName);
 		
 		
 	canvas.addComponentListener(new ComponentListener(){
@@ -193,7 +194,7 @@ public class DDocument
 
     private DMoteModel createNewMote(int moteID){
 	DMoteModel m = new DMoteModel(moteID, rand, this);
-	System.out.println("Adding mote " + moteID);
+	//System.out.println("Adding mote " + moteID);
 	motes.add(m);
 	moteIndex.put(new Integer(moteID), m);
 	tableModel.add(m);
@@ -212,7 +213,7 @@ public class DDocument
 	DLinkModel dl = new DLinkModel(start, end, rand, this);
 	links.add(dl);
 	linkIndex.put(start.getId() + " " + end.getId(), dl);
-	System.out.println("Put with key <" + start.getId() + " " + end.getId() + ">");
+	//System.out.println("Put with key <" + start.getId() + " " + end.getId() + ">");
 	return dl;
     }
     
@@ -252,10 +253,10 @@ public class DDocument
 	    }
 	    DLinkModel dl = linkIndex.get(startMote + " " + endMote);
 	    if (dl == null) {
-		System.out.println("Does not contain key <" + startMote + " " + endMote + ">");
+		//System.out.println("Does not contain key <" + startMote + " " + endMote + ">");
 		dl = createNewLink(m, m2);
 	    }
-	    System.out.println("Setting " + name + " " + startMote + " -> " + endMote + " to " + value);
+	    //System.out.println("Setting " + name + " " + startMote + " -> " + endMote + " to " + value);
 	    dl.setLinkValue(name, value);
 	    navigator.redrawAllLayers();
 	}
@@ -265,7 +266,7 @@ public class DDocument
     }
 	
     public static void usage() {
-	System.err.println("usage: tos-soleil [-comm source] message_type [message_type ...]");
+	System.err.println("usage: tos-mviz [-comm source] [-dir image_dir] message_type [message_type ...]");
     }
 	
     // Just a test main -- put a little DDocument on screen
@@ -412,11 +413,11 @@ public class DDocument
 			while (it.hasNext()) {
 			    DMoteModel model = it.next();
 			    if (withinRange(e.getX(),
-					    model.getLocX(),
-					    model.getLocX() + 10) &&
+					    model.getLocX() - 20,
+					    model.getLocX() + 20) &&
 				withinRange(e.getY(),
-					    model.getLocY(),
-					    model.getLocY() + 10)) {
+					    model.getLocY() - 20,
+					    model.getLocY() + 20)) {
 				selected = model;
 				return;
 			    }
@@ -456,7 +457,7 @@ public class DDocument
 	public void paintComponent(Graphics g) {
 	    super.paintComponent(g);
 	    setOpaque(false);
-	    System.out.println("Painting panel!");
+	    //System.out.println("Painting panel!");
 	    doc.navigator.redrawAllLayers();
 	}
     }

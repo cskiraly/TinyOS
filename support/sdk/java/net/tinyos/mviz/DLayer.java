@@ -209,19 +209,17 @@ public class DLayer extends JPanel implements ActionListener{
 	    if (check.isSelected()){
 		parent.selectedFieldIndex = index;
 		//repaintLayer(g);
-		System.out.println("redraw index " +zIndex +" on layer");
+		//System.out.println("redraw index " +zIndex +" on layer");
 	    } else if(type==FIELD){
-		System.out.println("clear");
+		//System.out.println("clear");
 		//parent.canvas.repaint();
 		//repaintLayer(g);
 	    } else {
 		//repaintLayer(g);
 	    }
 	} else if (e.getSource() == up){
-	    System.out.println("up " + this.label.getText());
 	    parent.navigator.moveLayerUp(this.zIndex);
 	} else if (e.getSource() == down){
-	    System.out.println("down " + this.label.getText());
 	    parent.navigator.moveLayerDown(this.zIndex);
 	} else if (e.getSource() == displays){
 	    String selected = (String)displays.getSelectedItem();
@@ -337,30 +335,30 @@ public class DLayer extends JPanel implements ActionListener{
 
     protected void repaintLayer(Graphics g){
     	if (check.isSelected()){
-	    System.out.println("Repaint layer " + name);
+	    //System.out.println("Repaint layer " + name);
 	    if 	(type==FIELD){
 		paintScreenBefore(g);
 	    } else if (type == LINK) {
 		Iterator<DLinkModel> it = models.iterator();
-		System.out.print("Draw links: ");
+		//System.out.print("Draw links: ");
 		while (it.hasNext()) {
 		    DLinkModel model = it.next();
 		    DLink lnk = new DLink(model, parent, this);
 		    lnk.paintShape(g);
-		    System.out.print("+");
+		    //System.out.print("+");
 		}
-		System.out.println();
+		//System.out.println();
 	    }
 	    else if (type == MOTE) {
 		Iterator<DMoteModel> it = models.iterator();
-		System.out.print("Draw motes: ");
+		//System.out.print("Draw motes: ");
 		while (it.hasNext()){
 		    DMoteModel model = it.next();
 		    DShape m = new DMote(model, parent, this);
 		    m.paintShape(g);
-		    System.out.print("+");
+		    //System.out.print("+");
 		}
-		System.out.println();
+		//System.out.println();
 	    }
     	}	
     }

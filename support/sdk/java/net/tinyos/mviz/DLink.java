@@ -45,7 +45,6 @@ implements DLinkModelListener
 	
 	protected DLinkModel model;
 	protected DDocument document;
-	public Image img;
     private DLayer layer;
     // remember the last point for mouse tracking
 	private int lastX, lastY;
@@ -57,7 +56,6 @@ implements DLinkModelListener
     public DLink(DLinkModel model, DDocument document, DLayer layer) {
 		super();
 		this.model = model;
-		this.img = model.root.icon.getImage();
 		this.layer = layer;
 		this.document = document;
 		model.addListener(this);
@@ -143,7 +141,7 @@ implements DLinkModelListener
 	    case DLayer.LINE:
 		g2.setStroke(new BasicStroke(3));
 		g2.setColor(Color.RED);
-		g2.draw(new Line2D.Double(model.m1.getLocX() + 5,  model.m1.getLocY() + 5, model.m2.getLocX() + 5, model.m2.getLocY() + 5));
+		g2.draw(new Line2D.Double(model.m1.getLocX(),  model.m1.getLocY(), model.m2.getLocX(), model.m2.getLocY()));
 		break;
 	    case DLayer.LABEL:
 		g.setColor(Color.BLACK);

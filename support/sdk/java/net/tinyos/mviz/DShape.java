@@ -60,7 +60,7 @@ implements DMoteModelListener
 	public DShape(DMoteModel model, DDocument document, DLayer layer) {
 		super();
 		this.model = model;
-		this.img = model.root.icon.getImage();
+		this.img = document.image;
 		this.document = document;
 		this.layer = layer;
 		model.addListener(this);

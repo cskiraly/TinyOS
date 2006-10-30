@@ -96,8 +96,8 @@ class DMoteModel
         this.root = root;
 	this.id = id;
 		
-        x = rand.nextInt(root.width_canvas);
-        y = rand.nextInt(root.height_canvas);
+        x = 20 + rand.nextInt(root.canvas.getWidth() - 20);
+        y = 20 + rand.nextInt(root.canvas.getHeight()- 20);
         
         values = new float[root.sensed_motes.size()];
 	
