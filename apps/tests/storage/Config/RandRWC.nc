@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.5 2006-06-16 22:53:10 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.6 2006-10-30 18:17:26 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -8,7 +8,7 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Log storage test application. Does a pattern of random reads and
+ * Config storage test application. Does a pattern of random reads and
  * writes, based on mote id. See README.txt for more details.
  *
  * @author David Gay
