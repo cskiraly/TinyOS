@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.1 $
- * $Date: 2006-08-11 11:31:06 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-10-30 16:04:26 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -58,6 +58,7 @@ module ActiveMessageFilterC {
   command uint8_t AMSend.maxPayloadLength[am_id_t id](){ return call SubAMSend.maxPayloadLength[id]();}
   command void* AMSend.getPayload[am_id_t id](message_t* msg){ return call SubAMSend.getPayload[id](msg);}
   event void SubAMSend.sendDone[am_id_t id](message_t* msg, error_t error) { signal AMSend.sendDone[id](msg, error); }
+  default event void AMSend.sendDone[am_id_t id](message_t* msg, error_t error) { return; }
 
   command void* Receive.getPayload[am_id_t id](message_t* msg, uint8_t* len){ return call SubReceive.getPayload[id](msg, len);}
   command uint8_t Receive.payloadLength[am_id_t id](message_t* msg){ return call SubReceive.payloadLength[id](msg);}
