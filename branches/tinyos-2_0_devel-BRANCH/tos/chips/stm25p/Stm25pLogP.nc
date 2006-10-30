@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-08-29 15:04:47 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-10-30 16:42:11 $
  */
 
 #include <Stm25p.h>
@@ -87,6 +87,7 @@ implementation {
   stm25p_log_state_t m_req;
   stm25p_log_info_t m_log_info[ NUM_LOGS ];
   stm25p_addr_t m_addr;
+  bool m_records_lost;
   uint8_t m_header;
   uint8_t m_len;
 
@@ -172,6 +173,7 @@ implementation {
 	   call Sector.getNumSectors[ id ]() ) )
       return ESIZE;
     
+    m_records_lost = FALSE;
     m_req.req = S_APPEND;
     m_req.buf = buf;
     m_req.len = len;
@@ -419,6 +421,7 @@ implementation {
     uint8_t len;
     
     if ( !(uint16_t)write_addr ) {
+      m_records_lost = TRUE;
       call Sector.erase[ client ]( calcSector( client, write_addr ), 1 );
     }
     else {
@@ -499,7 +502,7 @@ implementation {
       signal Write.eraseDone[ id ]( error );
       break;
     case S_APPEND:
-      signal Write.appendDone[ id ]( buf, len, error );
+      signal Write.appendDone[ id ]( buf, len, m_records_lost, error );
       break;
     case S_SYNC:
       signal Write.syncDone[ id ]( error );
@@ -512,7 +515,7 @@ implementation {
   default event void Read.readDone[ uint8_t id ]( void* data, storage_len_t len, error_t error ) {}
   default event void Read.seekDone[ uint8_t id ]( error_t error ) {}
   default event void Write.eraseDone[ uint8_t id ]( error_t error ) {}
-  default event void Write.appendDone[ uint8_t id ]( void* data, storage_len_t len, error_t error ) {}
+  default event void Write.appendDone[ uint8_t id ]( void* data, storage_len_t len, bool recordsLost, error_t error ) {}
   default event void Write.syncDone[ uint8_t id ]( error_t error ) {}
 
   default command storage_addr_t Sector.getPhysicalAddress[ uint8_t id ]( storage_addr_t addr ) { return 0xffffffff; }
