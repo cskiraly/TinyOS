@@ -1,4 +1,4 @@
-// $Id: BaseStationP.nc,v 1.1.2.5 2006-02-16 16:48:07 idgay Exp $
+// $Id: BaseStationP.nc,v 1.1.2.6 2006-10-30 21:55:04 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: BaseStationP.nc,v 1.1.2.5 2006-02-16 16:48:07 idgay Exp $
+ * Revision:	$Id: BaseStationP.nc,v 1.1.2.6 2006-10-30 21:55:04 scipio Exp $
  */
   
 /* 
@@ -133,10 +133,6 @@ implementation
 						    void *payload,
 						    uint8_t len) {
     message_t *ret = msg;
-#if 0
-    if (!msg->crc || msg->group != TOS_AM_GROUP)
-      return msg;
-#endif
 
     atomic {
       if (!uartFull)
