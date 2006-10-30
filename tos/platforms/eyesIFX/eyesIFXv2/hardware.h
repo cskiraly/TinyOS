@@ -26,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: hardware.h,v 1.1.2.5 2006-02-17 22:51:19 idgay Exp $
+ * $Id: hardware.h,v 1.1.2.6 2006-10-30 10:36:57 vlahan Exp $
  *
  */
 
@@ -108,7 +108,12 @@ TOSH_ASSIGN_PIN(FLASH_CS, 1, 7);
 
 TOSH_ASSIGN_PIN(DEBUG_1, 1, 1);
 TOSH_ASSIGN_PIN(DEBUG_2, 1, 2);
-TOSH_ASSIGN_PIN(DEBUG_3, 1, 3);
+
+// Temperature sensor enable
+TOSH_ASSIGN_PIN(TEMP_EN, 5, 4);
+ 
+// USB power monitoring
+TOSH_ASSIGN_PIN(USB_POWER, 1, 3);
 
 inline void uwait(uint16_t u) 
 { 
@@ -153,6 +158,15 @@ atomic {
   TOSH_MAKE_POT_EN_OUTPUT();
 
 
+  //disable temperature sensor
+  TOSH_CLR_TEMP_EN_PIN();
+  TOSH_MAKE_TEMP_EN_OUTPUT();
+
+  // detect USB power
+  TOSH_SEL_USB_POWER_MODFUNC();
+  TOSH_MAKE_USB_POWER_INPUT();
+  
+  
  // wait 12ms for the radio to start
   uwait(1024*12);
 
