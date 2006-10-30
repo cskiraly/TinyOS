@@ -1,4 +1,4 @@
-/* $Id: RandRWC.nc,v 1.1.2.8 2006-09-22 22:00:10 idgay Exp $
+/* $Id: RandRWC.nc,v 1.1.2.9 2006-10-30 18:17:26 idgay Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -13,12 +13,6 @@
  *
  * @author David Gay
  */
-/*
-  address & 3:
-  1: erase, write
-  2: read
-  3: write some more
-*/
 module RandRWC {
   uses {
     interface Boot;
