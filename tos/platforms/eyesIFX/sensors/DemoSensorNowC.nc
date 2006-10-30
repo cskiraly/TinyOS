@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-10-09 13:34:42 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-10-30 15:56:58 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -58,10 +58,8 @@ implementation
 {
   components SensorSettingsC as Settings;
   components new AdcReadNowClientC() as AdcReadNowClient;
-  components new ReadNowShiftC(4) as ReadNowShift;
   
-  ReadNow = ReadNowShift;
-  ReadNowShift.ReadNowRaw -> AdcReadNowClient;
   Resource = AdcReadNowClient;
+  ReadNow = AdcReadNowClient;
   AdcReadNowClient.AdcConfigure -> Settings.AdcConfigure[PHOTO_SENSOR_DEFAULT];  
 }
