@@ -1,4 +1,4 @@
-// $Id: TestAMAppC.nc,v 1.1.2.3 2006-10-30 18:08:31 idgay Exp $
+// $Id: TestLplAppC.nc,v 1.1.2.1 2006-10-30 18:11:59 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -38,9 +38,9 @@
  *  @date   Oct 27 2006
  */
 
-configuration TestAMAppC {}
+configuration TestLplAppC {}
 implementation {
-  components MainC, TestAMC as App, LedsC;
+  components MainC, TestLplC as App, LedsC;
   components ActiveMessageC;
   components new TimerMilliC();
 #if defined(PLATFORM_MICA2) || defined(PLATFORM_MICA2DOT)

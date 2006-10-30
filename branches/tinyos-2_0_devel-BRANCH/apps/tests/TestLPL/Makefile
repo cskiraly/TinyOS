@@ -1,4 +1,4 @@
-COMPONENT=TestAMAppC
+COMPONENT=TestLplAppC
 
 include $(MAKERULES)
 
