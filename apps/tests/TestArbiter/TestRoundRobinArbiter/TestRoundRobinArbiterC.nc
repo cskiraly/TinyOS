@@ -27,6 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
  
+#include "Timer.h"
+ 
 /**
  * Please refer to TEP 108 for more information about the components
  * this application is used to test
@@ -55,11 +57,9 @@
  * <br>
  *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
- * @version  $Revision: 1.1.2.1 $
- * @date $Date: 2006-10-30 16:47:51 $
+ * @version  $Revision: 1.1.2.2 $
+ * @date $Date: 2006-10-30 17:05:44 $
  */
-
-#include "Timer.h"
 
 module TestRoundRobinArbiterC {
   uses {

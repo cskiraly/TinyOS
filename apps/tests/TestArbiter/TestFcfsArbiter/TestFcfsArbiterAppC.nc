@@ -55,8 +55,8 @@
  * <br>
  *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
- * @version  $Revision: 1.1.2.1 $
- * @date $Date: 2006-10-30 16:47:51 $
+ * @version  $Revision: 1.1.2.2 $
+ * @date $Date: 2006-10-30 17:05:44 $
  */
  
 #define TEST_ARBITER_RESOURCE   "Test.Arbiter.Resource"

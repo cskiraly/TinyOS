@@ -3,10 +3,11 @@ Author/Contact: tinyos-help@millennium.berkeley.edu
 
 Description:
 
-RadioCountToLeds maintains a 4Hz counter and broadcsts its value. A 
-RadioCountToLeds node that hears a counter displays the bottom three bits
-on its LEDs. This application is a useful test to show that basic AM 
-communication and timers work.
+RadioCountToLeds maintains a 4Hz counter, broadcasting its value in 
+an AM packet every time it gets updated. A RadioCountToLeds node that 
+hears a counter displays the bottom three bits on its LEDs. This 
+application is a useful test to show that basic AM communication and 
+timers work.
 
 Tools:
 
@@ -19,4 +20,4 @@ Known bugs/limitations:
 None.
 
 
-$Id: README.txt,v 1.1.2.1 2006-01-29 20:30:58 scipio Exp $
+$Id: README.txt,v 1.1.2.2 2006-10-30 17:05:43 klueska Exp $
