@@ -39,6 +39,9 @@ module MVizC {
     interface Timer<TMilli>;
     interface Read<uint16_t>;
     interface Leds;
+    interface CtpInfo;
+    interface LinkEstimator;
+    interface Random;
   }
 }
 
@@ -175,10 +178,6 @@ implementation {
   event void Timer.fired() {
     if (!sendbusy) {
       mviz_msg_t *o = (mviz_msg_t *)call Send.getPayload(&sendbuf);
-      local.origin ^= 1;
-      if (local.origin == 1) {
-        local.reading = 13000 - local.reading;
-      }
       memcpy(o, &local, sizeof(local));
       if (call Send.send(&sendbuf, sizeof(local)) == SUCCESS)
 	sendbusy = TRUE;
@@ -207,13 +206,20 @@ implementation {
   }
 
   event void Read.readDone(error_t result, uint16_t data) {
+    uint16_t val;
     if (result != SUCCESS) {
       data = 0xffff;
       report_problem();
     }
     local.reading = data;
+    call CtpInfo.getEtx(&val);
+    local.link_route_value = val;
+    call CtpInfo.getParent(&val);
+    local.link_route_addr = val;
+    local.link_route_value = call LinkEstimator.getLinkQuality(local.link_route_addr);
   }
-
+  event void LinkEstimator.evicted(am_addr_t addr){}
+  
   event void SerialSend.sendDone(message_t *msg, error_t error) {
     uartbusy = FALSE;
   }
