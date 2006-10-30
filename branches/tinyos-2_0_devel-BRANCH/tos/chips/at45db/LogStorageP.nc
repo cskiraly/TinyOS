@@ -594,8 +594,9 @@ implementation
     s[client].woffset += count;
     len -= count;
 
-    /* We lose data at the point we make the first write to a page */
-    if (offset == 0)
+    /* We normally lose data at the point we make the first write to a
+       page in a log that has circled. */
+    if (offset == 0 && s[client].circled)
       recordsLost = TRUE;
 
     call At45db.write(s[client].wpage, offset, buf, count);
