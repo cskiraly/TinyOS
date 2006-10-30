@@ -32,7 +32,7 @@
 /**
  * @author Alec Woo <awoo@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-10-17 19:04:45 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-10-30 18:40:45 $
  */
 
 #include <Timer.h>
@@ -47,7 +47,7 @@ generic module Atm128UartP(){
   uses interface StdControl as HplUartTxControl;
   uses interface StdControl as HplUartRxControl;
   uses interface HplAtm128Uart as HplUart;
-  uses interface Counter<TMicro, uint16_t>;
+  uses interface Counter<TMicro, uint32_t>;
   
 }
 
@@ -162,7 +162,7 @@ implementation{
     
     start = call Counter.get();
     while ( call HplUart.isRxEmpty() ) {
-      if ( ( call Counter.get() - start ) >= timeout_micro )
+      if ( ( (uint16_t)call Counter.get() - start ) >= timeout_micro )
 	return FAIL;
     }
     *byte = call HplUart.rx();

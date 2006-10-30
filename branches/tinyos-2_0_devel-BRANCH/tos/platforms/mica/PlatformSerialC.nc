@@ -32,7 +32,7 @@
 /**
  * @author Alec Woo <awoo@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.7 $ $Date: 2006-10-10 19:18:42 $
+ * @version $Revision: 1.1.2.8 $ $Date: 2006-10-30 18:40:45 $
  */
 
 configuration PlatformSerialC {
@@ -49,7 +49,7 @@ implementation {
   UartStream = Uart0;
   UartByte = Uart0;
   
-  components CounterThree16C;
-  Uart0.Counter -> CounterThree16C;
+  components CounterMicro32C;
+  Uart0.Counter -> CounterMicro32C;
   
 }
