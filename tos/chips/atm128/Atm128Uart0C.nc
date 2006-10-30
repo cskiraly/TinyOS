@@ -32,7 +32,7 @@
 /**
  * @author Alec Woo <awoo@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-10-17 06:58:52 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-10-30 18:40:45 $
  */
 
 configuration Atm128Uart0C {
@@ -40,7 +40,7 @@ configuration Atm128Uart0C {
   provides interface StdControl;
   provides interface UartByte;
   provides interface UartStream;
-  uses interface Counter<TMicro, uint16_t>;
+  uses interface Counter<TMicro, uint32_t>;
   
 }
 
