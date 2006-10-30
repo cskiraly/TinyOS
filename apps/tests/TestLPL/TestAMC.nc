@@ -1,4 +1,4 @@
-// $Id: TestAMC.nc,v 1.1.2.1 2006-10-26 17:41:36 idgay Exp $
+// $Id: TestAMC.nc,v 1.1.2.2 2006-10-30 18:08:31 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -29,15 +29,16 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-/**
- *  Implementation of the TestAM application.
- *
- *  @author Philip Levis
- *  @date   May 16 2005
- *
- **/
-
 #include "Timer.h"
+
+/**
+ * Simple test code for low-power-listening. Sends a sequence of packets,
+ * changing the low-power-listening settings every ~32s. See README.txt
+ * for more details.
+ *
+ *  @author Philip Levis, David Gay
+ *  @date   Oct 27 2006
+ */
 
 module TestAMC {
   uses {
