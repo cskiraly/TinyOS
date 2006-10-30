@@ -1,4 +1,4 @@
-//$Id: Serial.h,v 1.1.2.15 2006-08-04 00:34:18 scipio Exp $
+//$Id: Serial.h,v 1.1.2.16 2006-10-30 23:13:22 idgay Exp $
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
  *
@@ -89,9 +89,9 @@ enum {
 
 // Framer-level dispatch
 enum {
-  SERIAL_PROTO_ACK = 64,
-  SERIAL_PROTO_PACKET_ACK = 65,
-  SERIAL_PROTO_PACKET_NOACK = 66,
+  SERIAL_PROTO_ACK = 67,
+  SERIAL_PROTO_PACKET_ACK = 68,
+  SERIAL_PROTO_PACKET_NOACK = 69,
   SERIAL_PROTO_PACKET_UNKNOWN = 255
 };
 
