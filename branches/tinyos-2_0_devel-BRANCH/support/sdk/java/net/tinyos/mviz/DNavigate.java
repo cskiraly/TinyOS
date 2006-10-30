@@ -81,7 +81,7 @@ public class DNavigate extends JPanel implements ActionListener{
 		Iterator<DLayer> it = layers.iterator();
 		while (it.hasNext()){
 		    DLayer m = it.next();
-		    System.out.println("setting layer: zIndex=" + m.z_index + ", index=" + m.zIndex);
+		    //System.out.println("setting layer: zIndex=" + m.z_index + ", index=" + m.zIndex);
 		}
         
 	}
@@ -91,7 +91,7 @@ public class DNavigate extends JPanel implements ActionListener{
 	while(it.hasNext()){
 	    it.next().addMote(model, true);
 	}
-    }
+   }
 	
 	private void addLayer(Vector<String> labels, int type, ArrayList models){
 	    for (int i=0; i<labels.size(); i++, _tmp_i++){
@@ -113,7 +113,7 @@ public class DNavigate extends JPanel implements ActionListener{
 	}
 	
 	public void redrawNavigator(){
-	    System.out.println("Redrawing navigator.");
+	    //System.out.println("Redrawing navigator.");
 	    Iterator<DLayer> it = layers.iterator();
 	    while (it.hasNext()){
 		remove(it.next());
@@ -158,7 +158,7 @@ public class DNavigate extends JPanel implements ActionListener{
 	
 
     public void paint() {
-	System.out.println("Painting navigator");
+	//System.out.println("Painting navigator");
 	redrawNavigator();
 	Iterator<DLayer> it = layers.iterator();
     }
@@ -194,7 +194,7 @@ public class DNavigate extends JPanel implements ActionListener{
 	Graphics g = offscreen.getGraphics();
 	Graphics2D g2d = (Graphics2D)g;
 	g2d.clearRect(0, 0, parent.canvas.getWidth(), parent.canvas.getHeight());
-	//g2d.fillRect(0, 0, parent.canvas.getWidth(), parent.canvas.getHeight());
+	g2d.fillRect(0, 0, parent.canvas.getWidth(), parent.canvas.getHeight());
 
 	for (int i=start; i>=0; i--){
 	    DLayer a = layers.get(i);
