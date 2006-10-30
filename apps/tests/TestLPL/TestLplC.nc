@@ -1,4 +1,4 @@
-// $Id: TestAMC.nc,v 1.1.2.2 2006-10-30 18:08:31 idgay Exp $
+// $Id: TestLplC.nc,v 1.1.2.1 2006-10-30 18:11:59 idgay Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -40,7 +40,7 @@
  *  @date   Oct 27 2006
  */
 
-module TestAMC {
+module TestLplC {
   uses {
     interface Leds;
     interface Boot;
