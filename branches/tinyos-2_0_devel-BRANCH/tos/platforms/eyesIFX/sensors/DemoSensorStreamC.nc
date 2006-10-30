@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.3 $
- * $Date: 2006-10-09 13:34:42 $
+ * $Revision: 1.1.2.4 $
+ * $Date: 2006-10-30 15:56:58 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -56,9 +56,7 @@ implementation
 {
   components SensorSettingsC as Settings;
   components new AdcReadStreamClientC() as AdcReadStreamClient;
-  components new ReadStreamShiftC(4) as ReadStreamShift;
     
-  ReadStream = ReadStreamShift;
-  ReadStreamShift.ReadStreamRaw -> AdcReadStreamClient;
+  ReadStream = AdcReadStreamClient;
   AdcReadStreamClient.AdcConfigure -> Settings.AdcConfigure[PHOTO_SENSOR_DEFAULT];
 }
