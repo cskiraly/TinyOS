@@ -1,4 +1,4 @@
-/* $Id: CtpInfo.nc,v 1.1.2.6 2006-10-27 22:41:02 scipio Exp $ */
+/* $Id: CtpInfo.nc,v 1.1.2.7 2006-10-30 00:53:39 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -24,7 +24,7 @@
 /*
  *  @author Rodrigo Fonseca
  *  @author Philip Levis
- *  @date   $Date: 2006-10-27 22:41:02 $
+ *  @date   $Date: 2006-10-30 00:53:39 $
  *  @see Net2-WG
  */
 
@@ -78,4 +78,9 @@ interface CtpInfo {
    *  Returns the currently known state about a neighbor's congestion state
    */
   command bool isNeighborCongested(am_addr_t n);
+
+  command uint8_t numNeighbors();
+  command uint16_t getNeighborLinkQuality(uint8_t neighbor);
+  command uint16_t getNeighborRouteQuality(uint8_t neighbor);
+  command am_addr_t getNeighborAddr(uint8_t neighbor);
 }

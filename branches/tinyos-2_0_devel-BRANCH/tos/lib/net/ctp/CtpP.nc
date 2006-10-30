@@ -76,6 +76,7 @@ configuration CtpP {
     interface CtpPacket;
 
     interface CtpInfo;
+    interface LinkEstimator;
     interface CtpCongestion;
     interface RootControl;    
   }
@@ -176,6 +177,8 @@ implementation {
   components new AMSenderC(AM_LINKEST) as SendLinkEst;
   components new AMReceiverC(AM_LINKEST) as ReceiveLinkEst;
   components new TimerMilliC() as EstimatorTimer;
+
+  LinkEstimator = Estimator;
   
   Estimator.AMSend -> SendControl;
   Estimator.SubReceive -> ReceiveControl;

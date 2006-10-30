@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.16 2006-10-28 20:23:27 rfonseca76 Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.17 2006-10-30 00:53:39 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -91,7 +91,7 @@
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-10-28 20:23:27 $
+ *  @date   $Date: 2006-10-30 00:53:39 $
  *  @see Net2-WG
  */
 
@@ -760,4 +760,18 @@ implementation {
     command void          CtpRoutingPacket.setEtx(message_t* msg, uint8_t etx) {
       getHeader(msg)->etx = etx;
     }
+
+    command uint8_t CtpInfo.numNeighbors() {
+      return routingTableActive;
+    }
+    command uint16_t CtpInfo.getNeighborLinkQuality(uint8_t n) {
+      return (n < routingTableActive)? call LinkEstimator.getLinkQuality(routingTable[n].neighbor):0xffff;
+    }
+    command uint16_t CtpInfo.getNeighborRouteQuality(uint8_t n) {
+      return (n < routingTableActive)? call LinkEstimator.getLinkQuality(routingTable[n].neighbor) + routingTable[n].info.etx:0xfffff;
+    }
+    command am_addr_t CtpInfo.getNeighborAddr(uint8_t n) {
+      return (n < routingTableActive)? routingTable[n].neighbor:AM_BROADCAST_ADDR;
+    }
+    
 } 
