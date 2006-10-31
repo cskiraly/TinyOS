@@ -1,4 +1,4 @@
-// $Id: TestSerialC.nc,v 1.1.2.9 2006-06-12 20:46:56 bengreenstein Exp $
+// $Id: TestSerialC.nc,v 1.1.2.10 2006-10-31 00:08:47 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -71,13 +71,13 @@ implementation {
       return;
     }
     else {
-      TestSerialMsg* rcm = (TestSerialMsg*)call Packet.getPayload(&packet, NULL);
-      if (call Packet.maxPayloadLength() < sizeof(TestSerialMsg)) {
+      test_serial_msg_t* rcm = (test_serial_msg_t*)call Packet.getPayload(&packet, NULL);
+      if (call Packet.maxPayloadLength() < sizeof(test_serial_msg_t)) {
 	return;
       }
 
       rcm->counter = counter;
-      if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(TestSerialMsg)) == SUCCESS) {
+      if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(test_serial_msg_t)) == SUCCESS) {
 	locked = TRUE;
       }
     }
@@ -85,9 +85,9 @@ implementation {
 
   event message_t* Receive.receive(message_t* bufPtr, 
 				   void* payload, uint8_t len) {
-    if (len != sizeof(TestSerialMsg)) {return bufPtr;}
+    if (len != sizeof(test_serial_msg_t)) {return bufPtr;}
     else {
-      TestSerialMsg* rcm = (TestSerialMsg*)payload;
+      test_serial_msg_t* rcm = (test_serial_msg_t*)payload;
       if (rcm->counter & 0x1) {
 	call Leds.led0On();
       }
