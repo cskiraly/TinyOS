@@ -1,4 +1,4 @@
-// $Id: PowerupAppC.nc,v 1.1.2.4 2006-02-04 01:10:32 philipb Exp $
+// $Id: PowerupAppC.nc,v 1.1.2.5 2006-10-31 00:16:09 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -29,7 +29,11 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 
-//@author Cory Sharp <cssharp@eecs.berkeley.edu>
+/**
+ * Configuration for the PowerUp application.
+ *
+ * @author Cory Sharp <cssharp@eecs.berkeley.edu>
+ */
 
 configuration PowerupAppC{}
 implementation {
