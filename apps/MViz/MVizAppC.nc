@@ -55,17 +55,4 @@ implementation {
   MVizC.CtpInfo -> Ctp;
   MVizC.LinkEstimator -> Ctp;
 
-  //
-  // Components for debugging collection.
-  //
-  components new PoolC(message_t, 10) as DebugMessagePool,
-    new QueueC(message_t*, 10) as DebugSendQueue,
-    new SerialAMSenderC(AM_CTP_DEBUG) as DebugSerialSender,
-    UARTDebugSenderP as DebugSender;
-
-  DebugSender.Boot -> MainC;
-  DebugSender.UARTSend -> DebugSerialSender;
-  DebugSender.MessagePool -> DebugMessagePool;
-  DebugSender.SendQueue -> DebugSendQueue;
-  Collector.CollectionDebug -> DebugSender;
 }

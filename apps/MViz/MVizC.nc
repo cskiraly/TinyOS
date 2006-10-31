@@ -191,7 +191,8 @@ implementation {
     if (!suppress_count_change)
       local.count++;
     suppress_count_change = FALSE;
-    
+    call Timer.stop();
+    call Timer.startPeriodic(local.interval);    
     if (call Read.read() != SUCCESS)
       fatal_problem();
   }
