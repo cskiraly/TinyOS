@@ -106,7 +106,8 @@ implementation {
   }
 
   static void startTimer() {
-    call Timer.startPeriodic(local.interval);
+    if (call Timer.isRunning()) call Timer.stop();
+    call Timer.startOneShot(local.interval);
     reading = 0;
   }
 
@@ -173,6 +174,7 @@ implementation {
      - read next sample
   */
   event void Timer.fired() {
+    call Timer.startOneShot(local.interval);
     if (reading == NREADINGS) {
       if (!sendbusy) {
 	oscilloscope_t *o = (oscilloscope_t *)call Send.getPayload(&sendbuf);
