@@ -23,8 +23,8 @@
 /**
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.1 $
- * @date $Date: 2006-10-31 08:44:21 $
+ * @version $Revision: 1.1.2.2 $
+ * @date $Date: 2006-10-31 20:29:02 $
  */
 
 module ResourceP {
@@ -35,9 +35,10 @@ module ResourceP {
 }
 implementation {
 	
-  bool lock = FALSE;
+  bool lock;
 	
   task void startDone() {
+  	lock = FALSE;
   	signal SplitControl.startDone(SUCCESS);
   }
   
@@ -56,6 +57,7 @@ implementation {
   }
   
   command error_t SplitControl.stop() {
+  	lock = TRUE;
   	post stopDone();
   	return  SUCCESS;
   }

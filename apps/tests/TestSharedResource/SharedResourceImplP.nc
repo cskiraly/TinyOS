@@ -23,8 +23,8 @@
 /**
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.1 $
- * @date $Date: 2006-10-31 08:44:21 $
+ * @version $Revision: 1.1.2.2 $
+ * @date $Date: 2006-10-31 20:29:02 $
  */
 
 module SharedResourceImplP {
@@ -44,7 +44,7 @@ implementation {
   }
   
   command error_t SharedResourceOperations.operation[uint8_t id]() {
-  	if(call ArbiterInfo.userId() == id && call ResourceOperations.operation()) {
+  	if(call ArbiterInfo.userId() == id && call ResourceOperations.operation() == SUCCESS) {
       current_id = id;
   	  return SUCCESS;
   	}
