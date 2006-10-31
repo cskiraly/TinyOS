@@ -170,7 +170,7 @@ public class DNavigate extends JPanel implements ActionListener{
 
     
     private long currentSecond = -1;
-    private long PERIOD = 100;
+    private long PERIOD = 500;
     
     protected void redrawAllLayers(){
 	Date date = new Date();
