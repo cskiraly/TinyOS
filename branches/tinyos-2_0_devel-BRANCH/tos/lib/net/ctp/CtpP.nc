@@ -186,6 +186,5 @@ implementation {
   Estimator.ReceiveLinkEst -> ReceiveLinkEst;
   Estimator.SubPacket -> SendControl;
   Estimator.SubAMPacket -> SendControl;
-  Estimator.Timer -> EstimatorTimer;
   MainC.SoftwareInit -> Estimator;
 }
