@@ -1,46 +1,38 @@
-README for MultihopOscilloscope
+README for MViz
 Author/Contact: tinyos-help@millennium.berkeley.edu
 
 Description:
 
-MultihopOscilloscope is a simple data-collection demo. It periodically samples
-the default sensor and broadcasts a message every few readings. These readings
-can be displayed by the Java "Oscilloscope" application found in the
-TOSROOT/apps/Oscilloscope/java subdirectory. The sampling rate starts at 4Hz,
-but can be changed from the Java application.
+MViz is a sample application for the MViz network visualization tool. The MViz
+application is a multihop collection network. Nodes whose (ID % 500) == 0 are
+collection roots. The application samples a platform's DemoSensorC and routes
+those values to the collection roots. The roots send the packets to the serial
+port, which the MViz java application then visualizes.
 
-You can compile MultihopOscilloscope with a sensor board's default sensor by
-compiling as follows:
+To run this application, install the TinyOS application on several nodes, one
+of whom is a root. Then run the tos-mviz script with MVizMsg as a parameter:
 
-  SENSORBOARD=<sensorboard name> make <mote>
+tos-mviz [-comm source] MVizMsg
 
-You can change the sensor used by editing MultihopOscilloscopeAppC.nc.
+This will cause the MViz java tool to parse the fields of MVizMsg and make
+them displayable. As nodes send readings to the base station, they will be
+displayed in the GUI. Please refer to the MViz tutorial for further information.
 
 Tools:
 
-The Java application displays readings it receives from motes running the
-MultihopOscilloscope demo via a serial forwarder. To run it, change to the
-TOSROOT/apps/Oscilloscope/java subdirectory and type:
-
-  make
-  java net.tinyos.sf.SerialForwarder -comm serial@<serial port>:<mote>
-  # e.g., java net.tinyps.sf.SerialForwarder -comm serial@/dev/ttyUSB0:mica2
-  # or java net.tinyps.sf.SerialForwarder -comm serial@COM2:telosb
-  ./run
-
-The controls at the bootom of the screen allow yoy to zoom in or out the X
-axis, change the range of the Y axis, and clear all received data. You can
-change the color used to display a mote by clicking on its color in the
-mote table.
+The Java application lives in support/sdk/java/net/tinyos/mviz. It is
+invoked by the tos-mviz script, which is part of a TinyOS tools  distribution.
+The top-level Java class is net.tinyos.mviz.DDocument. To display a mote image,
+the tool looks for a mote.gif in either the local directory (default) or a directory
+specified with the -dir parameter.
 
 Known bugs/limitations:
 
-None.
+Under Ubuntu Linux, the MViz Java visualization can be painfully slow.
 
-See also:
-TEP 113: Serial Communications, TEP 119: Collection.
+None.
 
 Notes:
 
-MultihopOscilloscope configures a mote whose TOS_NODE_ID modulo 500 is zero 
-to be a collection root.
+MViz configures a mote whose TOS_NODE_ID modulo 500 is zero to be a
+collection root. 
