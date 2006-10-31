@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<!--- $Id: lesson11.html,v 1.1.2.3 2006-10-30 01:33:26 idgay Exp $ --->
+<!--- $Id: lesson11.html,v 1.1.2.4 2006-10-31 01:32:10 scipio Exp $ --->
 
 <div class="title">Lesson 11: Simulation with TOSSIM</div>
 <div class="subtitle">Last Modified: 18 May 2006</div>
@@ -760,13 +760,8 @@ while (time + 50000000000 > t.time()):
         topology. There are two approaches you can take. The first is
         to take data from a real world network and input this into
         TOSSIM. The second is to generate it from applying a
-        theoretical propagation model to a physical layout. TOSSIM has
-        an example of the first from the <A
-        HREF="https://mirage.berkeley.intel-research.net/">Mirage
-        testbed</A> at Intel Research Berkeley. The network topology
-        is from data gathered from one hundred micaZ nodes over an
-        eight hour period in February 2006. It can be found in <code><A
-        HREF="../../../tos/lib/tossim/topologies/mirage-1.txt">tos/lib/tossim/topologies/mirage-1.txt</A></code>, and has the following format:
+        theoretical propagation model to a physical layout.  The standard
+        file format is
 
           <pre>
 noise n avg std
