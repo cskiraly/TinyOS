@@ -1,7 +1,7 @@
 #include <Timer.h>
 #include <TreeRouting.h>
 #include <CollectionDebugMsg.h>
-/* $Id: CtpRoutingEngineP.nc,v 1.1.2.17 2006-10-30 00:53:39 scipio Exp $ */
+/* $Id: CtpRoutingEngineP.nc,v 1.1.2.18 2006-11-01 21:53:47 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -84,14 +84,12 @@
  *  setting, unsetting, and querying the root state of a node. By convention,
  *  when a node is root its hopcount and metric are 0, and the parent is
  *  itself. A root always has a valid route, to itself.
- */
-
- /* 
+ *
  *  @author Rodrigo Fonseca
  *  @author Philip Levis (added trickle-like updates)
  *  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
  *                           
- *  @date   $Date: 2006-10-30 00:53:39 $
+ *  @date   $Date: 2006-11-01 21:53:47 $
  *  @see Net2-WG
  */
 
@@ -165,14 +163,16 @@ implementation {
     error_t routingTableEvict(am_addr_t neighbor);
 
     uint16_t currentInterval = minInterval;
+    uint32_t t; 
     bool tHasPassed;
 
     void chooseAdvertiseTime() {
-       uint32_t t = currentInterval * 512; // * 1024 / 2
+       t = currentInterval;
+       t *= 512; // * 1024 / 2
        t += call Random.rand32() % t;
        tHasPassed = FALSE;
        call BeaconTimer.stop();
-       call BeaconTimer.startPeriodic(t);
+       call BeaconTimer.startOneShot(t);
     }
 
     void resetInterval() {
@@ -191,7 +191,9 @@ implementation {
     }
 
     void remainingInterval() {
-       uint32_t t = (currentInterval * 1024) - call BeaconTimer.getdt();
+       uint32_t remaining = currentInterval;
+       remaining *= 1024;
+       remaining -= t;
        tHasPassed = TRUE;
        call BeaconTimer.startPeriodic(t);
     }
@@ -429,6 +431,7 @@ implementation {
         if (!tHasPassed) {
           post updateRouteTask(); //always send the most up to date info
           post sendBeaconTask();
+          dbg("RoutingTimer", "Beacon timer fired at %s\n", sim_time_string());
           remainingInterval();
         }
         else {
