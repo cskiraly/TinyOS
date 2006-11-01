@@ -174,16 +174,11 @@ implementation {
   
   components new AMSenderC(AM_CTP_ROUTING) as SendControl;
   components new AMReceiverC(AM_CTP_ROUTING) as ReceiveControl;
-  components new AMSenderC(AM_LINKEST) as SendLinkEst;
-  components new AMReceiverC(AM_LINKEST) as ReceiveLinkEst;
-  components new TimerMilliC() as EstimatorTimer;
 
   LinkEstimator = Estimator;
   
   Estimator.AMSend -> SendControl;
   Estimator.SubReceive -> ReceiveControl;
-  Estimator.AMSendLinkEst -> SendLinkEst;
-  Estimator.ReceiveLinkEst -> ReceiveLinkEst;
   Estimator.SubPacket -> SendControl;
   Estimator.SubAMPacket -> SendControl;
   MainC.SoftwareInit -> Estimator;
