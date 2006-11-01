@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.7 2006-11-01 02:17:54 scipio Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.8 2006-11-01 02:21:50 scipio Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -595,6 +595,7 @@ implementation {
     ne = &NeighborTable[nidx];
     ne->data_total = 0;
     ne->data_success = 0;
+    return SUCCESS;
   }
 
 
