@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.10 2006-11-01 21:40:36 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.11 2006-11-01 21:43:30 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -85,13 +85,6 @@ implementation {
   neighbor_table_entry_t NeighborTable[NEIGHBOR_TABLE_SIZE];
   // link estiamtion sequence, increment every time a beacon is sent
   uint8_t linkEstSeq = 0;
-  // use this message buffer
-  // when this component needs to generate a message because
-  // the user of this component is not sending packets frequently enough
-  message_t linkEstPkt;
-  // flag that prevents from sending linkest beacon before sendDone
-  // for previous send is flagged.
-  bool beaconBusy = FALSE;
   // if there is not enough room in the packet to put all the neighbor table
   // entries, in order to do round robin we need to remember which entry
   // we sent in the last beacon
