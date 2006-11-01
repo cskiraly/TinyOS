@@ -1,4 +1,4 @@
-/* $Id: LinkEstimator.h,v 1.1.2.3 2006-10-28 20:13:46 gnawali Exp $ */
+/* $Id: LinkEstimator.h,v 1.1.2.4 2006-11-01 20:55:30 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -33,10 +33,6 @@
 
 // Number of entries in the neighbor table
 #define NEIGHBOR_TABLE_SIZE 10
-// Timer that determines how often beacons should be
-// sent and link estimate updated
-#define LINKEST_TIMER_RATE 4096
-
 
 // Masks for the flag field in the link estimation header
 enum {
@@ -75,8 +71,8 @@ typedef nx_struct linkest_footer {
 // Flags for the neighbor table entry
 enum {
   VALID_ENTRY = 0x1, 
-  // A link becomes mature after
-  // TABLEUPDATE_INTERVAL*LINKEST_TIMER_RATE
+  // A link becomes mature after BLQ_PKT_WINDOW
+  // packets are received and an estimate is compute
   MATURE_ENTRY = 0x2,
   // Flag to indicate that this link has received the
   // first sequence number
