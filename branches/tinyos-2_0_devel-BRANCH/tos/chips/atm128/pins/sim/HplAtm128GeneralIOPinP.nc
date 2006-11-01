@@ -1,4 +1,4 @@
-// $Id: HplAtm128GeneralIOPinP.nc,v 1.1.2.2 2006-06-20 17:14:29 idgay Exp $
+// $Id: HplAtm128GeneralIOPinP.nc,v 1.1.2.3 2006-11-01 02:18:17 scipio Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -52,5 +52,7 @@ implementation
     
   inline async command void IO.makeInput()  { CLR_BIT  (ddr, bit);  }
   inline async command void IO.makeOutput() { SET_BIT  (ddr, bit);  }
+  inline async command bool IO.isInput() { !READ_BIT  (ddr, bit);  }
+  inline async command bool IO.isOutput() { READ_BIT  (ddr, bit);  }
 }
 
