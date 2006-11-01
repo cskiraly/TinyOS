@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.8 2006-11-01 02:21:50 scipio Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.9 2006-11-01 20:55:30 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -68,12 +68,6 @@ implementation {
     INVALID_RVAL = 0xff,
     INVALID_NEIGHBOR_ADDR = 0xff,
     INFINITY = 0xff,
-    // update the link estimate this often
-    TABLEUPDATE_INTERVAL = 48,
-    // send a beacon this often unless user of
-    // this component is sending a beacon atleast
-    // at this rate
-    BEACON_INTERVAL = 16,
     // decay the link estimate using this alpha
     // we use a denominator of 10, so this corresponds to 0.2
     ALPHA = 2,
@@ -100,10 +94,6 @@ implementation {
   // flag that prevents from sending linkest beacon before sendDone
   // for previous send is flagged.
   bool beaconBusy = FALSE;
-  // we update the quality estimate when curEstInterval == TABLEUPDATE_INTERVAL
-  uint8_t curEstInterval = 0;
-  // we send out beacon if curBeaconInterval == BEACON_INTERVAL
-  uint8_t curBeaconInterval = 0;
   // if there is not enough room in the packet to put all the neighbor table
   // entries, in order to do round robin we need to remember which entry
   // we sent in the last beacon
@@ -608,8 +598,6 @@ implementation {
   // slap the header and footer before sending the message
   command error_t Send.send(am_addr_t addr, message_t* msg, uint8_t len) {
     uint8_t newlen;
-
-    curBeaconInterval = 0;
     newlen = addLinkEstHeaderAndFooter(msg, len);
     dbg("LITest", "%s packet of length %hhu became %hhu\n", __FUNCTION__, len, newlen);
     dbg("LI", "Sending seq: %d\n", linkEstSeq);
