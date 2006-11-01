@@ -1,4 +1,4 @@
-/* $Id: CtpForwardingEngineP.nc,v 1.1.2.16 2006-10-27 22:50:20 scipio Exp $ */
+/* $Id: CtpForwardingEngineP.nc,v 1.1.2.17 2006-11-01 02:17:54 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -120,7 +120,7 @@
 
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-10-27 22:50:20 $
+ *  @date   $Date: 2006-11-01 02:17:54 $
  */
 
 #include <CtpForwardingEngine.h>
@@ -781,7 +781,7 @@ implementation {
                         call Packet.payloadLength(msg)))
       return msg;
     else {
-      dbg("Route", "Forwarding packet from %hu.\n", hdr->origin);
+      dbg("Route", "Forwarding packet from %hu.\n", getHeader(msg)->origin);
       return forward(msg);
     }
   }

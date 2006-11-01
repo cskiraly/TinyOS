@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.6 2006-10-28 20:13:46 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.7 2006-11-01 02:17:54 scipio Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -714,7 +714,6 @@ implementation {
 	    dbg("LI", "%d %d %d\n", i, footer->neighborList[i].ll_addr,
 		footer->neighborList[i].inquality);
 	    if (footer->neighborList[i].ll_addr == my_ll_addr) {
-	      dbg("LI", "Found my reverse link to %d\n", hdr->ll_addr);
 	      updateReverseQuality(ll_addr, footer->neighborList[i].inquality);
 	    }
 	  }
