@@ -2,7 +2,7 @@ COMPONENT=TestNetworkAppC
 
 CFLAGS += -I$(TOSDIR)/lib/net \
           -I$(TOSDIR)/lib/net/le \
-          -I$(TOSDIR)/lib/net/ctp
+          -I$(TOSDIR)/lib/net/ctp #-DNO_DEBUG
 
 TFLAGS += -I$(TOSDIR)/../apps/tests/TestDissemination \
           -I$(TOSDIR)/../support/sdk/c \
