@@ -48,6 +48,12 @@ implementation {
   MultihopOscilloscopeC.Receive -> Collector.Receive[AM_OSCILLOSCOPE];
   MultihopOscilloscopeC.RootControl -> Collector;
 
+  components new PoolC(message_t, 10) as UARTMessagePoolP,
+    new QueueC(message_t*, 10) as UARTQueueP;
+
+  MultihopOscilloscopeC.UARTMessagePool -> UARTMessagePoolP;
+  MultihopOscilloscopeC.UARTQueue -> UARTQueueP;
+
   //
   // Components for debugging collection.
   //
