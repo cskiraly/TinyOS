@@ -32,9 +32,10 @@
 /**
  * @author Jonathan Hui <jhui@archrock.com>
  * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
- * @version $Revision: 1.1.2.11 $ $Date: 2006-10-13 17:26:04 $
+ * @version $Revision: 1.1.2.12 $ $Date: 2006-11-02 18:11:27 $
  */
 
+#include<Timer.h>
 
 generic module Msp430UartP() {
 
