@@ -35,6 +35,9 @@ module MultihopOscilloscopeC {
     interface CollectionPacket;
     interface RootControl;
 
+    interface Queue<message_t *> as UARTQueue;
+    interface Pool<message_t> as UARTMessagePool;
+
     // Miscalleny:
     interface Timer<TMilli>;
     interface Read<uint16_t>;
@@ -130,9 +133,28 @@ implementation {
       else {
 	memcpy(out, in, sizeof(oscilloscope_t));
       }
-      uartbusy = TRUE;
       uartlen = sizeof(oscilloscope_t);
       post uartSendTask();
+    } else {
+      // The UART is busy; queue up messages and service them when the
+      // UART becomes free.
+      message_t *newmsg = call UARTMessagePool.get();
+      if (newmsg == NULL) {
+        // drop the message on the floor if we run out of queue space.
+        report_problem();
+        return msg;
+      }
+
+      memcpy(newmsg, msg, sizeof(message_t));
+
+      if (call UARTQueue.enqueue(newmsg) != SUCCESS) {
+        // drop the message on the floor and hang if we run out of
+        // queue space without running out of queue space first (this
+        // should not occur).
+        call UARTMessagePool.put(newmsg);
+        fatal_problem();
+        return msg;
+      }
     }
 
     return msg;
@@ -140,9 +162,31 @@ implementation {
 
   task void uartSendTask() {
     if (call SerialSend.send(0xffff, &uartbuf, uartlen) != SUCCESS) {
-      uartbusy = FALSE;
+      report_problem();
+    } else {
+      uartbusy = TRUE;
     }
   }
+
+  event void SerialSend.sendDone(message_t *msg, error_t error) {
+    uartbusy = FALSE;
+    if (call UARTQueue.empty() == FALSE) {
+      // We just finished a UART send, and the uart queue is
+      // non-empty.  Let's start a new one.
+      message_t *queuemsg = call UARTQueue.dequeue();
+      if (queuemsg == NULL) {
+        fatal_problem();
+        return;
+      }
+      memcpy(&uartbuf, queuemsg, sizeof(message_t));
+      if (call UARTMessagePool.put(queuemsg) != SUCCESS) {
+        fatal_problem();
+        return;
+      }
+      post uartSendTask();
+    }
+  }
+
   //
   // Overhearing other traffic in the network.
   //
@@ -212,10 +256,6 @@ implementation {
       report_problem();
     }
     local.readings[reading++] = data;
-  }
-
-  event void SerialSend.sendDone(message_t *msg, error_t error) {
-    uartbusy = FALSE;
   }
 
   // Use LEDs to report various status issues.
