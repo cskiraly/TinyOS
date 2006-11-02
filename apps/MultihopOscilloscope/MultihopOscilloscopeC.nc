@@ -77,6 +77,7 @@ implementation {
   event void Boot.booted() {
     local.interval = DEFAULT_INTERVAL;
     local.id = TOS_NODE_ID;
+    local.version = 0;
 
     // Beginning our initialization phases:
     if (call RadioControl.start() != SUCCESS)
@@ -110,7 +111,7 @@ implementation {
 
   static void startTimer() {
     if (call Timer.isRunning()) call Timer.stop();
-    call Timer.startOneShot(local.interval);
+    call Timer.startPeriodic(local.interval);
     reading = 0;
   }
 
@@ -124,9 +125,10 @@ implementation {
   //
   event message_t*
   Receive.receive(message_t* msg, void *payload, uint8_t len) {
+    oscilloscope_t* in = (oscilloscope_t*)payload;
+    oscilloscope_t* out;
     if (uartbusy == FALSE) {
-      oscilloscope_t* in = (oscilloscope_t*)payload;
-      oscilloscope_t* out = (oscilloscope_t*)call SerialSend.getPayload(&uartbuf);
+      out = (oscilloscope_t*)call SerialSend.getPayload(&uartbuf);
       if (len != sizeof(oscilloscope_t)) {
 	return msg;
       }
@@ -145,7 +147,9 @@ implementation {
         return msg;
       }
 
-      memcpy(newmsg, msg, sizeof(message_t));
+      //Prepare message to be sent over the uart
+      out = (oscilloscope_t*)call SerialSend.getPayload(newmsg);
+      memcpy(out, in, sizeof(oscilloscope_t));
 
       if (call UARTQueue.enqueue(newmsg) != SUCCESS) {
         // drop the message on the floor and hang if we run out of
@@ -218,7 +222,6 @@ implementation {
      - read next sample
   */
   event void Timer.fired() {
-    call Timer.startOneShot(local.interval);
     if (reading == NREADINGS) {
       if (!sendbusy) {
 	oscilloscope_t *o = (oscilloscope_t *)call Send.getPayload(&sendbuf);
@@ -257,6 +260,7 @@ implementation {
     }
     local.readings[reading++] = data;
   }
+
 
   // Use LEDs to report various status issues.
   static void fatal_problem() { 
