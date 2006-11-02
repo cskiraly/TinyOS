@@ -57,8 +57,8 @@ implementation {
   //
   // Components for debugging collection.
   //
-  components new PoolC(message_t, 10) as DebugMessagePool,
-    new QueueC(message_t*, 10) as DebugSendQueue,
+  components new PoolC(message_t, 20) as DebugMessagePool,
+    new QueueC(message_t*, 20) as DebugSendQueue,
     new SerialAMSenderC(AM_CTP_DEBUG) as DebugSerialSender,
     UARTDebugSenderP as DebugSender;
 
