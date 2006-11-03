@@ -21,10 +21,14 @@
  */
  
 /**
+ * This is an example implementation of a dedicated resource.  
+ * It provides the SplitControl interface for power management
+ * of the resource and an EXAMPLE ResourceOperations interface
+ * for performing operations on it.
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.2 $
- * @date $Date: 2006-10-31 20:29:02 $
+ * @version $Revision: 1.1.2.3 $
+ * @date $Date: 2006-11-03 19:17:44 $
  */
 
 module ResourceP {

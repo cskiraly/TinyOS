@@ -21,10 +21,14 @@
  */
  
 /**
+ * The SharedResourceImplP component is used to wrap all of the operations
+ * from a dedicated resource so that access to them is protected when 
+ * it is used as a shared resource.  It uses the ArbiterInfo interface 
+ * provided by an Arbiter to accomplish this.
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.2 $
- * @date $Date: 2006-10-31 20:29:02 $
+ * @version $Revision: 1.1.2.3 $
+ * @date $Date: 2006-11-03 19:17:44 $
  */
 
 module SharedResourceImplP {
