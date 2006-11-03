@@ -1,4 +1,4 @@
-/* $Id: Tsl2561InternalC.nc,v 1.1.2.3 2006-08-15 11:59:09 klueska Exp $ */
+/* $Id: Tsl2561InternalC.nc,v 1.1.2.4 2006-11-03 02:27:01 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -51,8 +51,10 @@ implementation {
   Resource = Arbiter;
   
   components new HplTSL2561LogicP(TSL2561_SLAVE_ADDR) as Logic;
-  MainC.SoftwareInit -> Logic;
+  //MainC.SoftwareInit -> Logic;
 
+  components LedsC;
+  Logic.Leds -> LedsC;
   components GeneralIOC;
   Logic.InterruptAlert -> GeneralIOC.GpioInterrupt[GPIO_TSL2561_LIGHT_INT];
   Logic.InterruptPin -> GeneralIOC.GeneralIO[GPIO_TSL2561_LIGHT_INT];
@@ -63,8 +65,9 @@ implementation {
   components Tsl2561InternalP as Internal;
   HplTSL256x = Internal.HplTSL256x;
   Internal.ToHPLC -> Logic.HplTSL256x;
-
+  Internal.SubInit -> Logic.Init;
   SplitControl = Logic;
+  MainC.SoftwareInit -> Internal;
 
   components HplPXA27xGPIOC;
   I2CC.I2CSCL -> HplPXA27xGPIOC.HplPXA27xGPIOPin[I2C_SCL];
