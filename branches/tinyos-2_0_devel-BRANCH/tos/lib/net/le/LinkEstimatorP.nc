@@ -1,4 +1,4 @@
-/* $Id: LinkEstimatorP.nc,v 1.1.2.11 2006-11-01 21:43:30 gnawali Exp $ */
+/* $Id: LinkEstimatorP.nc,v 1.1.2.12 2006-11-03 09:30:07 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -83,7 +83,7 @@ implementation {
 
   // keep information about links from the neighbors
   neighbor_table_entry_t NeighborTable[NEIGHBOR_TABLE_SIZE];
-  // link estiamtion sequence, increment every time a beacon is sent
+  // link estimation sequence, increment every time a beacon is sent
   uint8_t linkEstSeq = 0;
   // if there is not enough room in the packet to put all the neighbor table
   // entries, in order to do round robin we need to remember which entry
@@ -247,7 +247,7 @@ implementation {
 
     if (ne->data_success == 0) {
       // if there were no successful packet transmission in the
-      // last window, assign a large eetx estimate
+      // last window, assign a large EETX estimate
       estETX = LARGE_EETX_VALUE;
     } else {
       estETX = (10 * ne->data_total) / ne->data_success - 10;
@@ -490,7 +490,7 @@ implementation {
     return FAIL;
   }
 
-  // pin a neighbor so that it does not get evicted */
+  // pin a neighbor so that it does not get evicted
   command error_t LinkEstimator.pinNeighbor(am_addr_t neighbor) {
     uint8_t nidx = findIdx(neighbor);
     if (nidx == INVALID_RVAL) {
@@ -545,7 +545,7 @@ implementation {
     return SUCCESS;
   }
 
-  /* called when the parent changes; clear state about data-driven link quality  */
+  // called when the parent changes; clear state about data-driven link quality
   command error_t LinkEstimator.clearDLQ(am_addr_t neighbor) {
     neighbor_table_entry_t *ne;
     uint8_t nidx = findIdx(neighbor);
@@ -581,7 +581,7 @@ implementation {
     return signal Send.sendDone(msg, error);
   }
 
-  // cascade the send call down    if (call Packet.payloadLength
+  // cascade the calls down
   command uint8_t Send.cancel(message_t* msg) {
     return call AMSend.cancel(msg);
   }
@@ -629,7 +629,7 @@ implementation {
       //     if found
       //       evict the neighbor and init the entry
       //     else
-      //       we can not accomodate this neighbor in the table
+      //       we can not accommodate this neighbor in the table
       nidx = findIdx(ll_addr);
       if (nidx != INVALID_RVAL) {
 	dbg("LI", "Found the entry so updating\n");
