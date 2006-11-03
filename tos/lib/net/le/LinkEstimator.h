@@ -1,4 +1,4 @@
-/* $Id: LinkEstimator.h,v 1.1.2.5 2006-11-01 21:43:30 gnawali Exp $ */
+/* $Id: LinkEstimator.h,v 1.1.2.6 2006-11-03 09:30:07 gnawali Exp $ */
 /*
  * "Copyright (c) 2006 University of Southern California.
  * All rights reserved.
@@ -47,7 +47,7 @@ enum {
 //   number of linkest entries in the packet
 
 // link estimator header added to
-// every message passing thru' the link estimator
+// every message passing through the link estimator
 typedef nx_struct linkest_header {
   nx_uint8_t flags;
   nx_uint8_t seq;
@@ -71,7 +71,7 @@ typedef nx_struct linkest_footer {
 enum {
   VALID_ENTRY = 0x1, 
   // A link becomes mature after BLQ_PKT_WINDOW
-  // packets are received and an estimate is compute
+  // packets are received and an estimate is computed
   MATURE_ENTRY = 0x2,
   // Flag to indicate that this link has received the
   // first sequence number
