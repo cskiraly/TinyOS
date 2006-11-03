@@ -21,10 +21,14 @@
  */
  
 /**
+ * An EXAMPLE of an interface for performing operations on a resource.
+ * In this test application it is provided by the dedicated ResourceP component
+ * and passed through all of the proper components before being exposed by the
+ * shared resource at the topmost level.
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.1 $
- * @date $Date: 2006-10-31 08:44:21 $
+ * @version $Revision: 1.1.2.2 $
+ * @date $Date: 2006-11-03 19:17:44 $
  */
 
 interface ResourceOperations {
