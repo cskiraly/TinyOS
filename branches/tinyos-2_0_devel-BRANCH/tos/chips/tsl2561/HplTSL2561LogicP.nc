@@ -36,7 +36,7 @@
  * TSL256x HPL interface.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-11-03 02:07:50 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-11-03 02:24:25 $
  */
 
 #include "TSL256x.h"
@@ -153,7 +153,7 @@ implementation {
 
   command error_t Init.init() {
     call InterruptPin.makeInput();
-    call InterruptAlert.enableRisingEdge();
+    call InterruptAlert.enableFallingEdge();
     mState = STATE_STOPPED;
     interruptBit = FALSE;
     return SUCCESS;
