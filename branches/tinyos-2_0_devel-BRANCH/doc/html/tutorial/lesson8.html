@@ -51,7 +51,7 @@ interface SplitControl {
 </pre>
 
 <p>
-Currently, the power states of all dedicated resources are controlled by one of these three interfaces.  They are only allow to enter one of two logical power states (on/off), regardless of the number of physical power states provided by the hardware on top of which their resource abstraction has been built. Which of these interfaces is provided by a particular resource depends on the timing requirements for physically powering it on or off.
+Currently, the power states of all dedicated resources are controlled by one of these three interfaces.  They are only allowed to enter one of two logical power states (on/off), regardless of the number of physical power states provided by the hardware on top of which their resource abstraction has been built. Which of these interfaces is provided by a particular resource depends on the timing requirements for physically powering it on or off.
 <p>
 
 <hr>
@@ -79,7 +79,7 @@ and holding on to it no longer than necessary. Clients explicitly release resour
 </p>
 
 <p>
-Shared resources are essentially built on top of dedicated resources, with access to them being controlled by an arbiter component.  In this way, <b>power managers</b> can be used to automatically control the power state of these resources through their <tt>AsyncStdControl</tt>, <tt>StdControl</tt>, or <tt>SplitControl</tt> interfaces.  They communicate with the arbiter, monitoring whether the resource is being used by any of its clients at any given moment and powering it on/off accordingly.  The figure below shows how an arbiter component and a power manager can be wired together to provide arbitration and automatic power management for a shared resource.
+Shared resources are essentially built on top of dedicated resources, with access to them being controlled by an arbiter component.  In this way, <b>power managers</b> can be used to automatically control the power state of these resources through their <tt>AsyncStdControl</tt>, <tt>StdControl</tt>, or <tt>SplitControl</tt> interfaces.  They communicate with the arbiter (through the use of a <tt>ResourceController</tt> interface), monitoring whether the resource is being used by any of its clients and powering it on/off accordingly.  The figure below shows how an arbiter component and a power manager can be wired together to provide arbitration and automatic power management for a shared resource.
 </p>
 
 <center>
@@ -105,7 +105,7 @@ Figure 2: Shared Resource Configuration
 </center>
 
 <p>
-From this figure, we see that the only interfaces exposed to a client through the shared resource abstraction are the <tt>Resource</tt> and <tt>ResourceRequested</tt> interfaces provided by the arbiter as well as any resource specific interfaces provided by the resource itself.  It also uses a <tt>ResourceConfigure</tt> interface, expecting it to be properly implemented by its clients. A client requests access to a shared resource through the <tt>Resource</tt> interface and runs operations on it using whatever resource specific interfaces are provided.  A client may choose to wire itself to the <tt>ResourceRequested</tt> interface if it wishes to hold onto a resource indefinitely and be informed whenever other clients request its use.
+From this figure, we see that the only interfaces exposed to a client through the shared resource abstraction are the <tt>Resource</tt> and <tt>ResourceRequested</tt> interfaces provided by the arbiter as well as any resource specific interfaces provided by the resource itself.  It also uses a <tt>ResourceConfigure</tt> interface, expecting it to be  implemented on a client by client basis depending on their requirements. A client requests access to a shared resource through the <tt>Resource</tt> interface and runs operations on it using whatever resource specific interfaces are provided.  A client may choose to wire itself to the <tt>ResourceRequested</tt> interface if it wishes to hold onto a resource indefinitely and be informed whenever other clients request its use.
 </p>  
 
 <p>
@@ -120,8 +120,8 @@ Specifically, this tutorial will teach users how to:
 </ol>
 </p>
 
-<h1>Using a Shared Resource</h1>
-<p>This section shows you how to gain access to and use shared resources in TinyOS.  It walks through the process of making a request through the <code>Resource</code> interface and handling the granted event that is signaled back.  We will connect multiple clients to a single shared resources and see how access to each of them gets arbitrated.  We also show how to hold onto a resource until another client has requested it by implementing the <tt>ResourceRequested</tt> interface.
+<h1>Working with Shared Resources</h1>
+<p>This section shows you how to gain access to and use shared resources in TinyOS.  It walks through the process of making a request through the <code>Resource</code> interface and handling the <tt>granted</tt> event that is signaled back.  We will connect multiple clients to a single shared resources and see how access to each of them gets arbitrated.  We also show how to hold onto a resource until another client has requested it by implementing the <tt>ResourceRequested</tt> interface.
 </p>
 
 <p>To begin, go to the <tt>tinyos-2.x/apps/tests/TestSharedResource</tt> directory and install this application on a mote.  After installing the application you should see three leds flashing in sequence.</p> 
@@ -157,7 +157,7 @@ implementation {
 
 <p>Other than the instantiation and wiring of the interfaces provided by the <code>SharedResourceC</code> component, this configuration is identical to the one presented in Lesson 1 for the Blink Application.</p>  
 
-<p>All shared resources in TinyOS are provided through a generic component similar to the <code>SharedResourceC</code> component.  A resource client simply instantiates a new instance of this component and wires to the interfaces it provides.  In this application, three instances of the <code>SharedResourceC</code> component are instantiated and wired to three different clients from the <code>TestSharedResourceC</code> component.  Each instantiation provides a <tt>Resource</tt>, <tt>ResourceOperations</tt>, and <tt>ResourceRequested</tt> interface (although no clients are wiring to this interface in this example).  The <tt>ResourceOperations</tt> interface represents a resource specific interface that can be used to perform operations on the resource.  Calls to commands through this interface will only succeed if the client calling them happens to have access to the resource when they are called.
+<p>All shared resources in TinyOS are provided through a generic component similar to the <code>SharedResourceC</code> component.  A resource client simply instantiates a new instance of this component and wires to the interfaces it provides.  In this application, three instances of the <code>SharedResourceC</code> component are instantiated and wired to three different clients from the <code>TestSharedResourceC</code> component.  Each instantiation provides a <tt>Resource</tt>, <tt>ResourceOperations</tt>, and <tt>ResourceRequested</tt> interface, and uses a <tt>ResourceConfgigure</tt> interface. In this example, no wiring is done to the <tt>ResourceConfigure</tt> or <tt>ResourceRequested</tt> interface as wiring to to these interfaces is optional.  The <tt>ResourceOperations</tt> interface is an <b>EXAMPLE</B> of a resource specific interface that a resource may provide to perform operations on it.  Calls to commands through this interface will only succeed if the client calling them happens to have access to the resource when they are called.
 </p>
 
 <p>Let's take a look at the <code>TestSharedResourceC</code> to see how access is actually granted to a Resource.
@@ -210,7 +210,7 @@ event void Resource2.granted() {
 } 
 </pre>
 
-<p>Whenever one of these operations completes, a <code>ResourceOperations.operationDone()</code> event is signaled.  Once this event is received by each client, a timer is started to hold onto the resource for 250 ms and an LED corresponding to that client is toggled.</p>
+<p>Whenever one of these operations completes, a <code>ResourceOperations.operationDone()</code> event is signaled.  Once this event is received by each client, a timer is started to hold onto the resource for 250 (binary) ms and an LED corresponding to that client is toggled.</p>
 
 <pre>
 #define HOLD_PERIOD 250
@@ -329,19 +329,23 @@ components SharedResourceImplP;
 As we've already seen, the <tt>RoundRobinArbiterC</tt> component is used to provide arbitration between clients using <tt>SharedResourceC</tt>.  The <tt>SplitControlPowerManagerC</tt> component is used to perform automatic power management of the resource to turn it on whenever a new client requests its use and shut it down whenever it goes idle.  The <tt>ResourceP</tt> component is the implementation of a dedicated resource which provides a <tt>SplitControl</tt> interface and a <tt>ResourceOperations</tt> interface.  This dedicated resource is wrapped by the <tt>SharedResourceImplP</tt> component in order to provide protected shared access to it.  <tt>SharedResourceImplP</tt> wraps all the commands provided by the dedicated resource, and uses the <tt>ArbiterInfo</tt> interface to keep clients from calling them without first being granted access to the resource.
 </p>
 
+<p>
+If you would like to see more examples of how to use the different arbiters and power managers provided in the default TinyOS distribution, please refer to the test applications located in <tt>tinyos-2.x/apps/tests/TestArbiter</tt> and <tt>tinyos-2.x/apps/tests/TestPowerManager</tt>.  This tutorial has provided enough background information on how to use these components in order for you to sift through these applications on your own. 
+</p>
+
 <h1>Conclusion</h1>
 <p>
 This tutorial has given an overview of how resource arbitration and mechanisms for performing power management on those resources is provided in TinyOS.  It walked us through the steps necessary for:
 <ol> 
 <li> Wiring in a shared resource for use by a client.
-<li> Useing the <tt>Resource</tt> interface to gain access to a shared resource.</li>
+<li> Using the <tt>Resource</tt> interface to gain access to a shared resource.</li>
 <li> Changing the arbitration policy used by a particular shared resource.</li>
 <li> Wrapping a dedicated resource and wiring in a power manager in order to create a shared resource.</li>
 </ol>
 </p>
 
 <p>
-While the power managers presented in this tutorial are powerful components for providing power management of shared reosurces, they are not the only power management mechanisms provided by TinyOS.  Microcontroller power management is also preformed as outlined in TEP115.  Whenever the task queue empties, the lowest power state that the microcontroller is capapble of dropping to is automatically calculated and then switched to.  In this way, the user is not burdened with explicity controlling these power states.  The cc1000 and cc2420 radio implementations also provide "Low Power Listening" (LPL) interfaces for controlling their duty cycles.  Although these interfaces differ somewhat, they are both able to provide energy savings not achieveable through other means.  Ideally, the components providing this LPL interface could be thought of as power manager components for the radio resource and be wired to the radio in the same way as the other power managers described in this tutorial.  The LPL implementation for the cc2420 can be found under <tt>tinyos-2.x/tos/chips/cc2420_lpl</tt> and the LPL implementation for the cc1000 can be found under <tt>tinyos-2.x/tos/chips/cc1000</tt>.  As these interfaces begin to mature and merge into one, this tutorial will be updated appropriately to accomodate the change.
+While the power managers presented in this tutorial are powerful components for providing power management of shared reosurces, they are not the only power management mechanisms provided by TinyOS.  Microcontroller power management is also preformed as outlined in TEP115.  Whenever the task queue empties, the lowest power state that the microcontroller is capapble of dropping to is automatically calculated and then switched to.  In this way, the user is not burdened with explicity controlling these power states.  The cc1000 and cc2420 radio implementations also provide "Low Power Listening" (LPL) interfaces for controlling their duty cycles.  Although the LPL interface used by each radio stack differs somewhat, they are both able to provide energy savings not achieveable through other means.  Ultimately we would like to see the components providing this LPL interface implemented as power manager components for the "radio resource" and be wired to the radio in the same way as the other power managers described in this tutorial.  The LPL implementation for the cc2420 can be found under <tt>tinyos-2.x/tos/chips/cc2420_lpl</tt> and the LPL implementation for the cc1000 can be found under <tt>tinyos-2.x/tos/chips/cc1000</tt>.  As these interfaces begin to mature and merge into one, this tutorial will be updated appropriately to accomodate the change.
 </p>
 
 <!-- Related Docs -->
