@@ -143,7 +143,7 @@ const uint8_t TOSH_IRP_TABLE[] = { 0x05, // PPID  0 SSP_3 Service Req
 				   0xFF, // PPID 21 TX/RX ERROR BTUART
 				   0x06, // PPID 22 TX/RX ERROR FFUART
 				   0xFF, // PPID 23 Flash Card status/Error Detect
-				   0xFF, // PPID 24 SSP_1 Service Req
+				   0x0A, // PPID 24 SSP_1 Service Req
 				   0x00, // PPID 25 DMA Channel Service Req
 				   0xFF, // PPID 26 OST equals Match Register 0
 				   0xFF, // PPID 27 OST equals Match Register 1
