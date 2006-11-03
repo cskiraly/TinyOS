@@ -37,7 +37,7 @@
  * outside configuration/module according to the host platform.
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-07-17 17:10:35 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-11-03 22:38:07 $
  */
 
 #include "TMP175.h"
@@ -73,7 +73,7 @@ implementation {
   uint8_t mConfigRegVal;
   norace error_t mSSError;
 
-  static error_t doSetReg(uint8_t nextState, uint8_t reg, uint16_t val) {
+  static error_t doSetReg(uint8_t nextState, uint8_t reg, uint8_t val) {
     error_t error = SUCCESS;
 
     atomic {
