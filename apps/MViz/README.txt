@@ -16,7 +16,12 @@ tos-mviz [-comm source] MVizMsg
 
 This will cause the MViz java tool to parse the fields of MVizMsg and make
 them displayable. As nodes send readings to the base station, they will be
-displayed in the GUI. Please refer to the MViz tutorial for further information.
+displayed in the GUI. 
+
+By default, the TinyOS program uses an artificial demonstration sensor that
+just generates a sine wave (MVizSensorC). To change the sensor that
+the MViz application uses, change the wiring in MVizAppC to your sensor
+of choice.
 
 Tools:
 
