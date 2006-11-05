@@ -14,6 +14,8 @@ tools/release/extractor $NAME-$VERSION <<'EOF' | gzip >../$NAME-$VERSION.tar.gz
 !^./tools
 !^./tos/chips/cc1000_pm
 !^./tos/chips/cc2420_pm
+!^./tos/lib/deluge
+!^./tos/lib/printf
 !^./tos/platforms/btnode3
 !^./tos/sensorboards/mts300
 !/.cvsignore
