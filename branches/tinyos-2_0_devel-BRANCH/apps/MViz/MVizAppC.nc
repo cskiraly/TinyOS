@@ -22,7 +22,7 @@
 configuration MVizAppC { }
 implementation {
   components MainC, MVizC, LedsC, new TimerMilliC(), 
-    new DemoSensorC() as Sensor, RandomC;
+    new MVizSensorC() as Sensor, RandomC;
 
   //MainC.SoftwareInit -> Sensor;
   
