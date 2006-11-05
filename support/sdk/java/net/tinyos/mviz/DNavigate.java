@@ -55,14 +55,14 @@ import org.w3c.dom.*;
 
 public class DNavigate extends JPanel implements ActionListener{
     private DDocument parent;
-    protected ArrayList<DLayer> layers = new ArrayList<DLayer>();
+    protected ArrayList layers = new ArrayList();
     private int _tmp_i = 0;
     protected int totalLayers = 0;
 	
     private int default_width = 600;
     private int default_height = 600;
     
-    public DNavigate(Vector<String>label_motes, Vector<String> label_links, DDocument parent){
+    public DNavigate(Vector label_motes, Vector label_links, DDocument parent){
 		this.parent = parent;
 		BoxLayout layout = new BoxLayout(this,BoxLayout.PAGE_AXIS);
 		this.setLayout(layout);
@@ -78,24 +78,25 @@ public class DNavigate extends JPanel implements ActionListener{
 
 
 		// debug prints
-		Iterator<DLayer> it = layers.iterator();
+		Iterator it = layers.iterator();
 		while (it.hasNext()){
-		    DLayer m = it.next();
+		    DLayer m = (DLayer)it.next();
 		    //System.out.println("setting layer: zIndex=" + m.z_index + ", index=" + m.zIndex);
 		}
         
 	}
 
     protected void addMote(DMoteModel model){
-	Iterator<DLayer> it = layers.iterator();
+	Iterator it = layers.iterator();
 	while(it.hasNext()){
-	    it.next().addMote(model, true);
+	    DLayer layer = (DLayer)it.next();
+	    layer.addMote(model, true);
 	}
    }
 	
-	private void addLayer(Vector<String> labels, int type, ArrayList models){
+	private void addLayer(Vector labels, int type, ArrayList models){
 	    for (int i=0; i<labels.size(); i++, _tmp_i++){
-		DLayer d = new DLayer(_tmp_i, i, labels.elementAt(i), type, parent, models, this);
+		DLayer d = new DLayer(_tmp_i, i, (String)labels.elementAt(i), type, parent, models, this);
 		this.add(d);
 		layers.add(d);
 	    }
@@ -103,24 +104,24 @@ public class DNavigate extends JPanel implements ActionListener{
 	
 	private void updateLayerIndex(boolean repaint){
 		int length = layers.size();
-		Iterator<DLayer> it = layers.iterator();
+		Iterator it = layers.iterator();
 		int i = 0;
 		while (it.hasNext()){
-		    DLayer d = it.next();
-			d.updateIndex(i, repaint);
+		    DLayer d = (DLayer)it.next();
+		    d.updateIndex(i, repaint);
 		    ++i;
         }
 	}
 	
 	public void redrawNavigator(){
 	    //System.out.println("Redrawing navigator.");
-	    Iterator<DLayer> it = layers.iterator();
+	    Iterator it = layers.iterator();
 	    while (it.hasNext()){
-		remove(it.next());
+		remove((DLayer)it.next());
 	    }
 	    it = layers.iterator();
 	    while (it.hasNext()){
-		add(it.next());
+		add((DLayer)it.next());
 	    }
 	   
 	    revalidate();
@@ -149,9 +150,10 @@ public class DNavigate extends JPanel implements ActionListener{
 	}
 	
 	public void init(){
-		Iterator<DLayer> it = layers.iterator();
+		Iterator it = layers.iterator();
 		while (it.hasNext()){
-			(it.next()).init();
+		    DLayer layer = (DLayer)it.next();
+		    layer.init();
 		}
 	}
 
@@ -160,7 +162,7 @@ public class DNavigate extends JPanel implements ActionListener{
     public void paint() {
 	//System.out.println("Painting navigator");
 	redrawNavigator();
-	Iterator<DLayer> it = layers.iterator();
+	Iterator it = layers.iterator();
     }
 	
     public void actionPerformed(ActionEvent e) {
@@ -183,13 +185,13 @@ public class DNavigate extends JPanel implements ActionListener{
 	    
 	int start = totalLayers-1;
 	for (int i=0; i<totalLayers; i++){
-	    DLayer a = layers.get(i);
+	    DLayer a = (DLayer)layers.get(i);
 	    if (a.isFieldSelected()){
 		start = a.zIndex;
 		break;
 	    }
 	}
-	DLayer bg = layers.get(start);
+	DLayer bg = (DLayer)layers.get(start);
 	Image offscreen = new BufferedImage(parent.canvas.getWidth(), parent.canvas.getHeight(), BufferedImage.TYPE_INT_ARGB);
 	Graphics g = offscreen.getGraphics();
 	Graphics2D g2d = (Graphics2D)g;
@@ -197,7 +199,7 @@ public class DNavigate extends JPanel implements ActionListener{
 	g2d.fillRect(0, 0, parent.canvas.getWidth(), parent.canvas.getHeight());
 
 	for (int i=start; i>=0; i--){
-	    DLayer a = layers.get(i);
+	    DLayer a = (DLayer)layers.get(i);
 	    a.repaintLayer(g);
 	}
 	parent.canvas.getGraphics().drawImage(offscreen, 0, 0, this);

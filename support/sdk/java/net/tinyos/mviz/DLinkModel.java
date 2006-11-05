@@ -55,7 +55,7 @@ implements Serializable {
 	
 	
     public DDocument root;
-    transient private ArrayList<DLinkModelListener> listeners;
+    transient private ArrayList listeners;
     
     protected int x12, y12;
     protected int[] values;
@@ -134,7 +134,7 @@ implements Serializable {
 	
 	
 	public void addListener(DLinkModelListener listener) {
-	    if (listeners == null) listeners = new ArrayList<DLinkModelListener>();
+	    if (listeners == null) listeners = new ArrayList();
 	    Iterator it = listeners.iterator();
 		while (it.hasNext()) { if (it.next() == listener) return; };		
 		listeners.add(listener);	    

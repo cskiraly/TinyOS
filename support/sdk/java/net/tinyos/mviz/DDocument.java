@@ -54,7 +54,7 @@ public class DDocument
 
     protected String directory;
     protected JPanel canvas;
-    protected Vector<DLayer> layers;
+    protected Vector layers;
 	
     private Color currentColor;
 	
@@ -67,25 +67,25 @@ public class DDocument
 	
     public DNavigate navigator;
     public Color getColor(){ return currentColor; }
-    public Vector<String> sensed_motes;
-    public Vector<String> sensed_links;
+    public Vector sensed_motes;
+    public Vector sensed_links;
     public ArrayList moteModels;
     public ArrayList linkModels;
     private JTextField jText;
     private DrawTableModel tableModel;
     private JTable jTable;
 	
-    private String[] toStringArray(Vector<String> v) {
+    private String[] toStringArray(Vector v) {
 	String[] array = new String[v.size()];
 	for (int i = 0; i < v.size(); i++) {
-	    array[i] = v.elementAt(i);
+	    array[i] = (String)v.elementAt(i);
 	}
 	return array;
     }
     
-    public DDocument(int width, int height, Vector<String> fieldVector, Vector<String> linkVector, String dir) {
+    public DDocument(int width, int height, Vector fieldVector, Vector linkVector, String dir) {
 	super();
-	layers = new Vector<DLayer>();
+	layers = new Vector();
 	directory = dir;
 	
 	setOpaque(false);
@@ -106,18 +106,12 @@ public class DDocument
 	add(canvas, BorderLayout.CENTER);
 	sensed_motes = fieldVector;
 	sensed_links = linkVector;
-	moteIndex = new HashMap<Integer, DMoteModel>();
-	linkIndex = new HashMap<String, DLinkModel>();
+	moteIndex = new HashMap();
+	linkIndex = new HashMap();
 		
-	//String name = directory + "/images/tmote_sky.gif";
 	String imgName = directory + "/mote.gif";
-	//System.out.println(name);
-	//URL imgURL = getClass().getResource(name);
-	//icon = new ImageIcon(directory + "/images/tmote_sky.jpg", "mote");
 	try {
-	    //System.out.println(name + " " + imgURL);
 	    image = Toolkit.getDefaultToolkit().getImage(imgName);
-	    //System.out.println(image);
 	}
 	catch (Exception e) {
 	    System.out.println(e);
@@ -169,15 +163,15 @@ public class DDocument
     public int width_canvas = 600;
     public int height_canvas = 600;
 	
-    protected ArrayList<DMoteModel> motes = new ArrayList<DMoteModel>();
-    protected ArrayList<DLinkModel> links = new ArrayList<DLinkModel>();
+    protected ArrayList motes = new ArrayList();
+    protected ArrayList links = new ArrayList();
     protected DMoteModel selected = null;
     
-    protected HashMap<Integer, DMoteModel> moteIndex;
-    protected HashMap<String, DLinkModel> linkIndex;
+    protected HashMap moteIndex;
+    protected HashMap linkIndex;
 	
     // Provided default ctor that calls the regular ctor
-    public DDocument(Vector<String> fieldVector, Vector<String> linkVector) {
+    public DDocument(Vector fieldVector, Vector linkVector) {
 	this(300, 300, fieldVector, linkVector, ".");	 // this syntax calls one ctor from another
     }
 	
@@ -229,7 +223,7 @@ public class DDocument
 	    String name = vsv.name();
 	    int moteID = vsv.moteId();
 	    int value = vsv.value();
-	    DMoteModel m = moteIndex.get(new Integer(moteID));
+	    DMoteModel m = (DMoteModel)moteIndex.get(new Integer(moteID));
 	    if (m == null) {
 		m = createNewMote(moteID);
 	    }
@@ -243,15 +237,15 @@ public class DDocument
 	    int startMote = lsv.start();
 	    int endMote = lsv.end();
 	    int value = lsv.value();
-	    DMoteModel m = moteIndex.get(new Integer(startMote));
+	    DMoteModel m = (DMoteModel)moteIndex.get(new Integer(startMote));
 	    if (m == null) {
 		m = createNewMote(startMote);
 	    }
-	    DMoteModel m2 = moteIndex.get(new Integer(endMote));
+	    DMoteModel m2 = (DMoteModel)moteIndex.get(new Integer(endMote));
 	    if (m2 == null) {
 		m2 = createNewMote(endMote);
 	    }
-	    DLinkModel dl = linkIndex.get(startMote + " " + endMote);
+	    DLinkModel dl = (DLinkModel)linkIndex.get(startMote + " " + endMote);
 	    if (dl == null) {
 		//System.out.println("Does not contain key <" + startMote + " " + endMote + ">");
 		dl = createNewLink(m, m2);
@@ -272,7 +266,7 @@ public class DDocument
     // Just a test main -- put a little DDocument on screen
     public static void main(String[] args)	{
 	JFrame frame = new JFrame("MViz");
-	Vector<String> packetVector = new Vector<String>();
+	Vector packetVector = new Vector();
 	String source = null;
 	String dir = ".";
 	if (args.length > 0) {
@@ -329,9 +323,9 @@ public class DDocument
     private class DrawTableModel
 	extends AbstractTableModel
 	implements DMoteModelListener {
-	private Vector<String> fields;
+	private Vector fields;
 	
-	public DrawTableModel(Vector<String> fields) {
+	public DrawTableModel(Vector fields) {
 	    this.fields = fields;
 	}
 	//-----------------------------o
@@ -342,7 +336,7 @@ public class DDocument
 	    case 1:
 		return "Y";
 	    default:
-		return fields.elementAt(col - 2);
+		return (String)fields.elementAt(col - 2);
 	    }
 	}
 	//-----------------------------o
@@ -409,9 +403,9 @@ public class DDocument
 		    public void mousePressed(MouseEvent e) {
 			lastX = e.getX();
 			lastY = e.getY();
-			Iterator<DMoteModel> it = doc.motes.iterator();
+			Iterator it = doc.motes.iterator();
 			while (it.hasNext()) {
-			    DMoteModel model = it.next();
+			    DMoteModel model = (DMoteModel)it.next();
 			    if (withinRange(e.getX(),
 					    model.getLocX() - 20,
 					    model.getLocX() + 20) &&

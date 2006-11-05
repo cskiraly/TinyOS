@@ -73,7 +73,7 @@ public class DLayer extends JPanel implements ActionListener{
     protected int index;
     protected int zIndex;
     protected int z_index = 0;
-    private ArrayList<DShape> layer = new ArrayList<DShape>();
+    private ArrayList layer = new ArrayList();
 	
     private JLabel label;
     private JCheckBox check;
@@ -339,10 +339,10 @@ public class DLayer extends JPanel implements ActionListener{
 	    if 	(type==FIELD){
 		paintScreenBefore(g);
 	    } else if (type == LINK) {
-		Iterator<DLinkModel> it = models.iterator();
+		Iterator it = models.iterator();
 		//System.out.print("Draw links: ");
 		while (it.hasNext()) {
-		    DLinkModel model = it.next();
+		    DLinkModel model = (DLinkModel)it.next();
 		    DLink lnk = new DLink(model, parent, this);
 		    lnk.paintShape(g);
 		    //System.out.print("+");
@@ -350,10 +350,10 @@ public class DLayer extends JPanel implements ActionListener{
 		//System.out.println();
 	    }
 	    else if (type == MOTE) {
-		Iterator<DMoteModel> it = models.iterator();
+		Iterator it = models.iterator();
 		//System.out.print("Draw motes: ");
 		while (it.hasNext()){
-		    DMoteModel model = it.next();
+		    DMoteModel model = (DMoteModel)it.next();
 		    DShape m = new DMote(model, parent, this);
 		    m.paintShape(g);
 		    //System.out.print("+");

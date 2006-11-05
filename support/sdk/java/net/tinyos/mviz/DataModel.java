@@ -35,28 +35,28 @@ import java.lang.reflect.*;
 import java.util.*;
 
 public class DataModel {
-    Vector<Class> packetClasses = new Vector<Class>();
-    Vector<String> fields = new Vector<String>();
-    Vector<String> links = new Vector<String>();
+    Vector packetClasses = new Vector();
+    Vector fields = new Vector();
+    Vector links = new Vector();
 
-    public DataModel(Vector<String> messageNames) {
+    public DataModel(Vector messageNames) {
 	createPackets(messageNames);
 	parseFieldsAndLinks();
     }
 
-    public Vector<String> fields() {
+    public Vector fields() {
 	return fields;
     }
 
-    public Vector<String> links() {
+    public Vector links() {
 	return links;
     }
 	
-    private void createPackets(Vector<String> messageNames) {
+    private void createPackets(Vector messageNames) {
 	for (int i = 0; i < messageNames.size(); i++) {
 	    try {
 		System.out.println("Making " + messageNames.elementAt(i));
-		Class c = Class.forName(messageNames.elementAt(i));
+		Class c = Class.forName((String)messageNames.elementAt(i));
 		packetClasses.add(c);
 	    }
 	    catch (ClassNotFoundException ex) {
@@ -79,7 +79,7 @@ public class DataModel {
 	net.tinyos.message.Message msg = new net.tinyos.message.Message(0);
 	Class messageClass = msg.getClass();
 	for (int i = 0; i < packetClasses.size(); i++) {
-	    Class pkt = packetClasses.elementAt(i);
+	    Class pkt = (Class)packetClasses.elementAt(i);
 	    if (!(isSubClass(pkt, messageClass))) {
 		continue;
 	    }

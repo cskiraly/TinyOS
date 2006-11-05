@@ -1,4 +1,4 @@
-// $Id: Packetizer.java,v 1.1.2.7 2006-02-16 01:21:26 idgay Exp $
+// $Id: Packetizer.java,v 1.1.2.8 2006-11-05 19:45:56 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -159,7 +159,7 @@ public class Packetizer extends AbstractSource implements Runnable {
 		writeFramedPacket(P_UNKNOWN, packetType, ackPacket, 0);
 	    }
 	    catch (IOException e) { }
-	    message(name + ": ignoring unknown packet type " +
+	    message(name + ": ignoring unknown packet type 0x" +
 		    Integer.toHexString(packetType));
 	}
     }
