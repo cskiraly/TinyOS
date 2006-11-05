@@ -60,7 +60,7 @@ class DShapeModel extends Object implements Serializable {
     protected int HALF_HEIGHT = 20;
 
     // NOTE: "transient" -- not serialized
-    transient private ArrayList<DShapeModelListener> listeners;
+    transient private ArrayList listeners;
       
     public DShapeModel(char type, int x, int y, float value) {
         this.type = type;
@@ -158,7 +158,7 @@ class DShapeModel extends Object implements Serializable {
 	
 	
 	public void addListener(DShapeModelListener listener) {
-	    if (listeners == null) listeners = new ArrayList<DShapeModelListener>();
+	    if (listeners == null) listeners = new ArrayList();
 	    Iterator it = listeners.iterator();
 		while (it.hasNext()) {
 		    if (it.next() == listener)

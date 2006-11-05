@@ -55,7 +55,7 @@ class DMoteModel
 	
 	
     public DDocument root;
-    transient private ArrayList<DMoteModelListener> listeners;
+    transient private ArrayList listeners;
     
     protected int x, y, id;
     protected float[] values;
@@ -186,7 +186,7 @@ class DMoteModel
 	
 	
     public void addListener(DMoteModelListener listener) {
-	if (listeners == null) listeners = new ArrayList<DMoteModelListener>();
+	if (listeners == null) listeners = new ArrayList();
 	Iterator it = listeners.iterator();
 	while (it.hasNext()) { if (it.next() == listener) return; };		
 	listeners.add(listener);	    

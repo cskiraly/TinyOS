@@ -41,20 +41,20 @@ import net.tinyos.util.*;
 
 
 public class MessageInput implements net.tinyos.message.MessageListener {
-    private Vector<Message> msgVector = new Vector<Message>();
+    private Vector msgVector = new Vector();
     private MoteIF moteIF;
     private DDocument document;
     
-    public MessageInput(Vector<String> packetVector, String commSource, DDocument doc) {
+    public MessageInput(Vector packetVector, String commSource, DDocument doc) {
 	document = doc;
 	loadMessages(packetVector);
 	createSource(commSource);
 	installListeners();
     }
 
-    private void loadMessages(Vector<String> packetVector) {
+    private void loadMessages(Vector packetVector) {
 	for (int i = 0; i < packetVector.size(); i++) {
-	    String className = packetVector.elementAt(i);
+	    String className = (String)packetVector.elementAt(i);
 	  try {
 	    Class c = Class.forName(className);
 	    Object packet = c.newInstance();
@@ -91,8 +91,8 @@ public class MessageInput implements net.tinyos.message.MessageListener {
     public void start() {}
    
     public void messageReceived(int to, Message message) {
-	Hashtable<String,Integer> table = new Hashtable<String,Integer>();
-	Hashtable<String,Integer> linkTable = new Hashtable<String,Integer>();
+	Hashtable table = new Hashtable();
+	Hashtable linkTable = new Hashtable();
 	//System.out.println("Received message:");
 	//System.out.println(message);
 
@@ -109,9 +109,8 @@ public class MessageInput implements net.tinyos.message.MessageListener {
 	    if (name.startsWith("get_") && !name.startsWith("get_link")) {
 		name = name.substring(4); // Chop off "get_"
 		try {
-		    Object res = method.invoke(message);
 		    //System.out.println(name + " returns " + res);
-		    Integer result = (Integer)method.invoke(message);
+		    Integer result = (Integer)method.invoke(message, null);
 		    table.put(name, result);
 		}
 		catch (java.lang.IllegalAccessException exc) {
@@ -124,9 +123,7 @@ public class MessageInput implements net.tinyos.message.MessageListener {
 	    else if (name.startsWith("get_link_")) {
 		name = name.substring(9); // chop off "get_link_"
 		try {
-		    Object res = method.invoke(message);
-		    //System.out.println(name + " returns " + res);
-		    Integer result = (Integer)method.invoke(message);
+		    Integer result = (Integer)method.invoke(message, null);
 		    linkTable.put(name, result);
 		}
 		catch (java.lang.IllegalAccessException exc) {
@@ -140,25 +137,25 @@ public class MessageInput implements net.tinyos.message.MessageListener {
 	if (table.containsKey("origin")) {
 	    Integer origin = (Integer)table.get("origin");
 	    //table.remove("origin");
-	    Enumeration<String> elements = table.keys();
+	    Enumeration elements = table.keys();
 	    while (elements.hasMoreElements()) {
-		String key = elements.nextElement();
-		Integer value = table.get(key);
+		String key = (String)elements.nextElement();
+		Integer value = (Integer)table.get(key);
 		document.setMoteValue(origin.intValue(), key, value.intValue());
 	    }
 	    elements = linkTable.keys();
 	    while (elements.hasMoreElements()) {
-		String key = elements.nextElement();
+		String key = (String)elements.nextElement();
 		if (!key.endsWith("_value")) {
 		    continue;
 		}
-		Integer value = linkTable.get(key);
+		Integer value = (Integer)linkTable.get(key);
 		key = key.substring(0, key.length() - 6); // chop off "_value"
 		String addrkey = key + "_addr";
 		if (!linkTable.containsKey(addrkey)) {
 		    continue;
 		}
-		Integer addr = linkTable.get(addrkey);
+		Integer addr = (Integer)linkTable.get(addrkey);
 		document.setLinkValue(origin.intValue(), addr.intValue(), key, value.intValue());
 	    }
 	}
