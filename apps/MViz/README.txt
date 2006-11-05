@@ -28,14 +28,12 @@ Tools:
 The Java application lives in support/sdk/java/net/tinyos/mviz. It is
 invoked by the tos-mviz script, which is part of a TinyOS tools  distribution.
 The top-level Java class is net.tinyos.mviz.DDocument. To display a mote image,
-the tool looks for a mote.gif in either the local directory (default) or a directory
-specified with the -dir parameter.
+the tool looks for a mote.gif in either the local directory (default) or a 
+directory specified with the -dir parameter.
 
 Known bugs/limitations:
 
 Under Ubuntu Linux, the MViz Java visualization can be painfully slow.
-
-None.
 
 Notes:
 
