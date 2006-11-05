@@ -1,4 +1,4 @@
-// $Id: tos-serial-debug.c,v 1.1.2.2 2006-01-10 16:48:48 idgay Exp $
+// $Id: tos-serial-debug.c,v 1.1.2.3 2006-11-05 18:09:53 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -33,6 +33,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #ifdef __CYGWIN__

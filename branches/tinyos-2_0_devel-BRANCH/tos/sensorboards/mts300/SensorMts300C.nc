@@ -23,8 +23,9 @@
  *  THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  @author Martin Turon <mturon@xbow.com>
+ *  @author Miguel Freitas
  *
- *  $Id: SensorMts300C.nc,v 1.1.2.1 2005-10-20 04:44:07 mturon Exp $
+ *  $Id: SensorMts300C.nc,v 1.1.2.2 2006-11-05 18:09:53 scipio Exp $
  */
 
 configuration SensorMts300C
@@ -32,23 +33,27 @@ configuration SensorMts300C
     provides {
 	interface Init;                 //!< Standard Initialization
 	interface StdControl;           //!< Start/Stop for Power Management
-	interface AcquireData as Temp;  //!< Thermister
-	interface AcquireData as Light; //!< Photo sensor
+	interface Read<uint16_t> as Temp;  //!< Thermister
+	interface Read<uint16_t> as Light; //!< Photo sensor
     }
 }
 implementation 
 {
     components 
 	SensorMts300P,
-	HplGeneralIOC as IO,
-	new AdcChannelC(1) as SensorADC,
-	new OskiTimerMilliC() as WarmUpTimer
+	SensorMts300DeviceP,
+	HplAtm128GeneralIOC as IO,
+	new AdcReadClientC() as SensorADC,
+	new TimerMilliC() as WarmUpTimer
 	;
 
     Init       = SensorMts300P.Init;
     StdControl = SensorMts300P.StdControl;
     Temp       = SensorMts300P.Temp;
     Light      = SensorMts300P.Light;
+
+    SensorADC.Atm128AdcConfig -> SensorMts300DeviceP;
+    SensorADC.ResourceConfigure -> SensorMts300DeviceP;
 
     SensorMts300P.SensorADC -> SensorADC;
     SensorMts300P.TempPower -> IO.PortE6;

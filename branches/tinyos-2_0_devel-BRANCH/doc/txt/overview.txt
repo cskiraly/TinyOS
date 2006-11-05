@@ -3,7 +3,7 @@ TinyOS 2.0 Overview
 ============================
 
 :Author: Philip Levis
-:Date: Feb 8 2006
+:Date: Oct 30 2006
 
 .. Note::
  
@@ -241,7 +241,12 @@ each one will receive its fair share of transmission opportunities.
 
 Further information on message_t can be found in TEP 111:
 message_t[TEP111_], while further information on AM can be
-found in TEP 116: Packet Protocoks[TEP116_].
+found in TEP 116: Packet Protocols[TEP116_].
+
+The current TinyOS release has a low-power stack for the CC1000
+radio (mica2 platform) and an experimental low-power stack for
+the CC2420 radio (micaz, telosb, and intelmote2 platforms). 
+
 
 8. Sensors
 ====================================================================

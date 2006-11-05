@@ -22,7 +22,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  *  THE POSSIBILITY OF SUCH DAMAGE.
  *
- *  $Id: Atm128CaptureC.nc,v 1.1.2.3 2006-01-27 17:56:06 idgay Exp $
+ *  $Id: Atm128CaptureC.nc,v 1.1.2.4 2006-11-05 18:09:53 scipio Exp $
  */
 
 /**
@@ -38,7 +38,7 @@
  *  @author Matt Miller, Crossbow <mmiller@xbow.com>
  *  @author Martin Turon, Crossbow <mturon@xbow.com>
  */
-generic module Atm128CaptureP () 
+generic module Atm128CaptureC () 
 {
   provides {
     interface Capture as CapturePin;
