@@ -1,0 +1,10 @@
+#-*-Makefile-*- vim:syntax=make
+#$Id: reset.target,v 1.1.2.1 2005-03-23 19:34:57 cssharp Exp $
+
+BUILD_DEPS = harmless
+
+reset: FORCE
+	@echo "    resetting $(PLATFORM)"
+	$(PROGRAMMER) $(PROGRAMMER_FLAGS)
+
+harmless:
