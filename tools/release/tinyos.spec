@@ -10,7 +10,7 @@ URL: www.tinyos.net
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 Prefix: /opt
-Requires: tinyos-tools >= 1.2.3, nesc >= 1.2.7
+Requires: tinyos-tools >= 1.2.2, nesc >= 1.2.7
 
 %description
 TinyOS is an event based operating environment designed for use with 
