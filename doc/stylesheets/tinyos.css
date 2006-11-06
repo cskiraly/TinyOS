@@ -1,5 +1,5 @@
 /* 
- * $Id: tinyos.css,v 1.1.2.3 2006-11-05 18:09:52 scipio Exp $ 
+ * $Id: tinyos.css,v 1.1.2.4 2006-11-06 11:28:53 scipio Exp $ 
  */
 body {	
 	background: #FFFFFF; 
@@ -19,7 +19,7 @@ a:link {
 	font-weight: bold; 
 } 
 a:visited { 
-	color: #402020; 
+	color: #c3494e;
 	text-decoration: none;
 	font-weight: bold; 
 }
