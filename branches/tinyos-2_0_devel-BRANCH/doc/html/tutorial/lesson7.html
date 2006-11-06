@@ -344,13 +344,16 @@ the flash:
 
 See <a href="../../../apps/tests/storage/Log/">
 <code>tinyos-2.x/apps/tests/storage/Log/</code></a> for an example of
-code that uses the Log storage abstraction.
+code that uses the Log storage abstraction. Log is generally used for
+append-based data streams consisting of relatively small data items.
+It provides atomicity guarantees for data writes.
 
 <h1>Storing Large Objects</h1>
 
 See <a href="../../../apps/tests/storage/Block/">
 <code>tinyos-2.x/apps/tests/storage/Block/</code></a> for an example
-of code that uses the Block storage abstraction.
+of code that uses the Block storage abstraction. Block is generally
+used for storing large objects that cannot easily fit in RAM.
 
 <h1>Conclusions</h1>
 
