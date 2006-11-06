@@ -331,6 +331,17 @@ TEP 115: Power Management of Non-Virtualised Devices{TEP115_], is handled
 through resource abiters. Fully virtualized services have their
 own, individual power management policies.
 
+TinyOS 2.0 provides low-power stacks for the CC1000 (mica2)
+and CC2420 (micaz, telosb, imote2) radios. Both use a low-power
+listening apporach, where transmitters send long preambles or
+repeatedly send packets and receivers wake up periodically to 
+sense the channel to hear if there is a packet being 
+transmitted. The low-power stack CC1000 is standard, while
+the CC2420 stack is experimental. That is, the default CC1000
+stack (chips/cc1000) has low-power-listening, while the default 
+CC2420 stack (chips/cc2420) does not. To use the low-power CC2420
+stack, you must include chips/cc2420_lpl in your application Makefile.
+
 12. Network Protocols
 ====================================================================
 
@@ -340,7 +351,10 @@ and collection. Dissemination reliably delivers small (fewer
 than 20 byte) data items to every node in a network, while
 collection builds a routing tree rooted at a sink node. Together,
 these two protocols enable a wide range of data collection
-applications. 
+applications. Collection has advanced significantly since the
+most recent beta release; experimental tests in multiple 
+network conditions have seen very high (>98%) deliver rates
+as long as the network is not saturated.
 
 12. Conclusion
 ====================================================================
@@ -363,7 +377,7 @@ Prabal Dutta,
 Gilman Tolle, Martin Turon, Phil Buonodonna, Ben Greenstein, David Culler, 
 Kristin Wright, Ion Yannopoulos, Henri Dubois-Ferriere, Jan Beutel, 
 Robert Szewczyk, Rodrigo Fonseca, Kyle Jamieson, Omprakash Gnawali,
-and Kristin Wright.
+David Moss, and Kristin Wright.
 
 
 14. Author's Address
