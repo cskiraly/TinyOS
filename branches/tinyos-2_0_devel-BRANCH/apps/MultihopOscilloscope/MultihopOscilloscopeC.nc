@@ -38,7 +38,7 @@ module MultihopOscilloscopeC {
     interface Queue<message_t *> as UARTQueue;
     interface Pool<message_t> as UARTMessagePool;
 
-    // Miscalleny:
+    // Miscellany:
     interface Timer<TMilli>;
     interface Read<uint16_t>;
     interface Leds;
@@ -224,10 +224,10 @@ implementation {
   event void Timer.fired() {
     if (reading == NREADINGS) {
       if (!sendbusy) {
-	oscilloscope_t *o = (oscilloscope_t *)call Send.getPayload(&sendbuf);
-	memcpy(o, &local, sizeof(local));
-	if (call Send.send(&sendbuf, sizeof(local)) == SUCCESS)
-	  sendbusy = TRUE;
+        oscilloscope_t *o = (oscilloscope_t *)call Send.getPayload(&sendbuf);
+        memcpy(o, &local, sizeof(local));
+        if (call Send.send(&sendbuf, sizeof(local)) == SUCCESS)
+          sendbusy = TRUE;
         else
           report_problem();
       }
@@ -273,4 +273,26 @@ implementation {
   static void report_problem() { call Leds.led0Toggle(); }
   static void report_sent() { call Leds.led1Toggle(); }
   static void report_received() { call Leds.led2Toggle(); }
+
+  /* Default implementations for CollectionDebug calls.
+   * These allow CollectionDebug not to be wired to anything if debugging
+   * is not desired. */
+
+    default command error_t CollectionDebug.logEvent(uint8_t type) {
+        return SUCCESS;
+    }
+    default command error_t CollectionDebug.logEventSimple(uint8_t type, uint16_t arg) {
+        return SUCCESS;
+    }
+    default command error_t CollectionDebug.logEventDbg(uint8_t type, uint16_t arg1, uint16_t arg2, uint16_t arg3) {
+        return SUCCESS;
+    }
+    default command error_t CollectionDebug.logEventMsg(uint8_t type, uint16_t msg, am_addr_t origin, am_addr_t node) {
+        return SUCCESS;
+    }
+    default command error_t CollectionDebug.logEventRoute(uint8_t type, am_addr_t parent, uint8_t hopcount, uint16_t metric) {
+        return SUCCESS;
+    }
+ 
+
 }
