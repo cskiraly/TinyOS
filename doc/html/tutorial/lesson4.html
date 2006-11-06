@@ -726,6 +726,16 @@ rather than the radio stack.</p>
  href="index.html">Top</a></b> &nbsp;|&nbsp; <b><a href="lesson5.html">Next Lesson </a>&nbsp;&gt;</b>
 </center>
 
+			
+<h1>CLASSPATH and Java classes</h1>
+			
+<p>Note that the CLASSPATH variable points to <tt>tinyos.jar</tt>. This
+means that when Java looks for classes to load, it looks in tinyos.jar rather
+than the Java directories in <tt>support/sdk/java</tt>. Therefore,
+if you change and recompile the Java classes, you will not see the changes,
+as Java will only look at the jar file. To regenerate the
+jar from the Java code, go to <tt>support/sdk/java</tt> and type
+<tt>make tinyos.jar</tt>.
 </body>
 </html>
 
