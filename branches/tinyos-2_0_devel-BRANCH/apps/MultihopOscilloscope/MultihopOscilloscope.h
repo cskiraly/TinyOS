@@ -22,7 +22,8 @@ enum {
   NREADINGS = 5,
   /* Default sampling period. */
   DEFAULT_INTERVAL = 1024,
-  AM_OSCILLOSCOPE = 0x93
+  AM_OSCILLOSCOPE = 0x93,
+  OSCILLOSCOPE_COLLECTION_ID = AM_OSCILLOSCOPE,
 };
 
 typedef nx_struct oscilloscope {

@@ -42,6 +42,10 @@ module MultihopOscilloscopeC {
     interface Timer<TMilli>;
     interface Read<uint16_t>;
     interface Leds;
+
+#ifdef DEBUG_INFRA
+    interface CollectionDebug;
+#endif
   }
 }
 
@@ -278,6 +282,7 @@ implementation {
    * These allow CollectionDebug not to be wired to anything if debugging
    * is not desired. */
 
+#ifdef DEBUG_INFRA
     default command error_t CollectionDebug.logEvent(uint8_t type) {
         return SUCCESS;
     }
@@ -293,6 +298,6 @@ implementation {
     default command error_t CollectionDebug.logEventRoute(uint8_t type, am_addr_t parent, uint8_t hopcount, uint16_t metric) {
         return SUCCESS;
     }
- 
+#endif 
 
 }
