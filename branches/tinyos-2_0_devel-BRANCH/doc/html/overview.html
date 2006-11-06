@@ -12,8 +12,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:date: $Date: 2006-11-06 08:18:50 $
-:version: $Revision: 1.1.2.13 $
+:date: $Date: 2006-11-06 09:24:26 $
+:version: $Revision: 1.1.2.14 $
 :copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -582,6 +582,16 @@ and interrupt souces are active. The latter, discussed in
 TEP 115: Power Management of Non-Virtualised Devices{<a class="reference" href="#tep115">TEP115</a>], is handled
 through resource abiters. Fully virtualized services have their
 own, individual power management policies.</p>
+<p>TinyOS 2.0 provides low-power stacks for the CC1000 (mica2)
+and CC2420 (micaz, telosb, imote2) radios. Both use a low-power
+listening apporach, where transmitters send long preambles or
+repeatedly send packets and receivers wake up periodically to
+sense the channel to hear if there is a packet being
+transmitted. The low-power stack CC1000 is standard, while
+the CC2420 stack is experimental. That is, the default CC1000
+stack (chips/cc1000) has low-power-listening, while the default
+CC2420 stack (chips/cc2420) does not. To use the low-power CC2420
+stack, you must include chips/cc2420_lpl in your application Makefile.</p>
 </div>
 <div class="section">
 <h1><a id="network-protocols" name="network-protocols">12. Network Protocols</a></h1>
@@ -591,10 +601,13 @@ and collection. Dissemination reliably delivers small (fewer
 than 20 byte) data items to every node in a network, while
 collection builds a routing tree rooted at a sink node. Together,
 these two protocols enable a wide range of data collection
-applications.</p>
+applications. Collection has advanced significantly since the
+most recent beta release; experimental tests in multiple
+network conditions have seen very high (&gt;98%) deliver rates
+as long as the network is not saturated.</p>
 </div>
 <div class="section">
-<h1><a id="conclusion" name="conclusion">12. Conclusion</a></h1>
+<h1><a id="conclusion" name="conclusion">13. Conclusion</a></h1>
 <p>TinyOS 2.0 represents the next step of TinyOS development. Building on
 user experiences over the past few years, it has taken the basic
 TinyOS architecture and pushed it forward in several directions,
@@ -604,7 +617,7 @@ non-volatile storage, basic multihop protocols (collection routing,
 dissemination), and further power management abstractions.</p>
 </div>
 <div class="section">
-<h1><a id="acknowledgments" name="acknowledgments">13. Acknowledgments</a></h1>
+<h1><a id="acknowledgments" name="acknowledgments">14. Acknowledgments</a></h1>
 <p>TinyOS 2.0 is the result of a lot of hard work from a lot of people,
 including (but not limited to) David Gay, Philip Levis, Cory Sharp,
 Vlado Handziski, Jan Hauer, Kevin Klues, Joe Polastre, Jonathan Hui,
@@ -612,10 +625,10 @@ Prabal Dutta,
 Gilman Tolle, Martin Turon, Phil Buonodonna, Ben Greenstein, David Culler,
 Kristin Wright, Ion Yannopoulos, Henri Dubois-Ferriere, Jan Beutel,
 Robert Szewczyk, Rodrigo Fonseca, Kyle Jamieson, Omprakash Gnawali,
-and Kristin Wright.</p>
+David Moss, and Kristin Wright.</p>
 </div>
 <div class="section">
-<h1><a id="author-s-address" name="author-s-address">14. Author's Address</a></h1>
+<h1><a id="author-s-address" name="author-s-address">15. Author's Address</a></h1>
 <div class="line-block">
 <div class="line">Philip Levis</div>
 <div class="line">358 Gates</div>
@@ -629,7 +642,7 @@ and Kristin Wright.</p>
 </div>
 </div>
 <div class="section">
-<h1><a id="citations" name="citations">15. Citations</a></h1>
+<h1><a id="citations" name="citations">16. Citations</a></h1>
 <table class="docutils citation" frame="void" id="tep1" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">

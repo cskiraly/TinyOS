@@ -356,7 +356,7 @@ most recent beta release; experimental tests in multiple
 network conditions have seen very high (>98%) deliver rates
 as long as the network is not saturated.
 
-12. Conclusion
+13. Conclusion
 ====================================================================
 
 TinyOS 2.0 represents the next step of TinyOS development. Building on
@@ -367,7 +367,7 @@ still under active development: future prereleases will include
 non-volatile storage, basic multihop protocols (collection routing,
 dissemination), and further power management abstractions.
 
-13. Acknowledgments
+14. Acknowledgments
 ====================================================================
 
 TinyOS 2.0 is the result of a lot of hard work from a lot of people,
@@ -380,7 +380,7 @@ Robert Szewczyk, Rodrigo Fonseca, Kyle Jamieson, Omprakash Gnawali,
 David Moss, and Kristin Wright.
 
 
-14. Author's Address
+15. Author's Address
 ====================================================================
 
 | Philip Levis
@@ -393,7 +393,7 @@ David Moss, and Kristin Wright.
 |
 | email - pal@cs.stanford.edu
 
-15. Citations
+16. Citations
 ====================================================================
 
 .. [TEP1] TEP 1: TEP Structure and Keywords. http://tinyos.cvs.sourceforge.net/*checkout*/tinyos/tinyos-2.x/doc/html/tep1.html?pathrev=tinyos-2_0_devel-BRANCH
