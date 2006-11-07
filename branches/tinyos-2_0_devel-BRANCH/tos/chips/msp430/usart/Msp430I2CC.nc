@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-08-30 17:15:55 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-11-07 23:15:04 $
  */
 
 #include <I2C.h>

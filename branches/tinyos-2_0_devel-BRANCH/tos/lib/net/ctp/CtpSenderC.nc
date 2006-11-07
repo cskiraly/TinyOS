@@ -1,4 +1,4 @@
-/* $Id: CtpSenderC.nc,v 1.1.2.1 2006-08-29 17:24:40 kasj78 Exp $ */
+/* $Id: CtpSenderC.nc,v 1.1.2.2 2006-11-07 23:15:12 scipio Exp $ */
 /*
  * Copyright (c) 2006 Massachusetts Institute of Technology (MIT).
  * All rights reserved.

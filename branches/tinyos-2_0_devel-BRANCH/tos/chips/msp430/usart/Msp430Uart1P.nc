@@ -32,7 +32,7 @@
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
  * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
- * @version $Revision: 1.1.4.4 $ $Date: 2006-10-18 22:02:25 $
+ * @version $Revision: 1.1.4.5 $ $Date: 2006-11-07 23:15:08 $
  */
 
 configuration Msp430Uart1P {

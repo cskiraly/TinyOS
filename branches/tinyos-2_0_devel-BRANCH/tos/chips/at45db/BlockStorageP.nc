@@ -1,4 +1,4 @@
-// $Id: BlockStorageP.nc,v 1.1.2.17 2006-09-21 23:03:10 idgay Exp $
+// $Id: BlockStorageP.nc,v 1.1.2.18 2006-11-07 23:14:59 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2004 The Regents of the University  of California.  

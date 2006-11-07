@@ -36,7 +36,7 @@
  * place of Msp430SpiNoDma0P.
  *
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.10 $ $Date: 2006-08-03 18:10:41 $
+ * @version $Revision: 1.1.2.11 $ $Date: 2006-11-07 23:15:05 $
  */
 
 #include "msp430usart.h"

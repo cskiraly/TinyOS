@@ -1,4 +1,4 @@
-// $Id: I2CPacket.nc,v 1.1.2.6 2006-06-13 18:39:54 scipio Exp $
+// $Id: I2CPacket.nc,v 1.1.2.7 2006-11-07 23:15:10 scipio Exp $
 /*
  * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
@@ -40,7 +40,7 @@
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
  * @author Phil Levis <pal@cs.stanford.edu>
- * Revision:  $Revision: 1.1.2.6 $
+ * Revision:  $Revision: 1.1.2.7 $
  */
 
 interface I2CPacket<addr_size> {

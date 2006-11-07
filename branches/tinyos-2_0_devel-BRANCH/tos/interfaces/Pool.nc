@@ -1,4 +1,4 @@
-/* $Id: Pool.nc,v 1.1.2.1 2006-06-26 16:52:17 scipio Exp $ */
+/* $Id: Pool.nc,v 1.1.2.2 2006-11-07 23:15:10 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -43,7 +43,7 @@
  *
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-26 16:52:17 $
+ *  @date   $Date: 2006-11-07 23:15:10 $
  */
 
    

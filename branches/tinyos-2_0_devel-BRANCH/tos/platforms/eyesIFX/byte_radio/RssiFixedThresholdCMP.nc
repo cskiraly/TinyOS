@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.6 $
- * $Date: 2006-09-12 12:16:31 $
+ * $Revision: 1.1.2.7 $
+ * $Date: 2006-11-07 23:15:14 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * @author: Philipp Huppertz (huppertz@tkn.tu-berlin.de)
  * @author: Andreas Koepke (koepke@tkn.tu-berlin.de)

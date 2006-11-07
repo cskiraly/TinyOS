@@ -1,4 +1,4 @@
-// $Id: SpiByte.nc,v 1.1.2.3 2006-09-28 19:26:22 jwhui Exp $
+// $Id: SpiByte.nc,v 1.1.2.4 2006-11-07 23:15:11 scipio Exp $
 
 /*                                                                      tab:2
  * "Copyright (c) 2000-2005 The Regents of the University  of California.

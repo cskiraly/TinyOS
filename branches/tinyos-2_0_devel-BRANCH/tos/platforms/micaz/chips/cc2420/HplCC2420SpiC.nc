@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-06-20 18:56:06 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-11-07 23:15:24 $
  */
 
 generic configuration HplCC2420SpiC() {

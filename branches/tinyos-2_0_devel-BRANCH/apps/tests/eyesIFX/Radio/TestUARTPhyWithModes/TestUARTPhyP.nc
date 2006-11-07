@@ -1,4 +1,4 @@
-// $Id: TestUARTPhyP.nc,v 1.1.2.1 2005-11-22 12:31:10 phihup Exp $
+// $Id: TestUARTPhyP.nc,v 1.1.2.2 2006-11-07 23:14:53 scipio Exp $
 
 /*                                  tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.

@@ -29,7 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
  * @author Phil Buonadonna
- * @version $Revision: 1.1.2.1 $ $Date: 2006-07-26 01:40:10 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-11-07 23:15:09 $
  */
 
 #ifndef __STORAGE_CHIP_H__

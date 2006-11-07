@@ -57,7 +57,6 @@ implementation {
   //
   // Components for debugging collection.
   //
-#ifdef DEBUG_INFRA
   components new PoolC(message_t, 20) as DebugMessagePool,
     new QueueC(message_t*, 20) as DebugSendQueue,
     new SerialAMSenderC(AM_CTP_DEBUG) as DebugSerialSender,
@@ -68,5 +67,4 @@ implementation {
   DebugSender.MessagePool -> DebugMessagePool;
   DebugSender.SendQueue -> DebugSendQueue;
   Collector.CollectionDebug -> DebugSender;
-#endif
 }

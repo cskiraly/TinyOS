@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSerialPacket.nc,v 1.1.2.3 2006-07-17 18:42:01 philipb Exp $ */
+/* $Id: HalPXA27xSerialPacket.nc,v 1.1.2.4 2006-11-07 23:15:09 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 

@@ -1,4 +1,4 @@
-/* $Id: HplPXA27xUART.nc,v 1.1.2.1 2005-12-07 23:36:53 philipb Exp $ */
+/* $Id: HplPXA27xUART.nc,v 1.1.2.2 2006-11-07 23:15:09 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 

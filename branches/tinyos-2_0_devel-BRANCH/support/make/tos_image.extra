@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: tos_image.extra,v 1.1.2.3 2005-08-08 19:09:29 idgay Exp $
+#$Id: tos_image.extra,v 1.1.2.4 2006-11-07 23:14:56 scipio Exp $
 
 TOS_IMAGE_PL ?= tos-write-image
 IDENT_PROGRAM_NAME ?= $(COMPONENT)

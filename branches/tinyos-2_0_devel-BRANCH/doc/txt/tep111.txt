@@ -10,8 +10,8 @@ message_t
 :Author: Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.15 $
-:Draft-Modified: $Date: 2006-10-04 20:01:45 $
+:Draft-Version: $Revision: 1.1.2.16 $
+:Draft-Modified: $Date: 2006-11-07 23:14:55 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::

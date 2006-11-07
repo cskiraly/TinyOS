@@ -1,4 +1,4 @@
-/* $Id: ArbitratedReadNowC.nc,v 1.1.2.4 2006-08-15 11:56:05 klueska Exp $
+/* $Id: ArbitratedReadNowC.nc,v 1.1.2.5 2006-11-07 23:15:26 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *

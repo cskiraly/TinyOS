@@ -1,4 +1,4 @@
-/* $Id: Atm128AdcConfig.nc,v 1.1.2.5 2006-01-27 23:13:22 idgay Exp $
+/* $Id: Atm128AdcConfig.nc,v 1.1.2.6 2006-11-07 23:14:59 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *

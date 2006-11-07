@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-06-20 18:56:05 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-11-07 23:15:09 $
  */
 
 generic module Stm25pBinderP( volume_id_t volume ) {

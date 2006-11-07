@@ -52,12 +52,12 @@
  * MicaZ implementation of the CC2420 interrupts. FIFOP is a real
  * interrupt, while CCA and FIFO are emulated through timer polling.
  * <pre>
- *  $Id: HplCC2420InterruptsP.nc,v 1.1.2.4 2006-06-20 18:56:06 jwhui Exp $
+ *  $Id: HplCC2420InterruptsP.nc,v 1.1.2.5 2006-11-07 23:15:24 scipio Exp $
  * <pre>
  *
  * @author Philip Levis
  * @author Matt Miller
- * @version @version $Revision: 1.1.2.4 $ $Date: 2006-06-20 18:56:06 $
+ * @version @version $Revision: 1.1.2.5 $ $Date: 2006-11-07 23:15:24 $
  */
 
 #include "Timer.h"

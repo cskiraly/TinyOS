@@ -25,7 +25,7 @@
 #
 # Author: Philip Levis
 #
-# $Id: generate-swig.bash,v 1.1.2.1 2005-11-22 23:29:13 scipio Exp $
+# $Id: generate-swig.bash,v 1.1.2.2 2006-11-07 23:15:13 scipio Exp $
 
 swig -shadow -python -c++ tossim.i
 

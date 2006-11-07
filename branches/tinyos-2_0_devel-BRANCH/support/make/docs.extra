@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: docs.extra,v 1.1.2.4 2006-02-14 21:52:32 idgay Exp $
+#$Id: docs.extra,v 1.1.2.5 2006-11-07 23:14:56 scipio Exp $
 
 # configure the base for the app dirs.  This is used to generate more
 # useful package names in the documentation.

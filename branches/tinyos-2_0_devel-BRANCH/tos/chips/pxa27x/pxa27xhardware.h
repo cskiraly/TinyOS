@@ -1,4 +1,4 @@
-// $Id: pxa27xhardware.h,v 1.1.2.2 2005-12-07 23:31:22 philipb Exp $
+// $Id: pxa27xhardware.h,v 1.1.2.3 2006-11-07 23:15:08 scipio Exp $
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By

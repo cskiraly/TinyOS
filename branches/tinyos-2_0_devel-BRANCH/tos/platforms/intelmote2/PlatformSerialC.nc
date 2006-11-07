@@ -1,4 +1,4 @@
-/* $Id: PlatformSerialC.nc,v 1.1.2.5 2006-10-26 18:26:15 philipb Exp $ */
+/* $Id: PlatformSerialC.nc,v 1.1.2.6 2006-11-07 23:15:14 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 

@@ -1,4 +1,4 @@
-/// $Id: Atm128I2CMaster.nc,v 1.1.2.1 2006-01-27 22:19:36 mturon Exp $
+/// $Id: Atm128I2CMaster.nc,v 1.1.2.2 2006-11-07 23:14:59 scipio Exp $
 
 /*
  *  Copyright (c) 2004-2005 Crossbow Technology, Inc.

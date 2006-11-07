@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: sim-fast.extra,v 1.1.2.3 2006-08-04 01:42:47 scipio Exp $
+#$Id: sim-fast.extra,v 1.1.2.4 2006-11-07 23:14:56 scipio Exp $
 
 GCC=gcc
 GPP=g++

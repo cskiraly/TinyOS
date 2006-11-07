@@ -1,4 +1,4 @@
-// $Id: Leds.nc,v 1.1.2.1 2006-02-17 12:34:06 beutel Exp $
+// $Id: Leds.nc,v 1.1.2.2 2006-11-07 23:15:13 scipio Exp $
 
 /*									tab:4
  * Copyright (c) 2006 ETH Zurich. 

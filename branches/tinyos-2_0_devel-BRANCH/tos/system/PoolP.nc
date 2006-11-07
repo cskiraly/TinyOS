@@ -1,4 +1,4 @@
-/* $Id: PoolP.nc,v 1.1.2.4 2006-10-03 08:54:20 scipio Exp $ */
+/* $Id: PoolP.nc,v 1.1.2.5 2006-11-07 23:15:26 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -47,7 +47,7 @@
  *  @author Philip Levis
  *  @author Kyle Jamieson
  *  @author Geoffrey Mainland
- *  @date   $Date: 2006-10-03 08:54:20 $
+ *  @date   $Date: 2006-11-07 23:15:26 $
  */
 
 generic module PoolP(typedef pool_t, uint8_t size) {

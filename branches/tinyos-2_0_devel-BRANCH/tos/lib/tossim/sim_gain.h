@@ -30,7 +30,7 @@
  */
 
 
-// $Id: sim_gain.h,v 1.1.2.2 2006-01-18 22:53:55 scipio Exp $
+// $Id: sim_gain.h,v 1.1.2.3 2006-11-07 23:15:13 scipio Exp $
 
 
 

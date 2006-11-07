@@ -1,4 +1,4 @@
-// $Id: Atm128Uart.h,v 1.1.2.3 2006-01-27 23:13:22 idgay Exp $
+// $Id: Atm128Uart.h,v 1.1.2.4 2006-11-07 23:14:59 scipio Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.

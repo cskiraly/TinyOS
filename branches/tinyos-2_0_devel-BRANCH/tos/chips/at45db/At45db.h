@@ -1,4 +1,4 @@
-// $Id: At45db.h,v 1.1.2.1 2006-01-17 19:03:16 idgay Exp $
+// $Id: At45db.h,v 1.1.2.2 2006-11-07 23:14:59 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  

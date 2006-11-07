@@ -1,4 +1,4 @@
-// $Id: AMPacket.nc,v 1.1.2.10 2006-08-04 00:34:18 scipio Exp $
+// $Id: AMPacket.nc,v 1.1.2.11 2006-11-07 23:15:10 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2004-5 The Regents of the University  of California.  
  * All rights reserved.

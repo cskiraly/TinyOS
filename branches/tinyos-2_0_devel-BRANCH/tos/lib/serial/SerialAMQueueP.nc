@@ -1,4 +1,4 @@
-// $Id: SerialAMQueueP.nc,v 1.1.2.1 2006-05-25 17:38:06 scipio Exp $
+// $Id: SerialAMQueueP.nc,v 1.1.2.2 2006-11-07 23:15:12 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *

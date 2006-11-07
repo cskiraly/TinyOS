@@ -1,4 +1,4 @@
-$Id: README.windows,v 1.1.2.2 2005-08-08 23:52:18 idgay Exp $
+$Id: README.windows,v 1.1.2.3 2006-11-07 23:14:58 scipio Exp $
 @author Cory Sharp <cssharp@eecs.berkeley.edu>
 
 Follow these directions to recreate the standalone tos-bsl.exe. After doing

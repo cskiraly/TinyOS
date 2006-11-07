@@ -1,4 +1,4 @@
-/* $Id: AdcReadNowClientC.nc,v 1.1.2.5 2006-02-16 19:02:14 idgay Exp $
+/* $Id: AdcReadNowClientC.nc,v 1.1.2.6 2006-11-07 23:14:59 scipio Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *

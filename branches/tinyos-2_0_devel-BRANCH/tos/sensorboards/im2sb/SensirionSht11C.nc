@@ -40,7 +40,7 @@
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
  * @author Gilman Tolles <gtolle@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-07-14 16:30:29 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-11-07 23:15:26 $
  */
 
 generic configuration SensirionSht11C() {

@@ -1,4 +1,4 @@
-// $Id: CC1000CsmaP.nc,v 1.1.2.15 2006-10-26 17:41:55 idgay Exp $
+// $Id: CC1000CsmaP.nc,v 1.1.2.16 2006-11-07 23:15:01 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  

@@ -1,4 +1,4 @@
-// $Id: net_tinyos_util_Env.c,v 1.1.2.1 2005-07-26 17:15:25 idgay Exp $
+// $Id: net_tinyos_util_Env.c,v 1.1.2.2 2006-11-07 23:14:58 scipio Exp $
 
 #include "net_tinyos_util_Env.h"
 #include <stdlib.h>

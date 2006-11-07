@@ -1,4 +1,4 @@
-//$Id: SerialActiveMessageP.nc,v 1.1.2.12 2006-10-17 18:17:20 scipio Exp $
+//$Id: SerialActiveMessageP.nc,v 1.1.2.13 2006-11-07 23:15:12 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.

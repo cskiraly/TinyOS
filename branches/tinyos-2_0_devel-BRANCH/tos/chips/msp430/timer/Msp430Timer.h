@@ -1,4 +1,4 @@
-//$Id: Msp430Timer.h,v 1.1.2.1 2006-01-29 04:33:33 vlahan Exp $
+//$Id: Msp430Timer.h,v 1.1.2.2 2006-11-07 23:15:04 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.

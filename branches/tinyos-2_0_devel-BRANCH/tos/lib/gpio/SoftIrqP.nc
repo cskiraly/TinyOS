@@ -25,7 +25,7 @@
  *  @author Matt Miller, Crossbow <mmiller@xbow.com>
  *  @author Martin Turon, Crossbow <mturon@xbow.com>
  *
- *  $Id: SoftIrqP.nc,v 1.1.2.1 2005-08-07 21:01:52 scipio Exp $
+ *  $Id: SoftIrqP.nc,v 1.1.2.2 2006-11-07 23:15:11 scipio Exp $
  */
 
 /**

@@ -24,7 +24,7 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: SoftIrqC.nc,v 1.1.2.6 2006-01-18 22:14:20 scipio Exp $
+ *  $Id: SoftIrqC.nc,v 1.1.2.7 2006-11-07 23:15:11 scipio Exp $
  */
 
 /**

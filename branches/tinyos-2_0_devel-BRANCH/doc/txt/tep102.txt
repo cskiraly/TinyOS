@@ -10,8 +10,8 @@ Timers
 :Author: Cory Sharp, Martin Turon, David Gay
 
 :Draft-Created: 22-Sep-2004
-:Draft-Version: $Revision: 1.1.2.9 $
-:Draft-Modified: $Date: 2006-10-18 22:02:25 $
+:Draft-Version: $Revision: 1.1.2.10 $
+:Draft-Modified: $Date: 2006-11-07 23:14:55 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::

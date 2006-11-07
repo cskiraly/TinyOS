@@ -37,7 +37,7 @@
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
  * @author Kaisen Lin <klin@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-11-02 19:36:42 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-11-07 23:15:03 $
  */
 
 module HplLIS3L02DQLogicSPIP

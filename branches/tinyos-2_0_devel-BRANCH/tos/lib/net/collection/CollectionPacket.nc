@@ -1,4 +1,4 @@
-/* $Id: CollectionPacket.nc,v 1.1.2.7 2006-06-26 18:01:05 scipio Exp $ */
+/* $Id: CollectionPacket.nc,v 1.1.2.8 2006-11-07 23:15:11 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -33,7 +33,7 @@
 /*
  *  @author Philip Levis
  *  @author Kyle Jamieson
- *  @date   $Date: 2006-06-26 18:01:05 $
+ *  @date   $Date: 2006-11-07 23:15:11 $
  */
 
 #include <AM.h>

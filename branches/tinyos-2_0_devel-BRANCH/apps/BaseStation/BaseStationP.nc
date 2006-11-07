@@ -1,4 +1,4 @@
-// $Id: BaseStationP.nc,v 1.1.2.6 2006-10-30 21:55:04 scipio Exp $
+// $Id: BaseStationP.nc,v 1.1.2.7 2006-11-07 23:14:50 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: BaseStationP.nc,v 1.1.2.6 2006-10-30 21:55:04 scipio Exp $
+ * Revision:	$Id: BaseStationP.nc,v 1.1.2.7 2006-11-07 23:14:50 scipio Exp $
  */
   
 /* 

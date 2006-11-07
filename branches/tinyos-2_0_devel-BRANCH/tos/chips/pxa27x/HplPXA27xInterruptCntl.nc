@@ -1,4 +1,4 @@
-// $Id: HplPXA27xInterruptCntl.nc,v 1.1.2.1 2006-07-05 20:00:05 philipb Exp $
+// $Id: HplPXA27xInterruptCntl.nc,v 1.1.2.2 2006-11-07 23:15:08 scipio Exp $
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 

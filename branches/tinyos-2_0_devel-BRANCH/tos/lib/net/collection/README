@@ -1,4 +1,4 @@
-$Id: README,v 1.1.2.1 2006-04-20 15:47:04 rfonseca76 Exp $
+$Id: README,v 1.1.2.2 2006-11-07 23:15:11 scipio Exp $
 This is pre-alpha stage, only intended for discussion of the structure.
 The current state is that the configurations and module skeletons are in place,
 but with no actual executing code in the modules.

@@ -25,7 +25,7 @@
  *  @author Martin Turon <mturon@xbow.com>
  *  @author Miguel Freitas
  *
- *  $Id: SensorMts300C.nc,v 1.1.2.2 2006-11-05 18:09:53 scipio Exp $
+ *  $Id: SensorMts300C.nc,v 1.1.2.3 2006-11-07 23:15:26 scipio Exp $
  */
 
 configuration SensorMts300C

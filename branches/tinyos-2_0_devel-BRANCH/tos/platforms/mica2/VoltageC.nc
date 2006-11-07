@@ -1,4 +1,4 @@
-/* $Id: VoltageC.nc,v 1.1.2.11 2006-02-16 18:45:51 idgay Exp $
+/* $Id: VoltageC.nc,v 1.1.2.12 2006-11-07 23:15:15 scipio Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *

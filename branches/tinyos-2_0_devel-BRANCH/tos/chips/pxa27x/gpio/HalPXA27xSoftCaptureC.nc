@@ -1,4 +1,4 @@
-// $Id: HalPXA27xSoftCaptureC.nc,v 1.1.2.1 2006-07-05 21:36:03 philipb Exp $
+// $Id: HalPXA27xSoftCaptureC.nc,v 1.1.2.2 2006-11-07 23:15:08 scipio Exp $
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 

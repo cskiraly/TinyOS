@@ -1,4 +1,4 @@
-/* $Id: MAX136xInternalP.nc,v 1.1.2.2 2006-07-17 19:13:46 kaisenl Exp $ */
+/* $Id: MAX136xInternalP.nc,v 1.1.2.3 2006-11-07 23:15:26 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 

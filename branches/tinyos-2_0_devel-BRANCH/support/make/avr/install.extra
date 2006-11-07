@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: install.extra,v 1.1.2.1 2005-03-23 19:34:56 cssharp Exp $
+#$Id: install.extra,v 1.1.2.2 2006-11-07 23:14:56 scipio Exp $
 
 NODEID = $(INSTALL)
 BUILD_DEPS = srec tosimage bytes $(POST_BUILD_EXTRA_DEPS) setid program delsetid

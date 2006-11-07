@@ -1,4 +1,4 @@
-//$Id: NativeSerial_win32.cpp,v 1.1.2.1 2005-07-26 17:15:25 idgay Exp $
+//$Id: NativeSerial_win32.cpp,v 1.1.2.2 2006-11-07 23:14:58 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.

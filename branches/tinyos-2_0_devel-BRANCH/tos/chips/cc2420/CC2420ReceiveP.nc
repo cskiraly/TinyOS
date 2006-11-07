@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.10 $ $Date: 2006-06-20 18:56:04 $
+ * @version $Revision: 1.1.2.11 $ $Date: 2006-11-07 23:15:01 $
  */
 
 module CC2420ReceiveP {

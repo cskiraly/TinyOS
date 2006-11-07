@@ -29,7 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE
  *
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-10-24 20:37:34 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-11-07 23:15:02 $
  */
 
 #ifndef __CC2420_H__

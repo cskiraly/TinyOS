@@ -1,13 +1,13 @@
 #!/usr/bin/perl -w
 use strict;
-# $Id: motelist-linux,v 1.1.2.2 2005-08-03 20:26:22 idgay Exp $
+# $Id: motelist-linux,v 1.1.2.3 2006-11-07 23:14:58 scipio Exp $
 # @author Cory Sharp <cory@moteiv.com>
 # @author Joe Polastre
 
 my $help = <<'EOF';
 usage: motelist [options]
 
-  $Revision: 1.1.2.2 $
+  $Revision: 1.1.2.3 $
 
 options:
   -h  display this help

@@ -1,4 +1,4 @@
-/* $Id: NoInitC.nc,v 1.1.2.2 2006-01-27 22:19:17 idgay Exp $
+/* $Id: NoInitC.nc,v 1.1.2.3 2006-11-07 23:15:26 scipio Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *

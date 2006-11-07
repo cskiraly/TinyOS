@@ -30,7 +30,7 @@
 /**
  * Interface used by Msp430Spi clients to reconfigure the SPI before use
  * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
- * @version $Revision: 1.1.4.2 $ $Date: 2006-08-03 18:10:41 $
+ * @version $Revision: 1.1.4.3 $ $Date: 2006-11-07 23:15:08 $
  */
 
 #include "msp430usart.h"

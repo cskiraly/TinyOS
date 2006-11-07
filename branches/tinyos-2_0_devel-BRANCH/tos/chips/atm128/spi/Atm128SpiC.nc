@@ -1,4 +1,4 @@
-/// $Id: Atm128SpiC.nc,v 1.1.2.9 2006-08-15 11:59:08 klueska Exp $
+/// $Id: Atm128SpiC.nc,v 1.1.2.10 2006-11-07 23:15:00 scipio Exp $
 
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
@@ -52,7 +52,7 @@
  * The HAL of the SPI bus on the atm128.
  *
  * <pre>
- *  $Id: Atm128SpiC.nc,v 1.1.2.9 2006-08-15 11:59:08 klueska Exp $
+ *  $Id: Atm128SpiC.nc,v 1.1.2.10 2006-11-07 23:15:00 scipio Exp $
  * </pre>
  *
  *

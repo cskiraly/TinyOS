@@ -1,4 +1,4 @@
-//$Id: NativeSerial_linux.cpp,v 1.1.2.4 2006-01-10 16:48:48 idgay Exp $
+//$Id: NativeSerial_linux.cpp,v 1.1.2.5 2006-11-07 23:14:58 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.

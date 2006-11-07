@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: install.extra,v 1.1.2.3 2005-11-12 02:43:23 philipb Exp $
+#$Id: install.extra,v 1.1.2.4 2006-11-07 23:14:56 scipio Exp $
 
 NODEID = $(INSTALL)
 BUILD_DEPS = bin bytes setid program

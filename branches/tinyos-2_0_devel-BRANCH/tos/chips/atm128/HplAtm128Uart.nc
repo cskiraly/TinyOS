@@ -32,7 +32,7 @@
 /**
  * @author Alec Woo <awoo@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-10-10 19:18:42 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-11-07 23:14:59 $
  */
 
 interface HplAtm128Uart {

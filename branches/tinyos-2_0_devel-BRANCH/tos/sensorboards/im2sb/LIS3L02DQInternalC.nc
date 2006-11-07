@@ -1,4 +1,4 @@
-/* $Id: LIS3L02DQInternalC.nc,v 1.1.2.5 2006-11-03 02:28:22 philipb Exp $ */
+/* $Id: LIS3L02DQInternalC.nc,v 1.1.2.6 2006-11-07 23:15:25 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 

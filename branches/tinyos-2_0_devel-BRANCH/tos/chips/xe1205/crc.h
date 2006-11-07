@@ -1,4 +1,4 @@
-// $Id: crc.h,v 1.1.2.2 2006-10-30 14:07:03 henridf Exp $
+// $Id: crc.h,v 1.1.2.3 2006-11-07 23:15:10 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  

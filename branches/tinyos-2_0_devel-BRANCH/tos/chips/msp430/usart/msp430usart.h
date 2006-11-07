@@ -30,7 +30,7 @@
 
 /**
  * @author Vlado Handziski <handzisk@tkn.tu-berlin.de>
- * $Revision: 1.1.2.3 $ $Date: 2006-08-30 17:15:55 $
+ * $Revision: 1.1.2.4 $ $Date: 2006-11-07 23:15:08 $
  */
 
 #ifndef _H_Msp430Usart_h

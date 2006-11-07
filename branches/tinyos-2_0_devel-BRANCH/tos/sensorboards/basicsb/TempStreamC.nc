@@ -1,4 +1,4 @@
-/* $Id: TempStreamC.nc,v 1.1.2.2 2006-02-16 18:54:15 idgay Exp $
+/* $Id: TempStreamC.nc,v 1.1.2.3 2006-11-07 23:15:25 scipio Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *

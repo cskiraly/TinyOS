@@ -34,7 +34,7 @@
  * I2C packet interface and provides the HplTMP175 HPL interface.
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.6 $ $Date: 2006-08-19 00:46:24 $
+ * @version $Revision: 1.1.2.7 $ $Date: 2006-11-07 23:15:03 $
  */
 
 #include "DS2745.h"

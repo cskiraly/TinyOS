@@ -1,5 +1,5 @@
 #!@pathperl@ -w
-#$Id: tos-ident-flags.in,v 1.1.2.2 2006-02-03 16:58:19 idgay Exp $
+#$Id: tos-ident-flags.in,v 1.1.2.3 2006-11-07 23:14:59 scipio Exp $
 #@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
 use strict;

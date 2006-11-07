@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: eprb.extra,v 1.1.2.1 2005-03-23 19:34:56 cssharp Exp $
+#$Id: eprb.extra,v 1.1.2.2 2006-11-07 23:14:56 scipio Exp $
 
 ifeq ($(EPRB),)
 $(error EPRB must be defined, try "make $(TARGETS) help")

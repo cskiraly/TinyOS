@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xSerialP.nc,v 1.1.2.7 2006-10-20 23:19:54 philipb Exp $ */
+/* $Id: HalPXA27xSerialP.nc,v 1.1.2.8 2006-11-07 23:15:09 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 

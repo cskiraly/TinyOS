@@ -1,4 +1,4 @@
-/* $Id: HalMAX136xReaderP.nc,v 1.1.2.2 2006-07-17 19:12:13 kaisenl Exp $ */
+/* $Id: HalMAX136xReaderP.nc,v 1.1.2.3 2006-11-07 23:15:03 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 

@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: avr.rules,v 1.1.2.8 2006-11-05 18:09:52 scipio Exp $
+#$Id: avr.rules,v 1.1.2.9 2006-11-07 23:14:56 scipio Exp $
 
 define AVR_HELP
 

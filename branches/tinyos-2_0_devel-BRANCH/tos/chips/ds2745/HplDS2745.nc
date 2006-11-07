@@ -34,7 +34,7 @@
  * Monitor.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-08-11 22:44:53 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-11-07 23:15:03 $
  */
 
 interface HplDS2745 {

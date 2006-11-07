@@ -1,4 +1,4 @@
-//$Id: ReceiveBytePacket.nc,v 1.1.2.6 2006-01-30 19:23:44 bengreenstein Exp $
+//$Id: ReceiveBytePacket.nc,v 1.1.2.7 2006-11-07 23:15:12 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.

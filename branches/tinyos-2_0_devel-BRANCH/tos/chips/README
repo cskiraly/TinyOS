@@ -1,14 +1,14 @@
 ==============================================
 Directory Description:     tos/chips 
 ==============================================
-:$Id: README,v 1.1.2.2 2005-02-16 08:52:13 mturon Exp $
+:$Id: README,v 1.1.2.3 2006-11-07 23:14:59 scipio Exp $
 
 :TinyOS-Version: 2.0
 :Author: Martin Turon
 
 :Created: 14-Feb-2005
-:Version: $Revision: 1.1.2.2 $
-:Modified: $Date: 2005-02-16 08:52:13 $
+:Version: $Revision: 1.1.2.3 $
+:Modified: $Date: 2006-11-07 23:14:59 $
 
 1. Introduction
 ====================================================================

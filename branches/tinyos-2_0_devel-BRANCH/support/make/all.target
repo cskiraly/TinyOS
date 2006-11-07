@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: all.target,v 1.1.2.1 2005-03-23 19:34:52 cssharp Exp $
+#$Id: all.target,v 1.1.2.2 2006-11-07 23:14:56 scipio Exp $
 
 PLATFORMS ?= mica mica2 mica2dot telos micaz pc
 

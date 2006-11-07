@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: pxa27x.rules,v 1.1.2.10 2006-11-05 18:09:52 scipio Exp $
+#$Id: pxa27x.rules,v 1.1.2.11 2006-11-07 23:14:56 scipio Exp $
 
 define PXA27X_HELP
 

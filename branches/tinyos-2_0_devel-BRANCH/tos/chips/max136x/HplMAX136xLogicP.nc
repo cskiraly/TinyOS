@@ -35,7 +35,7 @@
  * interface.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-07-17 19:12:13 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-11-07 23:15:03 $
  */
 
 #include "I2C.h"

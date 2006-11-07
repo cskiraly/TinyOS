@@ -1,4 +1,4 @@
-// $Id: PlatformLedsC.nc,v 1.1.2.3 2006-02-06 18:55:58 philipb Exp $
+// $Id: PlatformLedsC.nc,v 1.1.2.4 2006-11-07 23:15:24 scipio Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.

@@ -38,7 +38,7 @@
  *
  * @author Philip Levis
  *
- * @version $Id: Atm128I2CMasterPacketP.nc,v 1.1.2.1 2006-06-08 03:22:03 scipio Exp $
+ * @version $Id: Atm128I2CMasterPacketP.nc,v 1.1.2.2 2006-11-07 23:14:59 scipio Exp $
  */
 
 generic module Atm128I2CMasterPacketP() {

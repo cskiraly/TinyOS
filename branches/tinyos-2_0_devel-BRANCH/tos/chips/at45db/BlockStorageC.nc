@@ -1,4 +1,4 @@
-// $Id: BlockStorageC.nc,v 1.1.2.8 2006-06-21 16:59:18 idgay Exp $
+// $Id: BlockStorageC.nc,v 1.1.2.9 2006-11-07 23:14:59 scipio Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
