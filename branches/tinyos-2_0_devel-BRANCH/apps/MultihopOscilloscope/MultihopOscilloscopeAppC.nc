@@ -34,7 +34,7 @@ implementation {
   //
   components CollectionC as Collector,  // Collection layer
     ActiveMessageC,                         // AM layer
-    new CollectionSenderC(OSCILLOSCOPE_COLLECTION_ID), // Sends multihop RF
+    new CollectionSenderC(AM_OSCILLOSCOPE), // Sends multihop RF
     SerialActiveMessageC,                   // Serial messaging
     new SerialAMSenderC(AM_OSCILLOSCOPE);   // Sends to the serial port
 
