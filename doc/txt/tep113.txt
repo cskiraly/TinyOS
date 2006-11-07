@@ -10,8 +10,8 @@ Serial Communication
 :Author: Ben Greenstein and Philip Levis
 
 :Draft-Created: 11-Jul-2005
-:Draft-Version: $Revision: 1.1.2.5 $
-:Draft-Modified: $Date: 2006-11-06 08:18:50 $
+:Draft-Version: $Revision: 1.1.2.6 $
+:Draft-Modified: $Date: 2006-11-07 23:14:55 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::

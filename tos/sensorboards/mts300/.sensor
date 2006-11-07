@@ -7,7 +7,7 @@
 # by ncc.  And because of that, the current sensorboard's include directory
 # must be specified, otherwise its search order is last instead of first.
 #
-# $Id: .sensor,v 1.1.2.1 2005-10-20 05:11:45 mturon Exp $
+# $Id: .sensor,v 1.1.2.2 2006-11-07 23:15:26 scipio Exp $
 #
 push( @includes, qw(
   %T/sensorboards/mts300

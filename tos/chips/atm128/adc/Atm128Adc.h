@@ -1,4 +1,4 @@
-// $Id: Atm128Adc.h,v 1.1.2.8 2006-03-14 20:03:48 klueska Exp $
+// $Id: Atm128Adc.h,v 1.1.2.9 2006-11-07 23:14:59 scipio Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.

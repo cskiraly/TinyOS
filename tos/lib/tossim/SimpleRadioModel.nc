@@ -1,4 +1,4 @@
-// $Id: SimpleRadioModel.nc,v 1.1.2.2 2006-02-14 17:01:44 idgay Exp $
+// $Id: SimpleRadioModel.nc,v 1.1.2.3 2006-11-07 23:15:13 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *

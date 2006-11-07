@@ -1,4 +1,4 @@
-/* $Id: HplCC2420SpiC.nc,v 1.1.2.3 2006-07-06 22:46:37 philipb Exp $ */
+/* $Id: HplCC2420SpiC.nc,v 1.1.2.4 2006-11-07 23:15:15 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arched Rock Corporation 
  * All rights reserved. 

@@ -1,4 +1,4 @@
-/* $Id: CtpDebug.nc,v 1.1.2.2 2006-08-25 00:41:28 scipio Exp $*/
+/* $Id: CtpDebug.nc,v 1.1.2.3 2006-11-07 23:15:12 scipio Exp $*/
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -42,7 +42,7 @@
  
  * @author Rodrigo Fonseca
  * @author Kyle Jamieson
- * @date   $Date: 2006-08-25 00:41:28 $
+ * @date   $Date: 2006-11-07 23:15:12 $
  */
 
 interface CollectionDebug {

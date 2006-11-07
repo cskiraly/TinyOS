@@ -1,4 +1,4 @@
-/* $Id: DemoSensorP.nc,v 1.1.2.2 2006-06-20 18:56:06 jwhui Exp $ */
+/* $Id: DemoSensorP.nc,v 1.1.2.3 2006-11-07 23:15:14 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 

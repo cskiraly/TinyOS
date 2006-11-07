@@ -1,4 +1,4 @@
-// $Id: TimerMilliP.nc,v 1.1.2.2 2006-01-29 20:32:25 scipio Exp $
+// $Id: TimerMilliP.nc,v 1.1.2.3 2006-11-07 23:15:26 scipio Exp $
 /*									tab:4
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.

@@ -10,8 +10,8 @@ Microcontroller Power Management
 :Author: Robert Szewczyk, Philip Levis, Martin Turon, Lama Nachman, Philip Buonadonna, Vlado Handziski
 
 :Draft-Created: 19-Sep-2005
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2005-10-31 22:30:55 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-11-07 23:14:55 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::

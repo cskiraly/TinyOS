@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-08-01 16:36:24 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-11-07 23:15:04 $
  */
 
 interface HplMsp430I2CInterrupts {

@@ -1,4 +1,4 @@
-// $Id: TestLplAppC.nc,v 1.1.2.1 2006-10-30 18:11:59 idgay Exp $
+// $Id: TestLplAppC.nc,v 1.1.2.2 2006-11-07 23:14:51 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  

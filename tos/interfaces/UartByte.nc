@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-10-10 19:18:42 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-11-07 23:15:11 $
  */
 
 interface UartByte {

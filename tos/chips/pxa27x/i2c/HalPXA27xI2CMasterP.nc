@@ -1,4 +1,4 @@
-/* $Id: HalPXA27xI2CMasterP.nc,v 1.1.2.6 2006-09-05 18:29:57 philipb Exp $ */
+/* $Id: HalPXA27xI2CMasterP.nc,v 1.1.2.7 2006-11-07 23:15:08 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 

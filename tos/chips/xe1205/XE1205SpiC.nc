@@ -34,7 +34,7 @@
  *
  * @author Jonathan Hui <jhui@archrock.com>
  * @author Henri Dubois-Ferriere
- * @version $Revision: 1.1.2.2 $ $Date: 2006-06-20 18:56:05 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-11-07 23:15:10 $
  */
 
 #include "XE1205.h"

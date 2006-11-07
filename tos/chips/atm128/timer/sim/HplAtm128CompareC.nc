@@ -1,4 +1,4 @@
-/// $Id: HplAtm128CompareC.nc,v 1.1.2.4 2006-01-15 23:44:54 scipio Exp $
+/// $Id: HplAtm128CompareC.nc,v 1.1.2.5 2006-11-07 23:15:00 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -29,7 +29,7 @@
  * @date   Nov 22 2005
  */
 
-// $Id: HplAtm128CompareC.nc,v 1.1.2.4 2006-01-15 23:44:54 scipio Exp $
+// $Id: HplAtm128CompareC.nc,v 1.1.2.5 2006-11-07 23:15:00 scipio Exp $
 
 #include <Atm128Timer.h>
 

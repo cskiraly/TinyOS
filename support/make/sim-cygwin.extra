@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: sim-cygwin.extra,v 1.1.2.1 2006-04-05 18:33:05 scipio Exp $
+#$Id: sim-cygwin.extra,v 1.1.2.2 2006-11-07 23:14:56 scipio Exp $
 
 GCC=gcc
 GPP=g++

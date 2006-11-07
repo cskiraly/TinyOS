@@ -1,4 +1,4 @@
-/* $Id: Collection.h,v 1.1.2.8 2006-08-25 00:41:28 scipio Exp $ */
+/* $Id: Collection.h,v 1.1.2.9 2006-11-07 23:15:11 scipio Exp $ */
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
@@ -23,7 +23,7 @@
 
 /*
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-08-25 00:41:28 $
+ *  @date   $Date: 2006-11-07 23:15:11 $
  */
 #ifndef COLLECTION_H
 #define COLLECTION_H

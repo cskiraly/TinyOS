@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: eyesIFXv2.target,v 1.1.2.7 2006-10-13 20:16:47 vlahan Exp $
+#$Id: eyesIFXv2.target,v 1.1.2.8 2006-11-07 23:14:56 scipio Exp $
 
 PLATFORM = eyesIFXv2
 

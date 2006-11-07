@@ -1,4 +1,4 @@
-// $Id: PowerupAppC.nc,v 1.1.2.3 2006-02-04 01:10:33 philipb Exp $
+// $Id: PowerupAppC.nc,v 1.1.2.4 2006-11-07 23:14:51 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  

@@ -1,4 +1,4 @@
-// $Id: ActiveMessageC.nc,v 1.1.2.1 2006-04-24 16:06:48 henridf Exp $
+// $Id: ActiveMessageC.nc,v 1.1.2.2 2006-11-07 23:15:25 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2004-2005 The Regents of the University  of California.  
@@ -31,7 +31,7 @@
 /*
  *
  * Authors:		Philip Levis
- * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.1 2006-04-24 16:06:48 henridf Exp $
+ * Date last modified:  $Id: ActiveMessageC.nc,v 1.1.2.2 2006-11-07 23:15:25 scipio Exp $
  *
  */
 

@@ -29,8 +29,8 @@
  * requests.
  * 
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.5 $
- * @date $Date: 2006-08-15 11:50:42 $
+ * @version $Revision: 1.1.2.6 $
+ * @date $Date: 2006-11-07 23:15:10 $
  */
 
 interface ResourceRequested {

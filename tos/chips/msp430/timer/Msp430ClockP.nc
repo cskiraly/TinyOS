@@ -1,4 +1,4 @@
-//$Id: Msp430ClockP.nc,v 1.1.2.3 2006-06-19 11:12:23 klueska Exp $
+//$Id: Msp430ClockP.nc,v 1.1.2.4 2006-11-07 23:15:04 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.

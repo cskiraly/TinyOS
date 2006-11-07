@@ -1,4 +1,4 @@
-// $Id: BlinkConfigC.nc,v 1.1.2.2 2006-11-05 23:27:57 prabal Exp $
+// $Id: BlinkConfigC.nc,v 1.1.2.3 2006-11-07 23:14:53 scipio Exp $
 
 /*
  * "Copyright (c) 2000-2006 The Regents of the University of

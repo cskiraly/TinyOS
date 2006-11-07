@@ -34,7 +34,7 @@
  * available on the telosb platform.
  *
  * @author Gilman Tolle <gtolle@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-10-25 16:09:40 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-11-07 23:15:25 $
  */
 
 generic configuration HamamatsuS10871TsrC() {

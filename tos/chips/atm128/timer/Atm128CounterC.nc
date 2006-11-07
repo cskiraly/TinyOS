@@ -1,4 +1,4 @@
-//$Id: Atm128CounterC.nc,v 1.1.2.3 2006-01-27 17:56:06 idgay Exp $
+//$Id: Atm128CounterC.nc,v 1.1.2.4 2006-11-07 23:15:00 scipio Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.

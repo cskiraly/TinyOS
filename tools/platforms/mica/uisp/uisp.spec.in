@@ -1,6 +1,6 @@
 ## -*- mode: rpm-spec; -*-
 ##
-## $Id: uisp.spec.in,v 1.1.2.1 2005-07-26 17:11:15 idgay Exp $
+## $Id: uisp.spec.in,v 1.1.2.2 2006-11-07 23:14:57 scipio Exp $
 ##
 ## @configure_input@
 ##

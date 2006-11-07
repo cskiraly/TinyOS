@@ -1,4 +1,4 @@
-/* $Id: MAX136xC.nc,v 1.1.2.1 2006-07-06 23:23:41 philipb Exp $ */
+/* $Id: MAX136xC.nc,v 1.1.2.2 2006-11-07 23:15:25 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 

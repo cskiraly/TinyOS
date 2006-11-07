@@ -1,4 +1,4 @@
-/* $Id: HalLIS3L02DQControlP.nc,v 1.1.2.1 2006-07-06 23:21:40 philipb Exp $ */
+/* $Id: HalLIS3L02DQControlP.nc,v 1.1.2.2 2006-11-07 23:15:03 scipio Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 

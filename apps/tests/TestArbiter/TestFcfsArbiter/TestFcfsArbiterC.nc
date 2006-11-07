@@ -57,8 +57,8 @@
  * <br>
  *
  * @author Kevin Klues <klues@tkn.tu-berlin.de>
- * @version  $Revision: 1.1.2.2 $
- * @date $Date: 2006-10-30 17:05:44 $
+ * @version  $Revision: 1.1.2.3 $
+ * @date $Date: 2006-11-07 23:14:51 $
  */
 
 module TestFcfsArbiterC {

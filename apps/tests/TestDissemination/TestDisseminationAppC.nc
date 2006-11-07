@@ -42,7 +42,7 @@
  * See TEP118 - Dissemination for details.
  * 
  * @author Gilman Tolle <gtolle@archedrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-03-02 22:10:13 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-11-07 23:14:51 $
  */
 
 configuration TestDisseminationAppC {}

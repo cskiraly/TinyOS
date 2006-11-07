@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archedrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-10-13 20:11:53 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-11-07 23:15:14 $
  */
 
 configuration Msp430UsartShare0P {

@@ -33,7 +33,7 @@
  * Types and definitions for the Dallas DS2745 I2C Battery Monitor
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.1 $ $Date: 2006-08-11 00:06:31 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2006-11-07 23:15:03 $
  */
 
 #ifndef _DS2745_H

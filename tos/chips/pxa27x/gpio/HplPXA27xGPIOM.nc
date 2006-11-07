@@ -1,4 +1,4 @@
-// $Id: HplPXA27xGPIOM.nc,v 1.1.2.3 2005-12-30 00:56:21 philipb Exp $
+// $Id: HplPXA27xGPIOM.nc,v 1.1.2.4 2006-11-07 23:15:08 scipio Exp $
 
 /*									tab:4
  *  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.  By

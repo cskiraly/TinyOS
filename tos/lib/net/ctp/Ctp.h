@@ -1,4 +1,4 @@
-/* $Id: Ctp.h,v 1.1.2.3 2006-09-08 21:51:55 kasj78 Exp $ */
+/* $Id: Ctp.h,v 1.1.2.4 2006-11-07 23:15:12 scipio Exp $ */
 
 /*
  * Copyright (c) 2006 Stanford University.
@@ -37,7 +37,7 @@
  *  Collection Tree Protocol (CTP), as documented in TEP 123.
  *
  *  @author Philip Levis
- *  @date   $Date: 2006-09-08 21:51:55 $
+ *  @date   $Date: 2006-11-07 23:15:12 $
  */
 
 #ifndef CTP_H

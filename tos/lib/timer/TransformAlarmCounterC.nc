@@ -1,4 +1,4 @@
-//$Id: TransformAlarmCounterC.nc,v 1.1.2.5 2006-09-22 19:27:41 idgay Exp $
+//$Id: TransformAlarmCounterC.nc,v 1.1.2.6 2006-11-07 23:15:13 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.

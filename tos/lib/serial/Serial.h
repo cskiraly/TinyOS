@@ -1,4 +1,4 @@
-//$Id: Serial.h,v 1.1.2.16 2006-10-30 23:13:22 idgay Exp $
+//$Id: Serial.h,v 1.1.2.17 2006-11-07 23:15:12 scipio Exp $
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.
  *

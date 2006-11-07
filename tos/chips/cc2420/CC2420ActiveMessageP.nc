@@ -29,7 +29,7 @@
  * of the data payload.
  *
  * @author Philip Levis
- * @version $Revision: 1.1.2.8 $ $Date: 2006-08-04 00:34:18 $
+ * @version $Revision: 1.1.2.9 $ $Date: 2006-11-07 23:15:01 $
  */
 
 module CC2420ActiveMessageP {

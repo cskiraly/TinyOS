@@ -36,4 +36,4 @@ Known bugs/limitations:
 None.
 
 
-$Id: README.txt,v 1.1.2.1 2006-02-03 23:19:28 idgay Exp $
+$Id: README.txt,v 1.1.2.2 2006-11-07 23:14:50 scipio Exp $

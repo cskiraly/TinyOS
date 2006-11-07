@@ -22,7 +22,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  *  THE POSSIBILITY OF SUCH DAMAGE.
  *
- *  $Id: Atm128GpioCaptureC.nc,v 1.1.2.2 2006-01-27 17:56:06 idgay Exp $
+ *  $Id: Atm128GpioCaptureC.nc,v 1.1.2.3 2006-11-07 23:15:00 scipio Exp $
  */
 
 /**

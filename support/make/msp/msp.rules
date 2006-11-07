@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: msp.rules,v 1.1.2.9 2006-11-05 18:09:52 scipio Exp $
+#$Id: msp.rules,v 1.1.2.10 2006-11-07 23:14:56 scipio Exp $
 
 define MSP_HELP
 

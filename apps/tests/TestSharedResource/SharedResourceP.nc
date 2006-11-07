@@ -25,8 +25,8 @@
  * out of a dedicated one.
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
- * @version $Revision: 1.1.2.2 $
- * @date $Date: 2006-11-03 19:17:44 $
+ * @version $Revision: 1.1.2.3 $
+ * @date $Date: 2006-11-07 23:14:52 $
  */
  
 #define TEST_SHARED_RESOURCE   "Test.Shared.Resource"

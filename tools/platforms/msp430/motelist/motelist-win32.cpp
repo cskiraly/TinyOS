@@ -1,4 +1,4 @@
-// $Id: motelist-win32.cpp,v 1.1.2.1 2005-07-26 21:19:25 idgay Exp $
+// $Id: motelist-win32.cpp,v 1.1.2.2 2006-11-07 23:14:58 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -408,7 +408,7 @@ void usage()
 {
   cout << "usage: motelist [-l] [-c]\n"
        << "\n"
-       << "  $Revision: 1.1.2.1 $ $Date: 2005-07-26 21:19:25 $\n"
+       << "  $Revision: 1.1.2.2 $ $Date: 2006-11-07 23:14:58 $\n"
        << "\n"
        << "options:\n"
        << "  -h  display this help\n"

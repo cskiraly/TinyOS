@@ -1,4 +1,4 @@
-/* $Id: QueueC.nc,v 1.1.2.3 2006-07-20 20:15:42 scipio Exp $ */
+/* $Id: QueueC.nc,v 1.1.2.4 2006-11-07 23:15:26 scipio Exp $ */
 /*
  * Copyright (c) 2006 Stanford University.
  * All rights reserved.
@@ -35,7 +35,7 @@
  *
  *  @author Philip Levis
  *  @author Geoffrey Mainland
- *  @date   $Date: 2006-07-20 20:15:42 $
+ *  @date   $Date: 2006-11-07 23:15:26 $
  */
 
    

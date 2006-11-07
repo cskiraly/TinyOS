@@ -1,4 +1,4 @@
-// $Id: CC1000Const.h,v 1.1.2.1 2006-10-30 01:44:34 idgay Exp $
+// $Id: CC1000Const.h,v 1.1.2.2 2006-11-07 23:15:01 scipio Exp $
 
 /* -*- Mode: C; c-basic-indent: 2; indent-tabs-mode: nil -*- */ 
 /*									tab:4

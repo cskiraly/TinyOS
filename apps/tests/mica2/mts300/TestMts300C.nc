@@ -24,7 +24,7 @@
  *
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: TestMts300C.nc,v 1.1.1.1.2.1 2006-02-04 01:10:33 philipb Exp $
+ *  $Id: TestMts300C.nc,v 1.1.1.1.2.2 2006-11-07 23:14:53 scipio Exp $
  */
 
 /**

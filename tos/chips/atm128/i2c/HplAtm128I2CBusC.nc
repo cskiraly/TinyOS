@@ -1,4 +1,4 @@
-/// $Id: HplAtm128I2CBusC.nc,v 1.1.2.2 2006-05-01 21:50:50 scipio Exp $
+/// $Id: HplAtm128I2CBusC.nc,v 1.1.2.3 2006-11-07 23:14:59 scipio Exp $
 
 /*
  *  Copyright (c) 2004-2006 Crossbow Technology, Inc.
@@ -33,7 +33,7 @@
  * @author Martin Turon <mturon@xbow.com>
  * @author Philip Levis
  *
- * @version    $Id: HplAtm128I2CBusC.nc,v 1.1.2.2 2006-05-01 21:50:50 scipio Exp $
+ * @version    $Id: HplAtm128I2CBusC.nc,v 1.1.2.3 2006-11-07 23:14:59 scipio Exp $
  */
 
 configuration HplAtm128I2CBusC {

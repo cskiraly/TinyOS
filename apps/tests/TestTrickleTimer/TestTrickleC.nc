@@ -1,4 +1,4 @@
-// $Id: TestTrickleC.nc,v 1.1.2.1 2006-01-07 23:43:51 scipio Exp $
+// $Id: TestTrickleC.nc,v 1.1.2.2 2006-11-07 23:14:52 scipio Exp $
 /*
  * "Copyright (c) 2006 Stanford University. All rights reserved.
  *

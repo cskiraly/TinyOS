@@ -10,8 +10,8 @@ Virtualization
 :Author: Philip Levis
 
 :Draft-Created: 20-Jun-2005
-:Draft-Version: $Revision: 1.1.2.2 $
-:Draft-Modified: $Date: 2006-02-08 21:59:16 $
+:Draft-Version: $Revision: 1.1.2.3 $
+:Draft-Modified: $Date: 2006-11-07 23:14:55 $
 :Draft-Discuss: TinyOS Developer List <tinyos-devel at mail.millennium.berkeley.edu>
 
 .. Note::

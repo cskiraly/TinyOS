@@ -1,4 +1,4 @@
-// $Id: SFProtocol.java,v 1.1.2.3 2006-02-16 01:21:26 idgay Exp $
+// $Id: SFProtocol.java,v 1.1.2.4 2006-11-07 23:14:57 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  

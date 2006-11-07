@@ -1,4 +1,4 @@
-/* $Id: CollectionC.nc,v 1.1.2.3 2006-10-05 08:08:18 gnawali Exp $ */
+/* $Id: CollectionC.nc,v 1.1.2.4 2006-11-07 23:15:11 scipio Exp $ */
 #include "Collection.h"
 /*
  * "Copyright (c) 2005 The Regents of the University  of California.  
@@ -24,7 +24,7 @@
 
 /*
  *  @author Rodrigo Fonseca
- *  @date   $Date: 2006-10-05 08:08:18 $
+ *  @date   $Date: 2006-11-07 23:15:11 $
  */
 configuration CollectionC {
     provides {

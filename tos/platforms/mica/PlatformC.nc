@@ -1,4 +1,4 @@
-/// $Id: PlatformC.nc,v 1.1.2.9 2006-02-17 00:26:48 idgay Exp $
+/// $Id: PlatformC.nc,v 1.1.2.10 2006-11-07 23:15:15 scipio Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.

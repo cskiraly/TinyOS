@@ -1,4 +1,4 @@
-//$Id: HdlcTranslateC.nc,v 1.1.2.4 2006-10-10 19:18:42 jwhui Exp $
+//$Id: HdlcTranslateC.nc,v 1.1.2.5 2006-11-07 23:15:12 scipio Exp $
 
 /* "Copyright (c) 2000-2005 The Regents of the University of California.  
  * All rights reserved.

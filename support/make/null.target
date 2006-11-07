@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: null.target,v 1.1.2.1 2005-10-11 17:18:57 idgay Exp $
+#$Id: null.target,v 1.1.2.2 2006-11-07 23:14:56 scipio Exp $
 
 PLATFORM = null
 PFLAGS += -finline-limit=100000

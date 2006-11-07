@@ -30,8 +30,8 @@
  * of the AsyncStdControl, StdControl, and SplitControl interfaces.
  *
  * @author Kevin Klues <klueska@cs.wustl.edu>
- * @version  $Revision: 1.1.2.9 $
- * @date $Date: 2006-08-15 11:47:21 $ 
+ * @version  $Revision: 1.1.2.10 $
+ * @date $Date: 2006-11-07 23:14:51 $ 
  */
  
 #define MYCOMPONENT_RESOURCE   "MyComponent.Resource"

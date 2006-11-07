@@ -1,4 +1,4 @@
-// $Id: BuildSource.java,v 1.1.2.5 2006-06-27 22:21:40 idgay Exp $
+// $Id: BuildSource.java,v 1.1.2.6 2006-11-07 23:14:57 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  

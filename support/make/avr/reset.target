@@ -1,5 +1,5 @@
 #-*-Makefile-*- vim:syntax=make
-#$Id: reset.target,v 1.1.2.1 2005-03-23 19:34:57 cssharp Exp $
+#$Id: reset.target,v 1.1.2.2 2006-11-07 23:14:56 scipio Exp $
 
 BUILD_DEPS = harmless
 

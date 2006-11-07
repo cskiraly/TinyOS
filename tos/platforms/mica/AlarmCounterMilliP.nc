@@ -1,4 +1,4 @@
-// $Id: AlarmCounterMilliP.nc,v 1.1.2.4 2006-01-27 21:52:11 idgay Exp $
+// $Id: AlarmCounterMilliP.nc,v 1.1.2.5 2006-11-07 23:15:15 scipio Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.

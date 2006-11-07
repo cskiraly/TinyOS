@@ -64,7 +64,7 @@
 /**
  * @author Jonathan Hui <jhui@archrock.com>
  * @author Henri Dubois-Ferriere
- * @version $Revision: 1.1.2.4 $ $Date: 2006-09-28 19:26:22 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-11-07 23:15:10 $
  */
 
 module XE1205SpiImplP {

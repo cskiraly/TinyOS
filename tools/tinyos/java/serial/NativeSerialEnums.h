@@ -1,4 +1,4 @@
-//$Id: NativeSerialEnums.h,v 1.1.2.2 2005-07-26 20:54:02 idgay Exp $
+//$Id: NativeSerialEnums.h,v 1.1.2.3 2006-11-07 23:14:58 scipio Exp $
 
 /* "Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.

@@ -31,7 +31,7 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-08-31 14:59:54 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2006-11-07 23:15:04 $
  */
 
 configuration Msp430I2C0P {

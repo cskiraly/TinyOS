@@ -37,7 +37,7 @@
  * outside configuration/module according to the host platform.
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-11-03 22:38:07 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2006-11-07 23:15:10 $
  */
 
 #include "TMP175.h"

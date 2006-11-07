@@ -1,4 +1,4 @@
-/* $Id: DemoSensorNowC.nc,v 1.1.2.3 2006-08-15 11:59:09 klueska Exp $
+/* $Id: DemoSensorNowC.nc,v 1.1.2.4 2006-11-07 23:15:24 scipio Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *

@@ -1,4 +1,4 @@
-// $Id: CounterThree16C.nc,v 1.1.2.1 2006-04-28 23:18:57 idgay Exp $
+// $Id: CounterThree16C.nc,v 1.1.2.2 2006-11-07 23:15:15 scipio Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.

@@ -1,4 +1,4 @@
-/* $Id: PhotoP.nc,v 1.1.2.5 2006-02-16 18:54:15 idgay Exp $
+/* $Id: PhotoP.nc,v 1.1.2.6 2006-11-07 23:15:25 scipio Exp $
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *

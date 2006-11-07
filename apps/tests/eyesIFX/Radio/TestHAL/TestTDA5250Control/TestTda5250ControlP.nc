@@ -1,4 +1,4 @@
-// $Id: TestTda5250ControlP.nc,v 1.1.2.1 2006-05-31 16:29:24 phihup Exp $
+// $Id: TestTda5250ControlP.nc,v 1.1.2.2 2006-11-07 23:14:52 scipio Exp $
 
 /*                                  tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.

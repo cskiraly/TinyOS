@@ -37,7 +37,7 @@
  * arbitrated access.
  *
  * @author Gilman Tolle <gtolle@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-06-20 18:56:05 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-11-07 23:15:09 $
  */
 
 generic module SensirionSht11ReaderP() {

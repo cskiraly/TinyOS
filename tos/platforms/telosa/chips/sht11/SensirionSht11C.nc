@@ -39,7 +39,7 @@
  * sequentially.
  *
  * @author Gilman Tolle <gtolle@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-06-20 18:56:07 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-11-07 23:15:25 $
  */
 
 generic configuration SensirionSht11C() {

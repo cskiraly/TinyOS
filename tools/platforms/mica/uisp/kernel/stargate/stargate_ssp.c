@@ -20,7 +20,7 @@
  * by O'Reilly & Associates.   No warranty is attached;
  * we cannot take responsibility for errors or fitness for use.
  *
- * $Id: stargate_ssp.c,v 1.1.2.1 2005-07-26 17:12:02 idgay Exp $
+ * $Id: stargate_ssp.c,v 1.1.2.2 2006-11-07 23:14:57 scipio Exp $
  */
 
 #ifndef __KERNEL__
