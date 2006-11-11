@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<!--- $Id: lesson11.html,v 1.1.2.6 2006-11-07 23:14:54 scipio Exp $ --->
+<!--- $Id: lesson11.html,v 1.1.2.7 2006-11-11 17:53:39 scipio Exp $ --->
 
 <div class="title">Lesson 11: Simulation with TOSSIM</div>
 <div class="subtitle">Last Modified: 18 May 2006</div>
@@ -1227,7 +1227,7 @@ int main() {
 all:
         make micaz sim
         g++ -g -c -o Driver.o Driver.c -I../../tos/lib/tossim/
-        g++ -o Driver Driver.o build/micaz/tossim.o build/micaz/sim.o
+        g++ -o Driver Driver.o build/micaz/tossim.o build/micaz/sim.o build/micaz/c-support.o
       </pre>
         
 
