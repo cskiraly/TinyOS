@@ -1,4 +1,4 @@
-/* $Id: im2sb.h,v 1.1.2.4 2006-11-07 23:15:26 scipio Exp $ */
+/* $Id: im2sb.h,v 1.1.2.5 2006-11-13 19:51:44 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -31,7 +31,7 @@
 /**
  * 
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * Revision: $Revision: 1.1.2.4 $
+ * Revision: $Revision: 1.1.2.5 $
  *
  */
 
@@ -50,7 +50,7 @@
 #define GPIO_PWR_ADC_NSHDWN		(93)
 
 #define TSL2561_SLAVE_ADDR (0x49)
-#define TMP175_SLAVE_ADDR (0x48)
+#define TMP175_SLAVE_ADDR (0x4A)
 #define MAX136_SLAVE_ADDR (0x35)
 
 #endif /* _IM2SB_H */
