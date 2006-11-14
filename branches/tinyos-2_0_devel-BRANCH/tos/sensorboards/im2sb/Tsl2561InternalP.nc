@@ -1,4 +1,4 @@
-/* $Id: Tsl2561InternalP.nc,v 1.1.2.3 2006-11-07 23:15:26 scipio Exp $ */
+/* $Id: Tsl2561InternalP.nc,v 1.1.2.4 2006-11-14 00:54:10 philipb Exp $ */
 /*
  * Copyright (c) 2005 Arch Rock Corporation 
  * All rights reserved. 
@@ -113,7 +113,7 @@ implementation {
     signal HplTSL256x.alertThreshold[currentId]();
   }
 
-  async event InterruptAlert.fired() {}
+  async event void InterruptAlert.fired() {}
 
   default async event void HplTSL256x.measureCh0Done[uint8_t id]( error_t error, uint16_t val ){ return; }
   default async event void HplTSL256x.measureCh1Done[uint8_t id]( error_t error, uint16_t val ){ return; }
