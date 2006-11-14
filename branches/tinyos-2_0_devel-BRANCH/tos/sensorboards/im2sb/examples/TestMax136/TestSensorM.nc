@@ -39,6 +39,9 @@
 #include "MAX136x.h"
 #include "../TestSensor.h"
 
+/* Uncomment the flag below to test the interrupt functions of the chip */
+//#define USE_INTERRUPTS
+
 module TestSensorM
 {
   uses interface Boot;
@@ -75,7 +78,24 @@ implementation
 
 
   event void MsgControl.startDone(error_t result) {
+#ifndef USE_INTERRUPTS
     call Timer0.startPeriodic( 100 );
+#else
+    uint16_t chan0Low = 200;
+    uint16_t chan0High = 700;
+    uint8_t ucThresholds[12];
+    uint8_t i;
+
+    ucThresholds[0] = (chan0Low >> 4);
+    ucThresholds[1] = ( ((chan0Low & 0xF) << 4) | (chan0High >> 8));
+    ucThresholds[2] = chan0High & 0xFF;
+    for (i=3;i<12;i+=3) {
+      ucThresholds[i] = 0x00;
+      ucThresholds[i+1] = 0x0F;
+      ucThresholds[i+2] = 0xFF;
+    }
+    call HalMAX136xAdvanced.setMonitorMode(0,0,MAX136X_DELAY_1_0,ucThresholds);
+#endif
   }
 
   event void MsgControl.stopDone(error_t result) { return; }
@@ -92,14 +112,24 @@ implementation
   }
 
   event void HalMAX136xAdvanced.setScanModeDone(error_t error) {}
-  event void HalMAX136xAdvanced.setMonitorModeDone(error_t error) {}
+  event void HalMAX136xAdvanced.setMonitorModeDone(error_t error) {
+    call Leds.set(LEDS_LED1);
+    call HalMAX136xAdvanced.enableAlert(TRUE);
+  }
   event void HalMAX136xAdvanced.setConversionModeDone(error_t error) {}  
   event void HalMAX136xAdvanced.setClockDone(error_t error) {} 
   event void HalMAX136xAdvanced.setRefDone(error_t error) {}
   event void HalMAX136xAdvanced.getStatusDone(error_t error, uint8_t status, 
 					      max136x_data_t data) {}
-  event void HalMAX136xAdvanced.enableAlertDone(error_t error) {}
-  event void HalMAX136xAdvanced.alertThreshold() {}
+  event void HalMAX136xAdvanced.enableAlertDone(error_t error) {
+    call Leds.set(LEDS_LED1 | LEDS_LED2);
+    return;
+  }
+  event void HalMAX136xAdvanced.alertThreshold() {
+    call Leds.led0Toggle();
+    call HalMAX136xAdvanced.enableAlert(TRUE); // Clears interrupt
+    return;
+  }
 
   event void AMSend.sendDone(message_t* bufPtr, error_t error) { return; }
 }
