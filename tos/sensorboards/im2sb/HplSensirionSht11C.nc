@@ -38,11 +38,12 @@
  *
  * @author Gilman Tolle <gtolle@archrock.com>
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.3 $ $Date: 2006-11-07 23:15:25 $
+ * @version $Revision: 1.1.2.4 $ $Date: 2006-11-14 00:53:35 $
  */
 #include <im2sb.h>
 
 configuration HplSensirionSht11C {
+  provides interface SplitControl;
   provides interface Resource[ uint8_t id ];
   provides interface GeneralIO as DATA;
   provides interface GeneralIO as SCK;
@@ -55,6 +56,15 @@ implementation {
   SCK = GeneralIOC.GeneralIO[GPIO_SHT11_CLK];
   InterruptDATA = GeneralIOC.GpioInterrupt[GPIO_SHT11_DATA];
 
+  components HplSensirionSht11P;
+  SplitControl = HplSensirionSht11P;
+  
+  components new TimerMilliC();
+  components HplPXA27xGPIOC;
+  HplSensirionSht11P.Timer -> TimerMilliC;
+  HplSensirionSht11P.DATA -> HplPXA27xGPIOC.HplPXA27xGPIOPin[GPIO_SHT11_DATA];
+  HplSensirionSht11P.SCK -> HplPXA27xGPIOC.HplPXA27xGPIOPin[GPIO_SHT11_CLK];
+  
   components new SimpleFcfsArbiterC( "Sht11.Resource" ) as Arbiter;
   Resource = Arbiter;
 }

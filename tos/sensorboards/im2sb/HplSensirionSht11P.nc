@@ -36,14 +36,14 @@
  * the Sensirion SHT11 sensor on the telosb platform.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.2 $ $Date: 2006-11-07 23:15:25 $
+ * @version $Revision: 1.1.2.3 $ $Date: 2006-11-14 00:53:35 $
  */
 
 module HplSensirionSht11P {
   provides interface SplitControl;
   uses interface Timer<TMilli>;
-  uses interface HPlPXA27xGPIOPin as DATA;
-  uses interface HPLPXA27xGPIOPin as SCK;
+  uses interface HplPXA27xGPIOPin as DATA;
+  uses interface HplPXA27xGPIOPin as SCK;
 }
 implementation {
   task void stopTask();
@@ -71,5 +71,8 @@ implementation {
   task void stopTask() {
     signal SplitControl.stopDone( SUCCESS );
   }
+
+  async event void DATA.interruptGPIOPin() { return; }
+  async event void SCK.interruptGPIOPin() { return; }
 }
 
