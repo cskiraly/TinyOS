@@ -4,7 +4,7 @@ Intel Mote 2 Demo Sensorboard Release Notes
 
   TSL2561 - 0x49
   TMP175  - 0X4A
-  MAX136  - 0x35
+  MAX136  - 0x34
 
 These address assignments are compatible with the DS2745 on the optional battery board.  Modify the address assignments as needed.
 
