@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.4 $
- * $Date: 2006-11-07 23:15:14 $
+ * $Revision: 1.1.2.5 $
+ * $Date: 2006-11-15 21:20:32 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -54,11 +54,9 @@ generic configuration RssiSensorVccC()
 implementation
 {
     components SensorSettingsC as Settings;
-    components RssiSensorVccP as RssiSensor;
-    components new Msp430Adc12ClientC() as AdcClient;
+    components new AdcReadNowClientC() as AdcReadNowClient;
     
-    ReadNow = RssiSensor;
-    ReadNowResource = RssiSensor;
-    RssiSensor.SubResource -> AdcClient;
-    RssiSensor.SingleChannel -> AdcClient;
+    ReadNow = AdcReadNowClient;
+    ReadNowResource = AdcReadNowClient;
+    AdcReadNowClient.AdcConfigure -> Settings.AdcConfigure[RSSI_SENSOR_VCC];
 }
