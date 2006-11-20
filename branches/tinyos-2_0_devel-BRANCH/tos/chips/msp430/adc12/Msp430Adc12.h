@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.9 $
- * $Date: 2006-11-20 14:47:10 $
+ * $Revision: 1.1.2.10 $
+ * $Date: 2006-11-20 15:32:22 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -170,5 +170,9 @@ of bitfields in structs and makes MSP430ADC12M.nc fail ! Use version 3.2.3 inste
 #warning "This version of msp430-gcc might contain a bug which results in false accessing \
 of bitfields in structs (MSP430ADC12M.nc would fail). Use version 3.2.3 instead."
 #endif  
+
+#ifndef __msp430_headers_adc12_h
+#error MSP430ADC12C: Target msp430 device does not have ADC12 module
+#endif
 
 #endif
