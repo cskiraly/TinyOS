@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) 2006, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -27,48 +27,30 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.12 $
+ * $Revision: 1.1.2.1 $
  * $Date: 2006-11-20 14:47:10 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
 
-#include <Msp430Adc12.h> 
-configuration Msp430Adc12P 
-{ 
-  provides {
-    interface Resource[uint8_t id]; 
-    interface Msp430Adc12SingleChannel as SingleChannel[uint8_t id]; 
-    interface Msp430Adc12MultiChannel as MultiChannel[uint8_t id]; 
-    interface Msp430Adc12Overflow as Overflow[uint8_t id]; 
-    interface AsyncStdControl as DMAExtension[uint8_t id];
-  }
-} implementation { 
-  components Msp430Adc12ImplP, HplAdc12P, Msp430TimerC, MainC, HplMsp430GeneralIOC, 
-             new SimpleRoundRobinArbiterC(MSP430ADC12_RESOURCE) as Arbiter;
+/** 
+ * Signals an ADC12MEMx overflow or conversion time overflow condition to the
+ * client.
+ *
+ * @author Jan Hauer 
+ */
 
-  Resource = Arbiter;
-  SingleChannel = Msp430Adc12ImplP.SingleChannel;
-  MultiChannel= Msp430Adc12ImplP.MultiChannel;
-  Overflow = Msp430Adc12ImplP.Overflow;
-  DMAExtension = Msp430Adc12ImplP.DMAExtension;
-  
-  Msp430Adc12ImplP.Init <- MainC;
-  Msp430Adc12ImplP.ADCArbiterInfo -> Arbiter;
-  Msp430Adc12ImplP.HplAdc12 -> HplAdc12P;
-  Msp430Adc12ImplP.Port60 -> HplMsp430GeneralIOC.Port60;
-  Msp430Adc12ImplP.Port61 -> HplMsp430GeneralIOC.Port61;
-  Msp430Adc12ImplP.Port62 -> HplMsp430GeneralIOC.Port62;
-  Msp430Adc12ImplP.Port63 -> HplMsp430GeneralIOC.Port63;
-  Msp430Adc12ImplP.Port64 -> HplMsp430GeneralIOC.Port64;
-  Msp430Adc12ImplP.Port65 -> HplMsp430GeneralIOC.Port65;
-  Msp430Adc12ImplP.Port66 -> HplMsp430GeneralIOC.Port66;
-  Msp430Adc12ImplP.Port67 -> HplMsp430GeneralIOC.Port67;
+#include "Msp430Adc12.h" 
+interface Msp430Adc12Overflow 
+{   
+  /** 
+   * An ADC12MEMx overflow condition has occured.
+   */ 
+  async event void memOverflow();
 
-  Msp430Adc12ImplP.TimerA -> Msp430TimerC.TimerA;
-  Msp430Adc12ImplP.ControlA0 -> Msp430TimerC.ControlA0;
-  Msp430Adc12ImplP.ControlA1 -> Msp430TimerC.ControlA1;
-  Msp430Adc12ImplP.CompareA0 -> Msp430TimerC.CompareA0;
-  Msp430Adc12ImplP.CompareA1 -> Msp430TimerC.CompareA1;
+  /** 
+   * A conversion time overflow condition has occured.
+   */ 
+  async event void conversionTimeOverflow();
 }
 
