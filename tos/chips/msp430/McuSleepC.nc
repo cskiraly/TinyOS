@@ -81,20 +81,23 @@ implementation {
 #endif
 	)
       pState = MSP430_POWER_LPM1;
-    // ADC12 check
-    if (ADC12CTL1 & ADC12BUSY){
-      if (!(ADC12CTL0 & MSC) && ((TACTL & TASSEL_3) == TASSEL_2))
-	pState = MSP430_POWER_LPM1;
-      else
-        switch (ADC12CTL1 & ADC12SSEL_3) {
-	case ADC12SSEL_2:
-	  pState = MSP430_POWER_ACTIVE;
-	  break;
-	case ADC12SSEL_3:
-	  pState = MSP430_POWER_LPM1;
-	  break;
-        }
+    
+    // ADC12 check: 
+    if (ADC12CTL0 & ADC12ON){
+      if (ADC12CTL1 & ADC12SSEL_2){
+        // sample or conversion operation with MCLK or SMCLK
+        if (ADC12CTL1 & ADC12SSEL_1)
+          pState = MSP430_POWER_LPM1;
+        else
+          pState = MSP430_POWER_ACTIVE;
+      } else if ((ADC12CTL1 & SHS0) && ((TACTL & TASSEL_3) == TASSEL_2)){
+        // Timer A is used as sample-and-hold source and SMCLK sources Timer A
+        // (Timer A interrupts are always disabled when it is used by the 
+        // ADC subsystem, that's why the Timer check above is not enough)
+	      pState = MSP430_POWER_LPM1;
+      }
     }
+    
     return pState;
   }
   
