@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.7 $
- * $Date: 2006-11-07 23:15:03 $
+ * $Revision: 1.1.2.8 $
+ * $Date: 2006-11-20 14:47:10 $
  * @author: Jan Hauer <hauer@tkn.tu-berlin.de>
  * ========================================================================
  */
@@ -47,6 +47,8 @@ generic configuration Msp430Adc12ClientC()
   provides {
     interface Resource;
     interface Msp430Adc12SingleChannel;
+    interface Msp430Adc12MultiChannel;
+    interface Msp430Adc12Overflow;
   }
 } implementation {
   components Msp430Adc12P;
@@ -56,4 +58,6 @@ generic configuration Msp430Adc12ClientC()
   };
   Resource = Msp430Adc12P.Resource[ID];
   Msp430Adc12SingleChannel = Msp430Adc12P.SingleChannel[ID];
+  Msp430Adc12MultiChannel = Msp430Adc12P.MultiChannel[ID];
+  Msp430Adc12Overflow = Msp430Adc12P.Overflow[ID];
 }
