@@ -145,7 +145,7 @@ implementation {
       computePowerState();
       //dirty = 0;
     }
-    if((powerState == MSP430_POWER_LPM3) && (!BCSCTL1 & XT2OFF)
+    if((powerState == MSP430_POWER_LPM3) && !(BCSCTL1 & XT2OFF)
        && (signal CrystalControl.stop() == SUCCESS)) {
         BCSCTL1 |=  XT2OFF;
         BCSCTL2 = DIVS1;
