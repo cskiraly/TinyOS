@@ -1,5 +1,5 @@
 /* -*- mode:c++; indent-tabs-mode: nil -*-
- * Copyright (c) 2006, Technische Universitaet Berlin
+ * Copyright (c) 2006, Technische Universitat Berlin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  * - Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * - Neither the name of the Technische Universitaet Berlin nor the names
+ * - Neither the name of the Technische Universitat Berlin nor the names
  *   of its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -25,16 +25,50 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
+*/
+ 
 /**
- * Real component that wires CrystalControl to the SmclkManager
+ * Please refer to TEP 108 for more information about this component and its
+ * intended use.<br><br>
+ *
+ * This component provides the Resource, ArbiterInfo, and ResourceRequested
+ * interfaces and uses the ResourceConfigure interface as
+ * described in TEP 108.  It provides arbitration to a shared resource.
+ * An queue is used to keep track of which users have put
+ * in requests for the resource.  Upon the release of the resource by one
+ * of these users, the queue is checked and the next user
+ * that has a pending request will ge granted control of the resource.  If
+ * there are no pending requests, then the resource becomes idle and any
+ * user can put in a request and immediately receive access to the
+ * Resource.
+ *
+ * This is an indirection layer to catch all configure and
+ * unconfigure events.
+ * 
+ * @param <b>resourceName</b> -- The name of the Resource being shared
+ *
+ * @author Andreas Koepke
  */
-
-configuration Tda5250CrystalC {
-    provides interface CrystalControl;
+ 
+generic configuration SimpleArbiterP() {
+  provides {
+    interface Resource[uint8_t id];
+    interface ResourceRequested[uint8_t id];
+    interface ArbiterInfo;
+  }
+  uses {
+    interface ResourceConfigure[uint8_t id];
+    interface ResourceQueue as Queue;
+  }
 }
 implementation {
+    components new SimpleArbiterImplP() as Arbiter;
+    Resource = Arbiter;
+    ResourceRequested = Arbiter;
+    ArbiterInfo = Arbiter;
+    ResourceConfigure = Arbiter;
+    Queue = Arbiter;
+
     components SmclkManagerC;
-    CrystalControl = SmclkManagerC;
+    Arbiter.AsyncStdControl -> SmclkManagerC;
 }

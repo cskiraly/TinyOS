@@ -25,16 +25,64 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-11-24 14:59:42 $
  */
 
 /**
- * Real component that wires CrystalControl to the SmclkManager
+ * Manage the usage of the SMCLK
+ * @author: Andreas Koepke <koepke@tkn.tu-berlin.de>
  */
 
-configuration Tda5250CrystalC {
-    provides interface CrystalControl;
+module SmclkManagerC {
+    provides {
+        interface AsyncStdControl;
+        interface CrystalControl;
+    }
 }
 implementation {
-    components SmclkManagerC;
-    CrystalControl = SmclkManagerC;
+    int counter = 0;
+
+    task void stopCrystal() {
+        atomic {
+            if((counter == 0) &&
+               !(BCSCTL1 & XT2OFF) &&
+               (signal CrystalControl.stop() == SUCCESS))
+            {
+                BCSCTL1 |=  XT2OFF;
+                BCSCTL2 = DIVS1;
+            }
+        }
+    }
+
+    async command error_t AsyncStdControl.start() {
+        atomic counter++;
+        return SUCCESS;
+    }
+
+    async command error_t AsyncStdControl.stop() {
+        atomic {
+            counter--;
+            if((counter == 0) && !(BCSCTL1 & XT2OFF)) {
+                post stopCrystal();
+            }
+        };
+        return SUCCESS;
+    }
+
+    async command void CrystalControl.stable() {
+        if(BCSCTL1 & XT2OFF) {
+            BCSCTL1 &= ~XT2OFF;
+            BCSCTL2 = SELS;
+        }
+    }
+    
+    default async event error_t CrystalControl.stop() {
+        return SUCCESS;
+    }
+    
+    default async event void CrystalControl.start() {
+        
+    }
 }
