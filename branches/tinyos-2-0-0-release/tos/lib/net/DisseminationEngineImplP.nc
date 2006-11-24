@@ -39,7 +39,7 @@
  * See TEP118 - Dissemination for details.
  * 
  * @author Gilman Tolle <gtolle@archrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-10-27 04:02:38 $
+ * @version $Revision: 1.1.2.4.2.1 $ $Date: 2006-11-24 22:31:19 $
  */
 
 module DisseminationEngineImplP {
@@ -87,7 +87,6 @@ implementation {
 
   event void TrickleTimer.fired[ uint16_t key ]() {
 
-    call Leds.led2Toggle();
 
     if ( m_bufBusy ) { return; }
 
