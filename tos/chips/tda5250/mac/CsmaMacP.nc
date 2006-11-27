@@ -50,6 +50,7 @@ module CsmaMacP {
         interface MacSend;
         interface MacReceive;
         interface Packet;
+        interface McuPowerOverride;
     }
     uses {
         interface StdControl as CcaStdControl;
@@ -69,6 +70,8 @@ module CsmaMacP {
         interface Resource as RssiAdcResource;
 
         interface Random;
+
+        interface Timer<TMilli> as ReRxTimer;
         
         interface Alarm<T32khz, uint16_t> as Timer;
         async command am_addr_t amAddress();
@@ -95,7 +98,7 @@ implementation
         RX_SETUP_TIME=111,    // time to set up receiver
         TX_SETUP_TIME=69,     // time to set up transmitter
         ADDED_DELAY = 30,
-        RX_ACK_TIMEOUT=RX_SETUP_TIME + PHY_HEADER_TIME + 4 + 3*ADDED_DELAY,
+        RX_ACK_TIMEOUT=RX_SETUP_TIME + PHY_HEADER_TIME + 19 + 2*ADDED_DELAY,
         TX_GAP_TIME=RX_ACK_TIMEOUT + TX_SETUP_TIME + 11,
         MIN_BACKOFF_MASK=0x3F,   // about txrx_turnaround time
         MAX_SHORT_RETRY=7,
@@ -306,6 +309,11 @@ implementation
     }
 
     /**************** Helper functions ********/
+
+    task void postponeReRx() {
+        call ReRxTimer.startOneShot(5000);
+    }
+    
     uint16_t backoff(uint8_t counter) {
         uint16_t mask = MIN_BACKOFF_MASK;
         unsigned i;
@@ -578,6 +586,7 @@ implementation
     }
 
     async event void RadioModes.RxModeDone() {
+        post postponeReRx();
         atomic {
             if(macState == SW_RX) {
                 storeOldState(21);
@@ -606,6 +615,7 @@ implementation
     }
 
     async event void RadioModes.TxModeDone() {
+        post postponeReRx();
         atomic {
             if(macState == SW_TX) {
                 storeOldState(30);
@@ -950,15 +960,29 @@ implementation
     
     async event void ChannelMonitorData.getSnrDone(int16_t data) {
     }
-
     
     /***** unused Radio Modes events **************************/
     
     async event void RadioModes.TimerModeDone() {}
-    async event void RadioModes.SleepModeDone() {}
+
+    async event void RadioModes.SleepModeDone() {
+        atomic setRxMode();
+    }
+    
     async event void RadioModes.SelfPollingModeDone() {}
     async event void RadioModes.PWDDDInterrupt() {}
 
+    event void ReRxTimer.fired() {
+        atomic {
+            if((macState == RX) && (call RadioModes.SleepMode() == SUCCESS)) {
+                // ok 
+            }
+            else {
+                post postponeReRx();
+            }
+        }
+    }
+    
     /***** abused TimeStamping events **************************/
     async event void RadioTimeStamping.receivedSFD( uint16_t time ) {
         if(macState == RX_P) call ChannelMonitor.rxSuccess();
@@ -991,6 +1015,11 @@ implementation
     
     // we don't care about urgent Resource requestes
     async event void RadioResourceRequested.immediateRequested() {}
+
+    /** prevent MCU from going into a too low power mode */
+    async command mcu_power_t McuPowerOverride.lowestState() {
+        return MSP430_POWER_LPM1;
+    }
 }
 
 
