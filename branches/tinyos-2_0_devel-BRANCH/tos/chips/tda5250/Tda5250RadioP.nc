@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.14 $
- * $Date: 2006-11-27 15:23:43 $
+ * $Revision: 1.1.2.15 $
+ * $Date: 2006-11-27 15:31:39 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -405,7 +405,6 @@ implementation {
                 signal Tda5250Control.RssiStable();
                 break;
             case RECEIVER_DELAY :
-                call Led.set();
                 delayTimer = RSSISTABLE_DELAY;
                 call DelayTimer.start(TDA5250_RSSI_STABLE_TIME-TDA5250_RECEIVER_SETUP_TIME);
                 if (call DataResource.immediateRequest() == SUCCESS) {
@@ -415,7 +414,6 @@ implementation {
                 }
                 break;
             case TRANSMITTER_DELAY :
-                call Led.set();
                 if (call DataResource.immediateRequest() == SUCCESS) {
                     switchDataResource();
                 } else {
