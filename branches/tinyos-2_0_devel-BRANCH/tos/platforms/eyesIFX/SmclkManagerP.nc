@@ -25,16 +25,83 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Revision: 1.1.2.1 $
+ * $Date: 2006-11-27 15:17:57 $
  */
 
 /**
- * Real component that wires CrystalControl to the SmclkManager
+ * Manage the usage of the SMCLK
+ * @author: Andreas Koepke <koepke@tkn.tu-berlin.de>
  */
 
-configuration Tda5250CrystalC {
-    provides interface CrystalControl;
+module SmclkManagerP {
+    provides {
+        interface AsyncStdControl;
+    }
+    uses {
+        interface Crystal;
+        interface Boot;
+    }
+    
 }
 implementation {
-    components SmclkManagerC;
-    CrystalControl = SmclkManagerC;
+    int counter = 0;
+
+    
+    TOSH_SIGNAL(NMI_VECTOR) {
+        if(BCSCTL1 & XT2OFF) {
+            BCSCTL2 = DIVS1;
+        }
+        else {
+            BCSCTL2 = SELS;
+        }
+        IFG1 &= ~OFIFG;
+    }
+    
+    task void prepareStop() {
+        atomic {
+            if((counter == 0) && !(BCSCTL1 & XT2OFF) && (call Crystal.isIdle())) {
+                BCSCTL1 |=  XT2OFF;
+                IFG1 &= ~OFIFG;
+                SET_FLAG( IE1, OFIE );
+                call Crystal.stop();
+            }
+        }
+    }
+
+    event void Boot.booted() {
+        atomic SET_FLAG( IE1, OFIE );
+    }
+
+    async command error_t AsyncStdControl.start() {
+        atomic counter++;
+        return SUCCESS;
+    }
+
+    async command error_t AsyncStdControl.stop() {
+        atomic {
+            counter--;
+            if((counter == 0) && !(BCSCTL1 & XT2OFF)) {
+                post prepareStop();
+            }
+        };
+        return SUCCESS;
+    }
+
+    async event void Crystal.prepareStart() {
+        if(BCSCTL1 & XT2OFF) {
+            BCSCTL1 &=  ~XT2OFF;
+            IFG1 &= ~OFIFG;
+            SET_FLAG( IE1, OFIE );
+        }
+    }
+
+    default async command bool Crystal.isIdle() {
+        return TRUE;
+    }
+
+    default async command error_t Crystal.stop() {
+        return SUCCESS;
+    }
 }
