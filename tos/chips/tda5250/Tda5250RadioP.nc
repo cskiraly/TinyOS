@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.13 $
- * $Date: 2006-11-27 15:12:13 $
+ * $Revision: 1.1.2.14 $
+ * $Date: 2006-11-27 15:23:43 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -54,7 +54,6 @@ module Tda5250RadioP {
         interface Tda5250Control;
         interface RadioByteComm;
         interface ResourceRequested;
-        interface Crystal;
     }
     uses {
         interface HplTda5250Config;
@@ -64,7 +63,6 @@ module Tda5250RadioP {
         interface Resource as DataResource;
         interface ResourceRequested as DataResourceRequested;
         interface Alarm<T32khz, uint16_t> as DelayTimer;
-        interface GeneralIO as Led;
     }
 }
 
@@ -138,13 +136,11 @@ implementation {
             case RADIO_MODE_ON_TRANSITION:
                 call HplTda5250Config.reset();
                 call HplTda5250Config.SetRFPower(255);
-                call HplTda5250Config.SetClockOnDuringPowerDown();
                 call ConfigResource.release();
                 atomic radioMode = RADIO_MODE_ON;
                 post startDoneTask();
                 break;
             case RADIO_MODE_OFF_TRANSITION:
-                // call HplTda5250Config.SetClockOffDuringPowerDown();
                 call HplTda5250Config.SetSleepMode();
                 call ConfigResource.release();
                 atomic radioMode = RADIO_MODE_OFF;
@@ -152,9 +148,7 @@ implementation {
                 break;
             case RADIO_MODE_SLEEP_TRANSITION:
                 call HplTda5250Config.SetSlaveMode();
-                call HplTda5250Config.SetClockOnDuringPowerDown();
                 call HplTda5250Config.SetSleepMode();
-                call ConfigResource.release();
                 atomic radioMode = RADIO_MODE_SLEEP;
                 signal Tda5250Control.SleepModeDone();
                 break;
@@ -325,12 +319,7 @@ implementation {
         }
         if(mode == RADIO_MODE_SLEEP_TRANSITION) {
             call DataResource.release();
-            if (call ConfigResource.immediateRequest() == SUCCESS) {
-                switchConfigResource();
-            }
-            else {
-                call ConfigResource.request();
-            }
+            switchConfigResource();
             return SUCCESS;
         }
         return FAIL;
@@ -346,7 +335,6 @@ implementation {
         }
         if(mode == RADIO_MODE_TX_TRANSITION) {
             call DataResource.release();
-            signal Crystal.prepareStart();
             if (call HplTda5250Config.IsTxRxPinControlled()) {
                 switchConfigResource();
             } else {
@@ -371,7 +359,6 @@ implementation {
         }
         if(mode == RADIO_MODE_RX_TRANSITION) {
             call DataResource.release();
-            signal Crystal.prepareStart();
             if (call HplTda5250Config.IsTxRxPinControlled()) {
                 switchConfigResource();
             } else {
@@ -436,30 +423,7 @@ implementation {
                 }
                 break;
         }
-    }
-    
-    /** crystal control interface */
-    async command bool Crystal.isIdle() {
-        return (radioMode == RADIO_MODE_SLEEP);
-    }
-    
-    async command error_t Crystal.stop() {
-        error_t rVal = FAIL;
-        if((radioMode == RADIO_MODE_SLEEP) &&
-           (call ConfigResource.immediateRequest() == SUCCESS)) {
-            call HplTda5250Config.SetSlaveMode();
-            call HplTda5250Config.SetClockOffDuringPowerDown();
-            call ConfigResource.release();
-            call HplTda5250Config.SetSleepMode();
-            call Led.clr();
-            rVal = SUCCESS;
-        }
-        return rVal;
-    }
-    
-    default async event void Crystal.prepareStart() {
-    }
-    
+    }    
     default async event void ResourceRequested.requested() {
     }
     default async event void ResourceRequested.immediateRequested() {
