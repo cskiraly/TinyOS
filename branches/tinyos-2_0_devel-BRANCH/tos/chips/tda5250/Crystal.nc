@@ -27,35 +27,32 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * $Revision: 1.1.2.1 $
- * $Date: 2006-11-23 18:32:36 $
+ * $Date: 2006-11-27 15:12:13 $
  */
 
 /**
  * This interface allows interaction with an external oscillator.
- * Commands and events are used somewhat "upside-down". 
  * @author: Andreas Koepke <koepke@tkn.tu-berlin.de>
  */
 
-interface CrystalControl {
+interface Crystal {
     /**
      * Tell the component that it may switch off the crystal. If the component
      * is in a state when this makes sense, it will return SUCCESS, otherwise
      * FAIL.
      */
-    async event error_t stop();
+    async command error_t stop();
+
+    /**
+     * Check whether the crystal is idle and can be switched off
+     */
+    async command bool isIdle();
 
     /**
      * Suggest that the crystal should be switched on.  The component may
      * choose to ignore it. If the component does not ignore it, the
      * stable command will be called
      */
-    async event void start();
-
-    /**
-     * Inform interested parties that the crystal is now stable and may be
-     * used. This event may appear without any connection to the switchOn
-     * event.
-     */
-    async command void stable();
+    async event void prepareStart();
 }
 
