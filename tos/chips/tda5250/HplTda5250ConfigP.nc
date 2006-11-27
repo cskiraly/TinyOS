@@ -26,8 +26,8 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * - Revision -------------------------------------------------------------
-* $Revision: 1.1.2.7 $
-* $Date: 2006-11-07 23:15:09 $
+* $Revision: 1.1.2.8 $
+* $Date: 2006-11-27 15:24:43 $
 * ========================================================================
 */
 
@@ -488,14 +488,9 @@ implementation {
   
   /* << tested >> */
   async command void HplTda5250Config.SetSleepMode() {
-    currentConfig = CONFIG_ALL_PD_POWER_DOWN(currentConfig);
-    if (currentConfig & MASK_CONFIG_CONTROL_TXRX_REGISTER) {
-      call CONFIG.set(currentConfig);
-    }
-    else {
-      call PWDDD.makeOutput();
-      call PWDDD.set();
-    }
+        currentConfig = CONFIG_ALL_PD_POWER_DOWN(currentConfig);
+	call PWDDD.makeOutput();
+        call PWDDD.set();
   }
   
   async command bool HplTda5250Config.IsTxRxPinControlled() {
