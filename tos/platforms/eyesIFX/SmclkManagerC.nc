@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Revision: 1.1.2.1 $
- * $Date: 2006-11-24 14:59:42 $
+ * $Revision: 1.1.2.2 $
+ * $Date: 2006-11-27 15:17:57 $
  */
 
 /**
@@ -35,54 +35,15 @@
  * @author: Andreas Koepke <koepke@tkn.tu-berlin.de>
  */
 
-module SmclkManagerC {
+configuration SmclkManagerC {
     provides {
         interface AsyncStdControl;
-        interface CrystalControl;
     }
 }
 implementation {
-    int counter = 0;
+    components MainC, Tda5250RadioC, SmclkManagerP;
 
-    task void stopCrystal() {
-        atomic {
-            if((counter == 0) &&
-               !(BCSCTL1 & XT2OFF) &&
-               (signal CrystalControl.stop() == SUCCESS))
-            {
-                BCSCTL1 |=  XT2OFF;
-                BCSCTL2 = DIVS1;
-            }
-        }
-    }
-
-    async command error_t AsyncStdControl.start() {
-        atomic counter++;
-        return SUCCESS;
-    }
-
-    async command error_t AsyncStdControl.stop() {
-        atomic {
-            counter--;
-            if((counter == 0) && !(BCSCTL1 & XT2OFF)) {
-                post stopCrystal();
-            }
-        };
-        return SUCCESS;
-    }
-
-    async command void CrystalControl.stable() {
-        if(BCSCTL1 & XT2OFF) {
-            BCSCTL1 &= ~XT2OFF;
-            BCSCTL2 = SELS;
-        }
-    }
-    
-    default async event error_t CrystalControl.stop() {
-        return SUCCESS;
-    }
-    
-    default async event void CrystalControl.start() {
-        
-    }
+    AsyncStdControl = SmclkManagerP;
+    SmclkManagerP.Boot -> MainC;
+    SmclkManagerP.Crystal -> Tda5250RadioC;
 }
