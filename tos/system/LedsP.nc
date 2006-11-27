@@ -1,4 +1,4 @@
-// $Id: LedsP.nc,v 1.1.2.4 2006-04-25 23:45:04 idgay Exp $
+// $Id: LedsP.nc,v 1.1.2.4.4.1 2006-11-27 03:30:00 scipio Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -109,13 +109,13 @@ implementation {
     uint8_t rval;
     atomic {
       rval = 0;
-      if (call Led0.get()) {
+      if (!call Led0.get()) {
 	rval |= LEDS_LED0;
       }
-      if (call Led1.get()) {
+      if (!call Led1.get()) {
 	rval |= LEDS_LED1;
       }
-      if (call Led2.get()) {
+      if (!call Led2.get()) {
 	rval |= LEDS_LED2;
       }
     }
