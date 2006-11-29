@@ -241,9 +241,9 @@ routes. There is a narrow interface -- LinkEstimator -- between the
 link estimator and the routing engine. The one requirement is that
 the quality returned is standardized. A smaller return value from
 LinkEstimator.getQuality(), LinkEstimator.getforwardQuality(),
-LinkEstimator.getreserveQuality() MUST imply that the link to the
+LinkEstimator.getReverseQuality() MUST imply that the link to the
 neighbor is estimated to be of a higher quality than the one that
-results in a smaller return value. The range of value SHOULD be
+results in a larger return value. The range of value SHOULD be
 [0,255] and the variation in link quality in that range SHOULD be
 linear. Radio provided values such as LQI or RSI, beacon based link
 estimation to compute ETX, or their combination are some possible
