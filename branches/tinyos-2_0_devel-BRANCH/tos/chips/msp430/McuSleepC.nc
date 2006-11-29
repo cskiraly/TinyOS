@@ -52,9 +52,7 @@ implementation {
   mcu_power_t powerState = MSP430_POWER_ACTIVE;
 
   /* Note that the power values are maintained in an order
-   * based on their active components, NOT on their values.
-   * Look at atm128hardware.h and page 42 of the ATmeg128
-   * manual (figure 17).*/
+   * based on their active components, NOT on their values.*/
   // NOTE: This table should be in progmem.
   const uint16_t msp430PowerBits[MSP430_POWER_LPM4 + 1] = {
     0,                                       // ACTIVE
@@ -82,7 +80,8 @@ implementation {
 	)
       pState = MSP430_POWER_LPM1;
     
-    // ADC12 check: 
+#ifdef __msp430_have_adc12
+    // ADC12 check, pre-condition: pState != MSP430_POWER_ACTIVE
     if (ADC12CTL0 & ADC12ON){
       if (ADC12CTL1 & ADC12SSEL_2){
         // sample or conversion operation with MCLK or SMCLK
@@ -97,6 +96,7 @@ implementation {
 	      pState = MSP430_POWER_LPM1;
       }
     }
+#endif
     
     return pState;
   }
