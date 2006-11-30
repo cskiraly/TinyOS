@@ -27,8 +27,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.15 $
- * $Date: 2006-11-27 15:31:39 $
+ * $Revision: 1.1.2.16 $
+ * $Date: 2006-11-30 13:33:36 $
  * @author: Kevin Klues (klues@tkn.tu-berlin.de)
  * ========================================================================
  */
@@ -193,18 +193,16 @@ implementation {
         radioMode_t mode;
         atomic mode = radioMode;
         switch(mode) {
-            case RADIO_MODE_TX_TRANSITION:
-                call HplTda5250DataControl.setToTx();
-                atomic radioMode = RADIO_MODE_TX;
-                signal Tda5250Control.TxModeDone();
-                break;
-            case RADIO_MODE_RX_TRANSITION:
-                call HplTda5250DataControl.setToRx();
-                atomic radioMode = RADIO_MODE_RX;
-                signal Tda5250Control.RxModeDone();
-                break;
-            default:
-                break;
+          case RADIO_MODE_TX_TRANSITION:
+            atomic radioMode = RADIO_MODE_TX;
+            signal Tda5250Control.TxModeDone();
+            break;
+          case RADIO_MODE_RX_TRANSITION:
+            atomic radioMode = RADIO_MODE_RX;
+            signal Tda5250Control.RxModeDone();
+            break;
+          default:
+            break;
         }
     }
       
@@ -334,17 +332,18 @@ implementation {
             mode = radioMode;
         }
         if(mode == RADIO_MODE_TX_TRANSITION) {
-            call DataResource.release();
-            if (call HplTda5250Config.IsTxRxPinControlled()) {
-                switchConfigResource();
+          call DataResource.release();
+          call HplTda5250DataControl.setToTx();
+          if (call HplTda5250Config.IsTxRxPinControlled()) {
+            switchConfigResource();
+          } else {
+            if (call ConfigResource.immediateRequest() == SUCCESS) {
+              switchConfigResource();
             } else {
-                if (call ConfigResource.immediateRequest() == SUCCESS) {
-                    switchConfigResource();
-                } else {
-                    call ConfigResource.request();
-                }
+              call ConfigResource.request();
             }
-            return SUCCESS;
+          }
+          return SUCCESS;
         }
         return FAIL;
     }
@@ -358,17 +357,18 @@ implementation {
             mode = radioMode;
         }
         if(mode == RADIO_MODE_RX_TRANSITION) {
-            call DataResource.release();
-            if (call HplTda5250Config.IsTxRxPinControlled()) {
-                switchConfigResource();
-            } else {
-                if (call ConfigResource.immediateRequest() == SUCCESS) {
-                    switchConfigResource();
-                } else {
-                    call ConfigResource.request();
-                }
-            }
-            return SUCCESS;
+          call DataResource.release();
+          call HplTda5250DataControl.setToRx();
+          if (call HplTda5250Config.IsTxRxPinControlled()) {
+            switchConfigResource();
+          } else {
+              if (call ConfigResource.immediateRequest() == SUCCESS) {
+                  switchConfigResource();
+              } else {
+                  call ConfigResource.request();
+              }
+          }
+          return SUCCESS;
         }
         return FAIL;
     }
@@ -401,45 +401,46 @@ implementation {
         delayTimer_t delay;
         atomic { delay = delayTimer; }
         switch (delay) {
-            case RSSISTABLE_DELAY :
-                signal Tda5250Control.RssiStable();
-                break;
-            case RECEIVER_DELAY :
-                delayTimer = RSSISTABLE_DELAY;
-                call DelayTimer.start(TDA5250_RSSI_STABLE_TIME-TDA5250_RECEIVER_SETUP_TIME);
-                if (call DataResource.immediateRequest() == SUCCESS) {
-                    switchDataResource();
-                } else {
-                    call DataResource.request();
-                }
-                break;
-            case TRANSMITTER_DELAY :
-                if (call DataResource.immediateRequest() == SUCCESS) {
-                    switchDataResource();
-                } else {
-                    call DataResource.request();
-                }
-                break;
+          case RSSISTABLE_DELAY :
+            signal Tda5250Control.RssiStable();
+            break;
+          case RECEIVER_DELAY :
+            delayTimer = RSSISTABLE_DELAY;
+            call DelayTimer.start(TDA5250_RSSI_STABLE_TIME-TDA5250_RECEIVER_SETUP_TIME);
+            if (call DataResource.immediateRequest() == SUCCESS) {
+              switchDataResource();
+            } else {
+              call DataResource.request();
+            }
+            break;
+          case TRANSMITTER_DELAY :
+            if (call DataResource.immediateRequest() == SUCCESS) {
+              switchDataResource();
+            } else {
+              call DataResource.request();
+            }
+            break;
         }
-    }    
-    default async event void ResourceRequested.requested() {
-    }
-    default async event void ResourceRequested.immediateRequested() {
-    }
-    default async event void Tda5250Control.TimerModeDone(){
-    }
-    default async event void Tda5250Control.SelfPollingModeDone(){
-    }
-    default async event void Tda5250Control.RxModeDone(){
-    }
-    default async event void Tda5250Control.TxModeDone(){
-    }
-    default async event void Tda5250Control.SleepModeDone(){
-    }
-    default async event void Tda5250Control.PWDDDInterrupt() {
-    }
-    default async event void RadioByteComm.rxByteReady(uint8_t data) {
-    }
-    default async event void RadioByteComm.txByteReady(error_t error) {
-    }
+      }
+
+      default async event void ResourceRequested.requested() {
+      }
+      default async event void ResourceRequested.immediateRequested() {
+      }
+      default async event void Tda5250Control.TimerModeDone(){
+      }
+      default async event void Tda5250Control.SelfPollingModeDone(){
+      }
+      default async event void Tda5250Control.RxModeDone(){
+      }
+      default async event void Tda5250Control.TxModeDone(){
+      }
+      default async event void Tda5250Control.SleepModeDone(){
+      }
+      default async event void Tda5250Control.PWDDDInterrupt() {
+      }
+      default async event void RadioByteComm.rxByteReady(uint8_t data) {
+      }
+      default async event void RadioByteComm.txByteReady(error_t error) {
+      }
 }

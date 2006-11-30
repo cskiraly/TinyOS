@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Revision -------------------------------------------------------------
- * $Revision: 1.1.2.12 $
- * $Date: 2006-11-07 23:15:09 $
+ * $Revision: 1.1.2.13 $
+ * $Date: 2006-11-30 13:33:36 $
  * ========================================================================
  */
 
@@ -123,18 +123,12 @@ implementation {
   async event void Uart.receiveDone( uint8_t* buf, uint16_t len, error_t error ) {}
   
   async command error_t HplTda5250DataControl.setToTx() {
-    if(call UartResource.isOwner() == FALSE)
-      return FAIL;
     call UartDataControl.setToTx();
-    call Uart.disableReceiveInterrupt();
     return SUCCESS;
   }
 
   async command error_t HplTda5250DataControl.setToRx() {
-    if(call UartResource.isOwner() == FALSE)
-      return FAIL;
     call UartDataControl.setToRx();
-    call Uart.enableReceiveInterrupt();
     return SUCCESS;
   }
 	
