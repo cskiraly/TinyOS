@@ -1,4 +1,4 @@
-// $Id: HilTimerMilliC.nc,v 1.1.2.2 2006-11-07 23:15:13 scipio Exp $
+// $Id: HilTimerMilliC.nc,v 1.1.2.3 2006-12-06 01:36:18 scipio Exp $
 /*
  * "Copyright (c) 2005 Stanford University. All rights reserved.
  *
@@ -41,7 +41,7 @@ module HilTimerMilliC {
 implementation {
 
   enum {
-    TIMER_COUNT = uniqueCount("UQ_TIMER_MILLI")
+    TIMER_COUNT = uniqueCount(UQ_TIMER_MILLI)
   };
 
   typedef struct tossim_timer {
