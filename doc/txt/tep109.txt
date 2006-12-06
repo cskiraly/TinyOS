@@ -112,8 +112,11 @@ For example::
   generic configuration SensirionSht11C() {
     provides interface Read<uint16_t> as Temperature;
     provides interface ReadStream<uint16_t> as TemperatureStream;
+    provides interface DeviceMetadata as TemperatureDeviceMetadata;
+
     provides interface Read<uint16_t> as Humidity;
     provides interface ReadStream<uint16_t> as HumidityStream;
+    provides interface DeviceMetadata as HumidityDeviceMetadata;
   }
   implementation {
     // connect to the ADC HIL, GPIO HAL, or sensor's HAL
@@ -133,25 +136,12 @@ some time after that call completes. Using one of the power-management
 components described in [TEP115]_ can make this implementation easier.
 
 Generally, simple types are made up of octets. However, sensor values
-often have levels of precision besides a multiple of 8. A value
-contained returned from the device through a SID interface MAY be left
-shifted so that it covers as much of the type's range as possible. For
-example, if a 12-bit ADC reading is presented as a 16-bit Read
-interface::
-
-  component DemoSensorC {
-    provides interface Read<uint16_t>;
-  }
-
-then the driver MAY shift the 12-bit value left so that its range is
-0x0000 - 0xfff0, rather than 0x0000 - 0x0fff. 
-
-Such a device MUST specify the precision of one of its interfaces by
-providing the DeviceMetadata interface::
+often have levels of precision besides a multiple of 8. To account for
+such cases, each device MUST specify the precision of each one of its
+interfaces by providing the DeviceMetadata interface::
 
   interface DeviceMetadata {
     command uint8_t getSignificantBits();
-    command uint8_t getMostSignificantBit();
   }
 
 The name of the instance of DeviceMetadata MUST clearly indicate which
@@ -159,12 +149,7 @@ interface it corresponds to.
 
 The getSignificantBits() call MUST return the number of significant
 bits in the reading. For example, a sensor reading taken from a 12-bit
-ADC MUST return the value "12". The getMostSignificantBit() call MUST
-return the index of the most significant bit in the reading, 0-indexed
-from the least significant bit. For example, if the 12-bit ADC
-reading is right-shifted, the call MUST return the value "11", and if
-the 12-bit ADC reading is left-shifted, the call MUST return the value
-"15".
+ADC MUST return the value "12". 
 
 Sensor driver components SHOULD be named according to the make and
 model of the sensing device being presented. Using specific names
@@ -180,21 +165,25 @@ A "common" naming layer atop a HIL might look like this::
   generic configuration TemperatureC() {
     provides interface Read<uint16_t>;
     provides interface ReadStream<uint16_t>;
+    provides interface DeviceMetadata;
   }
   implementation {
     components new SensirionSht11C();
     Read = SensirionSht11C.Temperature;
     ReadStream = SensirionSht11C.TemperatureStream;
+    DeviceMetadata = SensirionSht11C.TemperatureDeviceMetadata;
   }
 
   generic configuration HumidityC() {
     provides interface Read<uint16_t>;
     provides interface ReadStream<uint16_t>;
+    provides interface DeviceMetadata;
   }
   implementation {
     components new SensirionSht11C();
     Read = SensirionSht11C.Humidity;
     ReadStream = SensirionSht11C.HumidityStream;
+    DeviceMetadata = SensirionSht11C.HumidityDeviceMetadata;
   }
 
 3. Sensor HAL Components
@@ -429,7 +418,6 @@ the arbitration and access to the ADC.
     }
 
     command uint8_t DeviceMetadata.getSignificantBits() { return 12; }
-    command uint8_t DeviceMetadata.getMostSignificantBit() { return 11; }
   }
 
 2. Binary Pin-Connected Sensor
@@ -455,17 +443,18 @@ none of the operations are split-phase.
   configuration UserButtonC {
     provides interface Get<bool>;
     provides interface Notify<bool>;
+    provides interface DeviceMetadata;
   }
   implementation {
 
     components UserButtonLogicP;
+    Get = UserButtonLogicP;
+    Notify = UserButtonLogicP;
+    DeviceMetadata = UserButtonLogicP;
 
     components HplUserButtonC;
     UserButtonLogicP.GpioInterrupt -> HplUserButtonC.GpioInterrupt;
     UserButtonLogicP.GeneralIO -> HplUserButtonC.GeneralIO;
-
-    Get = UserButtonLogicP;
-    Notify = UserButtonLogicP;
   }
 
 ::
@@ -475,6 +464,7 @@ none of the operations are split-phase.
   module UserButtonLogicP {
     provides interface Get<bool>;
     provides interface Notify<bool>;
+    provides interface DeviceMetadata;
 
     uses interface GeneralIO;
     uses interface GpioInterrupt; 
@@ -522,6 +512,8 @@ none of the operations are split-phase.
         call GpioInterrupt.enableRisingEdge();
       }
     }
+
+    command uint8_t DeviceMetadata.getSignificantBits() { return 1; }
   }
 
 ::
@@ -639,8 +631,7 @@ on top of the I2C or SPI bus would likely require fewer components.
     }
 
     command uint8_t TemperatureDeviceMetadata.getSignificantBits() { return 14; }
-    command uint8_t TemperatureDeviceMetadata.getMostSignificantBit() { return 13; }
-      
+
     command error_t Humidity.read() {
       call HumResource.request();
       return SUCCESS;
@@ -660,7 +651,6 @@ on top of the I2C or SPI bus would likely require fewer components.
     }
   
     command uint8_t HumidityDeviceMetadata.getSignificantBits() { return 12; }
-    command uint8_t HumidityDeviceMetadata.getMostSignificantBit() { return 11; }
 
     event void Sht11Temp.resetDone( error_t result ) { }
     event void Sht11Temp.measureHumidityDone( error_t result, uint16_t val ) { }

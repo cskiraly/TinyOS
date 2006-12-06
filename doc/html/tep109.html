@@ -11,8 +11,8 @@
 /*
 :Author: David Goodger
 :Contact: goodger@users.sourceforge.net
-:Date: $Date: 2006-12-06 17:47:46 $
-:Revision: $Revision: 1.1.2.10 $
+:Date: $Date: 2006-12-06 18:35:28 $
+:Revision: $Revision: 1.1.2.11 $
 :Copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -402,8 +402,11 @@ implementation of this requirement easier to accomplish.</p>
 generic configuration SensirionSht11C() {
   provides interface Read&lt;uint16_t&gt; as Temperature;
   provides interface ReadStream&lt;uint16_t&gt; as TemperatureStream;
+  provides interface DeviceMetadata as TemperatureDeviceMetadata;
+
   provides interface Read&lt;uint16_t&gt; as Humidity;
   provides interface ReadStream&lt;uint16_t&gt; as HumidityStream;
+  provides interface DeviceMetadata as HumidityDeviceMetadata;
 }
 implementation {
   // connect to the ADC HIL, GPIO HAL, or sensor's HAL
@@ -421,36 +424,19 @@ response to a call to one of the top-level SID interfaces, and stopped
 some time after that call completes. Using one of the power-management
 components described in <a class="citation-reference" href="#tep115" id="id4" name="id4">[TEP115]</a> can make this implementation easier.</p>
 <p>Generally, simple types are made up of octets. However, sensor values
-often have levels of precision besides a multiple of 8. A value
-contained returned from the device through a SID interface MAY be left
-shifted so that it covers as much of the type's range as possible. For
-example, if a 12-bit ADC reading is presented as a 16-bit Read
-interface:</p>
-<pre class="literal-block">
-component DemoSensorC {
-  provides interface Read&lt;uint16_t&gt;;
-}
-</pre>
-<p>then the driver MAY shift the 12-bit value left so that its range is
-0x0000 - 0xfff0, rather than 0x0000 - 0x0fff.</p>
-<p>Such a device MUST specify the precision of one of its interfaces by
-providing the DeviceMetadata interface:</p>
+often have levels of precision besides a multiple of 8. To account for
+such cases, each device MUST specify the precision of each one of its
+interfaces by providing the DeviceMetadata interface:</p>
 <pre class="literal-block">
 interface DeviceMetadata {
   command uint8_t getSignificantBits();
-  command uint8_t getMostSignificantBit();
 }
 </pre>
 <p>The name of the instance of DeviceMetadata MUST clearly indicate which
 interface it corresponds to.</p>
 <p>The getSignificantBits() call MUST return the number of significant
 bits in the reading. For example, a sensor reading taken from a 12-bit
-ADC MUST return the value &quot;12&quot;. The getMostSignificantBit() call MUST
-return the index of the most significant bit in the reading, 0-indexed
-from the least significant bit. For example, if the 12-bit ADC
-reading is right-shifted, the call MUST return the value &quot;11&quot;, and if
-the 12-bit ADC reading is left-shifted, the call MUST return the value
-&quot;15&quot;.</p>
+ADC MUST return the value &quot;12&quot;.</p>
 <p>Sensor driver components SHOULD be named according to the make and
 model of the sensing device being presented. Using specific names
 gives the developer the option to bind to a particular sensor, which
@@ -464,21 +450,25 @@ performance characteristics.</p>
 generic configuration TemperatureC() {
   provides interface Read&lt;uint16_t&gt;;
   provides interface ReadStream&lt;uint16_t&gt;;
+  provides interface DeviceMetadata;
 }
 implementation {
   components new SensirionSht11C();
   Read = SensirionSht11C.Temperature;
   ReadStream = SensirionSht11C.TemperatureStream;
+  DeviceMetadata = SensirionSht11C.TemperatureDeviceMetadata;
 }
 
 generic configuration HumidityC() {
   provides interface Read&lt;uint16_t&gt;;
   provides interface ReadStream&lt;uint16_t&gt;;
+  provides interface DeviceMetadata;
 }
 implementation {
   components new SensirionSht11C();
   Read = SensirionSht11C.Humidity;
   ReadStream = SensirionSht11C.HumidityStream;
+  DeviceMetadata = SensirionSht11C.HumidityDeviceMetadata;
 }
 </pre>
 </div>
@@ -708,7 +698,6 @@ implementation {
   }
 
   command uint8_t DeviceMetadata.getSignificantBits() { return 12; }
-  command uint8_t DeviceMetadata.getMostSignificantBit() { return 11; }
 }
 </pre>
 </div>
@@ -730,17 +719,18 @@ tos/platforms/telosa/UserButtonC.nc
 configuration UserButtonC {
   provides interface Get&lt;bool&gt;;
   provides interface Notify&lt;bool&gt;;
+  provides interface DeviceMetadata;
 }
 implementation {
 
   components UserButtonLogicP;
+  Get = UserButtonLogicP;
+  Notify = UserButtonLogicP;
+  DeviceMetadata = UserButtonLogicP;
 
   components HplUserButtonC;
   UserButtonLogicP.GpioInterrupt -&gt; HplUserButtonC.GpioInterrupt;
   UserButtonLogicP.GeneralIO -&gt; HplUserButtonC.GeneralIO;
-
-  Get = UserButtonLogicP;
-  Notify = UserButtonLogicP;
 }
 </pre>
 <pre class="literal-block">
@@ -749,6 +739,7 @@ tos/platforms/telosa/UserButtonLogicP.nc
 module UserButtonLogicP {
   provides interface Get&lt;bool&gt;;
   provides interface Notify&lt;bool&gt;;
+  provides interface DeviceMetadata;
 
   uses interface GeneralIO;
   uses interface GpioInterrupt; 
@@ -796,6 +787,8 @@ implementation {
       call GpioInterrupt.enableRisingEdge();
     }
   }
+
+  command uint8_t DeviceMetadata.getSignificantBits() { return 1; }
 }
 </pre>
 <pre class="literal-block">
@@ -904,8 +897,7 @@ implementation {
   }
 
   command uint8_t TemperatureDeviceMetadata.getSignificantBits() { return 14; }
-  command uint8_t TemperatureDeviceMetadata.getMostSignificantBit() { return 13; }
-    
+
   command error_t Humidity.read() {
     call HumResource.request();
     return SUCCESS;
@@ -925,7 +917,6 @@ implementation {
   }
 
   command uint8_t HumidityDeviceMetadata.getSignificantBits() { return 12; }
-  command uint8_t HumidityDeviceMetadata.getMostSignificantBit() { return 11; }
 
   event void Sht11Temp.resetDone( error_t result ) { }
   event void Sht11Temp.measureHumidityDone( error_t result, uint16_t val ) { }
