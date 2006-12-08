@@ -107,7 +107,7 @@ implementation
         TOKEN_ACK_FLAG = 64,
         TOKEN_ACK_MASK = 0x3f,
         INVALID_SNR = 0xffff,
-        MSG_TABLE_ENTRIES=5,
+        MSG_TABLE_ENTRIES=20,
         MAX_AGE=2*MAX_LONG_RETRY*MAX_SHORT_RETRY,
     };
     
@@ -329,6 +329,9 @@ implementation
             }
             else {
                 restLaufzeit +=  MAXTIMERVALUE - now;
+            }
+            if(restLaufzeit > BACKOFF_MASK) {
+                restLaufzeit = backoff(0);
             }
             setFlag(&flags, RESUME_BACKOFF);
         }
