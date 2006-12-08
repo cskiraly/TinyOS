@@ -1,4 +1,4 @@
-/* $Id: platform_message.h,v 1.1.2.3 2006-11-07 23:15:14 scipio Exp $
+/* $Id: platform_message.h,v 1.1.2.4 2006-12-08 15:37:14 andreaskoepke Exp $
  * "Copyright (c) 2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -34,7 +34,7 @@
  * @author Philip Levis
  * @author Vlado Handziski (TDA5250 Modifications)
  * @date   May 16 2005
- * Revision:  $Revision: 1.1.2.3 $
+ * Revision:  $Revision: 1.1.2.4 $
  */
 
 
@@ -43,6 +43,12 @@
 
 #include "Serial.h"
 #include "tda5250_message.h"
+
+#ifdef TOSH_DATA_LENGTH
+#undef TOSH_DATA_LENGTH
+#endif
+
+#define TOSH_DATA_LENGTH 48
 
 typedef union message_header_t {
   tda5250_header_t radio;
