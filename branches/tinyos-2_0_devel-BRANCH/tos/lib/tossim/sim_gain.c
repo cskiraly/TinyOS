@@ -15,7 +15,7 @@ void sim_gain_deallocate_link(gain_entry_t* link);
 
 gain_entry_t* sim_gain_first(int src) __attribute__ ((C, spontaneous)) {
   if (src > TOSSIM_MAX_NODES) {
-    return connecctivity[TOSSIM_MAX_NODES];
+    return connectivity[TOSSIM_MAX_NODES];
   } 
   return connectivity[src];
 }
@@ -26,10 +26,10 @@ gain_entry_t* sim_gain_next(gain_entry_t* link) __attribute__ ((C, spontaneous))
 
 void sim_gain_add(int src, int dest, double gain) __attribute__ ((C, spontaneous))  {
   gain_entry_t* current;
+  int temp = sim_node();
   if (src > TOSSIM_MAX_NODES) {
     src = TOSSIM_MAX_NODES;
   }
-  int temp = sim_node();
   sim_set_node(src);
 
   current = sim_gain_first(src);
