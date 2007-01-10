@@ -57,8 +57,7 @@ drivers SHOULD follow this spirit as well.
 TinyOS 2.x represents each sensor as an individual component. This
 allows the compilation process to minimize the amount of code
 included. A sensor board containing multiple sensors SHOULD be
-represented as a collection of components, one for each sensor,
-contained within a sensor board directory.
+represented as a collection of components, one for each sensor. 
 
 Sensors, being physical devices that can be shared, can benefit from
 virtualization and arbitration. This document describes a design
@@ -102,10 +101,7 @@ A sensor HIL component MAY provide:
 A sensor device driver SHOULD be a generic component that virtualizes
 access to the sensor. A sensor device driver can provide such
 virtualization for itself by defining a nesC generic client
-component. When a client component is being used, a call to a
-top-level SID interface SHOULD be delayed when the device is busy,
-rather than failing. Using one of the system arbiters can make the
-implementation of this requirement easier to accomplish.
+component. 
 
 For example::
 
@@ -121,6 +117,12 @@ For example::
   implementation {
     // connect to the ADC HIL, GPIO HAL, or sensor's HAL
   }
+
+When a client component is being used, a call to a top-level SID
+interface should be delayed when the device is busy, rather than
+failing. This virtualization may be easier to accomplish by using one
+of the arbiters provided by the system [TEP108]_, as shown in the
+`arbiter example`_ in Appendix A, Section 3.
 
 When a HIL component is being used, the sensor MUST initialize itself,
 either by including the `MainC` component and wiring to the
@@ -290,7 +292,7 @@ directory.
 
 Sensors that exist as part of a larger chip, like a MCU internal
 voltage sensor, SHOULD be placed in a subdirectory of the chip's
-directory. "tos/<chip>/sensors/<sensor>".
+directory. "tos/chips/<chip>/sensors/<sensor>".
 
 The `.platform` and `.sensor` files need to include enough `-I`
 directives to locate all of the necessary components needed to support
@@ -348,6 +350,7 @@ receives enough `-I` directives to locate all of the necessary pieces.
 ====================================================================
 
 .. [TEP2] TEP 2: Hardware Abstraction Architecture
+.. [TEP108] TEP 108: Resource Arbitration
 .. [TEP114] TEP 114: SIDs: Source and Sink Indepedent Drivers
 .. [TEP115] TEP 115: Power Management of Non-Virtualized Devices
 
@@ -711,6 +714,8 @@ on top of the I2C or SPI bus would likely require fewer components.
     ... bus protocol details omitted for brevity ...
   
   }
+
+This section includes an _`arbiter example`.
   
 ::
   
