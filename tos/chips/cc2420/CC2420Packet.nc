@@ -31,10 +31,10 @@
 
 /**
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2007-01-16 16:00:25 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2007-01-16 16:19:19 $
  */
 
-#include "message_t.h"
+#include "message.h"
 
 interface CC2420Packet {
   
