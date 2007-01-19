@@ -31,7 +31,8 @@ configuration Msp430ClockC
 implementation
 {
   components Msp430ClockP
-           , Msp430DcoCalibC  //perpetual recalibration with each ACLK overflow
+           //, Msp430DcoCalibC  //perpetual recalibration with each ACLK overflow
+           // CSS 19 Jan 2007: perpetual calibration is broken, disable
            ;
 
   Init = Msp430ClockP;
