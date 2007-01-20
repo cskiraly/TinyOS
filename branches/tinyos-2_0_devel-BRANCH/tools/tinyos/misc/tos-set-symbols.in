@@ -78,8 +78,6 @@ while(<SECTS>) {
   }
 }
 close(SECTS);
-die "Could not find data section in $exein, aborting.\n"
-  unless defined $segment_vma && defined $segment_lma && defined $segment_off;
 
 # build a hash of all data segment symbols to their address and size
 my %exe_symbols = ();
@@ -109,6 +107,8 @@ if( $G_opts{readdata} ) {
   for my $symbol (sort keys %user_symbols) {
 
     if( defined $exe_symbols{$symbol} ) {
+      die "Could not find data section in $exein, aborting.\n"
+      unless defined $segment_vma && defined $segment_off;
 
       my $addr = $exe_symbols{$symbol}->{addr};
       my $size = $exe_symbols{$symbol}->{size};
@@ -137,6 +137,9 @@ if( $G_opts{readdata} ) {
   for my $symbol (sort keys %user_symbols) {
     my $value = $user_symbols{$symbol};
     if( defined $exe_symbols{$symbol} ) {
+      die "Could not find data section in $exein, aborting.\n"
+      unless defined $segment_vma && defined $segment_off;
+
       my $addr = $exe_symbols{$symbol}->{addr};
       my $size = $exe_symbols{$symbol}->{size};
       my $filepos = $segment_off + ($addr - $segment_vma);
