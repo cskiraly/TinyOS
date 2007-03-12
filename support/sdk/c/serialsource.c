@@ -206,7 +206,6 @@ static int buggyread(serial_source src, void *buffer, int n)
 	{
 	  cnt = -1;
 	  errno = EAGAIN;
-	  printf("foo\n");
 	}
       return cnt;
     }
