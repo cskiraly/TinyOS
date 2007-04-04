@@ -36,7 +36,7 @@
  * TSL256x HPL interface.
  *
  * @author Phil Buonadonna <pbuonadonna@archrock.com>
- * @version $Revision: 1.1.2.5 $ $Date: 2006-11-07 23:15:10 $
+ * @version $Revision: 1.1.2.6 $ $Date: 2007-04-04 21:56:53 $
  */
 
 #include "TSL256x.h"
@@ -285,7 +285,7 @@ implementation {
       signal HplTSL256x.setTHRESHLOWDone(error);
       break;
     case STATE_READID:
-      error = call I2CPacket.read(I2C_STOP,devAddr,1,mI2CBuffer);
+      error = call I2CPacket.read(I2C_START | I2C_STOP,devAddr,1,mI2CBuffer);
       break;
     default:
       mState = STATE_IDLE;
