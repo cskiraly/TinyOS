@@ -1,7 +1,0 @@
-#!/bin/sh
-if cygpath -w / >/dev/null 2>/dev/null; then
-  CLASSPATH="antitheft.jar;$CLASSPATH"
-else
-  CLASSPATH="antitheft.jar:$CLASSPATH"
-fi
-java AntiTheftGui

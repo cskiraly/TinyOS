@@ -1,3 +1,0 @@
-COMPONENT=BaseStationC
-include $(MAKERULES)
-

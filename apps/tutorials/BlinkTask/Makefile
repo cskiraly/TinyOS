@@ -1,4 +1,0 @@
-COMPONENT=BlinkTaskAppC
-
-include $(MAKERULES)
-
