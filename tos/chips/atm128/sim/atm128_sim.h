@@ -19,8 +19,8 @@
 #define _MMIO_WORD(mem_addr) (*((volatile uint16_t *)(&atm128RegFile[sim_node()][mem_addr])))
 #define _SFR_MEM8(mem_addr) _MMIO_BYTE(mem_addr)
 #define _SFR_MEM16(mem_addr) _MMIO_WORD(mem_addr)
-#define _SFR_IO8(io_addr) _MMIO_BYTE((io_addr) + 0x20)
-#define _SFR_IO16(io_addr) _MMIO_WORD((io_addr) + 0x20)
+#define _SFR_IO8(io_addr) _MMIO_BYTE((io_addr))
+#define _SFR_IO16(io_addr) _MMIO_WORD((io_addr))
 
 enum {
 /* Input Pins, Port F */
