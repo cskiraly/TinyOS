@@ -32,7 +32,7 @@
 /**
  * @author Alec Woo <awoo@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1.2.4 $ $Date: 2006-11-07 23:14:59 $
+ * @version $Revision: 1.1.2.5 $ $Date: 2007-05-25 23:51:28 $
  */
 
 #include <Timer.h>
@@ -57,6 +57,8 @@ implementation{
   norace uint16_t m_tx_len, m_rx_len;
   norace uint16_t m_tx_pos, m_rx_pos;
   norace uint16_t m_byte_time;
+  norace uint8_t m_rx_intr;
+  norace uint8_t m_tx_intr;
   
   command error_t Init.init() {
     if (PLATFORM_BAUDRATE == 19200UL)
@@ -67,8 +69,16 @@ implementation{
   }
   
   command error_t StdControl.start(){
+    /* make sure interupts are off and set flags */
+    call HplUart.disableTxIntr();
+    call HplUart.disableRxIntr();
+    m_rx_intr = 0;
+    m_tx_intr = 0;
+
+    /* enable tx/rx */
     call HplUartTxControl.start();
     call HplUartRxControl.start();
+
     return SUCCESS;
   }
 
@@ -79,12 +89,18 @@ implementation{
   }
 
   async command error_t UartStream.enableReceiveInterrupt(){
-    call HplUartRxControl.start();
+    atomic{
+      m_rx_intr = 3;
+      call HplUart.enableRxIntr();
+    }
     return SUCCESS;
   }
 
   async command error_t UartStream.disableReceiveInterrupt(){
-    call HplUartRxControl.stop();
+    atomic{
+      call HplUart.disableRxIntr();
+      m_rx_intr = 0;
+    }
     return SUCCESS;
   }
 
@@ -98,6 +114,8 @@ implementation{
       m_rx_buf = buf;
       m_rx_len = len;
       m_rx_pos = 0;
+      m_rx_intr |= 1;
+      call HplUart.enableRxIntr();
     }
     
     return SUCCESS;
@@ -110,7 +128,13 @@ implementation{
       m_rx_buf[ m_rx_pos++ ] = data;
       if ( m_rx_pos >= m_rx_len ) {
 	uint8_t* buf = m_rx_buf;
-	m_rx_buf = NULL;
+	atomic{
+	  m_rx_buf = NULL;
+	  if(m_rx_intr != 3){
+	    call HplUart.disableRxIntr();
+	    m_rx_intr = 0;
+	  }
+	}
 	signal UartStream.receiveDone( buf, m_rx_len, SUCCESS );
       }
     }
@@ -130,6 +154,8 @@ implementation{
     m_tx_buf = buf;
     m_tx_len = len;
     m_tx_pos = 0;
+    m_tx_intr = 1;
+    call HplUart.enableTxIntr();
     call HplUart.tx( buf[ m_tx_pos++ ] );
     
     return SUCCESS;
@@ -144,22 +170,30 @@ implementation{
     else {
       uint8_t* buf = m_tx_buf;
       m_tx_buf = NULL;
+      m_tx_intr = 0;
+      call HplUart.disableTxIntr();
       signal UartStream.sendDone( buf, m_tx_len, SUCCESS );
     }
     
   }
 
   async command error_t UartByte.send( uint8_t byte ){
+    if(m_tx_intr)
+      return FAIL;
+
     call HplUart.tx( byte );
     while ( !call HplUart.isTxEmpty() );
     return SUCCESS;
   }
   
   async command error_t UartByte.receive( uint8_t * byte, uint8_t timeout){
-    
+
     uint16_t timeout_micro = m_byte_time * timeout + 1;
     uint16_t start;
     
+    if(m_rx_intr)
+      return FAIL;
+
     start = call Counter.get();
     while ( call HplUart.isRxEmpty() ) {
       if ( ( (uint16_t)call Counter.get() - start ) >= timeout_micro )
