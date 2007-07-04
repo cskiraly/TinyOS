@@ -1,0 +1,43 @@
+#!/bin/bash
+
+TOS_DELUGE=`type -p tos-deluge`
+if [[ ! -x ${TOS_DELUGE} ]] ; then 
+    TOS_DELUGE=../../../../tools/tinyos/misc/tos-deluge
+fi 
+
+echo ${TOS_DELUGE}
+
+if [ $# -ne 2 ]; then
+  echo "Usage: $0 <port> <platform>"
+  echo "<port>       For example, /dev/ttyUSB0"
+  echo "<platform>   \"micaz\", \"telosb\""
+  exit 2
+fi
+
+if [ $2 != 'micaz' -a $2 != 'telosb' ]; then
+  echo "\"$2\" is not a supported platform"
+  exit 2
+fi
+
+PORT=$1
+PLATFORM=$2
+
+make clean
+
+echo ==================== Compile and load Blink ====================
+if [ $PLATFORM == 'micaz' ]
+then
+  CFLAGS=-DDELUGE_BASESTATION make $PLATFORM install mib510,$PORT
+elif [ $PLATFORM == 'telosb' ]
+then
+  CFLAGS=-DDELUGE_BASESTATION make $PLATFORM install bsl,$PORT
+fi
+
+echo ==================== Compile a new Blink ====================
+CFLAGS=-DBLINK_REVERSE\ -DDELUGE_BASESTATION make $PLATFORM 
+
+echo ==================== Upload the image ====================
+${TOS_DELUGE} $PORT $PLATFORM -i 0 build/$PLATFORM/tos_image.xml
+
+echo ==================== Reboot ====================
+${TOS_DELUGE} $PORT $PLATFORM -r 0 
