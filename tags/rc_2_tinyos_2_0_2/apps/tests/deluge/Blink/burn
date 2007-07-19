@@ -1,0 +1,83 @@
+#!/bin/bash
+
+python -c '
+import sys
+try: 
+  import serial
+except ImportError, e: 
+  sys.exit(1)'
+
+if [[ $? != 0 ]]
+then
+  echo "Please install PySerial first." 
+  exit 2
+fi
+
+TOS_DELUGE=`type -p tos-deluge`
+if [[ ! -x ${TOS_DELUGE} ]] ; then 
+    TOS_DELUGE=../../../../tools/tinyos/misc/tos-deluge
+fi 
+
+if [ $# -ne 2 ]; then
+  echo "Usage: $0 <port> <platform>"
+  echo "<port>       For example, /dev/ttyUSB0"
+  echo "<platform>   \"micaz\", \"telosb\""
+  exit 2
+fi
+
+PORT=$1
+PLATFORM=$2
+
+if [ ${PLATFORM} != 'micaz' -a ${PLATFORM} != 'telosb' ]; then
+  echo "\"${PLATFORM}\" is not a supported platform"
+  exit 2
+fi
+
+if ! [ -a ${TOSDIR}/lib/tosboot/build/${PLATFORM}/main.ihex ]
+then
+  echo ========================== Compile tosboot for ${PLATFORM} ===========================
+  ( cd $TOSDIR/lib/tosboot ; make ${PLATFORM} ) 
+fi
+
+make clean
+
+echo ============================ Compile and load Blink ============================
+if [ $PLATFORM == 'micaz' ]
+then
+  CFLAGS=-DDELUGE_BASESTATION make ${PLATFORM} install mib510,${PORT}
+elif [ $PLATFORM == 'telosb' ]
+then
+  CFLAGS=-DDELUGE_BASESTATION make ${PLATFORM} install bsl,${PORT}
+fi
+
+echo '           +-------------------------------------------------------+'
+echo '           |                                                       |'
+echo '           | At this point the first led (red) should be blinking. |'
+echo '           |                                                       |'
+echo '           |               Press ENTER to continue...              |'
+echo '           |                                                       |'
+echo '           +-------------------------------------------------------+'
+read
+
+echo  ============================= Compile a new Blink ==============================
+CFLAGS=-DBLINK_REVERSE\ -DDELUGE_BASESTATION make ${PLATFORM}
+
+echo =============================== Upload the image ===============================
+${TOS_DELUGE} ${PORT} ${PLATFORM} -i 0 build/${PLATFORM}/tos_image.xml
+
+echo '       +----------------------------------------------------------------+'
+echo '       |                                                                |'
+echo '       | In the next step the following things will take place:         |'
+echo '       | - the mote will be rebooted                                    |'
+echo '       | - all the leds will blink for some time as the                 |'
+echo '       |   reprogramming by tosboot takes place.                        |'
+echo '       | - a fading of the leds will indicate the exiting from tosboot. |'
+echo '       | - the mote should start blinking the 3rd led (blue/yellow).    |'
+echo '       |                                                                |'
+echo '       |                   Press ENTER to continue...                   |'
+echo '       |                                                                |'
+echo '       +----------------------------------------------------------------+'
+read
+
+echo =========================== Reboot the base station ============================
+${TOS_DELUGE} ${PORT} ${PLATFORM} -b 0 
