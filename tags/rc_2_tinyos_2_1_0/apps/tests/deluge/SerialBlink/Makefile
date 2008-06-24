@@ -1,0 +1,4 @@
+COMPONENT=BlinkAppC
+BOOTLOADER=tosboot
+
+include $(MAKERULES)
