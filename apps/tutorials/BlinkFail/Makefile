@@ -1,3 +1,0 @@
-COMPONENT=BlinkFailAppC
-include $(MAKERULES)
-
