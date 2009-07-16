@@ -1,2 +1,0 @@
-COMPONENT=PacketParrotC
-include $(MAKERULES)
