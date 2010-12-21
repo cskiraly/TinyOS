@@ -46,23 +46,15 @@
  * where PppC is alternatively PppDaemonC.  Simply using this
  * component without wiring in its protocol will work, in that the
  * messages will be sent to the peer, but standard PPP implementations
- * that do not recognize the OSIAN-specific PPP protocol will send a
- * Protocol-Reject message, which the OSIAN PPP implementation will be
- * unable to process.  Wiring in the protocol allows OSIAN PPP to
+ * that do not recognize the TinyOS-specific PPP protocol will send a
+ * Protocol-Reject message, which the TinyOS PPP implementation will be
+ * unable to process.  Wiring in the protocol allows TinyOS PPP to
  * disable it when the peer is unable to process the messages,
  * avoiding log clutter.
  *
- * A variant PPP implementation that recognizes OSIAN packets can be
- * found at:
- *
- * git clone git://osian.git.sourceforge.net/gitroot/osian/pppd
- *
- * This repository mirrors the standard Paul's PPP Package
- * (http://samba.org/ppp/index.html) used in Linux in its ozlabs
- * branch.  The osian branch adds the OSIAN protocol that recognizes
- * printf statements.  It is recommended that you build and install
- * this daemon in /usr/local rather than overriding your
- * vendor-provided PPP implementation.
+ * A variant PPP implementation that recognizes TinyOS packets can be
+ * obtained by reading the instructions in the patch file in
+ * ${TOSDIR}/lib/ppp/tos-pppd.patch.
  *
  * @author Peter A. Bigot <pab@peoplepowerco.com>
  */
