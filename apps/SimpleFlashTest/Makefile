@@ -1,0 +1,3 @@
+COMPONENT=SimpleFlashTestAppC
+
+include $(MAKERULES)

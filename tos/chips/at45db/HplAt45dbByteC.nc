@@ -94,7 +94,7 @@ implementation
     uint8_t *ptr;
     at45pageoffset_t count;
     uint8_t lphase;
-    uint16_t crc = (uint16_t)data;
+    uint16_t crc = (uint16_t)(size_t)data;
 
     if (dataCount) // skip 0-byte ops
       {
@@ -245,7 +245,7 @@ implementation
 			     at45page_t page, at45pageoffset_t offset,
 			     at45pageoffset_t count,
 			     uint16_t baseCrc) {
-    execCommand(P_READ_CRC, cmd, 2, page, offset, TCAST(uint8_t * COUNT(count), baseCrc), count);
+    execCommand(P_READ_CRC, cmd, 2, page, offset, TCAST(uint8_t * COUNT(count), (size_t)baseCrc), count);
   }
 
   command void HplAt45db.write(uint8_t cmd,

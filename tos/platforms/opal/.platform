@@ -1,0 +1,69 @@
+# Includes that should take precedence come first.  Platforms come before
+# chips because they may override files.  These must be specified as
+# @includes instead of -I's to @opts, otherwise the %T won't be processed
+# by ncc.  
+
+push ( @includes,
+  "%T/system",
+  "%P/chips",
+  "%P/chips/rf212",
+  "%P/chips/rf231",
+  "%P/chips/at45db",
+  "%P/chips/sd",
+  "%T/platforms/shimmer/chips/sd/fatfs",
+  "%T/chips/cortex/m3",
+  "%T/chips/cortex/m3/sam3",
+  "%T/chips/cortex/m3/sam3/u",
+  "%T/chips/cortex/m3/sam3/u/pins",
+  "%T/chips/cortex/m3/sam3/u/timer",
+  "%T/chips/cortex/m3/sam3/u/nvic",
+  "%T/chips/cortex/m3/sam3/u/uart",
+  "%T/chips/cortex/m3/sam3/u/usart",
+  "%T/chips/cortex/m3/sam3/u/supc",
+  "%T/chips/cortex/m3/sam3/u/pmc",
+  "%T/chips/cortex/m3/sam3/u/eefc",
+  "%T/chips/cortex/m3/sam3/u/wdtc",
+  "%T/chips/cortex/m3/sam3/u/matrix",
+  "%T/chips/cortex/m3/sam3/u/mpu",
+  "%T/chips/cortex/m3/sam3/u/spi",
+  "%T/chips/cortex/m3/sam3/u/smc",
+  "%T/chips/cortex/m3/sam3/u/adc12b",
+  "%T/chips/cortex/m3/sam3/u/dma",
+  "%T/chips/cortex/m3/sam3/u/pdc",
+  "%T/chips/cortex/m3/sam3/u/twi",
+  "%T/chips/cortex/m3/sam3/u/hsmci",
+  "%T/chips/cortex/m3/sam3/u/usb",
+  "%T/chips/cortex/m3/sam3/u/usb/peripherals",
+  "%T/chips/cortex/m3/sam3/u/usb/board",
+  "%T/chips/rf2xx",
+  "%T/chips/rf2xx/interfaces",
+  "%T/chips/rf2xx/layers",
+  "%T/chips/rf2xx/util",
+  "%T/chips/rf2xx/rf212/layers",
+  "%T/chips/rf2xx/rf212/util",
+  "%T/chips/rf2xx/rf212",
+  "%T/chips/rf2xx/rf230/layers",
+  "%T/chips/rf2xx/rf230/util",
+  "%T/chips/rf2xx/rf230",
+  "%T/chips/rf2xx/rf231",
+  "%T/chips/at45db",
+  "%T/chips/mcp9800",
+  "%T/lib/timer",
+  "%T/lib/serial",
+  "%T/lib/power",
+);
+
+@opts = qw(
+
+  -gcc=arm-none-eabi-gcc
+  -mcpu=cortex-m3
+  -nostartfiles
+  -fnesc-target=env
+  -fnesc-no-debug
+
+);
+
+push @opts, "-fnesc-scheduler=TinySchedulerC,TinySchedulerC.TaskBasic,TaskBasic,TaskBasic,runTask,postTask" if !$with_scheduler_flag;
+push @opts, "-mingw-gcc" if $cygwin;
+
+$ENV{NESC_MACHINE} = "structure_size_boundary=32, pointer=4,4 float=4,4 double=8,4 long_double=8,4 short=2,2 int=4,4 long=4,4 long_long=8,4 int1248_align=1,2,4,4 wchar_size_size=4,4 char_wchar_signed=false,true";

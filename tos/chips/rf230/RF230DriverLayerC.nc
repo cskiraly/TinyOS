@@ -62,7 +62,8 @@ configuration RF230DriverLayerC
 
 implementation
 {
-	components RF230DriverLayerP, HplRF230C, BusyWaitMicroC, TaskletC, MainC, RadioAlarmC;
+	components RF230DriverLayerP, HplRF230C, BusyWaitMicroC, MainC, LedsC,
+	           RF230TaskletC as TaskletC, RF230RadioAlarmC as RadioAlarmC;
 
 	RadioState = RF230DriverLayerP;
 	RadioSend = RF230DriverLayerP;
@@ -75,15 +76,15 @@ implementation
 	Config = RF230DriverLayerP;
 
 	PacketTransmitPower = RF230DriverLayerP.PacketTransmitPower;
-	components new MetadataFlagC() as TransmitPowerFlagC;
+	components new RF230MetadataFlagC() as TransmitPowerFlagC;
 	RF230DriverLayerP.TransmitPowerFlag -> TransmitPowerFlagC;
 
 	PacketRSSI = RF230DriverLayerP.PacketRSSI;
-	components new MetadataFlagC() as RSSIFlagC;
+	components new RF230MetadataFlagC() as RSSIFlagC;
 	RF230DriverLayerP.RSSIFlag -> RSSIFlagC;
 
 	PacketTimeSyncOffset = RF230DriverLayerP.PacketTimeSyncOffset;
-	components new MetadataFlagC() as TimeSyncFlagC;
+	components new RF230MetadataFlagC() as TimeSyncFlagC;
 	RF230DriverLayerP.TimeSyncFlag -> TimeSyncFlagC;
 
 	PacketLinkQuality = RF230DriverLayerP.PacketLinkQuality;
@@ -95,6 +96,7 @@ implementation
 	RadioAlarmC.Alarm -> HplRF230C.Alarm;
 
 	RF230DriverLayerP.SELN -> HplRF230C.SELN;
+	RF230DriverLayerP.RF_ANT_SW -> HplRF230C.RF_ANT_SW;
 	RF230DriverLayerP.SpiResource -> HplRF230C.SpiResource;
 	RF230DriverLayerP.FastSpiByte -> HplRF230C;
 
@@ -111,6 +113,7 @@ implementation
 #endif
 
 	MainC.SoftwareInit -> RF230DriverLayerP.SoftwareInit;
+	RF230DriverLayerP.Leds -> LedsC;
 
 	components RealMainP;
 	RealMainP.PlatformInit -> RF230DriverLayerP.PlatformInit;

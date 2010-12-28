@@ -53,6 +53,7 @@ generic module MessageBufferLayerP()
 		interface Tasklet;
 		interface RadioSend;
 		interface RadioReceive;
+		interface Leds;
 	}
 }
 

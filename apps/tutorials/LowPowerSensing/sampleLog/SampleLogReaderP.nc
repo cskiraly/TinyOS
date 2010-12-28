@@ -39,6 +39,7 @@ generic module SampleLogReaderP(typedef sample_type_t) {
     interface SampleLogRead<sample_type_t>;
   }
   uses {
+    interface Leds;
     interface LogRead;
     interface LogWrite;
   }

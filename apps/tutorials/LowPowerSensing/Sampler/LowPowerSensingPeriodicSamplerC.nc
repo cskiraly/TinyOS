@@ -59,7 +59,7 @@ implementation {
 
   void readNext() {
     error_t error = call SampleLogRead.readNext();
-    if(error == FAIL)
+    if(error == FAIL || error == EBUSY)
       post readNextTask();
     else if(error == ECANCEL) {
       sendBusy = FALSE;
@@ -105,6 +105,7 @@ implementation {
       sendBusy = TRUE;
       readNext();
     }
+    else call Leds.led1Toggle();
     return msg;
   }
 

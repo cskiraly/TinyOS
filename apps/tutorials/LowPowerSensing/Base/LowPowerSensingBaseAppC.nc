@@ -55,7 +55,7 @@ implementation {
   App.RadioPacket -> Radio;
 
   components new SerialAMReceiverC(AM_SERIAL_REQUEST_SAMPLES_MSG) as SerialRequestSampleMsgsReceiver;
-  components new AMSenderC(AM_REQUEST_SAMPLES_MSG) as RadioRequestSampleMsgsSender;
+  components new DirectAMSenderC(AM_REQUEST_SAMPLES_MSG) as RadioRequestSampleMsgsSender;
   App.SerialRequestSampleMsgsReceive -> SerialRequestSampleMsgsReceiver;
   App.RadioRequestSampleMsgsSend -> RadioRequestSampleMsgsSender;
 
@@ -75,7 +75,7 @@ implementation {
   App.LPL -> LPLProvider;
 #endif
 
-#if defined(PLATFORM_IRIS)
+#if defined(PLATFORM_IRIS) || defined(PLATFORM_OPAL)
   components ActiveMessageC as LPLProvider;
   App.LPL -> LPLProvider;
 #endif

@@ -442,4 +442,7 @@ implementation
 		getMeta(msg)->sleepint = 0;
 		call SubPacket.clear(msg);
 	}
+
+	default event void SplitControl.startDone(error_t error) {}
+	default event void SplitControl.stopDone(error_t error) {}
 }

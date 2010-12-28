@@ -32,7 +32,7 @@
 /**
  * @author Kevin Klues <klueska@cs.stanford.edu>
  */
-  
+
 module TinyThreadSchedulerP {
   provides {
     interface ThreadScheduler;
@@ -45,7 +45,7 @@ module TinyThreadSchedulerP {
     interface ThreadQueue;
     interface BitArrayUtils;
     interface McuSleep;
-    interface Leds;
+    interface GeneralIO as Led2;
     interface Timer<TMilli> as PreemptionAlarm;
   }
 }
@@ -60,6 +60,11 @@ implementation {
   uint8_t num_runnable_threads;
   //Thread queue for keeping track of threads waiting to run
   thread_queue_t ready_queue;
+
+#if defined(PLATFORM_SAM3U_EK) || defined(PLATFORM_OPAL)
+  void context_switch() __attribute__((noinline));
+  void restore_tcb() __attribute__((noinline));
+#endif
   
   void task alarmTask() {
     uint8_t temp;
@@ -84,9 +89,103 @@ implementation {
   void switchThreads() __attribute__((noinline)) {
     SWITCH_CONTEXTS(yielding_thread, current_thread);
   }
+
   void restoreThread() __attribute__((noinline)) {
     RESTORE_TCB(current_thread);
   }
+
+/**
+ * On the Cortex-M3, context switching needs to be done in a special
+ * exception because we need to distinguish between a context switch
+ * being invoked from within an IRQ handler (preemption timer) or from
+ * within the thread itself. The former sets a PendSV exception pending,
+ * which will then execute after all other IRQ handlers have executed.
+ * The latter synchronously invokes an SVCall exception, which has the
+ * same handler aliased. For this distinction, see the macro
+ * SWITCH_CONTEXTS() in chip_thread.h.
+ */
+#if defined(PLATFORM_SAM3U_EK) || defined(PLATFORM_OPAL)
+/**
+ * The two context switch exception handlers are naked to keep the compiler
+ * from using the stack. We need a manually defined stack layout here, which
+ * we artificially create using PREPARE_THREAD() (see chip_thread.h). That is
+ * why we need to manually save volatile (caller-save) registers before calling
+ * another (non-inlined) function. That's also why they need the flatten
+ * attribute, so that the atomic functions are definitely inlined here.
+ */
+  void PendSVHandler() @C() @spontaneous() __attribute__((naked, flatten))
+  {
+    atomic { // context switch itself is protected from being interrupted
+      asm volatile("mrs r0, msp");
+      asm volatile("stmdb r0!, {r1-r12,lr}");
+      asm volatile("str r0, %0" : "=m" ((yielding_thread)->stack_ptr));
+      asm volatile("ldr r0, %0" : : "m" ((current_thread)->stack_ptr));
+      asm volatile("ldmia r0!, {r1-r12,lr}");
+      asm volatile("msr msp, r0");
+    }
+    asm volatile("bx lr"); // important because this is a naked function
+  }
+
+  void context_switch() __attribute__((noinline, naked, flatten))
+  {
+    atomic { // context switch itself is protected from being interrupted
+      asm volatile("mrs r0, msp");
+      asm volatile("stmdb r0!, {r1-r12,lr}");
+      asm volatile("str r0, %0" : "=m" ((yielding_thread)->stack_ptr));
+      asm volatile("ldr r0, %0" : : "m" ((current_thread)->stack_ptr));
+      asm volatile("ldmia r0!, {r1-r12,lr}");
+      asm volatile("msr msp, r0");
+    }
+    asm volatile("bx lr"); // important because this is a naked function
+  }
+
+  void restore_tcb() __attribute__((noinline, naked, flatten))
+  {
+    atomic { // context switch itself is protected from being interrupted
+  	  asm volatile("ldr r0, %0" : : "m" ((current_thread)->stack_ptr));
+  	  asm volatile("ldmia r0!, {r1-r12,lr}");
+  	  asm volatile("msr msp, r0");
+    }
+    asm volatile("bx lr"); // important because this is a naked function
+  }
+
+  void ActualSVCallHandler(uint32_t *args) @C() @spontaneous()
+  {
+    volatile uint32_t svc_id;
+    volatile uint32_t svc_r0;
+    volatile uint32_t svc_r1;
+    volatile uint32_t svc_r2;
+    volatile uint32_t svc_r3;
+    volatile uint32_t prev_pc; // PC to return to after the syscall
+
+    svc_id = ((uint8_t *) args[6])[-2];
+    svc_r0 = ((uint32_t) args[0]);
+    svc_r1 = ((uint32_t) args[1]);
+    svc_r2 = ((uint32_t) args[2]);
+    svc_r3 = ((uint32_t) args[3]);
+    prev_pc = ((uint32_t) args[6]);
+
+    if (svc_id == 0) { // context-switch syscall
+	  context_switch();
+    } else if (svc_id == 1) { // restore-TCB syscall
+	  restore_tcb();
+    }
+
+    return; // this will return to svc call site
+  }
+
+  void SVCallHandler() @C() @spontaneous() __attribute__((naked))
+  {
+    asm volatile(
+      "tst lr, #4\n"
+      "ite eq\n"
+      "mrseq r0, msp\n"
+      "mrsne r0, psp\n"
+      "b ActualSVCallHandler\n"
+    );
+    // return from ActualSVCallHandler() returns to svc call site (through lr)
+  }
+#endif
   
   /* sleepWhileIdle() 
    * This routine is responsible for putting the mcu to sleep as 
@@ -180,6 +279,26 @@ implementation {
     #endif
     signal ThreadCleanup.cleanup[t->id]();
   }
+
+  thread_t *thread_prolog() __attribute__((noinline))
+  {
+    thread_t* t;
+    atomic t = current_thread;
+
+    __nesc_enable_interrupt();
+
+	return t;
+  }
+
+  void thread_epilog(thread_t *t) __attribute__((noinline))
+  {
+    atomic {
+      stop(t);
+      sleepWhileIdle();
+      scheduleNextThread();
+      restoreThread();
+    }
+  }
   
   /* This executes and cleans up a thread
    */
@@ -196,7 +315,7 @@ implementation {
       scheduleNextThread();
       restoreThread();
     }
-  } 
+  }
   
   event void ThreadSchedulerBoot.booted() {
     num_runnable_threads = 0;
@@ -207,13 +326,14 @@ implementation {
     current_thread = tos_thread;
     current_thread->state = TOSTHREAD_STATE_ACTIVE;
     current_thread->init_block = NULL;
+
     signal TinyOSBoot.booted();
   }
   
   command error_t ThreadScheduler.initThread(uint8_t id) { 
     thread_t* t = (call ThreadInfo.get[id]());
     t->state = TOSTHREAD_STATE_INACTIVE;
-    t->init_block = current_thread->init_block;
+    atomic t->init_block = current_thread->init_block;
     call BitArrayUtils.clrArray(t->joinedOnMe, sizeof(t->joinedOnMe));
     PREPARE_THREAD(t, threadWrapper);
     return SUCCESS;

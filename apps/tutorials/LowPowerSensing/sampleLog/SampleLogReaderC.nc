@@ -49,5 +49,8 @@ implementation {
   SampleLogRead = LogReader;
   LogReader.LogRead = LogRead;
   LogReader.LogWrite = LogWrite;
+
+  components LedsC;
+  LogReader.Leds -> LedsC;
 }
 

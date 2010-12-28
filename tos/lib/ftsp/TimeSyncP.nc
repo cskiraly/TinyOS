@@ -68,6 +68,9 @@ generic module TimeSyncP(typedef precision_tag)
 }
 implementation
 {
+//conversion between LocalTime units and seconds
+#define TIME_TO_MS_LOG2 10
+
 #ifndef TIMESYNC_RATE
 #define TIMESYNC_RATE   10
 #endif
@@ -141,6 +144,13 @@ implementation
         return call GlobalTime.local2Global(time);
     }
 
+    async command error_t GlobalTime.getGlobalTimeFull(uint32_t *time_lo, uint32_t *time_hi)
+    {
+        error_t ret = call GlobalTime.getGlobalTime(time_lo);
+				*time_hi = outgoingMsg->upperGlobalTime;
+        return ret;
+    }
+
     error_t is_synced()
     {
       if (numEntries>=ENTRY_VALID_LIMIT || outgoingMsg->rootID==TOS_NODE_ID)
@@ -148,7 +158,6 @@ implementation
       else
         return FAIL;
     }
-
 
     async command error_t GlobalTime.local2Global(uint32_t *time)
     {
@@ -218,7 +227,10 @@ implementation
             }
 
         if( localSum != 0 )
-            newSkew = (float)offsetSum / (float)localSum;
+						//mysterious bug fix: (float)localSum seems not to work if local some gets bigger than uint32_t
+            newSkew = (float)(offsetSum>>6) / (float)(localSum>>6);
+
+//printf("locsum %lu, offsum %ld, skew .%ld\n", (uint32_t)localSum, (int32_t)offsetSum, (int32_t)(newSkew*1000000.0));
 
         atomic
         {
@@ -238,6 +250,14 @@ implementation
         atomic numEntries = 0;
     }
 
+		uint8_t errorEstimate = 255;
+		command uint8_t TimeSyncInfo.getErrorEstimate()
+		{
+			if( outgoingMsg->rootID == TOS_NODE_ID)
+				return 0;
+			return errorEstimate;
+		}
+
     uint8_t numErrors=0;
     void addNewEntry(TimeSyncMsg *msg)
     {
@@ -249,11 +269,25 @@ implementation
         timeError = msg->localTime;
         call GlobalTime.local2Global((uint32_t*)(&timeError));
         timeError -= msg->globalTime;
+
+				if( timeError > 255 || timeError < -255 )
+					errorEstimate = 255;
+				else if(timeError<0)
+					errorEstimate = -timeError;
+				else
+					errorEstimate = timeError;
+
+//printf("TS_add: seq %3u, l %6lu, g %10lu, gU %4lu, err %10ld, nE %2u\n", 
+//  msg->seqNum, msg->localTime, msg->globalTime, msg->upperGlobalTime, timeError, numEntries);
+//printfflush();
         if( (is_synced() == SUCCESS) &&
             (timeError > ENTRY_THROWOUT_LIMIT || timeError < -ENTRY_THROWOUT_LIMIT))
         {
             if (++numErrors>3)
+						{
                 clearTable();
+								errorEstimate = 255;
+						}
             return; // don't incorporate a bad reading
         }
 
@@ -265,6 +299,11 @@ implementation
 
             //logical time error compensation
             if( age >= 0x7FFFFFFFL )
+                table[i].state = ENTRY_EMPTY;
+
+						//making sure that table entries are spread out in time, this prevents degenerate
+						//case during root selection process in high density networks
+						if( (age>>TIME_TO_MS_LOG2) < BEACON_RATE )
                 table[i].state = ENTRY_EMPTY;
 
             if( table[i].state == ENTRY_EMPTY )
@@ -293,6 +332,20 @@ implementation
     {
         TimeSyncMsg* msg = (TimeSyncMsg*)(call Send.getPayload(processedMsg, sizeof(TimeSyncMsg)));
 
+#ifdef TIMESYNC_ROOT_ID
+				if( msg->rootID == TIMESYNC_ROOT_ID ){
+						if( outgoingMsg->rootID!=TIMESYNC_ROOT_ID ){
+								outgoingMsg->rootID = TIMESYNC_ROOT_ID;
+            		outgoingMsg->seqNum = msg->seqNum;
+						}
+						else if( (int8_t)(msg->seqNum - outgoingMsg->seqNum) > 0 )			
+            		outgoingMsg->seqNum = msg->seqNum;
+						else
+								goto exit;
+						heartBeats = 0;
+				}
+				else
+#endif
         if( msg->rootID < outgoingMsg->rootID &&
             //after becoming the root, a node ignores messages that advertise the old root (it may take
             //some time for all nodes to timeout and discard the old root) 
@@ -307,6 +360,8 @@ implementation
             goto exit;
 
         call Leds.led0Toggle();
+						
+				outgoingMsg->upperGlobalTime = msg->upperGlobalTime;
         if( outgoingMsg->rootID < TOS_NODE_ID )
             heartBeats = 0;
 
@@ -366,6 +421,8 @@ implementation
             }
         }
         else if( heartBeats >= ROOT_TIMEOUT ) {
+						if (is_synced()==FAIL) //if not synced, delete the skew estimate
+							atomic skew = 0.0;
             heartBeats = 0; //to allow ROOT_SWITCH_IGNORE to work
             outgoingMsg->rootID = TOS_NODE_ID;
             ++(outgoingMsg->seqNum); // maybe set it to zero?
@@ -460,7 +517,13 @@ implementation
         clearTable();
 
         atomic outgoingMsg = (TimeSyncMsg*)call Send.getPayload(&outgoingMsgBuffer, sizeof(TimeSyncMsg));
+#ifdef TIMESYNC_ROOT_ID
+				if (TOS_NODE_ID == TIMESYNC_ROOT_ID)
+					outgoingMsg->rootID = TOS_NODE_ID;
+				else
+#else
         outgoingMsg->rootID = 0xFFFF;
+#endif
 
         processedMsg = &processedMsgBuffer;
         state = STATE_INIT;

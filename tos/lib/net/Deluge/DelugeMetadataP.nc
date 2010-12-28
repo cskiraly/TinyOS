@@ -84,7 +84,8 @@ implementation
 
   uint32_t calcPageAddr()
   {
-    return DELUGE_IDENT_SIZE + DELUGE_CRC_BLOCK_SIZE + currentPage * (uint32_t)DELUGE_BYTES_PER_PAGE;
+    return (uint32_t)DELUGE_IDENT_SIZE + (uint32_t)DELUGE_CRC_BLOCK_SIZE 
+           + (uint32_t)currentPage * (uint32_t)DELUGE_BYTES_PER_PAGE;
   }
 
   event void Boot.booted()

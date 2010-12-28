@@ -45,6 +45,12 @@ ifeq ($(BOOTLOADER),tosboot)
     AVR_FUSE_H ?= 0xda
   endif
 
+  ifeq ($(TARGETS),fleck3z)
+    CFLAGS += -I$(DELUGE_EXTRA)/iris -I$(DELUGE_EXTRA)/micaz -I$(DELUGE_EXTRA)/mica2 -I$(DELUGE_EXTRA)/avr -I$(DELUGE_EXTRA)
+    BOOTLOADER_IMG ?= $(TOSBOOT_DIR)/fleck3z/main.ihex
+    AVR_FUSE_H ?= 0xda
+  endif
+
    ifeq ($(TARGETS),tinynode)
 		CFLAGS += -I$(DELUGE_EXTRA)/tinynode
 		CFLAGS += -I$(DELUGE_EXTRA) -I$(DELUGE_EXTRA)/msp430 -I$(DELUGE_EXTRA)/msp430f1611 
@@ -54,5 +60,14 @@ ifeq ($(BOOTLOADER),tosboot)
 		BOOTLOADER_IMG ?= $(TOSBOOT_DIR)/tinynode/main.ihex
    endif
 
+  ifeq ($(TARGETS),opal)
+    TOSBOOT_START=0x80000
+    TOSBOOT_END=0x81000
+    TOSBOOT_REALPROG_START=0x100000
+    CFLAGS += -I$(DELUGE_EXTRA)/opal -I$(DELUGE_EXTRA)/sam3u -I$(DELUGE_EXTRA)
+    LDFLAGS += -L$(DELUGE_EXTRA)/opal
+    LINKERFILE = opal-flash-deluge.x
+    BOOTLOADER_IMG ?= $(TOSBOOT_DIR)/opal/main.bin
+  endif
 
 endif

@@ -44,23 +44,31 @@ generic module ThreadInfoP(uint16_t stack_size, uint8_t thread_id) {
   }
 }
 implementation {
+#ifdef PLATFORM_SAM3U_EK
+  // the stack has to be word-aligned on SAM3U,
+  // otherwise we'll get bus faults
+  uint8_t stack[stack_size] __attribute__((aligned(4)));
+#else
   uint8_t stack[stack_size];
+#endif
   thread_t thread_info;
   
   void run_thread(void* arg) __attribute__((noinline)) {
     signal ThreadFunction.signalThreadRun(arg);
   }
-  
+
   error_t init() {
-    thread_info.next_thread = NULL;
-    thread_info.id = thread_id;
-    thread_info.init_block = NULL;
-    thread_info.stack_ptr = (stack_ptr_t)(STACK_TOP(stack, sizeof(stack)));
-    thread_info.state = TOSTHREAD_STATE_INACTIVE;
-    thread_info.mutex_count = 0;
-    thread_info.start_ptr = run_thread;
-    thread_info.start_arg_ptr = NULL;
-    thread_info.syscall = NULL;
+    atomic {
+      thread_info.next_thread = NULL;
+      thread_info.id = thread_id;
+      thread_info.init_block = NULL;
+      thread_info.stack_ptr = (stack_ptr_t)(STACK_TOP(stack, sizeof(stack)));
+      thread_info.state = TOSTHREAD_STATE_INACTIVE;
+      thread_info.mutex_count = 0;
+      thread_info.start_ptr = run_thread;
+      thread_info.start_arg_ptr = NULL;
+      thread_info.syscall = NULL;
+	}
     return SUCCESS;
   }
   

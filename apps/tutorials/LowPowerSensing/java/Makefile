@@ -27,6 +27,7 @@ LowPowerSensingApp.class: $(wildcard *.java) $(GEN)
 
 clean:
 	rm -f *.class $(GEN)
+	rm -f *.jar
 
 veryclean: clean
 	rm -f LowPowerSensingApp.jar

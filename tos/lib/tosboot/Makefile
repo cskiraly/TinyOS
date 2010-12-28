@@ -63,6 +63,23 @@ ifeq ($(MAKECMDGOALS),micaz)
   CFLAGS += -I../net/Deluge
 endif
 
+
+ifeq ($(MAKECMDGOALS),fleck3c)
+#  CFLAGS += -I$(TOSDIR)/lib/printf -DUSE_RF230_RADIO
+#  CFLAGS += -DRF230_DEF_CHANNEL=15
+  CFLAGS += -DTOSBOOT_START=0x1f000 -DTOSBOOT_END=0x20000
+  CFLAGS += -Wl,--section-start=.text=0x1f000
+  CFLAGS += -Ifleck3c -Iiris -Iat45db -Iavr -Imicaz -Ilib
+  CFLAGS += -I../net/Deluge
+endif
+
+ifeq ($(MAKECMDGOALS),fleck3z)
+  CFLAGS += -DTOSBOOT_START=0x1f000 -DTOSBOOT_END=0x20000
+  CFLAGS += -Wl,--section-start=.text=0x1f000
+  CFLAGS += -Ifleck3z -Iiris -Iat45db -Iavr -Imicaz -Ilib
+  CFLAGS += -I../net/Deluge
+endif
+
 ifeq ($(MAKECMDGOALS),iris)
   CFLAGS += -DTOSBOOT_START=0x1f000 -DTOSBOOT_END=0x20000
   CFLAGS += -Wl,--section-start=.text=0x1f000
@@ -104,7 +121,14 @@ ifeq ($(MAKECMDGOALS),tinynode)
   POST_BUILD_EXTRA_DEPS += strip_iv 
 endif
 
-
+ifeq ($(MAKECMDGOALS),opal)
+  CFLAGS += -DTOSBOOT_START=0x80000 -DTOSBOOT_END=0x81000
+  CFLAGS += -DTOSBOOT_REALPROG_START=0x100000
+  CFLAGS += -Iopal -Isam3u -Iat45db -Ilib -I../net/Deluge/extra/sam3u
+  CFLAGS += -I../net/Deluge
+  INCLUDE_DIRS = opal 
+  EXTRA_MODULES = opal/init.c
+endif
 
 strip_iv: FORCE
 	@echo "    removing interrupt vector from binary"

@@ -62,7 +62,8 @@ configuration RF212DriverLayerC
 
 implementation
 {
-	components RF212DriverLayerP, HplRF212C, BusyWaitMicroC, TaskletC, MainC, RadioAlarmC;
+	components RF212DriverLayerP, HplRF212C, BusyWaitMicroC, MainC, LedsC,
+	           RF212TaskletC as TaskletC, RF212RadioAlarmC as RadioAlarmC;
 
 	RadioState = RF212DriverLayerP;
 	RadioSend = RF212DriverLayerP;
@@ -75,15 +76,15 @@ implementation
 	Config = RF212DriverLayerP;
 
 	PacketTransmitPower = RF212DriverLayerP.PacketTransmitPower;
-	components new MetadataFlagC() as TransmitPowerFlagC;
+	components new RF212MetadataFlagC() as TransmitPowerFlagC;
 	RF212DriverLayerP.TransmitPowerFlag -> TransmitPowerFlagC;
 
 	PacketRSSI = RF212DriverLayerP.PacketRSSI;
-	components new MetadataFlagC() as RSSIFlagC;
+	components new RF212MetadataFlagC() as RSSIFlagC;
 	RF212DriverLayerP.RSSIFlag -> RSSIFlagC;
 
 	PacketTimeSyncOffset = RF212DriverLayerP.PacketTimeSyncOffset;
-	components new MetadataFlagC() as TimeSyncFlagC;
+	components new RF212MetadataFlagC() as TimeSyncFlagC;
 	RF212DriverLayerP.TimeSyncFlag -> TimeSyncFlagC;
 
 	PacketLinkQuality = RF212DriverLayerP.PacketLinkQuality;
@@ -111,6 +112,7 @@ implementation
 #endif
 
 	MainC.SoftwareInit -> RF212DriverLayerP.SoftwareInit;
+	RF212DriverLayerP.Leds -> LedsC;
 
 	components RealMainP;
 	RealMainP.PlatformInit -> RF212DriverLayerP.PlatformInit;

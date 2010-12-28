@@ -1,4 +1,5 @@
 COMPONENT=LowPowerSensingPeriodicSamplerAppC
+LDFLAGS += -lm
 CFLAGS += -I.. -I../sampleLog
 CFLAGS += -I.. -I../universal_sensors
 CFLAGS += -DLOW_POWER_LISTENING
