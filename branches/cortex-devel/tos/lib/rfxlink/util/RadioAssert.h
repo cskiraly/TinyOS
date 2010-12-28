@@ -35,6 +35,7 @@
 #ifndef __RADIOASSERT_H__
 #define __RADIOASSERT_H__
 
+#undef ASSERT
 #ifdef RADIO_DEBUG
 
 	void assert(bool condition, const char* file, uint16_t line);

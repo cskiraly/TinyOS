@@ -104,7 +104,7 @@ implementation {
       call Leds.led1Toggle();
     }
     else {
-      current_sample->values[i] = ((generic_sensor_sample_type_union_t)(0xFFFFFFFF)).st;
+      current_sample->values[i] = ((generic_sensor_sample_type_union_t)((uint32_t)0xFFFFFFFF)).st;
       call Leds.led2Toggle();
     }
   }

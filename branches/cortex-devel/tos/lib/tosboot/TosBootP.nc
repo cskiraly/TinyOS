@@ -99,8 +99,9 @@ implementation {
 
     // compute crc
     call ExtFlash.startRead(startAddr);
-    for ( crcTmp = 0; len; len-- )
+    for ( crcTmp = 0; len; len-- ) {
       crcTmp = crcByte(crcTmp, call ExtFlash.readByte());
+    }
     call ExtFlash.stopRead();
 
     return crcTarget == crcTmp;
@@ -110,7 +111,6 @@ implementation {
     uint32_t addr;
     uint8_t  numPgs;
     uint8_t  i;
-
 
     if (!verifyBlock(startAddr + offsetof(DelugeIdent,crc),
 		     startAddr, offsetof(DelugeIdent,crc)))
@@ -158,10 +158,16 @@ implementation {
 
 #if defined(PLATFORM_TELOSB) || defined (PLATFORM_EPIC) || defined (PLATFORM_TINYNODE)
     if (intAddr != TOSBOOT_END) {
-#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_IRIS)
+#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_IRIS) || defined(PLATFORM_FLECK3C) || defined(PLATFORM_FLECK3Z)
     if (intAddr != 0) {
 #elif defined(PLATFORM_MULLE)
     if (intAddr != 0xA0000) {
+#elif defined(PLATFORM_OPAL)
+    // Necessary because tos-build-deluge-image only writes 
+    // Bottom 16 bits of the address into the image (comes from 
+    // ihex file though...)
+    if (intAddr != (TOSBOOT_REALPROG_START & 0xFFFF)) { 
+      intAddr += AT91C_IFLASH1;
 #else
   #error "Target platform is not currently supported by Deluge T2"
 #endif
@@ -170,7 +176,6 @@ implementation {
     }
 
     call ExtFlash.stopRead();
-
     while ( secLength ) {
 
       pageAddr = newPageAddr = intAddr / TOSBOOT_INT_PAGE_SIZE;
@@ -209,7 +214,6 @@ implementation {
     }
 
     return R_SUCCESS;
-
   }
 
   void runApp() {

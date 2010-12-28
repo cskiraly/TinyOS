@@ -46,6 +46,7 @@ configuration UDPEchoC {
   UDPEchoP.Leds -> LedsC;
 
   components new TimerMilliC();
+  components new TimerMilliC() as DelayTimer;
   components IPDispatchC;
 
   UDPEchoP.RadioControl -> IPDispatchC;
@@ -56,6 +57,14 @@ configuration UDPEchoC {
   UDPEchoP.Status -> Status;
 
   UDPEchoP.StatusTimer -> TimerMilliC;
+  UDPEchoP.DelayTimer -> DelayTimer;
+#ifdef USE_RF212_RADIO
+  components RF212DriverLayerP as RF2xxDriverLayerP;
+#else
+  components RF230DriverLayerP as RF2xxDriverLayerP;
+#endif
+  UDPEchoP.RF2xxConfig -> RF2xxDriverLayerP;
+  UDPEchoP.RF2xxState -> RF2xxDriverLayerP;
 
   components UdpC;
   UDPEchoP.IPStats -> IPDispatchC.IPStats;
@@ -65,6 +74,9 @@ configuration UDPEchoC {
 
   components RandomC;
   UDPEchoP.Random -> RandomC;
+
+  components ResetC;
+  UDPEchoP.Reset -> ResetC;
 
   components UDPShellC;
 

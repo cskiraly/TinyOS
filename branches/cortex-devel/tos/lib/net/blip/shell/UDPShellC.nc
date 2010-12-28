@@ -39,6 +39,9 @@ configuration UDPShellC {
 #if defined(PLATFORM_TELOSB) || defined(PLATFORM_EPIC)
   components CounterMilli32C;
   UDPShellP.Uptime -> CounterMilli32C;
+#elif defined(PLATFORM_FLECK3C) || defined(PLATFORM_FLECK3Z)
+	components LocalTimeMilliC;
+	UDPShellP.Uptime -> LocalTimeMilliC;
 #endif
 
   components MainC;

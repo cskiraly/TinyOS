@@ -38,6 +38,8 @@ module UDPShellP {
     interface ICMPPing;
 #if defined(PLATFORM_TELOSB) || defined(PLATFORM_EPIC)
     interface Counter<TMilli, uint32_t> as Uptime;
+#elif defined(PLATFORM_FLECK3C) || defined(PLATFORM_FLECK3Z)
+ 		interface LocalTime<TMilli> as Uptime;
 #endif
 
   }
@@ -82,7 +84,7 @@ module UDPShellP {
     int i;
     atomic {
       uptime = 0;
-#if defined(PLATFORM_TELOSB) || defined(PLATFORM_EPIC)
+#if defined(PLATFORM_TELOSB) || defined(PLATFORM_EPIC) || defined(PLATFORM_FLECK3C) || defined(PLATFORM_FLECK3Z)
       boot_time = call Uptime.get();
 #endif
     }
@@ -98,7 +100,10 @@ module UDPShellP {
 
 #define DEREF(X)  #X
 #define QUOTE(X)  DEREF(X)
-  char reply_buf[MAX_REPLY_LEN];
+	enum {SEQ_LEN = 6,};
+  char reply_buf[MAX_REPLY_LEN + SEQ_LEN];
+	uint16_t last_seq;
+
   char *help_str = "sdsh-0.9\tbuiltins: [help, echo, ping6, uptime, ident]\n";
   const char *ping_fmt = " icmp_seq=%i ttl=%i time=%i ms\n";
   const char *ping_summary = "%i packets transmitted, %i received\n";
@@ -175,7 +180,7 @@ module UDPShellP {
 
 
   void action_uptime(int argc, char **argv) {
-#if defined(PLATFORM_TELOSB) || defined(PLATFORM_EPIC)
+#if defined(PLATFORM_TELOSB) || defined(PLATFORM_EPIC) || defined(PLATFORM_FLECK3C) || defined(PLATFORM_FLECK3Z)
     int len;
     uint64_t tval = call Uptime.get();
     atomic
@@ -238,9 +243,42 @@ module UDPShellP {
                           uint16_t len, struct ip6_metadata *meta) {
     char *argv[N_ARGS];
     int argc, cmd;
+    uint16_t seq = 0;
+		char *datac = data;
 
     memcpy(&session_endpoint, from, sizeof(struct sockaddr_in6));
-    init_argv((char *)data, len, argv, &argc);
+    if (datac[0] == '#') {
+       // skip hash
+      datac += 1; len -= 1;
+      // read number in hex
+      while (len > 1) {
+         if (*datac >= '0' && *datac <= '9') {
+            seq = seq * 16 + (*datac - '0');       
+         } else if (*datac >= 'a' && *datac <= 'f') {
+            seq = seq * 16 + (*datac - 'a' + 10);       
+         } else if (*datac >= 'A' && *datac <= 'F') {
+            seq = seq * 16 + (*datac - 'A' + 10);
+         } else {
+            // not a number
+          break;
+         };       
+         datac += 1; len -= 1;
+      };
+      // skip spaces after number
+      while (*datac == ' ' && len > 1) {
+        datac += 1; len -= 1;
+      };
+    };
+
+		//if the same seq number, resend the last buffer
+		if (last_seq == seq && seq!=0) {
+			reply_buf[0]='%';
+      call UDP.sendto(&session_endpoint, reply_buf, strlen(reply_buf));
+			return;			
+		}
+		last_seq = seq;
+
+    init_argv(datac, len, argv, &argc);
 
     if (argc > 0) {
       cmd = lookup_cmd(argv[0], N_BUILTINS, builtins);
@@ -251,6 +289,18 @@ module UDPShellP {
       cmd = lookup_cmd(argv[0], N_EXTERNAL, externals);
       if (cmd != CMD_NO_CMD) {
         char *reply = signal ShellCommand.eval[cmd](argc, argv);
+        if (seq != 0) {
+           if (reply == NULL) {
+              reply = reply_buf;
+              reply_buf[0] = 0;
+           };
+           if (reply != (reply_buf + SEQ_LEN)) {
+              memmove(reply_buf + SEQ_LEN, reply, strlen(reply) + 1);
+           };
+           reply = reply_buf;
+           sprintf(reply, "#%.4X", seq);
+           reply[SEQ_LEN-1] = ' '; // replace terminating zero with space
+        };    
         if (reply != NULL)
           call UDP.sendto(&session_endpoint, reply, strlen(reply));
         return;

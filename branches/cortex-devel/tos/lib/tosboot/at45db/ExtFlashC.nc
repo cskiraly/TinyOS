@@ -103,7 +103,12 @@ implementation {
 
     addr = newAddr;
 
-#if defined(PLATFORM_MULLE)
+#if defined(PLATFORM_OPAL)
+    cmdBuf[0] = 0x0B;
+    cmdBuf[1] = (addr >> 15) & 0xff;
+    cmdBuf[2] = (addr >> 7) & 0xfe;
+    cmdBuf[3] = addr & 0xff;
+#elif defined(PLATFORM_MULLE)
     cmdBuf[0] = 0x68;
     cmdBuf[1] = (addr >> 15);
     cmdBuf[2] = ((addr >> 7) & 0xFC) + ((addr >> 8) & 0x1);
@@ -120,12 +125,16 @@ implementation {
     
     for(i = 0; i < 4; i++)
       SPIByte(cmdBuf[i]);
+
+#if defined(PLATFORM_OPAL)
+      SPIByte(0x0);
+#else
     for(i = 0; i < 4; i++)
       SPIByte(0x0);
     
     TOSH_SET_FLASH_CLK_PIN();
     TOSH_CLR_FLASH_CLK_PIN();
-
+#endif
   }
 
   command uint8_t ExtFlash.readByte() {

@@ -872,7 +872,7 @@ implementation
 
   /* Move to position specified by cookie. */
   void seekStart() {
-    uint32_t offset = (uint32_t)(uint16_t)s[client].buf << 16 | s[client].len;
+    uint32_t offset = (uint32_t)(size_t)s[client].buf << 16 | s[client].len;
 
     invalidateReadPointer(); // default to beginning of log
 

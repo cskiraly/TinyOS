@@ -54,6 +54,9 @@ typedef nx_struct TimeSyncMsg
 	* receiving clock when the remote globalTime was taken.
 	*/
 	nx_uint32_t	globalTime;
+	nx_uint32_t upperGlobalTime; //assuming that upperGlobalTime is < 62 bits, top 2 bits of 
+															 //global time and lower 2 bits of upper time overlap for easy
+															 //handling of overflows
 
 	//just for convenience
 	nx_uint32_t 	localTime;
@@ -61,6 +64,9 @@ typedef nx_struct TimeSyncMsg
 
 enum {
     TIMESYNC_AM_FTSP = 0x3E,
+#ifndef AM_TIMESYNCMSG
+    AM_TIMESYNCMSG = 0x3E,
+#endif
     TIMESYNCMSG_LEN = sizeof(TimeSyncMsg) - sizeof(nx_uint32_t),
     TS_TIMER_MODE = 0,      // see TimeSyncMode interface
     TS_USER_MODE = 1,       // see TimeSyncMode interface

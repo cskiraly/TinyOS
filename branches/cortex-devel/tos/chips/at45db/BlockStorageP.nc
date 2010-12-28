@@ -154,7 +154,7 @@ implementation
 	syncStart();
 	break;
       default:
-	multipageStart((uint16_t)s[client].buf);
+	multipageStart((uint16_t)(size_t)s[client].buf);
       }
   }
 
@@ -342,7 +342,7 @@ implementation
   /* ------------------------------------------------------------------ */
 
   command error_t BlockRead.computeCrc[uint8_t id](storage_addr_t addr, storage_len_t len, uint16_t basecrc) {
-    return newRequest(R_CRC, id, addr, TCAST(void * COUNT(len),basecrc), len);
+    return newRequest(R_CRC, id, addr, TCAST(void * COUNT(len),(size_t)basecrc), len);
   }
 
   /* ------------------------------------------------------------------ */

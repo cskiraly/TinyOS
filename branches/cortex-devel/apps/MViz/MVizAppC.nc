@@ -21,7 +21,7 @@
 
 configuration MVizAppC { }
 implementation {
-  components MainC, MVizC, LedsC, new TimerMilliC(), 
+  components MainC, MVizC, NoLedsC as LedsC, new TimerMilliC(),
     new MVizSensorC() as Sensor, RandomC;
 
   //MainC.SoftwareInit -> Sensor;
@@ -46,7 +46,16 @@ implementation {
   MVizC.RadioControl -> ActiveMessageC;
   MVizC.SerialControl -> SerialActiveMessageC;
   MVizC.RoutingControl -> Collector;
-
+#ifndef TOSSIM
+#ifdef USE_RF212_RADIO
+  components RF212RadioC;
+  CTPTestC.PacketLinkQuality -> RF212RadioC.PacketLinkQuality; 
+#endif
+#ifdef USE_RF230_RADIO
+  components RF230RadioC;
+  CTPTestC.PacketLinkQuality -> RF230RadioC.PacketLinkQuality; 
+#endif
+#endif
   MVizC.Send -> CollectionSenderC;
   MVizC.SerialSend -> SerialAMSenderC.AMSend;
   MVizC.Snoop -> Collector.Snoop[AM_MVIZ_MSG];
@@ -54,5 +63,4 @@ implementation {
   MVizC.RootControl -> Collector;
   MVizC.CtpInfo -> Ctp;
   MVizC.LinkEstimator -> Ctp;
-
 }

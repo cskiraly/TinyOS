@@ -275,7 +275,7 @@ int _printf(const char *format, ...)
      temp_str[format_cntr]='\0';
      if(*format=='%')
      {
-       *format++;
+       format++;
        while(*format==' ')
        {
 	 format++;

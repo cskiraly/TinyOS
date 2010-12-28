@@ -35,13 +35,23 @@
 
 #include <Statistics.h>
 
+#ifndef BLIP_EXTRA_BYTES
+#define BLIP_EXTRA_BYTES 0
+#endif
+
 nx_struct udp_report {
-  nx_uint16_t seqno;
+  nx_uint32_t seqno;
   nx_uint16_t sender;
+  nx_uint8_t phymode;
   ip_statistics_t    ip;
   udp_statistics_t   udp;
   icmp_statistics_t  icmp;
   route_statistics_t route;
-} ;
 
+  nx_uint8_t extra_bytes[BLIP_EXTRA_BYTES];
+} udp_report_t;
+
+typedef nx_struct my_request{
+  nx_uint32_t period;
+} My_request;
 #endif

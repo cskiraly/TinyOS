@@ -49,8 +49,9 @@ implementation {
   App.AMControl -> ActiveMessageC;
   App.AMPacket -> ActiveMessageC;
   App.Packet -> ActiveMessageC;
+  App.LPL -> ActiveMessageC;
 
-  components new AMSenderC(AM_SAMPLE_MSG) as SampleSender;
+  components new DirectAMSenderC(AM_SAMPLE_MSG) as SampleSender;
   App.SampleSend -> SampleSender;
 
   components new AMReceiverC(AM_REQUEST_SAMPLES_MSG) as RequestSamplesReceiver;

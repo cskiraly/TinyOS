@@ -93,6 +93,16 @@ struct syscall {
   void* params;                     //Pointer to a set of parameters passed to the system call once it is running in task context
 };
 
+#ifdef MPU_PROTECTION
+#include "sam3umpuhardware.h"
+
+// This is an MPU region data structure
+struct mpuregion {
+  mpu_rbar_t rbar;
+  mpu_rasr_t rasr;
+};
+#endif
+
 //This is a thread data structure
 struct thread {
   //***** next_thread must be at first position in struct for casting purposes *******
@@ -107,6 +117,9 @@ struct thread {
   void* start_arg_ptr;                  //Pointer to the argument passed as a parameter to the start function of this thread
   syscall_t* syscall;                   //Pointer to an instance of a system call
   thread_regs_t regs;                   //Contents of the GPRs stored when doing a context switch
+#ifdef MPU_PROTECTION
+  struct mpuregion regions[3];          //MPU settings for this thread, 0=code, 1=BSS, 2=data
+#endif
 };
 
 enum {

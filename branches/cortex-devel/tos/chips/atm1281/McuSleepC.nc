@@ -86,6 +86,14 @@ module McuSleepC @safe() {
   }
   uses {
     interface McuPowerOverride;
+		// brano: ugly hack to enable LPL - adding radio specific pins to test 
+		//        if radios are in sleep mode
+#ifdef USE_RF230_RADIO
+		interface GeneralIO as RF230_SLP_TR;
+#endif
+#ifdef USE_RF212_RADIO
+		interface GeneralIO as RF212_SLP_TR;  
+#endif
   }
 }
 implementation {
@@ -121,7 +129,14 @@ implementation {
       return ATM128_POWER_IDLE;
     }
     // SPI (Radio stack)
-    else if (bit_is_set(SPCR, SPIE)) {
+    else if (bit_is_set(SPCR, SPIE)
+#ifdef USE_RF230_RADIO
+			|| !(PORTB & (1 << PORTB7))//(call RF230_SLP_TR.get())
+#endif
+#ifdef USE_RF212_RADIO
+			|| !(PORTD & (1 << PORTD7))//(call RF212_SLP_TR.get())
+#endif	
+		) {
       return ATM128_POWER_IDLE;
     }
     // UARTs are active

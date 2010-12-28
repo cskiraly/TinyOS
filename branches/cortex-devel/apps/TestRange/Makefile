@@ -1,0 +1,6 @@
+COMPONENT=BasicsC
+PFLAGS += -DRF212_DEF_CHANNEL=1
+CFLAGS += -I$(TOSDIR)/lib/printf
+
+include $(MAKERULES)
+

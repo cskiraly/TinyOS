@@ -112,13 +112,18 @@ implementation
     bool clean : 1;
     bool erased : 1;
     uint8_t unchecked : 2;
+#ifdef AT45_SINGLE_SRAM_BUFFER
+  } buffer[1];
+  enum{ selected = 0 };// buffer used by the current op
+#else
   } buffer[2];
   uint8_t selected; // buffer used by the current op
+#endif
   uint8_t checking;
   bool flashBusy;
 
   // Select a command for the current buffer
-#define OPN(n, name) ((n) ? name ## 1 : name ## 2)
+#define OPN(n, name) ((n) ? name ## 2 : name ## 1)
 #define OP(name) OPN(selected, name)
 
   command error_t Init.init() {
@@ -328,7 +333,7 @@ implementation
 	  else
 	    /* Hack: baseCrc was stored in reqBuf */
 	    call HplAt45db.crc(OP(AT45_C_READ_BUFFER), 0, reqOffset, reqBytes,
-			       (uint16_t)reqBuf);
+			       (uint16_t)(size_t)reqBuf);
 	  break;
 
 	case R_WRITE:
@@ -384,12 +389,14 @@ implementation
     reqPage = page;
     reqOffset = offset;
 
+#ifndef AT45_SINGLE_SRAM_BUFFER
     if (page == buffer[0].page)
       selected = 0;
     else if (page == buffer[1].page)
       selected = 1;
     else
       selected = !selected; // LRU with 2 buffers...
+#endif
 
 #ifdef CHECKARGS
     if (page >= AT45_MAX_PAGES ||
@@ -414,7 +421,7 @@ implementation
 					at45pageoffset_t n,
 					uint16_t baseCrc) {
     /* This is a hack (store crc in reqBuf), but it saves 2 bytes of RAM */
-    newRequest(R_READCRC, page, offset, TCAST(uint8_t * COUNT(n), baseCrc), n);
+    newRequest(R_READCRC, page, offset, TCAST(uint8_t * COUNT(n), (size_t)baseCrc), n);
   }
 
   command void At45db.write(at45page_t page, at45pageoffset_t offset,
@@ -435,11 +442,15 @@ implementation
   void syncOrFlush(at45page_t page, uint8_t newReq) {
     request = newReq;
 
+#ifdef AT45_SINGLE_SRAM_BUFFER
+    if (buffer[1].page != page)
+#else
     if (buffer[0].page == page)
       selected = 0;
     else if (buffer[1].page == page)
       selected = 1;
     else
+#endif
       {
 	post taskSuccess();
 	return;
@@ -460,11 +471,15 @@ implementation
   void syncOrFlushAll(uint8_t newReq) {
     request = newReq;
 
+#ifdef AT45_SINGLE_SRAM_BUFFER
+    if (buffer[1].clean)
+#else
     if (!buffer[0].clean)
       selected = 0;
     else if (!buffer[1].clean)
       selected = 1;
     else
+#endif
       {
 	post taskSuccess();
 	return;

@@ -61,6 +61,8 @@ enum rf212_registers_enum
 	RF212_PHY_ED_LEVEL = 0x07,
 	RF212_PHY_CC_CCA = 0x08,
 	RF212_CCA_THRES = 0x09,
+	RF212_TRX_CTRL_2 = 0x0C,
+	RF212_ANT_DIV = 0x0D,
 	RF212_IRQ_MASK = 0x0E,
 	RF212_IRQ_STATUS = 0x0F,
 	RF212_VREG_CTRL = 0x10,
@@ -97,6 +99,7 @@ enum rf212_trx_status_enums
 	RF212_P_ON = 0,
 	RF212_BUSY_RX = 1,
 	RF212_BUSY_TX = 2,
+	RF212_FORCE_PLL_ON = 4,
 	RF212_RX_ON = 6,
 	RF212_TRX_OFF = 8,
 	RF212_PLL_ON = 9,
@@ -186,6 +189,24 @@ enum rf212_spi_command_enums
 	RF212_CMD_FRAME_WRITE = 0x60,
 	RF212_CMD_SRAM_READ = 0x00,
 	RF212_CMD_SRAM_WRITE = 0x40,
+};
+
+enum rf212_trx_ctl_enums
+{
+  RF212_BPSK_20 = 0x00,
+  RF212_BPSK_40 = 0x04,
+  RF212_OQPSK_SIN_RC_100 = 0x08,
+  RF212_OQPSK_SIN_250 = 0x0C,
+  RF212_OQPSK_SIN_500 = 0x0D,
+  RF212_OQPSK_SIN_1000_SCR_ON = 0x2E,
+  RF212_OQPSK_SIN_1000_SCR_OFF = 0x0E,
+};
+
+enum rf212_ant_div_enums
+{
+  RF212_ANT_EXT_SW_EN = 0x4,
+  RF212_ANT_CTRL_0 = 0x1, // antenna 0
+  RF212_ANT_CTRL_1 = 0x2, // antenna 1 
 };
 
 #endif//__RF212DRIVERLAYER_H__

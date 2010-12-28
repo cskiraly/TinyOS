@@ -65,6 +65,11 @@ interface TimeSyncInfo
 	async command uint8_t getSeqNum();
 
 	/**
+	 * Returns estimate of timesync error in jiffies.
+	 */
+	command uint8_t getErrorEstimate();
+
+	/**
 	 * Returns the number of entries stored currently in the 
 	 * regerssion table.
 	 */

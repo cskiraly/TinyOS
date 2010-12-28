@@ -59,4 +59,10 @@ implementation {
   BlockingStdControlImplP.SystemCallQueue -> SystemCallQueueC;
   BlockingStdControlImplP.SystemCall -> SystemCallC;
 
+#ifdef MPU_PROTECTION
+  components SyscallInstructionC;
+  BlockingStdControlImplP.SyscallInstruction -> SyscallInstructionC;
+  components TinyThreadSchedulerP;
+  TinyThreadSchedulerP.BlockingStdControlCallback -> BlockingStdControlImplP;
+#endif
 }

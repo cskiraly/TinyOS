@@ -86,6 +86,7 @@ module RF212DriverLayerP
 #ifdef RADIO_DEBUG
 		interface DiagMsg;
 #endif
+		interface Leds;
 	}
 }
 
@@ -259,6 +260,11 @@ implementation
 		txPower = RF212_DEF_RFPOWER;
 		channel = RF212_DEF_CHANNEL & RF212_CHANNEL_MASK;
 		writeRegister(RF212_PHY_CC_CCA, RF212_CCA_MODE_VALUE | channel);
+
+        // Physical mode
+        writeRegister(RF212_TRX_CTRL_2, RF212_OQPSK_SIN_250);
+		//writeRegister(RF212_TRX_CTRL_2, RF212_OQPSK_SIN_500);
+        //writeRegister(RF212_TRX_CTRL_2, RF212_OQPSK_SIN_1000_SCR_OFF);
 
 		call SLP_TR.set();
 		state = STATE_SLEEP;
@@ -460,8 +466,8 @@ implementation
 		if( (readRegister(RF212_TRX_STATUS) & RF212_TRX_STATUS_MASK) != RF212_PLL_ON )
 		{
 			ASSERT( (readRegister(RF212_TRX_STATUS) & RF212_TRX_STATUS_MASK) == RF212_BUSY_RX );
-
-			state = STATE_PLL_ON_2_RX_ON;
+			writeRegister(RF212_TRX_STATE, RF212_RX_ON);
+			//state = STATE_PLL_ON_2_RX_ON;
 			return EBUSY;
 		}
 
@@ -681,6 +687,17 @@ implementation
 			radioIrq = FALSE;
 			irq = readRegister(RF212_IRQ_STATUS);
 
+//bug fix - sometimes the PLL_LOCK irq is lost (irq=0, or never comes)
+//          we force here the state machine to reset
+if (cmd == CMD_TURNON)
+	if (state == STATE_TRX_OFF_2_RX_ON && (irq&RF212_IRQ_PLL_LOCK)==0)
+	{
+		atomic {
+			//printf("RF212:BUG!!! irq %d->",irq);
+			irq |= RF212_IRQ_PLL_LOCK;
+			//printf("%d\n",irq);
+		}
+	}
 #ifdef RADIO_DEBUG
 			// TODO: handle this interrupt
 			if( irq & RF212_IRQ_TRX_UR )

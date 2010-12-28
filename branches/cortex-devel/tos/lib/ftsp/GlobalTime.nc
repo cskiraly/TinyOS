@@ -49,6 +49,14 @@ interface GlobalTime<precision_tag>
 	async command error_t getGlobalTime(uint32_t *time);
 
 	/**
+	 * Reads the current global time (full 64 bits). This method returns
+	 * bits 0-31 of global time (time_lo) as well as bits 30-61 (time_hi).
+	 * The following sanity check can be done: (time_lo>>30) == (time_hi&0x3) 
+	 * @return SUCCESS if this mote is synchronized, FAIL otherwise.
+	 */
+	async command error_t getGlobalTimeFull(uint32_t *time_lo, uint32_t *time_hi);
+
+	/**
 	 * Converts the local time given in <code>time</code> into the
 	 * corresponding global time and stores this again in
 	 * <code>time</code>. The following equation is used to compute the

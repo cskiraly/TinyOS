@@ -63,4 +63,9 @@ implementation {
   
   components LedsC;
   ThreadInfoP.Leds -> LedsC;
+
+#ifdef MPU_PROTECTION
+  components HplSam3uMpuSettingsC;
+  ThreadInfoP.HplSam3uMpuSettings -> HplSam3uMpuSettingsC;
+#endif
 }

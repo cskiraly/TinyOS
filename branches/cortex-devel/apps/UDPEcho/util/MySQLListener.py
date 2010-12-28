@@ -1,15 +1,22 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+import sys
+#sys.path.append("/home2/afa001/tos-svn/cvs/tinyos-2.x/support/sdk/python")
 
 import socket
 import UdpReport
 import re
-import sys
 import MySQLdb
+import time
 
 port = 7000
 
 if __name__ == '__main__':
-    conn = MySQLdb.connect (host = "localhost",
-                            user = "b6lowpan",
+    conn = MySQLdb.connect (#host = "140.253.34.57",
+			    host = "localhost",				
+                            user = "csiro",
+			    passwd="csiro",
                             db = "b6lowpan")
     cursor = conn.cursor()
     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
@@ -18,11 +25,13 @@ if __name__ == '__main__':
         print "\tListener.py <tablename>"
         sys.exit(1)
 
-    try:
-        drop = "DROP TABLE " + str(sys.argv[1])
-        cursor.execute(drop)
-    except:
-        print "Drop failed... continuing"
+    if sys.argv[1] == '-drop':
+	sys.argv.pop(1)
+	try:
+          drop = "DROP TABLE " + str(sys.argv[1])
+          cursor.execute(drop)
+        except:
+          print "Drop failed... continuing"
 
     methods = []
     create_table = "CREATE TABLE " + str(sys.argv[1]) + " ("
@@ -47,22 +56,26 @@ if __name__ == '__main__':
 
     cursor.execute(create_table)
 
+    last = dict()
+
     while True:
         data, addr = s.recvfrom(1024)
         if (len(data) > 0):
 
-
-            print
-            print str(len(data)) + ":", 
-            for i in data:
-                print "0x%x" % ord(i),
+            if 0:
+             print
+             print str(len(data)) + ":", 
+             for i in data:
+                 print "0x%x" % ord(i),
  
-            print
+             print
+
             rpt = UdpReport.UdpReport(data=data, data_length=len(data))
             addr = addr[0]
             AA = addr.split(":")
-            print addr
-            print rpt
+            if 0:
+             print addr
+             print rpt
 
 
             thisInsert = insert
@@ -82,9 +95,19 @@ if __name__ == '__main__':
             thisInsert = thisInsert[0:len(thisInsert) - 2]
             thisInsert += ")"
 
-            print thisInsert
+            #print thisInsert
+            t = time.time()
+            dt =  (t - last.get(addr, t))
+            if addr.endswith("::"):
+	      print "wrong addr!!! ADDR=%-10s L=%d SEQ=%-7d TIME=%6.3fs" % (addr, len(data), rpt.get_seqno(), dt) 	
+	    else:
+	      print "ADDR=%-10s L=%d SEQ=%-7d TIME=%6.3fs" % (addr, len(data), rpt.get_seqno(), dt)
+	      last[addr] = t
+              cursor.execute(thisInsert)
+    
 
-            cursor.execute(thisInsert)
+
+
 
     conn.close()
 

@@ -210,7 +210,7 @@ implementation
 	switch (request->cmd) {
         case CMD_ERASE:    // === Erases a volume ===
           state = S_ERASE;
-#if defined(PLATFORM_MICAZ) || defined(PLATFORM_IRIS) || defined(PLATFORM_EPIC)
+#if defined(PLATFORM_MICAZ) || defined(PLATFORM_IRIS) || defined(PLATFORM_EPIC) || defined(PLATFORM_FLECK3Z)
           error = FAIL;
 #else
           error = call BlockWrite.erase[imgNum]();

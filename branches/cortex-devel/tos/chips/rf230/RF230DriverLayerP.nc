@@ -61,6 +61,7 @@ module RF230DriverLayerP
 	uses
 	{
 		interface GeneralIO as SELN;
+		interface GeneralIO as RF_ANT_SW;
 		interface Resource as SpiResource;
 
 		interface FastSpiByte;
@@ -87,6 +88,7 @@ module RF230DriverLayerP
 #ifdef RADIO_DEBUG
 		interface DiagMsg;
 #endif
+		interface Leds;
 	}
 }
 
@@ -222,6 +224,7 @@ implementation
 		call SLP_TR.clr();
 		call RSTN.makeOutput();
 		call RSTN.set();
+		call RF_ANT_SW.makeOutput();
 
 		rxMsg = &rxMsgBuffer;
 
@@ -259,6 +262,12 @@ implementation
 		txPower = RF230_DEF_RFPOWER & RF230_TX_PWR_MASK;
 		channel = RF230_DEF_CHANNEL & RF230_CHANNEL_MASK;
 		writeRegister(RF230_PHY_CC_CCA, RF230_CCA_MODE_VALUE | channel);
+
+        // Physical mode
+        writeRegister(RF230_TRX_CTRL_2, RF230_DATA_RATE_250);
+        //writeRegister(RF230_TRX_CTRL_2, RF230_DATA_RATE_500);
+        //writeRegister(RF230_TRX_CTRL_2, RF230_DATA_RATE_1000);
+        //writeRegister(RF230_TRX_CTRL_2, RF230_DATA_RATE_2000);
 
 		call SLP_TR.set();
 		state = STATE_SLEEP;
@@ -474,6 +483,7 @@ implementation
 			ASSERT( (readRegister(RF230_TRX_STATUS) & RF230_TRX_STATUS_MASK) == RF230_BUSY_RX );
 
 			writeRegister(RF230_TRX_STATE, RF230_RX_ON);
+			//state = STATE_PLL_ON_2_RX_ON;
 			return EBUSY;
 		}
 
@@ -706,6 +716,16 @@ implementation
 			atomic time = capturedTime;
 			radioIrq = FALSE;
 			irq = readRegister(RF230_IRQ_STATUS);
+//bug fix - the same as in RF212 driver
+if (cmd == CMD_TURNON)
+	if (state == STATE_TRX_OFF_2_RX_ON && (irq&RF230_IRQ_PLL_LOCK)==0)
+	{
+		atomic {
+			//printf("RF230:BUG!!! irq %d->",irq);
+			irq |= RF230_IRQ_PLL_LOCK;
+			//printf("%d\n",irq);
+		}
+	}
 
 #ifdef RADIO_DEBUG
 			// TODO: handle this interrupt

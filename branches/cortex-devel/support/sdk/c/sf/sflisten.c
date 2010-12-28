@@ -2,10 +2,12 @@
 #include <stdlib.h>
 
 #include "sfsource.h"
+#include "time.h"
 
 int main(int argc, char **argv)
 {
   int fd;
+  struct timeval now;
 
   if (argc != 3)
     {
@@ -23,9 +25,10 @@ int main(int argc, char **argv)
     {
       int len, i;
       const unsigned char *packet = read_sf_packet(fd, &len);
-
       if (!packet)
 	exit(0);
+      gettimeofday(&now,0);
+      printf("%u.%u ", now.tv_sec, now.tv_usec/1000);
       for (i = 0; i < len; i++)
 	printf("%02x ", packet[i]);
       putchar('\n');
