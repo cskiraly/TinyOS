@@ -15,6 +15,9 @@ export TOSROOT
 export TOSDIR
 export CLASSPATH
 export MAKERULES
+echo $PATH | grep -q /usr/arm-tinyos/sam-ba_cdc_linux || PATH=/usr/arm-tinyos/sam-ba_cdc_linux:$PATH
+echo $PATH | grep -q /usr/arm-tinyos/bin ||  PATH=/usr/arm-tinyos/bin:$PATH
+
 
 # Extend path for java
 type java >/dev/null 2>/dev/null || PATH=`/usr/local/bin/locate-jre --java`:$PATH
