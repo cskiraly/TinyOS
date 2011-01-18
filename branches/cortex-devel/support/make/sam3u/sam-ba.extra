@@ -3,7 +3,7 @@
 PROGRAM = sam3u-samba-program.py
 SAM-BA ?= /dev/ttyUSB0
 
-PROGRAMMER ?= $(TOSROOT)/tools/platforms/sam3u/$(PROGRAM)
+PROGRAMMER ?= $(PROGRAM)
 
 DELUGE_BASE_EXE=$(BUILDDIR)/deluge-base.exe
 DELUGE_BASE_BIN=$(BUILDDIR)/deluge-base.bin
