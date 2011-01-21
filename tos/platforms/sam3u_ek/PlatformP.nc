@@ -47,6 +47,7 @@ module PlatformP
         interface Init as MoteClockInit;
         interface Init as IRQInit;
         interface Init as MoteTimerInit;
+        interface Sam3uLowPower;
 	}
 }
 
@@ -64,6 +65,10 @@ implementation
 
 		return SUCCESS;
 	}
+
+    async event void Sam3uLowPower.customizePio() {
+        // currently not optimized for sam3u-ek
+    }
 
 	default command error_t LedsInit.init()
 	{
