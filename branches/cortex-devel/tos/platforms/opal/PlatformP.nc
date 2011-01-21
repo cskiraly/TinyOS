@@ -67,6 +67,14 @@ implementation
   }
 
  async event void Sam3uLowPower.customizePio() {
+    // Configure all PIO as input
+    AT91C_BASE_PIOA->PIO_ODR = 0xFFFFFFFF;
+    AT91C_BASE_PIOB->PIO_ODR = 0xFFFFFFFF;
+    AT91C_BASE_PIOC->PIO_ODR = 0xFFFFFFFF;
+    // Force all peripherals to enable PIO
+    AT91C_BASE_PIOA->PIO_PER = 0xFFFFFFFF;
+    AT91C_BASE_PIOB->PIO_PER = 0xFFFFFFFF;
+    AT91C_BASE_PIOC->PIO_PER = 0xFFFFFFFF;
     AT91C_BASE_PIOA->PIO_OER |= AT91C_PIO_PA25;
     AT91C_BASE_PIOA->PIO_OER |= AT91C_PIO_PA27;
     AT91C_BASE_PIOC->PIO_OER |= AT91C_PIO_PC6;

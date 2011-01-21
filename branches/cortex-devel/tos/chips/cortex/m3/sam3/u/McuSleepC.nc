@@ -88,6 +88,16 @@ implementation{
   // This C function is defined so that we can call it
   // from platform_bootstrap(), as defined in platform.h
   void sam3uLowPowerConfigure() @C() @spontaneous() {
+    // Only do this at startup
+    // Configure all PIO as input
+    AT91C_BASE_PIOA->PIO_ODR = 0xFFFFFFFF;
+    AT91C_BASE_PIOB->PIO_ODR = 0xFFFFFFFF;
+    AT91C_BASE_PIOC->PIO_ODR = 0xFFFFFFFF;
+    // Force all peripherals to enable PIO
+    AT91C_BASE_PIOA->PIO_PER = 0xFFFFFFFF;
+    AT91C_BASE_PIOB->PIO_PER = 0xFFFFFFFF;
+    AT91C_BASE_PIOC->PIO_PER = 0xFFFFFFFF;
+
     call Sam3uLowPower.configure();
   }
 
@@ -106,14 +116,6 @@ implementation{
       mr.bits.bodrsten = 0;
       SUPC->mr = mr;
     }
-    // Configure all PIO as input
-    AT91C_BASE_PIOA->PIO_ODR = 0xFFFFFFFF;
-    AT91C_BASE_PIOB->PIO_ODR = 0xFFFFFFFF;
-    AT91C_BASE_PIOC->PIO_ODR = 0xFFFFFFFF;
-    // Force all peripherals to enable PIO
-    AT91C_BASE_PIOA->PIO_PER = 0xFFFFFFFF;
-    AT91C_BASE_PIOB->PIO_PER = 0xFFFFFFFF;
-    AT91C_BASE_PIOC->PIO_PER = 0xFFFFFFFF;
     // Customize pio settings as appropriate for the platform
     signal Sam3uLowPower.customizePio();
   }

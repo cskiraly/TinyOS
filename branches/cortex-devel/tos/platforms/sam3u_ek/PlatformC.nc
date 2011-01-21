@@ -48,10 +48,15 @@ configuration PlatformC
 implementation
 {
 	components PlatformP, MoteClockC, HplSam3uTCC as MoteTimerC;
+    components McuSleepC;
 
 	Init = PlatformP;
 
     PlatformP.MoteClockInit -> MoteClockC;
     PlatformP.IRQInit -> MoteClockC;
     PlatformP.MoteTimerInit -> MoteTimerC;
+
+    // Used so we can initialize the platform in a state where it would draw
+    // the lowest current possible if put to sleep.
+    PlatformP.Sam3uLowPower -> McuSleepC;
 }
