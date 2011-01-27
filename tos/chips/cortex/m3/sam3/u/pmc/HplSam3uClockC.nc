@@ -31,67 +31,69 @@ configuration HplSam3uClockC
     {
         interface HplSam3Clock;
 
-        interface HplSam3uPeripheralClockCntl as RTCPCCntl   ;
-        interface HplSam3uPeripheralClockCntl as RTTPPCntl   ;
-        interface HplSam3uPeripheralClockCntl as WDGPPCntl   ;
-        interface HplSam3uPeripheralClockCntl as PMCPPCntl   ;
-        interface HplSam3uPeripheralClockCntl as EFC0PPCntl  ;
-        interface HplSam3uPeripheralClockCntl as EFC1PPCntl  ;
-        interface HplSam3uPeripheralClockCntl as DBGUPPCntl  ;
-        interface HplSam3uPeripheralClockCntl as HSMC4PPCntl ;
-        interface HplSam3uPeripheralClockCntl as PIOAPPCntl  ;
-        interface HplSam3uPeripheralClockCntl as PIOBPPCntl  ;
-        interface HplSam3uPeripheralClockCntl as PIOCPPCntl  ;
-        interface HplSam3uPeripheralClockCntl as US0PPCntl   ;
-        interface HplSam3uPeripheralClockCntl as US1PPCntl   ;
-        interface HplSam3uPeripheralClockCntl as US2PPCntl   ;
-        interface HplSam3uPeripheralClockCntl as US3PPCntl   ;
-        interface HplSam3uPeripheralClockCntl as MCI0PPCntl  ;
-        interface HplSam3uPeripheralClockCntl as TWI0PPCntl  ;
-        interface HplSam3uPeripheralClockCntl as TWI1PPCntl  ;
-        interface HplSam3uPeripheralClockCntl as SPI0PPCntl  ;
-        interface HplSam3uPeripheralClockCntl as SSC0PPCntl  ;
-        interface HplSam3uPeripheralClockCntl as TC0PPCntl   ;
-        interface HplSam3uPeripheralClockCntl as TC1PPCntl   ;
-        interface HplSam3uPeripheralClockCntl as TC2PPCntl   ;
-        interface HplSam3uPeripheralClockCntl as PWMCPPCntl  ;
-        interface HplSam3uPeripheralClockCntl as ADC12BPPCntl;
-        interface HplSam3uPeripheralClockCntl as ADCPPCntl   ;
-        interface HplSam3uPeripheralClockCntl as HDMAPPCntl  ;
-        interface HplSam3uPeripheralClockCntl as UDPHSPPCntl ;
+        interface HplSam3PeripheralClockCntl as RTCPCCntl   ;
+        interface HplSam3PeripheralClockCntl as RTTPPCntl   ;
+        interface HplSam3PeripheralClockCntl as WDGPPCntl   ;
+        interface HplSam3PeripheralClockCntl as PMCPPCntl   ;
+        interface HplSam3PeripheralClockCntl as EFC0PPCntl  ;
+        interface HplSam3PeripheralClockCntl as EFC1PPCntl  ;
+        interface HplSam3PeripheralClockCntl as DBGUPPCntl  ;
+        interface HplSam3PeripheralClockCntl as HSMC4PPCntl ;
+        interface HplSam3PeripheralClockCntl as PIOAPPCntl  ;
+        interface HplSam3PeripheralClockCntl as PIOBPPCntl  ;
+        interface HplSam3PeripheralClockCntl as PIOCPPCntl  ;
+        interface HplSam3PeripheralClockCntl as US0PPCntl   ;
+        interface HplSam3PeripheralClockCntl as US1PPCntl   ;
+        interface HplSam3PeripheralClockCntl as US2PPCntl   ;
+        interface HplSam3PeripheralClockCntl as US3PPCntl   ;
+        interface HplSam3PeripheralClockCntl as MCI0PPCntl  ;
+        interface HplSam3PeripheralClockCntl as TWI0PPCntl  ;
+        interface HplSam3PeripheralClockCntl as TWI1PPCntl  ;
+        interface HplSam3PeripheralClockCntl as SPI0PPCntl  ;
+        interface HplSam3PeripheralClockCntl as SSC0PPCntl  ;
+        interface HplSam3PeripheralClockCntl as TC0PPCntl   ;
+        interface HplSam3PeripheralClockCntl as TC1PPCntl   ;
+        interface HplSam3PeripheralClockCntl as TC2PPCntl   ;
+        interface HplSam3PeripheralClockCntl as PWMCPPCntl  ;
+        interface HplSam3PeripheralClockCntl as ADC12BPPCntl;
+        interface HplSam3PeripheralClockCntl as ADCPPCntl   ;
+        interface HplSam3PeripheralClockCntl as HDMAPPCntl  ;
+        interface HplSam3PeripheralClockCntl as UDPHSPPCntl ;
     }
 }
 implementation
 {
+#define PMC_PC_BASE 0x400e0410
+
     components HplSam3uClockP,
-               new HplSam3uPeripheralClockP(AT91C_ID_RTC   ) as RTC,
-               new HplSam3uPeripheralClockP(AT91C_ID_RTT   ) as RTT,
-               new HplSam3uPeripheralClockP(AT91C_ID_WDG   ) as WDG,
-               new HplSam3uPeripheralClockP(AT91C_ID_PMC   ) as PMC,
-               new HplSam3uPeripheralClockP(AT91C_ID_EFC0  ) as EFC0,
-               new HplSam3uPeripheralClockP(AT91C_ID_EFC1  ) as EFC1,
-               new HplSam3uPeripheralClockP(AT91C_ID_DBGU  ) as DBGU,
-               new HplSam3uPeripheralClockP(AT91C_ID_HSMC4 ) as HSMC4,
-               new HplSam3uPeripheralClockP(AT91C_ID_PIOA  ) as PIOA,
-               new HplSam3uPeripheralClockP(AT91C_ID_PIOB  ) as PIOB,
-               new HplSam3uPeripheralClockP(AT91C_ID_PIOC  ) as PIOC,
-               new HplSam3uPeripheralClockP(AT91C_ID_US0   ) as US0,
-               new HplSam3uPeripheralClockP(AT91C_ID_US1   ) as US1,
-               new HplSam3uPeripheralClockP(AT91C_ID_US2   ) as US2,
-               new HplSam3uPeripheralClockP(AT91C_ID_US3   ) as US3,
-               new HplSam3uPeripheralClockP(AT91C_ID_MCI0  ) as MCI0,
-               new HplSam3uPeripheralClockP(AT91C_ID_TWI0  ) as TWI0,
-               new HplSam3uPeripheralClockP(AT91C_ID_TWI1  ) as TWI1,
-               new HplSam3uPeripheralClockP(AT91C_ID_SPI0  ) as SPI0,
-               new HplSam3uPeripheralClockP(AT91C_ID_SSC0  ) as SSC0,
-               new HplSam3uPeripheralClockP(AT91C_ID_TC0   ) as TC0,
-               new HplSam3uPeripheralClockP(AT91C_ID_TC1   ) as TC1,
-               new HplSam3uPeripheralClockP(AT91C_ID_TC2   ) as TC2,
-               new HplSam3uPeripheralClockP(AT91C_ID_PWMC  ) as PWMC,
-               new HplSam3uPeripheralClockP(AT91C_ID_ADC12B) as ADC12B,
-               new HplSam3uPeripheralClockP(AT91C_ID_ADC   ) as ADC,
-               new HplSam3uPeripheralClockP(AT91C_ID_HDMA  ) as HDMA,
-               new HplSam3uPeripheralClockP(AT91C_ID_UDPHS ) as UDPHS;
+               new HplSam3PeripheralClockP(AT91C_ID_RTC   ,PMC_PC_BASE ) as RTC,
+               new HplSam3PeripheralClockP(AT91C_ID_RTT   ,PMC_PC_BASE ) as RTT,
+               new HplSam3PeripheralClockP(AT91C_ID_WDG   ,PMC_PC_BASE ) as WDG,
+               new HplSam3PeripheralClockP(AT91C_ID_PMC   ,PMC_PC_BASE ) as PMC,
+               new HplSam3PeripheralClockP(AT91C_ID_EFC0  ,PMC_PC_BASE ) as EFC0,
+               new HplSam3PeripheralClockP(AT91C_ID_EFC1  ,PMC_PC_BASE ) as EFC1,
+               new HplSam3PeripheralClockP(AT91C_ID_DBGU  ,PMC_PC_BASE ) as DBGU,
+               new HplSam3PeripheralClockP(AT91C_ID_HSMC4 ,PMC_PC_BASE ) as HSMC4,
+               new HplSam3PeripheralClockP(AT91C_ID_PIOA  ,PMC_PC_BASE ) as PIOA,
+               new HplSam3PeripheralClockP(AT91C_ID_PIOB  ,PMC_PC_BASE ) as PIOB,
+               new HplSam3PeripheralClockP(AT91C_ID_PIOC  ,PMC_PC_BASE ) as PIOC,
+               new HplSam3PeripheralClockP(AT91C_ID_US0   ,PMC_PC_BASE ) as US0,
+               new HplSam3PeripheralClockP(AT91C_ID_US1   ,PMC_PC_BASE ) as US1,
+               new HplSam3PeripheralClockP(AT91C_ID_US2   ,PMC_PC_BASE ) as US2,
+               new HplSam3PeripheralClockP(AT91C_ID_US3   ,PMC_PC_BASE ) as US3,
+               new HplSam3PeripheralClockP(AT91C_ID_MCI0  ,PMC_PC_BASE ) as MCI0,
+               new HplSam3PeripheralClockP(AT91C_ID_TWI0  ,PMC_PC_BASE ) as TWI0,
+               new HplSam3PeripheralClockP(AT91C_ID_TWI1  ,PMC_PC_BASE ) as TWI1,
+               new HplSam3PeripheralClockP(AT91C_ID_SPI0  ,PMC_PC_BASE ) as SPI0,
+               new HplSam3PeripheralClockP(AT91C_ID_SSC0  ,PMC_PC_BASE ) as SSC0,
+               new HplSam3PeripheralClockP(AT91C_ID_TC0   ,PMC_PC_BASE ) as TC0,
+               new HplSam3PeripheralClockP(AT91C_ID_TC1   ,PMC_PC_BASE ) as TC1,
+               new HplSam3PeripheralClockP(AT91C_ID_TC2   ,PMC_PC_BASE ) as TC2,
+               new HplSam3PeripheralClockP(AT91C_ID_PWMC  ,PMC_PC_BASE ) as PWMC,
+               new HplSam3PeripheralClockP(AT91C_ID_ADC12B,PMC_PC_BASE ) as ADC12B,
+               new HplSam3PeripheralClockP(AT91C_ID_ADC   ,PMC_PC_BASE ) as ADC,
+               new HplSam3PeripheralClockP(AT91C_ID_HDMA  ,PMC_PC_BASE ) as HDMA,
+               new HplSam3PeripheralClockP(AT91C_ID_UDPHS ,PMC_PC_BASE ) as UDPHS;
 
     HplSam3Clock = HplSam3uClockP;
 

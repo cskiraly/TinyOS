@@ -105,7 +105,7 @@ implementation{
     // Put the ADC into off mode
     ADC12B->emr.bits.offmodes = 1;
     // Disable all Peripheral Clocks
-    PMC->pcdr.flat = PMC_PIO_CLOCK_MASK;
+    PMC->pc.pcdr.flat = PMC_PIO_CLOCK_MASK;
     // Stop UTMI
     PMC->uckr.bits.upllen = 0;
     // Disable brownout detector
@@ -121,36 +121,36 @@ implementation{
   }
 
   uint32_t getPowerState() {
-    //if (PMC->pcsr.flat & PMC_PIO_CLOCK_MASK)
+    //if (PMC->pc.pcsr.flat & PMC_PIO_CLOCK_MASK)
     if (
-         PMC->pcsr.bits.rtc    || 
-         PMC->pcsr.bits.rtt    || 
-         PMC->pcsr.bits.wdg    ||
-         PMC->pcsr.bits.pmc    ||
-         PMC->pcsr.bits.efc0   ||
-         PMC->pcsr.bits.efc1   ||
-         PMC->pcsr.bits.dbgu   ||
-         PMC->pcsr.bits.hsmc4  ||
-         PMC->pcsr.bits.pioa   ||
-         PMC->pcsr.bits.piob   ||
-         PMC->pcsr.bits.pioc   ||
-         PMC->pcsr.bits.us0    ||
-         PMC->pcsr.bits.us1    ||
-         PMC->pcsr.bits.us2    ||
-         PMC->pcsr.bits.us3    ||
-         PMC->pcsr.bits.mci0   ||
-         PMC->pcsr.bits.twi0   ||
-         PMC->pcsr.bits.twi1   ||
-         PMC->pcsr.bits.spi0   ||
-         PMC->pcsr.bits.ssc0   ||
-         PMC->pcsr.bits.tc0    ||
-         PMC->pcsr.bits.tc1    ||
-         PMC->pcsr.bits.tc2    ||
-         PMC->pcsr.bits.pwmc   ||
-         PMC->pcsr.bits.adc12b ||
-         PMC->pcsr.bits.adc    ||
-         PMC->pcsr.bits.hdma   ||
-         PMC->pcsr.bits.udphs  ||
+         PMC->pc.pcsr.bits.rtc    || 
+         PMC->pc.pcsr.bits.rtt    || 
+         PMC->pc.pcsr.bits.wdg    ||
+         PMC->pc.pcsr.bits.pmc    ||
+         PMC->pc.pcsr.bits.efc0   ||
+         PMC->pc.pcsr.bits.efc1   ||
+         PMC->pc.pcsr.bits.dbgu   ||
+         PMC->pc.pcsr.bits.hsmc4  ||
+         PMC->pc.pcsr.bits.pioa   ||
+         PMC->pc.pcsr.bits.piob   ||
+         PMC->pc.pcsr.bits.pioc   ||
+         PMC->pc.pcsr.bits.us0    ||
+         PMC->pc.pcsr.bits.us1    ||
+         PMC->pc.pcsr.bits.us2    ||
+         PMC->pc.pcsr.bits.us3    ||
+         PMC->pc.pcsr.bits.mci0   ||
+         PMC->pc.pcsr.bits.twi0   ||
+         PMC->pc.pcsr.bits.twi1   ||
+         PMC->pc.pcsr.bits.spi0   ||
+         PMC->pc.pcsr.bits.ssc0   ||
+         PMC->pc.pcsr.bits.tc0    ||
+         PMC->pc.pcsr.bits.tc1    ||
+         PMC->pc.pcsr.bits.tc2    ||
+         PMC->pc.pcsr.bits.pwmc   ||
+         PMC->pc.pcsr.bits.adc12b ||
+         PMC->pc.pcsr.bits.adc    ||
+         PMC->pc.pcsr.bits.hdma   ||
+         PMC->pc.pcsr.bits.udphs  ||
          0
        )
       return S_SLEEP;
@@ -165,13 +165,13 @@ implementation{
     // More logic will need to be added here later, as more alarms are set up
     // for use.
     if(!(TC->ch2.imr.bits.cpcs & 0x01))
-      PMC->pcdr.bits.tc2 = 1;
+      PMC->pc.pcdr.bits.tc2 = 1;
   }
 
   void commonResume() {
     // Turn the periperhal clock for tc2 back on so that its alarm can be
     // set and times can be read from it
-    PMC->pcer.bits.tc2 = 1;
+    PMC->pc.pcer.bits.tc2 = 1;
   }
 
   void setupSleepMode() {
@@ -185,7 +185,7 @@ implementation{
     // Save the state of the cpu we are about to change
     wait_restore.mck = call HplSam3Clock.getMainClockSpeed();
     wait_restore.adc_emr = ADC12B->emr;
-    wait_restore.pmc_pcsr = PMC->pcsr;
+    wait_restore.pmc_pcsr = PMC->pc.pcsr;
     wait_restore.pmc_uckr = PMC->uckr;
     wait_restore.supc_mr = SUPC->mr;
     wait_restore.pioa_psr = AT91C_BASE_PIOA->PIO_PSR;
@@ -225,8 +225,8 @@ implementation{
     // Restore the ADC to its previous mode
     ADC12B->emr = wait_restore.adc_emr;
     // Reenable peripheral clocks, as appropriate
-    PMC->pcer.flat = wait_restore.pmc_pcsr.flat;
-    PMC->pcdr.flat = ~wait_restore.pmc_pcsr.flat;
+    PMC->pc.pcer.flat = wait_restore.pmc_pcsr.flat;
+    PMC->pc.pcdr.flat = ~wait_restore.pmc_pcsr.flat;
     // Reenable the UTMI clock, as appropriate
     PMC->uckr = wait_restore.pmc_uckr;
     // Reenable brownout detector, as appropriate

@@ -68,7 +68,7 @@ implementation
 
         // Enable clock for UART
         // FIXME: this should go into the UART start/stop!
-        PMC->pcdr.bits.dbgu = 1;
+        PMC->pc.pcdr.bits.dbgu = 1;
 
         /* Optimize CPU setting for speed */
         SetDefaultMaster(1);

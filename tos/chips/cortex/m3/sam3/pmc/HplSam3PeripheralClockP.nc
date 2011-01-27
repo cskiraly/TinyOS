@@ -24,13 +24,13 @@
  * @author Thomas Schmid
  */
 
-#include "sam3upmchardware.h"
+#include "pmchardware.h"
 
-generic module HplSam3uPeripheralClockP (uint8_t pid) @safe()
+generic module HplSam3PeripheralClockP (uint8_t pid, uint32_t pio_addr) @safe()
 {
     provides
     {
-        interface HplSam3uPeripheralClockCntl as Cntl;
+        interface HplSam3PeripheralClockCntl as Cntl;
     }
 }
 
@@ -38,22 +38,22 @@ implementation
 {
     async command void Cntl.enable()
     {
-        pmc_pcer_t pcer = PMC->pcer;
+        pmc_pcer_t pcer = ((volatile pmc_pc_t *) (pio_addr))->pcer;
         pcer.flat |= ( 1 << pid );
-        PMC->pcer = pcer;
+        ((volatile pmc_pc_t *) (pio_addr))->pcer = pcer;
     }
 
     async command void Cntl.disable()
     {
-        pmc_pcdr_t pcdr = PMC->pcdr;
+        pmc_pcdr_t pcdr = ((volatile pmc_pc_t *) (pio_addr))->pcdr;
         pcdr.flat |= ( 1 << pid );
-        PMC->pcdr = pcdr;
+        ((volatile pmc_pc_t *) (pio_addr))->pcdr = pcdr;
 
     }
 
     async command bool Cntl.status()
     {
-        if(PMC->pcsr.flat & (1 << pid))
+        if(((volatile pmc_pc_t *) (pio_addr))->pcsr.flat & (1 << pid))
             return TRUE;
         else
             return FALSE;

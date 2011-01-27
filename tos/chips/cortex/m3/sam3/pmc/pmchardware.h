@@ -564,6 +564,12 @@ typedef union
     } __attribute__((__packed__)) bits;
 } pmc_focr_t;
 
+typedef struct
+{
+    volatile pmc_pcer_t pcer; // Peripheral Clock Enable Register
+    volatile pmc_pcdr_t pcdr; // Peripheral Clock Disable Register
+    volatile pmc_pcsr_t pcsr; // Peripheral Clock Status Register
+} pmc_pc_t;
 
 
 #endif // PMCHARDWARE_H
