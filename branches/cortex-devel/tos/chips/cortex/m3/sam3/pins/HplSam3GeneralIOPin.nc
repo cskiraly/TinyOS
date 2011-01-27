@@ -33,7 +33,7 @@
  * @author Wanja Hofer <wanja@cs.fau.de>
  */
 
-interface HplSam3uGeneralIOPin
+interface HplSam3GeneralIOPin
 {
 	async command void enablePioControl();
 	/**

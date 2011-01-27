@@ -33,7 +33,7 @@
  * @author Thomas Schmid
  */
 
-interface HplSam3uGeneralIOPort
+interface HplSam3GeneralIOPort
 {
     // signals that the interrupt for a specific pin happened
     async event void fired(uint32_t time);

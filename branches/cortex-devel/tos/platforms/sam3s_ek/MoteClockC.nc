@@ -9,10 +9,10 @@ configuration MoteClockC
 implementation
 {
 
-    components MoteClockP, HplSam3uClockC;
+    components MoteClockP, HplSam3sClockC;
 
     Init = MoteClockP;
-    MoteClockP.HplSam3uClock -> HplSam3uClockC;
+    MoteClockP.HplSam3Clock -> HplSam3sClockC;
 
   components LedsC;
   MoteClockP.Leds -> LedsC;

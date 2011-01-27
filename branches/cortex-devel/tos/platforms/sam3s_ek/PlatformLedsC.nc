@@ -50,7 +50,7 @@ configuration PlatformLedsC
 }
 implementation
 {
-	components HplSam3uGeneralIOC as IO;
+	components HplSam3sGeneralIOC as IO;
 	components PlatformP;
 
 	Init = PlatformP.LedsInit;

@@ -30,23 +30,23 @@
  */
 
 /**
- * Pin abstraction on the SAM3U.
+ * Pin abstraction on the SAM3.
  *
  * @author Wanja Hofer <wanja@cs.fau.de>
  */
 
-generic module HplSam3uGeneralIOPinP(uint32_t pio_addr, uint8_t bit)
+generic module HplSam3GeneralIOPinP(uint32_t pio_addr, uint8_t bit)
 {
 	provides
 	{
 		interface GeneralIO as IO;
         interface GpioInterrupt as Interrupt;
         interface GpioCapture as Capture;
-		interface HplSam3uGeneralIOPin as HplPin;
+		interface HplSam3GeneralIOPin as HplPin;
 	}
     uses
     {
-        interface HplSam3uGeneralIOPort as HplPort;
+        interface HplSam3GeneralIOPort as HplPort;
     }
 }
 implementation

@@ -71,7 +71,7 @@ implementation
 #define PMC_PC_BASE  0x400e0410
 #define PMC_PC1_BASE 0x400e0500
 
-    components HplSam3uClockP,
+    components HplSam3sClockP,
                new HplSam3PeripheralClockP(AT91C_ID_RTC   ,PMC_PC_BASE ) as RTC, 
                new HplSam3PeripheralClockP(AT91C_ID_RTT   ,PMC_PC_BASE ) as RTT, 
                new HplSam3PeripheralClockP(AT91C_ID_WDG   ,PMC_PC_BASE ) as WDG, 
