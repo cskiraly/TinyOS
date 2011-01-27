@@ -26,7 +26,7 @@
  * @author Wanja Hofer <wanja@cs.fau.de>
  */
 
-#include "sam3unvichardware.h"
+#include "nvichardware.h"
 
 module HplNVICCntlP
 {
