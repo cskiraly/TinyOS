@@ -37,7 +37,7 @@ generic module HplSam3uTCChannelP(uint32_t tc_channel_base) @safe()
         interface HplSam3uTCCompare as CompareC;
     }
     uses {
-        interface HplSam3uClock as ClockConfig;
+        interface HplSam3Clock as ClockConfig;
 
         interface HplSam3uTCEvent as TimerEvent;
         interface HplNVICInterruptCntl as NVICTCInterrupt;

@@ -25,7 +25,7 @@
  * @author Thomas Schmid
  */
 
-#include "vichardware.h"
+#include "nvichardware.h"
 
 generic module HplNVICInterruptP (irqn_t irqn) @safe()
 {

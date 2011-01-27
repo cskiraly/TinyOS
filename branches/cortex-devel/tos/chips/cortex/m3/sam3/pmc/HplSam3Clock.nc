@@ -25,7 +25,7 @@
  * @author Thomas Schmid
  */
 
-interface HplSam3uClock
+interface HplSam3Clock
 {
     /**
      * Select the external oscillator as the slow clock source.

@@ -29,7 +29,7 @@ configuration HplSam3uClockC
 {
     provides
     {
-        interface HplSam3uClock;
+        interface HplSam3Clock;
 
         interface HplSam3uPeripheralClockCntl as RTCPCCntl   ;
         interface HplSam3uPeripheralClockCntl as RTTPPCntl   ;
@@ -93,7 +93,7 @@ implementation
                new HplSam3uPeripheralClockP(AT91C_ID_HDMA  ) as HDMA,
                new HplSam3uPeripheralClockP(AT91C_ID_UDPHS ) as UDPHS;
 
-    HplSam3uClock = HplSam3uClockP;
+    HplSam3Clock = HplSam3uClockP;
 
     RTCPCCntl   = RTC.Cntl;
     RTTPPCntl   = RTT.Cntl;
@@ -125,5 +125,5 @@ implementation
     UDPHSPPCntl = UDPHS.Cntl;
 
   components McuSleepC;
-  McuSleepC.HplSam3uClock -> HplSam3uClockP;
+  McuSleepC.HplSam3Clock -> HplSam3uClockP;
 }
