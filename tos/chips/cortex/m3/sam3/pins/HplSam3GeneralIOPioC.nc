@@ -30,12 +30,12 @@
  */
 
 /**
- * Abstraction of a PIO controller on the SAM3U. Has 32 pins.
+ * Abstraction of a PIO controller on the SAM3. Has 32 pins.
  *
  * @author wanja@cs.fau.de
  */
 
-generic configuration HplSam3uGeneralIOPioC(uint32_t pio_addr)
+generic configuration HplSam3GeneralIOPioC(uint32_t pio_addr)
 {
 	provides {
 		interface GeneralIO as Pin0;
@@ -71,38 +71,38 @@ generic configuration HplSam3uGeneralIOPioC(uint32_t pio_addr)
 		interface GeneralIO as Pin30;
 		interface GeneralIO as Pin31;
 
-		interface HplSam3uGeneralIOPin as HplPin0;
-		interface HplSam3uGeneralIOPin as HplPin1;
-		interface HplSam3uGeneralIOPin as HplPin2;
-		interface HplSam3uGeneralIOPin as HplPin3;
-		interface HplSam3uGeneralIOPin as HplPin4;
-		interface HplSam3uGeneralIOPin as HplPin5;
-		interface HplSam3uGeneralIOPin as HplPin6;
-		interface HplSam3uGeneralIOPin as HplPin7;
-		interface HplSam3uGeneralIOPin as HplPin8;
-		interface HplSam3uGeneralIOPin as HplPin9;
-		interface HplSam3uGeneralIOPin as HplPin10;
-		interface HplSam3uGeneralIOPin as HplPin11;
-		interface HplSam3uGeneralIOPin as HplPin12;
-		interface HplSam3uGeneralIOPin as HplPin13;
-		interface HplSam3uGeneralIOPin as HplPin14;
-		interface HplSam3uGeneralIOPin as HplPin15;
-		interface HplSam3uGeneralIOPin as HplPin16;
-		interface HplSam3uGeneralIOPin as HplPin17;
-		interface HplSam3uGeneralIOPin as HplPin18;
-		interface HplSam3uGeneralIOPin as HplPin19;
-		interface HplSam3uGeneralIOPin as HplPin20;
-		interface HplSam3uGeneralIOPin as HplPin21;
-		interface HplSam3uGeneralIOPin as HplPin22;
-		interface HplSam3uGeneralIOPin as HplPin23;
-		interface HplSam3uGeneralIOPin as HplPin24;
-		interface HplSam3uGeneralIOPin as HplPin25;
-		interface HplSam3uGeneralIOPin as HplPin26;
-		interface HplSam3uGeneralIOPin as HplPin27;
-		interface HplSam3uGeneralIOPin as HplPin28;
-		interface HplSam3uGeneralIOPin as HplPin29;
-		interface HplSam3uGeneralIOPin as HplPin30;
-		interface HplSam3uGeneralIOPin as HplPin31;
+		interface HplSam3GeneralIOPin as HplPin0;
+		interface HplSam3GeneralIOPin as HplPin1;
+		interface HplSam3GeneralIOPin as HplPin2;
+		interface HplSam3GeneralIOPin as HplPin3;
+		interface HplSam3GeneralIOPin as HplPin4;
+		interface HplSam3GeneralIOPin as HplPin5;
+		interface HplSam3GeneralIOPin as HplPin6;
+		interface HplSam3GeneralIOPin as HplPin7;
+		interface HplSam3GeneralIOPin as HplPin8;
+		interface HplSam3GeneralIOPin as HplPin9;
+		interface HplSam3GeneralIOPin as HplPin10;
+		interface HplSam3GeneralIOPin as HplPin11;
+		interface HplSam3GeneralIOPin as HplPin12;
+		interface HplSam3GeneralIOPin as HplPin13;
+		interface HplSam3GeneralIOPin as HplPin14;
+		interface HplSam3GeneralIOPin as HplPin15;
+		interface HplSam3GeneralIOPin as HplPin16;
+		interface HplSam3GeneralIOPin as HplPin17;
+		interface HplSam3GeneralIOPin as HplPin18;
+		interface HplSam3GeneralIOPin as HplPin19;
+		interface HplSam3GeneralIOPin as HplPin20;
+		interface HplSam3GeneralIOPin as HplPin21;
+		interface HplSam3GeneralIOPin as HplPin22;
+		interface HplSam3GeneralIOPin as HplPin23;
+		interface HplSam3GeneralIOPin as HplPin24;
+		interface HplSam3GeneralIOPin as HplPin25;
+		interface HplSam3GeneralIOPin as HplPin26;
+		interface HplSam3GeneralIOPin as HplPin27;
+		interface HplSam3GeneralIOPin as HplPin28;
+		interface HplSam3GeneralIOPin as HplPin29;
+		interface HplSam3GeneralIOPin as HplPin30;
+		interface HplSam3GeneralIOPin as HplPin31;
 
 		interface GpioInterrupt as InterruptPin0;
 		interface GpioInterrupt as InterruptPin1;
@@ -172,7 +172,7 @@ generic configuration HplSam3uGeneralIOPioC(uint32_t pio_addr)
 	}
     uses
     {
-        interface HplSam3uGeneralIOPort as HplPort;
+        interface HplSam3GeneralIOPort as HplPort;
         interface HplNVICInterruptCntl as PIOIrqControl;
         interface HplSam3PeripheralClockCntl as PIOClockControl;
     }
@@ -180,38 +180,38 @@ generic configuration HplSam3uGeneralIOPioC(uint32_t pio_addr)
 implementation
 {
 	components 
-	new HplSam3uGeneralIOPinP(pio_addr, 0) as Bit0,
-	new HplSam3uGeneralIOPinP(pio_addr, 1) as Bit1,
-	new HplSam3uGeneralIOPinP(pio_addr, 2) as Bit2,
-	new HplSam3uGeneralIOPinP(pio_addr, 3) as Bit3,
-	new HplSam3uGeneralIOPinP(pio_addr, 4) as Bit4,
-	new HplSam3uGeneralIOPinP(pio_addr, 5) as Bit5,
-	new HplSam3uGeneralIOPinP(pio_addr, 6) as Bit6,
-	new HplSam3uGeneralIOPinP(pio_addr, 7) as Bit7,
-	new HplSam3uGeneralIOPinP(pio_addr, 8) as Bit8,
-	new HplSam3uGeneralIOPinP(pio_addr, 9) as Bit9,
-	new HplSam3uGeneralIOPinP(pio_addr, 10) as Bit10,
-	new HplSam3uGeneralIOPinP(pio_addr, 11) as Bit11,
-	new HplSam3uGeneralIOPinP(pio_addr, 12) as Bit12,
-	new HplSam3uGeneralIOPinP(pio_addr, 13) as Bit13,
-	new HplSam3uGeneralIOPinP(pio_addr, 14) as Bit14,
-	new HplSam3uGeneralIOPinP(pio_addr, 15) as Bit15,
-	new HplSam3uGeneralIOPinP(pio_addr, 16) as Bit16,
-	new HplSam3uGeneralIOPinP(pio_addr, 17) as Bit17,
-	new HplSam3uGeneralIOPinP(pio_addr, 18) as Bit18,
-	new HplSam3uGeneralIOPinP(pio_addr, 19) as Bit19,
-	new HplSam3uGeneralIOPinP(pio_addr, 20) as Bit20,
-	new HplSam3uGeneralIOPinP(pio_addr, 21) as Bit21,
-	new HplSam3uGeneralIOPinP(pio_addr, 22) as Bit22,
-	new HplSam3uGeneralIOPinP(pio_addr, 23) as Bit23,
-	new HplSam3uGeneralIOPinP(pio_addr, 24) as Bit24,
-	new HplSam3uGeneralIOPinP(pio_addr, 25) as Bit25,
-	new HplSam3uGeneralIOPinP(pio_addr, 26) as Bit26,
-	new HplSam3uGeneralIOPinP(pio_addr, 27) as Bit27,
-	new HplSam3uGeneralIOPinP(pio_addr, 28) as Bit28,
-	new HplSam3uGeneralIOPinP(pio_addr, 29) as Bit29,
-	new HplSam3uGeneralIOPinP(pio_addr, 30) as Bit30,
-	new HplSam3uGeneralIOPinP(pio_addr, 31) as Bit31;
+	new HplSam3GeneralIOPinP(pio_addr, 0) as Bit0,
+	new HplSam3GeneralIOPinP(pio_addr, 1) as Bit1,
+	new HplSam3GeneralIOPinP(pio_addr, 2) as Bit2,
+	new HplSam3GeneralIOPinP(pio_addr, 3) as Bit3,
+	new HplSam3GeneralIOPinP(pio_addr, 4) as Bit4,
+	new HplSam3GeneralIOPinP(pio_addr, 5) as Bit5,
+	new HplSam3GeneralIOPinP(pio_addr, 6) as Bit6,
+	new HplSam3GeneralIOPinP(pio_addr, 7) as Bit7,
+	new HplSam3GeneralIOPinP(pio_addr, 8) as Bit8,
+	new HplSam3GeneralIOPinP(pio_addr, 9) as Bit9,
+	new HplSam3GeneralIOPinP(pio_addr, 10) as Bit10,
+	new HplSam3GeneralIOPinP(pio_addr, 11) as Bit11,
+	new HplSam3GeneralIOPinP(pio_addr, 12) as Bit12,
+	new HplSam3GeneralIOPinP(pio_addr, 13) as Bit13,
+	new HplSam3GeneralIOPinP(pio_addr, 14) as Bit14,
+	new HplSam3GeneralIOPinP(pio_addr, 15) as Bit15,
+	new HplSam3GeneralIOPinP(pio_addr, 16) as Bit16,
+	new HplSam3GeneralIOPinP(pio_addr, 17) as Bit17,
+	new HplSam3GeneralIOPinP(pio_addr, 18) as Bit18,
+	new HplSam3GeneralIOPinP(pio_addr, 19) as Bit19,
+	new HplSam3GeneralIOPinP(pio_addr, 20) as Bit20,
+	new HplSam3GeneralIOPinP(pio_addr, 21) as Bit21,
+	new HplSam3GeneralIOPinP(pio_addr, 22) as Bit22,
+	new HplSam3GeneralIOPinP(pio_addr, 23) as Bit23,
+	new HplSam3GeneralIOPinP(pio_addr, 24) as Bit24,
+	new HplSam3GeneralIOPinP(pio_addr, 25) as Bit25,
+	new HplSam3GeneralIOPinP(pio_addr, 26) as Bit26,
+	new HplSam3GeneralIOPinP(pio_addr, 27) as Bit27,
+	new HplSam3GeneralIOPinP(pio_addr, 28) as Bit28,
+	new HplSam3GeneralIOPinP(pio_addr, 29) as Bit29,
+	new HplSam3GeneralIOPinP(pio_addr, 30) as Bit30,
+	new HplSam3GeneralIOPinP(pio_addr, 31) as Bit31;
 
 	Pin0 = Bit0;
 	Pin1 = Bit1;
@@ -345,7 +345,7 @@ implementation
 	CapturePin30 = Bit30;
 	CapturePin31 = Bit31;
 
-    components new HplSam3uGeneralIOPortP(pio_addr) as Port;
+    components new HplSam3GeneralIOPortP(pio_addr) as Port;
 
     HplPort = Port.HplPort;
     PIOIrqControl = Port.PIOIrqControl;

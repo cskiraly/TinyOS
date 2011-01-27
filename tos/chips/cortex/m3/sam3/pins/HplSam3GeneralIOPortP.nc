@@ -24,15 +24,15 @@
  */
 
 uint32_t clocks = 0;
-generic module HplSam3uGeneralIOPortP(uint32_t pio_addr)
+generic module HplSam3GeneralIOPortP(uint32_t pio_addr)
 {
     provides
     {
-        interface HplSam3uGeneralIOPort as Bits [uint8_t bit];
+        interface HplSam3GeneralIOPort as Bits [uint8_t bit];
     }
     uses
     {
-        interface HplSam3uGeneralIOPort as HplPort;
+        interface HplSam3GeneralIOPort as HplPort;
         interface HplNVICInterruptCntl as PIOIrqControl;
         interface HplSam3PeripheralClockCntl as PIOClockControl;
     }

@@ -24,13 +24,13 @@
  * @author Thomas Schmid
  */
 
-module HplSam3uGeneralIOP
+module HplSam3GeneralIOP
 {
     provides
     {
-        interface HplSam3uGeneralIOPort as HplPortA;
-        interface HplSam3uGeneralIOPort as HplPortB;
-        interface HplSam3uGeneralIOPort as HplPortC;
+        interface HplSam3GeneralIOPort as HplPortA;
+        interface HplSam3GeneralIOPort as HplPortB;
+        interface HplSam3GeneralIOPort as HplPortC;
     }
     uses 
     {
