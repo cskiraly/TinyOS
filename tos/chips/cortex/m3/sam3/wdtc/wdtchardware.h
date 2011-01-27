@@ -25,8 +25,8 @@
  * @author Thomas Schmid
  */
 
-#ifndef _SAM3UWDTCHARDWARE_H
-#define _SAM3UWDTCHARDWARE_H
+#ifndef _WDTCHARDWARE_H
+#define _WDTCHARDWARE_H
 
 /**
  *  WDTC Control Register, AT91 ARM Cortex-M3 based Microcontrollers
@@ -95,9 +95,4 @@ typedef struct wdtc
     volatile wdtc_sr_t sr; // Status Register
 } wdtc_t;
 
-/**
- * Memory mapping for the WDTC
- */
-volatile wdtc_t* WDTC = (volatile wdtc_t *) 0x400E1250; // WDTC Base Address
-
-#endif // _SAM3UWDTCHARDWARE_H
+#endif // _WDTCHARDWARE_H
