@@ -25,9 +25,9 @@
  * @author Thomas Schmid
  */
 
-#include "sam3upmchardware.h"
-#include "sam3usupchardware.h"
-#include "sam3ueefchardware.h"
+#include "sam3spmchardware.h"
+#include "sam3ssupchardware.h"
+#include "sam3eefchardware.h"
 #include "sam3uwdtchardware.h"
 #include "sam3umatrixhardware.h"
 
