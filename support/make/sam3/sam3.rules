@@ -1,12 +1,12 @@
 #-*-Makefile-*- vim:syntax=make
-define SAM3U_HELP
+define SAM3_HELP
 
-SAM3U extras:
+SAM3 extras:
   None available at the moment.
 
 endef
 
-HELP += $(SAM3U_HELP)
+HELP += $(SAM3_HELP)
 
 OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
@@ -74,7 +74,7 @@ DEFAULT_PROGRAM ?= sam-ba
 
 # Use the 'if' function instead of the 'ifdef' construct because ifdef freaks
 # out with call in there.  I don't know why.
-$(if $(PROGRAM),,$(call TOSMake_include,sam3u/$(DEFAULT_PROGRAM).extra))
+$(if $(PROGRAM),,$(call TOSMake_include,sam3/$(DEFAULT_PROGRAM).extra))
 
 exe: exe0 bytes FORCE
 	@:
