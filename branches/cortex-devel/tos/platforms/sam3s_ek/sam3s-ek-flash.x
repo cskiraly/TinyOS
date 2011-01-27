@@ -47,14 +47,17 @@ ENTRY(__init)
 /* The IRQ vector table is put at the beginning of SRAM 0 */
 /* We reserve 0x100 bytes by setting the SRAM 0 base address below accordingly */
 
-/* Stack at the end of SRAM 0 */
-_estack = 0x20007ffc;
+/* Stack at the end of SRAM */
+_estack = 0x2000bffc;
+
+/* Don't relocate the vector table */
+/*PROVIDE (__relocate_vector = 0);*/
 
 /* We have the SAM3S4C with 256K Flash and 48K SRAM. */
 MEMORY
 {
-	sram  (W!RX) : org = 0x20000000, len = 0x0C000 /* SRAM, 48K */
-	flash (W!RX) : org = 0x00400000, len = 0x40000 /* Flash, 256K */
+	sram  (WRX) : org = 0x20000000, len = 0x0C000 /* SRAM, 48K */
+	flash (RX) : org = 0x00400000, len = 0x40000 /* Flash, 256K */
 }
 
 SECTIONS
@@ -64,7 +67,8 @@ SECTIONS
 	{
 		. = ALIGN(4);
 		_stext = .;
-        KEEP(*(.boot*))
+        /* KEEP(*(.boot*)) */
+        KEEP(*(.vectors))
         *(.init*)
 		*(.text*)
         *(.fini*)
@@ -82,7 +86,6 @@ SECTIONS
 		_sdata = .;
         _svect = .;
         KEEP(*(.vectors)) /* Interrupt vector table in first 204 bytes */
-        . = ALIGN(100);
         _evect = .;
 		*(.ramfunc) /* functions linked into RAM */
 		*(.data.*)

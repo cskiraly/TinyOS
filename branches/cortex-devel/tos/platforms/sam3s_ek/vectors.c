@@ -47,6 +47,7 @@ extern unsigned int _evect;
 extern unsigned int _sbss;
 extern unsigned int _ebss;
 extern unsigned int _estack;
+extern unsigned int __relocate_vector;
 
 /* main() symbol defined in RealMainP
  */
@@ -243,12 +244,15 @@ void __init()
 	unsigned int *i;
 	volatile unsigned int *NVIC_VTOFFR = (volatile unsigned int *) 0xe000ed08;
 
-    // Configure location of IRQ vector table
-    // Vector table is in the beginning of text segment / Flash 0
-    i = (unsigned int *) &_svect;
-    *NVIC_VTOFFR = (unsigned int) i;
-    // Set TBLBASE bit since vector table located in SRAM
-    *NVIC_VTOFFR |= (1 << 29);
+    if(0 && __relocate_vector)
+    {
+        // Configure location of IRQ vector table
+        // Vector table is in the beginning of text segment / Flash 0
+        i = (unsigned int *) &_svect;
+        *NVIC_VTOFFR = (unsigned int) i;
+        // Set TBLBASE bit since vector table located in SRAM
+        *NVIC_VTOFFR |= (1 << 29);
+    }
 
 	// Copy pre-initialized data into RAM.
 	// Data lies in Flash after the text segment (_etext),
