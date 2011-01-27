@@ -30,15 +30,70 @@
  */
 
 /**
- * Sam3u specific PMC registers
+ * Sam3s specific PMC registers
  *
  * @author Thomas Schmid
  */
 
-#ifndef SAM3UPMCHARDWARE_H
-#define SAM3UPMCHARDWARE_H
+#ifndef SAM3SPMCHARDWARE_H
+#define SAM3SPMCHARDWARE_H
 
 #include "pmchardware.h"
+
+/**
+ * PMC Clock Generator PLLA Register, AT91 ARM Cortex-M3 based Microcontrollers
+ * SAM3U Series, Preliminary, p. 491
+ * Note: bit 29 must always be set to 1 when writing this register! 
+ */ 
+typedef union
+{
+    uint32_t flat;
+    struct
+    {
+        uint8_t divb       :  8; // divider
+        uint8_t pllbcount  :  6; // pllb counter, specifies the number of slow clock cycles times 8
+        uint8_t stmode     :  2; // start mode
+        uint16_t mulb      : 11; // PLLB Multiplier
+        uint8_t reserved0  :  5;
+    } __attribute__((__packed__)) bits;
+} pmc_pllbr_t;
+
+#define PMC_PLLBR_STMODE_FAST_STARTUP 0
+#define PMC_PLLBR_STMODE_NORMAL_STARTUP 2
+
+/**
+ * PMC USB Clock Register
+ */
+typedef union
+{
+    uint32_t flat;
+    struct
+    {
+        uint32_t usbs      :  1; // USB Input Clock Selection
+        uint32_t reserved0 :  7;
+        uint32_t usbdiv    :  4; // Divider for USB Clock
+        uint32_t reserved1 : 20;
+    } __attribute__((__packed__)) bits;
+} pmc_usb_t;
+
+/**
+ * PMC Oscillator Calibration Register.
+ */
+typedef union
+{
+    uint32_t flat;
+    struct
+    {
+        uint32_t cal4       : 7; // RC Oscillator Calibration bits for 4MHz
+        uint32_t sel4       : 1; // Selection of RC Oscillator Calibration bits for 4 MHz
+        uint32_t cal8       : 7; // RC Oscillator Calibration bits for 8MHz
+        uint32_t sel8       : 1; // Selection of RC Oscillator Calibration bits for 8 MHz
+        uint32_t cal12      : 7; // RC Oscillator Calibration bits for 12MHz
+        uint32_t sel12      : 1; // Selection of RC Oscillator Calibration bits for 12 MHz
+        uint32_t reserved0  : 8;
+    } __ attribute__((__packed__)) bits;
+} pmc_ocr_t;
+
 
 /**
  * PMC Register definitions, AT91 ARM Cortex-M3 based Microcontrollers SAM3U
@@ -50,18 +105,20 @@ typedef struct pmc
     volatile pmc_scdr_t   scdr;  // System Clock Disable Register
     volatile pmc_scsr_t   scsr;  // System Clock Status Register
     uint32_t reserved0;
-    volatile pmc_pc_t     pc;    // Peripheral Clock Control Registers
-    volatile pmc_uckr_t   uckr;  // UTMI Clock Register
+    volatile pmc_pc_t     pc;    // Peripheral Clock Control Registers 0
+    uint32_t reserved1;
     volatile pmc_mor_t    mor;   // Main Oscillator Register
     volatile pmc_mcfr_t   mcfr;  // Main Clock Frequency Register
     volatile pmc_pllar_t  pllar; // PLLA Register
-    uint32_t reserved1;
+    uint32_t pmc_pllbr_t  pllbr; // PLLB Register
     volatile pmc_mckr_t   mckr;  // Master Clock Register
-    uint32_t reserved2[3];
+    uint32_t reserved2;
+    volatile pmc_usb_t    usb;   // USB Clock Register
+    uint32_t reserved3;
     volatile pmc_pck_t   pck0;  // Programmable Clock 0 Register
     volatile pmc_pck_t   pck1;  // Programmable Clock 1 Register
     volatile pmc_pck_t   pck2;  // Programmable Clock 2 Register
-    uint32_t reserved3[5];
+    uint32_t reserved4[5];
     volatile pmc_ier_t    ier;   // Interrupt Enable Register
     volatile pmc_idr_t    idr;   // Interrupt Disable Register
     volatile pmc_sr_t     sr;    // Status Register
@@ -71,7 +128,11 @@ typedef struct pmc
     volatile pmc_focr_t   focr;  // Fault Output Clear Register
     uint32_t reserved5[26];
     volatile pmc_wpmr_t   wpmr;  // Write Protect Mode Register
-    volatile pmc_wpsr_t   wpsr;  // Write Protect Status Register   
+    volatile pmc_wpsr_t   wpsr;  // Write Protect Status Register
+    uint32_t reserved6[5];
+    volatile pmc_pc_t     pc1;   // Peripheral Clock Control Registers 1
+    uint32_t reserved7;
+    volatile pmc_ocr_t    ocr;   // Oscillator Calibration Register
 } pmc_t;
 
 /**

@@ -34,11 +34,11 @@
  */
 
 #include "hardware.h"
-#include "sam3pmchardware.h"
-#include "sam3supchardware.h"
 #include "sam3snvichardware.h"
-#include "sam3rtthardware.h"
-#include "sam3tchardware.h"
+#include "sam3spmchardware.h"
+#include "sam3ssupchardware.h"
+#include "sam3srtthardware.h"
+#include "sam3stchardware.h"
 
 module McuSleepC
 {
