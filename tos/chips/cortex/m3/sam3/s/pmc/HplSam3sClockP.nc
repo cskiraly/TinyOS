@@ -126,7 +126,6 @@ implementation
         pllar.bits.mula = 0x3; // multiplication is MULA+1 => 12x4 = 48MHz
         pllar.bits.pllacount = 0x3F;
         pllar.bits.diva = 0x1; // divider is bypassed
-        pllar.bits.stmode = PMC_PLLAR_STMODE_FAST_STARTUP;
         PMC->pllar = pllar;
         timeout = 0;
         while (!(PMC->sr.bits.locka) && (timeout++ < CLOCK_TIMEOUT));
@@ -192,7 +191,6 @@ implementation
         pllar.bits.mula = 0x6; // multiplication is MULA+1 => 12x7 = 84MHz
         pllar.bits.pllacount = 0x3F;
         pllar.bits.diva = 0x1; // divider is bypassed
-        pllar.bits.stmode = PMC_PLLAR_STMODE_FAST_STARTUP;
         PMC->pllar = pllar;
         timeout = 0;
         while (!(PMC->sr.bits.locka) && (timeout++ < CLOCK_TIMEOUT));
@@ -257,7 +255,6 @@ implementation
         pllar.bits.mula = 0x7; // multiplication is MULA+1 => 12x8 = 96MHz
         pllar.bits.pllacount = 0x3F;
         pllar.bits.diva = 0x1; // divider is bypassed
-        pllar.bits.stmode = PMC_PLLAR_STMODE_FAST_STARTUP;
         PMC->pllar = pllar;
         timeout = 0;
         while (!(PMC->sr.bits.locka) && (timeout++ < CLOCK_TIMEOUT));
