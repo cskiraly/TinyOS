@@ -19,24 +19,23 @@
  */
 
 /**
- * CounterTMicro32C provides a 32-bit counter about 1M ticks per second.
+ * HilSam3TCCounter32khC provides the standard 32khz counter for the SAM3U.
  *
  * @author Thomas Schmid
  * @see  Please refer to TEP 102 for more information about this component and its
  *          intended use.
  */
 
-configuration CounterTMicro32C
+configuration HilSam3TCCounter32khzC
 {
-  provides interface Counter<TMicro,uint32_t>;
+  provides interface Counter<T32khz,uint16_t> as HilSam3TCCounter32khz;
 }
 implementation
 {
-  components HilSam3uTCCounterTMicroC as CounterFrom;
-  components new TransformCounterC(TMicro,uint32_t,TMicro,uint16_t,0,uint16_t) as Transform;
+  components HplSam3TCC;
+  components new HilSam3TCCounterC(T32khz) as Counter;
 
-  Counter = Transform;
-
-  Transform.CounterFrom -> CounterFrom;
+  HilSam3TCCounter32khz = Counter;
+  Counter.HplSam3TCChannel -> HplSam3TCC.TC0;
 }
 

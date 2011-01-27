@@ -19,27 +19,27 @@
  */
 
 /**
- * HplSam3uTC32khzMapC presents as paramaterized interfaces all of the 32khz
- * channels on the SAM3U that are available for compile time allocation
- * by "new Alarm32khz16C()", "new AlarmMilli32C()", and so on.
- *
- * Platforms based on the SAM3U are encouraged to copy in and override this
- * file, presenting only the hardware timers that are available for allocation
- * on that platform.
- *
+ * AlarmTMicroC is the alarm for TMicro alarms
  * @author Thomas Schmid
+ * @see  Please refer to TEP 102 for more information about this component and its
+ *          intended use.
  */
 
-configuration HplSam3uTC32khzMapC
+generic configuration AlarmTMicro32C()
 {
-  provides interface HplSam3uTCChannel[ uint8_t id ];
-  provides interface HplSam3uTCCompare[ uint8_t id ];
+  provides interface Init;
+  provides interface Alarm<TMicro,uint32_t>;
 }
 implementation
 {
-  components HplSam3uTCC;
+  #error The existing implementation that is in here was broken and doesn't work. Check it with an Oscilloscope!
+  components HilSam3TCCounterTMicroC as HplSam3TCChannel;
+  components new HilSam3TCAlarmC(TMicro, 1000) as HilSam3TCAlarm;
 
-  HplSam3uTCChannel[0] = HplSam3uTCC.TC0;
-  HplSam3uTCCompare[0] = HplSam3uTCC.TC0CompareC;
+  Init = HilSam3TCAlarm;
+  Alarm = HilSam3TCAlarm;
+
+  HilSam3TCAlarm.HplSam3TCChannel -> HplSam3TCChannel;
+  HilSam3TCAlarm.HplSam3TCCompare -> HplSam3TCChannel;
 }
 

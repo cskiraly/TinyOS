@@ -1,4 +1,5 @@
-/* "Copyright (c) 2000-2003 The Regents of the University of California.
+/**
+ * "Copyright (c) 2009 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -18,21 +19,31 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-/**
- * @author Thomas Schmid
+/** 
+ * @author Kevin Klues <Kevin.Klues@csiro.au>
+ *
  */
 
-configuration HplSam3uTC32khzC
+configuration HilAlarmTMicro16C
 {
-  provides interface HplSam3uTCChannel;
-  provides interface HplSam3uTCCompare;
+  provides 
+  {
+      interface Init;
+      interface Alarm<TMicro, uint16_t> as Alarm[ uint8_t num ];
+  }
 }
+
 implementation
 {
-  components HplSam3uTC32khzMapC as Map;
+  components new VirtualizeAlarmC(TMicro, uint16_t, uniqueCount(UQ_ALARM_TMICRO16)) as VirtAlarmsTMicro16;
+  components HilSam3TCCounterTMicroC as HplSam3TCChannel;
+  components new HilSam3TCAlarmC(TMicro, 1000) as HilSam3TCAlarm;
 
-  enum { ALARM_ID = unique("Sam3uTC32khzMapC") };
-  HplSam3uTCChannel = Map.HplSam3uTCChannel[ ALARM_ID ];
-  HplSam3uTCCompare = Map.HplSam3uTCCompare[ ALARM_ID ];
+  Init = HilSam3TCAlarm;
+  Alarm = VirtAlarmsTMicro16.Alarm;
+
+  VirtAlarmsTMicro16.AlarmFrom -> HilSam3TCAlarm;
+  HilSam3TCAlarm.HplSam3TCChannel -> HplSam3TCChannel;
+  HilSam3TCAlarm.HplSam3TCCompare -> HplSam3TCChannel;
 }
 

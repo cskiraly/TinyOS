@@ -19,25 +19,31 @@
  */
 
 /**
- * CounterTMicroC provides at 16-bit counter at at approximately 1us
- * resolution. However, to get the accurate frequency inquire the
- * getTimerFrequency() function.
+ * HilSam3TCCounterTMicroC provides the an approximate TMicro counter for the
+ * SAM3U.
  *
  * @author Thomas Schmid
  * @see  Please refer to TEP 102 for more information about this component and its
  *          intended use.
  */
 
-configuration CounterTMicro16C
+configuration HilSam3TCCounterTMicroC
 {
   provides {
-      interface Counter<TMicro,uint16_t>;
+      interface Counter<TMicro,uint16_t> as HilSam3TCCounterTMicro;
+      interface HplSam3TCChannel;
+      interface HplSam3TCCompare;
   }
 }
 implementation
 {
-  components HilSam3uTCCounterTMicroC as CounterFrom;
+  components HplSam3TCC;
+  components new HilSam3TCCounterC(TMicro) as Counter;
 
-  Counter = CounterFrom;
+  HilSam3TCCounterTMicro = Counter;
+  Counter.HplSam3TCChannel -> HplSam3TCC.TC2;
+
+  HplSam3TCChannel = HplSam3TCC.TC2;
+  HplSam3TCCompare = HplSam3TCC.TC2CompareC;
 }
 

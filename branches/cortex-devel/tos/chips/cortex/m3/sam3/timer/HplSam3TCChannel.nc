@@ -25,7 +25,7 @@
  * @author Thomas Schmid
  */
 
-interface HplSam3uTCChannel
+interface HplSam3TCChannel
 {
     async command uint16_t get();
     async command bool isOverflowPending();

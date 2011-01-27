@@ -1,3 +1,4 @@
+
 /* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
  *
@@ -19,27 +20,40 @@
  */
 
 /**
- * AlarmTMicroC is the alarm for TMicro alarms
+ * HilSam3TCCounter is a generic component that wraps the SAM3U HPL timers into a
+ * TinyOS Counter.
+ *
  * @author Thomas Schmid
  * @see  Please refer to TEP 102 for more information about this component and its
  *          intended use.
  */
-
-generic configuration AlarmTMicro32C()
+ 
+generic module HilSam3TCCounterC( typedef frequency_tag ) @safe()
 {
-  provides interface Init;
-  provides interface Alarm<TMicro,uint32_t>;
+  provides interface Counter<frequency_tag,uint16_t> as Counter;
+  uses interface HplSam3TCChannel;
 }
 implementation
 {
-  #error The existing implementation that is in here was broken and doesn't work. Check it with an Oscilloscope!
-  components HilSam3uTCCounterTMicroC as HplSam3uTCChannel;
-  components new HilSam3uTCAlarmC(TMicro, 1000) as HilSam3uTCAlarm;
+  async command uint16_t Counter.get()
+  {
+    return call HplSam3TCChannel.get();
+  }
 
-  Init = HilSam3uTCAlarm;
-  Alarm = HilSam3uTCAlarm;
+  async command bool Counter.isOverflowPending()
+  {
+    return call HplSam3TCChannel.isOverflowPending();
+  }
 
-  HilSam3uTCAlarm.HplSam3uTCChannel -> HplSam3uTCChannel;
-  HilSam3uTCAlarm.HplSam3uTCCompare -> HplSam3uTCChannel;
+  async command void Counter.clearOverflow()
+  {
+    call HplSam3TCChannel.clearOverflow();
+  }
+
+  async event void HplSam3TCChannel.overflow()
+  {
+    signal Counter.overflow();
+  }
+  default async event void Counter.overflow() {}
 }
 

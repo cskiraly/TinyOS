@@ -47,7 +47,7 @@ configuration PlatformC
 
 implementation
 {
-	components PlatformP, MoteClockC, HplSam3uTCC as MoteTimerC;
+	components PlatformP, MoteClockC, HplSam3TCC as MoteTimerC;
     components McuSleepC;
 
 	Init = PlatformP;

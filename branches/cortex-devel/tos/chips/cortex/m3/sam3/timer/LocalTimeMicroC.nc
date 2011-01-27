@@ -19,7 +19,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Author: Janos Sallai
- * Author: Thomas Schmid (adapted to sam3u)
+ * Author: Thomas Schmid (adapted to sam3)
  */
 
 #include <Timer.h>

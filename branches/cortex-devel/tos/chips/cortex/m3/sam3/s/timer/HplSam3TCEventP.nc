@@ -25,19 +25,25 @@
  * @author Thomas Schmid
  */
 
-#include "sam3utchardware.h"
+#include "sam3tchardware.h"
 
-module HplSam3uTCEventP @safe()
+module HplSam3TCEventP @safe()
 {
     provides {
-        interface HplSam3uTCEvent as TC0Event;
-        interface HplSam3uTCEvent as TC1Event;
-        interface HplSam3uTCEvent as TC2Event;
+        interface HplSam3TCEvent as TC0Event;
+        interface HplSam3TCEvent as TC1Event;
+        interface HplSam3TCEvent as TC2Event;
+        interface HplSam3TCEvent as TC3Event;
+        interface HplSam3TCEvent as TC4Event;
+        interface HplSam3TCEvent as TC5Event;
     }
     uses {
       interface FunctionWrapper as TC0InterruptWrapper;
       interface FunctionWrapper as TC1InterruptWrapper;
       interface FunctionWrapper as TC2InterruptWrapper;
+      interface FunctionWrapper as TC3InterruptWrapper;
+      interface FunctionWrapper as TC4InterruptWrapper;
+      interface FunctionWrapper as TC5InterruptWrapper;
     }
 }
 implementation
@@ -64,8 +70,32 @@ implementation
         call TC2InterruptWrapper.postamble();
     }
 
+    void TC3IrqHandler() @C() @spontaneous() 
+    {
+        call TC3InterruptWrapper.preamble();
+        signal TC3Event.fired();
+        call TC3InterruptWrapper.postamble();
+    }
+
+    void TC4IrqHandler() @C() @spontaneous() 
+    {
+        call TC4InterruptWrapper.preamble();
+        signal TC4Event.fired();
+        call TC4InterruptWrapper.postamble();
+    }
+
+    void TC5IrqHandler() @C() @spontaneous() 
+    {
+        call TC5InterruptWrapper.preamble();
+        signal TC5Event.fired();
+        call TC5InterruptWrapper.postamble();
+    }
+
     default async event void TC0Event.fired() {}
     default async event void TC1Event.fired() {}
     default async event void TC2Event.fired() {}
+    default async event void TC3Event.fired() {}
+    default async event void TC4Event.fired() {}
+    default async event void TC5Event.fired() {}
 }
 

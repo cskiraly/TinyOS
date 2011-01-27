@@ -19,7 +19,7 @@
  */
 
 /**
- * HilSam3uTCAlarmC is a generic component that wraps the SAM3U HPL timers and
+ * HilSam3TCAlarmC is a generic component that wraps the SAM3U HPL timers and
  * compares into a TinyOS Alarm.
  *
  * @author Thomas Schmid
@@ -28,7 +28,7 @@
  *          intended use.
  */
 
-generic module HilSam3uTCAlarmC(typedef frequency_tag, uint16_t freq_divisor) @safe()
+generic module HilSam3TCAlarmC(typedef frequency_tag, uint16_t freq_divisor) @safe()
 {
   provides 
   {
@@ -37,15 +37,15 @@ generic module HilSam3uTCAlarmC(typedef frequency_tag, uint16_t freq_divisor) @s
   }
   uses
   {
-      interface HplSam3uTCChannel;
-      interface HplSam3uTCCompare;
+      interface HplSam3TCChannel;
+      interface HplSam3TCCompare;
   }
 }
 implementation
 {
   command error_t Init.init()
   {
-    call HplSam3uTCCompare.disable();
+    call HplSam3TCCompare.disable();
     return SUCCESS;
   }
 
@@ -56,56 +56,56 @@ implementation
 
   async command void Alarm.stop()
   {
-    call HplSam3uTCCompare.disable();
+    call HplSam3TCCompare.disable();
   }
 
-  async event void HplSam3uTCCompare.fired()
+  async event void HplSam3TCCompare.fired()
   {
-    call HplSam3uTCCompare.disable();
+    call HplSam3TCCompare.disable();
     signal Alarm.fired();
   }
 
   async command bool Alarm.isRunning()
   {
-    return call HplSam3uTCCompare.isEnabled();
+    return call HplSam3TCCompare.isEnabled();
   }
 
   async command void Alarm.startAt( uint16_t t0, uint16_t dt )
   {
-    uint32_t freq = call HplSam3uTCChannel.getTimerFrequency();
+    uint32_t freq = call HplSam3TCChannel.getTimerFrequency();
     dt = (dt*freq)/(uint32_t)freq_divisor + 1;
     atomic
     {
-      uint16_t now = call HplSam3uTCChannel.get();
+      uint16_t now = call HplSam3TCChannel.get();
       uint16_t elapsed = now - t0;
       if( elapsed >= dt )
       {
-        call HplSam3uTCCompare.setEventFromNow(2);
+        call HplSam3TCCompare.setEventFromNow(2);
       }
       else
       {
         uint16_t remaining = dt - elapsed;
         if( remaining <= 2 )
-          call HplSam3uTCCompare.setEventFromNow(2);
+          call HplSam3TCCompare.setEventFromNow(2);
         else
-          call HplSam3uTCCompare.setEvent( now+remaining );
+          call HplSam3TCCompare.setEvent( now+remaining );
       }
-      call HplSam3uTCCompare.clearPendingEvent();
-      call HplSam3uTCCompare.enable();
+      call HplSam3TCCompare.clearPendingEvent();
+      call HplSam3TCCompare.enable();
     }
   }
 
   async command uint16_t Alarm.getNow()
   {
-    return call HplSam3uTCChannel.get();
+    return call HplSam3TCChannel.get();
   }
 
   async command uint16_t Alarm.getAlarm()
   {
-    return call HplSam3uTCCompare.getEvent();
+    return call HplSam3TCCompare.getEvent();
   }
 
-  async event void HplSam3uTCChannel.overflow()
+  async event void HplSam3TCChannel.overflow()
   {
   }
 }

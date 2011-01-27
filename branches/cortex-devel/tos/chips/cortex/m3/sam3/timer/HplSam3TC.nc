@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Stanford University.
+ * Copyright (c) 2011 University of Utah.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,15 +11,15 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the Stanford University nor the names of
+ * - Neither the name of the copyright holder nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL STANFORD
- * UNIVERSITY OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
@@ -30,33 +30,17 @@
  */
 
 /**
- * @author Wanja Hofer <wanja@cs.fau.de>
+ *
+ *
+ * @author Thomas Schmid
  */
 
-#include "hardware.h"
+interface HplSam3TC{
+  command void enableTC0(); // slclk
+  command void enableTC1(); // slclk
+  command void enableTC2(); // used for TMicro
 
-configuration PlatformC
-{
-	provides
-	{
-		/* Called after platform_bootstrap() and Scheduler.init() (see TEP 107)
-		 * I/O pin configuration, clock calibration, and LED configuration */
-		interface Init;
-	}
-}
-
-implementation
-{
-	components PlatformP, MoteClockC, HplSam3TCC as MoteTimerC;
-    components McuSleepC;
-
-	Init = PlatformP;
-
-    PlatformP.MoteClockInit -> MoteClockC;
-    PlatformP.IRQInit -> MoteClockC;
-    PlatformP.MoteTimerInit -> MoteTimerC;
-
-    // Used so we can initialize the platform in a state where it would draw
-    // the lowest current possible if put to sleep.
-    PlatformP.Sam3LowPower -> McuSleepC;
+  command void disableTC0();
+  command void disableTC1();
+  command void disableTC2();
 }

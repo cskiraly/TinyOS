@@ -1,5 +1,4 @@
-/**
- * "Copyright (c) 2009 The Regents of the University of California.
+/* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,31 +18,25 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  */
 
-/** 
- * @author Kevin Klues <Kevin.Klues@csiro.au>
+/**
+ * CounterTMicro32C provides a 32-bit counter about 1M ticks per second.
  *
+ * @author Thomas Schmid
+ * @see  Please refer to TEP 102 for more information about this component and its
+ *          intended use.
  */
 
-configuration HilAlarmTMicro16C
+configuration CounterTMicro32C
 {
-  provides 
-  {
-      interface Init;
-      interface Alarm<TMicro, uint16_t> as Alarm[ uint8_t num ];
-  }
+  provides interface Counter<TMicro,uint32_t>;
 }
-
 implementation
 {
-  components new VirtualizeAlarmC(TMicro, uint16_t, uniqueCount(UQ_ALARM_TMICRO16)) as VirtAlarmsTMicro16;
-  components HilSam3uTCCounterTMicroC as HplSam3uTCChannel;
-  components new HilSam3uTCAlarmC(TMicro, 1000) as HilSam3uTCAlarm;
+  components HilSam3TCCounterTMicroC as CounterFrom;
+  components new TransformCounterC(TMicro,uint32_t,TMicro,uint16_t,0,uint16_t) as Transform;
 
-  Init = HilSam3uTCAlarm;
-  Alarm = VirtAlarmsTMicro16.Alarm;
+  Counter = Transform;
 
-  VirtAlarmsTMicro16.AlarmFrom -> HilSam3uTCAlarm;
-  HilSam3uTCAlarm.HplSam3uTCChannel -> HplSam3uTCChannel;
-  HilSam3uTCAlarm.HplSam3uTCCompare -> HplSam3uTCChannel;
+  Transform.CounterFrom -> CounterFrom;
 }
 

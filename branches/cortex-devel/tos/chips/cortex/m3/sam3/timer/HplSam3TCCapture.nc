@@ -20,12 +20,12 @@
  */
 
 /**
- * SAM3U TC capture interface.
+ * SAM3 TC capture interface.
  *
  * @author Thomas Schmid
  */
 
-interface HplSam3uTCCapture
+interface HplSam3TCCapture
 {
     /**
      * Enable the capture event interrupt.
