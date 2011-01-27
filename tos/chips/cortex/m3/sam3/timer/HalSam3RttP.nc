@@ -21,12 +21,12 @@
 
 /**
  * Provides an alarm, counter, and local time with TMilli resolution using the
- * SAM3U's RTT.
+ * SAM3's RTT.
  *
  * @author Thomas Schmid
  */
 
-module HalSam3uRttP @safe()
+module HalSam3RttP @safe()
 {
     provides {
         interface Init;
@@ -34,7 +34,7 @@ module HalSam3uRttP @safe()
         interface LocalTime<TMilli> as LocalTime;
     }
     uses {
-        interface HplSam3uRtt;
+        interface HplSam3Rtt;
         interface Init as RttInit;
     }
 }
@@ -50,7 +50,7 @@ implementation
         call RttInit.init();
         // make the counter count in milliseconds. This restarts the RTT and
         // resets the counter.
-        call HplSam3uRtt.setPrescaler(32);
+        call HplSam3Rtt.setPrescaler(32);
         return SUCCESS;
     }
 
@@ -63,7 +63,7 @@ implementation
     async command void Alarm.stop()
     {
         atomic running = FALSE;
-        call HplSam3uRtt.disableAlarmInterrupt();
+        call HplSam3Rtt.disableAlarmInterrupt();
     }
 
     async command bool Alarm.isRunning()
@@ -79,31 +79,31 @@ implementation
             if(elapsed >= dt )
             {
                 // l.et the timer expire at the next tic of the RTT
-                call HplSam3uRtt.setAlarm(now+1);
+                call HplSam3Rtt.setAlarm(now+1);
             } else {
                 uint32_t remaining = dt - elapsed;
                 if(remaining <= 1)
                 {
-                    call HplSam3uRtt.setAlarm(now + 1);
+                    call HplSam3Rtt.setAlarm(now + 1);
                 } else {
-                    call HplSam3uRtt.setAlarm(now + remaining);
+                    call HplSam3Rtt.setAlarm(now + remaining);
                 }
             }
-            call HplSam3uRtt.enableAlarmInterrupt();
+            call HplSam3Rtt.enableAlarmInterrupt();
         }
     }
 
     async command uint32_t Alarm.getNow()
     {
         uint32_t c;
-        c = call HplSam3uRtt.getTime();
+        c = call HplSam3Rtt.getTime();
         return c;
     }
 
     async command uint32_t Alarm.getAlarm()
     {
         uint32_t c;
-        c = call HplSam3uRtt.getAlarm();
+        c = call HplSam3Rtt.getAlarm();
         return c;
     }
 
@@ -112,14 +112,14 @@ implementation
         return call Alarm.getNow();
     }
 
-    async event void HplSam3uRtt.alarmFired() 
+    async event void HplSam3Rtt.alarmFired() 
     {
         call Alarm.stop();
-	call HplSam3uRtt.disableAlarmInterrupt();
+	call HplSam3Rtt.disableAlarmInterrupt();
         signal Alarm.fired();
     }
 
-    async event void HplSam3uRtt.incrementFired()
+    async event void HplSam3Rtt.incrementFired()
     {
     }
 

@@ -41,7 +41,7 @@
 #include "sam3upmchardware.h"
 #include "sam3usupchardware.h"
 #include "sam3unvichardware.h"
-#include "sam3urtthardware.h"
+#include "sam3rtthardware.h"
 #include "sam3utchardware.h"
 #include "sam3uadc12bhardware.h"
 

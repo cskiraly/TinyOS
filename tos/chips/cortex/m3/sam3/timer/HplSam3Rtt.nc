@@ -20,12 +20,12 @@
  */
 
 /**
- * HPL interface for the SAM3U Real-Time Timer.
+ * HPL interface for the SAM3 Real-Time Timer.
  *
  * @author Thomas Schmid
  */
 
-interface HplSam3uRtt {
+interface HplSam3Rtt {
 
     /**
      * Sets the prescaler value of the RTT and restart it. This function

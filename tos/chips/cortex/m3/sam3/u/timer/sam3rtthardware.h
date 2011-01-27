@@ -1,5 +1,5 @@
 /**
- * "Copyright (c) 2010 CSIRO Australia
+ * "Copyright (c) 2009 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -20,23 +20,19 @@
  */
 
 /**
- * @author Kevin Klues 
+ * Real-Time Timer register definitions.
+ *
+ * @author Thomas Schmid
  */
- 
-configuration HilAlarmMilliC
-{
-  provides 
-  {
-      interface Init;
-      interface Alarm<TMilli,uint32_t> as AlarmMilli[uint8_t id];
-  }
-}
-implementation
-{
-  components HalSam3RttC as AlarmC;
-  components new VirtualizeAlarmC(TMilli, uint32_t, uniqueCount(UQ_ALARM_TMILLI)) as VirtAlarmsTMilli;
 
-  Init = AlarmC;
-  AlarmMilli = VirtAlarmsTMilli.Alarm;
-  VirtAlarmsTMilli.AlarmFrom -> AlarmC;
-}
+#ifndef SAM3URTTHARDWARE_H
+#define SAM3URTTHARDWARE_H
+
+#include "rtthardware.h"
+
+//#define RTT ((rtt_t *) 0x400E1230) // (RTTC) Base Address
+// Defined in AT91 ARM Coretx-M3 based Microcontrollers, SAM3U Series,
+// Preliminary, p. 249
+volatile rtt_t* RTT = (volatile rtt_t*) 0x400E1230;
+
+#endif // SAM3URTTHARDWARE_H
