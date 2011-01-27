@@ -68,8 +68,10 @@ implementation
      */
     async command error_t HplSam3Rtt.setPrescaler(uint16_t prescaler)
     {
+        rtt_mr_t mr = RTT->mr;
         // after changing the prescaler, we have to restart the RTT
-        RTT->mr.bits.rtpres = prescaler;
+        mr.bits.rtpres = prescaler;
+        RTT->mr = mr;
         return call HplSam3Rtt.restart();
     }
 
@@ -80,31 +82,41 @@ implementation
 
     async command error_t HplSam3Rtt.enableAlarmInterrupt()
     {
-        RTT->mr.bits.almien = 1;;
+        rtt_mr_t mr = RTT->mr;
+        mr.bits.almien = 1;;
+        RTT->mr = mr;
         return SUCCESS;
     }
 
     async command error_t HplSam3Rtt.disableAlarmInterrupt()
     {
-        RTT->mr.bits.almien = 0;
+        rtt_mr_t mr = RTT->mr;
+        mr.bits.almien = 0;
+        RTT->mr = mr;
         return SUCCESS;
     }
 
     async command error_t HplSam3Rtt.enableIncrementalInterrupt()
     {
-        RTT->mr.bits.rttincien = 1;
+        rtt_mr_t mr = RTT->mr;
+        mr.bits.rttincien = 1;
+        RTT->mr = mr;
         return SUCCESS;
     }
 
     async command error_t HplSam3Rtt.disableIncrementalInterrupt()
     {
-        RTT->mr.bits.rttincien = 0;
+        rtt_mr_t mr = RTT->mr;
+        mr.bits.rttincien = 0;
+        RTT->mr = mr;
         return SUCCESS;
     }
 
     async command error_t HplSam3Rtt.restart()
     {
-        RTT->mr.bits.rttrst = 1;
+        rtt_mr_t mr = RTT->mr;
+        mr.bits.rttrst = 1;
+        RTT->mr = mr;
         return SUCCESS;
     }
 
