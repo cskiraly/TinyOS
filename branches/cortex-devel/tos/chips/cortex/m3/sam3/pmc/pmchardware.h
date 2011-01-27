@@ -143,13 +143,13 @@ typedef union
     uint32_t flat;
     struct
     {
-        uint8_t diva       :  8; // divider
-        uint8_t pllacount  :  6; // plla counter, specifies the number of slow clock cycles times 8
-        uint8_t stmode     :  2; // start mode
-        uint16_t mula      : 11; // PLLA Multiplier
-        uint8_t reserved0  :  2;
-        uint8_t bit29      :  1; // ALWAYS SET THIS TO 1!!!!!!
-        uint8_t reserved1  :  2;
+        uint32_t diva      :  8; // divider
+        uint32_t pllacount :  6; // plla counter, specifies the number of slow clock cycles times 8
+        uint32_t reserved0 :  2; // was start mode. no longer exists!
+        uint32_t mula      : 11; // PLLA Multiplier
+        uint32_t reserved1 :  2;
+        uint32_t bit29     :  1; // ALWAYS SET THIS TO 1!!!!!!
+        uint32_t reserved2 :  2;
     } __attribute__((__packed__)) bits;
 } pmc_pllar_t;
 
