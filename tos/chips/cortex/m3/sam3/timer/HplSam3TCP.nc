@@ -66,7 +66,7 @@ implementation
         else
             call TC2.setClockSource(TC_CMR_CLK_SLOW);
 
-        call TC2.enableEvents();
+        //call TC2.enableEvents();
 
         return SUCCESS;
     }
