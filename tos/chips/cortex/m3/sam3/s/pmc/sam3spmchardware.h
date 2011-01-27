@@ -41,6 +41,151 @@
 #include "pmchardware.h"
 
 /**
+ * PMC Peripheral Clock Enable Register, AT91 ARM Cortex-M3 based Microcontrollers
+ * SAM3S Series,
+ * 0: no effect
+ * 1: enable corresponding peripheral clock
+ */
+typedef union
+{
+    uint32_t flat;
+    struct
+    {
+        uint8_t b0     : 1; 
+        uint8_t b1     : 1; 
+        uint8_t b2     : 1; 
+        uint8_t b3     : 1; 
+        uint8_t b4     : 1; 
+        uint8_t b5     : 1; 
+        uint8_t b6     : 1; 
+        uint8_t b7     : 1; 
+        uint8_t b8     : 1; 
+        uint8_t b9     : 1;
+        uint8_t b10    : 1;
+        uint8_t b11    : 1;
+        uint8_t b12    : 1;
+        uint8_t b13    : 1;
+        uint8_t b14    : 1;
+        uint8_t b15    : 1;
+        uint8_t b16    : 1;
+        uint8_t b17    : 1;
+        uint8_t b18    : 1;
+        uint8_t b19    : 1;
+        uint8_t b20    : 1;
+        uint8_t b21    : 1;
+        uint8_t b22    : 1;
+        uint8_t b23    : 1;
+        uint8_t b24    : 1;
+        uint8_t b25    : 1;
+        uint8_t b26    : 1;
+        uint8_t b27    : 1;
+        uint8_t b28    : 1;
+        uint8_t b29    : 1;
+        uint8_t b30    : 1; 
+        uint8_t b31    : 1; 
+    } __attribute__((__packed__)) bits;
+} pmc_pcer_t;
+
+/**
+ * PMC Peripheral Clock Disable Register, AT91 ARM Cortex-M3 based Microcontrollers
+ * SAM3U Series, Preliminary, p. 486
+ * 0: no effect
+ * 1: disable corresponding peripheral clock
+ */
+typedef union
+{
+    uint32_t flat;
+    struct
+    {
+        uint8_t b0     : 1; 
+        uint8_t b1     : 1; 
+        uint8_t b2     : 1; 
+        uint8_t b3     : 1; 
+        uint8_t b4     : 1; 
+        uint8_t b5     : 1; 
+        uint8_t b6     : 1; 
+        uint8_t b7     : 1; 
+        uint8_t b8     : 1; 
+        uint8_t b9     : 1;
+        uint8_t b10    : 1;
+        uint8_t b11    : 1;
+        uint8_t b12    : 1;
+        uint8_t b13    : 1;
+        uint8_t b14    : 1;
+        uint8_t b15    : 1;
+        uint8_t b16    : 1;
+        uint8_t b17    : 1;
+        uint8_t b18    : 1;
+        uint8_t b19    : 1;
+        uint8_t b20    : 1;
+        uint8_t b21    : 1;
+        uint8_t b22    : 1;
+        uint8_t b23    : 1;
+        uint8_t b24    : 1;
+        uint8_t b25    : 1;
+        uint8_t b26    : 1;
+        uint8_t b27    : 1;
+        uint8_t b28    : 1;
+        uint8_t b29    : 1;
+        uint8_t b30    : 1; 
+        uint8_t b31    : 1; 
+    } __attribute__((__packed__)) bits;
+} pmc_pcdr_t;
+
+/**
+ * PMC Peripheral Clock Status Register, AT91 ARM Cortex-M3 based Microcontrollers
+ * SAM3U Series, Preliminary, p. 487
+ * 0: peripheral clock disabled
+ * 1: peripheral clock enabled
+ */
+typedef union
+{
+    uint32_t flat;
+    struct
+    {
+        uint8_t b0     : 1; 
+        uint8_t b1     : 1; 
+        uint8_t b2     : 1; 
+        uint8_t b3     : 1; 
+        uint8_t b4     : 1; 
+        uint8_t b5     : 1; 
+        uint8_t b6     : 1; 
+        uint8_t b7     : 1; 
+        uint8_t b8     : 1; 
+        uint8_t b9     : 1;
+        uint8_t b10    : 1;
+        uint8_t b11    : 1;
+        uint8_t b12    : 1;
+        uint8_t b13    : 1;
+        uint8_t b14    : 1;
+        uint8_t b15    : 1;
+        uint8_t b16    : 1;
+        uint8_t b17    : 1;
+        uint8_t b18    : 1;
+        uint8_t b19    : 1;
+        uint8_t b20    : 1;
+        uint8_t b21    : 1;
+        uint8_t b22    : 1;
+        uint8_t b23    : 1;
+        uint8_t b24    : 1;
+        uint8_t b25    : 1;
+        uint8_t b26    : 1;
+        uint8_t b27    : 1;
+        uint8_t b28    : 1;
+        uint8_t b29    : 1;
+        uint8_t b30    : 1; 
+        uint8_t b31    : 1; 
+    } __attribute__((__packed__)) bits;
+} pmc_pcsr_t;
+
+typedef struct
+{
+    volatile pmc_pcer_t pcer; // Peripheral Clock Enable Register
+    volatile pmc_pcdr_t pcdr; // Peripheral Clock Disable Register
+    volatile pmc_pcsr_t pcsr; // Peripheral Clock Status Register
+} pmc_pc_t;
+
+/**
  * PMC Clock Generator PLLA Register, AT91 ARM Cortex-M3 based Microcontrollers
  * SAM3U Series, Preliminary, p. 491
  * Note: bit 29 must always be set to 1 when writing this register! 
@@ -91,7 +236,7 @@ typedef union
         uint32_t cal12      : 7; // RC Oscillator Calibration bits for 12MHz
         uint32_t sel12      : 1; // Selection of RC Oscillator Calibration bits for 12 MHz
         uint32_t reserved0  : 8;
-    } __ attribute__((__packed__)) bits;
+    } __attribute__((__packed__)) bits;
 } pmc_ocr_t;
 
 
@@ -110,7 +255,7 @@ typedef struct pmc
     volatile pmc_mor_t    mor;   // Main Oscillator Register
     volatile pmc_mcfr_t   mcfr;  // Main Clock Frequency Register
     volatile pmc_pllar_t  pllar; // PLLA Register
-    uint32_t pmc_pllbr_t  pllbr; // PLLB Register
+    volatile pmc_pllbr_t  pllbr; // PLLB Register
     volatile pmc_mckr_t   mckr;  // Master Clock Register
     uint32_t reserved2;
     volatile pmc_usb_t    usb;   // USB Clock Register

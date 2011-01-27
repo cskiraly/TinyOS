@@ -49,7 +49,7 @@ module McuSleepC
     interface FunctionWrapper as InterruptWrapper;
   }
   uses {
-    interface HplSam3uClock;
+    interface HplSam3Clock;
   }
 }
 implementation{
@@ -64,92 +64,23 @@ implementation{
   norace uint32_t ps;
 
   norace struct {
-    uint32_t mck;
-    adc12b_emr_t adc_emr;
-    pmc_pcsr_t pmc_pcsr;
-    pmc_uckr_t pmc_uckr;
-    supc_mr_t supc_mr;
-    uint32_t pioa_psr;
-    uint32_t piob_psr;
-    uint32_t pioc_psr;
-    uint32_t pioa_osr;
-    uint32_t piob_osr;
-    uint32_t pioc_osr;
-    uint32_t pioa_pusr;
-    uint32_t piob_pusr;
-    uint32_t pioc_pusr;
   } wait_restore;
   
   // This C function is defined so that we can call it
   // from platform_bootstrap(), as defined in platform.h
   void sam3LowPowerConfigure() @C() @spontaneous() {
-    // Only do this at startup
-    // Configure all PIO as input
-    /*
-    AT91C_BASE_PIOA->PIO_ODR = 0xFFFFFFFF;
-    AT91C_BASE_PIOB->PIO_ODR = 0xFFFFFFFF;
-    AT91C_BASE_PIOC->PIO_ODR = 0xFFFFFFFF;
-    // Force all peripherals to enable PIO
-    AT91C_BASE_PIOA->PIO_PER = 0xFFFFFFFF;
-    AT91C_BASE_PIOB->PIO_PER = 0xFFFFFFFF;
-    AT91C_BASE_PIOC->PIO_PER = 0xFFFFFFFF;
-    */
 
     call Sam3LowPower.configure();
   }
 
   async command void Sam3LowPower.configure() {
-    // Put the ADC into off mode
-    ADC12B->emr.bits.offmodes = 1;
-    // Disable all Peripheral Clocks
-    PMC->pcdr.flat = PMC_PIO_CLOCK_MASK;
-    // Stop UTMI
-    PMC->uckr.bits.upllen = 0;
-    // Disable brownout detector
-    {
-      supc_mr_t mr = SUPC->mr;
-      mr.bits.key  = 0xA5;
-      mr.bits.boddis = 1;
-      mr.bits.bodrsten = 0;
-      SUPC->mr = mr;
-    }
     // Customize pio settings as appropriate for the platform
     signal Sam3LowPower.customizePio();
   }
 
   uint32_t getPowerState() {
     //if (PMC->pcsr.flat & PMC_PIO_CLOCK_MASK)
-    if (
-         PMC->pcsr.bits.rtc    || 
-         PMC->pcsr.bits.rtt    || 
-         PMC->pcsr.bits.wdg    ||
-         PMC->pcsr.bits.pmc    ||
-         PMC->pcsr.bits.efc0   ||
-         PMC->pcsr.bits.efc1   ||
-         PMC->pcsr.bits.dbgu   ||
-         PMC->pcsr.bits.hsmc4  ||
-         PMC->pcsr.bits.pioa   ||
-         PMC->pcsr.bits.piob   ||
-         PMC->pcsr.bits.pioc   ||
-         PMC->pcsr.bits.us0    ||
-         PMC->pcsr.bits.us1    ||
-         PMC->pcsr.bits.us2    ||
-         PMC->pcsr.bits.us3    ||
-         PMC->pcsr.bits.mci0   ||
-         PMC->pcsr.bits.twi0   ||
-         PMC->pcsr.bits.twi1   ||
-         PMC->pcsr.bits.spi0   ||
-         PMC->pcsr.bits.ssc0   ||
-         PMC->pcsr.bits.tc0    ||
-         PMC->pcsr.bits.tc1    ||
-         PMC->pcsr.bits.tc2    ||
-         PMC->pcsr.bits.pwmc   ||
-         PMC->pcsr.bits.adc12b ||
-         PMC->pcsr.bits.adc    ||
-         PMC->pcsr.bits.hdma   ||
-         PMC->pcsr.bits.udphs  ||
-         0
-       )
+    if ((PMC->pc.pcsr.flat > 0) || (PMC->pc1.pcsr.flat > 0))
       return S_SLEEP;
     else 
       return S_WAIT;
@@ -161,14 +92,14 @@ implementation{
     // This is necessary because the TMicro alarm is linked to tc2.
     // More logic will need to be added here later, as more alarms are set up
     // for use.
-    if(!(TC->ch2.imr.bits.cpcs & 0x01))
-      PMC->pcdr.bits.tc2 = 1;
+    //if(!(TC->ch2.imr.bits.cpcs & 0x01))
+    //  PMC->pcdr.bits.tc2 = 1;
   }
 
   void commonResume() {
     // Turn the periperhal clock for tc2 back on so that its alarm can be
     // set and times can be read from it
-    PMC->pcer.bits.tc2 = 1;
+    //PMC->pcer.bits.tc2 = 1;
   }
 
   void setupSleepMode() {
@@ -180,12 +111,12 @@ implementation{
 
   void setupWaitMode() {
     // Save the state of the cpu we are about to change
-    wait_restore.mck = call HplSam3uClock.getMainClockSpeed();
+    /*
+    wait_restore.mck = call HplSam3Clock.getMainClockSpeed();
     wait_restore.adc_emr = ADC12B->emr;
     wait_restore.pmc_pcsr = PMC->pcsr;
     wait_restore.pmc_uckr = PMC->uckr;
     wait_restore.supc_mr = SUPC->mr;
-    /*
     wait_restore.pioa_psr = AT91C_BASE_PIOA->PIO_PSR;
     wait_restore.piob_psr = AT91C_BASE_PIOB->PIO_PSR;
     wait_restore.pioc_psr = AT91C_BASE_PIOC->PIO_PSR;
@@ -201,24 +132,27 @@ implementation{
     // drawing the least amount of current possible 
     call Sam3LowPower.configure();
     // Force us into 4 MHz with the RC Oscillator
-    call HplSam3uClock.mckInit4RC(); 
+    /*
+    call HplSam3Clock.mckInit4RC(); 
     // Setup for wait mode 
     PMC->fsmr.bits.lpm = 1;
     // Only resume from wait mode with an input from the RTT
     PMC->fsmr.bits.rttal = 1;
     // Make sure we DON'T go into deep sleep (i.e. backup mode)
     SCB->scr.bits.sleepdeep = 0;
+    */
   }
 
   void resumeFromWaitMode() {
     // Restore the old clock settings
+    /*
     uint32_t oldMck = wait_restore.mck;
     if(oldMck > 13000 && oldMck < 49000){
-      call HplSam3uClock.mckInit48();
+      call HplSam3Clock.mckInit48();
     }else if(oldMck > 49000 && oldMck < 90000){
-      call HplSam3uClock.mckInit84();
+      call HplSam3Clock.mckInit84();
     }else if(oldMck > 90000){
-      call HplSam3uClock.mckInit96();
+      call HplSam3Clock.mckInit96();
     }
     // Restore the ADC to its previous mode
     ADC12B->emr = wait_restore.adc_emr;
@@ -234,6 +168,7 @@ implementation{
       mr.bits.key  = 0xA5;
       SUPC->mr = mr;
     }
+    */
     // Restore the PIO output/input pin and pullup resistor
     // settings to the values they had before entering wait mode
     /*
@@ -348,7 +283,7 @@ implementation{
   }
   async command void InterruptWrapper.postamble() { /* Do nothing */ }
   async command void McuPowerState.update(){}
-  async event void HplSam3uClock.mainClockChanged(){}
+  async event void HplSam3Clock.mainClockChanged(){}
 
   default async event void Sam3LowPower.customizePio() {}
 }
