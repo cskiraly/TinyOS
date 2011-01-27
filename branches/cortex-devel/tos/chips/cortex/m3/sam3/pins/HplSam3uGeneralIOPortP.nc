@@ -34,7 +34,7 @@ generic module HplSam3uGeneralIOPortP(uint32_t pio_addr)
     {
         interface HplSam3uGeneralIOPort as HplPort;
         interface HplNVICInterruptCntl as PIOIrqControl;
-        interface HplSam3uPeripheralClockCntl as PIOClockControl;
+        interface HplSam3PeripheralClockCntl as PIOClockControl;
     }
 }
 implementation

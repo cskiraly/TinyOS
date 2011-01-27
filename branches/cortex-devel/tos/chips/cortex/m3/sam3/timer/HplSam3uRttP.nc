@@ -129,7 +129,7 @@ implementation
 
         call RttInterruptWrapper.preamble();
         atomic {
-            PMC->pcer.bits.tc2 = 1;
+            PMC->pc.pcer.bits.tc2 = 1;
             // clear pending interrupt
             call NVICRTTInterrupt.clearPending();
 

@@ -25,7 +25,7 @@
  * @author Thomas Schmid
  */
 
-interface HplSam3uPeripheralClockCntl
+interface HplSam3PeripheralClockCntl
 {
     async command void enable();
 

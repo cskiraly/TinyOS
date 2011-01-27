@@ -50,9 +50,7 @@ typedef struct pmc
     volatile pmc_scdr_t   scdr;  // System Clock Disable Register
     volatile pmc_scsr_t   scsr;  // System Clock Status Register
     uint32_t reserved0;
-    volatile pmc_pcer_t   pcer;  // Peripheral Clock Enable Register
-    volatile pmc_pcdr_t   pcdr;  // Peripheral Clock Disable Register
-    volatile pmc_pcsr_t   pcsr;  // Peripheral Clock STatus Register
+    volatile pmc_pc_t     pc;    // Peripheral Clock Control Registers
     volatile pmc_uckr_t   uckr;  // UTMI Clock Register
     volatile pmc_mor_t    mor;   // Main Oscillator Register
     volatile pmc_mcfr_t   mcfr;  // Main Clock Frequency Register

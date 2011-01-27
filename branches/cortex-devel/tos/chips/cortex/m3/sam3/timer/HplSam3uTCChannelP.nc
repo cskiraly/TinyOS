@@ -41,7 +41,7 @@ generic module HplSam3uTCChannelP(uint32_t tc_channel_base) @safe()
 
         interface HplSam3uTCEvent as TimerEvent;
         interface HplNVICInterruptCntl as NVICTCInterrupt;
-        interface HplSam3uPeripheralClockCntl as TCPClockCntl;
+        interface HplSam3PeripheralClockCntl as TCPClockCntl;
 
     }
 }
