@@ -25,8 +25,8 @@
  * @author Thomas Schmid
  */
 
-#ifndef SAM3URTTHARDWARE_H
-#define SAM3URTTHARDWARE_H
+#ifndef RTTHARDWARE_H
+#define RTTHARDWARE_H
 
 typedef union
 {
@@ -67,9 +67,4 @@ typedef struct rtt
     volatile rtt_sr_t sr;	// Real Time Status Register
 } rtt_t;
 
-//#define RTT ((rtt_t *) 0x400E1230) // (RTTC) Base Address
-// Defined in AT91 ARM Coretx-M3 based Microcontrollers, SAM3U Series,
-// Preliminary, p. 249
-volatile rtt_t* RTT = (volatile rtt_t*) 0x400E1230;
-
-#endif // SAM3URTTHARDWARE_H
+#endif // RTTHARDWARE_H
