@@ -34,7 +34,7 @@
  * @author Kevin Klues <Kevin.Klues@csiro.au>
  */
 
-interface Sam3uLowPower {
+interface Sam3LowPower {
   async command void configure();
   async event void customizePio();
 }

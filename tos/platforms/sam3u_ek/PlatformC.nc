@@ -58,5 +58,5 @@ implementation
 
     // Used so we can initialize the platform in a state where it would draw
     // the lowest current possible if put to sleep.
-    PlatformP.Sam3uLowPower -> McuSleepC;
+    PlatformP.Sam3LowPower -> McuSleepC;
 }

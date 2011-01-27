@@ -50,7 +50,7 @@ module McuSleepC
   provides{
     interface McuSleep;
     interface McuPowerState;
-    interface Sam3uLowPower;
+    interface Sam3LowPower;
     interface FunctionWrapper as InterruptWrapper;
   }
   uses {
@@ -98,10 +98,10 @@ implementation{
     AT91C_BASE_PIOB->PIO_PER = 0xFFFFFFFF;
     AT91C_BASE_PIOC->PIO_PER = 0xFFFFFFFF;
 
-    call Sam3uLowPower.configure();
+    call Sam3LowPower.configure();
   }
 
-  async command void Sam3uLowPower.configure() {
+  async command void Sam3LowPower.configure() {
     // Put the ADC into off mode
     ADC12B->emr.bits.offmodes = 1;
     // Disable all Peripheral Clocks
@@ -117,7 +117,7 @@ implementation{
       SUPC->mr = mr;
     }
     // Customize pio settings as appropriate for the platform
-    signal Sam3uLowPower.customizePio();
+    signal Sam3LowPower.customizePio();
   }
 
   uint32_t getPowerState() {
@@ -201,7 +201,7 @@ implementation{
     // Turn off all clocks to peripheral IO and configure pins
     // appropriately, so that when we go to sleep we are
     // drawing the least amount of current possible 
-    call Sam3uLowPower.configure();
+    call Sam3LowPower.configure();
     // Force us into 4 MHz with the RC Oscillator
     call HplSam3uClock.mckInit4RC(); 
     // Setup for wait mode 
@@ -350,6 +350,6 @@ implementation{
   async command void McuPowerState.update(){}
   async event void HplSam3uClock.mainClockChanged(){}
 
-  default async event void Sam3uLowPower.customizePio() {}
+  default async event void Sam3LowPower.customizePio() {}
 }
 
