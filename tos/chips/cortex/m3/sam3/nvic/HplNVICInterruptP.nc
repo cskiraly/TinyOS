@@ -25,7 +25,7 @@
  * @author Thomas Schmid
  */
 
-#include "sam3unvichardware.h"
+#include "vichardware.h"
 
 generic module HplNVICInterruptP (irqn_t irqn) @safe()
 {
