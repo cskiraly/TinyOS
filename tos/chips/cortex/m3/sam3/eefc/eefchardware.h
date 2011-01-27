@@ -25,8 +25,8 @@
  * @author Thomas Schmid
  */
 
-#ifndef _SAM3UEFFCHARDWARE_H
-#define _SAM3UEFFCHARDWARE_H
+#ifndef _EFFCHARDWARE_H
+#define _EFFCHARDWARE_H
 
 /**
  * EEFC Flash Mode Register, AT91 ARM Cortex-M3 based Microcontrollers
@@ -125,10 +125,5 @@ typedef struct effc
     volatile eefc_frr_t frr; // EEFC Flash Result Register
 } eefc_t;
 
-/**
- * Memory mapping for the EEFC0 and EEFC1 (SAM3U/4E only!)
- */
-volatile eefc_t* EEFC0 = (volatile eefc_t*) 0x400E0800; // EEFC0 Base Address
-volatile eefc_t* EEFC1 = (volatile eefc_t*) 0x400E0A00; // EEFC1 Base Address
 
-#endif // _SAM3UEFFCHARDWARE_H
+#endif // _EFFCHARDWARE_H

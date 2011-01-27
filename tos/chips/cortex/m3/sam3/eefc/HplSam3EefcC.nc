@@ -35,12 +35,12 @@
  * @author Kevin Klues <Kevin.Klues@csiro.au>
  */
 
-#include "sam3ueefchardware.h"
+#include "sam3eefchardware.h"
 
-generic module HplSam3uEefcC(uint32_t eefc_base, uint32_t base_addr, uint32_t page_size, uint32_t total_size) {
+generic module HplSam3EefcC(uint32_t eefc_base, uint32_t base_addr, uint32_t page_size, uint32_t total_size) {
   provides interface Init;
   provides interface InternalFlash;
-  provides interface HplSam3uEefc;
+  provides interface HplSam3Eefc;
 }
 
 implementation {
@@ -164,16 +164,16 @@ implementation {
     return SUCCESS;
   }
 
-  command error_t HplSam3uEefc.write(void* addr, void* buf, uint16_t size) {
+  command error_t HplSam3Eefc.write(void* addr, void* buf, uint16_t size) {
     return doIFlashWrite(addr, buf, size);
   }
 
-  command error_t HplSam3uEefc.read(void* addr, void* buf, uint16_t size) {
+  command error_t HplSam3Eefc.read(void* addr, void* buf, uint16_t size) {
     memcpy(buf, addr, size);
     return SUCCESS;
   }
 
-  command error_t HplSam3uEefc.erase() {
+  command error_t HplSam3Eefc.erase() {
     eraseIFlash();
     return SUCCESS;
   }

@@ -1,4 +1,4 @@
-/*
+/*                                                                      
  * Copyright (c) 2010 CSIRO Australia
  * All rights reserved.
  *
@@ -34,25 +34,8 @@
 /**
  * @author Kevin Klues <Kevin.Klues@csiro.au>
  */
-
-#include "AT91SAM3U4.h"
-#include "sam3ueefchardware.h"
-
-configuration Sam3uEefcC {
-  provides {
-    interface Init as InitIFlash0;
-    interface Init as InitIFlash1;
-    interface InternalFlash as InternalFlash0;
-    interface InternalFlash as InternalFlash1;
-  }
-}
-implementation {
-  components new HplSam3uEefcC((uint32_t)AT91C_BASE_EFC0, AT91C_IFLASH0, 
-                               AT91C_IFLASH0_PAGE_SIZE, AT91C_IFLASH0_SIZE) as IFlash0;
-  components new HplSam3uEefcC((uint32_t)AT91C_BASE_EFC1, AT91C_IFLASH1, 
-                               AT91C_IFLASH1_PAGE_SIZE, AT91C_IFLASH1_SIZE) as IFlash1;
-  InitIFlash0 = IFlash0;
-  InitIFlash1 = IFlash1;
-  InternalFlash0 = IFlash0;
-  InternalFlash1 = IFlash1;
+interface HplSam3Eefc {
+  command error_t read(void* addr, void* buf, uint16_t size);
+  command error_t write(void* addr, void* buf, uint16_t size);
+  command error_t erase();
 }

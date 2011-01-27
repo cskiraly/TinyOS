@@ -15,6 +15,13 @@ push ( @includes,
   "%T/chips/cortex/m3/sam3/s/supc",
   "%T/chips/cortex/m3/sam3/timer",
   "%T/chips/cortex/m3/sam3/s/timer",
+  "%T/chips/cortex/m3/sam3/eefc",
+  "%T/chips/cortex/m3/sam3/s/eefc",
+  "%T/lib/timer",
+  "%T/lib/serial",
+  "%T/lib/power",
+);
+
   "%T/lib/timer",
   "%T/lib/serial",
   "%T/lib/power",
