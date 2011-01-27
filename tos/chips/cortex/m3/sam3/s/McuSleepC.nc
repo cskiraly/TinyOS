@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2009 Stanford University.
- * Copyright (c) 2010 CSIRO Australia
+ * Copyright (c) 2011 University of Utah
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -19,8 +18,8 @@
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL STANFORD
- * UNIVERSITY OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE 
+ * COPYRIGHT HOLDER OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
@@ -31,26 +30,22 @@
  */
 
 /**
- * @author Wanja Hofer <wanja@cs.fau.de>
- * @author Kevin Klues <Kevin.Klues@csiro.au>
- * @author JeongGil Ko <jgko@cs.jhu.edu>
+ * @author Thomas schmid
  */
 
-#include "AT91SAM3U4.h"
 #include "hardware.h"
-#include "sam3upmchardware.h"
-#include "sam3usupchardware.h"
-#include "sam3unvichardware.h"
-#include "sam3urtthardware.h"
-#include "sam3utchardware.h"
-#include "sam3uadc12bhardware.h"
+#include "sam3pmchardware.h"
+#include "sam3supchardware.h"
+#include "sam3snvichardware.h"
+#include "sam3rtthardware.h"
+#include "sam3tchardware.h"
 
 module McuSleepC
 {
   provides{
     interface McuSleep;
     interface McuPowerState;
-    interface Sam3uLowPower;
+    interface Sam3LowPower;
     interface FunctionWrapper as InterruptWrapper;
   }
   uses {
@@ -87,9 +82,10 @@ implementation{
   
   // This C function is defined so that we can call it
   // from platform_bootstrap(), as defined in platform.h
-  void sam3uLowPowerConfigure() @C() @spontaneous() {
+  void sam3LowPowerConfigure() @C() @spontaneous() {
     // Only do this at startup
     // Configure all PIO as input
+    /*
     AT91C_BASE_PIOA->PIO_ODR = 0xFFFFFFFF;
     AT91C_BASE_PIOB->PIO_ODR = 0xFFFFFFFF;
     AT91C_BASE_PIOC->PIO_ODR = 0xFFFFFFFF;
@@ -97,11 +93,12 @@ implementation{
     AT91C_BASE_PIOA->PIO_PER = 0xFFFFFFFF;
     AT91C_BASE_PIOB->PIO_PER = 0xFFFFFFFF;
     AT91C_BASE_PIOC->PIO_PER = 0xFFFFFFFF;
+    */
 
-    call Sam3uLowPower.configure();
+    call Sam3LowPower.configure();
   }
 
-  async command void Sam3uLowPower.configure() {
+  async command void Sam3LowPower.configure() {
     // Put the ADC into off mode
     ADC12B->emr.bits.offmodes = 1;
     // Disable all Peripheral Clocks
@@ -117,7 +114,7 @@ implementation{
       SUPC->mr = mr;
     }
     // Customize pio settings as appropriate for the platform
-    signal Sam3uLowPower.customizePio();
+    signal Sam3LowPower.customizePio();
   }
 
   uint32_t getPowerState() {
@@ -188,6 +185,7 @@ implementation{
     wait_restore.pmc_pcsr = PMC->pcsr;
     wait_restore.pmc_uckr = PMC->uckr;
     wait_restore.supc_mr = SUPC->mr;
+    /*
     wait_restore.pioa_psr = AT91C_BASE_PIOA->PIO_PSR;
     wait_restore.piob_psr = AT91C_BASE_PIOB->PIO_PSR;
     wait_restore.pioc_psr = AT91C_BASE_PIOC->PIO_PSR;
@@ -197,11 +195,11 @@ implementation{
     wait_restore.pioa_pusr = AT91C_BASE_PIOA->PIO_PPUSR;
     wait_restore.piob_pusr = AT91C_BASE_PIOB->PIO_PPUSR;
     wait_restore.pioc_pusr = AT91C_BASE_PIOC->PIO_PPUSR;
-
+    */
     // Turn off all clocks to peripheral IO and configure pins
     // appropriately, so that when we go to sleep we are
     // drawing the least amount of current possible 
-    call Sam3uLowPower.configure();
+    call Sam3LowPower.configure();
     // Force us into 4 MHz with the RC Oscillator
     call HplSam3uClock.mckInit4RC(); 
     // Setup for wait mode 
@@ -238,6 +236,7 @@ implementation{
     }
     // Restore the PIO output/input pin and pullup resistor
     // settings to the values they had before entering wait mode
+    /*
     AT91C_BASE_PIOA->PIO_PER = wait_restore.pioa_psr; 
     AT91C_BASE_PIOB->PIO_PER = wait_restore.piob_psr; 
     AT91C_BASE_PIOC->PIO_PER = wait_restore.pioc_psr; 
@@ -260,6 +259,7 @@ implementation{
     AT91C_BASE_PIOA->PIO_PPUDR = wait_restore.pioa_pusr;
     AT91C_BASE_PIOB->PIO_PPUDR = wait_restore.piob_pusr;
     AT91C_BASE_PIOC->PIO_PPUDR = wait_restore.pioc_pusr;
+    */
   }
 
   void setupBackupMode() {
@@ -350,6 +350,6 @@ implementation{
   async command void McuPowerState.update(){}
   async event void HplSam3uClock.mainClockChanged(){}
 
-  default async event void Sam3uLowPower.customizePio() {}
+  default async event void Sam3LowPower.customizePio() {}
 }
 
