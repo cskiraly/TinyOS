@@ -28,7 +28,7 @@
 #include "sam3spmchardware.h"
 #include "sam3ssupchardware.h"
 #include "sam3eefchardware.h"
-#include "sam3uwdtchardware.h"
+#include "sam3wdtchardware.h"
 #include "sam3umatrixhardware.h"
 
 extern void SetDefaultMaster(unsigned char enable);
