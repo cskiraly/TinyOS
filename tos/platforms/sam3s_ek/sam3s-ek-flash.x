@@ -50,15 +50,12 @@ _vect_start = 0x20000000;
 /* Stack at the end of SRAM 0 */
 _estack = 0x20007ffc;
 
-/* We have the SAM3U4E with 2 x 128K Flash and 48K SRAM.
- * SRAM is 32K SRAM 0 and 16K SRAM 1.
- * Defined in AT91 ARM Cortex-M3 based Microcontrollers, SAM3U Series, Preliminary, p. 2, p. 28, p. 29 */
+/* We have the SAM3S4C with 256K Flash and 48K SRAM. */
 MEMORY
 {
 	sram0  (W!RX) : org = 0x20000100, len = 0x07f00 /* SRAM 0, 32K (- 0x100 vector table) */
 	sram1  (W!RX) : org = 0x20080000, len = 0x04000 /* SRAM 1, 16K */
-	flash0 (W!RX) : org = 0x00080000, len = 0x20000 /* Flash 0, 128K */
-	flash1 (W!RX) : org = 0x00100000, len = 0x20000 /* Flash 1, 128K */
+	flash0 (W!RX) : org = 0x00400000, len = 0x40000 /* Flash, 256K */
 }
 
 SECTIONS
