@@ -42,8 +42,8 @@ module MoteClockP
     }
     uses
     {
-        interface HplSam3uClock;
-	interface Leds;
+        interface HplSam3Clock;
+        interface Leds;
     }
 }
 
@@ -59,12 +59,12 @@ implementation
         WDTC->mr.bits.wddis = 1;
 
         // Select external slow clock
-        call HplSam3uClock.slckExternalOsc();
-	//call HplSam3uClock.slckRCOsc();
+        call HplSam3Clock.slckExternalOsc();
+        //call HplSam3Clock.slckRCOsc();
 
         // Initialize main oscillator
-        call HplSam3uClock.mckInit48();
-        //call HplSam3uClock.mckInit12RC();
+        call HplSam3Clock.mckInit48();
+        //call HplSam3Clock.mckInit12RC();
 
         // Enable clock for UART
         // FIXME: this should go into the UART start/stop!
@@ -112,7 +112,7 @@ implementation
     /**
      * informs us when the main clock changes
      */
-    async event void HplSam3uClock.mainClockChanged() {}
+    async event void HplSam3Clock.mainClockChanged() {}
 
 }
 

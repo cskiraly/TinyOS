@@ -54,7 +54,7 @@ module McuSleepC
     interface FunctionWrapper as InterruptWrapper;
   }
   uses {
-    interface HplSam3uClock;
+    interface HplSam3Clock;
   }
 }
 implementation{
@@ -183,7 +183,7 @@ implementation{
 
   void setupWaitMode() {
     // Save the state of the cpu we are about to change
-    wait_restore.mck = call HplSam3uClock.getMainClockSpeed();
+    wait_restore.mck = call HplSam3Clock.getMainClockSpeed();
     wait_restore.adc_emr = ADC12B->emr;
     wait_restore.pmc_pcsr = PMC->pcsr;
     wait_restore.pmc_uckr = PMC->uckr;
@@ -203,7 +203,7 @@ implementation{
     // drawing the least amount of current possible 
     call Sam3LowPower.configure();
     // Force us into 4 MHz with the RC Oscillator
-    call HplSam3uClock.mckInit4RC(); 
+    call HplSam3Clock.mckInit4RC(); 
     // Setup for wait mode 
     PMC->fsmr.bits.lpm = 1;
     // Only resume from wait mode with an input from the RTT
@@ -216,11 +216,11 @@ implementation{
     // Restore the old clock settings
     uint32_t oldMck = wait_restore.mck;
     if(oldMck > 13000 && oldMck < 49000){
-      call HplSam3uClock.mckInit48();
+      call HplSam3Clock.mckInit48();
     }else if(oldMck > 49000 && oldMck < 90000){
-      call HplSam3uClock.mckInit84();
+      call HplSam3Clock.mckInit84();
     }else if(oldMck > 90000){
-      call HplSam3uClock.mckInit96();
+      call HplSam3Clock.mckInit96();
     }
     // Restore the ADC to its previous mode
     ADC12B->emr = wait_restore.adc_emr;
@@ -348,7 +348,7 @@ implementation{
   }
   async command void InterruptWrapper.postamble() { /* Do nothing */ }
   async command void McuPowerState.update(){}
-  async event void HplSam3uClock.mainClockChanged(){}
+  async event void HplSam3Clock.mainClockChanged(){}
 
   default async event void Sam3LowPower.customizePio() {}
 }

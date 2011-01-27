@@ -39,7 +39,7 @@ module HplSam3uTCP @safe()
         interface HplSam3uTCChannel as TC1;
         interface HplSam3uTCChannel as TC2;
 
-        interface HplSam3uClock as ClockConfig;
+        interface HplSam3Clock as ClockConfig;
     }
 }
 implementation

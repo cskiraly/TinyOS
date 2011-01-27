@@ -35,14 +35,14 @@ module HplSam3uClockP
 {
     provides
     {
-        interface HplSam3uClock;
+        interface HplSam3Clock;
     }
 }
 
 implementation
 {
 
-    async command error_t HplSam3uClock.slckExternalOsc()
+    async command error_t HplSam3Clock.slckExternalOsc()
     {
         uint32_t timeout = 0;
 
@@ -62,7 +62,7 @@ implementation
         return SUCCESS;
     }
 
-    async command error_t HplSam3uClock.slckRCOsc()
+    async command error_t HplSam3Clock.slckRCOsc()
     {
         uint32_t timeout = 0;
 
@@ -82,7 +82,7 @@ implementation
        return SUCCESS;
     }
 
-    async command error_t HplSam3uClock.mckInit48()
+    async command error_t HplSam3Clock.mckInit48()
     {
         pmc_mor_t mor;
         pmc_mckr_t mckr;
@@ -143,12 +143,12 @@ implementation
         timeout = 0;
         while (!(PMC->sr.bits.mckrdy) && (timeout++ < CLOCK_TIMEOUT));
 
-        signal HplSam3uClock.mainClockChanged();
+        signal HplSam3Clock.mainClockChanged();
 
         return SUCCESS;
     }
 
-    async command error_t HplSam3uClock.mckInit84()
+    async command error_t HplSam3Clock.mckInit84()
     {
         pmc_mor_t mor;
         pmc_mckr_t mckr;
@@ -209,11 +209,11 @@ implementation
         timeout = 0;
         while (!(PMC->sr.bits.mckrdy) && (timeout++ < CLOCK_TIMEOUT));
 
-        signal HplSam3uClock.mainClockChanged();
+        signal HplSam3Clock.mainClockChanged();
         return SUCCESS;
     }
 
-    async command error_t HplSam3uClock.mckInit96()
+    async command error_t HplSam3Clock.mckInit96()
     {
         pmc_mor_t mor;
         pmc_mckr_t mckr;
@@ -274,12 +274,12 @@ implementation
         timeout = 0;
         while (!(PMC->sr.bits.mckrdy) && (timeout++ < CLOCK_TIMEOUT));
 
-        signal HplSam3uClock.mainClockChanged();
+        signal HplSam3Clock.mainClockChanged();
         return SUCCESS;
     }
 
 
-    async command error_t HplSam3uClock.mckInit4RC(){
+    async command error_t HplSam3Clock.mckInit4RC(){
       pmc_mor_t mor;
       pmc_mckr_t mckr;
       pmc_pllar_t pllar;
@@ -324,13 +324,13 @@ implementation
       pllar.bits.bit29 = 1; // this always has to be written as 1!
       PMC->pllar = pllar;
 
-      signal HplSam3uClock.mainClockChanged();
+      signal HplSam3Clock.mainClockChanged();
       return SUCCESS;
 
     }
 
 
-    async command error_t HplSam3uClock.mckInit12RC()
+    async command error_t HplSam3Clock.mckInit12RC()
     {
         pmc_mor_t mor;
         pmc_mckr_t mckr;
@@ -378,11 +378,11 @@ implementation
         pllar.bits.bit29 = 1; // this always has to be written as 1!
         PMC->pllar = pllar;
 
-        signal HplSam3uClock.mainClockChanged();
+        signal HplSam3Clock.mainClockChanged();
         return SUCCESS;
     }
 
-    async command uint32_t HplSam3uClock.getMainClockSpeed()
+    async command uint32_t HplSam3Clock.getMainClockSpeed()
     {
         uint32_t speed = 0;
         switch(PMC->mckr.bits.css)
@@ -411,5 +411,5 @@ implementation
         return speed;
     }
 
-    default async event void HplSam3uClock.mainClockChanged(){}
+    default async event void HplSam3Clock.mainClockChanged(){}
 }
