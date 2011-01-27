@@ -155,8 +155,8 @@ implementation
 
             if (status.bits.alms) {
                 // we got an alarm
-	      //call Leds.led2Toggle();
-	      signal HplSam3Rtt.alarmFired();
+                //call Leds.led2Toggle();
+                signal HplSam3Rtt.alarmFired();
             }
         }
         call RttInterruptWrapper.postamble();
