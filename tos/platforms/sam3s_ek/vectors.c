@@ -42,6 +42,8 @@ extern unsigned int _stext;
 extern unsigned int _etext;
 extern unsigned int _sdata;
 extern unsigned int _edata;
+extern unsigned int _svect;
+extern unsigned int _evect;
 extern unsigned int _sbss;
 extern unsigned int _ebss;
 extern unsigned int _estack;
@@ -135,17 +137,15 @@ void RtcIrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void RttIrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void WdtIrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void PmcIrqHandler() __attribute__((weak, alias("DefaultHandler")));
-void Eefc0IrqHandler() __attribute__((weak, alias("DefaultHandler")));
-void Eefc1IrqHandler() __attribute__((weak, alias("DefaultHandler")));
-void UartIrqHandler() __attribute__((weak, alias("DefaultHandler")));
+void EefcIrqHandler() __attribute__((weak, alias("DefaultHandler")));
+void Uart0IrqHandler() __attribute__((weak, alias("DefaultHandler")));
+void Uart1IrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void SmcIrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void PioAIrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void PioBIrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void PioCIrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void Usart0IrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void Usart1IrqHandler() __attribute__((weak, alias("DefaultHandler")));
-void Usart2IrqHandler() __attribute__((weak, alias("DefaultHandler")));
-void Usart3IrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void HsmciIrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void Twi0IrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void Twi1IrqHandler() __attribute__((weak, alias("DefaultHandler")));
@@ -154,11 +154,23 @@ void SscIrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void TC0IrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void TC1IrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void TC2IrqHandler() __attribute__((weak, alias("DefaultHandler")));
-void PwmIrqHandler() __attribute__((weak, alias("DefaultHandler")));
-void Adc12BIrqHandler() __attribute__((weak, alias("DefaultHandler")));
+void TC3IrqHandler() __attribute__((weak, alias("DefaultHandler")));
+void TC4IrqHandler() __attribute__((weak, alias("DefaultHandler")));
+void TC5IrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void AdcIrqHandler() __attribute__((weak, alias("DefaultHandler")));
-void DmacIrqHandler() __attribute__((weak, alias("DefaultHandler")));
-void UdphsIrqHandler() __attribute__((weak, alias("DefaultHandler")));
+void DaccIrqHandler() __attribute__((weak, alias("DefaultHandler")));
+void PwmIrqHandler() __attribute__((weak, alias("DefaultHandler")));
+void CrccuIrqHandler() __attribute__((weak, alias("DefaultHandler")));
+void AccIrqHandler() __attribute__((weak, alias("DefaultHandler")));
+void UdpIrqHandler() __attribute__((weak, alias("DefaultHandler")));
+
+/* Stick at the top of the .text section in final binary so we can always
+ *    jump back to the init routine at the top of the stack if we want */
+__attribute__((section(".boot"))) unsigned int *__boot[] = {
+    &_estack,
+    (unsigned int *) __init,
+};
+
 
 __attribute__((section(".vectors"))) unsigned int *__vectors[] = {
 	// Defined by Cortex-M3
@@ -182,36 +194,41 @@ __attribute__((section(".vectors"))) unsigned int *__vectors[] = {
 	(unsigned int *) SysTickHandler,
 	// Defined by SAM3U MCU
 	// Defined in AT91 ARM Cortex-M3 based Microcontrollers, SAM3U Series, Preliminary, p. 41
-	(unsigned int *) SupcIrqHandler,
-	(unsigned int *) RstcIrqHandler,
-	(unsigned int *) RtcIrqHandler,
-	(unsigned int *) RttIrqHandler,
-	(unsigned int *) WdtIrqHandler,
-	(unsigned int *) PmcIrqHandler,
-	(unsigned int *) Eefc0IrqHandler,
-	(unsigned int *) Eefc1IrqHandler,
-	(unsigned int *) UartIrqHandler,
-	(unsigned int *) SmcIrqHandler,
-	(unsigned int *) PioAIrqHandler,
-	(unsigned int *) PioBIrqHandler,
-	(unsigned int *) PioCIrqHandler,
-	(unsigned int *) Usart0IrqHandler,
-	(unsigned int *) Usart1IrqHandler,
-	(unsigned int *) Usart2IrqHandler,
-	(unsigned int *) Usart3IrqHandler,
-	(unsigned int *) HsmciIrqHandler,
-	(unsigned int *) Twi0IrqHandler,
-	(unsigned int *) Twi1IrqHandler,
-	(unsigned int *) SpiIrqHandler,
-	(unsigned int *) SscIrqHandler,
-	(unsigned int *) TC0IrqHandler,
-	(unsigned int *) TC1IrqHandler,
-	(unsigned int *) TC2IrqHandler,
-	(unsigned int *) PwmIrqHandler,
-	(unsigned int *) Adc12BIrqHandler,
-	(unsigned int *) AdcIrqHandler,
-	(unsigned int *) DmacIrqHandler,
-	(unsigned int *) UdphsIrqHandler
+	(unsigned int *) SupcIrqHandler,     // 0
+	(unsigned int *) RstcIrqHandler,     // 1
+	(unsigned int *) RtcIrqHandler,      // 2
+	(unsigned int *) RttIrqHandler,      // 3
+	(unsigned int *) WdtIrqHandler,      // 4
+	(unsigned int *) PmcIrqHandler,      // 5
+	(unsigned int *) EefcIrqHandler,     // 6
+	(unsigned int *) 0,                  // 7 Reserved
+	(unsigned int *) Uart0IrqHandler,    // 8
+	(unsigned int *) Uart1IrqHandler,    // 9
+	(unsigned int *) SmcIrqHandler,      // 10
+	(unsigned int *) PioAIrqHandler,     // 11
+	(unsigned int *) PioBIrqHandler,     // 12
+	(unsigned int *) PioCIrqHandler,     // 13
+	(unsigned int *) Usart0IrqHandler,   // 14
+	(unsigned int *) Usart1IrqHandler,   // 15
+	(unsigned int *) 0,                  // 16
+	(unsigned int *) 0,                  // 17
+	(unsigned int *) HsmciIrqHandler,    // 18
+	(unsigned int *) Twi0IrqHandler,     // 19
+	(unsigned int *) Twi1IrqHandler,     // 20
+	(unsigned int *) SpiIrqHandler,      // 21
+	(unsigned int *) SscIrqHandler,      // 22
+	(unsigned int *) TC0IrqHandler,      // 23
+	(unsigned int *) TC1IrqHandler,      // 24
+	(unsigned int *) TC2IrqHandler,      // 25
+	(unsigned int *) TC3IrqHandler,      // 26
+	(unsigned int *) TC4IrqHandler,      // 27
+	(unsigned int *) TC5IrqHandler,      // 28
+	(unsigned int *) AdcIrqHandler,      // 29
+	(unsigned int *) DaccIrqHandler,     // 30
+	(unsigned int *) PwmIrqHandler,      // 31
+	(unsigned int *) CrccuIrqHandler,    // 32
+	(unsigned int *) AccIrqHandler,      // 33
+	(unsigned int *) UdpIrqHandler       // 34
 };
 
 /* Start-up code to copy data into RAM
@@ -225,6 +242,13 @@ void __init()
 	unsigned int *to;
 	unsigned int *i;
 	volatile unsigned int *NVIC_VTOFFR = (volatile unsigned int *) 0xe000ed08;
+
+    // Configure location of IRQ vector table
+    // Vector table is in the beginning of text segment / Flash 0
+    i = (unsigned int *) &_svect;
+    *NVIC_VTOFFR = (unsigned int) i;
+    // Set TBLBASE bit since vector table located in SRAM
+    *NVIC_VTOFFR |= (1 << 29);
 
 	// Copy pre-initialized data into RAM.
 	// Data lies in Flash after the text segment (_etext),
@@ -244,12 +268,6 @@ void __init()
 		*i = 0;
 		i++;
 	}
-
-	// Configure location of IRQ vector table
-	// Vector table is in the beginning of text segment / Flash 0
-	i = (unsigned int *) &_stext;
-	// TBLBASE bit is automatically 0 -> table in code space
-	*NVIC_VTOFFR = (unsigned int) i;
 
 	// Call main()
 	main();

@@ -34,6 +34,7 @@
  * Start-up code copies data into SRAM 0 and zeroes BSS segment.
  *
  * @author Wanja Hofer <wanja@cs.fau.de>
+ * @author Thomas Schmid
  */
 
 /* Output format is always little endian, irrespective of -EL or -EB flags */
@@ -45,7 +46,6 @@ ENTRY(__init)
 
 /* The IRQ vector table is put at the beginning of SRAM 0 */
 /* We reserve 0x100 bytes by setting the SRAM 0 base address below accordingly */
-_vect_start = 0x20000000;
 
 /* Stack at the end of SRAM 0 */
 _estack = 0x20007ffc;
@@ -53,9 +53,8 @@ _estack = 0x20007ffc;
 /* We have the SAM3S4C with 256K Flash and 48K SRAM. */
 MEMORY
 {
-	sram0  (W!RX) : org = 0x20000100, len = 0x07f00 /* SRAM 0, 32K (- 0x100 vector table) */
-	sram1  (W!RX) : org = 0x20080000, len = 0x04000 /* SRAM 1, 16K */
-	flash0 (W!RX) : org = 0x00400000, len = 0x40000 /* Flash, 256K */
+	sram  (W!RX) : org = 0x20000000, len = 0x0C000 /* SRAM, 48K */
+	flash (W!RX) : org = 0x00400000, len = 0x40000 /* Flash, 256K */
 }
 
 SECTIONS
@@ -65,26 +64,32 @@ SECTIONS
 	{
 		. = ALIGN(4);
 		_stext = .;
-		KEEP(*(.vectors))
+        KEEP(*(.boot*))
+        *(.init*)
 		*(.text*)
+        *(.fini*)
 		*(.rodata*)
 		*(.glue_7) /* ARM/Thumb interworking code */
 		*(.glue_7t) /* ARM/Thumb interworking code */
 		. = ALIGN(4);
 		_etext = .;
-	} > flash0
+	} > flash
 
 	/* Data will be loaded into RAM by start-up code */
 	.data : AT (_etext)
 	{
 		. = ALIGN(4);
 		_sdata = .;
+        _svect = .;
+        KEEP(*(.vectors)) /* Interrupt vector table in first 204 bytes */
+        . = ALIGN(100);
+        _evect = .;
 		*(.ramfunc) /* functions linked into RAM */
 		*(.data.*)
 		*(.data)
 		. = ALIGN(4);
 		_edata = .;
-	} > sram0
+	} > sram
 
 	/* BSS will be zeroed by start-up code */
 	.bss (NOLOAD) : {
@@ -93,7 +98,7 @@ SECTIONS
 		*(.bss.*)
 		*(.bss)
 		. = ALIGN(4);
-	} > sram0
+	} > sram
 	/* _ebss should be inside .bss, but for some reason, it then is not defined
 	 * at the end of the BSS section. This leads to non-zeroed BSS data, since the
 	 * start-up code uses that symbol. For now, this workaround is OK and does no
