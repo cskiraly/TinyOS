@@ -30,9 +30,9 @@
  */
 
 /*
- * Connection of LEDs to the GPIO pins on the SAM3U-EK board.
+ * Connection of LEDs to the GPIO pins on the SAM3S-EK board.
  *
- * @author Wanja Hofer <wanja@cs.fau.de>
+ * @author Thomas Schmid <thomas.schmid@utah.edu>
  */
 
 configuration PlatformLedsC
@@ -55,7 +55,7 @@ implementation
 
 	Init = PlatformP.LedsInit;
 
-	Led0 = IO.PioB0; // Pin B0 = Green LED 1, active low
-	Led1 = IO.PioB1; // Pin B1 = Green LED 2, active low
-	Led2 = IO.PioB2; // Pin B2 = Red LED, active high
+	Led0 = IO.PioA19; // Pin B0 = Green LED 1, active low
+	Led1 = IO.PioA20; // Pin B1 = Green LED 2, active low
+	Led2 = IO.PioC20; // Pin B2 = Red LED, active high
 }
