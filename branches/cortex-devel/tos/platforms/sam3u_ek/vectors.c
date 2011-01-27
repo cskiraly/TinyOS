@@ -42,9 +42,12 @@ extern unsigned int _stext;
 extern unsigned int _etext;
 extern unsigned int _sdata;
 extern unsigned int _edata;
+extern unsigned int _svect;
+extern unsigned int _evect;
 extern unsigned int _sbss;
 extern unsigned int _ebss;
 extern unsigned int _estack;
+extern unsigned int __relocate_vector;
 
 /* main() symbol defined in RealMainP
  */
@@ -160,6 +163,15 @@ void AdcIrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void DmacIrqHandler() __attribute__((weak, alias("DefaultHandler")));
 void UdphsIrqHandler() __attribute__((weak, alias("DefaultHandler")));
 
+
+/* Stick at the top of the .text section in final binary so we can always
+ *    jump back to the init routine at the top of the stack if we want */
+__attribute__((section(".boot"))) unsigned int *__boot[] = {
+    &_estack,
+    (unsigned int *) __init,
+};
+
+
 __attribute__((section(".vectors"))) unsigned int *__vectors[] = {
 	// Defined by Cortex-M3
 	// Defined in AT91 ARM Cortex-M3 based Microcontrollers, SAM3U Series, Preliminary, p. 78
@@ -226,6 +238,16 @@ void __init()
 	unsigned int *i;
 	volatile unsigned int *NVIC_VTOFFR = (volatile unsigned int *) 0xe000ed08;
 
+    if(0 && __relocate_vector)
+    {
+        // Configure location of IRQ vector table
+        // Vector table is in the beginning of text segment / Flash 0
+        i = (unsigned int *) &_svect;
+        *NVIC_VTOFFR = (unsigned int) i;
+        // Set TBLBASE bit since vector table located in SRAM
+        *NVIC_VTOFFR |= (1 << 29);
+    }
+
 	// Copy pre-initialized data into RAM.
 	// Data lies in Flash after the text segment (_etext),
 	// but is linked to be at _sdata.
@@ -245,11 +267,13 @@ void __init()
 		i++;
 	}
 
+    /*
 	// Configure location of IRQ vector table
 	// Vector table is in the beginning of text segment / Flash 0
 	i = (unsigned int *) &_stext;
 	// TBLBASE bit is automatically 0 -> table in code space
 	*NVIC_VTOFFR = (unsigned int) i;
+    */
 
 	// Call main()
 	main();
