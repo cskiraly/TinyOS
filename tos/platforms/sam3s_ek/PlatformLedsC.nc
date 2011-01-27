@@ -55,7 +55,7 @@ implementation
 
 	Init = PlatformP.LedsInit;
 
-	Led0 = IO.PioA19; // Pin B0 = Green LED 1, active low
-	Led1 = IO.PioA20; // Pin B1 = Green LED 2, active low
-	Led2 = IO.PioC20; // Pin B2 = Red LED, active high
+	Led0 = IO.PioC20; // Pin C20 = RED, active high
+	Led1 = IO.PioA19; // Pin A19 = BLUE, active low
+	Led2 = IO.PioA20; // Pin A20 = GREEN, active low
 }

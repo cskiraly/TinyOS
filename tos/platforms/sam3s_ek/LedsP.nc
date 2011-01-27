@@ -48,9 +48,9 @@ implementation {
       call Led0.makeOutput();
       call Led1.makeOutput();
       call Led2.makeOutput();
-      call Led0.set();
+      call Led0.clr();
       call Led1.set();
-      call Led2.clr();
+      call Led2.set();
     }
     return SUCCESS;
   }
@@ -61,12 +61,12 @@ implementation {
   dbg("LedsC", "LEDS: Led" #n " %s.\n", call Led ## n .get() ? "off" : "on");
 
   async command void Leds.led0On() {
-    call Led0.clr();
+    call Led0.set();
     DBGLED(0);
   }
 
   async command void Leds.led0Off() {
-    call Led0.set();
+    call Led0.clr();
     DBGLED(0);
   }
 
@@ -91,12 +91,12 @@ implementation {
   }
 
   async command void Leds.led2On() {
-    call Led2.set();
+    call Led2.clr();
     DBGLED(2);
   }
 
   async command void Leds.led2Off() {
-    call Led2.clr();
+    call Led2.set();
     DBGLED(2);
   }
 
