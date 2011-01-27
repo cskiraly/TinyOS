@@ -19,31 +19,21 @@
  */
 
 /**
- * HilSam3uTCCounterTMicroC provides the an approximate TMicro counter for the
- * SAM3U.
+ * Counter32khz16C provides at 16-bit counter at 32768 ticks per second.
  *
  * @author Thomas Schmid
  * @see  Please refer to TEP 102 for more information about this component and its
  *          intended use.
  */
 
-configuration HilSam3uTCCounterTMicroC
+configuration Counter32khz16C
 {
-  provides {
-      interface Counter<TMicro,uint16_t> as HilSam3uTCCounterTMicro;
-      interface HplSam3uTCChannel;
-      interface HplSam3uTCCompare;
-  }
+  provides interface Counter<T32khz,uint16_t>;
 }
 implementation
 {
-  components HplSam3uTCC;
-  components new HilSam3uTCCounterC(TMicro) as Counter;
+  components HilSam3TCCounter32khzC as CounterFrom;
 
-  HilSam3uTCCounterTMicro = Counter;
-  Counter.HplSam3uTCChannel -> HplSam3uTCC.TC2;
-
-  HplSam3uTCChannel = HplSam3uTCC.TC2;
-  HplSam3uTCCompare = HplSam3uTCC.TC2CompareC;
+  Counter = CounterFrom;
 }
 

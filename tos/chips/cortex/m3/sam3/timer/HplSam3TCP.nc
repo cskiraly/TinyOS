@@ -26,18 +26,18 @@
  * @author Thomas Schmid
  */
 
-#include "sam3utchardware.h"
+#include "sam3tchardware.h"
 
-module HplSam3uTCP @safe()
+generic module HplSam3TCP() @safe()
 {
     provides {
         interface Init;
-	interface HplSam3uTC as TC;
+        interface HplSam3TC as TC;
     }
     uses {
-        interface HplSam3uTCChannel as TC0;
-        interface HplSam3uTCChannel as TC1;
-        interface HplSam3uTCChannel as TC2;
+        interface HplSam3TCChannel as TC0;
+        interface HplSam3TCChannel as TC1;
+        interface HplSam3TCChannel as TC2;
 
         interface HplSam3Clock as ClockConfig;
     }

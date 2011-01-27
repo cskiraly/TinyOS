@@ -32,8 +32,8 @@ generic module GpioCaptureC() @safe() {
   }
   uses 
   {
-      interface HplSam3uTCCapture as TCCapture;
-      interface HplSam3uGeneralIOPin as GeneralIO;
+      interface HplSam3TCCapture as TCCapture;
+      interface HplSam3GeneralIOPin as GeneralIO;
   }
 
 }

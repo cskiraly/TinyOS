@@ -25,68 +25,68 @@
  * @author Thomas Schmid
  */
 
-#include <sam3utchardware.h>
+#include <sam3tchardware.h>
 
-configuration HplSam3uTCC
+configuration HplSam3TCC
 {
 
     provides
     {
         interface Init;
 
-	interface HplSam3uTC as TC;
+	interface HplSam3TC as TC;
 
-        interface HplSam3uTCChannel as TC0;
-        interface HplSam3uTCChannel as TC1;
-        interface HplSam3uTCChannel as TC2;
+        interface HplSam3TCChannel as TC0;
+        interface HplSam3TCChannel as TC1;
+        interface HplSam3TCChannel as TC2;
 
-        interface HplSam3uTCCapture as TC0Capture;
-        interface HplSam3uTCCompare as TC0CompareA;
-        interface HplSam3uTCCompare as TC0CompareB;
-        interface HplSam3uTCCompare as TC0CompareC;
+        interface HplSam3TCCapture as TC0Capture;
+        interface HplSam3TCCompare as TC0CompareA;
+        interface HplSam3TCCompare as TC0CompareB;
+        interface HplSam3TCCompare as TC0CompareC;
 
-        interface HplSam3uTCCapture as TC1Capture;
-        interface HplSam3uTCCompare as TC1CompareA;
-        interface HplSam3uTCCompare as TC1CompareB;
-        interface HplSam3uTCCompare as TC1CompareC;
+        interface HplSam3TCCapture as TC1Capture;
+        interface HplSam3TCCompare as TC1CompareA;
+        interface HplSam3TCCompare as TC1CompareB;
+        interface HplSam3TCCompare as TC1CompareC;
         
-        interface HplSam3uTCCapture as TC2Capture;
-        interface HplSam3uTCCompare as TC2CompareA;
-        interface HplSam3uTCCompare as TC2CompareB;
-        interface HplSam3uTCCompare as TC2CompareC;
+        interface HplSam3TCCapture as TC2Capture;
+        interface HplSam3TCCompare as TC2CompareA;
+        interface HplSam3TCCompare as TC2CompareB;
+        interface HplSam3TCCompare as TC2CompareC;
     }
 }
 
 implementation
 {
     components HplNVICC,
-               HplSam3uTCEventP,
+               HplSam3TCEventP,
                HplSam3uClockC,
-               new HplSam3uTCChannelP( TC_CH0_BASE ) as TCCH0,
-               new HplSam3uTCChannelP( TC_CH1_BASE ) as TCCH1,
-               new HplSam3uTCChannelP( TC_CH2_BASE ) as TCCH2;
+               new HplSam3TCChannelP( TC_CH0_BASE ) as TCCH0,
+               new HplSam3TCChannelP( TC_CH1_BASE ) as TCCH1,
+               new HplSam3TCChannelP( TC_CH2_BASE ) as TCCH2;
 
     components McuSleepC;
-    HplSam3uTCEventP.TC0InterruptWrapper -> McuSleepC;
-    HplSam3uTCEventP.TC1InterruptWrapper -> McuSleepC;
-    HplSam3uTCEventP.TC2InterruptWrapper -> McuSleepC;
+    HplSam3TCEventP.TC0InterruptWrapper -> McuSleepC;
+    HplSam3TCEventP.TC1InterruptWrapper -> McuSleepC;
+    HplSam3TCEventP.TC2InterruptWrapper -> McuSleepC;
 
     TC0 = TCCH0;
     TC1 = TCCH1;
     TC2 = TCCH2;
 
     TCCH0.NVICTCInterrupt -> HplNVICC.TC0Interrupt;
-    TCCH0.TimerEvent -> HplSam3uTCEventP.TC0Event;
+    TCCH0.TimerEvent -> HplSam3TCEventP.TC0Event;
     TCCH0.TCPClockCntl -> HplSam3uClockC.TC0PPCntl;
     TCCH0.ClockConfig -> HplSam3uClockC;
 
     TCCH1.NVICTCInterrupt -> HplNVICC.TC1Interrupt;
-    TCCH1.TimerEvent -> HplSam3uTCEventP.TC1Event;
+    TCCH1.TimerEvent -> HplSam3TCEventP.TC1Event;
     TCCH1.TCPClockCntl -> HplSam3uClockC.TC1PPCntl;
     TCCH1.ClockConfig -> HplSam3uClockC;
 
     TCCH2.NVICTCInterrupt -> HplNVICC.TC2Interrupt;
-    TCCH2.TimerEvent -> HplSam3uTCEventP.TC2Event;
+    TCCH2.TimerEvent -> HplSam3TCEventP.TC2Event;
     TCCH2.TCPClockCntl -> HplSam3uClockC.TC2PPCntl;
     TCCH2.ClockConfig -> HplSam3uClockC;
 
@@ -105,11 +105,11 @@ implementation
     TC2CompareB = TCCH2.CompareB;
     TC2CompareC = TCCH2.CompareC;
 
-    components HplSam3uTCP;
-    Init = HplSam3uTCP;
-    HplSam3uTCP.ClockConfig -> HplSam3uClockC;
-    HplSam3uTCP.TC0 -> TCCH0;
-    HplSam3uTCP.TC1 -> TCCH1;
-    HplSam3uTCP.TC2 -> TCCH2;
-    TC = HplSam3uTCP;
+    components new HplSam3TCP();
+    Init = HplSam3TCP;
+    HplSam3TCP.ClockConfig -> HplSam3uClockC;
+    HplSam3TCP.TC0 -> TCCH0;
+    HplSam3TCP.TC1 -> TCCH1;
+    HplSam3TCP.TC2 -> TCCH2;
+    TC = HplSam3TCP;
 }

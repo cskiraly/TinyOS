@@ -32,7 +32,7 @@ configuration Counter32khz32C
 }
 implementation
 {
-  components HilSam3uTCCounter32khzC as CounterFrom;
+  components HilSam3TCCounter32khzC as CounterFrom;
   components new TransformCounterC(T32khz,uint32_t,T32khz,uint16_t,0,uint16_t) as Transform;
 
   Counter = Transform;

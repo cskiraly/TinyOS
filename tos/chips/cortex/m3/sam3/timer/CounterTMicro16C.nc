@@ -19,23 +19,25 @@
  */
 
 /**
- * HilSam3uTCCounter32khC provides the standard 32khz counter for the SAM3U.
+ * CounterTMicroC provides at 16-bit counter at at approximately 1us
+ * resolution. However, to get the accurate frequency inquire the
+ * getTimerFrequency() function.
  *
  * @author Thomas Schmid
  * @see  Please refer to TEP 102 for more information about this component and its
  *          intended use.
  */
 
-configuration HilSam3uTCCounter32khzC
+configuration CounterTMicro16C
 {
-  provides interface Counter<T32khz,uint16_t> as HilSam3uTCCounter32khz;
+  provides {
+      interface Counter<TMicro,uint16_t>;
+  }
 }
 implementation
 {
-  components HplSam3uTCC;
-  components new HilSam3uTCCounterC(T32khz) as Counter;
+  components HilSam3TCCounterTMicroC as CounterFrom;
 
-  HilSam3uTCCounter32khz = Counter;
-  Counter.HplSam3uTCChannel -> HplSam3uTCC.TC0;
+  Counter = CounterFrom;
 }
 

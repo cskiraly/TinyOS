@@ -25,21 +25,20 @@
  *          intended use.
  */
 
-generic configuration Alarm32khz32C()
+generic configuration Alarm32khz16C()
 {
   provides interface Init;
-  provides interface Alarm<T32khz,uint32_t>;
+  provides interface Alarm<T32khz,uint16_t>;
 }
 implementation
 {
-  #error The existing implementation that is in here was broken and doesn't work. Check it with an Oscilloscope!
-  components HplSam3uTC32khzC as HplSam3uTCChannel;
-  components new HilSam3uTCAlarmC(T32khz, 32) as HilSam3uTCAlarm;
+  components HplSam3TC32khzC as HplSam3TCChannel;
+  components new HilSam3TCAlarmC(T32khz, 32) as HilSam3TCAlarm;
 
-  Init = HilSam3uTCAlarm;
-  Alarm = HilSam3uTCAlarm;
+  Init = HilSam3TCAlarm;
+  Alarm = HilSam3TCAlarm;
 
-  HilSam3uTCAlarm.HplSam3uTCChannel -> HplSam3uTCChannel;
-  HilSam3uTCAlarm.HplSam3uTCCompare -> HplSam3uTCChannel;
+  HilSam3TCAlarm.HplSam3TCChannel -> HplSam3TCChannel;
+  HilSam3TCAlarm.HplSam3TCCompare -> HplSam3TCChannel;
 }
 

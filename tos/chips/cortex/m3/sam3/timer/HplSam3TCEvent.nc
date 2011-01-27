@@ -1,5 +1,5 @@
-
-/* "Copyright (c) 2000-2003 The Regents of the University of California.
+/**
+ * "Copyright (c) 2009 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -20,40 +20,12 @@
  */
 
 /**
- * HilSam3uTCCounter is a generic component that wraps the SAM3U HPL timers into a
- * TinyOS Counter.
+ * SAM3 TC general event interface.
  *
  * @author Thomas Schmid
- * @see  Please refer to TEP 102 for more information about this component and its
- *          intended use.
  */
- 
-generic module HilSam3uTCCounterC( typedef frequency_tag ) @safe()
+
+interface HplSam3TCEvent
 {
-  provides interface Counter<frequency_tag,uint16_t> as Counter;
-  uses interface HplSam3uTCChannel;
+    async event void fired();
 }
-implementation
-{
-  async command uint16_t Counter.get()
-  {
-    return call HplSam3uTCChannel.get();
-  }
-
-  async command bool Counter.isOverflowPending()
-  {
-    return call HplSam3uTCChannel.isOverflowPending();
-  }
-
-  async command void Counter.clearOverflow()
-  {
-    call HplSam3uTCChannel.clearOverflow();
-  }
-
-  async event void HplSam3uTCChannel.overflow()
-  {
-    signal Counter.overflow();
-  }
-  default async event void Counter.overflow() {}
-}
-

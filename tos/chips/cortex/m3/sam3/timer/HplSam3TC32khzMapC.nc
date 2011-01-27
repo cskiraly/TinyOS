@@ -19,21 +19,27 @@
  */
 
 /**
- * Counter32khz16C provides at 16-bit counter at 32768 ticks per second.
+ * HplSam3TC32khzMapC presents as paramaterized interfaces all of the 32khz
+ * channels on the SAM3U that are available for compile time allocation
+ * by "new Alarm32khz16C()", "new AlarmMilli32C()", and so on.
+ *
+ * Platforms based on the SAM3U are encouraged to copy in and override this
+ * file, presenting only the hardware timers that are available for allocation
+ * on that platform.
  *
  * @author Thomas Schmid
- * @see  Please refer to TEP 102 for more information about this component and its
- *          intended use.
  */
 
-configuration Counter32khz16C
+configuration HplSam3TC32khzMapC
 {
-  provides interface Counter<T32khz,uint16_t>;
+  provides interface HplSam3TCChannel[ uint8_t id ];
+  provides interface HplSam3TCCompare[ uint8_t id ];
 }
 implementation
 {
-  components HilSam3uTCCounter32khzC as CounterFrom;
+  components HplSam3TCC;
 
-  Counter = CounterFrom;
+  HplSam3TCChannel[0] = HplSam3TCC.TC0;
+  HplSam3TCCompare[0] = HplSam3TCC.TC0CompareC;
 }
 

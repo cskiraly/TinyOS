@@ -20,26 +20,26 @@
  */
 
 /**
- * Provides a bare bone interface to the SAM3U TC.
+ * Provides a bare bone interface to the SAM3 TC.
  *
  * @author Thomas Schmid
  */
 
-#include "sam3utchardware.h"
+#include "sam3tchardware.h"
 
-generic module HplSam3uTCChannelP(uint32_t tc_channel_base) @safe()
+generic module HplSam3TCChannelP(uint32_t tc_channel_base) @safe()
 {
     provides {
-        interface HplSam3uTCChannel;
-        interface HplSam3uTCCapture as Capture;
-        interface HplSam3uTCCompare as CompareA;
-        interface HplSam3uTCCompare as CompareB;
-        interface HplSam3uTCCompare as CompareC;
+        interface HplSam3TCChannel;
+        interface HplSam3TCCapture as Capture;
+        interface HplSam3TCCompare as CompareA;
+        interface HplSam3TCCompare as CompareB;
+        interface HplSam3TCCompare as CompareC;
     }
     uses {
         interface HplSam3Clock as ClockConfig;
 
-        interface HplSam3uTCEvent as TimerEvent;
+        interface HplSam3TCEvent as TimerEvent;
         interface HplNVICInterruptCntl as NVICTCInterrupt;
         interface HplSam3PeripheralClockCntl as TCPClockCntl;
 
@@ -58,18 +58,18 @@ implementation
      * General TC Channel functions
      ******************************************/
 
-    async command uint16_t HplSam3uTCChannel.get()
+    async command uint16_t HplSam3TCChannel.get()
     {
         return CH_CAPTURE->cv.bits.cv;
     }
 
-    async command bool HplSam3uTCChannel.isOverflowPending()
+    async command bool HplSam3TCChannel.isOverflowPending()
     {
         sr.flat |= CH_CAPTURE->sr.flat;
         return (sr.bits.covfs && 1);
     }
 
-    async command void HplSam3uTCChannel.clearOverflow()
+    async command void HplSam3TCChannel.clearOverflow()
     {
         // read the sr register to clear it
         sr.flat |= CH_CAPTURE->sr.flat;
@@ -87,7 +87,7 @@ implementation
      *   TC_CMR_CAPTURE: selects capture mode (disables wave mode!). Allows
      *                   capture on A, B, and compare on C. (DEFAULT)
      */
-    async command void HplSam3uTCChannel.setMode(uint8_t mode)
+    async command void HplSam3TCChannel.setMode(uint8_t mode)
     {
         switch(mode)
         {
@@ -106,7 +106,7 @@ implementation
         }
     }
 
-    async command uint8_t HplSam3uTCChannel.getMode()
+    async command uint8_t HplSam3TCChannel.getMode()
     {
         // the wave field is the same in capture and wave mode!
         return CH_CAPTURE->cmr.bits.wave;
@@ -115,7 +115,7 @@ implementation
     /**
      * This enables the events for this channel and the peripheral clock!
      */
-    async command void HplSam3uTCChannel.enableEvents()
+    async command void HplSam3TCChannel.enableEvents()
     {
         tc_ier_t ier;
         tc_ccr_t ccr;
@@ -143,7 +143,7 @@ implementation
     /**
      * This enables the peripheral clock for this channel
      */
-    async command void HplSam3uTCChannel.enableClock() {
+    async command void HplSam3TCChannel.enableClock() {
         // enable the peripheral clock to this channel
         call TCPClockCntl.enable();
     }
@@ -151,7 +151,7 @@ implementation
     /**
      * This disables the events for this channel and the peripheral clock!
      */
-    async command void HplSam3uTCChannel.disableEvents()
+    async command void HplSam3TCChannel.disableEvents()
     {
         tc_idr_t idr;
         idr.flat = 0;
@@ -167,7 +167,7 @@ implementation
     /**
      * This disables the peripheral clock for this channel
      */
-    async command void HplSam3uTCChannel.disableClock() {
+    async command void HplSam3TCChannel.disableClock() {
         // disable the peripheral clock to this channel
         call TCPClockCntl.disable();
     }
@@ -184,7 +184,7 @@ implementation
      * TC_CMR_CLK_XC1: selects external clock input 1
      * TC_CMR_CLK_XC2: selects external clock input 2
      */
-    async command void HplSam3uTCChannel.setClockSource(uint8_t clockSource)
+    async command void HplSam3TCChannel.setClockSource(uint8_t clockSource)
     {
         // the tcclks is the same in capture and wave!
         tc_cmr_capture_t cmr = CH_CAPTURE->cmr;
@@ -199,7 +199,7 @@ implementation
             sr.flat |= CH_CAPTURE->sr.flat; // combine the current state for everyone to;
 
             if(sr.bits.covfs){
-                signal HplSam3uTCChannel.overflow();
+                signal HplSam3TCChannel.overflow();
                 sr.bits.covfs = 0;
             }
             if(sr.bits.lovrs){
@@ -233,7 +233,7 @@ implementation
         }
     }
 
-    async command uint32_t HplSam3uTCChannel.getTimerFrequency()
+    async command uint32_t HplSam3TCChannel.getTimerFrequency()
     {
         uint32_t mck;
 
@@ -249,7 +249,7 @@ implementation
         // in the best case, we would now inform the user!
     }
 
-    default async event void HplSam3uTCChannel.overflow(){ }
+    default async event void HplSam3TCChannel.overflow(){ }
 
     /******************************************
      * Capture

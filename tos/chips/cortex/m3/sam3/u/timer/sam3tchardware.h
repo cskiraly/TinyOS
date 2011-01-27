@@ -1,4 +1,5 @@
-/* "Copyright (c) 2000-2003 The Regents of the University of California.
+/**
+ * "Copyright (c) 2009 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -19,26 +20,45 @@
  */
 
 /**
- * Alarm32khzC is the alarm for async 32khz alarms
+ * Timer Counter register definitions.
+ *
  * @author Thomas Schmid
- * @see  Please refer to TEP 102 for more information about this component and its
- *          intended use.
  */
 
-generic configuration Alarm32khz16C()
-{
-  provides interface Init;
-  provides interface Alarm<T32khz,uint16_t>;
-}
-implementation
-{
-  components HplSam3uTC32khzC as HplSam3uTCChannel;
-  components new HilSam3uTCAlarmC(T32khz, 32) as HilSam3uTCAlarm;
+#ifndef SAM3UTCHARDWARE_H
+#define SAM3UTCHARDWARE_H
 
-  Init = HilSam3uTCAlarm;
-  Alarm = HilSam3uTCAlarm;
+#include "tchardware.h"
 
-  HilSam3uTCAlarm.HplSam3uTCChannel -> HplSam3uTCChannel;
-  HilSam3uTCAlarm.HplSam3uTCCompare -> HplSam3uTCChannel;
-}
+/**
+ * TC definition capture mode
+ */
+typedef struct
+{
+    volatile tc_channel_capture_t ch0;
+    uint32_t reserved0[4];
+    volatile tc_channel_capture_t ch1;
+    uint32_t reserved1[4];
+    volatile tc_channel_capture_t ch2;
+    uint32_t reserved2[4];
+    volatile tc_bcr_t bcr;
+    volatile tc_bmr_t bmr;
+    volatile tc_qier_t qier;
+    volatile tc_qidr_t qidr;
+    volatile tc_qimr_t qimr;
+    volatile tc_qisr_t qisr;
+} tc_t;
+
+/**
+ * TC Register definitions, AT91 ARM Cortex-M3 based Microcontrollers SAM3U
+ * Series, Preliminary 9/1/09, p. 827
+ */
+#define TC_BASE     0x40080000
+#define TC_CH0_BASE 0x40080000
+#define TC_CH1_BASE 0x40080040
+#define TC_CH2_BASE 0x40080080
+
+volatile tc_t* TC = (volatile tc_t*)TC_BASE;
+
+#endif //SAM3UTCHARDWARE_H
 

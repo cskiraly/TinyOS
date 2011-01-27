@@ -20,12 +20,50 @@
  */
 
 /**
- * SAM3U TC general event interface.
+ * Timer Counter register definitions.
  *
  * @author Thomas Schmid
  */
 
-interface HplSam3uTCEvent
+#ifndef SAM3STCHARDWARE_H
+#define SAM3STCHARDWARE_H
+
+#include "tchardware.h"
+
+/**
+ * TC definition capture mode
+ */
+typedef struct
 {
-    async event void fired();
-}
+    volatile tc_channel_capture_t ch0;
+    uint32_t reserved0[4];
+    volatile tc_channel_capture_t ch1;
+    uint32_t reserved1[4];
+    volatile tc_channel_capture_t ch2;
+    uint32_t reserved2[4];
+    volatile tc_bcr_t bcr;
+    volatile tc_bmr_t bmr;
+    volatile tc_qier_t qier;
+    volatile tc_qidr_t qidr;
+    volatile tc_qimr_t qimr;
+    volatile tc_qisr_t qisr;
+} tc_t;
+
+/**
+ * TC Register definitions, AT91 ARM Cortex-M3 based Microcontrollers SAM3U
+ * Series, Preliminary 9/1/09, p. 827
+ */
+#define TC_BASE      0x40010000
+#define TC1_BASE     0x40014000
+#define TC_CH0_BASE  0x40010000
+#define TC_CH1_BASE  0x40010040
+#define TC_CH2_BASE  0x40010080
+#define TC1_CH0_BASE 0x40014000
+#define TC1_CH1_BASE 0x40014040
+#define TC1_CH2_BASE 0x40014080
+
+volatile tc_t* TC  = (volatile tc_t*)TC_BASE;
+volatile tc_t* TC1 = (volatile tc_t*)TC1_BASE;
+
+#endif //SAM3UTCHARDWARE_H
+
