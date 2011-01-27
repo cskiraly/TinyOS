@@ -571,5 +571,35 @@ typedef struct
     volatile pmc_pcsr_t pcsr; // Peripheral Clock Status Register
 } pmc_pc_t;
 
+/**
+ * PMC Write Protect Mode Register.
+ */
+typedef union
+{
+    uint32_t flat;
+    struct
+    {
+        uint32_t wpen       :  1; // Write Protect Enable
+        uint32_t reserved0  :  7;
+        uint32_t wpkey      : 24; // Write Protect Key
+    } __ attribute__((__packed__)) bits;
+} pmc_wpmr_t;
+
+#define PMC_WPMR_WPKEY 0x504D43
+
+/**
+ * PMC Write Protect Status Register.
+ */
+typedef union
+{
+    uint32_t flat;
+    struct
+    {
+        uint32_t wpvs       :  1; // Write Protect Violation Status
+        uint32_t reserved0  :  7;
+        uint32_t wpvsrc     : 16; // Write Protect Violation Source
+        uint32_t reserved1  :  8;
+    } __ attribute__((__packed__)) bits;
+} pmc_wpsr_t;
 
 #endif // PMCHARDWARE_H
