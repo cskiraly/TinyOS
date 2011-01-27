@@ -64,21 +64,41 @@ class samba:
             sys.exit(1)
         # once we switch to python 2.6, we should do this
         #self.f = tempfile.NamedTemporaryFile(delete=False)
-        if( int(cmdOptions.start_addr, 16) >= 0x80000 and int(cmdOptions.start_addr, 16) < 0x100000):
-          flash_id = 0
+
+        #if sam3s, use different TCL script
+        r = re.compile("sam3s")
+        matches = r.findall(cmdOptions.target)
+        if(len(matches) != 0):
+            print "Found SAM3S"
+
+            self.f = file('/tmp/samba.tcl', 'w+')
+            self.f.write("""FLASH::Init
+        send_file {Flash} "%s" %s 0
+        FLASH::ScriptGPNMV 2
+        """%(cmdOptions.binfile,cmdOptions.start_addr))
+            if cmdOptions.check:
+                # verify flash
+                self.f.write('compare_file {Flash} "%s" %s 0\n'%(cmdOptions.binfile,cmdOptions.start_addr))
+            if cmdOptions.run:
+                # automatically run the code after writing
+                self.f.write("TCL_Go $target(handle) 0 0\n")
         else:
-          flash_id = 1
-        self.f = file('/tmp/samba.tcl', 'w+')
-        self.f.write("""FLASH::Init %d
-    send_file {Flash %d} "%s" %s 0
-    FLASH::ScriptGPNMV 2
-    """%(flash_id,flash_id,cmdOptions.binfile,cmdOptions.start_addr))
-        if cmdOptions.check:
-            # verify flash
-            self.f.write('compare_file {Flash %d} "%s" %s 0\n'%(flash_id, cmdOptions.binfile,cmdOptions.start_addr))
-        if cmdOptions.run:
-            # automatically run the code after writing
-            self.f.write("TCL_Go $target(handle) 0 0\n")
+
+            if( int(cmdOptions.start_addr, 16) >= 0x80000 and int(cmdOptions.start_addr, 16) < 0x100000):
+                flash_id = 0
+            else:
+                flash_id = 1
+            self.f = file('/tmp/samba.tcl', 'w+')
+            self.f.write("""FLASH::Init %d
+        send_file {Flash %d} "%s" %s 0
+        FLASH::ScriptGPNMV 2
+        """%(flash_id,flash_id,cmdOptions.binfile,cmdOptions.start_addr))
+            if cmdOptions.check:
+                # verify flash
+                self.f.write('compare_file {Flash %d} "%s" %s 0\n'%(flash_id, cmdOptions.binfile,cmdOptions.start_addr))
+            if cmdOptions.run:
+                # automatically run the code after writing
+                self.f.write("TCL_Go $target(handle) 0 0\n")
         self.f.flush()
 
         try:
@@ -108,15 +128,19 @@ class samba:
 
             samba_cmd = "DISPLAY=:0 sam-ba %s %s %s"%(cmdOptions.port, cmdOptions.target,
                     self.f.name)
+            if(cmdOptions.DEBUG):
+                print "DEBUG: ", samba_cmd
             samba_proc = subprocess.Popen(samba_cmd, shell=True, stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE)
             r = re.compile("sam-ba: not found")
+            e = samba_proc.stderr.readline()
+
             if len(r.findall(samba_proc.stderr.readline())) != 0:
                 print "Couldn't find 'sam-ba'. Please make sure it is in your PATH!"
                 self.cleanup()
                 sys.exit(1)
             try:
-                self.expect(samba_proc.stdout, "-I- Found processor : at91sam3u4")
+                self.expect(samba_proc.stdout, "-I- Found processor : at91sam3")
             except RuntimeError:
                 print "Couldn't find processor! Make sure the port '%s' is correct."%(cmdOptions.port)
                 self.cleanup()
