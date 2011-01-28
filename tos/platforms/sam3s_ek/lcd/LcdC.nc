@@ -35,43 +35,33 @@ configuration LcdC
 implementation
 {
     
-    components LcdP, Hx8347C;
+    components LcdP, Ili9325C;
 
     Lcd = LcdP.Lcd;
     Draw = LcdP.Draw;
 
-    LcdP.Hx8347 -> Hx8347C;
+    LcdP.Ili9325 -> Ili9325C;
 
     components new TimerMilliC() as T0;
-    components new TimerMilliC() as T1;
-    Hx8347C.InitTimer -> T0;
-    Hx8347C.OnTimer -> T1;
+    Ili9325C.InitTimer -> T0;
 
-    components HplSam3uGeneralIOC;
-    LcdP.DB0 -> HplSam3uGeneralIOC.HplPioB9;
-    LcdP.DB1 -> HplSam3uGeneralIOC.HplPioB10;
-    LcdP.DB2 -> HplSam3uGeneralIOC.HplPioB11;
-    LcdP.DB3 -> HplSam3uGeneralIOC.HplPioB12;
-    LcdP.DB4 -> HplSam3uGeneralIOC.HplPioB13;
-    LcdP.DB5 -> HplSam3uGeneralIOC.HplPioB14;
-    LcdP.DB6 -> HplSam3uGeneralIOC.HplPioB15;
-    LcdP.DB7 -> HplSam3uGeneralIOC.HplPioB16;
-    LcdP.DB8 -> HplSam3uGeneralIOC.HplPioB25;
-    LcdP.DB9 -> HplSam3uGeneralIOC.HplPioB26;
-    LcdP.DB10 -> HplSam3uGeneralIOC.HplPioB27;
-    LcdP.DB11 -> HplSam3uGeneralIOC.HplPioB28;
-    LcdP.DB12 -> HplSam3uGeneralIOC.HplPioB29;
-    LcdP.DB13 -> HplSam3uGeneralIOC.HplPioB30;
-    LcdP.DB14 -> HplSam3uGeneralIOC.HplPioB31;
-    LcdP.DB15 -> HplSam3uGeneralIOC.HplPioB6;
+    components HplSam3sGeneralIOC;
+    LcdP.DB0 -> HplSam3sGeneralIOC.HplPioC0;
+    LcdP.DB1 -> HplSam3sGeneralIOC.HplPioC1;
+    LcdP.DB2 -> HplSam3sGeneralIOC.HplPioC2;
+    LcdP.DB3 -> HplSam3sGeneralIOC.HplPioC3;
+    LcdP.DB4 -> HplSam3sGeneralIOC.HplPioC4;
+    LcdP.DB5 -> HplSam3sGeneralIOC.HplPioC5;
+    LcdP.DB6 -> HplSam3sGeneralIOC.HplPioC6;
+    LcdP.DB7 -> HplSam3sGeneralIOC.HplPioC7;
 
-    LcdP.LCD_RS -> HplSam3uGeneralIOC.HplPioB8;
-    LcdP.NRD    -> HplSam3uGeneralIOC.HplPioB19;
-    LcdP.NWE    -> HplSam3uGeneralIOC.HplPioB23;
-    LcdP.NCS2   -> HplSam3uGeneralIOC.HplPioC16;
+    LcdP.LCD_RS -> HplSam3sGeneralIOC.HplPioC19;
+    LcdP.NRD    -> HplSam3sGeneralIOC.HplPioC11;
+    LcdP.NWE    -> HplSam3sGeneralIOC.HplPioC8;
+    LcdP.NCS   -> HplSam3sGeneralIOC.HplPioC15;
 
-    LcdP.Backlight -> HplSam3uGeneralIOC.PioC19;
+    LcdP.Backlight -> HplSam3sGeneralIOC.PioC13;
 
-    components HplSam3uClockC;
-    LcdP.HSMC4ClockControl -> HplSam3uClockC.HSMC4PPCntl;
+    components HplSam3sClockC;
+    LcdP.ClockControl -> HplSam3sClockC.SMCCntl;
 }
