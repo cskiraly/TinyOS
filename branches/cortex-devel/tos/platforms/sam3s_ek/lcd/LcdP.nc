@@ -23,7 +23,7 @@
  * Heavily inspired by the at91 library.
  * @author Thomas Schmid
  **/
-#include <sam3usmchardware.h>
+#include <sam3smchardware.h>
 #include "lcd.h"
 #include "color.h"
 #include "font.h"
@@ -32,32 +32,24 @@
 module LcdP
 {
     uses {
-        interface Hx8347;
+        interface Ili9325;
 
-        interface HplSam3uGeneralIOPin as DB0;
-        interface HplSam3uGeneralIOPin as DB1;
-        interface HplSam3uGeneralIOPin as DB2;
-        interface HplSam3uGeneralIOPin as DB3;
-        interface HplSam3uGeneralIOPin as DB4;
-        interface HplSam3uGeneralIOPin as DB5;
-        interface HplSam3uGeneralIOPin as DB6;
-        interface HplSam3uGeneralIOPin as DB7;
-        interface HplSam3uGeneralIOPin as DB8;
-        interface HplSam3uGeneralIOPin as DB9;
-        interface HplSam3uGeneralIOPin as DB10;
-        interface HplSam3uGeneralIOPin as DB11;
-        interface HplSam3uGeneralIOPin as DB12;
-        interface HplSam3uGeneralIOPin as DB13;
-        interface HplSam3uGeneralIOPin as DB14;
-        interface HplSam3uGeneralIOPin as DB15;
-        interface HplSam3uGeneralIOPin as LCD_RS;
-        interface HplSam3uGeneralIOPin as NRD;
-        interface HplSam3uGeneralIOPin as NWE;
-        interface HplSam3uGeneralIOPin as NCS2;
+        interface HplSam3GeneralIOPin as DB0;
+        interface HplSam3GeneralIOPin as DB1;
+        interface HplSam3GeneralIOPin as DB2;
+        interface HplSam3GeneralIOPin as DB3;
+        interface HplSam3GeneralIOPin as DB4;
+        interface HplSam3GeneralIOPin as DB5;
+        interface HplSam3GeneralIOPin as DB6;
+        interface HplSam3GeneralIOPin as DB7;
+        interface HplSam3GeneralIOPin as LCD_RS;
+        interface HplSam3GeneralIOPin as NRD;
+        interface HplSam3GeneralIOPin as NWE;
+        interface HplSam3GeneralIOPin as NCS;
 
         interface GeneralIO as Backlight;
 
-        interface HplSam3uPeripheralClockCntl as HSMC4ClockControl;
+        interface HplSam3PeripheralClockCntl as ClockControl;
     }
     provides 
     {
@@ -71,7 +63,7 @@ implementation
 #define RGB24ToRGB16(color) (((color >> 8) & 0xF800) | \
         ((color >> 5) & 0x7E0) | \
         ((color >> 3) & 0x1F))
-#define BOARD_LCD_BASE   0x62000000
+#define BOARD_LCD_BASE   0x61000000
 
     const Font gFont = {10, 14};
 
@@ -81,6 +73,11 @@ implementation
      */
     command void Lcd.initialize(void)
     {
+        smc_setup_t setup;
+        smc_pulse_t pulse;
+        smc_cycle_t cycle;
+        smc_mode_t  mode;
+
         // Enable pins
         call DB0.disablePioControl();
         call DB0.selectPeripheralA();
@@ -106,77 +103,59 @@ implementation
         call DB7.disablePioControl();
         call DB7.selectPeripheralA();
         call DB7.enablePullUpResistor();
-        call DB8.disablePioControl();
-        call DB8.selectPeripheralA();
-        call DB8.enablePullUpResistor();
-        call DB9.disablePioControl();
-        call DB9.selectPeripheralA();
-        call DB9.enablePullUpResistor();
-        call DB10.disablePioControl();
-        call DB10.selectPeripheralA();
-        call DB10.enablePullUpResistor();
-        call DB11.disablePioControl();
-        call DB11.selectPeripheralA();
-        call DB11.enablePullUpResistor();
-        call DB12.disablePioControl();
-        call DB12.selectPeripheralA();
-        call DB12.enablePullUpResistor();
-        call DB13.disablePioControl();
-        call DB13.selectPeripheralA();
-        call DB13.enablePullUpResistor();
-        call DB14.disablePioControl();
-        call DB14.selectPeripheralA();
-        call DB14.enablePullUpResistor();
-        call DB15.disablePioControl();
-        call DB15.selectPeripheralB();
-        call DB15.enablePullUpResistor();
+
         call LCD_RS.disablePioControl();
-        call LCD_RS.selectPeripheralB();
+        call LCD_RS.selectPeripheralA();
         call LCD_RS.enablePullUpResistor();
+
         call NRD.disablePioControl();
         call NRD.selectPeripheralA();
         call NRD.enablePullUpResistor();
         call NWE.disablePioControl();
         call NWE.selectPeripheralA();
         call NWE.enablePullUpResistor();
-        call NCS2.disablePioControl();
-        call NCS2.selectPeripheralA();
-        call NCS2.enablePullUpResistor();
+        call NCS.disablePioControl();
+        call NCS.selectPeripheralA();
+        call NCS.enablePullUpResistor();
 
         // Enable peripheral clock
-        call HSMC4ClockControl.enable();
+        call ClockControl.enable();
 
         // Enable pins
         call Backlight.makeOutput();
 
         // EBI SMC Configuration
-        SMC_CS2->setup.flat              = 0;
-        SMC_CS2->setup.bits.nwe_setup    = 4;
-        SMC_CS2->setup.bits.ncs_wr_setup = 2;
-        SMC_CS2->setup.bits.nrd_setup    = 4;
-        SMC_CS2->setup.bits.ncs_rd_setup = 2;
+        setup.flat              = 0;
+        setup.bits.nwe_setup    = 2;
+        setup.bits.ncs_wr_setup = 2;
+        setup.bits.nrd_setup    = 2;
+        setup.bits.ncs_rd_setup = 2;
+        SMC_CS1->setup = setup;
 
-        SMC_CS2->pulse.flat              = 0;
-        SMC_CS2->pulse.bits.nwe_pulse    = 5;
-        SMC_CS2->pulse.bits.ncs_wr_pulse = 18;
-        SMC_CS2->pulse.bits.nrd_pulse    = 5;
-        SMC_CS2->pulse.bits.ncs_rd_pulse = 18;
+        pulse.flat              = 0;
+        pulse.bits.nwe_pulse    = 4;
+        pulse.bits.ncs_wr_pulse = 4;
+        pulse.bits.nrd_pulse    = 10;
+        pulse.bits.ncs_rd_pulse = 10;
+        SMC_CS1->pulse = pulse;
 
-        SMC_CS2->cycle.flat           = 0;
-        SMC_CS2->cycle.bits.nwe_cycle = 22;
-        SMC_CS2->cycle.bits.nrd_cycle = 22;
+        cycle.flat           = 0;
+        cycle.bits.nwe_cycle = 10;
+        cycle.bits.nrd_cycle = 22;
+        SMC_CS1->cycle = cycle;
 
-        SMC_CS2->mode.bits.read_mode = 1;
-        SMC_CS2->mode.bits.write_mode = 1;
-        SMC_CS2->mode.bits.dbw = 1;
-        SMC_CS2->mode.bits.pmen = 0;
+        mode.bits.read_mode = 1;
+        mode.bits.write_mode = 1;
+        mode.bits.dbw = 0; // 8-bit operations
+        mode.bits.pmen = 0;
+        SMC_CS1->mode = mode;
 
         // Initialize LCD controller (HX8347)
-        call Hx8347.initialize((void *)BOARD_LCD_BASE);
+        call Ili9325.initialize((void *)BOARD_LCD_BASE);
 
     }
 
-    event void Hx8347.initializeDone(error_t err)
+    event void Ili9325.initializeDone(error_t err)
     {
         if(err == SUCCESS)
             call Lcd.setBacklight(25);
@@ -188,11 +167,7 @@ implementation
      */
     command void Lcd.start(void)
     {
-        call Hx8347.on((void *)BOARD_LCD_BASE);
-    }
-
-    event void Hx8347.onDone()
-    {
+        call Ili9325.on((void *)BOARD_LCD_BASE);
         signal Lcd.startDone();
     }
 
@@ -201,7 +176,7 @@ implementation
      */
     command void Lcd.stop(void)
     {
-        call Hx8347.off((void *)BOARD_LCD_BASE);
+        call Ili9325.off((void *)BOARD_LCD_BASE);
     }
 
     /**
@@ -244,14 +219,12 @@ implementation
     async command void Draw.fill(uint32_t color)
     {
         uint32_t i;
-        unsigned short color16 = RGB24ToRGB16(color);
 
-
-        call Hx8347.setCursor((void *)BOARD_LCD_BASE, 0, 0);
-        call Hx8347.writeRAM_Prepare((void *)BOARD_LCD_BASE);
+        call Ili9325.setCursor((void *)BOARD_LCD_BASE, 0, 0);
+        call Ili9325.writeRAM_Prepare((void *)BOARD_LCD_BASE);
         for (i = 0; i < (BOARD_LCD_WIDTH * BOARD_LCD_HEIGHT); i++) {
 
-            call Hx8347.writeRAM((void *)BOARD_LCD_BASE, color16);
+            call Ili9325.writeRAM((void *)BOARD_LCD_BASE, color);
         }
     }
 
@@ -267,12 +240,11 @@ implementation
             uint32_t y,
             uint32_t color)
     {
-        unsigned short color16 = RGB24ToRGB16(color);
         void* pBuffer = (void*)BOARD_LCD_BASE;
 
-        call Hx8347.setCursor(pBuffer, x, y);
-        call Hx8347.writeRAM_Prepare(pBuffer);
-        call Hx8347.writeRAM(pBuffer, color16);
+        call Ili9325.setCursor(pBuffer, BOARD_LCD_WIDTH - x, y);
+        call Ili9325.writeRAM_Prepare(pBuffer);
+        call Ili9325.writeRAM(pBuffer, color);
     }
 
     /**
