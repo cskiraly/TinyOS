@@ -4,11 +4,11 @@
 // These are the right types, but ncc currently does not 
 // like parameters being network types
 typedef nx_uint8_t nx_am_id_t;
-typedef nx_uint8_t nx_am_group_t;
+typedef nx_uint16_t nx_am_group_t;
 typedef nx_uint16_t nx_am_addr_t;
 
 typedef uint8_t am_id_t;
-typedef uint8_t am_group_t;
+typedef uint16_t am_group_t;
 typedef uint16_t am_addr_t;
 
 enum {
