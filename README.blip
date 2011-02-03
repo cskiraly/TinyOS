@@ -3,18 +3,18 @@ blip-2.0 development tree
 
 This tree contains support for a stack built on top of:
  draft-6lowpan-hc-06 for IPv6 header compression
- draft-roll-rpl for IPv6 routing
- linux ppp for communicating with external networks (from the peoplepower osian stack)
+ draft-roll-rpl-17 for IPv6 routing
+ linux ppp for communicating with external networks 
+   - from the peoplepower osian stack
+   - merged in from the osian-squashed-ppp@5261 branch
  dhcpv6 for doing address assignment
 
-TOSROOT=/home/sdawson/svn/tinyos-main
-TOSDIR=/home/sdawson/svn/tinyos-main/tos
-MAKERULES=/home/sdawson/svn/tinyos-main/support/make/Makerules
-TOSMAKE_PATH=/home/sdawson/svn/rpl/support/make
-LOWPAN_ROOT=/home/sdawson/svn/rpl
-OSIAN_ROOT=/home/sdawson/git/osian
+We track trunk, periodically re-merging.  In the future this release
+will be integrated with trunk.
 
-Make sure all of these point at the right parts of the tree.
+TOSROOT=/home/sdawson/svn/blip-rpl-devel
+TOSDIR=/home/sdawson/svn/blip-rpl-devel/tos
+MAKERULES=/home/sdawson/svn/blip-rpl-devel/support/make/Makerules
 
 Address assignment
 ========================================
@@ -43,9 +43,22 @@ Link-local address 2 is chosen based on the panid and nodeid as
  image with ID=1, the corresponding link-local address would be
  fe80::22:ff:fe00:1.
 
+Note that the Unique/Local bit in the IPv6 Interface Identifier is not
+set for addresses derived from the 16-bit id, but is set when using
+the EUI-64.  For instance, if my EUI-64 is 00:17:3B:00:11:0F:FD, the
+corresponding IPv6 link-local address is fe80::2:173B:11:0FFD.
+The U/L bit has been toggled.
+
 Finally, a global address is configured using the prefix defined at
 compile time.  The default prefix is fec0::/64, so if the node id is
 1, the ipv6 address is fec0::1.
+
+You can disable all global addresses by defining IN6_NO_GLOBAL in your
+Makefile.
+
+Summary:
+ IN6_NO_GLOBAL : disable global addresses, only link-local
+ IN6_PREFIX : configure a global address using the specified prefix.
 
  == DHCPv6 Address Mode ==
 
@@ -78,8 +91,8 @@ PppRouterC is an application which advertises itsself as a RPL DODAG
 root.  It also has a second ppp interface which allows it to route
 packets between the 6lowpan network and other networks.
 
-$ cd $LOWPAN_ROOT/apps/PppRouter
-$ make epic blip2 msp-hack
+$ cd $TOSROOT/apps/PppRouter
+$ make epic blip
 
 Then install it on a mote with ID 1 -- static addressing is default.
 
@@ -107,7 +120,7 @@ fec0::a4/128            fe80::22:ff:fe00:a4             pan
 ::/0            ::              ppp
 
 In this example, the other nodes have been assigned dhcpv6 addresses,
-and RPL provisioned downward ranks in the forwarding table using the
+and RPL provisioned downward routes in the forwarding table using the
 DAOs.
 
 UDPEcho
@@ -116,8 +129,8 @@ UDPEcho
 The stock image for motes not needing ppp is UDPEcho -- make and
 install it the same way
 
-$ cd $LOWPAN_ROOT/apps/UDPEcho
-$ make epic blip2 msp-hack install.2 bsl,/dev/ttyUSB1
+$ cd $TOSROOT/apps/UDPEcho
+$ make epic blip install.2 bsl,/dev/ttyUSB1
 
 Since we're not using DHCP here, we give it a new address based on
 TOS_NODE_ID.  You can use the udp shell to inspect his routing table,
