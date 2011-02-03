@@ -101,10 +101,12 @@ implementation {
   components RPLMRHOFP;
   RPLRankP.RPLOF -> RPLMRHOFP;
   RPLMRHOFP.ForwardingTable -> IPStackC;
+  RPLMRHOFP.RPLRoute -> RPLRoutingEngineC;
 #else
   components RPLOF0P;
   RPLRankP.RPLOF -> RPLOF0P;
   RPLOF0P.ForwardingTable -> IPStackC;
+  RPLOF0P.RPLRoute -> RPLRoutingEngineC;
 #endif
 
 }

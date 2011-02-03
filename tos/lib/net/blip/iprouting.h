@@ -14,6 +14,11 @@ enum {
   ROUTE_IFACE_PPP = 2,
 };
 
+enum {
+  ROUTE_DROP_NOROUTE,
+  ROUTE_DROP_HLIM,
+};
+
 typedef int route_key_t;
 
 struct route_entry {

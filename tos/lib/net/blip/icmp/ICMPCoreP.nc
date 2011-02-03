@@ -40,6 +40,7 @@
  *
  */
 #include <lib6lowpan/ip.h>
+#include <lib6lowpan/in_cksum.h>
 
 #include "icmp6.h"
 

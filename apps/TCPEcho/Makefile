@@ -20,7 +20,7 @@ CFLAGS += -DCC2420_DEF_CHANNEL=15
 
 # printf debugs.  works only on telosb/tmote sky
 # CFLAGS += -DPRINTFUART_ENABLED
-
+PFLAGS += -DIN6_PREFIX=\"fec0:1::\"
 
 include $(MAKERULES)
 

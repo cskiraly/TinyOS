@@ -8,7 +8,7 @@ module TcpP {
   uses {
     interface Boot;
 
-    interface IP;    
+    interface IP;
     interface Timer<TMilli>;
     interface IPAddress;
   }
@@ -76,10 +76,10 @@ module TcpP {
     return NULL;
   }
 
-  void tcplib_send_out(struct split_ip_msg *msg, struct tcp_hdr *tcph) {
+  void tcplib_send_out(struct ip6_packet *msg, struct tcp_hdr *tcph) {
     printfUART("tcp output\n");
-    call IPAddress.setSource(&msg->hdr);
-    tcph->chksum = htons(msg_cksum(msg, IANA_TCP));
+    call IPAddress.setSource(&msg->ip6_hdr);
+    tcph->chksum = htons(msg_cksum(&msg->ip6_hdr, msg->ip6_data, IANA_TCP));
     call IP.send(msg);
   }
 
@@ -100,8 +100,8 @@ module TcpP {
   }
 
   event void IP.recv(struct ip6_hdr *iph, 
-                     void *payload, 
-                     struct ip_metadata *meta) {
+                     void *payload, size_t len,
+                     struct ip6_metadata *meta) {
     
     printfUART("tcp packet received\n");
     tcplib_process(iph, payload);
@@ -110,7 +110,7 @@ module TcpP {
 
   command error_t Tcp.bind[uint8_t client](uint16_t port) {
     struct sockaddr_in6 addr;
-    ip_memclr(addr.sin6_addr.s6_addr, 16);
+    memclr(addr.sin6_addr.s6_addr, 16);
     addr.sin6_port = htons(port);
     tcplib_bind(&socks[client], &addr);
     return SUCCESS;
@@ -139,6 +139,8 @@ module TcpP {
     return SUCCESS;
   }
 
+  event void IPAddress.changed(bool valid) { }
+
   default event bool Tcp.accept[uint8_t cid](struct sockaddr_in6 *from, 
                                              void **tx_buf, int *tx_buf_len) {
     return FALSE;
@@ -148,5 +150,6 @@ module TcpP {
  default event void Tcp.recv[uint8_t cid](void *payload, uint16_t len) {  }
  default event void Tcp.closed[uint8_t cid](error_t e) { }
  default event void Tcp.acked[uint8_t cid]() { }
+
  
 }

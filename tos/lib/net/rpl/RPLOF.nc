@@ -6,11 +6,12 @@ interface RPLOF {
   /* Which metrics does this implementation support */
   command bool objectSupported(uint16_t objectType);
 
+  command uint16_t getObjectValue();
   /* Current parent */
   command struct in6_addr* getParent();
 
   /* Current rank */
-  command uint8_t getRank();
+  command uint16_t getRank();
   command void resetRank();
 
   command bool recalcualateRank();

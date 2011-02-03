@@ -56,6 +56,7 @@ enum {
   TCP_ACKPENDING  = 0x3,
   TCP_DUPACKS     = 0x3c,
   TCP_DUPACKS_OFF = 2,
+  TCP_CONNECTDONE = 0x40,
   TCP_ACKSENT     = 0x80,
 };
 
@@ -82,7 +83,7 @@ struct tcplib_sock {
   tcplib_sock_state_t state;
 
   void    *tx_buf;
-  uint16_t tx_buf_len;
+  int tx_buf_len;
 
   /* max segment size, or default if
      we didn't bother to pull it out
@@ -149,7 +150,7 @@ struct tcplib_sock *tcplib_accept(struct tcplib_sock *conn,
                                   struct sockaddr_in6 *from);
 
 /* a call-out point for tcplib to send a message */
-void tcplib_send_out(struct split_ip_msg *msg, struct tcp_hdr *tcph);
+void tcplib_send_out(struct ip6_packet *pkt, struct tcp_hdr *tcph);
 
 /* upcall for new data; may be dispatched all the way out to a
  * handler. 

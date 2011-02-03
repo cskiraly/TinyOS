@@ -275,7 +275,7 @@ generic module RPLDAORoutingEngineP(){
     // This is where the message is actually cast
     struct dao_base_t *dao = (struct dao_base_t *)payload; 
     struct route_entry *entry;
-    route_key_t new_key;
+    route_key_t new_key = ROUTE_INVAL_KEY;
 
     //printfUART("receive DAO: %i\n", call RPLDAORouteInfo.getStoreState());
     if (!m_running) return;
@@ -316,17 +316,21 @@ generic module RPLDAORoutingEngineP(){
 						dao->target_option.prefix_length,
 						&iph->ip6_src,
 						RPL_IFACE);
+	/*
 	if (new_key == ROUTE_INVAL_KEY) {
 	  call Leds.led1Toggle();
 	  return;
 	}
+	*/
       }
 
-      downwards_table[downwards_table_count].lifetime = 
-        dao->transit_info_option.path_lifetime;
-      downwards_table[downwards_table_count].key = new_key;
-      // for next element
-      downwards_table_count ++;
+      if(new_key != ROUTE_INVAL_KEY){
+	downwards_table[downwards_table_count].lifetime = dao->transit_info_option.path_lifetime;
+	downwards_table[downwards_table_count].key = new_key;
+	// for next element
+	downwards_table_count ++;
+      }
+
       /*
       printfUART("DAO RX-- new prefix %d %d %d \n",
                  downwards_table_count, 

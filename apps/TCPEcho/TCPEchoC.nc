@@ -43,9 +43,9 @@ configuration TCPEchoC {
   TCPEchoP.Leds -> LedsC;
 
   components new TimerMilliC();
-  components IPDispatchC;
+  components IPStackC, IPDispatchC;
 
-  TCPEchoP.RadioControl -> IPDispatchC;
+  TCPEchoP.RadioControl -> IPStackC;
   components new UdpSocketC() as Echo,
     new UdpSocketC() as Status;
   TCPEchoP.Echo -> Echo;
@@ -64,10 +64,7 @@ configuration TCPEchoC {
 
   components UdpC;
 
-  TCPEchoP.IPStats -> IPDispatchC.IPStats;
-  TCPEchoP.RouteStats -> IPDispatchC.RouteStats;
-  TCPEchoP.ICMPStats -> IPDispatchC.ICMPStats;
-  TCPEchoP.UDPStats -> UdpC;
+  TCPEchoP.IPStats -> IPDispatchC;
 
   components RandomC;
   TCPEchoP.Random -> RandomC;
