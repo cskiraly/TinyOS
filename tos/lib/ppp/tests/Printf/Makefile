@@ -1,0 +1,4 @@
+COMPONENT=TestAppC
+TOSMAKE_PATH += .
+include $(MAKERULES)
+
