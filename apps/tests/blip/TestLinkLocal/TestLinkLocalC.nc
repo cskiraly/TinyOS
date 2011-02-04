@@ -56,8 +56,13 @@ module TestLinkLocalC {
     printfUART("\n");
 
     if (cmd->cmd == CMD_ECHO) {
+      /* test fragmentation on the reply unicast path */
+      /* isn't this fun! */
+      uint8_t buf[12];
+      memset(buf, 0, sizeof(buf));
       cmd->cmd = CMD_REPLY;
-      call Sock.sendto(src, payload, len);
+      memcpy(buf, cmd, sizeof(*cmd));
+      call Sock.sendto(src, buf, sizeof(buf));
       call Leds.led1Toggle();
     } else {
       printfUART("TestLinkLocalC: reply seqno: %li\n", cmd->seqno);

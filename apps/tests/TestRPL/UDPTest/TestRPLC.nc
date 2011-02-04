@@ -67,6 +67,8 @@ implementation {
 #define RPL_ROOT_ADDR 1
 #endif
 
+#define UDP_PORT 5678
+
   //uint8_t payload[10];
   //struct in6_addr dest;
   struct in6_addr MULTICAST_ADDR;
@@ -75,6 +77,7 @@ implementation {
   uint16_t counter = 0;
   
   event void Boot.booted() {
+    printfUART_init();
 
     memset(MULTICAST_ADDR.s6_addr, 0, 16);
     MULTICAST_ADDR.s6_addr[0] = 0xFF;
@@ -88,7 +91,7 @@ implementation {
     //call RoutingControl.start();
     call SplitControl.start();
 
-    call RPLUDP.bind(10210);
+    call RPLUDP.bind(UDP_PORT);
   }
 
   uint32_t countrx = 0;
@@ -96,7 +99,7 @@ implementation {
 
   event void RPLUDP.recvfrom(struct sockaddr_in6 *from, void *payload, uint16_t len, struct ip6_metadata *meta){
 
-    uint16_t temp[10];
+    nx_uint16_t temp[10];
     memcpy(temp, (uint8_t*)payload, len);
     call Leds.led2Toggle();
 
@@ -118,11 +121,11 @@ implementation {
   task void sendTask(){
     struct sockaddr_in6 dest;
 
-    uint16_t temp[10];
+    nx_uint16_t temp[10];
     uint8_t i;
 
     for(i=0;i<10;i++){
-      temp[i] = i;
+      temp[i] = 0xABCD;
     }
 
     temp[0] = TOS_NODE_ID;
@@ -133,7 +136,7 @@ implementation {
     if(dest.sin6_addr.s6_addr[15] != 0) // destination is set as root!
       ++counttx;
 
-    dest.sin6_port = htons(10210);
+    dest.sin6_port = htons(UDP_PORT);
 
     printfUART("Generate Packet at %d \n", TOS_NODE_ID);
     call Leds.led0Toggle();
