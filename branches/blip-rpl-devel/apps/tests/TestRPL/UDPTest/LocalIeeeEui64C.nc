@@ -17,6 +17,9 @@ implementation {
     eui.data[3] = IEEE_EUI64_SERIAL_ID_0;
     eui.data[4] = IEEE_EUI64_SERIAL_ID_1;
 
+    eui.data[5] = 0;
+    //eui.data[4] = TOS_NODE_ID << 8;
+    //eui.data[5] = TOS_NODE_ID;
     eui.data[6] = TOS_NODE_ID << 8;
     eui.data[7] = TOS_NODE_ID;
     return eui;
