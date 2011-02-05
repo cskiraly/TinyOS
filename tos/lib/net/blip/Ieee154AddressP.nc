@@ -14,7 +14,7 @@ module Ieee154AddressP {
 
   command error_t Init.init() {
     m_saddr = TOS_NODE_ID;
-    m_panid = 0xabcd;
+    m_panid = TOS_AM_GROUP;
     return SUCCESS;
   }
 
