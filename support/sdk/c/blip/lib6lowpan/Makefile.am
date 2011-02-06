@@ -1,5 +1,5 @@
 
-SUBDIRS = . trace
+SUBDIRS = . trace tests
 
 AM_CFLAGS = -DPC -I../../../../../tos/types -DHAVE_LOWPAN_EXTERN_MATCH_CONTEXT
 noinst_LIBRARIES = lib6lowpan.a

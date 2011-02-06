@@ -510,7 +510,7 @@ uint8_t *unpack_address(struct in6_addr *addr, uint8_t dispatch,
       // unspecified address ::
       return buf;
     } else {
-      lowpan_extern_read_context(addr, context);
+      int ctxlen = lowpan_extern_read_context(addr, context);
       switch (dispatch & LOWPAN_IPHC_AM_MASK) {
       case LOWPAN_IPHC_AM_64:
         memcpy(&addr->s6_addr[8], buf, 8);
@@ -521,12 +521,12 @@ uint8_t *unpack_address(struct in6_addr *addr, uint8_t dispatch,
       case LOWPAN_IPHC_AM_0:
         // not clear how to use this:
         //  "and 'possibly' link-layer addresses"
-        if (frame->ieee_mode == IEEE154_ADDR_EXT) {
-          int i;
-          for (i = 0; i < 8; i++)
-            addr->s6_addr[i+8] = frame->i_laddr.data[7-i];
-          addr->s6_addr[8] ^= 0x2;
-        } else {
+        if (ctxlen <= 64 && frame->ieee_mode == IEEE154_ADDR_EXT) {
+            int i;
+            for (i = 0; i < 8; i++)
+              addr->s6_addr[i+8] = frame->i_laddr.data[7-i];
+            addr->s6_addr[8] ^= 0x2;
+        } else if (ctxlen <= 112) {
           memset(&addr->s6_addr[8], 0, 8);
           addr->s6_addr16[7] = leton16(frame->i_saddr);
         }
