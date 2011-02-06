@@ -13,6 +13,9 @@ TARGETS=test_bit_range_zero_p test_pack_tcfl test_pack_multicast test_pack_addre
 
 all: $(TARGETS)
 
+check:
+	./run.sh
+
 clean:
 	rm $(TARGETS)
 

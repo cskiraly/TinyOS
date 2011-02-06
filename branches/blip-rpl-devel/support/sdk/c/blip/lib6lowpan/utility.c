@@ -143,14 +143,14 @@ int ieee154_parse(char *in, ieee154_addr_t *out) {
   long val;
   char *endp = in;
   long saddr = strtol(in,  &endp, 16);
-  fprintf(stderr, "ieee154_parse: %s, %c\n", in, *endp);
+  // fprintf(stderr, "ieee154_parse: %s, %c\n", in, *endp);
 
   if (*endp == ':') {
     endp = in;
     // must be a long address
     for (i = 0; i < 8; i++) {
       val = strtol(endp, &endp, 16);
-      out->i_laddr.data[i] = val;
+      out->i_laddr.data[7-i] = val;
       endp++;
     }
     out->ieee_mode = IEEE154_ADDR_EXT;
