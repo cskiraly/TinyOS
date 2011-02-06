@@ -63,7 +63,8 @@ int inet_ntop6(struct in6_addr *addr, char *buf, int cnt) {
   int i, j, compressed = 0;
 
   for (j = 0; j < 8; j++) {
-    if (buf > end - 7) return -1;
+    if (buf > end - 8)
+      goto done;
 
     block = ntohs(addr->s6_addr16[j]);
     for (i = 4; i <= 16; i+=4) {
@@ -81,6 +82,7 @@ int inet_ntop6(struct in6_addr *addr, char *buf, int cnt) {
   }
   if (compressed == 1)
     *buf++ = ':';
+ done:
   *buf++ = '\0';
   return buf - (end - cnt);
 }
