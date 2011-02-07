@@ -2,6 +2,7 @@ module RPLOF0P{
   provides interface RPLOF;
   uses interface ForwardingTable;
   uses interface RPLRoutingEngine as RPLRoute;
+  uses interface RPLParentTable as ParentTable;
 }
 implementation{
 
@@ -16,9 +17,10 @@ implementation{
 
   uint8_t divideRank = 10;
   uint32_t parentChanges = 0;
-  uint8_t desiredParent;
+  uint16_t desiredParent = MAX_PARENT;
   uint16_t nodeEtx = 10;
   bool newParent = FALSE;
+  uint16_t min_hop_rank_inc = 1;
 
   /* OCP for OF0 */
   command bool RPLOF.OCP(uint16_t ocp){
@@ -36,13 +38,18 @@ implementation{
     return TRUE;
   }
 
+  command void RPLOF.setMinHopRankIncrease(uint16_t val){
+    min_hop_rank_inc = val;
+  }
+
   command uint16_t RPLOF.getObjectValue(){
     return nodeEtx;
   }
 
   /* Current parent */
   command struct in6_addr* RPLOF.getParent(){
-    return &parentSet[desiredParent].parentIP;
+    parent_t* parentNode = call ParentTable.get(desiredParent);
+    return &parentNode->parentIP;
   }
 
   /* Current rank */
@@ -52,16 +59,13 @@ implementation{
 
   command bool RPLOF.recalcualateRank(){
     uint16_t prevEtx, prevRank;
+    parent_t* parentNode = call ParentTable.get(desiredParent);
 
     prevEtx = nodeEtx;
     prevRank = nodeRank;
 
-    nodeRank = parentSet[desiredParent].rank + (parentSet[desiredParent].etx_hop / divideRank);
-
-    if (nodeRank == 1 && prevRank != 0) {
-      nodeRank = prevRank;
-      nodeEtx = prevEtx;
-    }
+    //printfUART("OF0 PARENT rank %d \n", parentSet[desiredParent].rank);
+    nodeRank = parentNode->rank + min_hop_rank_inc;
 
     if(newParent){
       newParent = FALSE;
@@ -77,9 +81,13 @@ implementation{
     uint8_t indexset;
     uint8_t min = 0;
     uint16_t minDesired;
+    parent_t* parentNode;
 
-    //choose the first valid
-    while (!parentSet[min++].valid && min < MAX_PARENT); 
+    parentNode = call ParentTable.get(min);
+    while(!parentNode->valid && min < MAX_PARENT){
+      min++;
+      parentNode = call ParentTable.get(min);
+    }
 
     if (min == MAX_PARENT){ 
       call RPLOF.resetRank();
@@ -87,20 +95,21 @@ implementation{
       return FALSE;
     }
 
-    min--;
-    minDesired = parentSet[min].etx_hop + parentSet[min].etx;
+    minDesired = parentNode->etx_hop/divideRank + parentNode->rank;
 
     for (indexset = min + 1; indexset < MAX_PARENT; indexset++) {
-      if (parentSet[indexset].valid && parentSet[indexset].etx >= 10 && parentSet[indexset].etx_hop >= 0 &&
-	  (parentSet[indexset].etx_hop + parentSet[indexset].etx < minDesired) && parentSet[indexset].rank < nodeRank && parentSet[indexset].rank != INFINITE_RANK) {
+      parentNode = call ParentTable.get(indexset);
+      if(parentNode->valid && parentNode->etx_hop >= 0 && 
+	 (parentNode->etx_hop/divideRank + parentNode->rank < minDesired) && parentNode->rank < nodeRank && parentNode->rank != INFINITE_RANK){
 	min = indexset;
-	minDesired = parentSet[indexset].rank + parentSet[indexset].etx_hop/divideRank;
-	if(min == desiredParent) // this is the metric measurement for the current parent
+	minDesired = parentNode->etx_hop/divideRank + parentNode->rank;
+	if(min == desiredParent)
 	  minMetric = minDesired;
       }
     }
 
-    if(parentSet[min].rank > nodeRank || parentSet[min].rank == INFINITE_RANK){
+    parentNode = call ParentTable.get(min);
+    if(parentNode->rank > nodeRank || parentNode->rank == INFINITE_RANK){
       printfUART("SELECTED PARENT is FFFF %d\n", TOS_NODE_ID);
       return FAIL;
     }
@@ -113,22 +122,22 @@ implementation{
 
     minMetric = minDesired;
     desiredParent = min;
+    parentNode = call ParentTable.get(desiredParent);
+    printfUART("OF0 %d %d %u %u\n", TOS_NODE_ID, htons(parentNode->parentIP.s6_addr16[7]), parentNode->etx_hop, parentNode->etx);
 
     /* set the new default route */
     /* set one of the below of maybe set both? */
-    //call ForwardingTable.addRoute((const uint8_t*)&DODAGID, 128, &parentSet[desiredParent].parentIP, RPL_IFACE);
+    //call ForwardingTable.addRoute((const uint8_t*)&DODAGID, 128, &parentNode->parentIP, RPL_IFACE);
+    call ForwardingTable.addRoute(NULL, 0, &parentNode->parentIP, RPL_IFACE); // will this give me the default path?
 
-    call ForwardingTable.addRoute(NULL, 0, &parentSet[desiredParent].parentIP, RPL_IFACE); // will this give me the default path?
-
-    //printfUART_in6addr(&parentSet[desiredParent].parentIP);
-
-    if(prevParent != parentSet[desiredParent].parentIP.s6_addr16[7]){
-      printfUART(">> New Parent %d %d %lu \n", TOS_NODE_ID, htons(parentSet[desiredParent].parentIP.s6_addr16[7]), parentChanges++);
+    if(prevParent != parentNode->parentIP.s6_addr16[7]){
+      printfUART(">> New Parent %d %d %lu \n", TOS_NODE_ID, htons(parentNode->parentIP.s6_addr16[7]), parentChanges++);
       newParent = TRUE;
     }
-    prevParent = parentSet[desiredParent].parentIP.s6_addr16[7];
+    prevParent = parentNode->parentIP.s6_addr16[7];
 
     return TRUE;
+
   }
 
   command void RPLOF.resetRank(){

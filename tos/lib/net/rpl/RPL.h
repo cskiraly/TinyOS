@@ -235,8 +235,8 @@ struct rpl_route {
 };
 
 /* Necessary constants for RPL*/
+uint16_t ROOT_RANK = 1;
 enum {
-  ROOT_RANK = 1,
   BASE_RANK = 0,
   INFINITE_RANK = 0xFFFF,
   RPL_DEFAULT_INSTANCE = 0,
@@ -368,7 +368,9 @@ struct padN_t{
   uint8_t *padN_data;
 };
 */
-parent_t parentSet[MAX_PARENT];
+
+//parent_t parentSet[MAX_PARENT];
+//uint16_t desiredParent = MAX_PARENT;
 
 #define DIO_GROUNDED_MASK 0x80
 #define DIO_MOP_MASK 0x3c

@@ -19,4 +19,6 @@ interface RPLOF {
   /* Recompute the routes, return TRUE if rank updated */
   command bool recomputeRoutes();
 
+  command void setMinHopRankIncrease(uint16_t val);
+
 }
