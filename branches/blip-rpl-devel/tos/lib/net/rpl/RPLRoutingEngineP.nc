@@ -94,8 +94,8 @@ implementation{
   uint8_t DIOIntDouble = 11;
   uint8_t DIOIntMin = 8;
   uint8_t DIORedun = 0xFF;
-  uint16_t MaxRankInc = 3;
   uint16_t MinHopRankInc = 1;
+  uint16_t MaxRankInc = 3;
 
   uint8_t DTSN = 0;
 
@@ -136,6 +136,8 @@ implementation{
 #else
     call IPAddress.getLLAddr(&ADDR_MY_IP);
 #endif
+
+    ROOT_RANK = MinHopRankInc;
 
     /* SDH : FF02::2 -- link-local all-routers group? */
     memset(MULTICAST_ADDR.s6_addr, 0, 16);

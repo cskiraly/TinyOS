@@ -37,7 +37,6 @@
 #include <RPL.h>
 #include <lib6lowpan/in_cksum.h>
 #include <lib6lowpan/ip.h>
-#include <RPL.h>
 
 generic module RPLDAORoutingEngineP(){
   provides {
@@ -65,7 +64,7 @@ generic module RPLDAORoutingEngineP(){
   //#undef printfUART
   //#define printfUART(X, args ...) ;
 
-  uint32_t dao_rate = 20 * 1024U;
+  uint32_t dao_rate = 5 * 1024U;
   uint32_t delay_dao = 256; // dao batches will be fired 256 ms after the first dao message is scheduled
   // every 100 ms, check if elememts in the entry should be deleted --
   // only for storing nodes
@@ -118,8 +117,7 @@ generic module RPLDAORoutingEngineP(){
       call IPAddress.getLLAddr(&dao_msg->s_pkt.ip6_hdr.ip6_src);
       if (call RPLRouteInfo.getDefaultRoute(&next_hop) != SUCCESS)
         return;
-      memcpy(&dao_msg->s_pkt.ip6_hdr.ip6_dst, &next_hop, 
-             sizeof(struct in6_addr));
+      memcpy(&dao_msg->s_pkt.ip6_hdr.ip6_dst, &next_hop, sizeof(struct in6_addr));
 #else 
       /* in non-storing mode we must use global addresses */
       call IPAddress.getGlobalAddr(&dao_msg->s_pkt.ip6_hdr.ip6_src);
@@ -141,7 +139,6 @@ generic module RPLDAORoutingEngineP(){
   }
 
   command error_t RPLDAORouteInfo.startDAO() {
-    //printfUART("START DAO \n");
 
 #ifdef RPL_STORING_MODE
     call RemoveTimer.startPeriodic(remove_time);
