@@ -30,12 +30,13 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "ip_malloc.h"
-#include "in_cksum.h"
-#include "6lowpan.h"
-#include "ip.h"
-#include "tcplib.h"
-#include "circ.h"
+#include "lib6lowpan/ip_malloc.h"
+#include "lib6lowpan/in_cksum.h"
+#include "lib6lowpan/6lowpan.h"
+#include "lib6lowpan/ip.h"
+
+#include "libtcp/tcplib.h"
+#include "libtcp/circ.h"
 
 static struct tcplib_sock *conns = NULL;
 
@@ -44,6 +45,10 @@ static struct tcplib_sock *conns = NULL;
 #ifdef PC
 uint16_t alloc_local_port() {
   return (time(NULL) & 0xffff) | 0x8000;
+}
+#else
+uint16_t alloc_local_port() {
+  return 21310;
 }
 #endif
 
@@ -88,6 +93,9 @@ void print_headers(struct ip6_hdr *iph, struct tcp_hdr *tcph) {
   printf(" remote ep: %s port: %u\n", addr_buf, ntohs(tcph->dstport));
   printf(" tcp seqno: %u ackno: %u\n", ntohl(tcph->seqno), ntohl(tcph->ackno));
 }
+#else 
+#undef printf
+#define printf(FMT, args ...) ;
 #endif
 
 static struct tcplib_sock *conn_lookup(struct ip6_hdr *iph, 
@@ -510,7 +518,7 @@ int tcplib_process(struct ip6_hdr *iph, void *payload) {
             this_conn->flags |= TCP_ACKSENT;
           }
         } else { // (hdr_seqno == this_conn->ackno) {
-          printf("receive data [%i]\n", len - sizeof(struct ip6_hdr));
+          printf("receive data [%li]\n", len - sizeof(struct ip6_hdr));
 
           if (receive_data(this_conn, tcph, len - sizeof(struct ip6_hdr)) > 0 &&
               this_conn->flags & TCP_ACKSENT) {

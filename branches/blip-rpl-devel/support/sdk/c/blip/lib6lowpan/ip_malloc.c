@@ -90,6 +90,7 @@ uint16_t ip_malloc_freespace() {
 }
 
 #ifdef PC
+#include <stdlib.h>
 void dump_heap() {
   int i;
   for (i = 0; i < IP_MALLOC_HEAP_SIZE; i++) {

@@ -269,13 +269,12 @@ module IPForwardingEngineP {
   
   event void IPForward.sendDone[uint8_t ifindex](struct send_info *status) {
     struct route_entry *entry;
-    uint8_t etx = status->link_transmissions;
     int key = (int)status->upper_data;
     printfUART("sendDone: iface: %i key: %i\n", ifindex, key);
     if (key != ROUTE_INVAL_KEY) {
       entry = call ForwardingTable.lookupRouteKey(key);
       if (entry) {
-        printfUART("got entry... signal %d\n", etx);
+        printfUART("got entry... signal %d\n", status->link_transmissions);
         signal ForwardingEvents.linkResult[ifindex](&entry->next_hop, status);
       }
     }

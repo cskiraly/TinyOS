@@ -30,7 +30,7 @@
  */
 
 // #include <netinet/in.h>
-#include "ip.h"
+#include <lib6lowpan/ip.h>
 
 #define min(X,Y) (((X) > (Y)) ? (Y) : (X))
 #ifndef PC
@@ -108,21 +108,6 @@ struct tcplib_sock {
 
   /* retransmission counter */
   uint16_t retxcnt;
-
-  /* callbacks for this connection */
-/*   struct { */
-/*     /\* a previous connection request has finished *\/ */
-/*     void (*connect_done)(struct tcplib_sock *sock, int error); */
-
-/*     /\* a callback to signal new data is ready *\/ */
-/*     void (*recvfrom)(struct tcplib_sock *sock, void *data, int len); */
-
-/*     /\* the connection was closed by the other party *\/ */
-/*     void (*closed)(struct tcplib_sock *sock); */
-
-/*     /\* you called close(); we've finished closing the socket. *\/ */
-/*     void (*close_done)(struct tcplib_sock *sock); */
-/*   } ops; */
 
   /* this needs to be at the end so
      we can call init() on a socket
