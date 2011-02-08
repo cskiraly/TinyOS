@@ -573,7 +573,7 @@ uint8_t *unpack_udp(uint8_t *dest, uint8_t *nxt_hdr, uint8_t *buf) {
   struct udp_hdr *udp = (struct udp_hdr *)dest;
   uint8_t dispatch = *buf++;
 
-  *nxt_hdr = IANA_ICMP;
+  *nxt_hdr = IANA_UDP;
 
   // MUST be elided  
   udp->len = 0;
@@ -701,7 +701,6 @@ uint8_t *unpack_nhc_chain(struct lowpan_reconstruct *recon,
     } else if (((*dispatch) & LOWPAN_NHC_UDP_MASK) == LOWPAN_NHC_UDP_PATTERN) {
       struct udp_hdr *udp = (struct udp_hdr *)*dest;
       recon->r_app_len = &udp->len;
-      *nxt_hdr = IANA_UDP;
       has_nhc = 0;
       *dest += sizeof(struct udp_hdr);
     } else { has_nhc = 0; }
