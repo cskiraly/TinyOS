@@ -1,7 +1,7 @@
 /**
- * Neighbor Discover for blip
+ * Neighbor Discovery for blip
  *
- * In IPv6, neighbor discovery resolves IPv6 address which have been
+ * In IPv6, neighbor discovery resolves IPv6 addresses which have been
  * determined to be on-link to their associated link-layer addresses.
  * This simple component follows the advice of 6lowpan-nd, which
  * states that link-local addresses are derived from the associated
@@ -37,11 +37,9 @@ module IPNeighborDiscoveryP {
 
   command int NeighborDiscovery.matchContext(struct in6_addr *addr, 
                                              uint8_t *ctx) {
-    if (addr->s6_addr[0] == 0xaa &&
-        addr->s6_addr[1] == 0xaa &&
-        addr->s6_addr16[1] == 0 &&
-        addr->s6_addr16[2] == 0 &&
-        addr->s6_addr16[3] == 0) {
+    struct in6_addr me;
+    if (!(call IPAddress.getGlobalAddr(&me))) return 0;
+    if (memcmp(me.s6_addr, addr->s6_addr, 8) == 0) {
       *ctx = 0;
       return 64;
     } else {
@@ -51,9 +49,12 @@ module IPNeighborDiscoveryP {
 
   command int NeighborDiscovery.getContext(uint8_t context, 
                                            struct in6_addr *ctx) {
+    struct in6_addr me;
+    if (!(call IPAddress.getGlobalAddr(&me))) return 0;
     if (context == 0) {
-      memset(ctx->s6_addr, 0, 8);
-      ctx->s6_addr16[0] = htons(0xaaaa);
+      // memset(ctx->s6_addr, 0, 8);
+      // ctx->s6_addr16[0] = htons(0xaaaa);
+      memcpy(ctx->s6_addr, me.s6_addr, 8);
       return 64;
     } else {
       return 0;

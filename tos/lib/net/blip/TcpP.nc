@@ -1,6 +1,10 @@
 
+#ifdef PC
+#include <time.h>
+#endif
+
+#include <lib6lowpan/ip.h>
 #include <table.h>
-#include <ip.h>
 
 module TcpP {
   provides interface Tcp[uint8_t client];
@@ -18,7 +22,7 @@ module TcpP {
     N_CLIENTS = uniqueCount("TCP_CLIENT"),
   };
 
-#include <tcplib.h>
+#include <libtcp/tcplib.h>
   struct tcplib_sock socks[N_CLIENTS];
 
   int find_client(struct tcplib_sock *conn) {
@@ -32,7 +36,7 @@ module TcpP {
   void tcplib_extern_connectdone(struct tcplib_sock *sock, int error) {
     int cid = find_client(sock);
     if (cid < N_CLIENTS)
-      signal Tcp.connectDone[cid](error == 0);
+      signal Tcp.connectDone[cid](error ? FAIL : SUCCESS);
   }
 
   void tcplib_extern_recv(struct tcplib_sock *sock, void *data, int len) {
@@ -57,8 +61,8 @@ module TcpP {
     if (cid < N_CLIENTS)
       signal Tcp.acked[cid]();
   }
-#include "circ.c"
-#include "tcplib.c"
+#include "libtcp/circ.c"
+#include "libtcp/tcplib.c"
 
   struct tcplib_sock socks[uniqueCount("TCP_CLIENT")];
 
@@ -118,9 +122,11 @@ module TcpP {
 
   command error_t Tcp.connect[uint8_t client](struct sockaddr_in6 *dest,
                                               void *tx_buf, int tx_buf_len) {
+    int rv;
     socks[client].tx_buf = tx_buf;
     socks[client].tx_buf_len = tx_buf_len;
-    tcplib_connect(&socks[client], dest);
+    rv = tcplib_connect(&socks[client], dest);
+    return rv ? FAIL : SUCCESS;
   }
 
   command error_t Tcp.send[uint8_t client](void *payload, uint16_t len) {

@@ -396,7 +396,7 @@ uint8_t * lowpan_pack_headers(struct ip6_packet *packet,
 
   if (packet->ip6_hdr.ip6_dst.s6_addr[0] != 0xff) {
     /* not multicast */
-    ctx_match_length = lowpan_extern_match_context(&packet->ip6_hdr.ip6_src, &temp_dispatch);
+    ctx_match_length = lowpan_extern_match_context(&packet->ip6_hdr.ip6_dst, &temp_dispatch);
     temp_dispatch = 0;
     buf = pack_address(buf, &packet->ip6_hdr.ip6_dst, ctx_match_length,
                        &frame->ieee_dst, frame->ieee_dstpan, &temp_dispatch);

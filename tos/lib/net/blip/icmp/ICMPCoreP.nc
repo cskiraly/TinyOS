@@ -94,7 +94,7 @@ module ICMPCoreP {
   }
 
   command error_t ICMP_IP.send[uint8_t type](struct ip6_packet *pkt) {
-    struct icmp6_hdr *req = (struct icmp6_hdr *)pkt->ip6_data; 
+    struct icmp6_hdr *req = (struct icmp6_hdr *)pkt->ip6_data->iov_base; 
     if (pkt->ip6_data->iov_len >= sizeof(struct icmp6_hdr) && 
         pkt->ip6_hdr.ip6_nxt == IANA_ICMP) {
       req->cksum = 0;
