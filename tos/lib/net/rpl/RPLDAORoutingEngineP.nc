@@ -126,8 +126,8 @@ generic module RPLDAORoutingEngineP(){
 #endif
       dao = (struct dao_base_t *) dao_msg->s_pkt.ip6_data->iov_base;
 
-      //printfUART(">> sendDAO %d %lu \n", TOS_NODE_ID, ++count);
-      //call IP_DAO.send(&dao_msg->s_pkt);
+      printfUART(">> sendDAO %d %lu \n", TOS_NODE_ID, ++count);
+      call IP_DAO.send(&dao_msg->s_pkt);
       call SendPool.put(dao_msg);
 
       if (call SendQueue.size()) {
