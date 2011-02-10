@@ -66,8 +66,8 @@ generic module RPLRoutingEngineP(){
 implementation{
 
 #define RPL_GLOBALADDR
-  //#undef printfUART
-  //#define printfUART(X, args ...) ;
+#undef printfUART
+#define printfUART(X, args ...) ;
 
   /* Declare Global Variables */
   uint32_t tricklePeriod;
