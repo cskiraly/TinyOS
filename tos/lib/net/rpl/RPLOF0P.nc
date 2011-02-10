@@ -6,13 +6,13 @@ module RPLOF0P{
 }
 implementation{
 
-#define STABILITY_BOUND 10 // this determines the stability bound for switching parents.
+#define STABILITY_BOUND 0 // this determines the stability bound for switching parents.
 
-  //#undef printfUART
-  //#define printfUART(X, fmt ...) ;
+#undef printfUART
+#define printfUART(X, fmt ...) ;
 
   uint16_t nodeRank = INFINITE_RANK;
-  uint16_t minMetric = MAX_ETX;
+  uint16_t minMetric = 0xFFFF;
   uint16_t prevParent;
 
   uint8_t divideRank = 10;
@@ -114,7 +114,7 @@ implementation{
       return FAIL;
     }
 
-    if(minDesired+STABILITY_BOUND >= minMetric){ 
+    if(minDesired*10 + STABILITY_BOUND >= minMetric*10){ 
       // if the min measurement (minDesired) is not significantly better than the previous parent's (minMetric), stay with what we have...
       min = desiredParent;
       minDesired = minMetric;
@@ -142,7 +142,7 @@ implementation{
 
   command void RPLOF.resetRank(){
     nodeRank = INFINITE_RANK;
-    minMetric = MAX_ETX;
+    minMetric = 0xFFFF;
   }
 
 }
