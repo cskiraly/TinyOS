@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 People Power Co.
+/* Copyright (c) 2011 People Power Co.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,26 @@
  *
  */
 
-/** Test mote-side decoding of HDLC-encoded frames.
+/** Whitebox unit test for the PlatformSerialHdlcUartP implementation.
  *
- * @author Peter A. Bigot <pab@peoplepowerco.com>
- */
+ * This code has tricky buffer management which is a lot easier to
+ * validate when it's not embedded deep inside an HDLC client.
+ *
+ * @author Peter A. Bigot <pab@peoplepowerco.com> */
 configuration TestAppC {
 } implementation {
   components TestP;
-
-  components LedC;
-
   components MainC;
+
   TestP.Boot -> MainC;
-  TestP.HdlcFraming -> HdlcFramingC;
-  TestP.HdlcFramingOptions -> HdlcFramingC;
-  TestP.MultiLed -> LedC;
 
-  components new HdlcFramingC(256, 3);
-  HdlcFramingC.HdlcUart -> PlatformSerialHdlcUartC;
-  HdlcFramingC.UartControl -> PlatformSerialHdlcUartC;
-  TestP.HdlcControl -> HdlcFramingC;
+  components PlatformSerialHdlcUartP;
+  TestP.HdlcUart -> PlatformSerialHdlcUartP;
+  TestP.UartControl -> PlatformSerialHdlcUartP;
+  TestP.DebugPlatformSerialHdlcUart -> PlatformSerialHdlcUartP;
 
-  components PlatformSerialHdlcUartC;
-
-  components SerialPrintfC;
+  PlatformSerialHdlcUartP.SerialControl -> TestP.StubSerialControl;
+  PlatformSerialHdlcUartP.UartStream -> TestP.StubUartStream;
+  
+#include <unittest/config_impl.h>
 }
-

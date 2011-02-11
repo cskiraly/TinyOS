@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 People Power Co.
+/* Copyright (c) 2011 People Power Co.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,46 @@
  *
  */
 
-/** Test mote-side decoding of HDLC-encoded frames.
+/** Provide basic UART-related functions required for the HdlcFramingC
+ * infrastructure.
+ *
+ * The HDLC framing infrastructure needs the ability to send blocks of
+ * characters, and to receive characters one-by-one as soon as they
+ * arrive.  The processing done on each received character is fairly
+ * complex.
+ *
+ * The UartStream interface's send command and receiveByte interface
+ * technically meet these needs.  However, both are async operations.
+ * At high serial data rates and when serving as a bridge for a
+ * high-data-rate radio interface, interrupt-driven reception causes
+ * dropped packets.  DMA-based reception can work around this, but the
+ * lack of an a-priori length for received messages makes the
+ * translation to a per-byte reception event complex.
  *
  * @author Peter A. Bigot <pab@peoplepowerco.com>
  */
-configuration TestAppC {
-} implementation {
-  components TestP;
+interface HdlcUart {
 
-  components LedC;
+  /** Send len bytes from the given address over the UART.
+   *
+   * This command is essentially forwarded to UartStream.send. */
+  command error_t send (uint8_t* buf,
+			uint16_t len);
 
-  components MainC;
-  TestP.Boot -> MainC;
-  TestP.HdlcFraming -> HdlcFramingC;
-  TestP.HdlcFramingOptions -> HdlcFramingC;
-  TestP.MultiLed -> LedC;
+  /** Notification of the result of the most recent send that returned
+   * SUCCESS. */
+  async event void sendDone (error_t error);
 
-  components new HdlcFramingC(256, 3);
-  HdlcFramingC.HdlcUart -> PlatformSerialHdlcUartC;
-  HdlcFramingC.UartControl -> PlatformSerialHdlcUartC;
-  TestP.HdlcControl -> HdlcFramingC;
+  /** Notification of an error detected in serial processing.
+   *
+   * The event is raised once for each detected character drop, with
+   * an error value of ENOMEM.  It is raised with the error value
+   * SUCCESS when the infrastructure recovers from dropped characters
+   * and subsequent data is known to be good.
+   */
+  async event void uartError (error_t error);
 
-  components PlatformSerialHdlcUartC;
-
-  components SerialPrintfC;
+  /** Notification of a newly received byte.
+   */
+  event void receivedByte (uint8_t byte);
 }
-

@@ -50,12 +50,9 @@ configuration TestAppC {
   TestP.Ppp -> PppDaemonC;
   TestP.LcpAutomaton -> PppDaemonC;
 
-  components PlatformSerialC;
-  PppDaemonC.UartStream -> PlatformSerialC;
-  PppDaemonC.UartControl -> PlatformSerialC;
-#if PLATFORM_SURF
-  PppDaemonC.Msp430UsciError -> PlatformSerialC;
-#endif /* PLATFORM_SURF */
+  components PlatformSerialHdlcUartC;
+  PppDaemonC.HdlcUart -> PlatformSerialHdlcUartC;
+  PppDaemonC.UartControl -> PlatformSerialHdlcUartC;
 
 #if WITH_DISPLAYCODE
 #if PPP_DISPLAY_CODES
