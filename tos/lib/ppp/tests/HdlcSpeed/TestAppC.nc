@@ -56,18 +56,15 @@ configuration TestAppC {
 #endif /* WITH_DISPLAYCODE */
 
   components new HdlcFramingC(2400, 8);
-  HdlcFramingC.UartStream -> PlatformSerialC;
-  HdlcFramingC.UartControl -> PlatformSerialC;
+  HdlcFramingC.HdlcUart -> PlatformSerialHdlcUartC;
+  HdlcFramingC.UartControl -> PlatformSerialHdlcUartC;
 
   components CounterMicro32C;
   components new CounterToLocalTimeC(TMicro) as CounterToLocalTimeMicroC;
   CounterToLocalTimeMicroC.Counter -> CounterMicro32C;
   TestP.LocalTimeMicro -> CounterToLocalTimeMicroC;
 
-  components PlatformSerialC;
-#if PLATFORM_SURF
-  TestP.Msp430UsciError -> PlatformSerialC;
-#endif /* PLATFORM_SURF */
+  components PlatformSerialHdlcUartC;
 
   components SerialPrintfC;
 }

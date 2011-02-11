@@ -1,14 +1,12 @@
 configuration PseudoSerialC {
   provides {
     interface StdControl;
-    interface UartStream;
-    interface UartByte;
+    interface HdlcUart;
     interface PseudoSerial;
   }
 } implementation {
   components PseudoSerialP;
   StdControl = PseudoSerialP;
-  UartStream = PseudoSerialP;
-  UartByte = PseudoSerialP;
+  HdlcUart = PseudoSerialP;
   PseudoSerial = PseudoSerialP;
 }

@@ -244,7 +244,7 @@ generic module PppConfigureEngineP (uint16_t Protocol,
     const uint8_t* fpe;
     frame_key_t key;
     uint8_t* fp = call Ppp.getOutputFrame(Protocol, &fpe, InhibitCompression, &key);
-    uint8_t* dp;
+    uint8_t* dp = 0;
     LcpEventParams_rcr_t evt_params;
 
     if (0 == fp) {

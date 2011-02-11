@@ -78,11 +78,8 @@
 generic configuration HdlcFramingC (unsigned int RX_BUFFER_SIZE,
                                     uint8_t RX_FRAME_LIMIT) {
   uses {
-    interface UartStream;
+    interface HdlcUart;
     interface StdControl as UartControl;
-#if PLATFORM_SURF
-    interface Msp430UsciError;
-#endif
   }
   provides {
     interface StdControl;
@@ -94,10 +91,7 @@ generic configuration HdlcFramingC (unsigned int RX_BUFFER_SIZE,
   }
 } implementation {
   components new HdlcFramingP(RX_FRAME_LIMIT);
-  UartStream = HdlcFramingP;
-#if PLATFORM_SURF
-  Msp430UsciError = HdlcFramingP;
-#endif
+  HdlcUart = HdlcFramingP;
   HdlcFraming = HdlcFramingP;
   HdlcFramingOptions = HdlcFramingP;
   UartControl = HdlcFramingP.UartControl;

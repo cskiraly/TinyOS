@@ -41,7 +41,7 @@ configuration TestAppC {
   components PseudoSerialC;
 
   components new HdlcFramingC(256, 4);
-  HdlcFramingC.UartStream -> PseudoSerialC;
+  HdlcFramingC.HdlcUart -> PseudoSerialC;
   HdlcFramingC.UartControl -> PseudoSerialC;
 
   TestP.HdlcControl -> HdlcFramingC;
