@@ -40,10 +40,7 @@ configuration PppC {
   uses {
     interface PppProtocol[ uint16_t protocol ];
     interface PppProtocolReject;
-    interface UartStream;
-#if PLATFORM_SURF
-    interface Msp430UsciError;
-#endif
+    interface HdlcUart;
     interface StdControl as UartControl;
   }
   provides {
@@ -76,10 +73,7 @@ configuration PppC {
   PppP.HdlcControl -> HdlcFramingC;
   HdlcFramingOptions = HdlcFramingC;
   UartControl = HdlcFramingC;
-  UartStream = HdlcFramingC;
-#if PLATFORM_SURF
-  Msp430UsciError = HdlcFramingC;
-#endif
+  HdlcUart = HdlcFramingC;
 
   components LedC;
   PppP.MultiLed -> LedC;

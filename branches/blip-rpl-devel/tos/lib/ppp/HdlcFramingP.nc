@@ -37,11 +37,8 @@
  * waiting for the receiver to process them. */
 generic module HdlcFramingP (uint8_t RX_FRAME_LIMIT) {
   uses {
-    interface UartStream;
+    interface HdlcUart;
     interface StdControl as UartControl;
-#if PLATFORM_SURF
-    interface Msp430UsciError;
-#endif
     interface FragmentPool as InputFramePool;
   }
   provides {
@@ -116,7 +113,7 @@ generic module HdlcFramingP (uint8_t RX_FRAME_LIMIT) {
    * Valid only while txStart_ is not null. */
   const uint8_t* txEnd_;
 
-  /** Cached result from most recent UartStream.sendDone event, used
+  /** Cached result from most recent HdlcUart.sendDone event, used
    * for task handoff.   Access under mutex. */
   error_t sendDoneError__;
 
@@ -220,7 +217,7 @@ generic module HdlcFramingP (uint8_t RX_FRAME_LIMIT) {
         *tp++ = HDLC_ControlFieldValue;
       }
     }
-    rc = call UartStream.send(txTemporary_, tp - txTemporary_);
+    rc = call HdlcUart.send(txTemporary_, tp - txTemporary_);
     if (SUCCESS != rc) {
       txState_ = TX_idle;
     }
@@ -322,7 +319,7 @@ generic module HdlcFramingP (uint8_t RX_FRAME_LIMIT) {
     bool did_something = FALSE;
     uint8_t* releasable_fragment = 0;
     const uint8_t* frame_start = 0;
-    unsigned int frame_length;
+    unsigned int frame_length = 0;
     
     atomic {
       HdlcRxFrame_t* fp;
@@ -364,7 +361,7 @@ generic module HdlcFramingP (uint8_t RX_FRAME_LIMIT) {
     }
   }
 
-  async event void UartStream.receivedByte (uint8_t byte)
+  event void HdlcUart.receivedByte (uint8_t byte)
   {
     uint8_t in_byte = byte;
     int rx_error = HdlcError_None;
@@ -520,7 +517,7 @@ generic module HdlcFramingP (uint8_t RX_FRAME_LIMIT) {
     const uint8_t* tp = txPtr_;
     const uint8_t* uart_tx_ptr = 0;
     uint8_t next_state;
-    unsigned int uart_tx_len;
+    unsigned int uart_tx_len = 0;
     bool send_done = FALSE;
     uint32_t tx_accm;
 
@@ -589,7 +586,7 @@ generic module HdlcFramingP (uint8_t RX_FRAME_LIMIT) {
     }
     /* If we have more to send, try to send it. */
     if (uart_tx_ptr) {
-      error = call UartStream.send((uint8_t*)uart_tx_ptr, uart_tx_len);
+      error = call HdlcUart.send((uint8_t*)uart_tx_ptr, uart_tx_len);
     }
     /* If whatever we tried to send failed (delayed result from last
      * time, or immediate result from this time), forward the
@@ -610,13 +607,11 @@ generic module HdlcFramingP (uint8_t RX_FRAME_LIMIT) {
     }
   }
 
-#if PLATFORM_SURF
-  async event void Msp430UsciError.condition (unsigned int errors)
+  async event void HdlcUart.uartError (error_t error)
   {
   }
-#endif
 
-  async event void UartStream.sendDone (uint8_t* buf, uint16_t len, error_t error)
+  async event void HdlcUart.sendDone (error_t error)
   {
     /* @note This event runs in interrupt context */
     atomic {
@@ -624,10 +619,6 @@ generic module HdlcFramingP (uint8_t RX_FRAME_LIMIT) {
     }
     post uartStreamSendDone();
   }
-
-  /* Because we have to deal with transparency bytes, we don't bother
-   * trying to use the buffered reception capability. */
-  async event void UartStream.receiveDone (uint8_t* buf, uint16_t len, error_t error) { }
 
   default async event void HdlcFraming.receivedDelimiter () { }
   default async event void HdlcFraming.receptionError (HdlcError_e code) { }

@@ -38,7 +38,7 @@
  * character width (less than 10usec) before new data has to be stored
  * somewhere.  Too short.  Help a brother out by stashing a few chars
  * in a fixed buffer internal to the framer. */
-#define PPP_HDLC_UNDERFLOW_BUFFER_LENGTH 16
+#define PPP_HDLC_UNDERFLOW_BUFFER_LENGTH 64
 #endif /* PPP_HDLC_UNDERFLOW_BUFFER_LENGTH */
 
 /** Structure defining options that control HDLC framing.

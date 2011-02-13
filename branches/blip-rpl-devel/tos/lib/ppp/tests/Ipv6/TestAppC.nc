@@ -62,12 +62,9 @@ configuration TestAppC {
   TestP.Ppp -> PppDaemonC;
 
   /* Hook up the serial infrastructure. */
-  components PlatformSerialC;
-  PppDaemonC.UartStream -> PlatformSerialC;
-  PppDaemonC.UartControl -> PlatformSerialC;
-#if PLATFORM_SURF
-  PppDaemonC.Msp430UsciError -> PlatformSerialC;
-#endif PLATFORM_SURF
+  components PlatformSerialHdlcUartC;
+  PppDaemonC.HdlcUart -> PlatformSerialHdlcUartC;
+  PppDaemonC.UartControl -> PlatformSerialHdlcUartC;
 
   /* Link in RFC5072 support for both the control and network protocols */
   components PppIpv6C;

@@ -38,10 +38,7 @@
 configuration PppDaemonC {
   uses {
     interface PppProtocol[ uint16_t protocol ];
-    interface UartStream;
-#if PLATFORM_SURF
-    interface Msp430UsciError;
-#endif
+    interface HdlcUart;
     interface StdControl as UartControl;
   }
   provides {
@@ -58,10 +55,7 @@ configuration PppDaemonC {
 
   components PppC;
   PppProtocol = PppC;
-  UartStream = PppC;
-#if PLATFORM_SURF
-  Msp430UsciError = PppC;
-#endif
+  HdlcUart = PppC;
   UartControl = PppC;
   PppOptions = PppC;
   Ppp = PppC;
