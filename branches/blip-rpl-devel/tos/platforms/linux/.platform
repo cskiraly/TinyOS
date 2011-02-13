@@ -1,0 +1,28 @@
+# -*- perl -*-
+
+push( @includes, qw(
+
+  %T/platforms/linux
+  %T/lib/timer
+  %T/lib/serial
+
+# this way the platform version of mirrored files wins
+  %T/lib/net/blip
+  %T/lib/net/blip/interfaces
+  %T/lib/net/blip/shell
+  %T/lib/net/blip/icmp
+  %T/lib/net/blip/dhcp
+  %T/../support/sdk/c/blip/
+  %T/../support/sdk/c/blip/linux
+  %T/../support/sdk/c/blip/lib6lowpan
+  %T/../support/sdk/c/blip/libtcp
+
+) );
+
+@opts = qw(
+  -gcc=gcc
+  -fnesc-target=pc
+  -fnesc-no-debug
+);
+
+push @opts, "-fnesc-scheduler=TinySchedulerC,TinySchedulerC.TaskBasic,TaskBasic,TaskBasic,runTask,postTask"
