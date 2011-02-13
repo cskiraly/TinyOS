@@ -11,7 +11,7 @@ PFLAGS += -I$(TOSDIR)/platforms/$(PLATFORM)/chips/msp430
 
 # if you set this, the stack won't use dhcp to assign addresses -- it
 # will use this prefix combined with TOS_NODE_ID
-PFLAGS += -DIN6_PREFIX=\"fec0::\"
+# PFLAGS += -DIN6_PREFIX=\"fec0::\"
 
 include $(MAKERULES)
 
