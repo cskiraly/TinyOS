@@ -37,6 +37,7 @@
 module RouteCmdP {
   uses interface ShellCommand;
   uses interface ForwardingTable;
+  uses interface Timer<TMilli>;
 } implementation {
   
   char *header = "destination\t\tgateway\t\tiface\n";
@@ -55,7 +56,7 @@ module RouteCmdP {
   }
 
   int cur_entry;
-  task void sendNextEntry() {
+  event void Timer.fired() {
 #define LEN (MAX_REPLY_LEN - (cur - buf))
     struct route_entry *entry;
     int n;
@@ -66,7 +67,7 @@ module RouteCmdP {
     if (!buf || !entry)
       return;
 
-    for (;cur_entry < 10; cur_entry++) {
+    for (;cur_entry < n; cur_entry++) {
       if (entry[cur_entry].valid) {
         cur += inet_ntop6(&entry[cur_entry].prefix, cur, LEN) - 1;
         cur += snprintf(cur, LEN, "/%i\t\t", entry[cur_entry].prefixlen);
@@ -78,7 +79,7 @@ module RouteCmdP {
         *cur++ = '\n';
         if (LEN > (MAX_REPLY_LEN / 2)) {
           call ShellCommand.write(buf, cur - buf);
-          post sendNextEntry();
+          call Timer.startOneShot(100);
           cur_entry++;
           return;
         }
@@ -97,7 +98,8 @@ module RouteCmdP {
     call ShellCommand.write(buf, cur - buf);
     cur_entry = 0;
 
-    post sendNextEntry();
+    // post sendNextEntry();
+    call Timer.startOneShot(100);
     return NULL;
   }
 }
