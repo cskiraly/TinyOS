@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 People Power Co.
+/* Copyright (c) 2011 People Power Co.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,30 @@
  *
  */
 
-/** Test mote-side decoding of HDLC-encoded frames.
+/** Component that uses PlatformSerialC to provide an HdlcUart
+ * interface.
  *
  * @author Peter A. Bigot <pab@peoplepowerco.com>
  */
-configuration TestAppC {
+configuration PlatformSerialHdlcUartC {
+  provides {
+    interface StdControl;
+    interface HdlcUart;
+#if DEBUG_PLATFORM_SERIAL_HDLC_UART
+    interface DebugPlatformSerialHdlcUart;
+#endif /* DEBUG_PLATFORM_SERIAL_HDLC_UART */
+  }
 } implementation {
-  components TestP;
 
-  components LedC;
+  components PlatformSerialC;
 
-  components MainC;
-  TestP.Boot -> MainC;
-  TestP.HdlcFraming -> HdlcFramingC;
-  TestP.HdlcFramingOptions -> HdlcFramingC;
-  TestP.MultiLed -> LedC;
-
-  components new HdlcFramingC(256, 3);
-  HdlcFramingC.HdlcUart -> PlatformSerialHdlcUartC;
-  HdlcFramingC.UartControl -> PlatformSerialHdlcUartC;
-  TestP.HdlcControl -> HdlcFramingC;
-
-  components PlatformSerialHdlcUartC;
-
-  components SerialPrintfC;
+  components PlatformSerialHdlcUartP;
+  StdControl = PlatformSerialHdlcUartP;
+  HdlcUart = PlatformSerialHdlcUartP;
+#if DEBUG_PLATFORM_SERIAL_HDLC_UART
+  DebugPlatformSerialHdlcUart = PlatformSerialHdlcUartP;
+#endif /* DEBUG_PLATFORM_SERIAL_HDLC_UART */
+  
+  PlatformSerialHdlcUartP.SerialControl -> PlatformSerialC;
+  PlatformSerialHdlcUartP.UartStream -> PlatformSerialC;
 }
-

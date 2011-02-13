@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 People Power Co.
+/* Copyright (c) 2011 People Power Co.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,22 @@
  *
  */
 
-/** Test mote-side decoding of HDLC-encoded frames.
+/** Whitebox interface for inspection of PlatformSerialHdlcUart in unit tests.
  *
- * @author Peter A. Bigot <pab@peoplepowerco.com>
- */
-configuration TestAppC {
-} implementation {
-  components TestP;
+ * Enable with _DDEBUG_PLATFORM_SERIAL_HDLC_UART.
+ *
+ * @author Peter A. Bigot <pab@peoplepowerco.com> */
+interface DebugPlatformSerialHdlcUart {
 
-  components LedC;
+  /** @return the length of the ring buffer in bytes */
+  async command unsigned int ringBufferLength ();
 
-  components MainC;
-  TestP.Boot -> MainC;
-  TestP.HdlcFraming -> HdlcFramingC;
-  TestP.HdlcFramingOptions -> HdlcFramingC;
-  TestP.MultiLed -> LedC;
+  /** @return the address of the ring buffer */
+  async command uint8_t* ringBuffer ();
 
-  components new HdlcFramingC(256, 3);
-  HdlcFramingC.HdlcUart -> PlatformSerialHdlcUartC;
-  HdlcFramingC.UartControl -> PlatformSerialHdlcUartC;
-  TestP.HdlcControl -> HdlcFramingC;
+  /** @return the value of the ringbuffer store pointer */
+  async command uint8_t* rbStore ();
 
-  components PlatformSerialHdlcUartC;
-
-  components SerialPrintfC;
+  /** @return the value of the ringbuffer load pointer */
+  async command uint8_t* rbLoad ();
 }
-

@@ -57,7 +57,7 @@
  *
  * It is the developers responsibility to ensure PPP_PREFERRED_MRU <=
  * PPP_MAXIMUM_MRU */
-#define PPP_MAXIMUM_MRU 512
+#define PPP_MAXIMUM_MRU 1280
 #endif /* PPP_MAXIMUM_MRU */
 
 #ifndef PPP_HDLC_RX_FRAME_LIMIT
