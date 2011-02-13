@@ -20,7 +20,7 @@ PFLAGS += -DENABLE_SPI0_DMA
 # you can compile with or without a routing protocol... of course,
 # without it, you will only be able to use link-local communication
 PFLAGS += -DRPL_ROUTING -DRPL_STORING_MODE -I$(LOWPAN_ROOT)/tos/lib/net/rpl
-PFLAGS += -DBLIP_L2_RETRIES # -DLIB6LOWPAN_HC_VERSION=-1
+# PFLAGS += -DBLIP_L2_RETRIES # -DLIB6LOWPAN_HC_VERSION=-1
 
 # if this is set, motes will send debugging information to the address
 # listed.

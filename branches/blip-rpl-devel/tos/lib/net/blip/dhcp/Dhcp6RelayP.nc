@@ -50,11 +50,16 @@ module Dhcp6RelayP {
     interface Ieee154Address;
     interface Boot;
     interface Random;
+    interface Dhcp6Info;
   }
 } implementation {
-//   void *m_msg;
-//   int m_len;
   bool m_alive = FALSE;
+#define DHCP_PROXY_SOLICIT
+
+#ifdef DHCP_PROXY_SOLICIT
+  void *m_msg;
+  int m_len;
+#endif
 
   event void Boot.booted() {
     call UDP.bind(DH6PORT_UPSTREAM);
@@ -76,18 +81,23 @@ module Dhcp6RelayP {
     return NULL;
   }
 
-  void setup(struct dh6_request *req, int type, uint32_t txid) {
-    ieee154_laddr_t eui64;
-
-    eui64 = call Ieee154Address.getExtAddr();
+#ifdef DHCP_PROXY_SOLICIT
+  int setup(struct dh6_request *req, int type, uint32_t txid) {
+    int len;
     req->dh6_hdr.dh6_type_txid = htonl((((uint32_t)type << 24)) | 
                                       (txid & 0xffffff));
     req->dh6_id.type = htons(DH6OPT_SERVERID);
-    req->dh6_id.len = htons(12);
-    req->dh6_id.duid_ll.duid_type = htons(3);
-    req->dh6_id.duid_ll.hw_type = htons(HWTYPE_EUI64);
-    memcpy(req->dh6_id.duid_ll.eui64, eui64.data, 8);
+
+    // we need to send back the DUID of our server
+    len = call Dhcp6Info.getDuid((uint8_t *)&req->dh6_id.duid_ll, DH6_MAX_DUIDLEN);
+
+    if (len < 0)
+      return -1;
+
+    req->dh6_id.len = htons(len);
+    return 0;
   }
+#endif
 
   event void UDP.recvfrom(struct sockaddr_in6 *src, void *payload,
                           uint16_t len, struct ip6_metadata *meta) {
@@ -97,26 +107,33 @@ module Dhcp6RelayP {
 
     if (!m_alive) return;
     
-//     if (type == DH6_SOLICIT) {
-//       // send ADVERTISE
-//       if (!call AdvTimer.isRunning()) {
-//         struct dh6_request *req;
-//         struct sockaddr_in6 *m_src;
-//         m_msg = malloc(sizeof(struct dh6_request) + 
-//                        sizeof(struct sockaddr_in6));
-//         if (!m_msg) return;
+#ifdef DHCP_PROXY_SOLICIT
+    if (type == DH6_SOLICIT) {
+      // send ADVERTISE
+      if (!call AdvTimer.isRunning()) {
+        struct dh6_request *req;
+        struct sockaddr_in6 *m_src;
+        m_msg = malloc(sizeof(struct dh6_request) + 
+                       sizeof(struct sockaddr_in6) + DH6_MAX_DUIDLEN);
+        if (!m_msg) return;
 
-//         req = (struct dh6_request *)(((char *)m_msg) + 
-//                                       sizeof(struct sockaddr_in6));
-//         m_src = (struct sockaddr_in6 *)m_msg;
+        req = (struct dh6_request *)(((char *)m_msg) + 
+                                      sizeof(struct sockaddr_in6));
+        m_src = (struct sockaddr_in6 *)m_msg;
 
-//         setup(req, DH6_ADVERTISE, ntohl(hdr->dh6_type_txid) & 0xffffff );
-//         m_len = sizeof(struct dh6_request);
+        if (setup(req, DH6_ADVERTISE, ntohl(hdr->dh6_type_txid) & 0xffffff ) < 0) {
+          printfUART("DHCP Message construction faild\n");
+          free(m_msg);
+          return;
+        }
 
-//         memcpy(m_src, src, sizeof(struct sockaddr_in6));
-//         call AdvTimer.startOneShot(call Random.rand16() & 0x7);
-//       }
-//     } else
+        m_len = sizeof(struct dh6_request);
+
+        memcpy(m_src, src, sizeof(struct sockaddr_in6));
+        call AdvTimer.startOneShot(call Random.rand16() & 0x7);
+      }
+    } else
+#endif // DHCP_PROXY_SOLICIT
     if (type == DH6_RELAY_REPLY) {
       struct dh6_relay_hdr *fw_hdr = payload;
       struct sockaddr_in6 peer;
@@ -156,7 +173,6 @@ module Dhcp6RelayP {
   }
 
   event void AdvTimer.fired() {
-#if 0
     struct dh6_request *req;
     struct sockaddr_in6 *m_src;
     req = (struct dh6_request *)(((char *)m_msg) + 
@@ -165,7 +181,6 @@ module Dhcp6RelayP {
     
     call UDP.sendto(m_src, req, m_len);
     free(m_msg);
-#endif
   }
 
   event void Ieee154Address.changed() {}

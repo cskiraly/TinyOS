@@ -21,9 +21,9 @@ configuration PppRouterC {
   PppRouterP.Ipv6LcpAutomaton -> PppIpv6C;
   PppRouterP.PppIpv6 -> PppIpv6C;
 
-  components PlatformSerialC;
-  PppDaemonC.UartStream -> PlatformSerialC;
-  PppDaemonC.UartControl -> PlatformSerialC;
+  components PlatformSerialHdlcUartC;
+  PppDaemonC.HdlcUart -> PlatformSerialHdlcUartC;
+  PppDaemonC.UartControl -> PlatformSerialHdlcUartC;
 
   components PppPrintfC, PppC;;
   PppPrintfC.Ppp -> PppDaemonC;
@@ -41,10 +41,10 @@ configuration PppRouterC {
 #endif
 
   // UDP shell on port 2000
-  components UDPShellC;
+  // components UDPShellC;
 
   // prints the routing table
-  components RouteCmdC;
+  // components RouteCmdC;
 
 #ifndef IN6_PREFIX
   components Dhcp6ClientC;
