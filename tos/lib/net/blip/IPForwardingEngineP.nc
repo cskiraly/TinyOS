@@ -262,12 +262,8 @@ module IPForwardingEngineP {
       if (!(signal ForwardingEvents.approve[next_hop_ifindex](iph, 
                    (struct ip6_route*) payload, next_hop)))
         return;
-
-      /* don't send a packet back out on the interface it came in on;
-         this prevents some simple loops, particularly on the LBR */
-      if (next_hop_ifindex != ifindex) {
-        call IPForward.send[next_hop_ifindex](next_hop, &pkt, (void *)next_hop_key);
-      }
+      printfUART("Recv: Forward Packet\n");
+      call IPForward.send[next_hop_ifindex](next_hop, &pkt, (void *)next_hop_key);
     }
   }
   
