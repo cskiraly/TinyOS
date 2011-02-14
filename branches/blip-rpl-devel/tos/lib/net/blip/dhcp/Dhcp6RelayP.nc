@@ -33,9 +33,10 @@
 /*
  * DHCP v6 Relay Agent
  *
- * This agent currently all forwards requests to the edge of the
- * network.  In the future, we will cache ADVERTISE messages so we can
- * reply without a round trip to the edge.
+ * This agent forwards requests to the edge of the network.  It can
+ * proxy the responses to SOLICIT messages so that there is less of a
+ * reply implosion problem when bringing up a large network; doing so
+ * is the default behavior.
  *
  * @author Stephen Dawson-Haggerty <stevedh@eecs.berkeley.edu>
  */
@@ -95,7 +96,7 @@ module Dhcp6RelayP {
       return -1;
 
     req->dh6_id.len = htons(len);
-    return 0;
+    return len;
   }
 #endif
 
@@ -121,13 +122,13 @@ module Dhcp6RelayP {
                                       sizeof(struct sockaddr_in6));
         m_src = (struct sockaddr_in6 *)m_msg;
 
-        if (setup(req, DH6_ADVERTISE, ntohl(hdr->dh6_type_txid) & 0xffffff ) < 0) {
+        if ((m_len = setup(req, DH6_ADVERTISE, ntohl(hdr->dh6_type_txid) & 0xffffff )) < 0) {
           printfUART("DHCP Message construction faild\n");
           free(m_msg);
           return;
         }
 
-        m_len = sizeof(struct dh6_request);
+        m_len += offsetof(struct dh6_request, dh6_id.duid_ll);
 
         memcpy(m_src, src, sizeof(struct sockaddr_in6));
         call AdvTimer.startOneShot(call Random.rand16() & 0x7);
