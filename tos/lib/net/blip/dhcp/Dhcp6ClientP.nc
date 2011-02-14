@@ -87,15 +87,16 @@ module Dhcp6ClientP {
     VALID_WAIT = 0xff,
     
     // how long to send requests before hopping back to SOLICIT
-    REQUEST_TIMEOUT = 60,
+    REQUEST_TIMEOUT = 120,
 
-    TIMER_PERIOD = 5,
+    TIMER_PERIOD = 15,
   };
   
   command error_t StdControl.start() {
     m_state = DH6_SOLICIT;
     call UDP.bind(DH6PORT_DOWNSTREAM);
-    call Timer.startPeriodic(1024 * TIMER_PERIOD);
+    // call Timer.startPeriodic(1024 * TIMER_PERIOD);
+    call Timer.startOneShot((1024L * TIMER_PERIOD) % (call Random.rand16()));
     return SUCCESS;
   }
   
@@ -199,6 +200,9 @@ module Dhcp6ClientP {
 
   event void Timer.fired() {
     // state machine transition timeouts
+    if (!call Timer.isRunning())
+      call Timer.startPeriodic(1024L * TIMER_PERIOD);
+
     switch (m_state) {
     case DH6_SOLICIT:
       sendSolicit();

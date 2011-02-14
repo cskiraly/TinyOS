@@ -158,6 +158,7 @@ module IPAddressP {
   command error_t IPAddress.removeAddress() {
     m_valid_addr = FALSE;
     m_short_addr = FALSE;
+    call Ieee154Address.setShortAddr(0);
     signal IPAddress.changed(FALSE);
     return SUCCESS;
   }
