@@ -6,7 +6,7 @@ This tree contains support for a stack built on top of:
  draft-roll-rpl-17 for IPv6 routing
  linux ppp for communicating with external networks 
    - from the peoplepower osian stack
-   - merged in from the osian-squashed-ppp@5261 branch
+   - merged in from the osian-squashed-ppp branch
  dhcpv6 for doing address assignment
 
 We track trunk, periodically re-merging.  In the future this release
@@ -15,6 +15,10 @@ will be integrated with trunk.
 TOSROOT=/home/sdawson/svn/blip-rpl-devel
 TOSDIR=/home/sdawson/svn/blip-rpl-devel/tos
 MAKERULES=/home/sdawson/svn/blip-rpl-devel/support/make/Makerules
+
+Some of the apps are tight on code space (PppRouter).  You should use
+mspgcc4 (http://mspgcc4.sourceforge.net/) to compile, since it
+generates 5-10% code size reductions when used with -Os.
 
 Address assignment
 ========================================
@@ -104,6 +108,14 @@ $ ifconfig ppp0 add fec0::100/64
 as root.  A few notes
  - Once this link is up, you need to assign it a routable address on
    the prefix; that's what the second command does.
+
+The ppp stack has some trouble on the tmote and epic platforms due to
+timing issues.  You may want to try out different baud rates; you can
+do this by mirroring tos/platforms/telosa/TelosSerialP.nc in your app
+directory and changing the baud rate defines in there.  I've found
+that 38400 is a pretty good compromise.  We may go back to a DMA
+solution for this in the future to fix this problem at higher baud
+rates.
 
  == More good stuff ==
 
