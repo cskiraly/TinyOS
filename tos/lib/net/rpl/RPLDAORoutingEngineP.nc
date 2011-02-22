@@ -126,7 +126,7 @@ generic module RPLDAORoutingEngineP(){
 #endif
       dao = (struct dao_base_t *) dao_msg->s_pkt.ip6_data->iov_base;
 
-      printfUART(">> sendDAO %d %lu \n", TOS_NODE_ID, ++count);
+      //printfUART(">> sendDAO %d %lu \n", TOS_NODE_ID, ++count);
       call IP_DAO.send(&dao_msg->s_pkt);
       call SendPool.put(dao_msg);
 
@@ -154,7 +154,7 @@ generic module RPLDAORoutingEngineP(){
     }
     */
     call GenerateDAOTimer.startPeriodic(dao_rate);
-    call DelayDAOTimer.startPeriodic(delay_dao);
+    call DelayDAOTimer.startOneShot(delay_dao + call Random.rand16()%100);
 
     if(call GenerateDAOTimer.isRunning()){
       return SUCCESS;
@@ -243,6 +243,7 @@ generic module RPLDAORoutingEngineP(){
 
   event void DelayDAOTimer.fired() {
     post sendDAO();
+    call DelayDAOTimer.startOneShot(delay_dao + call Random.rand16()%100);
   }
 
   event void RemoveTimer.fired() {
