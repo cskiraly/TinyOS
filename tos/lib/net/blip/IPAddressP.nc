@@ -92,8 +92,8 @@ module IPAddressP {
     if (addr->s6_addr16[0] == htons(0xfe80)) {
       // link-local
       if (m_short_addr && 
-          addr->s6_addr16[5] == ntohs(0x00FF) &&
-          addr->s6_addr16[6] == ntohs(0xFE00)) {
+          addr->s6_addr16[5] == htons(0x00FF) &&
+          addr->s6_addr16[6] == htons(0xFE00)) {
         if (ntohs(addr->s6_addr16[4]) == (panid & ~0x200) && 
             ntohs(addr->s6_addr16[7]) == saddr) {
           return TRUE;
