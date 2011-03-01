@@ -6,25 +6,29 @@ module RPLMRHOFP{
 }
 implementation{
 
-#define STABILITY_BOUND 5
+#define STABILITY_BOUND 10
 // this determines the stability bound for switching parents.
 // 0 is the min value to have nodes aggressively seek new parents
 // 5 or 10 is suggested
 
+#undef printfUART
+#define printfUART(X, fmt ...) ;
+
   //uint16_t minRank = INFINITE_RANK;
   uint16_t nodeRank = INFINITE_RANK;
-  uint16_t minMetric = MAX_ETX;
+  uint16_t minMetric = 0xFFFF;
 
-  uint8_t divideRank = 10;
+  //#define divideRank 10
+
   uint32_t parentChanges = 0;
-  uint16_t nodeEtx = 10;
+  uint16_t nodeEtx = divideRank;
   uint16_t prevParent;
   bool newParent = FALSE;
   uint16_t desiredParent = MAX_PARENT;
   uint16_t min_hop_rank_inc = 1;
 
   void setRoot(){
-    nodeEtx = 10;
+    nodeEtx = divideRank;
     nodeRank = ROOT_RANK;
   }
 
@@ -79,7 +83,9 @@ implementation{
 
     nodeEtx = parentNode->etx_hop + parentNode -> etx;
      // -1 because the ext computation will add at least 1
-    nodeRank = (parentNode->etx_hop / divideRank) + parentNode -> rank + (min_hop_rank_inc - 1);
+    nodeRank = (parentNode->etx_hop / divideRank) + parentNode->rank + (min_hop_rank_inc - 1);
+
+    printfUART("%d %d %d %d %d %d %d\n", desiredParent, parentNode->etx_hop, divideRank, parentNode->rank, (min_hop_rank_inc - 1), nodeRank, prevRank);
 
     if (nodeRank <= ROOT_RANK && prevRank > 1) {
       nodeRank = prevRank;
@@ -109,36 +115,51 @@ implementation{
       parentNode = call ParentTable.get(min);
     }
 
+    minDesired = parentNode->etx_hop + parentNode->etx;
+
     if (min == MAX_PARENT){ 
       call RPLOF.resetRank();
       call RPLRoute.inconsistency();
       return FALSE;
     }
 
-    minDesired = parentNode->etx_hop + parentNode->etx;
+    printfUART("%d %d %d %d \n", parentNode->etx, parentNode->rank, parentNode->etx_hop, min);
+
+    parentNode = call ParentTable.get(minDesired);
+    if(htons(parentNode->parentIP.s6_addr16[7]) != 0)
+      minMetric = parentNode->etx_hop + parentNode->etx; // update to most recent etx
 
     for (indexset = min + 1; indexset < MAX_PARENT; indexset++) {
       parentNode = call ParentTable.get(indexset);
-      if(parentNode->valid && parentNode->etx >= 10 && parentNode->etx_hop >= 0 && 
+      if(parentNode->valid && parentNode->etx >= divideRank && parentNode->etx_hop >= 0 && 
 	 (parentNode->etx_hop + parentNode->etx < minDesired) && parentNode->rank < nodeRank && parentNode->rank != INFINITE_RANK){
 	min = indexset;
-	minDesired = parentNode->etx_hop + parentNode->etx;
+	minDesired = parentNode->etx_hop + parentNode->etx; // best aggregate end-to-end etx
+	printfUART("%d %d %d %d \n", parentNode->etx, parentNode->rank, parentNode->etx_hop, min);
 	if(min == desiredParent)
 	  minMetric = minDesired;
-      }
+      }else if(min == desiredParent)
+	minMetric = minDesired;
     }
 
     parentNode = call ParentTable.get(min);
+
+    //printfUART("%d %d %d %d \n", parentNode->etx, parentNode->rank, parentNode->etx_hop, min);
+    
     if(parentNode->rank > nodeRank || parentNode->rank == INFINITE_RANK){
       printfUART("SELECTED PARENT is FFFF %d\n", TOS_NODE_ID);
       return FAIL;
     }
 
-    if(minDesired+STABILITY_BOUND >= minMetric){ 
+    printfUART("minD %d SB %d minM %d \n", minDesired, STABILITY_BOUND, minMetric);
+
+    if(minDesired + STABILITY_BOUND >= minMetric){ 
       // if the min measurement (minDesired) is not significantly better than the previous parent's (minMetric), stay with what we have...
       min = desiredParent;
       minDesired = minMetric;
     }
+
+    printfUART(" <> %d %d %d %d \n", parentNode->etx, parentNode->rank, parentNode->etx_hop, min);
 
     minMetric = minDesired;
     desiredParent = min;
@@ -161,7 +182,7 @@ implementation{
 
   command void RPLOF.resetRank(){
     nodeRank = INFINITE_RANK;
-    minMetric = MAX_ETX;
+    minMetric = 0xFFFF;
   }
 
 }

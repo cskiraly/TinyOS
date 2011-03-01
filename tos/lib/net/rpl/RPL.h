@@ -74,13 +74,26 @@
 
 #include <iprouting.h>
 
-#define ETX_THRESHOLD 200
+#ifndef RPL_OF_MRHOF
+
+#define ETX_THRESHOLD 200 //25600
+#define minHopRankIncrease 1
+#define divideRank 10 //128
+#define INIT_ETX 35 //448
+
+#else
+
+#define ETX_THRESHOLD 25600
+#define minHopRankIncrease 128
+#define divideRank 128
+#define INIT_ETX 448
+
+#endif // MRHOF
+
 #define MAX_ETX 200
 #define MAX_PARENT 20
 #define MAX_HOPCOUNT 30
 #define RPL_QUEUE_SIZE 5
-#define minHopRankIncrease 1
-#define INIT_ETX 35
 #define RPL_MAX_SOURCEROUTE 10
 
 enum {
