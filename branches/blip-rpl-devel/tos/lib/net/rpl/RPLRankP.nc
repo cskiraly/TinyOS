@@ -99,8 +99,6 @@ implementation {
   struct in6_addr prevParent;
   uint32_t parentChanges = 0;
   uint8_t parentNum = 0;
-  uint16_t minMetric = MAX_ETX;
-  //uint16_t desiredParent = MAX_PARENT;
   uint16_t VERSION = 0;
   uint16_t nodeEtx = divideRank;
   uint16_t MAX_RANK_INCREASE = 1;
@@ -268,9 +266,7 @@ implementation {
     parentNum = 0;
     call RPLOF.resetRank();
     nodeRank = INFINITE_RANK;
-    minMetric = MAX_ETX;
     resetValid();
-    //desiredParent = MAX_PARENT;
     //memcpy(&DODAGID, 0, 16);
     //call RouteInfo.inconsistency();
   }
@@ -629,8 +625,6 @@ implementation {
       call RPLOF.resetRank();
       nodeRank = INFINITE_RANK;
       minRank = INFINITE_RANK;
-      minMetric = MAX_ETX;
-      //desiredParent = MAX_PARENT;
       resetValid();
     }
 
@@ -662,7 +656,6 @@ implementation {
 	call RPLOF.resetRank();
 	nodeRank = INFINITE_RANK;
 	minRank = INFINITE_RANK;
-	minMetric = MAX_ETX;
 	//desiredParent = MAX_PARENT;
 	resetValid();
 	newDodag = TRUE;
@@ -679,7 +672,6 @@ implementation {
       call RPLOF.resetRank();
       nodeRank = INFINITE_RANK;
       minRank = INFINITE_RANK;
-      minMetric = MAX_ETX;
       //desiredParent = MAX_PARENT;
       newDodag = TRUE;
       resetValid();
@@ -814,8 +806,6 @@ implementation {
 	    memcpy(&DODAGID, &rDODAGID, sizeof(struct in6_addr));
 	    parentNum = 0;
 	    VERSION = dio->version;
-	    minMetric = MAX_ETX;
-	    //desiredParent = MAX_PARENT;
 	    resetValid();
 	    insertParent(tempParent);
 	    call RPLOF.recomputeRoutes();
@@ -832,8 +822,6 @@ implementation {
 	  memcpy(&DODAGID, &rDODAGID, sizeof(struct in6_addr));
 	  parentNum = 0;
 	  VERSION = dio->version;
-	  minMetric = MAX_ETX;
-	  //desiredParent = MAX_PARENT;
 	  resetValid();
 	  insertParent(tempParent);
 	  call RPLOF.recomputeRoutes();
@@ -875,8 +863,6 @@ implementation {
 	    memcpy(&DODAGID, &rDODAGID, sizeof(struct in6_addr));
 	    parentNum = 0;
 	    VERSION = dio->version;
-	    minMetric = MAX_ETX;
-	    //desiredParent = MAX_PARENT;
 	    resetValid();
 	    insertParent(tempParent);
 	    call RPLOF.recomputeRoutes();
@@ -892,8 +878,6 @@ implementation {
 	  memcpy(&DODAGID, &rDODAGID, sizeof(struct in6_addr));
 	  parentNum = 0;
 	  VERSION = dio->version;
-	  minMetric = MAX_ETX;
-	  //desiredParent = MAX_PARENT;
 	  resetValid();
 	  insertParent(tempParent);
 	  call RPLOF.recomputeRoutes();
