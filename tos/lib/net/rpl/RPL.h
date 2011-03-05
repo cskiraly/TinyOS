@@ -90,7 +90,6 @@
 
 #endif // MRHOF
 
-#define MAX_ETX 200
 #define MAX_PARENT 20
 #define MAX_HOPCOUNT 30
 #define RPL_QUEUE_SIZE 5
