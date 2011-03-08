@@ -163,7 +163,7 @@ implementation {
   // declare the I am the root
   command void RPLRankInfo.declareRoot(){ //done
     ROOT = TRUE;
-    minMetric = divideRank;
+    // minMetric = divideRank;
     nodeRank = ROOT_RANK;
   }
 
