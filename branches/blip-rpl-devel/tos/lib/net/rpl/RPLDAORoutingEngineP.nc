@@ -64,7 +64,10 @@ generic module RPLDAORoutingEngineP(){
   //#undef printfUART
   //#define printfUART(X, args ...) ;
 
-  uint32_t dao_rate = 5 * 1024U;
+#define INIT_DAO 1024;
+
+  uint8_t dao_double_count = 0;
+  uint32_t dao_rate = INIT_DAO;
   uint32_t delay_dao = 256; // dao batches will be fired 256 ms after the first dao message is scheduled
   // every 100 ms, check if elememts in the entry should be deleted --
   // only for storing nodes
@@ -153,6 +156,7 @@ generic module RPLDAORoutingEngineP(){
       call GenerateDAOTimer.startPeriodic(dao_rate);
     }
     */
+    //dao_rate *= 2;
     call GenerateDAOTimer.startPeriodic(dao_rate);
     call DelayDAOTimer.startOneShot(delay_dao + call Random.rand16()%100);
 
@@ -177,6 +181,12 @@ generic module RPLDAORoutingEngineP(){
 
   event void GenerateDAOTimer.fired() { // Initiate my own DAO messages
     post initDAO();
+    if(dao_double_count < 10){
+      dao_rate = dao_rate * 2 + call Random.rand16()%100;
+      dao_double_count ++;
+    }
+    call GenerateDAOTimer.stop();
+    call GenerateDAOTimer.startOneShot(dao_rate );
   }
 
   task void initDAO(){
@@ -345,7 +355,7 @@ generic module RPLDAORoutingEngineP(){
       return;
     }else{
       if(!call GenerateDAOTimer.isRunning())
-	call GenerateDAOTimer.startPeriodic(dao_rate);
+	call GenerateDAOTimer.startOneShot(dao_rate);
     }
     dao_msg = call SendPool.get();
     if (dao_msg == NULL) {
@@ -373,5 +383,13 @@ generic module RPLDAORoutingEngineP(){
     }
     */
   }
+
+  command void RPLDAORouteInfo.newParent(){
+    dao_rate = INIT_DAO;
+    dao_double_count = 0;
+    call GenerateDAOTimer.stop();
+    call GenerateDAOTimer.startOneShot(dao_rate);
+  }
+
   event void IPAddress.changed(bool global_valid) {}
 }

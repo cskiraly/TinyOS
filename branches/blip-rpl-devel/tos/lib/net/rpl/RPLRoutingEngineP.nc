@@ -67,8 +67,8 @@ implementation{
 
 #define RPL_GLOBALADDR
 
-#undef printfUART
-#define printfUART(X, args ...) ;
+  //#undef printfUART
+  //#define printfUART(X, args ...) ;
 
   /* Declare Global Variables */
   uint32_t tricklePeriod;
@@ -293,8 +293,8 @@ implementation{
     printfUART("\n >>>>>> TxDIO etx %d %d %d %lu \n", call RPLRankInfo.getEtx(),  \
                ntohs(DODAGID.s6_addr16[7]), msg.dagRank, tricklePeriod);
     */
-    printfUART(">> sendDIO %d %lu \n", TOS_NODE_ID, ++countdio);
-    printfUART("RANK %d %d %d\n", call RPLRankInfo.getRank(&ADDR_MY_IP), call RPLRankInfo.getEtx(), call RPLRankInfo.hasParent());
+    printfUART("TXDIO %d %lu \n", TOS_NODE_ID, ++countdio);
+    //printfUART("RANK %d %d %d\n", call RPLRankInfo.getRank(&ADDR_MY_IP), call RPLRankInfo.getEtx(), call RPLRankInfo.hasParent());
 
     if (UNICAST_DIO) {
       UNICAST_DIO = FALSE;
@@ -337,7 +337,7 @@ implementation{
     //call IPAddress.getGlobalAddr(&pkt.ip6_hdr.ip6_src);
 
     //printfUART("\n >>>>>> TxDIS\n");
-    printfUART(">> sendDIS %d %lu \n", TOS_NODE_ID, ++countdis);
+    //printfUART(">> sendDIS %d %lu \n", TOS_NODE_ID, ++countdis);
 
     call IP_DIS.send(&pkt);
   }
