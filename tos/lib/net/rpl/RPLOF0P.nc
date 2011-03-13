@@ -3,6 +3,7 @@ module RPLOF0P{
   uses interface ForwardingTable;
   uses interface RPLRoutingEngine as RPLRoute;
   uses interface RPLParentTable as ParentTable;
+  uses interface RPLDAORoutingEngine as RPLDAO;
 }
 implementation{
 
@@ -166,8 +167,9 @@ implementation{
     if(prevParent != parentNode->parentIP.s6_addr16[7]){
       //printfUART(">> New Parent %d %x %lu \n", TOS_NODE_ID, htons(parentNode->parentIP.s6_addr16[7]), parentChanges++);
       printfUART("#L %u 0\n", (uint8_t)htons(prevParent));
-      printfUART("#L %u 1\n", (uint8_t)htons(parentNode->parentIP.s6_addr16[7]));
+      printfUART("#L %u 1 %d\n", (uint8_t)htons(parentNode->parentIP.s6_addr16[7]), TOS_NODE_ID);
       newParent = TRUE;
+      call RPLDAO.newParent();
     }
     prevParent = parentNode->parentIP.s6_addr16[7];
 
