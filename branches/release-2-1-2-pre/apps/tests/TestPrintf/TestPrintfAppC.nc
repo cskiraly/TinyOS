@@ -46,7 +46,7 @@
 configuration TestPrintfAppC{
 }
 implementation {
-  components MainC, TestPrintfC;
+  components MainC, TestPrintfC, SerialStartC;
   components new TimerMilliC();
 
   TestPrintfC.Boot -> MainC;
