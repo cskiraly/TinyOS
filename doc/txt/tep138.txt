@@ -76,6 +76,8 @@ like collection identifiers in collection protocols[1_].
 The sender uses the SourceRouteSend interface to set the contents of a packet.
 The sender uses the SourceRouteSend interface to introduce a packet into the network.
 
+::
+
   interface SourceRouteSend {
     command error_t send(am_addr_t *path, uint8_t pathLen, message_t* msg, uint8_t len);
     command error_t cancel(message_t* msg);
@@ -86,7 +88,9 @@ The sender uses the SourceRouteSend interface to introduce a packet into the net
 
 
 The forwarder uses the SourceRoutePacket interface to update the header as it 
-forwards the packet:
+forwards the packet.
+
+::
 
   interface SourceRoutePacket
   {
@@ -113,7 +117,7 @@ forwards the packet:
 ====================================================================
 
 A source routing service MUST provide one SourceRoutingC,
-which has the following signature:
+which has the following signature::
 
   configuration SourceRoutingC {
     provides {
