@@ -112,6 +112,7 @@ public class DDocument
 	String imgName = directory + "/mote.gif";
 	try {
 	    image = Toolkit.getDefaultToolkit().getImage(imgName);
+	    icon = new ImageIcon(image);
 	}
 	catch (Exception e) {
 	    System.out.println(e);
