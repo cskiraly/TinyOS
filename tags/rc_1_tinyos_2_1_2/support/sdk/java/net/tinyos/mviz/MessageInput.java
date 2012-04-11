@@ -110,7 +110,7 @@ public class MessageInput implements net.tinyos.message.MessageListener {
 		name = name.substring(4); // Chop off "get_"
 		try {
 		    //System.out.println(name + " returns " + res);
-		    Integer result = (Integer)method.invoke(message, null);
+		    Integer result = (Integer)method.invoke(message);
 		    table.put(name, result);
 		}
 		catch (java.lang.IllegalAccessException exc) {
@@ -123,7 +123,7 @@ public class MessageInput implements net.tinyos.message.MessageListener {
 	    else if (name.startsWith("get_link_")) {
 		name = name.substring(9); // chop off "get_link_"
 		try {
-		    Integer result = (Integer)method.invoke(message, null);
+		    Integer result = (Integer)method.invoke(message);
 		    linkTable.put(name, result);
 		}
 		catch (java.lang.IllegalAccessException exc) {
