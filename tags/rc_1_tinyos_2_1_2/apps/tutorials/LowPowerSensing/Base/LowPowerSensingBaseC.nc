@@ -41,7 +41,8 @@ module LowPowerSensingBaseC {
     interface Queue<message_t> as MsgQueue;
     interface Leds;
     interface LowPowerListening as LPL;
-
+    interface PacketAcknowledgements as Acks;
+    
     interface SplitControl as SerialAMControl;
     interface AMPacket as SerialAMPacket;
     interface Packet as SerialPacket;
@@ -85,14 +86,22 @@ implementation {
   event message_t* SerialRequestSampleMsgsReceive.receive(message_t* msg, void* payload, uint8_t len) {
     serial_request_samples_msg_t* request_msg = payload;
     call Leds.led0On();
+    call Acks.requestAck(&request_samples_msg);
     call LPL.setRemoteWakeupInterval(&request_samples_msg, LPL_INTERVAL+100);
     call RadioRequestSampleMsgsSend.send(request_msg->addr, &request_samples_msg, sizeof(request_samples_msg_t));
     return msg;
   }
 
   event void RadioRequestSampleMsgsSend.sendDone(message_t* msg, error_t error) {
-    if(error == SUCCESS)
+    if(error == SUCCESS && call Acks.wasAcked(msg)) {
       call Leds.led0Off();
+    }
+    else {
+      call Leds.led1Toggle();
+      call Acks.requestAck(&request_samples_msg);
+      call LPL.setRemoteWakeupInterval(&request_samples_msg, LPL_INTERVAL+100);
+      call RadioRequestSampleMsgsSend.send(call RadioAMPacket.destination(msg), msg, sizeof(request_samples_msg_t));
+    }
   }
 
   event message_t* RadioSampleMsgReceive.receive(message_t* msg, void* payload, uint8_t len) {

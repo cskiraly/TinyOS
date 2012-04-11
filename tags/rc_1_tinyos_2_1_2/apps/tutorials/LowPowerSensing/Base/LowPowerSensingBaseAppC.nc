@@ -43,7 +43,8 @@ implementation {
   MainC.Boot <- App;
   App.MsgQueue -> Queue;
   App.Leds -> LedsC;
-
+  App.Acks -> Radio;
+  
   components SerialActiveMessageC as Serial;
   App.SerialAMControl -> Serial;
   App.SerialAMPacket -> Serial;
