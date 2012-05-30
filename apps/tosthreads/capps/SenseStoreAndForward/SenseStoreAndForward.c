@@ -72,6 +72,7 @@
 #define NUM_SENSORS              4
 #define SAMPLING_PERIOD       3000
 #define SENDING_PERIOD       10000
+#define STACK_SIZE             150
 #define AM_SENSOR_DATA_MSG    0x25   
 
 //Data structure for storing sensor data
@@ -118,12 +119,12 @@ void tosthread_main(void* arg) {
   led0Toggle();
   volumeLogErase(VOLUME_SENSORLOG);
   volumeLogSeek(VOLUME_SENSORLOG, SEEK_BEGINNING);
-  tosthread_create(&humidity, humidity_thread, NULL, 200);
-  tosthread_create(&temperature, temperature_thread, NULL, 200);
-  tosthread_create(&total_solar, total_solar_thread, NULL, 200);
-  tosthread_create(&photo_active, photo_active_thread, NULL, 200);
-  tosthread_create(&store_handler, store_thread, NULL, 200);
-  tosthread_create(&send_handler, send_thread, NULL, 200);
+  tosthread_create(&humidity, humidity_thread, NULL, STACK_SIZE);
+  tosthread_create(&temperature, temperature_thread, NULL, STACK_SIZE);
+  tosthread_create(&total_solar, total_solar_thread, NULL, STACK_SIZE);
+  tosthread_create(&photo_active, photo_active_thread, NULL, STACK_SIZE);
+  tosthread_create(&store_handler, store_thread, NULL, STACK_SIZE);
+  tosthread_create(&send_handler, send_thread, NULL, STACK_SIZE);
 }
 
 void read_sensor(error_t (*read)(uint16_t*), nx_uint16_t* nx_val) {
